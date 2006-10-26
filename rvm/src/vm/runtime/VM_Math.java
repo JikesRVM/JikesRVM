@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Placeholder for constants that are accessed from

@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 /**
  * Instruction priority representation
  * Used by the scheduler to enumerate over instructions

@@ -7,26 +7,26 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.mm.mmtk.Lock;
-import com.ibm.JikesRVM.mm.mmtk.Collection;
+import com.ibm.jikesrvm.mm.mmtk.Lock;
+import com.ibm.jikesrvm.mm.mmtk.Collection;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.VM;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.jikesrvm.VM_BootRecord;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.VM_Memory;
+import com.ibm.jikesrvm.VM_Time;
+import com.ibm.jikesrvm.VM_Entrypoints;
+import com.ibm.jikesrvm.VM_Reflection;
+import com.ibm.jikesrvm.VM_Synchronization;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.VM_Thread;
 
 /**
  * VM_Handshake handles mutator requests to initiate a collection, and

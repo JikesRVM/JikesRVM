@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
+import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.vmmagic.unboxed.*;
 
 /**

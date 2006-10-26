@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.OPT_IR;
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
 /**
  * A compiler phase to construct the loop structure tree (LST).
  * The steps are (1) construct approximate dominators (ie blocks are 

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * utility class: represents a pair of value numbers.

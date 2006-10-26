@@ -8,11 +8,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.LinkedList;
 
 /**
@@ -304,7 +304,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     int count = 0;
     for (int idx=0, size=typeCodes.length;
          idx < size; idx++) {
-      if (typeCodes[idx] != com.ibm.JikesRVM.OSR.OSR_Constants.VoidTypeCode) {
+      if (typeCodes[idx] != com.ibm.jikesrvm.OSR.OSR_Constants.VoidTypeCode) {
         count++;
       }
     }

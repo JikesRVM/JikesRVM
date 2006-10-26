@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * A set of constants that define some useful Java types and stack

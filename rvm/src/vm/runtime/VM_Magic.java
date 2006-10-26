@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 

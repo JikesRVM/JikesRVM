@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -35,7 +35,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
    *
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
+   * @see com.ibm.jikesrvm.opt.OPT_ExpandRuntimeServices
    */
   static void inlineLock(Object o, Offset lockOffset) throws InlinePragma {
     Word old = VM_Magic.prepareWord(o, lockOffset);
@@ -59,7 +59,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
    *
    * @param o the object to be unlocked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
+   * @see com.ibm.jikesrvm.opt.OPT_ExpandRuntimeServices
    */
   static void inlineUnlock(Object o, Offset lockOffset) throws InlinePragma {
     Word old = VM_Magic.prepareWord(o, lockOffset);

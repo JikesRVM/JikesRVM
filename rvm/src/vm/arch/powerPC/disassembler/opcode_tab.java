@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Structure for the D and XL forms, PowerPC instruction set 

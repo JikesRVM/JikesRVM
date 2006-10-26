@@ -7,16 +7,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_Controller;
-import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
+import com.ibm.jikesrvm.adaptive.VM_Controller;
+import com.ibm.jikesrvm.adaptive.VM_AOSDatabase;
 //-#endif
 
 /**
@@ -29,7 +29,7 @@ import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
  * @see OPT_GenerationContext
  */
 public class OPT_Inliner implements OPT_Operators, 
-                                    com.ibm.JikesRVM.opt.OPT_Constants {
+                                    com.ibm.jikesrvm.opt.OPT_Constants {
 
   // The following flag requires an adaptive boot image and flag
   // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation

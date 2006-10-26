@@ -9,7 +9,7 @@
 //$Id$
 
 import java.util.*;
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**
  * Worker thread for parallel compilation

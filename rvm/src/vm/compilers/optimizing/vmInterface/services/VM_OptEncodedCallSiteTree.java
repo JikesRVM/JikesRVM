@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import java.util.*;
-import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTree;
-import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTreeNode;
+import com.ibm.jikesrvm.opt.ir.OPT_CallSiteTree;
+import com.ibm.jikesrvm.opt.ir.OPT_CallSiteTreeNode;
 import org.vmmagic.pragma.*;
 
 /**

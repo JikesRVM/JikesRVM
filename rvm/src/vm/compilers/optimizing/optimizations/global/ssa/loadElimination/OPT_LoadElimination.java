@@ -7,13 +7,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
-import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
+import com.ibm.jikesrvm.opt.OPT_IndexPropagation.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -619,7 +619,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
      */
     public Constructor getClassConstructor() {
       if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
+        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
       }
       return constructor;
     }
@@ -680,7 +680,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
      */
     public Constructor getClassConstructor() {
       if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
+        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
       }
       return constructor;
     }

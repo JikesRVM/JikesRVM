@@ -9,7 +9,7 @@
 //$Id$
 package java.lang;
 
-import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.jikesrvm.VM_Magic;
 
 /**
  * Float <==> int bit transfer for Jikes RVM.

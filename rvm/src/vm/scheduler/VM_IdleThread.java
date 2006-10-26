@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Low priority thread to run when there's nothing else to do.

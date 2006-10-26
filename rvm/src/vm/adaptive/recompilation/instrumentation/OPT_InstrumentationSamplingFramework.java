@@ -8,13 +8,13 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.adaptive.*;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.adaptive.*;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.opt.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
@@ -79,7 +79,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_InstrumentationSamplingFramework");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_InstrumentationSamplingFramework");
     }
     return constructor;
   }

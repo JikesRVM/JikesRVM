@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

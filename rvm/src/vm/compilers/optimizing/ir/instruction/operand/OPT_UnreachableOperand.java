@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
 /**
  * This operand represents, in a phi function, a control-flow path that is

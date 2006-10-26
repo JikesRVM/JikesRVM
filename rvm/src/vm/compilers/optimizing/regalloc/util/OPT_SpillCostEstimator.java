@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /**
  * An object that returns an estimate of the relative cost of spilling a 

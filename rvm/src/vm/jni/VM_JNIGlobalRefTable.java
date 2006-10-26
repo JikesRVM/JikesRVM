@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2002, 2004
  */
 //$Id$
-package com.ibm.JikesRVM.jni;
+package com.ibm.jikesrvm.jni;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.*;
 import java.lang.ref.WeakReference;
 
 import org.vmmagic.unboxed.*;
@@ -34,7 +34,7 @@ class VM_JNIGlobalRefTable {
         
     if (free >= refs.length) {
       Object[] newrefs = new Object[ refs.length * 2 ];
-      com.ibm.JikesRVM.classloader.VM_Array.arraycopy(refs, 0, newrefs, 0, refs.length);
+      com.ibm.jikesrvm.classloader.VM_Array.arraycopy(refs, 0, newrefs, 0, refs.length);
       refs = newrefs;
     }
 

@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import java.util.Date;
 import java.lang.ref.SoftReference;
@@ -29,36 +29,36 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.options.*;
-import com.ibm.JikesRVM.mm.mmtk.Assert;
-import com.ibm.JikesRVM.mm.mmtk.Lock;
-import com.ibm.JikesRVM.mm.mmtk.Options;
-import com.ibm.JikesRVM.mm.mmtk.ReferenceGlue;
-import com.ibm.JikesRVM.mm.mmtk.Scanning;
-import com.ibm.JikesRVM.mm.mmtk.SynchronizedCounter;
-import com.ibm.JikesRVM.mm.mmtk.Collection;
+import com.ibm.jikesrvm.mm.mmtk.Assert;
+import com.ibm.jikesrvm.mm.mmtk.Lock;
+import com.ibm.jikesrvm.mm.mmtk.Options;
+import com.ibm.jikesrvm.mm.mmtk.ReferenceGlue;
+import com.ibm.jikesrvm.mm.mmtk.Scanning;
+import com.ibm.jikesrvm.mm.mmtk.SynchronizedCounter;
+import com.ibm.jikesrvm.mm.mmtk.Collection;
 
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.classloader.VM_Array;
-import com.ibm.JikesRVM.classloader.VM_Class;
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Array;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Method;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_CodeArray;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_HeapLayoutConstants;
-import com.ibm.JikesRVM.VM_DynamicLibrary;
-import com.ibm.JikesRVM.VM_JavaHeader;
+import com.ibm.jikesrvm.VM_BootRecord;
+import com.ibm.jikesrvm.VM_CodeArray;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_HeapLayoutConstants;
+import com.ibm.jikesrvm.VM_DynamicLibrary;
+import com.ibm.jikesrvm.VM_JavaHeader;
 
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.jikesrvm.VM_Memory;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.VM_Scheduler;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -151,7 +151,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static final void init() throws InterruptiblePragma {
     VM_CollectorThread.init();
-    com.ibm.JikesRVM.mm.mmtk.Collection.init();
+    com.ibm.jikesrvm.mm.mmtk.Collection.init();
   }
 
   /**
@@ -538,8 +538,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         }
       }
       if (isPrefix("Lorg/mmtk/", clsBA) ||
-	  isPrefix("Lcom/ibm/JikesRVM/mm/", clsBA) ||
-          isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+	  isPrefix("Lcom/ibm/jikesrvm/mm/", clsBA) ||
+          isPrefix("Lcom/ibm/jikesrvm/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -566,14 +566,14 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         allocator = Plan.ALLOC_GCSPY;
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/mm/", typeBA) ||
-        isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
-        isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
-        isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
+	isPrefix("Lcom/ibm/jikesrvm/mm/", typeBA) ||
+        isPrefix("Lcom/ibm/jikesrvm/memoryManagers/", typeBA) ||
+        isPrefix("Lcom/ibm/jikesrvm/VM_Processor;", typeBA) ||
+        isPrefix("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
     if (SelectedPlanConstraints.get().needsImmortalTypeInfo() && 
-        (isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Class", typeBA) ||
-         isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Array", typeBA)))
+        (isPrefix("Lcom/ibm/jikesrvm/classloader/VM_Class", typeBA) ||
+         isPrefix("Lcom/ibm/jikesrvm/classloader/VM_Array", typeBA)))
       allocator = Plan.ALLOC_IMMORTAL;
     return allocator;
   }

@@ -8,9 +8,9 @@
  */
 //OPT_Scheduler.java
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 
 /**

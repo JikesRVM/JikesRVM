@@ -7,14 +7,14 @@
  * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 // import java.io.PrintStream;
 // import java.io.PrintWriter;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_Class;
 import java.lang.reflect.Method;
-import com.ibm.JikesRVM.PrintLN;
+import com.ibm.jikesrvm.PrintLN;
 // import java.lang.Class;  // Not needed, redundant with language def.
 
 import org.vmmagic.unboxed.*;
@@ -137,7 +137,7 @@ public class VM_StackTrace implements VM_Constants {
 
 //       <ol>
 
-//       <li> <p>The method "com.ibm.JikesRVM.MainThread.run()" (with an empty
+//       <li> <p>The method "com.ibm.jikesrvm.MainThread.run()" (with an empty
 //       parameter list) launches most of our programs.  That marks the prelude
 //       to calling main().  Most users only care about main and beyond.  So we
 //       figure out where the prelude is so that we can skip it.
@@ -149,7 +149,7 @@ public class VM_StackTrace implements VM_Constants {
 //       than generating an InternalError().  
 //       <p>
 //       We will assume that no user class calls
-//       com.ibm.JikesRVM.MainThread.run().  This is a pretty safe bet. 
+//       com.ibm.jikesrvm.MainThread.run().  This is a pretty safe bet. 
 //       </li>
 
 //       <li>
@@ -182,7 +182,7 @@ public class VM_StackTrace implements VM_Constants {
 //     /* We're implementing here the first method discussed above. */
 //     System.err.println("Calling getRunMethodMarkingPrelude()"); // DEBUG XXX
 //     try {
-//       Class c = Class.forName("com.ibm.JikesRVM.MainThread");
+//       Class c = Class.forName("com.ibm.jikesrvm.MainThread");
 //       Method m = c.getDeclaredMethod("run", new Class[0]);
 //       return java.lang.reflect.JikesRVMSupport.getMethodOf(m);
 //     } catch (ClassNotFoundException cnf) {
@@ -396,10 +396,10 @@ public class VM_StackTrace implements VM_Constants {
     // The Main Thread's last six stack frames are always:
     //   
     //   <invisible method>  (the reflection frame)
-    //   Lcom/ibm/JikesRVM/VM_Reflection; invoke()
-    //   Lcom/ibm/JikesRVM/MainThread; run()V
-    //   Lcom/ibm/JikesRVM/VM_Thread; run()V 
-    //   Lcom/ibm/JikesRVM/VM_Thread; startoff()V 
+    //   Lcom/ibm/jikesrvm/VM_Reflection; invoke()
+    //   Lcom/ibm/jikesrvm/MainThread; run()V
+    //   Lcom/ibm/jikesrvm/VM_Thread; run()V 
+    //   Lcom/ibm/jikesrvm/VM_Thread; startoff()V 
     // so we can skip them.
     //
     // Other Threads, except for the boot thread, have VM_Thread.startoff as
@@ -408,10 +408,10 @@ public class VM_StackTrace implements VM_Constants {
     for ( ; lastFrame > 0 ; --lastFrame) {
       VM_Method m = compiledMethods[lastFrame].getMethod();
       if (m == VM_Entrypoints.threadStartoffMethod)
-        continue;             /* com.ibm.JikesRVM.VM_Thread.startoff() is OK
+        continue;             /* com.ibm.jikesrvm.VM_Thread.startoff() is OK
                                  to elide. */
       if (m == VM_Entrypoints.threadRunMethod)
-        continue;             /* com.ibm.JikesRVM.VM_Thread.run() is OK
+        continue;             /* com.ibm.jikesrvm.VM_Thread.run() is OK
                                  to elide. */
       if (m == VM_Entrypoints.mainThreadRunMethod) {
         lastFrame -= 3;
@@ -420,7 +420,7 @@ public class VM_StackTrace implements VM_Constants {
           // so put back the elided frames that aren't all there yet...
           lastFrame += 3;
         }
-        break;             /* com.ibm.JikesRVM.MainThread.run() is OK to
+        break;             /* com.ibm.jikesrvm.MainThread.run() is OK to
                               elide */
       }
       /* No match.  Abort. */

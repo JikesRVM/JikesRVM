@@ -24,10 +24,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.Thread;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.jni.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.jni.*;
+import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
 

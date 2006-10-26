@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 
 /**
  * This class implements a priority queue using the standard

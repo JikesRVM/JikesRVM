@@ -9,7 +9,7 @@
 //$Id$
 package org.vmmagic.pragma; 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.lang.UnsupportedOperationException;
 
 /**

@@ -8,8 +8,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.classloader;
-import com.ibm.JikesRVM.VM;
+package com.ibm.jikesrvm.classloader;
+import com.ibm.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 

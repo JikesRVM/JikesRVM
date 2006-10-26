@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.OSR.*;
 //-#endif
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * Baseline compiler - platform independent code.

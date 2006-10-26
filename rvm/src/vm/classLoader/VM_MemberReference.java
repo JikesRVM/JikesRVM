@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.util.VM_HashMap;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.*;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;

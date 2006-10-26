@@ -9,7 +9,7 @@
  *
  * $Id$
  */
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /** Exit status codes for the Jikes RVM virtual machine.
  *

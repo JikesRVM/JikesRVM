@@ -7,7 +7,7 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.*;
 

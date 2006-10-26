@@ -840,7 +840,7 @@ extern "C" void processTimerTick(void) {
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
+    int gcStatus = *(int *) ((char *) VmToc + com_ibm_jikesrvm_memoryManagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
     /*
@@ -3909,11 +3909,11 @@ struct JavaVM_ sysJavaVM = {
 typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void UNUSED *reserved);
 
 /*
- * Class:     com_ibm_JikesRVM_VM_DynamicLibrary
+ * Class:     comibm.jikesrvm.VM_DynamicLibrary
  * Method:    runJNI_OnLoad
  * Signature: (Lorg/vmmagic/unboxed/Address;)I
  */
-extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv UNUSED *env,
+extern "C" JNIEXPORT jint JNICALL Java_com_ibm_jikesrvm_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv UNUSED *env,
                                                                                            jobject UNUSED clazz,
                                                                                            jobject JNI_OnLoadAddress) {
   return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);

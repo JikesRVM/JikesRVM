@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.Offset;
 
@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  */
 class VM_OutOfLineMachineCode implements VM_BaselineConstants,
-                                         com.ibm.JikesRVM.jni.VM_JNIStackframeLayoutConstants,
+                                         com.ibm.jikesrvm.jni.VM_JNIStackframeLayoutConstants,
                                          VM_AssemblerConstants {
   static void init() {
     reflectiveMethodInvokerInstructions       = generateReflectiveMethodInvokerInstructions();

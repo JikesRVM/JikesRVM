@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * Hold semantic information about a method that is not defined in

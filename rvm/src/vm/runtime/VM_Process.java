@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.io.*;
 
 /**

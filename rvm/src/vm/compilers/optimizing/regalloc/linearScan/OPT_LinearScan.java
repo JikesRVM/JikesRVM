@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import org.vmmagic.unboxed.*;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.OSR.*;
 //-#endif
 import java.lang.reflect.Constructor;
 
@@ -254,7 +254,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        */
       public Constructor getClassConstructor() {
         if (constructor == null) {
-          constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$LinearScan");
+          constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$LinearScan");
         }
         return constructor;
       }
@@ -1727,7 +1727,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     public Constructor getClassConstructor() {
       if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$IntervalAnalysis");
+        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$IntervalAnalysis");
       }
       return constructor;
     }
@@ -2636,7 +2636,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     public Constructor getClassConstructor() {
       if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$UpdateOSRMaps");
+        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$UpdateOSRMaps");
       }
       return constructor;
     }

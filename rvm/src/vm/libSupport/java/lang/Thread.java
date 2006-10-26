@@ -11,11 +11,11 @@
  */
 package java.lang;
 
-import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_UnimplementedError;
-import com.ibm.JikesRVM.VM_Wait;
+import com.ibm.jikesrvm.VM;     // for VM.sysWrite()
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_UnimplementedError;
+import com.ibm.jikesrvm.VM_Wait;
 
 /**
  * Jikes RVM implementation of a Java thread.

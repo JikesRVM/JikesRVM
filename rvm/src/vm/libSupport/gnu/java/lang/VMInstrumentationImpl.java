@@ -12,9 +12,9 @@ package gnu.java.lang;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.ClassDefinition;
 
-import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.classloader.VM_Class;
-import com.ibm.JikesRVM.classloader.VM_Array;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Array;
 
 
 /**

@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
-import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.VM_CompiledMethod;
 
 /**
  * @author Rajesh Bordawekar

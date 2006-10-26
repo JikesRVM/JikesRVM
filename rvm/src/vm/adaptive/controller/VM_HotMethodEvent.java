@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.opt.VM_OptCompiledMethod;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 /**

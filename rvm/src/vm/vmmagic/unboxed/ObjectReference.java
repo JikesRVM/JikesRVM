@@ -10,8 +10,8 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_SizeConstants;
 
 /**
  * The object reference type is used by the runtime system and collector to 

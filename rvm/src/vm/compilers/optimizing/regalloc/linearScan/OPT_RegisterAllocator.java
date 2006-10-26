@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.opt.ir.*;
+package com.ibm.jikesrvm.opt;
+import com.ibm.jikesrvm.opt.ir.*;
 /**
  * Driver routine for register allocation
  *
@@ -53,7 +53,7 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
     /**
      * create the stack manager
      */
-    final public void perform (com.ibm.JikesRVM.opt.ir.OPT_IR ir) {
+    final public void perform (com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
       ir.stackManager.prepare(ir);
     }
   }

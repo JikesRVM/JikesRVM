@@ -8,7 +8,7 @@
  */
 //$Id$
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import org.vmmagic.unboxed.*;
 
 /**

@@ -11,13 +11,13 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
 import java.util.List;
 import java.util.Iterator;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.OPT_CompilationPlan;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.OPT_CompilationPlan;
 /**
  * Utilities for providing compiler advice.  Advice files provided
  * at run time allow compilers to be specified for particular methods
@@ -84,7 +84,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
         // If found, compile it
         if ((method != null) &&
             ! method.hasNoOptCompilePragma() &&
-            (method instanceof com.ibm.JikesRVM.classloader.VM_NormalMethod)) {
+            (method instanceof com.ibm.jikesrvm.classloader.VM_NormalMethod)) {
           // if user's requirement is higher than advice
           if ((VM_RuntimeCompiler.options.getOptLevel() > value.getOptLevel())
               || (VM_Controller.options.MAX_OPT_LEVEL < value.getOptLevel())) {

@@ -8,7 +8,7 @@
  * Australian National University. 2005
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.vmmagic.pragma.*;
 

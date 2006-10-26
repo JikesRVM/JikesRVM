@@ -11,18 +11,18 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
-import com.ibm.JikesRVM.adaptive.VM_Controller;
-import com.ibm.JikesRVM.adaptive.VM_InvocationCounts;
-import com.ibm.JikesRVM.adaptive.VM_AOSLogging;
-import com.ibm.JikesRVM.opt.OPT_CompilationPlan;
+import com.ibm.jikesrvm.adaptive.VM_Controller;
+import com.ibm.jikesrvm.adaptive.VM_InvocationCounts;
+import com.ibm.jikesrvm.adaptive.VM_AOSLogging;
+import com.ibm.jikesrvm.opt.OPT_CompilationPlan;
 /**
  * Defines an attribute for dynamic call graph, and maintains a map
  * allowing attributes to be retrived by method and bytecode offset.

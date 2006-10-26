@@ -8,33 +8,33 @@
  * (C) Copyright IBM Corp. 2001,2002,2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 // Used for Javadoc:
-import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread; 
+import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_CollectorThread; 
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 
 import org.mmtk.utility.Log;
-import com.ibm.JikesRVM.mm.mmtk.Barriers;
+import com.ibm.jikesrvm.mm.mmtk.Barriers;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
-import com.ibm.JikesRVM.adaptive.VM_Controller;
-import com.ibm.JikesRVM.adaptive.VM_ControllerMemory;
+import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
+import com.ibm.jikesrvm.adaptive.VM_Controller;
+import com.ibm.jikesrvm.adaptive.VM_ControllerMemory;
 //-#endif
 
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementTrigger;
-import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementEvent;
-import com.ibm.JikesRVM.OSR.OSR_PostThreadSwitch;
-import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
-import com.ibm.JikesRVM.adaptive.OSR_Listener;
+import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementTrigger;
+import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
+import com.ibm.jikesrvm.OSR.OSR_PostThreadSwitch;
+import com.ibm.jikesrvm.OSR.OSR_ObjectHolder;
+import com.ibm.jikesrvm.adaptive.OSR_Listener;
 //-#endif
 
 /**

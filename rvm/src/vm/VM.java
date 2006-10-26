@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp 2001, 2002, 2003, 2004, 2005
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import java.lang.ref.Reference;
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 /**
@@ -316,7 +316,7 @@ public class VM extends VM_Properties
     VM.dynamicClassLoadingEnabled = true;
     // Create JNI Environment for boot thread.  
     // After this point the boot thread can invoke native methods.
-    com.ibm.JikesRVM.jni.VM_JNIEnvironment.boot();
+    com.ibm.jikesrvm.jni.VM_JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
@@ -334,14 +334,14 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.jar.JarFile");
      
     //-#if RVM_WITH_HPM
-    runClassInitializer("com.ibm.JikesRVM.Java2HPM");
+    runClassInitializer("com.ibm.jikesrvm.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
     //-#endif
 
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
-    runClassInitializer("com.ibm.JikesRVM.VM_Process");
-    runClassInitializer("com.ibm.JikesRVM.classloader.VM_Annotation");
+    runClassInitializer("com.ibm.jikesrvm.VM_Process");
+    runClassInitializer("com.ibm.jikesrvm.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
@@ -379,7 +379,7 @@ public class VM extends VM_Properties
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-    com.ibm.JikesRVM.adaptive.VM_Controller.boot();
+    com.ibm.jikesrvm.adaptive.VM_Controller.boot();
     //-#endif
 
 

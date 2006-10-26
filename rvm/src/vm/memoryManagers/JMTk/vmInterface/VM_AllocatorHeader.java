@@ -8,20 +8,20 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.BootImageInterface;
+import com.ibm.jikesrvm.VM_Constants;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_JavaHeader;
+import com.ibm.jikesrvm.BootImageInterface;
 
 /**
  * Chooses the appropriate collector-specific header model.
  *
- * @see com.ibm.JikesRVM.VM_ObjectModel
+ * @see com.ibm.jikesrvm.VM_ObjectModel
  * 
  * @author Perry Cheng
  */

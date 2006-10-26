@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /** 
  * Interface to allow building top-sort, by calling OPT_TopSort.buildTopSort()

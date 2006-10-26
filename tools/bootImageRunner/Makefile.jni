@@ -25,16 +25,16 @@ THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 
 ifdef DO_NOT_RUN_JAVAH
 # Use a prebuilt version, if we are using a system without a good JAVAH.
-$(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h: 	$(THIS_DIR)/com_ibm_JikesRVM_VM_0005fProcess.h
+$(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h: 	$(THIS_DIR)/com_ibm_jikesrvm_VM_0005fProcess.h
 	$(RM) $@
 	cp $< $@
 # Turn on write perms so that the user doesn't get a warning when
 # running "rm".
 	chmod +w $@
 else
-$(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h:	$(SRC_DIR)/vm/runtime/VM_Process.java
+$(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/vm/runtime/VM_Process.java
 	$(RM) $@
-	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.JikesRVM.VM_Process
+	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.jikesrvm.VM_Process
 endif
 
 # The Jikes RVM build process always invokes this with 
@@ -42,6 +42,6 @@ endif
 
 # For testing:
 DEST ?= $(JAL_BUILD)/libjpnexec.so
-$(DEST): com_ibm_JikesRVM_VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
+$(DEST): com_ibm_jikesrvm_VM_0005fProcess.C $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h
 	$(RM) $@
 	$(LDSHARED) -o $@ -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include $<

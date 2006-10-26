@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001, 2006
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * Abstract superclass to interface bootimage compiler to the rest of the VM.
@@ -63,6 +63,6 @@ public abstract class VM_BootImageCompiler {
    */
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
+    return com.ibm.jikesrvm.jni.VM_JNICompiler.compile(method);
   }
 }

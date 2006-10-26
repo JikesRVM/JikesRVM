@@ -35,13 +35,13 @@ import java.lang.reflect.TypeVariable;
 import java.net.URL;
 import java.util.ArrayList;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
-import com.ibm.JikesRVM.VM_Callbacks;
-import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.VM_UnimplementedError;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.VM_Callbacks;
+import com.ibm.jikesrvm.VM_Reflection;
+import com.ibm.jikesrvm.VM_Runtime;
+import com.ibm.jikesrvm.VM_UnimplementedError;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 
 import gnu.java.lang.reflect.ClassSignatureParser;
 

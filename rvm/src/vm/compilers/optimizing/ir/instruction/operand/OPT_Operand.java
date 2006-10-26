@@ -8,13 +8,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
-import com.ibm.JikesRVM.opt.OPT_Constants;
-import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.OPT_ClassLoaderProxy;
+import com.ibm.jikesrvm.opt.OPT_Constants;
+import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.vmmagic.unboxed.Address;
 
 /**

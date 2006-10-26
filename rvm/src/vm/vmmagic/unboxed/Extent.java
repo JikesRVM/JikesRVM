@@ -9,7 +9,7 @@
 //$Id$
 package org.vmmagic.unboxed; 
 
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 import org.vmmagic.pragma.*;
 
 /**

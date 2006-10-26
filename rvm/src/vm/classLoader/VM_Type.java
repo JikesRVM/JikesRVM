@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp 2001,2002, 2004,2005
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
 import java.security.ProtectionDomain;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -578,19 +578,19 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
                                     ).resolve().asClass();
     SynchronizedObjectType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_SynchronizedObject;")
                                     ).resolve().asClass();
     DynamicBridgeType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_DynamicBridge;")
                                     ).resolve().asClass();
     SaveVolatileType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_SaveVolatile;")
                                     ).resolve().asClass();
     NativeBridgeType      =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/jni/VM_NativeBridge;")
                                     ).resolve().asClass();
     // Array types
     CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();

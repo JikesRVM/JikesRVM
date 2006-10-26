@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
-import com.ibm.JikesRVM.util.VM_HashMap;
+import com.ibm.jikesrvm.util.VM_HashMap;
 
 /**
  * A class to represent the reference in a class file to some 
@@ -75,15 +75,15 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static final VM_TypeReference ObjectReference = findOrCreate("Lorg/vmmagic/unboxed/ObjectReference;");
   public static final VM_TypeReference Offset  = findOrCreate("Lorg/vmmagic/unboxed/Offset;");
   public static final VM_TypeReference Extent  = findOrCreate("Lorg/vmmagic/unboxed/Extent;");
-  public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/JikesRVM/VM_Code;");
+  public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/jikesrvm/VM_Code;");
   public static final VM_TypeReference WordArray = findOrCreate("Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lorg/vmmagic/unboxed/AddressArray;");
   public static final VM_TypeReference ObjectReferenceArray = findOrCreate("Lorg/vmmagic/unboxed/ObjectReferenceArray;");
   public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
-  public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
-  public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
-  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCallMagic;");
+  public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/jikesrvm/VM_CodeArray;");
+  public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/jikesrvm/VM_Magic;");
+  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/jikesrvm/VM_SysCallMagic;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
   public static final VM_TypeReference JavaLangClass = findOrCreate("Ljava/lang/Class;");
@@ -104,15 +104,15 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static final VM_TypeReference JavaLangIllegalMonitorStateException = findOrCreate("Ljava/lang/IllegalMonitorStateException;");
 
   
-  public static final VM_TypeReference VM_Processor = findOrCreate("Lcom/ibm/JikesRVM/VM_Processor;");
-  public static final VM_TypeReference VM_Type = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Type;");
-  public static final VM_TypeReference VM_Class = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Class;");
-  public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Array;");
+  public static final VM_TypeReference VM_Processor = findOrCreate("Lcom/ibm/jikesrvm/VM_Processor;");
+  public static final VM_TypeReference VM_Type = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Type;");
+  public static final VM_TypeReference VM_Class = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Class;");
+  public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 
   //-#if RVM_WITH_OPT_COMPILER
   // Synthetic types used by the opt compiler 
-  public static final VM_TypeReference NULL_TYPE = findOrCreate("Lcom/ibm/JikesRVM/VM_TypeReference$NULL;");
-  public static final VM_TypeReference VALIDATION_TYPE = findOrCreate("Lcom/ibm/JikesRVM/VM_TypeReference$VALIDATION;");
+  public static final VM_TypeReference NULL_TYPE = findOrCreate("Lcom/ibm/jikesrvm/VM_TypeReference$NULL;");
+  public static final VM_TypeReference VALIDATION_TYPE = findOrCreate("Lcom/ibm/jikesrvm/VM_TypeReference$VALIDATION;");
   //-#endif
 
   /**

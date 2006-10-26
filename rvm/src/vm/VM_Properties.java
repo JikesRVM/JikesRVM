@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Flags that control the behavior of our virtual machine.

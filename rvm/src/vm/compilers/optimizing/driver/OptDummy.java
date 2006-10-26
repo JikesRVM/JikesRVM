@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * Dummy class containing enough references to force java compiler

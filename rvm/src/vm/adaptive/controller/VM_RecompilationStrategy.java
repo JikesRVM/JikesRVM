@@ -7,16 +7,16 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_RuntimeCompiler;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_RuntimeCompiler;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * An abstract class providing the interface to the decision making

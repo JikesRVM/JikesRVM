@@ -9,7 +9,7 @@
 //$Id$
 package org.vmmagic.pragma; 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * Any method that is declared capable of throwing this (pseudo-)exception

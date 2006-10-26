@@ -7,17 +7,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_BaselineCompiledMethod;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_CompiledMethods;
+import com.ibm.jikesrvm.VM_BaselineCompiledMethod;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.opt.*;
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 import java.util.*;
 import org.vmmagic.unboxed.Offset;

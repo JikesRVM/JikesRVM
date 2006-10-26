@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.jikesrvm.opt;
+import com.ibm.jikesrvm.*;
 
 /**
  * Class to handle command-line arguments and options for the 

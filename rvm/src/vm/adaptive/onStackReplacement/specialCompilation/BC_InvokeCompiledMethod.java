@@ -8,10 +8,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 /**
  * invoke a compiled method
  * 

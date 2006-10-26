@@ -12,13 +12,13 @@ package java.lang;
 import java.security.ProtectionDomain;
 import java.lang.instrument.Instrumentation;
 
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Type;
 
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM;              // for VerifyAssertions and _assert()
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.jikesrvm.VM;              // for VerifyAssertions and _assert()
+import com.ibm.jikesrvm.VM_Entrypoints;
+import com.ibm.jikesrvm.VM_Thread;
 
 /**
  * Library support interface of Jikes RVM

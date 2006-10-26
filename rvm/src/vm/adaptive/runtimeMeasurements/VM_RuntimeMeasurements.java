@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 import java.util.Vector;

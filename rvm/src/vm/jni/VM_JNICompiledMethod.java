@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -56,7 +56,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return -1;
   }
    
-  public final void printStackTrace(Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  public final void printStackTrace(Offset instructionOffset, com.ibm.jikesrvm.PrintLN out) {
     if (method != null) {
       // print name of native method
       out.print("\tat ");

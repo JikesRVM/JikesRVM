@@ -66,9 +66,9 @@ import java.lang.reflect.*;
  * 
  * @see OPT_InstructionFormatTables
  * @see OPT_OperatorFormatTables
- * @see com.ibm.JikesRVM.opt.OPT_AssemblerBase
- * @see com.ibm.JikesRVM.opt.ir.OPT_Instruction
- * @see com.ibm.JikesRVM.opt.OPT_Assembler
+ * @see com.ibm.jikesrvm.opt.OPT_AssemblerBase
+ * @see com.ibm.jikesrvm.opt.ir.OPT_Instruction
+ * @see com.ibm.jikesrvm.opt.OPT_Assembler
  * @see VM_Assembler
  *
  * @author Julian Dolby 
@@ -1131,15 +1131,15 @@ public class GenerateAssembler {
         }
 
         try {
-            lowLevelAsm = Class.forName("com.ibm.JikesRVM.VM_Assembler");
+            lowLevelAsm = Class.forName("com.ibm.jikesrvm.VM_Assembler");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             System.exit(1 );
         }
 
-        emit("package com.ibm.JikesRVM.opt;\n\n");
-        emit("import com.ibm.JikesRVM.*;\n\n");
-        emit("import com.ibm.JikesRVM.opt.ir.*;\n\n");
+        emit("package com.ibm.jikesrvm.opt;\n\n");
+        emit("import com.ibm.jikesrvm.*;\n\n");
+        emit("import com.ibm.jikesrvm.opt.ir.*;\n\n");
         emit("\n\n");
 
         emit("/**\n");

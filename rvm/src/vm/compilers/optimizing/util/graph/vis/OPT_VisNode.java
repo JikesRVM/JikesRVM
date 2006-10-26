@@ -8,7 +8,7 @@
  */
 //OPT_VisNode.java
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
 

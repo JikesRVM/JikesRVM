@@ -8,7 +8,7 @@
  */
 // $Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Constants specifying the state of a {@link VM_Thread} waiting

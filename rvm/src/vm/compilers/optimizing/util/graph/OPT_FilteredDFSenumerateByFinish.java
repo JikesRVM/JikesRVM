@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * @author Steve Fink

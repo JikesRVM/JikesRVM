@@ -7,14 +7,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Time;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_Time;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementPlan;
+import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
 //-#endif
 
 /**

@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_GCMapIterator;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

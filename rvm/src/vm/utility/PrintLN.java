@@ -7,19 +7,19 @@
  * (C) Copyright IBM Corp. 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.PrintContainer; /* This import statement isn't
+package com.ibm.jikesrvm;
+import com.ibm.jikesrvm.PrintContainer; /* This import statement isn't
                                      necessary, but is here for documentation
                                      purposes. --S. Augart */ 
-import com.ibm.JikesRVM.classloader.VM_Member;
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Member;
+import com.ibm.jikesrvm.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_Class;
 
 import java.io.PrintWriter;
 import java.io.PrintStream;
 
 /**
- * This interface is implemented by com.ibm.JikesRVM.PrintContainer.  The
+ * This interface is implemented by com.ibm.jikesrvm.PrintContainer.  The
  * interfaces is used by our java.lang.Throwable to print stack traces.
  *
  * @author Steven Augart (w/ brainstorming by David Grove)

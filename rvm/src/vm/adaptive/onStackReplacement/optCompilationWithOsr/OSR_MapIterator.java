@@ -8,9 +8,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 /**
  * An iterator over an encoded OSR map.
  * It is a bit odd to used now. 

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
 /**
  * Information about java byte codes that appear in the "code" attribute 

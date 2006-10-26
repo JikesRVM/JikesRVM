@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
-import com.ibm.JikesRVM.opt.*;
+package com.ibm.jikesrvm.adaptive;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * VM_Instrumentation.java

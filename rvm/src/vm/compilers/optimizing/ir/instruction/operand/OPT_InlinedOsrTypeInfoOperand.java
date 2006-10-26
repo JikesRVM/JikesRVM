@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.classloader.VM_MemberReference;
+import com.ibm.jikesrvm.classloader.VM_MemberReference;
 import java.util.Arrays;
 /*
  * An OPT_InlinedOsrTypeInfoOperand object keeps necessary information

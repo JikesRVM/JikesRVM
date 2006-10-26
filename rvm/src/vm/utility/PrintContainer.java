@@ -7,16 +7,16 @@
  * (C) Copyright IBM Corp. 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /* Some of these import statements aren't necessary, but are here for
    documentation purposes.  --S. Augart */ 
-import com.ibm.JikesRVM.PrintLN;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.PrintLN;
+import com.ibm.jikesrvm.VM;
 
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Class;
-import com.ibm.JikesRVM.classloader.VM_Member;
+import com.ibm.jikesrvm.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Member;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;

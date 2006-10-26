@@ -8,9 +8,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.VM_SizeConstants;
+package com.ibm.jikesrvm.OSR;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.unboxed.*;
 /**

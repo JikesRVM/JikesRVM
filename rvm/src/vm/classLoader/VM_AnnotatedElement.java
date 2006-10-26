@@ -7,14 +7,14 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
 // $Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.annotation.Annotation;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**

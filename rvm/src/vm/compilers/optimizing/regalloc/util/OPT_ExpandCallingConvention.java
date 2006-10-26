@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.OPT_IR;
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
 
 /**
  *  Phase for expanding the calling convention
@@ -35,7 +35,7 @@ final class OPT_ExpandCallingConvention extends OPT_CompilerPhase {
     return "Expand Calling Convention"; 
   }
 
-  public final void perform(com.ibm.JikesRVM.opt.ir.OPT_IR ir)  {
+  public final void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir)  {
     OPT_CallingConvention.expandCallingConventions(ir);
   }
 }

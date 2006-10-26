@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import java.util.HashMap;
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -72,7 +72,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_GlobalCSE");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_GlobalCSE");
     }
     return constructor;
   }

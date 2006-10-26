@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Hashtable;
 import java.util.Enumeration;
 

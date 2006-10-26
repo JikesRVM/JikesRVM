@@ -11,9 +11,9 @@ package java.io;
 
 import java.lang.reflect.Field;
 
-import com.ibm.JikesRVM.classloader.VM_Class;
-import com.ibm.JikesRVM.classloader.VM_Field;
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Field;
+import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**
  * java.io.ObjectStream helper implemented for Jikes RVM.

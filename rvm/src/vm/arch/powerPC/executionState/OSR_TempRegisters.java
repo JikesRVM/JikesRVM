@@ -8,9 +8,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 
 import org.vmmagic.unboxed.*;
 

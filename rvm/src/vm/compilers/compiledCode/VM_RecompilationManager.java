@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
+import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
 //-#endif
 
 /**

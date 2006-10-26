@@ -9,7 +9,7 @@
  *
  * $Id$
  */
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.Mmapper;
@@ -19,14 +19,14 @@ import org.mmtk.vm.Memory;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_BootRecord;
+import com.ibm.jikesrvm.VM_Constants;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.VM_Thread;
 
 /**
  * Common debugging utility functions used by various garbage collectors

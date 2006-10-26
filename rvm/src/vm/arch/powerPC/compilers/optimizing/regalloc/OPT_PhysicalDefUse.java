@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
 import java.util.Enumeration;
 
@@ -114,7 +114,7 @@ public class OPT_PhysicalDefUse {
       case maskCTR: return phys.getCTR();
       case maskPR: return phys.getPR();
       }
-      com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException.UNREACHABLE();
+      com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException.UNREACHABLE();
       return null; // placate jikes.
     }
   }

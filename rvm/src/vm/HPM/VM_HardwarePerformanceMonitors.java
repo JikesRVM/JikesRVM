@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_CommandLineArgs;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.VM_CommandLineArgs;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -20,12 +20,12 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_HPM
-import com.ibm.JikesRVM.Java2HPM;
+import com.ibm.jikesrvm.Java2HPM;
 //-#endif
 
 //BEGIN HRM
-import com.ibm.JikesRVM.classloader.VM_MemberReference;
-import com.ibm.JikesRVM.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_MemberReference;
+import com.ibm.jikesrvm.classloader.VM_Atom;
 //END HRM
 
 /**

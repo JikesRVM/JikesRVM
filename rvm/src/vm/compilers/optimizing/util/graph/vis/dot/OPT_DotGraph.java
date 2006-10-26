@@ -8,7 +8,7 @@
  */
 //OPT_DotGraph.java
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * OPT_DotGraph provides the minimum set of routines for printing a graph in

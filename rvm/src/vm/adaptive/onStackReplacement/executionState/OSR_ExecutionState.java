@@ -15,10 +15,10 @@
  * @author Feng Qian
  */
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.util.LinkedList;
 
 import org.vmmagic.unboxed.*;

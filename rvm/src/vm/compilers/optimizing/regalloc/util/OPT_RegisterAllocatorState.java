@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id: 
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 /**
  * The register allocator currently caches a bunch of state in the IR;

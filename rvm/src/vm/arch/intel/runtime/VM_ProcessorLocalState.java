@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.classloader.VM_TypeReference;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.classloader.VM_TypeReference;
 //-#endif 
 
 import org.vmmagic.pragma.*;

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.jni;
+package com.ibm.jikesrvm.jni;
 
 /**
  * Methods of a class that implements this interface are treated specially 

@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.jni.VM_JNICompiler;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.jni.VM_JNICompiler;
 
 import org.vmmagic.unboxed.*;
 
@@ -2851,7 +2851,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (options.INVOCATION_COUNTERS) {
       int id = compiledMethod.getId();
-      com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
+      com.ibm.jikesrvm.adaptive.VM_InvocationCounts.allocateCounter(id);
       asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_Entrypoints.invocationCountsField.getOffset());
       asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << 2), 1);
       VM_ForwardReference notTaken = asm.forwardJcc(VM_Assembler.GT);

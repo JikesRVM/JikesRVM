@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 
 import org.vmmagic.pragma.*;
 
@@ -71,7 +71,7 @@ import org.vmmagic.pragma.*;
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
  *
- * @see com.ibm.JikesRVM.opt.OPT_DynamicTypeCheckExpansion
+ * @see com.ibm.jikesrvm.opt.OPT_DynamicTypeCheckExpansion
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array

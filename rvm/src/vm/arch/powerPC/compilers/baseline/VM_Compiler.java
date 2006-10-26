@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.jni.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.jni.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -111,7 +111,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (argSpace < 32)
       argSpace = 32;
     int size = NATIVE_FRAME_HEADER_SIZE + argSpace +
-      com.ibm.JikesRVM.jni.VM_JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
+      com.ibm.jikesrvm.jni.VM_JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
     if (VM.BuildFor32Addr) {
       size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
     }
@@ -3130,7 +3130,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
       if (options.INVOCATION_COUNTERS) {
         int id = compiledMethod.getId();
-        com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
+        com.ibm.jikesrvm.adaptive.VM_InvocationCounts.allocateCounter(id);
         asm.emitLAddrToc (T0, VM_Entrypoints.invocationCountsField.getOffset());
         asm.emitLVAL(T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
         asm.emitLIntX   (T2, T0, T1);                       

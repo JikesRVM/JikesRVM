@@ -7,13 +7,13 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.util.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.util.*;
 
 /**
  * The static fields and methods comprising a running virtual machine image.

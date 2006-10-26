@@ -8,9 +8,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.opt.ir.OPT_Instruction;
+import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import java.util.*;
 
 /**

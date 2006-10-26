@@ -8,14 +8,14 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_CompiledMethods;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses

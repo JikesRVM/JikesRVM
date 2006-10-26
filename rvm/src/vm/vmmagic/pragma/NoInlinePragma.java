@@ -9,7 +9,7 @@
 //$Id$
 package org.vmmagic.pragma; 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 /**
  * This pragma indicates that a particular method should never be inlined
  * by the optimizing compiler.

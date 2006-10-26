@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Exception to indicate that a blocking call has timed out.

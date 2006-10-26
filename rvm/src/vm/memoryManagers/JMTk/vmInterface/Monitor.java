@@ -7,11 +7,11 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.mmtk.utility.Constants;
 
-import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.jikesrvm.VM_Callbacks;
 
 import org.vmmagic.pragma.*;
 

@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 import java.lang.reflect.Constructor;
-import com.ibm.JikesRVM.opt.ir.OPT_IR;
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
 /**
  * Driver routine for dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
@@ -44,7 +44,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_DominatorsPhase", new Class[]{Boolean.TYPE});
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_DominatorsPhase", new Class[]{Boolean.TYPE});
     }
     return constructor;
   }

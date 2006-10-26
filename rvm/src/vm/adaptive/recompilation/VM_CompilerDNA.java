@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 import java.io.*;
 import java.util.*;
 

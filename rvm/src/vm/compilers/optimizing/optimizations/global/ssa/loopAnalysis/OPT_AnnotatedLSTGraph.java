@@ -7,11 +7,11 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2003 - 2005
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.OPT_IR;
-import com.ibm.JikesRVM.opt.OPT_LSTGraph;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
+import com.ibm.jikesrvm.opt.OPT_LSTGraph;
+import com.ibm.jikesrvm.VM;
 import java.util.Vector;
 import java.util.Enumeration;
 

@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 import java.util.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -99,7 +99,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
      */
     public Constructor getClassConstructor() {
       if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_SSATuneUp$TuneUpPreparation");
+        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_SSATuneUp$TuneUpPreparation");
       }
       return constructor;
     }

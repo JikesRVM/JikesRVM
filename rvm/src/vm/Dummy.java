@@ -8,8 +8,8 @@
  */
 //$Id$
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -23,11 +23,11 @@ import org.vmmagic.unboxed.*;
  */
 class Dummy {
   static VM                         a;
-  static com.ibm.JikesRVM.classloader.VM_TableBasedDynamicLinker b;
+  static com.ibm.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
   static VM_DynamicLinker           c;
   static VM_Reflection              e;
   static VM_Process                 f;
-  static com.ibm.JikesRVM.jni.BuildJNIFunctionTable g;
+  static com.ibm.jikesrvm.jni.BuildJNIFunctionTable g;
   static VM_SaveVolatile            i;
   static MM_Interface               l;
   static VM_RecompilationManager    o;

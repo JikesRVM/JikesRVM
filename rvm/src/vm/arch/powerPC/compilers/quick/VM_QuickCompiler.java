@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001,2005
  */
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.jni.VM_JNICompiler;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.jni.VM_JNICompiler;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -4404,7 +4404,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
       if (options.INVOCATION_COUNTERS) {
         int id = compiledMethod.getId();
-        com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
+        com.ibm.jikesrvm.adaptive.VM_InvocationCounts.allocateCounter(id);
         asm.emitLAddrToc (T0, VM_Entrypoints.invocationCountsField.getOffset());
         asm.emitLVAL(T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
         asm.emitLIntX   (T2, T0, T1);                       
@@ -8105,7 +8105,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * Note: This is method is intended for use only by VM classes that need 
    * to address their own fields and methods in the runtime virtual machine 
    * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "Lcom/ibm/JikesRVM/VM_Runtime;"
+   * @param classDescriptor  class  descriptor - something like "Lcom/ibm/jikesrvm/VM_Runtime;"
    * @param memberName       member name       - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding VM_Member object

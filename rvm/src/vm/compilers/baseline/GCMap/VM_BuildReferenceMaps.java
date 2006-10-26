@@ -8,9 +8,9 @@
  */
 //VM_BuildReferenceMaps.java
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /** 
  * This class builds the reference and non-reference maps for a given method.

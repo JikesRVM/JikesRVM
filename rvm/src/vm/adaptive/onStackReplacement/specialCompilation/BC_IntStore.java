@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 /**
  * BC_IntStore : istore_<?>, istore 
  *

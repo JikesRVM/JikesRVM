@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR

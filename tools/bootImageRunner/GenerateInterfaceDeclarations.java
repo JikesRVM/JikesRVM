@@ -11,8 +11,8 @@
 import  java.io.*;
 import  java.io.PrintStream;
 import  java.util.*;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -206,7 +206,7 @@ class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
 
     pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
-    pln("#define MAXHEAPS " + com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface.getMaxHeaps());
+    pln("#define MAXHEAPS " + com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface.getMaxHeaps());
     pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
     pln();
 
@@ -307,7 +307,7 @@ class GenerateInterfaceDeclarations {
 
 
   static void emitBootRecordDeclarations () {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/jikesrvm/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
@@ -325,7 +325,7 @@ class GenerateInterfaceDeclarations {
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/jikesrvm/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
@@ -710,9 +710,9 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     pln("java_net_SocketImpl_port_offset = ", offset);
 
-    // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
+    // fields in com.ibm.jikesrvm.memoryManagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
-    pln("com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = ", offset);
+    pln("com_ibm_jikesrvm_memoryManagers_JMTk_BasePlan_gcStatusOffset = ", offset);
   }
 
 

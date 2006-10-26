@@ -10,7 +10,7 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 
 /**
  * The offset type is used by the runtime system and collector to denote 

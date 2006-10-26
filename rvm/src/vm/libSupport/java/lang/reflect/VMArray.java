@@ -9,8 +9,8 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.classloader.VM_Array;
-import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.jikesrvm.classloader.VM_Array;
+import com.ibm.jikesrvm.VM_Runtime;
 
 /**
  * VM dependent Array operations

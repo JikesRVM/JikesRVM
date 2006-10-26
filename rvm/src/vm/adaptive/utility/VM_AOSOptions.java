@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
 /**
  * Additional option values that are computed internally are defined

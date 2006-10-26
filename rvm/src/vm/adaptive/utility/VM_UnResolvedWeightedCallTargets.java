@@ -11,10 +11,10 @@
  */
 
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_MethodReference;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.classloader.VM_MethodReference;
 
 /**
  * A collection of weighted call targets. In some case we can't resolve a

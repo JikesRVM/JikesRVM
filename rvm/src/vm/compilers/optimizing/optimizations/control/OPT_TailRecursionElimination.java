@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.jikesrvm.opt;
+import com.ibm.jikesrvm.*;
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -50,7 +50,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_TailRecursionElimination");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_TailRecursionElimination");
     }
     return constructor;
   }

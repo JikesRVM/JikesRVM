@@ -8,7 +8,7 @@
  */
 //$Id$
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 
 /**
  * Driver for thread management test in

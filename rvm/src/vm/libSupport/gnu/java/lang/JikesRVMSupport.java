@@ -12,10 +12,10 @@ package gnu.java.lang;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
-import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.jikesrvm.VM_Reflection;
+import com.ibm.jikesrvm.VM_Runtime;
 
 
 /**

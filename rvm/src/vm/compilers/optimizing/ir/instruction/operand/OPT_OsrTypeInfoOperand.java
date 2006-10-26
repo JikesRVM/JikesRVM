@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 import java.util.Arrays;
 /*
  * An OPT_OsrTypeInfoOperand object keeps type information of locals

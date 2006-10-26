@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 
 /**
  * @author Mauricio J. Serrano

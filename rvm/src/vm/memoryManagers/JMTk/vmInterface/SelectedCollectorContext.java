@@ -8,9 +8,9 @@
  * Australian National University. 2005
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.jikesrvm.VM_Processor;
 
 import org.vmmagic.pragma.*;
 

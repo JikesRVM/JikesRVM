@@ -9,7 +9,7 @@
 
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -78,11 +78,11 @@ import org.vmmagic.unboxed.*;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link com.ibm.JikesRVM.opt.OPT_Assembler} 
+ * optimizing compiler has an {@link com.ibm.jikesrvm.opt.OPT_Assembler} 
  * that is built on top of this one to match 
- * {@link com.ibm.JikesRVM.opt.ir.OPT_Instruction}s and 
- * {@link com.ibm.JikesRVM.opt.ir.OPT_Operator}s to the emit methods 
- * this assembler provides.  The {@link com.ibm.JikesRVM.opt.OPT_Assembler} 
+ * {@link com.ibm.jikesrvm.opt.ir.OPT_Instruction}s and 
+ * {@link com.ibm.jikesrvm.opt.ir.OPT_Operator}s to the emit methods 
+ * this assembler provides.  The {@link com.ibm.jikesrvm.opt.OPT_Assembler} 
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signiture convention that is designed to make the method
@@ -165,7 +165,7 @@ import org.vmmagic.unboxed.*;
  *  </DL>
  * </DL>
  *
- * @see com.ibm.JikesRVM.opt.OPT_Assembler
+ * @see com.ibm.jikesrvm.opt.OPT_Assembler
  * @see VM_Lister
  * @see VM_ForwardReference
  *

@@ -9,7 +9,7 @@
 //$Id$
 package java.lang.ref;
 
-import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.jikesrvm.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

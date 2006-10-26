@@ -7,13 +7,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.jikesrvm.opt;
+import com.ibm.jikesrvm.*;
 
 import  java.util.Enumeration;
 import  java.util.HashSet;
 import  java.util.Iterator;
-import  com.ibm.JikesRVM.opt.ir.*;
+import  com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -44,7 +44,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LICM");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LICM");
     }
     return constructor;
   }

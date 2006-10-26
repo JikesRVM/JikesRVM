@@ -8,8 +8,8 @@
  */
 //$Id$
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.lang.reflect.*;
 
 /**

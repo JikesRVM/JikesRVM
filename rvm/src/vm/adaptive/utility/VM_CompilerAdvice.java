@@ -11,10 +11,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import java.util.List;
-import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.jikesrvm.adaptive.VM_Controller;
 
 /**
  * Utilities for providing compiler advice.  Advice files provided

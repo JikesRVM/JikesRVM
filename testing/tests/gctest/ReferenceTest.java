@@ -9,7 +9,7 @@
 //$Id$
 
 import java.lang.ref.*;
-//import com.ibm.JikesRVM.*;
+//import com.ibm.jikesrvm.*;
 
 /**
  * A test to test java.lang.ref.*.

@@ -11,10 +11,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.List;

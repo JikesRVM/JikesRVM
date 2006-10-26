@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_CompiledMethod;
 
 /**
  * Event used by the Adaptive Inlining Organizer

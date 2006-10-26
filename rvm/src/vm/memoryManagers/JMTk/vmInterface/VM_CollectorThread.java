@@ -8,33 +8,33 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
-import com.ibm.JikesRVM.mm.mmtk.Collection;
-import com.ibm.JikesRVM.mm.mmtk.ScanThread;
+import com.ibm.jikesrvm.mm.mmtk.Collection;
+import com.ibm.jikesrvm.mm.mmtk.ScanThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_SysCall;
-import com.ibm.JikesRVM.VM_Registers;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_BootRecord;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_CompiledMethods;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.VM_SysCall;
+import com.ibm.jikesrvm.VM_Registers;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_Memory;
+import com.ibm.jikesrvm.VM_Time;
+import com.ibm.jikesrvm.VM_Entrypoints;
+import com.ibm.jikesrvm.VM_Reflection;
+import com.ibm.jikesrvm.VM_Synchronization;
 
 /**
  * System thread used to preform garbage collections.

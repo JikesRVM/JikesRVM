@@ -8,10 +8,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.opt.ir.*;
 /**
  * OSR_AdjustBCIndex is an optimizing phase performed on HIR.
  * It adjust the byte code index of instructions from specialized

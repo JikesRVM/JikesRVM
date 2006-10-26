@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
 /**
  * Encodes the BO & BI condition fields for PowerPC
@@ -140,7 +140,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
         value = CTRZ;
         break;
     default:
-      throw new com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException("Unhandled case in flipCode");
+      throw new com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException("Unhandled case in flipCode");
     }
     return  this;
   }
@@ -224,7 +224,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
       value =  GREATER_EQUAL;
       break;
     default:
-      com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException.UNREACHABLE();
+      com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException.UNREACHABLE();
     }
   }
 

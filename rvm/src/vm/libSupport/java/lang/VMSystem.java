@@ -9,17 +9,17 @@
 //$Id$
 package java.lang;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.VM_SysCall; // for VM_SysCall.sysGetenv
-import com.ibm.JikesRVM.VM_Time;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Runtime;
+import com.ibm.jikesrvm.VM_Statics;
+import com.ibm.jikesrvm.VM_SysCall; // for VM_SysCall.sysGetenv
+import com.ibm.jikesrvm.VM_Time;
 
-import com.ibm.JikesRVM.classloader.VM_Array;
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Class;
-import com.ibm.JikesRVM.classloader.VM_Field;
+import com.ibm.jikesrvm.classloader.VM_Array;
+import com.ibm.jikesrvm.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Field;
 
 import java.lang.reflect.Field;
 import java.util.Properties;

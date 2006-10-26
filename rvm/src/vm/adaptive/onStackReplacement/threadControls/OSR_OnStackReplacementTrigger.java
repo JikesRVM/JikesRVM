@@ -8,10 +8,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

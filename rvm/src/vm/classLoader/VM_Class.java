@@ -7,13 +7,13 @@
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
 import java.lang.UnsupportedClassVersionError;
 import java.lang.ClassFormatError;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;
@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.opt.*;
 //-#endif
 
 /**

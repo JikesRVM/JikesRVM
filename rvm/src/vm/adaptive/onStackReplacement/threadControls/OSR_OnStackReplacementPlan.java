@@ -8,11 +8,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.OSR.*;
 import org.vmmagic.unboxed.Offset;
 /**
  * A OSR_ControllerOnStackReplacementPlan is scheduled by VM_ControllerThread,

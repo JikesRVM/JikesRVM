@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import org.vmmagic.unboxed.Offset;
 
 /**

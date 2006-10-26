@@ -16,10 +16,10 @@
  * DO NOT MANUALLY EDIT THE JAVA FILE.
  */
 
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * An OPT_Operator represents the operator of an {@link OPT_Instruction}.

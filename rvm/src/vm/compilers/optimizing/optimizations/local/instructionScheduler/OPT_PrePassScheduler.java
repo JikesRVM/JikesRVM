@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 import  java.io.*;
 import  java.util.Enumeration;
@@ -41,7 +41,7 @@ final class OPT_PrePassScheduler extends OPT_CompilerPhase {
    *
    * @param ir the IR in question 
    */
-  public final void perform(com.ibm.JikesRVM.opt.ir.OPT_IR ir) {
+  public final void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);
   }
 

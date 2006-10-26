@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_Entrypoints;
+import com.ibm.jikesrvm.VM_Synchronization;
 
 import org.vmmagic.pragma.*;
 

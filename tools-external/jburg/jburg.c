@@ -582,8 +582,8 @@ emitdefs(Nonterm nts_)
 {
     Nonterm p;
 
-    print("package com.ibm.JikesRVM.opt; \n");
-    print("import com.ibm.JikesRVM.*; \n");
+    print("package com.ibm.jikesrvm.opt; \n");
+    print("import com.ibm.jikesrvm.*; \n");
     print("interface OPT_BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1static final byte %S_NT  \t= %d;\n", p, p->number);
@@ -933,7 +933,7 @@ emitstring(Rule rules_)
 //    int k;
 //    Term p;
  
-    print("package com.ibm.JikesRVM.opt; \n");
+    print("package com.ibm.jikesrvm.opt; \n");
     print("final class OPT_BURS_Debug {\n");
  
 #if 0

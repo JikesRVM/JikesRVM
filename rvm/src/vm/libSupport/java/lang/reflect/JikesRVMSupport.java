@@ -9,10 +9,10 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Runtime;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * Library support interface of Jikes RVM

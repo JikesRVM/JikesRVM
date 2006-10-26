@@ -25,17 +25,17 @@ TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class
 OPCODE_JAVA=$(SCRATCH_DIR)/OPT_OperatorFormatTables.java
 OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 
-VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.java
-VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.class
+VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.java
+VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.class
 
 FAKES =	VM_CodeArray.fake VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_Compiler.fake
 FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES)) NoInlinePragma.java Offset.java Word.java 
-FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java,$(FAKES)) \
+FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/jikesrvm/%.java,$(FAKES)) \
            $(SCRATCH_DIR)/org/vmmagic/pragma/NoInlinePragma.java \
 	   $(SCRATCH_DIR)/org/vmmagic/unboxed/Offset.java \
 	   $(SCRATCH_DIR)/org/vmmagic/unboxed/Word.java
 FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC)) \
-	   $(SCRATCH_DIR)/com/ibm/JikesRVM/VM_CodeArray\$$Factory.class
+	   $(SCRATCH_DIR)/com/ibm/jikesrvm/VM_CodeArray\$$Factory.class
 
 
 SRCS=   $(TABLES_JAVA) \
@@ -57,7 +57,7 @@ $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 $(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
 	$(GENERATE) OPT_OperatorFormatTables.template $(OPCODE_JAVA) OPERATOR_FILE=$(ARCH_OPS)
 
-$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java:	%.fake
+$(SCRATCH_DIR)/com/ibm/jikesrvm/%.java:	%.fake
 	$(CP) $< $@
 
 $(SCRATCH_DIR)/org/vmmagic/pragma/%.java:	%.fake

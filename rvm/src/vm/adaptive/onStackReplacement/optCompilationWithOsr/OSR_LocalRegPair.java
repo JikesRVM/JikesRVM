@@ -8,11 +8,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.VM;
 import org.vmmagic.unboxed.*;
 
 /**

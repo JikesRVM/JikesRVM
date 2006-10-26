@@ -8,10 +8,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
+package com.ibm.jikesrvm.OSR;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 /**
  * Variable map element (osr instruction, LinkedList MethodVariables) 

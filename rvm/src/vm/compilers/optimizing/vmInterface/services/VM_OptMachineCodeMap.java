@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001, 2004, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -159,7 +159,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
             VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
               if (ans == null) ans = new java.util.ArrayList();
-              ans.add(new com.ibm.JikesRVM.adaptive.VM_CallSite(caller, bcIndex));
+              ans.add(new com.ibm.jikesrvm.adaptive.VM_CallSite(caller, bcIndex));
             }
           }
         }
@@ -760,5 +760,5 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   private static int totalMapSize = 0;
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/opt/VM_OptMachineCodeMap;"));
 }

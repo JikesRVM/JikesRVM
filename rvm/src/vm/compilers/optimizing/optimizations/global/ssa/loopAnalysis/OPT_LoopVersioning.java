@@ -7,11 +7,11 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2003 - 2005
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;

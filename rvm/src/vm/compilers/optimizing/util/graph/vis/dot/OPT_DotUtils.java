@@ -8,7 +8,7 @@
  */
 //OPT_DotUtils.java
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * A set of functions for use in Dot routines.

@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 
 /**
  * A class to hold each element in the GCIRMap
  * @author Michael Hind
  */
-public class OPT_RegSpillListElement extends com.ibm.JikesRVM.opt.OPT_LinkedListElement {
+public class OPT_RegSpillListElement extends com.ibm.jikesrvm.opt.OPT_LinkedListElement {
 
   /**
    * this should be a symbolic register

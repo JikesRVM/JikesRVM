@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2004
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_Method;
 
 /**
  * A call site is a pair: <VM_Method, bcIndex>
@@ -33,7 +33,7 @@ public final class VM_CallSite {
    * @param bci the bytecode index of the callsite within m
    */
   public VM_CallSite(VM_Method m, int bci) {
-    if (com.ibm.JikesRVM.VM.VerifyAssertions) com.ibm.JikesRVM.VM._assert(m != null);
+    if (com.ibm.jikesrvm.VM.VerifyAssertions) com.ibm.jikesrvm.VM._assert(m != null);
     method = m;
     bcIndex = bci;
   }

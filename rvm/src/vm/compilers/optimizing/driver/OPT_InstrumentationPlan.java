@@ -8,9 +8,9 @@
  */
 /* $Id$
  */
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 
 /**
  * An instance of this class acts instructs the optimizing

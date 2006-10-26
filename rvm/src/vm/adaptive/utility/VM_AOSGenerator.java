@@ -12,15 +12,15 @@
 
 // $Id$
 
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_RuntimeCompiler;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_RuntimeCompiler;
+import com.ibm.jikesrvm.opt.*;
 import java.io.*;
 
 /**

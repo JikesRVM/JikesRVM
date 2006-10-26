@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.adaptive.*;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.adaptive.*;
 //-#endif
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 /**
@@ -292,7 +292,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
     //-#if RVM_WITH_ADAPTIVE_SYSTEM 
     // Get the opt's report
     VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"));
+                                                                VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/opt/OPT_OptimizationPlanner;"));
     VM_Type theType = theTypeRef.peekResolvedType();
     if (theType != null && theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
@@ -926,7 +926,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
 
-    VM_CompiledMethod cm = com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
+    VM_CompiledMethod cm = com.ibm.jikesrvm.jni.VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " + 
                     method.getDeclaringClass() + "." + method.getName() +

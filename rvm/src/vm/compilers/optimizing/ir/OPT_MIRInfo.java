@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.VM_CodeArray;
+import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.VM_CodeArray;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.OSR.*;
 //-#endif
 
 /**

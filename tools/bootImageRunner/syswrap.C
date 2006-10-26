@@ -222,7 +222,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     }
 
     // Call VM_Thread.ioWaitSelect()
-    jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
+    jclass vmWaitClass = env->FindClass("com/ibm/jikesrvm/VM_Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
                                                           "ioWaitSelect", "([I[I[IDZ)V");
     env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,

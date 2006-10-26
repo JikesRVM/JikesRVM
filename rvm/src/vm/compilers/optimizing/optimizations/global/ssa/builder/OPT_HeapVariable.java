@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.OPT_IR;
-import com.ibm.JikesRVM.opt.ir.OPT_BasicBlock;
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
+import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
 import java.util.*;
 
 /**

@@ -7,15 +7,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.opt.*;
 //-#endif
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 import org.vmmagic.pragma.*; 

@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.adaptive.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.adaptive.*;
 
 /** 
  * An opt compiler phase that inserts yieldpoint counters.  Searches

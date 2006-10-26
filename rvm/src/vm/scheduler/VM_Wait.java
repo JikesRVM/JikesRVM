@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002, 2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * A collection of static methods for waiting on some type of event.

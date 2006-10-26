@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import java.lang.reflect.Constructor;
 
@@ -49,7 +49,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoopUnrolling");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoopUnrolling");
     }
     return constructor;
   }

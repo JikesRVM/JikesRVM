@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -495,7 +495,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/quick/VM_QuickReferenceMaps;"));
   int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);

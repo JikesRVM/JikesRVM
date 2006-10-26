@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2004
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.classloader.VM_Method;
 
 /**
  * A collection of weighted call targets.

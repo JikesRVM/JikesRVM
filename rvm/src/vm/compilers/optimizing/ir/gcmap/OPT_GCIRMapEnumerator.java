@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.opt.OPT_LinkedList;
+import com.ibm.jikesrvm.opt.OPT_LinkedList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 

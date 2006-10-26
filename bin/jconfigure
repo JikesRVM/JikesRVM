@@ -1853,7 +1853,7 @@ EOF
     # Common memory manager components.
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk
 EOF
 
     cleanFileList <<- EOF
@@ -1865,8 +1865,8 @@ EOF
      cleanFileList <<- EOF
      # GCspy components
      #
-	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk/gcspy
-	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk/gcspy/util
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy/util
 EOF
 #     fi
 
@@ -2472,7 +2472,7 @@ function emitExpander () {
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	if [[ \$CLEAN_FLAG ]]; then
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
-	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
+	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/jikesrvm
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/unboxed
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/pragma
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
@@ -2795,7 +2795,7 @@ EOF
 	echo '    find ../MMTk.classes/mmtk -name \*.java -print'
     else
 	echo '    echo "Dummy.java"'
-	echo '    find com/ibm/JikesRVM/mm/mmtk -name \*.java -print'
+	echo '    find com/ibm/jikesrvm/mm/mmtk -name \*.java -print'
 	if (( RVM_WITH_OPT_COMPILER )); then
 	    echo '    echo "OptDummy.java"'
 	fi
@@ -3076,11 +3076,11 @@ EOF
 
 	## We don't put it into its own package because right now
 	## the VM thinks that it owns all of
-	## the com.ibm.JikesRVM namespace, and gets upset if someone wants
+	## the com.ibm.jikesrvm namespace, and gets upset if someone wants
 	## to load applications using any other class loader.
 
-	# generator_class="com.ibm.JikesRVM.GenerateInterfaceDeclarations.GenerateInterfaceDeclarations"
-	# generator_source_file=com/ibm/JikesRVM/GenerateInterfaceDeclarations/GenerateInterfaceDeclarations.java
+	# generator_class="com.ibm.jikesrvm.GenerateInterfaceDeclarations.GenerateInterfaceDeclarations"
+	# generator_source_file=com/ibm/jikesrvm/GenerateInterfaceDeclarations/GenerateInterfaceDeclarations.java
 	generator_class="GenerateInterfaceDeclarations"
 # 	generator_source_file="\${generator_class//./'/'}.java"
 # 	# generator_source_file="GenerateInterfaceDeclarations.java"
@@ -3105,7 +3105,7 @@ EOF
 	rm -f \$interface
 	declare -a args=( -Xmx200M \
 	   -classpath \$cp		\
-	   -Dmmtk.hostjvm=com.ibm.JikesRVM.mm.mmtk		\
+	   -Dmmtk.hostjvm=com.ibm.jikesrvm.mm.mmtk		\
 	   \${generator_class} \
 	   -da $BOOTIMAGE_DATA_ADDRESS \
 	   -ca $BOOTIMAGE_CODE_ADDRESS \
@@ -3252,15 +3252,15 @@ EOF
     else
 	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	    echo "    \$FIND ./com/ibm/JikesRVM/opt -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
         fi
 	if (( RVM_WITH_OSR )); then
-	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/OSR -name '*.class'"
         fi
-	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
+	echo "    \$FIND ./com/ibm/jikesrvm/memoryManagers -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
-	echo "    \$FIND ./com/ibm/JikesRVM/mm/mmtk -name '*.class'"
+	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
 	echo "    \$FIND ./org/vmmagic -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
@@ -3268,13 +3268,13 @@ EOF
     cat <<- EOF
 cleanFileList >> ${PRIMORDIAL_CLASSES_STR}.want-these << EOF_PRIMORDIAL_CLASSES_STR_1
 # VM daemon threads that do not start with VM for historical reasons
-com/ibm/JikesRVM/FinalizerThread
-com/ibm/JikesRVM/MainThread
-com/ibm/JikesRVM/DebuggerThread
+com/ibm/jikesrvm/FinalizerThread
+com/ibm/jikesrvm/MainThread
+com/ibm/jikesrvm/DebuggerThread
 
 # Classes needed for OutOfMemory servicing which we can not afford to load when we are actually out of memory
-com/ibm/JikesRVM/PrintLN
-com/ibm/JikesRVM/PrintContainer
+com/ibm/jikesrvm/PrintLN
+com/ibm/jikesrvm/PrintContainer
 
 ## Classes involved with the process of class loading...
 # fundamental java classes
@@ -3405,7 +3405,7 @@ java/lang/reflect/InvocationTargetException
 gnu/java/util/DoubleEnumeration
 
     # ApplicationClassLoader
-com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
+com/ibm/jikesrvm/classloader/ApplicationClassLoader # Uses URLClassLoader
 java/net/URLClassLoader		# Uses java.util.HashMap
 java/net/URL			# Used by URLClassLoader's initializer
 ## These protocol handlers are necessary for Classpath 0.13 and later,
@@ -3572,11 +3572,11 @@ EOF
     if (( RVM_WITH_OSR )); then
 	cat <<- EOF
 	# on stack replacement
-com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger
-com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent
-com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan
-com/ibm/JikesRVM/adaptive/OSR_OrganizerThread
-com/ibm/JikesRVM/adaptive/OSR_Listener
+com/ibm/jikesrvm/adaptive/OSR_OnStackReplacementTrigger
+com/ibm/jikesrvm/adaptive/OSR_OnStackReplacementEvent
+com/ibm/jikesrvm/adaptive/OSR_OnStackReplacementPlan
+com/ibm/jikesrvm/adaptive/OSR_OrganizerThread
+com/ibm/jikesrvm/adaptive/OSR_Listener
 EOF
     fi
 
@@ -3614,19 +3614,19 @@ java/util/Enumeration
 java/util/Dictionary
 java/util/Stack
 
-com/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode
-com/ibm/JikesRVM/opt/OPT_FieldAnalysis
-com/ibm/JikesRVM/opt/OPT_FieldDatabase
-com/ibm/JikesRVM/opt/OPT_SpecializedMethod
-com/ibm/JikesRVM/opt/OPT_InvokeeThreadLocalContext
-com/ibm/JikesRVM/opt/OPT_SpecializedMethodPool
-com/ibm/JikesRVM/opt/OPT_SpecializationDatabase
+com/ibm/jikesrvm/opt/ir/OPT_CallSiteTreeNode
+com/ibm/jikesrvm/opt/OPT_FieldAnalysis
+com/ibm/jikesrvm/opt/OPT_FieldDatabase
+com/ibm/jikesrvm/opt/OPT_SpecializedMethod
+com/ibm/jikesrvm/opt/OPT_InvokeeThreadLocalContext
+com/ibm/jikesrvm/opt/OPT_SpecializedMethodPool
+com/ibm/jikesrvm/opt/OPT_SpecializationDatabase
 
-com/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager
-com/ibm/JikesRVM/opt/OPT_InvalidationDatabase
-com/ibm/JikesRVM/opt/OPT_InterfaceHierarchy
-com/ibm/JikesRVM/opt/OPT_SummaryDatabase
-com/ibm/JikesRVM/opt/OPT_MethodSummary
+com/ibm/jikesrvm/opt/OPT_ClassLoadingDependencyManager
+com/ibm/jikesrvm/opt/OPT_InvalidationDatabase
+com/ibm/jikesrvm/opt/OPT_InterfaceHierarchy
+com/ibm/jikesrvm/opt/OPT_SummaryDatabase
+com/ibm/jikesrvm/opt/OPT_MethodSummary
 EOF
 	fi
 
@@ -3643,18 +3643,18 @@ java/util/Dictionary
 java/util/TreeMap
 java/util/TreeSet
 java/util/Stack
-com/ibm/JikesRVM/VM_QuickCompilerException
+com/ibm/jikesrvm/VM_QuickCompilerException
 EOF
         fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
 	cat << EOF
-com/ibm/JikesRVM/HPM_counters
-com/ibm/JikesRVM/HPM_info
-com/ibm/JikesRVM/Java2HPM
-com/ibm/JikesRVM/VM_HardwarePerformanceMonitor
-com/ibm/JikesRVM/VM_HardwarePerformanceMonitors
+com/ibm/jikesrvm/HPM_counters
+com/ibm/jikesrvm/HPM_info
+com/ibm/jikesrvm/Java2HPM
+com/ibm/jikesrvm/VM_HardwarePerformanceMonitor
+com/ibm/jikesrvm/VM_HardwarePerformanceMonitors
 EOF
     fi
     cat <<- EOF
@@ -3693,16 +3693,16 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Ljava/security/Principal;
 
 	[Ljava/util/zip/ZipEntry;
-	[Lcom/ibm/JikesRVM/classloader/VM_Atom;
-	[Lcom/ibm/JikesRVM/VM_BasicBlock;
-	[Lcom/ibm/JikesRVM/classloader/VM_Field;
-	[Lcom/ibm/JikesRVM/classloader/VM_Method;
-	[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;
-	[Lcom/ibm/JikesRVM/classloader/VM_Type;
-	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
-	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
-	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedCollectorContext;
-	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedMutatorContext;
+	[Lcom/ibm/jikesrvm/classloader/VM_Atom;
+	[Lcom/ibm/jikesrvm/VM_BasicBlock;
+	[Lcom/ibm/jikesrvm/classloader/VM_Field;
+	[Lcom/ibm/jikesrvm/classloader/VM_Method;
+	[Lcom/ibm/jikesrvm/classloader/VM_MemberReference;
+	[Lcom/ibm/jikesrvm/classloader/VM_Type;
+	[Lcom/ibm/jikesrvm/classloader/VM_TypeReference;
+	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/VM_CollectorThread;
+	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/SelectedCollectorContext;
+	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/SelectedMutatorContext;
 	[Lorg/mmtk/vm/SynchronizedCounter;
 	[Lorg/mmtk/plan/Phase;
 	[Lorg/mmtk/policy/Space;
@@ -3744,25 +3744,25 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lorg/vmmagic/unboxed/Word;
 	[Lorg/vmmagic/unboxed/Offset;
 	[Lorg/vmmagic/unboxed/Extent;
-	[Lcom/ibm/JikesRVM/VM_Code;
+	[Lcom/ibm/jikesrvm/VM_Code;
 	    
-	[Lcom/ibm/JikesRVM/VM_CodeArray;
+	[Lcom/ibm/jikesrvm/VM_CodeArray;
         [Lorg/vmmagic/unboxed/AddressArray;
         [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
-	[Lcom/ibm/JikesRVM/classloader/VM_Class;
-	[Lcom/ibm/JikesRVM/VM_UnusualMaps;
-	[Lcom/ibm/JikesRVM/VM_Processor;
-	[Lcom/ibm/JikesRVM/VM_Thread;
-	[Lcom/ibm/JikesRVM/VM_Lock;
-	[Lcom/ibm/JikesRVM/VM_CompiledMethod;
-	[Lcom/ibm/JikesRVM/VM_DynamicLibrary;
+	[Lcom/ibm/jikesrvm/classloader/VM_Class;
+	[Lcom/ibm/jikesrvm/VM_UnusualMaps;
+	[Lcom/ibm/jikesrvm/VM_Processor;
+	[Lcom/ibm/jikesrvm/VM_Thread;
+	[Lcom/ibm/jikesrvm/VM_Lock;
+	[Lcom/ibm/jikesrvm/VM_CompiledMethod;
+	[Lcom/ibm/jikesrvm/VM_DynamicLibrary;
 
-	[Lcom/ibm/JikesRVM/util/VM_HashMap\$Bucket;
+	[Lcom/ibm/jikesrvm/util/VM_HashMap\$Bucket;
 
-	[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
+	[Lcom/ibm/jikesrvm/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
 
-	[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix; # For command-line argument processing
+	[Lcom/ibm/jikesrvm/VM_CommandLineArgs\$Prefix; # For command-line argument processing
 	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 
@@ -3776,32 +3776,32 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	EOF
 	if (( RVM_WITH_ALL_CLASSES )); then
 	cat <<- EOF
-		[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;
-		[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;
-		[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;
-		[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;
+		[Lcom/ibm/jikesrvm/opt/OPT_OperatorClass;
+		[Lcom/ibm/jikesrvm/opt/OPT_ResourceReservation;
+		[Lcom/ibm/jikesrvm/opt/ir/OPT_Operator;
+		[Lcom/ibm/jikesrvm/opt/ir/OPT_Register;
 	EOF
 	fi
 
 	if (( RVM_WITH_ALL_CLASSES && RVM_FOR_POWERPC )); then
 	cat <<- EOF
-		[Lcom/ibm/JikesRVM/opcodeXX;   # PPC Dissasembler
-		[Lcom/ibm/JikesRVM/opcode_tab; # PPC Dissasembler
+		[Lcom/ibm/jikesrvm/opcodeXX;   # PPC Dissasembler
+		[Lcom/ibm/jikesrvm/opcode_tab; # PPC Dissasembler
 	EOF
 	fi
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
-		[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;
-		[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;
-		[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;
-		[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;
+		[Lcom/ibm/jikesrvm/adaptive/VM_MethodListener;
+		[Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;
+		[Lcom/ibm/jikesrvm/adaptive/VM_ContextListener;
+		[Lcom/ibm/jikesrvm/adaptive/VM_NullListener;
 EOF
 	fi
 
 	if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
 	cat <<- EOF
-	        [Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
+	        [Lcom/ibm/jikesrvm/VM_LockNursery\$VM_LockBucket;
 EOF
         fi
 

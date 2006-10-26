@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.PrintLN; // not needed.
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.PrintLN; // not needed.
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -284,7 +284,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_BaselineCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (bytecodeMap != null) size += VM_Array.ByteArray.getInstanceSize(bytecodeMap.length);

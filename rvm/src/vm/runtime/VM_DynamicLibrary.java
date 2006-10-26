@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.util.*;
+import com.ibm.jikesrvm.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;
 

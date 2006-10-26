@@ -8,7 +8,7 @@
  */
 
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * This interface designates an object which should always be allocated a

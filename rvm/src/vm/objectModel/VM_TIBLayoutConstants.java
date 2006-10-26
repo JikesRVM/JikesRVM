@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id:
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 /**
  * Layout the TIB (Type Information Block).

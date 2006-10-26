@@ -12,10 +12,10 @@ package java.lang;
 import java.io.File;
 import java.util.Properties;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.VM_ClassLoader;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
-import com.ibm.JikesRVM.VM_Configuration;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.VM_ClassLoader;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.*;
+import com.ibm.jikesrvm.VM_Configuration;
 
 import org.vmmagic.unboxed.Offset;
 

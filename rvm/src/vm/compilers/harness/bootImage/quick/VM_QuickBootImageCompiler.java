@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.quick.*;
 
 /**
  * Use quick compiler to build virtual machine boot image.
@@ -128,7 +128,7 @@ public final class VM_QuickBootImageCompiler extends VM_BootImageCompiler {
     // It is tempting to time via System.currentTimeMillis()
     // but 1 millisecond granularity isn't good enough because the 
     // the baseline compiler is just too fast.
-    double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    double compileTime = method.getBytecodeLength() / com.ibm.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
     cm.setCompilationTime(compileTime);
     //-#endif
     return cm;

@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001, 2004, 2005
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -361,7 +361,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_ReferenceMaps;"));
   int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);

@@ -11,9 +11,9 @@
  */
 
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.classloader.VM_MethodReference;
+import com.ibm.jikesrvm.classloader.VM_MethodReference;
 
 /**
  * A unresolved call site is a pair: <VM_MethodReference, bcIndex>
@@ -37,7 +37,7 @@ public final class VM_UnResolvedCallSite {
    * @param bci the bytecode index of the callsite within m
    */
   public VM_UnResolvedCallSite(VM_MethodReference m, int bci) {
-    if (com.ibm.JikesRVM.VM.VerifyAssertions) com.ibm.JikesRVM.VM._assert(m != null);
+    if (com.ibm.jikesrvm.VM.VerifyAssertions) com.ibm.jikesrvm.VM._assert(m != null);
     methodRef = m;
     bcIndex = bci;
   }

@@ -11,16 +11,16 @@ package java.lang;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Options;
-import com.ibm.JikesRVM.VM_StackTrace;
-import com.ibm.JikesRVM.VM_UnimplementedError;
-import com.ibm.JikesRVM.PrintLN;
-import com.ibm.JikesRVM.PrintContainer;
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.classloader.VM_TypeReference;
-import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Options;
+import com.ibm.jikesrvm.VM_StackTrace;
+import com.ibm.jikesrvm.VM_UnimplementedError;
+import com.ibm.jikesrvm.PrintLN;
+import com.ibm.jikesrvm.PrintContainer;
+import com.ibm.jikesrvm.classloader.VM_Atom;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_TypeReference;
+import com.ibm.jikesrvm.VM_ObjectModel;
 
 
 

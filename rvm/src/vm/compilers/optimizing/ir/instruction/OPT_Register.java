@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
 /**
  * Represents a symbolic or physical register. 
@@ -142,12 +142,12 @@ public final class OPT_Register {
   /** 
    * Used in dependence graph construction.
    */
-  public void setdNode(com.ibm.JikesRVM.opt.OPT_DepGraphNode a) {
+  public void setdNode(com.ibm.jikesrvm.opt.OPT_DepGraphNode a) {
     scratchObject = a;
   }
 
-  public com.ibm.JikesRVM.opt.OPT_DepGraphNode dNode() {
-    return (com.ibm.JikesRVM.opt.OPT_DepGraphNode)scratchObject;
+  public com.ibm.jikesrvm.opt.OPT_DepGraphNode dNode() {
+    return (com.ibm.jikesrvm.opt.OPT_DepGraphNode)scratchObject;
   }
 
 

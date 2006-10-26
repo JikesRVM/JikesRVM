@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2002, 2004
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import java.io.FileDescriptor;
 import java.io.InputStream;

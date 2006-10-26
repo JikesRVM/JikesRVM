@@ -7,13 +7,13 @@
  * (C) Copyright IBM Corp. 2002, 2005
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 //BEGIN HRM
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_Method;
 //END HRM
 
 /**

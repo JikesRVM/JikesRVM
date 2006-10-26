@@ -7,19 +7,19 @@
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_Controller;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.adaptive.VM_Controller;
+import com.ibm.jikesrvm.opt.*;
 //-#endif
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.*;
+import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.classloader.*;
 
 import java.io.File;
 

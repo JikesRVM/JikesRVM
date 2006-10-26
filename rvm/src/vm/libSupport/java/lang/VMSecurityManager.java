@@ -9,10 +9,10 @@
 //$Id$
 package java.lang;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.VM_StackBrowser;
-import com.ibm.JikesRVM.classloader.VM_BootstrapClassLoader;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.VM_StackBrowser;
+import com.ibm.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 /**
  * Library support interface of Jikes RVM.

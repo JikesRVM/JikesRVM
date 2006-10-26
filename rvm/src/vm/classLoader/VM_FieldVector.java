@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
 /**
  *  Lightweight implementation of a vector of VM_Fields.

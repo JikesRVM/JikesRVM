@@ -9,7 +9,7 @@
 //$Id$
 package org.vmmagic.pragma; 
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 /**
  * This pragma indicates that a particular method should never be 
  * compiled by the optimizing compiler. It also implies that the

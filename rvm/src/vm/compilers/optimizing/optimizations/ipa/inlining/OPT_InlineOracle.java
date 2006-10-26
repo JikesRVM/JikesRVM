@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * Oracle interface: the compiler queries this oracle to decide whether
@@ -22,7 +22,7 @@ public interface OPT_InlineOracle {
    * @param state information needed to make the inlining decision
    * @return an OPT_InlineDecision with the result
    */
-  public OPT_InlineDecision shouldInline (com.ibm.JikesRVM.opt.ir.OPT_CompilationState state);
+  public OPT_InlineDecision shouldInline (com.ibm.jikesrvm.opt.ir.OPT_CompilationState state);
 }
 
 

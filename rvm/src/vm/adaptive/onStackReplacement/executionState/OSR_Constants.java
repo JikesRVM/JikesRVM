@@ -8,8 +8,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.OSR;
-import com.ibm.JikesRVM.VM_SizeConstants;
+package com.ibm.jikesrvm.OSR;
+import com.ibm.jikesrvm.VM_SizeConstants;
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.

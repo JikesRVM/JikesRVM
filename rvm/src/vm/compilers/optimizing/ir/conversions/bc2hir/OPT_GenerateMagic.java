@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001, 2004, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
-import com.ibm.JikesRVM.opt.OPT_MagicNotImplementedException;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.OPT_ClassLoaderProxy;
+import com.ibm.jikesrvm.opt.OPT_MagicNotImplementedException;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -371,7 +371,7 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
       OPT_RegisterOperand reg = 
         gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
-                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_CollectorThread;")));
+                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_CollectorThread;")));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsType) {
@@ -381,7 +381,7 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.objectAsThread) {
       OPT_RegisterOperand reg = 
         gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
-                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Thread;")));
+                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_Thread;")));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsProcessor) {
@@ -407,13 +407,13 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.addressAsThread) {
       OPT_RegisterOperand reg = 
         gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Thread;")));
+                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_Thread;")));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsRegisters) {
       OPT_RegisterOperand reg = 
         gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Registers;")));
+                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_Registers;")));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsByteArray) {

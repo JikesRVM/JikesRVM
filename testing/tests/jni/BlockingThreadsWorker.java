@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 /*
  * @author Ton Ngo
  */

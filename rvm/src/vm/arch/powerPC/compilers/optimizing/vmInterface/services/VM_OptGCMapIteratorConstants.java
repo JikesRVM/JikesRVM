@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC

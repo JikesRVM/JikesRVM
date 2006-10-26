@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Statics;
+import com.ibm.jikesrvm.VM_SizeConstants;
 import org.vmmagic.unboxed.Offset;
 
 /**

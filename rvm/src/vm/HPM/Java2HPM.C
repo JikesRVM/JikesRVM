@@ -39,7 +39,7 @@ static int debug=0;
  * referenced later to determine which events are accessible.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_init(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_init(JNIEnv *env,	/* interface pointer */
 				    jclass cls		/* "this" pointer */
 				    ) 
 {
@@ -60,7 +60,7 @@ Java_com_ibm_JikesRVM_Java2HPM_init(JNIEnv *env,	/* interface pointer */
  * correct counter, event pair to be set.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setEvent(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setEvent(JNIEnv *env,	/* interface pointer */
 					jclass cls,	/* "this" pointer */
 					jint e1, jint e2, jint e3, jint e4
 					)
@@ -83,7 +83,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setEvent(JNIEnv *env,	/* interface pointer */
  * correct counter, event pair to be set.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setEventX(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setEventX(JNIEnv *env,	/* interface pointer */
 					 jclass cls,	/* "this" pointer */
 					 jint e5, jint e6, jint e7, jint e8
 					 )
@@ -109,7 +109,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setEventX(JNIEnv *env,	/* interface pointer */
 #define PM_USER		4	/* turns user mode counting on */
 #define PM_KERNEL	8	/* turns kernel mode counting on */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setModeUser(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setModeUser(JNIEnv *env,	/* interface pointer */
 					   jclass cls	/* "this" pointer */
 					   ) 
 {
@@ -122,7 +122,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setModeUser(JNIEnv *env,	/* interface pointer */
   return hpm_set_mode(MODE_USER);
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setModeKernel(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setModeKernel(JNIEnv *env,	/* interface pointer */
 					     jclass cls		/* "this" pointer */
 					     ) 
 {
@@ -135,7 +135,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setModeKernel(JNIEnv *env,	/* interface pointer *
   return hpm_set_mode(mode);
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setModeBoth(JNIEnv *env,		/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setModeBoth(JNIEnv *env,		/* interface pointer */
 					   jclass cls		/* "this" pointer */
 					   ) 
 {
@@ -151,7 +151,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setModeBoth(JNIEnv *env,		/* interface pointer */
  * Set mode to what parameter is.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setMode(JNIEnv *env,		/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setMode(JNIEnv *env,		/* interface pointer */
 				       jclass cls,		/* "this" pointer */
 				       jint   mode
 				       ) 
@@ -166,7 +166,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setMode(JNIEnv *env,		/* interface pointer */
  * May call this multiple times only after calling hpmDeleteSettings.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setProgramMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setProgramMyThread(JNIEnv *env,	/* interface pointer */
 						  jclass cls	/* "this" pointer */
 						  )
 {
@@ -175,7 +175,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setProgramMyThread(JNIEnv *env,	/* interface poin
   return hpm_set_program_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_setProgramMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_setProgramMyGroup(JNIEnv *env,	/* interface pointer */
 						 jclass cls	/* "this" pointer */
 						 )
 {
@@ -188,7 +188,7 @@ Java_com_ibm_JikesRVM_Java2HPM_setProgramMyGroup(JNIEnv *env,	/* interface point
  * May be called only after a setProgram() is called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getProgramMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getProgramMyThread(JNIEnv *env,	/* interface pointer */
 						  jclass cls	/* "this" pointer */
 						  ) 
 {
@@ -197,7 +197,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getProgramMyThread(JNIEnv *env,	/* interface poin
   return hpm_get_program_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getProgramMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getProgramMyGroup(JNIEnv *env,	/* interface pointer */
 						 jclass cls	/* "this" pointer */
 						 ) 
 {
@@ -210,7 +210,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getProgramMyGroup(JNIEnv *env,	/* interface point
  * making it possible to call setProgram again.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_deleteProgramMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_deleteProgramMyThread(JNIEnv *env,	/* interface pointer */
 						     jclass cls	/* "this" pointer */
 						     )
 {
@@ -219,7 +219,7 @@ Java_com_ibm_JikesRVM_Java2HPM_deleteProgramMyThread(JNIEnv *env,	/* interface p
   return hpm_delete_program_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_deleteProgramMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_deleteProgramMyGroup(JNIEnv *env,	/* interface pointer */
 						    jclass cls	/* "this" pointer */
 						    )
 {
@@ -234,7 +234,7 @@ Java_com_ibm_JikesRVM_Java2HPM_deleteProgramMyGroup(JNIEnv *env,	/* interface po
  * setprog.mode.b.count = 1, and setting program_mythread.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_startMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_startMyThread(JNIEnv *env,	/* interface pointer */
 					     jclass cls		/* "this" pointer */
 					     )
 {
@@ -243,7 +243,7 @@ Java_com_ibm_JikesRVM_Java2HPM_startMyThread(JNIEnv *env,	/* interface pointer *
   return hpm_start_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_startMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_startMyGroup(JNIEnv *env,	/* interface pointer */
 					    jclass cls		/* "this" pointer */
 					    )
 {
@@ -256,7 +256,7 @@ Java_com_ibm_JikesRVM_Java2HPM_startMyGroup(JNIEnv *env,	/* interface pointer */
  * After successful completion, counters no longer enabled.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_stopMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_stopMyThread(JNIEnv *env,	/* interface pointer */
 					    jclass cls		/* "this" pointer */
 					    ) 
 {
@@ -265,7 +265,7 @@ Java_com_ibm_JikesRVM_Java2HPM_stopMyThread(JNIEnv *env,	/* interface pointer */
   return hpm_stop_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_stopMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_stopMyGroup(JNIEnv *env,	/* interface pointer */
 					   jclass cls		/* "this" pointer */
 					   ) 
 {
@@ -278,7 +278,7 @@ Java_com_ibm_JikesRVM_Java2HPM_stopMyGroup(JNIEnv *env,	/* interface pointer */
  * Must be called after hpm_init!
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_resetMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_resetMyThread(JNIEnv *env,	/* interface pointer */
 					     jclass cls	/* "this" pointer */
 					     )
 {
@@ -287,7 +287,7 @@ Java_com_ibm_JikesRVM_Java2HPM_resetMyThread(JNIEnv *env,	/* interface pointer *
   return hpm_reset_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_resetMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_resetMyGroup(JNIEnv *env,	/* interface pointer */
 					    jclass cls	/* "this" pointer */
 					    )
 {
@@ -302,7 +302,7 @@ Java_com_ibm_JikesRVM_Java2HPM_resetMyGroup(JNIEnv *env,	/* interface pointer */
  * specify counter in range [1..maxCounters].
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getMyThread(JNIEnv *env,	/* interface pointer */
 					   jclass cls	/* "this" pointer */
 					   )
 {
@@ -312,7 +312,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getMyThread(JNIEnv *env,	/* interface pointer */
   return value;
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getMyGroup(JNIEnv *env,	/* interface pointer */
 					  jclass cls	/* "this" pointer */
 					  )
 {
@@ -325,7 +325,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getMyGroup(JNIEnv *env,	/* interface pointer */
  * Return number of countes available on this machine.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getNumberOfCounters(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getNumberOfCounters(JNIEnv *env,	/* interface pointer */
 						   jclass cls	/* "this" pointer */
 						   )
 {
@@ -341,7 +341,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getNumberOfCounters(JNIEnv *env,	/* interface poi
  * specify counter in range [1..maxCounters].
  */
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getCounterMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getCounterMyThread(JNIEnv *env,	/* interface pointer */
 						  jclass cls,	/* "this" pointer */
 						  jint counter
 						  )
@@ -352,7 +352,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getCounterMyThread(JNIEnv *env,	/* interface poin
   return value;
 }
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getCounterMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getCounterMyGroup(JNIEnv *env,	/* interface pointer */
 						 jclass cls,	/* "this" pointer */
 						 jint counter
 						 )
@@ -367,7 +367,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getCounterMyGroup(JNIEnv *env,	/* interface point
  * Assume hpmInit is already called.
  */
 extern "C" JNIEXPORT void JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_listAllEvents(JNIEnv *env,/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_listAllEvents(JNIEnv *env,/* interface pointer */
 					     jclass cls	 /* "this" pointer */
 					     )
 {
@@ -378,7 +378,7 @@ Java_com_ibm_JikesRVM_Java2HPM_listAllEvents(JNIEnv *env,/* interface pointer */
  * Assume hpmInit is already called.
  */
 extern "C" JNIEXPORT void JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_listSelectedEvents(JNIEnv *env,/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_listSelectedEvents(JNIEnv *env,/* interface pointer */
 						  jclass cls	/* "this" pointer */
 						  )
 {
@@ -393,7 +393,7 @@ Java_com_ibm_JikesRVM_Java2HPM_listSelectedEvents(JNIEnv *env,/* interface point
  * Counters start at 0.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getEventId(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getEventId(JNIEnv *env,	/* interface pointer */
 					  jclass cls,	/* "this" pointer */
 					  jint counter
 					  )
@@ -410,7 +410,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getEventId(JNIEnv *env,	/* interface pointer */
  * specify counter in range [1..maxCounters].
  */
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getEventShortName(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getEventShortName(JNIEnv *env,	/* interface pointer */
 						 jclass cls,	/* "this" pointer */
 						 jint counter
 						 )
@@ -428,7 +428,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getEventShortName(JNIEnv *env,	/* interface point
  * Assumes
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_printMyThread(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_printMyThread(JNIEnv *env,	/* interface pointer */
 					     jclass cls,	/* "this" pointer */
 					     jint processId
 					     ) 
@@ -438,7 +438,7 @@ Java_com_ibm_JikesRVM_Java2HPM_printMyThread(JNIEnv *env,	/* interface pointer *
   return hpm_print_mythread();
 }
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_printMyGroup(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_printMyGroup(JNIEnv *env,	/* interface pointer */
 					    jclass cls,	/* "this" pointer */
 					    jint processId
 					    ) 
@@ -453,7 +453,7 @@ Java_com_ibm_JikesRVM_Java2HPM_printMyGroup(JNIEnv *env,	/* interface pointer */
 static int test_value = 0;
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_test(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_test(JNIEnv *env,	/* interface pointer */
 				    jclass cls		/* "this" pointer */
 				    ) 
 {
@@ -469,7 +469,7 @@ Java_com_ibm_JikesRVM_Java2HPM_test(JNIEnv *env,	/* interface pointer */
  * specify counter in range [1..maxCounters].
  */
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_getProcessorName(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_getProcessorName(JNIEnv *env,	/* interface pointer */
 						jclass cls	/* "this" pointer */
 						)
 {
@@ -486,7 +486,7 @@ Java_com_ibm_JikesRVM_Java2HPM_getProcessorName(JNIEnv *env,	/* interface pointe
  * Assume hpm_init already called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_isPower4(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_isPower4(JNIEnv *env,	/* interface pointer */
 					jclass cls	/* "this" pointer */
 					)
 {
@@ -501,7 +501,7 @@ Java_com_ibm_JikesRVM_Java2HPM_isPower4(JNIEnv *env,	/* interface pointer */
  * Assume hpm_init already called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_isPower3(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_isPower3(JNIEnv *env,	/* interface pointer */
 					jclass cls	/* "this" pointer */
 					)
 {
@@ -516,14 +516,14 @@ Java_com_ibm_JikesRVM_Java2HPM_isPower3(JNIEnv *env,	/* interface pointer */
  * Assume hpm_init already called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_isRS64III(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_isRS64III(JNIEnv *env,	/* interface pointer */
 					 jclass cls	/* "this" pointer */
 					 )
 {
   jint value;
   //  if(debug>=1) fprintf(stdout,"Java2HPM_isRS64III()\n");
   value = hpm_isRS64III();
-  if(debug>=1) fprintf(stdout,"Java_com_ibm_JikesRVM_Java2HPM_isRS64III() returns %d\n",value);
+  if(debug>=1) fprintf(stdout,"Java_com_ibm_jikesrvm_Java2HPM_isRS64III() returns %d\n",value);
   return value;
 }
 /*
@@ -531,7 +531,7 @@ Java_com_ibm_JikesRVM_Java2HPM_isRS64III(JNIEnv *env,	/* interface pointer */
  * Assume hpm_init already called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_is604e(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_is604e(JNIEnv *env,	/* interface pointer */
 				      jclass cls	/* "this" pointer */
 				      )
 {
@@ -546,12 +546,12 @@ Java_com_ibm_JikesRVM_Java2HPM_is604e(JNIEnv *env,	/* interface pointer */
  * Assume hpm_init already called.
  */
 extern "C" JNIEXPORT jint JNICALL
-Java_com_ibm_JikesRVM_Java2HPM_isPower3II(JNIEnv *env,	/* interface pointer */
+Java_com_ibm_jikesrvm_Java2HPM_isPower3II(JNIEnv *env,	/* interface pointer */
 					  jclass cls	/* "this" pointer */
 					  )
 {
   jint value;
-  /*  if(debug>=1) fprintf(stdout,"Java_com_ibm_JikesRVM_Java2HPM_isPower3II()\n"); */
+  /*  if(debug>=1) fprintf(stdout,"Java_com_ibm_jikesrvm_Java2HPM_isPower3II()\n"); */
   value = hpm_isPower3II();
   if(debug>=1) fprintf(stdout,"Java2HPM_isPower3II() returns %d\n",value);
   return value;

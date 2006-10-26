@@ -10,7 +10,7 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.VM;
 
 /**
  * The VM front end is not capable of correct handling an array of Address, Word, ....

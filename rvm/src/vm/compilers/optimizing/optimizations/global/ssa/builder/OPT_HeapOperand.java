@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.

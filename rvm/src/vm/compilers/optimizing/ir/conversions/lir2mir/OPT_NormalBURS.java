@@ -8,10 +8,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
+package com.ibm.jikesrvm.opt;
+import com.ibm.jikesrvm.*;
 
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /**
  * This class contains methods for invoking BURS tree-pattern matching

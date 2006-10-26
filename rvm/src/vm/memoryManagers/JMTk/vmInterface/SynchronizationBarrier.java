@@ -8,20 +8,20 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
 import org.mmtk.utility.Barrier;
 
 import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_SysCall;
-import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.jikesrvm.VM_Scheduler;
+import com.ibm.jikesrvm.VM_Time;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM_SysCall;
+import com.ibm.jikesrvm.VM_BootRecord;
 
 /**
  * A synchronization barrier used to synchronize collector threads,

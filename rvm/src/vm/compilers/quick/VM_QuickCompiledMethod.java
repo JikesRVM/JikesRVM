@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.PrintLN; // not needed.
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.PrintLN; // not needed.
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -263,7 +263,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/quick/VM_QuickCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (_bytecodeMap != null) size += VM_Array.IntArray.getInstanceSize(_bytecodeMap.length);

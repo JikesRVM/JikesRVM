@@ -8,13 +8,13 @@
  */
 
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.OSR.*;
 //-#endif
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -202,7 +202,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
   private static final VM_TypeReference TYPE
     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_ExceptionTable;"));
 
   public final int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();

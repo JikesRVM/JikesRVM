@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp 2001,2002,2004
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
@@ -18,7 +18,7 @@ import java.util.jar.Manifest;
 import java.util.jar.JarFile;
 
 //-#if RVM_WITH_GCSPY
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 //-#endif
 
 /**

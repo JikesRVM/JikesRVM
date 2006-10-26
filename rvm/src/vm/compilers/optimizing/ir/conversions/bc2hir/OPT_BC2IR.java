@@ -7,16 +7,16 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
-import com.ibm.JikesRVM.adaptive.*;
+import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.adaptive.*;
 import java.util.ArrayList;
 //-#endif
 

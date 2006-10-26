@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp 2002, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_FileSystem;
-import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Entrypoints;
+import com.ibm.jikesrvm.VM_FileSystem;
+import com.ibm.jikesrvm.VM_Magic;
 
 import java.io.File;
 

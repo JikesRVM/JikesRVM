@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.jni;
+package com.ibm.jikesrvm.jni;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /**
  * This class is responsible for constructing the JNIFuctions
@@ -273,7 +273,7 @@ public class BuildJNIFunctionTable {
     VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
     
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
-                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_JNIFunctions;"));
+                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/jni/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
     VM_Method[] mths = cls.getDeclaredMethods();

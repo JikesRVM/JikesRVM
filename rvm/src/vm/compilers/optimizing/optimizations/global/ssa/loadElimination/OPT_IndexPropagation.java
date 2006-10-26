@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /**
  * OPT_IndexPropagation.java
@@ -44,7 +44,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_IndexPropagation");
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_IndexPropagation");
     }
     return constructor;
   }

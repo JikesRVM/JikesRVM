@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.*;
 import java.util.Vector;
 
 /**
@@ -37,7 +37,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.toString();
-    if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
+    if (clsName.compareTo("com.ibm.jikesrvm.opt.VM_OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
     return (fullName.indexOf(excludePattern)) < 0;
@@ -144,7 +144,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     // It is tempting to time via System.currentTimeMillis()
     // but 1 millisecond granularity isn't good enough because the 
     // the baseline compiler is just too fast.
-    double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    double compileTime = method.getBytecodeLength() / com.ibm.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
     cm.setCompilationTime(compileTime);
     //-#endif
     return cm;

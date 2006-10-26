@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.util.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.util.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -536,14 +536,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   private static final byte[][] bootstrapClassPrefixes 
     = { "Ljava/".getBytes(), 
-        "Lcom/ibm/JikesRVM/".getBytes(),
+        "Lcom/ibm/jikesrvm/".getBytes(),
         "Lgnu/java/".getBytes(),
         "Lgnu/classpath/".getBytes(),
         "Lorg/vmmagic/".getBytes(),
         "Lorg/mmtk/".getBytes()};
 
   private static final byte[][] rvmClassPrefixes 
-    = { "Lcom/ibm/JikesRVM/".getBytes(),
+    = { "Lcom/ibm/jikesrvm/".getBytes(),
         "Lorg/vmmagic/".getBytes(),
         "Lorg/mmtk/".getBytes()};
 

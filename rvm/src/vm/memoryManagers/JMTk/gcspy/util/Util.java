@@ -14,9 +14,9 @@ import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_SysCall;
-import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_SysCall;
+import com.ibm.jikesrvm.VM_Synchronization;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

@@ -8,7 +8,7 @@
  */
 //$Id$
 
-import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**
  * @author Perry Cheng

@@ -7,9 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -437,7 +437,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintLN to print the stack trace to.
    */
-  public abstract void printStackTrace(Offset instructionOffset, com.ibm.JikesRVM.PrintLN out);
+  public abstract void printStackTrace(Offset instructionOffset, com.ibm.jikesrvm.PrintLN out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method

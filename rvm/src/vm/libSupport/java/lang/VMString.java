@@ -14,9 +14,9 @@ import java.util.WeakHashMap;
 
 import java.io.UTFDataFormatException;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.classloader.VM_Atom;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Statics;
+import com.ibm.jikesrvm.classloader.VM_Atom;
 
 /**
  * Implementation of string interning for JikesRVM.

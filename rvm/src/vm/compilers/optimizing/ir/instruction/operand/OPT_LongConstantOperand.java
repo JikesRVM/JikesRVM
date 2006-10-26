@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.JikesRVM.classloader.VM_TypeReference;
-import com.ibm.JikesRVM.opt.OPT_Bits;
+import com.ibm.jikesrvm.classloader.VM_TypeReference;
+import com.ibm.jikesrvm.opt.OPT_Bits;
 import org.vmmagic.unboxed.Offset;
 
 /**

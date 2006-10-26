@@ -11,9 +11,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.classloader.*;
 import java.io.IOException;
 import java.util.StringTokenizer;
 import java.io.FileInputStream;

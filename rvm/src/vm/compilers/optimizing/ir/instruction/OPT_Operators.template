@@ -16,7 +16,7 @@
  *  ARCH_OP_LIST
  */
 
-package com.ibm.JikesRVM.opt.ir;
+package com.ibm.jikesrvm.opt.ir;
 
 /**
  * Interface with all operator names and opcodes.

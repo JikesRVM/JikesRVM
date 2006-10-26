@@ -8,23 +8,23 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
+import com.ibm.jikesrvm.VM_Constants;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
+import com.ibm.jikesrvm.opt.VM_OptGCMapIterator;
 //-#endif
 //-#if RVM_WITH_QUICK_COMPILER
-import com.ibm.JikesRVM.quick.VM_QuickGCMapIterator;
+import com.ibm.jikesrvm.quick.VM_QuickGCMapIterator;
 //-#endif
-import com.ibm.JikesRVM.jni.VM_JNIGCMapIterator;
-import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.jikesrvm.jni.VM_JNIGCMapIterator;
+import com.ibm.jikesrvm.VM_HardwareTrapGCMapIterator;
+import com.ibm.jikesrvm.VM_Thread;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

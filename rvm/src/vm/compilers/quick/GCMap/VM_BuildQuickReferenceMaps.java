@@ -8,10 +8,10 @@
  */
 //VM_BuildQuickReferenceMaps.java
 //$Id$
-package com.ibm.JikesRVM.quick;
+package com.ibm.jikesrvm.quick;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
 
 /** 
  * This class builds the reference and non-reference maps for a given method.

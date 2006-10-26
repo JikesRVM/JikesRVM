@@ -10,10 +10,10 @@
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.mm.mmtk.ScanBootImage;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.mm.mmtk.ScanBootImage;
 
 import org.vmmagic.unboxed.*;
 

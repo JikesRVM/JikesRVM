@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Method;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -57,7 +57,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final void printStackTrace(Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  public final void printStackTrace(Offset instructionOffset, com.ibm.jikesrvm.PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 

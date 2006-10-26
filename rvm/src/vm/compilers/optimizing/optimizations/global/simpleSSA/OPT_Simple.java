@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.jikesrvm.*;
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /*
  * Simple flow-insensitive optimizations.
@@ -144,7 +144,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_Simple", new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_Simple", new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
     }
     return constructor;
   }

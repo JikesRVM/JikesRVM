@@ -7,14 +7,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 //-#if RVM_WITH_OSR
-import com.ibm.JikesRVM.OSR.*;
+import com.ibm.jikesrvm.OSR.*;
 //-#endif
 
 import java.util.Stack;
@@ -172,7 +172,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    */
   public Constructor getClassConstructor() {
     if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LiveAnalysis", new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LiveAnalysis", new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
     }
     return constructor;
   }

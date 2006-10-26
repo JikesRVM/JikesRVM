@@ -9,7 +9,7 @@
 //$Id$
 package java.lang;
 
-import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.jikesrvm.VM_Magic;
 
 /**
  * Double <==> long bit transfer for Jikes RVM.

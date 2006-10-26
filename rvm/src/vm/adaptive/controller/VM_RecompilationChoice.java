@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.adaptive;
+package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 
 /**
  * A recompilation choice represents an action (or a set of actions)

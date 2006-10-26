@@ -7,15 +7,15 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2003 - 2005
  */
 //$Id$
-package com.ibm.JikesRVM.opt;
+package com.ibm.jikesrvm.opt;
 
-import com.ibm.JikesRVM.opt.ir.OPT_BasicBlock;
-import com.ibm.JikesRVM.opt.ir.OPT_Instruction;
-import com.ibm.JikesRVM.opt.ir.OPT_Operand;
-import com.ibm.JikesRVM.opt.ir.OPT_HeapOperand;
-import com.ibm.JikesRVM.opt.ir.OPT_Operators;
-import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.VM;
+import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
+import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
+import com.ibm.jikesrvm.opt.ir.OPT_Operand;
+import com.ibm.jikesrvm.opt.ir.OPT_HeapOperand;
+import com.ibm.jikesrvm.opt.ir.OPT_Operators;
+import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.VM;
 import java.util.ArrayList;
 import java.util.Enumeration;
 

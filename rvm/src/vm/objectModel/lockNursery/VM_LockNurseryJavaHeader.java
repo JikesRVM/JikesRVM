@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2002
  */
 // $Id$
-package com.ibm.JikesRVM;
+package com.ibm.jikesrvm;
 
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_AllocatorHeader;
+import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

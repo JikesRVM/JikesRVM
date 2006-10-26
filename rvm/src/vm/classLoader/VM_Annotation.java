@@ -7,12 +7,12 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
 // $Id$
-package com.ibm.JikesRVM.classloader;
+package com.ibm.jikesrvm.classloader;
 
-import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.jikesrvm.VM_Statics;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Runtime;
+import com.ibm.jikesrvm.VM_Reflection;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.vmmagic.unboxed.Offset;
@@ -55,9 +55,9 @@ public final class VM_Annotation {
    */
   static {
     baseAnnotationInitMethod = (VM_MethodReference)
-      VM_MemberReference.findOrCreate(VM_TypeReference.findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Annotation$BaseAnnotation;"),
+      VM_MemberReference.findOrCreate(VM_TypeReference.findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Annotation$BaseAnnotation;"),
                                       VM_Atom.findOrCreateAsciiAtom("<init>"),
-                                      VM_Atom.findOrCreateAsciiAtom("(Lcom/ibm/JikesRVM/classloader/VM_Annotation;)V")
+                                      VM_Atom.findOrCreateAsciiAtom("(Lcom/ibm/jikesrvm/classloader/VM_Annotation;)V")
                                       );
     if(baseAnnotationInitMethod == null) {
       throw new Error("Error creating reference to base annotation");
