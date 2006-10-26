@@ -37,37 +37,33 @@ public class VMSystemProperties {
    *
    */
   public static void preInit(Properties p) {
-    p.put("java.version", "1.4.2"); /* This is a lie, of course -- we don't 
-                                       really support all 1.4 features, such
+    p.put("java.version", "1.5.0"); /* This is a lie, of course -- we don't 
+                                       really support all 1.5 features, such
                                        as assertions.  However, it is a  
                                        necessary lie, since Eclipse 3.0
                                        explicitly tests java.version and
                                        insists upon at least 1.4.1 to run. */
     p.put("java.vendor", "Jikes RVM Project");
     p.put("java.vm.vendor", "Jikes RVM Project");
-    p.put("java.vendor.url", "http://oss.software.ibm.com");
+    p.put("java.vendor.url", "http://jikesrvm.sourceforge.net");
     
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
-    p.put("java.specification.version", "1.4");
+    p.put("java.specification.version", "1.5");
 
     p.put("java.vm.specification.name", "Java Virtual Machine Specification");
     p.put("java.vm.specification.vendor", "Sun Microsystems Inc.");
     p.put("java.vm.specification.version", "1.0");
 
-    /* 48.0 brings us through Java version 1.4.  Java 1.5 bumps the class file
-       format up to 49.0.  The changes for version 49.0 are described at
-       <http://java.sun.com/docs/books/vmspec/2nd-edition/jvms-proposed-changes.html>;
-       I don't have a reference to version 49.0 handy (yet).  
-       --augart, 13 Sept 2004 */
-    p.put("java.class.version", "48.0"); 
+    /* 49.0 brings us through Java version 1.5. */
+    p.put("java.class.version", "49.0"); 
 
     p.put("file.separator", "/");
     p.put("path.separator", ":");
     p.put("line.separator", "\n");
         
     p.put("java.compiler", "JikesRVM");
-    p.put("java.vm.version", "1.4.2");
+    p.put("java.vm.version", "1.5.0");
     p.put("java.vm.name", "JikesRVM");
     p.put("file.encoding", "8859_1");
     p.put("java.io.tmpdir", "/tmp");
