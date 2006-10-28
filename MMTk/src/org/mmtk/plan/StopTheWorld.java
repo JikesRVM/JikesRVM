@@ -107,8 +107,8 @@ public abstract class StopTheWorld extends Plan
    * Perform the initial determination of liveness from the roots.
    */
   protected static final int rootClosurePhase = new ComplexPhase("initial-closure", null, new int[] {
-      PREPARE,
       PREPARE_MUTATOR,
+      PREPARE,
       PRECOPY,
       BOOTIMAGE_ROOTS,
       ROOTS,
