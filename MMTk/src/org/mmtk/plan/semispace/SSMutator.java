@@ -170,14 +170,14 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
   public void collectionPhase(int phaseId, boolean primary)
   throws InlinePragma {
     if (phaseId == SS.PREPARE_MUTATOR) {
-      // rebind the allocation bump pointer to the appropriate semispace.
-      ss.rebind(SS.toSpace());
       super.collectionPhase(phaseId, primary);
       return;
     }
 
     if (phaseId == SS.RELEASE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
+      // rebind the allocation bump pointer to the appropriate semispace.
+      ss.rebind(SS.toSpace());
       return;
     }
 
