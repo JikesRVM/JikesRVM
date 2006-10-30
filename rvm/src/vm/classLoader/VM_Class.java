@@ -13,7 +13,7 @@ import java.lang.UnsupportedClassVersionError;
 import java.lang.ClassFormatError;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;

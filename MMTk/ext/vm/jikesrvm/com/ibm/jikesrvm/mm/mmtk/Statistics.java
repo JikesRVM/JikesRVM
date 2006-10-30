@@ -13,7 +13,7 @@ package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
 import com.ibm.jikesrvm.VM_Time;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

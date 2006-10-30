@@ -18,7 +18,7 @@ import java.util.jar.Manifest;
 import java.util.jar.JarFile;
 
 //-#if RVM_WITH_GCSPY
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 //-#endif
 
 /**

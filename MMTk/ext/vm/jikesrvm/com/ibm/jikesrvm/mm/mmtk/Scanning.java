@@ -17,8 +17,8 @@ import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Constants;
 
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_CollectorThread;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Scheduler;

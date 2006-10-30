@@ -9,7 +9,7 @@
 //$Id$
 
 import java.io.PrintStream;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
 
 /**

@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.jni;
 
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 import com.ibm.jikesrvm.*;
 import java.lang.ref.WeakReference;
 

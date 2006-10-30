@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.jni;
 
-import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_GCMapIterator;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.*;
 
 import org.vmmagic.unboxed.*;

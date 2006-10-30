@@ -9,7 +9,7 @@
  *
  * $Id$
  */
-package com.ibm.jikesrvm.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mmInterface;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.Mmapper;

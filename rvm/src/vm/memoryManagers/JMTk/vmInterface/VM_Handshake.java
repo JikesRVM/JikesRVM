@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
-package com.ibm.jikesrvm.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mmInterface;
 
 import com.ibm.jikesrvm.mm.mmtk.Lock;
 import com.ibm.jikesrvm.mm.mmtk.Collection;

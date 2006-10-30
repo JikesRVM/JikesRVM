@@ -13,7 +13,7 @@ import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import java.io.DataInputStream;
 import java.io.IOException;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 
 /**
  * A field of a java class.

@@ -206,7 +206,7 @@ class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
 
     pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
-    pln("#define MAXHEAPS " + com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface.getMaxHeaps());
+    pln("#define MAXHEAPS " + com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface.getMaxHeaps());
     pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
     pln();
 
@@ -710,9 +710,9 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     pln("java_net_SocketImpl_port_offset = ", offset);
 
-    // fields in com.ibm.jikesrvm.memoryManagers.JMTk.BasePlan
+    // fields in com.ibm.jikesrvm.memorymanagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
-    pln("com_ibm_jikesrvm_memoryManagers_JMTk_BasePlan_gcStatusOffset = ", offset);
+    pln("com_ibm_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset = ", offset);
   }
 
 

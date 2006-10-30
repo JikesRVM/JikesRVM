@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_AllocatorHeader;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.ir.*;
 //-#endif

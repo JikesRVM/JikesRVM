@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.memoryManagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mmInterface;
 
 import java.util.Date;
 import java.lang.ref.SoftReference;
@@ -539,7 +539,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       }
       if (isPrefix("Lorg/mmtk/", clsBA) ||
 	  isPrefix("Lcom/ibm/jikesrvm/mm/", clsBA) ||
-          isPrefix("Lcom/ibm/jikesrvm/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+          isPrefix("Lcom.ibm.jikesrvm.memorymanagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -567,7 +567,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
 	isPrefix("Lcom/ibm/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lcom/ibm/jikesrvm/memoryManagers/", typeBA) ||
+        isPrefix("Lcom.ibm.jikesrvm.memorymanagers/", typeBA) ||
         isPrefix("Lcom/ibm/jikesrvm/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;

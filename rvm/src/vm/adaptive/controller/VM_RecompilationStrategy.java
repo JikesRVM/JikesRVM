@@ -16,7 +16,7 @@ import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_RuntimeCompiler;
 
-import com.ibm.jikesrvm.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
 
 /**
  * An abstract class providing the interface to the decision making

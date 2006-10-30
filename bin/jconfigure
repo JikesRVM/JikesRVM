@@ -3257,7 +3257,7 @@ EOF
 	if (( RVM_WITH_OSR )); then
 	    echo "    \$FIND ./com/ibm/jikesrvm/OSR -name '*.class'"
         fi
-	echo "    \$FIND ./com/ibm/jikesrvm/memoryManagers -name '*.class'"
+	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
@@ -3700,9 +3700,9 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/jikesrvm/classloader/VM_MemberReference;
 	[Lcom/ibm/jikesrvm/classloader/VM_Type;
 	[Lcom/ibm/jikesrvm/classloader/VM_TypeReference;
-	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/VM_CollectorThread;
-	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/SelectedCollectorContext;
-	[Lcom/ibm/jikesrvm/memoryManagers/mmInterface/SelectedMutatorContext;
+	[Lcom/ibm/jikesrvm/memorymanagers/mmInterface/VM_CollectorThread;
+	[Lcom/ibm/jikesrvm/memorymanagers/mmInterface/SelectedCollectorContext;
+	[Lcom/ibm/jikesrvm/memorymanagers/mmInterface/SelectedMutatorContext;
 	[Lorg/mmtk/vm/SynchronizedCounter;
 	[Lorg/mmtk/plan/Phase;
 	[Lorg/mmtk/policy/Space;

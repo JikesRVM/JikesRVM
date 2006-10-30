@@ -16,7 +16,7 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

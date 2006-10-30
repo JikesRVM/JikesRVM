@@ -11,7 +11,7 @@ package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_CollectorThread;
 import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**

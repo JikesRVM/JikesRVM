@@ -14,10 +14,10 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 
-import com.ibm.jikesrvm.memoryManagers.mmInterface.SelectedPlan;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.SelectedMutatorContext;
-import com.ibm.jikesrvm.memoryManagers.mmInterface.SelectedPlanConstraints;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedPlan;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedCollectorContext;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedMutatorContext;
+import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedPlanConstraints;
 
 import org.vmmagic.pragma.*;
 
