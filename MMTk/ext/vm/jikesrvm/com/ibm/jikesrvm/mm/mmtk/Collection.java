@@ -31,11 +31,11 @@ import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM_Time;
 import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Method;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_CollectorThread;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedPlan;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedMutatorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedPlan;
+import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -108,7 +108,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public static final void init() throws InterruptiblePragma {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
-      "Lcom/ibm/jikesrvm/memorymanagers/mmInterface/VM_CollectorThread;");
+      "Lcom/ibm/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
   }
 

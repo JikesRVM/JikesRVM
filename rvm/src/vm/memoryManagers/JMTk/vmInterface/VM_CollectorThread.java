@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.memorymanagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;

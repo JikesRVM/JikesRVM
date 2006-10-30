@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.quick.*;
 //-#endif
 
 
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
 
 import java.io.File;

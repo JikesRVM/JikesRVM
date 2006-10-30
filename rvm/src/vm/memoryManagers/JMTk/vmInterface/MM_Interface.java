@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.memorymanagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import java.util.Date;
 import java.lang.ref.SoftReference;
@@ -539,7 +539,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       }
       if (isPrefix("Lorg/mmtk/", clsBA) ||
 	  isPrefix("Lcom/ibm/jikesrvm/mm/", clsBA) ||
-          isPrefix("Lcom.ibm.jikesrvm.memorymanagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+          isPrefix("Lcom.ibm.jikesrvm.memorymanagers/mminterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }

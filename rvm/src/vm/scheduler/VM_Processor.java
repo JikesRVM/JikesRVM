@@ -9,9 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.SelectedMutatorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

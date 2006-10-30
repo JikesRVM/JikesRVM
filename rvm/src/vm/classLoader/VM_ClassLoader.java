@@ -12,7 +12,7 @@ package com.ibm.jikesrvm.classloader;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Properties;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.util.StringTokenizer;
 import java.io.*;

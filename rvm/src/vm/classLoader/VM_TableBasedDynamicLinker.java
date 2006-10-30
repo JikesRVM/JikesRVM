@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Dynamic linking via indirection tables. <p>

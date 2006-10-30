@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.memorymanagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

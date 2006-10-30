@@ -11,7 +11,7 @@ package com.ibm.jikesrvm.quick;
 
 import com.ibm.jikesrvm.*;
 
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_GCMapIterator;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

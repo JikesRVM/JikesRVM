@@ -10,9 +10,9 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Constants;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_AllocatorHeader;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

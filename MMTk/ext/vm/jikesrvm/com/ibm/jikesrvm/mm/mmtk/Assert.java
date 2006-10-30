@@ -13,7 +13,7 @@ package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.policy.Space;
 
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Scheduler;
 

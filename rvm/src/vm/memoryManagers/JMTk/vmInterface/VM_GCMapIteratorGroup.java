@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.memorymanagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_CompiledMethod;

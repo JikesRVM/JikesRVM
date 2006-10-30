@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * VM_CodeArray represents a code object (contiguous memory region containing code).

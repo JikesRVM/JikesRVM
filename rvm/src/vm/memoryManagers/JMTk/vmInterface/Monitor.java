@@ -7,7 +7,7 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.jikesrvm.memorymanagers.mmInterface;
+package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import org.mmtk.utility.Constants;
 

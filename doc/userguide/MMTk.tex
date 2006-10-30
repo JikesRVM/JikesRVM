@@ -7,7 +7,7 @@ memory management component of Jikes\TMweb{} RVM's runtime system.
 made independent of Jikes RVM, and is now called MMTk.  Much more work
 has been done on factoring out the VM-specific code into the
 packages \texttt{org.mmtk.vm}
-and \texttt{com.ibm.jikesrvm.memorymanagers.mmInterface}}. 
+and \texttt{com.ibm.jikesrvm.memorymanagers.mminterface}}. 
 
 From Jikes RVM 2.2.0 onward, JMTk (Java Memory management
 Toolkit) became the default memory management system for Jikes RVM.\@
@@ -22,8 +22,8 @@ MMTk classes are contained in the
 In keeping with the goal of modularity and portability, as far as
 possible Jikes-RVM-specific code is factored out.  Such VM-specific
 code resides in a separate package,
-(\xlink{\texttt{\MMpackage\-.\mmInterface}}{\mmInterfacePackageURL}),
-and can be found in the \texttt{\mmInterface} sub-directory.  All other
+(\xlink{\texttt{\MMpackage\-.\mminterface}}{\mmInterfacePackageURL}),
+and can be found in the \texttt{\mminterface} sub-directory.  All other
 code is part of the
 \xlink{\texttt{org.mmtk}}{\JMTkPackageURL}
 package.
@@ -186,7 +186,7 @@ mechanisms, including:
 
 \subsection{\texttt{VMInterface}} \label{sssec:vminterface}
 
-The \texttt{mmInterface} sub-directory provides the interface between
+The \texttt{mminterface} sub-directory provides the interface between
 Jikes RVM and JMTk.  The primary interface is provided by
 \xlink{\texttt{VM\-In\-ter\-face\-.java}}{\VMInterfaceURL}.  Key
 VM-dependent mechanisms include:

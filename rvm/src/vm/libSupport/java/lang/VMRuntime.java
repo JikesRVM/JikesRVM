@@ -14,7 +14,7 @@ import java.util.Properties;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.VM_ClassLoader;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.*;
 import com.ibm.jikesrvm.VM_Configuration;
 
 import org.vmmagic.unboxed.Offset;

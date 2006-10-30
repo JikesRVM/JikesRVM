@@ -13,11 +13,11 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Constants;
 
-import com.ibm.jikesrvm.memorymanagers.mmInterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.DebugUtil;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_CollectorThread;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_GCMapIterator;
-import com.ibm.jikesrvm.memorymanagers.mmInterface.VM_GCMapIteratorGroup;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.DebugUtil;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.VM;
