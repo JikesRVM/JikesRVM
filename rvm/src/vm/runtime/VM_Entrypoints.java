@@ -158,10 +158,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field LQheadField = getField("Lorg/mmtk/utility/deque/LocalQueue;", "head","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/jikesrvm/mm/mmtk/SynchronizedCounter;", "count", "I");
-  public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom.ibm.jikesrvm.memorymanagers.mminterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom.ibm.jikesrvm.memorymanagers.mminterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
-  public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom.ibm.jikesrvm.memorymanagers.mminterface/MM_Interface;", "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
-  public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom.ibm.jikesrvm.memorymanagers.mminterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
+  public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
+  public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/jikesrvm/VM_Registers;",   "ip",  "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/jikesrvm/VM_Registers;", "fprs", "[D");
