@@ -12,7 +12,7 @@ package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 import org.vmmagic.unboxed.Offset;
 /**
  * A OSR_ControllerOnStackReplacementPlan is scheduled by VM_ControllerThread,

@@ -14,7 +14,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 //-#endif
 
 import java.util.Stack;

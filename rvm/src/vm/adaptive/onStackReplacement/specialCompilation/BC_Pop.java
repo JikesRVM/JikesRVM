@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.OSR;
+package com.ibm.jikesrvm.osr;
 /**
  *  pop
  *

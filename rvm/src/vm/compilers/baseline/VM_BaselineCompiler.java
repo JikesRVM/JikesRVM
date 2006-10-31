@@ -13,7 +13,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 //-#endif
 import com.ibm.jikesrvm.classloader.*;
 

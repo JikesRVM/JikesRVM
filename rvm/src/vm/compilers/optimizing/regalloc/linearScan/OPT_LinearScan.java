@@ -15,7 +15,7 @@ import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import org.vmmagic.unboxed.*;
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 //-#endif
 import java.lang.reflect.Constructor;
 

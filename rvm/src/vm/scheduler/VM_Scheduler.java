@@ -21,7 +21,7 @@ import com.ibm.jikesrvm.opt.*;
 //-#endif
 
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.OSR_ObjectHolder;
+import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 //-#endif
 
 /**

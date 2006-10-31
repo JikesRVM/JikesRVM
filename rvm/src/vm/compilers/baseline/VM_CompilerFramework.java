@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm;
 
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 //-#endif
 import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;

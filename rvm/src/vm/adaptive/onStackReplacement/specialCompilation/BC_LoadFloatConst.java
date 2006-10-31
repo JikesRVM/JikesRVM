@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.OSR;
+package com.ibm.jikesrvm.osr;
 /**
  * BC_LoadFloatConst: ldc, ldc_w 
  *

@@ -32,8 +32,8 @@ import com.ibm.jikesrvm.adaptive.VM_ControllerMemory;
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementTrigger;
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-import com.ibm.jikesrvm.OSR.OSR_PostThreadSwitch;
-import com.ibm.jikesrvm.OSR.OSR_ObjectHolder;
+import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
+import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 import com.ibm.jikesrvm.adaptive.OSR_Listener;
 //-#endif
 

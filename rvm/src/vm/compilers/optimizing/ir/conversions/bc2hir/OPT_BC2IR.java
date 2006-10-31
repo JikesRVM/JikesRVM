@@ -15,7 +15,7 @@ import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 import com.ibm.jikesrvm.adaptive.*;
 import java.util.ArrayList;
 //-#endif

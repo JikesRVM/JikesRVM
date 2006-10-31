@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.OSR; 
+package com.ibm.jikesrvm.osr; 
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;

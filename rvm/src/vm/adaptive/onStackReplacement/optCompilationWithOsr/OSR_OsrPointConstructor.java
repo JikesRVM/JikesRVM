@@ -304,7 +304,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     int count = 0;
     for (int idx=0, size=typeCodes.length;
          idx < size; idx++) {
-      if (typeCodes[idx] != com.ibm.jikesrvm.OSR.OSR_Constants.VoidTypeCode) {
+      if (typeCodes[idx] != com.ibm.jikesrvm.osr.OSR_Constants.VoidTypeCode) {
         count++;
       }
     }

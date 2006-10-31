@@ -8,7 +8,7 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.OSR;
+package com.ibm.jikesrvm.osr;
 import com.ibm.jikesrvm.VM_SizeConstants;
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,

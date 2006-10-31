@@ -3255,7 +3255,7 @@ EOF
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
         fi
 	if (( RVM_WITH_OSR )); then
-	    echo "    \$FIND ./com/ibm/jikesrvm/OSR -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
         fi
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "

@@ -12,7 +12,7 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.VM_CodeArray;
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.OSR.*;
+import com.ibm.jikesrvm.osr.*;
 //-#endif
 
 /**

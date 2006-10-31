@@ -249,8 +249,8 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   //-#if RVM_WITH_OSR
-  public static final VM_NormalMethod osrGetRefAtMethod = getMethod("Lcom/ibm/jikesrvm/OSR/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
-  public static final VM_NormalMethod osrCleanRefsMethod = getMethod("Lcom/ibm/jikesrvm/OSR/OSR_ObjectHolder;", "cleanRefs", "(I)V");
+  public static final VM_NormalMethod osrGetRefAtMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
+  public static final VM_NormalMethod osrCleanRefsMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
   //-#endif
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
