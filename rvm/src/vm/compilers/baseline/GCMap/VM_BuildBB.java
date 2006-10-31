@@ -1222,6 +1222,7 @@ public final class VM_BuildBB
              type = FLOAT_TYPE;
              break;
            case VM_Statics.STRING_LITERAL:
+           case VM_Statics.CLASS_LITERAL:
              type = OBJECT_TYPE;
              break;
            default:

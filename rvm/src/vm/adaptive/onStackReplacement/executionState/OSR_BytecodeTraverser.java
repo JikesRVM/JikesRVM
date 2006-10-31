@@ -391,8 +391,11 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           break;
         case VM_Statics.FLOAT_LITERAL:
           S.push(FloatTypeCode);
-            break;
+          break;
         case VM_Statics.STRING_LITERAL:
+          S.push(ClassTypeCode);
+          break;
+        case VM_Statics.CLASS_LITERAL:
           S.push(ClassTypeCode);
           break;
         default:

@@ -405,7 +405,8 @@ final class VM_BuildQuickReferenceMaps implements VM_BytecodeConstants {
         case JBC_ldc: {
           currBBStkTop++;
           int cpi = bcodes.getConstantIndex();
-          if (bcodes.getConstantType(cpi) == VM_Statics.STRING_LITERAL)
+          int type = bcodes.getConstantType(cpi);
+          if (type == VM_Statics.STRING_LITERAL || type == VM_Statics.CLASS_LITERAL)
             currBBMap[currBBStkTop] = REFERENCE;
           else
             currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -414,7 +415,8 @@ final class VM_BuildQuickReferenceMaps implements VM_BytecodeConstants {
         case JBC_ldc_w: {
           currBBStkTop++;
           int cpi = bcodes.getWideConstantIndex();
-          if (bcodes.getConstantType(cpi) == VM_Statics.STRING_LITERAL)
+          int type = bcodes.getConstantType(cpi);
+          if (type == VM_Statics.STRING_LITERAL || type == VM_Statics.CLASS_LITERAL)
             currBBMap[currBBStkTop] = REFERENCE;
           else
             currBBMap[currBBStkTop] = NON_REFERENCE;
