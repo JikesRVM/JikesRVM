@@ -3716,6 +3716,10 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;
 	[Ljava/lang/Class;
+	[Ljava/lang/Byte;
+	[Ljava/lang/Character;
+	[Ljava/lang/Integer;
+	[Ljava/lang/Short;
 	[Ljava/lang/reflect/Field;
 	[Ljava/lang/reflect/Method;
 	[Ljava/lang/reflect/Member;
