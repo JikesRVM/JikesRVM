@@ -2072,7 +2072,8 @@ extern "C" int
 sysStashVmProcessorInPthread(VM_Address vmProcessor)
 {
     if (rvm_singleVirtualProcessor) {
-        // We have only a single VM_Processor, so there is nothing to do here.
+        // We have only a single VM_Processor so remember it
+        VmProcessor = vmProcessor;
     } else {
         //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
         int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
