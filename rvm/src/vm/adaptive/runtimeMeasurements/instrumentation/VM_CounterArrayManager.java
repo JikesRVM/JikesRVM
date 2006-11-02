@@ -116,22 +116,13 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    **/
   public OPT_Instruction createEventCounterInstruction(int handle, int index,
                                                        double incrementValue) {
-
-    // Doubles are annoying. They are too big to fit into the
-    // instruction, so they must be loaded from the JTOC.  That means
-    // we need to make sure the increment value is actually in the
-    // JTOC.
-
-    long l = Double.doubleToLongBits(incrementValue);
-    Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(l));
-
     // Now create the instruction to be returned.
     OPT_Instruction c = 
       InstrumentedCounter.create(INSTRUMENTED_EVENT_COUNTER, 
                                  new OPT_IntConstantOperand(handle),
                                  new OPT_IntConstantOperand(index),
                                  new OPT_DoubleConstantOperand(incrementValue,
-                                                               offset));
+                                                               Offset.zero()));
     c.bcIndex = INSTRUMENTATION_BCI;
 
     return c;
