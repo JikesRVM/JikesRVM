@@ -141,7 +141,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * 16 bits can be used for other purposes. Note: if packing is
    * supported, the scratch word could be split. 
    */
-  public int scratch;
+  private int scratch;
 
   static private final int PARAMETER    = 0x01000000; // the register operand is for a parameter
   static private final int NON_VOLATILE = 0x02000000;
