@@ -599,7 +599,13 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
 
     if (cls.isAbstract() || cls.isInterface())
       throw new InstantiationException();
-    
+
+    if (!cls.isInitialized()) {
+      cls.resolve();
+      cls.instantiate();
+      cls.initialize();
+    }
+
     // Find the defaultConstructor
     VM_Method defaultConstructor = null;
     VM_Method methods[] = type.asClass().getConstructorMethods();
