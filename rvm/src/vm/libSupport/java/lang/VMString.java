@@ -22,6 +22,7 @@ import com.ibm.jikesrvm.classloader.VM_Atom;
  * Implementation of string interning for JikesRVM.
  * 
  * @author Dave Grove
+ * @author Ian Rogers
  */
 final class VMString {
   private static final WeakHashMap internedStrings = new WeakHashMap();
@@ -43,19 +44,14 @@ final class VMString {
       }
       
       // Check to see if this is a StringLiteral:
-      try {
-        VM_Atom atom = VM_Atom.findUnicodeAtom(str);
-        if (atom != null) {
-          String literal = VM_Statics.findStringLiteral(atom);
-          if (literal != null) {
-            // Should we put it in this map too?
-            // Would be faster to find the next time we went looking for it,
-            // but will waste space and uselessly increase the number of weak refs
-            // in the system because it will _always be reachable from the JTOC.
-            return literal; 
-          }
-        }
-      } catch (java.io.UTFDataFormatException e) { }
+      String literal = VM_Statics.findStringLiteral(str);
+      if (literal != null) {
+        // Should we put it in this map too?
+        // Would be faster to find the next time we went looking for it,
+        // but will waste space and uselessly increase the number of weak refs
+        // in the system because it will _always be reachable from the JTOC.
+        return literal; 
+      }
 
       // If we get to here, then there is no interned version of the String.
       // So we make one.

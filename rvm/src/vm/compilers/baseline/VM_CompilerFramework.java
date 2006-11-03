@@ -329,7 +329,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int index = bcodes.getConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
         Offset offset = klass.getLiteralOffset(index);
-        emit_ldc(offset);
+		  byte type = klass.getLiteralDescription(index);
+        emit_ldc(offset, type);
         break;
       }
 
@@ -337,7 +338,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int index = bcodes.getWideConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
         Offset offset = klass.getLiteralOffset(index);
-        emit_ldc(offset);
+		  byte type = klass.getLiteralDescription(index);
+        emit_ldc(offset, type);
         break;
       }
 
@@ -345,7 +347,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int index = bcodes.getWideConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
         Offset offset = klass.getLiteralOffset(index);
-        emit_ldc2(offset);
+		  byte type = klass.getLiteralDescription(index);
+        emit_ldc2(offset, type);
         break;
       }
 
@@ -1835,8 +1838,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntLiteral(value));
-          emit_ldc(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
+          emit_ldc(offset, VM_Class.CP_INT);
             
           break;
         }
@@ -1845,8 +1848,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
  
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
-          emit_ldc2(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
+          emit_ldc2(offset, VM_Class.CP_LONG);
 
           break;
         }
@@ -1856,8 +1859,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntLiteral(value));
-          emit_ldc(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
+          emit_ldc(offset, VM_Class.CP_INT);
           //-#endif
 
           //-#if RVM_FOR_64_ADDR
@@ -1865,8 +1868,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
-          emit_ldc2(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
+          emit_ldc2(offset, VM_Class.CP_LONG);
           emit_l2i(); //dirty hack
           //-#endif
           break;
@@ -1876,8 +1879,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(ibits));
-          emit_ldc(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
+          emit_ldc(offset, VM_Class.CP_FLOAT);
 
           break;
         }
@@ -1886,8 +1889,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
           
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(lbits));
-          emit_ldc2(offset);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
+          emit_ldc2(offset, VM_Class.CP_DOUBLE);
 
           break;
         }
@@ -2143,14 +2146,16 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * Emit code to load a 32 bit constant
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected abstract void emit_ldc(Offset offset);
+  protected abstract void emit_ldc(Offset offset, byte type);
 
   /**
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected abstract void emit_ldc2(Offset offset);
+  protected abstract void emit_ldc2(Offset offset, byte type);
 
 
   /*

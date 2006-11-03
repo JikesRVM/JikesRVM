@@ -135,7 +135,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    *       we can possibly waste 4 bytes.  
    */
   public static void layoutInstanceFields(VM_Class klass) throws InterruptiblePragma {
-    int fieldOffset = VM_JavaHeader.objectEndOffset(klass);
+    Offset fieldOffset = VM_JavaHeader.objectEndOffset(klass);
     int doubleAlign = Math.abs(VM_JavaHeader.objectStartOffset(klass) % BYTES_IN_DOUBLE);
     VM_Field fields[] = klass.getDeclaredFields();
     for (int i = 0, n = fields.length; i < n; ++i) {
@@ -143,13 +143,13 @@ public final class VM_ObjectModel implements Uninterruptible,
       if (!field.isStatic()) {
         int fieldSize = field.getType().getSize();
         if (fieldSize == BYTES_IN_INT) {
-          int emptySlot = klass.getEmptySlot();
-          if (emptySlot != 0) {
+          Offset emptySlot = klass.getEmptySlot();
+          if (!emptySlot.isZero()) {
             field.setOffset(emptySlot);
-            klass.setEmptySlot(0);
+            klass.setEmptySlot(Offset.zero());
           } else {
             field.setOffset(fieldOffset);
-            fieldOffset += BYTES_IN_INT;
+            fieldOffset = fieldOffset.plus(BYTES_IN_INT);
             klass.increaseInstanceSize(BYTES_IN_INT);
           }
         } else {
@@ -157,16 +157,16 @@ public final class VM_ObjectModel implements Uninterruptible,
             VM._assert(fieldSize == BYTES_IN_DOUBLE); // (or ADDRESS in 64 bit mode)
           }
           klass.setAlignment(BYTES_IN_DOUBLE);
-          if (Math.abs(fieldOffset % BYTES_IN_DOUBLE) == doubleAlign) {
+          if (Math.abs(fieldOffset.toInt() % BYTES_IN_DOUBLE) == doubleAlign) {
             field.setOffset(fieldOffset);
-            fieldOffset += BYTES_IN_DOUBLE;
+            fieldOffset = fieldOffset.plus(BYTES_IN_DOUBLE);
             klass.increaseInstanceSize(BYTES_IN_DOUBLE);
           } else {
-            if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot() == 0);
+            if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot().isZero());
             klass.setEmptySlot(fieldOffset);
-            fieldOffset += BYTES_IN_INT;
+            fieldOffset = fieldOffset.plus(BYTES_IN_INT);
             field.setOffset(fieldOffset);
-            fieldOffset += BYTES_IN_DOUBLE;
+            fieldOffset = fieldOffset.plus(BYTES_IN_DOUBLE);
             klass.increaseInstanceSize(BYTES_IN_INT+BYTES_IN_DOUBLE);
           }
         }

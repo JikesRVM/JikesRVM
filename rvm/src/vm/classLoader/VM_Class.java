@@ -48,27 +48,46 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /** Flag for for closed world testing */
   public static boolean classLoadingDisabled = false;
 
-  // Canonical empty arrays
-  /** Canoical representation of no VM classes */
-  private static final VM_Class[] emptyVMClass = new VM_Class[0];
-  /** Canonical representation of no fields */
-  private static final VM_Field[] emptyVMField = new VM_Field[0];
-  /** Canonical representation of no methods */
-  private static final VM_Method[] emptyVMMethod = new VM_Method[0];
+  /** Constant pool entry for a UTF-8 encoded atom */
+  public static final byte CP_UTF = 0;
+
+  /** Constant pool entry for int literal */
+  public static final byte CP_INT = 1;
+
+  /** Constant pool entry for long literal */
+  public static final byte CP_LONG = 2;
+
+  /** Constant pool entry for float literal */
+  public static final byte CP_FLOAT = 3;
+
+  /** Constant pool entry for double literal */
+  public static final byte CP_DOUBLE = 4;
+
+  /** Constant pool entry for string literal */
+  public static final byte CP_STRING = 5;
+
+  /** Constant pool entry for member (field or method) reference */
+  public static final byte CP_MEMBER = 6;
+
+  /** Constant pool entry for type reference or class literal */
+  public static final byte CP_CLASS = 7;
 
   /**
-   * Constant pool after class loading. The constant pool is indexed
-   * by various Java bytecodes, as well as other fields within the
-   * class file. The values of the integers held in the constant pool
-   * are either:
+   * The constant pool holds constants used by the class and the Java
+   * bytecodes in the methods associated with this class. This
+   * constant pool isn't that from the class file, instead it has been
+   * processed during class loading {@see #readClass}. The loaded
+   * class' constant pool has 3 bits of type information (such as
+   * {@see #CP_INT}), the rest of the int holds data as follows:
    *
    * <ul>
-   * <li>offsets of literals in the statics table</li>
-   * <li>type reference IDs. This constant pool location is also used
-   * for class literals, to distinguish class literals from other
-   * literals the type rederence IDs are -ve</li>
-   * <li>member (field or method) reference IDs</li>
-   * <li>atom (UTF8 encoded string) IDs</li>
+   * <li>utf: value is a UTF atom identifier</li>
+   * <li>int, long, float, double, string: value is an offset in the
+   *     JTOC</li>
+   * <li>member: value is a member reference identifier</li>
+   * <li>class: value is a type reference identifier. NB this means
+   *     that class literal bytecodes must first convert the identifier
+   *     in to a JTOC offset.</li>
    * </ul>
    */
   private final int[]        constantPool;
@@ -103,57 +122,50 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private final VM_Atom signature;
   /** 
-   * Class initializer method, null if no method or method has been
-   * run
+   * Class initializer method, null if no method or if class is
+   * initialized (ie class initializer method has been run)
    */
   private VM_Method    classInitializerMethod;
+
+  /**
+   * current class-loading stage (loaded, resolved, instantiated,
+   * initializing or initialized)
+   */
+  private int state;        
 
   //
   // The following are valid only when "state >= CLASS_RESOLVED".
   //
 
   // --- Field size and offset information --- //
-  //
-  /**
-   * fields shared by all instances of class
-   */
-  private VM_Field[]   staticFields;           
-  /**
-   * fields distinct for each instance of class
-   */
-  private VM_Field[]   instanceFields;         
-  /**
-   * total size of per-instance data, in bytes
-   */
-  private int          instanceSize;  
-  /**
-   * offsets of reference-containing instance fields
-   */
-  private int[]        referenceOffsets;       
-  /**
-   * offset of hole due to alignment, zero if none
-   */
-  private int emptySlot = 0;
-  /**
-   * The desired alignment for instances of this type.
-   */
+
+  /** fields shared by all instances of class  */
+  private VM_Field[]   staticFields;
+
+  /** fields distinct for each instance of class */
+  private VM_Field[]   instanceFields;
+
+  /** total size of per-instance data, in bytes  */
+  private int          instanceSize;
+
+  /** offsets of reference-containing instance fields */
+  private int[]        referenceOffsets;
+
+  /** offset of hole due to alignment, zero if none */
+  private int emptySlot;
+
+  /** The desired alignment for instances of this type. */
   private int alignment;
   
-
-  //
   // --- Method-dispatching information --- //
-  //
-  /**
-   * static methods of class
-   */
-  private VM_Method[]  staticMethods;          
-  /**
-   * static methods of class
-   */
-  private VM_Method[]  constructorMethods;          
-  /**
-   * virtual methods of class
-   */
+
+  /** static methods of class */
+  private VM_Method[]  staticMethods;
+
+  /** constructor methods of class  */
+  private VM_Method[]  constructorMethods;
+
+  /** virtual methods of class */
   private VM_Method[]  virtualMethods;         
 
   /**
@@ -162,14 +174,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private VM_Method finalizeMethod;         
 
-  /**
-   * type and virtual method dispatch table for class
-   */
-  private Object[] typeInformationBlock;   
+  /** type and virtual method dispatch table for class */
+  private Object[] typeInformationBlock;
 
-  //
   // --- Annotation support --- //
-  //
+
   /**
    * If this class is an annotation interface, this is the class that
    * implements that interface and can be used to make instances of
@@ -177,6 +186,32 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private VM_Class annotationClass;
 
+  // --- Memory manager supprt --- //
+
+  /**
+   * Is this class type in the bootimage? Types in the boot image can
+   * be initialized prior to execution (therefore removing runtime
+   * resolution).
+   */
+  private boolean inBootImage;
+
+  /**
+   * At what offset is the thin lock word to be found in instances of
+   * objects of this type?  A value of -1 indicates that the instances of
+   * this type do not have inline thin locks.
+   */
+  private Offset thinLockOffset;
+
+  /** Reference Count GC: is this type acyclic?  */
+  private boolean acyclic;
+
+  /**
+   * The memory manager's notion of this type created after the
+   * resolving
+   */
+  private Object mmType;
+
+  // --- General purpose functions --- //
 
   /**
    * Name - something like "java.lang.String".
@@ -203,7 +238,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * If class is an annotation, get the class that implements it
+   * If class is an annotation (which means its actually an
+   * interface), get the class that implements it
    */
   VM_Class getAnnotationClass() {
     if(VM.VerifyAssertions) VM._assert(this.isAnnotation());
@@ -290,7 +326,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
             );
   }
 
-
+  /**
+   * Get the modifiers associated with this class {@link
+   * VM_ClassLoaderConstants}.
+   */
   public int getModifiers() {
     return modifiers & APPLICABLE_TO_CLASSES;
   }
@@ -440,19 +479,62 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // Items are fetched by specifying their "constant pool index".
   //
 
+  private static int packCPEntry(byte type, int value) throws UninterruptiblePragma {
+    return (((int)type) << 29) | (value & 0x1fffffff);
+  }
+
+  private static byte unpackCPType(int cpValue) throws UninterruptiblePragma {
+    return (byte)(cpValue >>> 29);
+  }
+
+  private static int unpackSignedCPValue(int cpValue) throws UninterruptiblePragma {
+    return (cpValue << 3) >> 3;
+  }
+
+  private static int unpackUnsignedCPValue(int cpValue) throws UninterruptiblePragma {
+    return cpValue & 0x1fffffff;
+  }
+
+  private static boolean packedCPTypeIsClassType(int cpValue) throws UninterruptiblePragma {
+    return (cpValue & (7 << 29)) ==  (CP_CLASS << 29); 
+  }
+
+  private static int packTempCPEntry(int index1, int index2) throws UninterruptiblePragma {
+    return (index1 << 16) | (index2 & 0xffff);
+  }
+
+  private static int unpackTempCPIndex1(int cpValue) throws UninterruptiblePragma {
+    return cpValue >>> 16;
+  }
+
+  private static int unpackTempCPIndex2(int cpValue) throws UninterruptiblePragma {
+    return cpValue & 0xffff;
+  }
+
+  static final int getLiteralSize(int constantPool[], int constantPoolIndex) {
+    int cpValue = constantPool[constantPoolIndex];
+    switch(unpackCPType(cpValue)) {
+    case CP_INT:
+    case CP_FLOAT:
+      return BYTES_IN_INT;
+    case CP_LONG:
+    case CP_DOUBLE:
+      return BYTES_IN_LONG;
+    case CP_CLASS:
+    case CP_STRING:
+      return BYTES_IN_ADDRESS;
+    default:
+      VM._assert(NOT_REACHED);
+      return 0;
+    }
+  }
+
   /**
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
   public final Offset getLiteralOffset(int constantPoolIndex) {
-    // jtoc slot number --> jtoc offset
-    int offset = constantPool[constantPoolIndex];
-    if (offset >= 0) {
-      return Offset.fromIntSignExtend(offset);
-    }
-    else {
-      return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(offset));
-    }
+    return getLiteralOffset(this.constantPool, constantPoolIndex);
   }
 
 
@@ -461,13 +543,34 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
   static final Offset getLiteralOffset(int constantPool[], int constantPoolIndex) {
-    // jtoc slot number --> jtoc offset
-    int offset = constantPool[constantPoolIndex];
-    if (offset >= 0) {
-      return Offset.fromIntSignExtend(offset);
-    }
-    else {
-      return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(offset));
+    int cpValue = constantPool[constantPoolIndex];
+    if (VM.VerifyAssertions) {
+      int value = unpackSignedCPValue(cpValue);
+      byte type = unpackCPType(cpValue);
+      switch (type) {
+      case CP_INT:
+      case CP_FLOAT:
+      case CP_LONG:
+      case CP_DOUBLE:
+      case CP_STRING:
+        return Offset.fromIntSignExtend(value);
+      case CP_CLASS: {
+        int typeId = unpackUnsignedCPValue(cpValue);
+        return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(typeId));
+      }
+      default:
+        VM._assert(NOT_REACHED);
+        return Offset.fromIntSignExtend(0xebad0ff5);
+      }
+    } else {
+      if (packedCPTypeIsClassType(cpValue)) {
+        int typeId = unpackUnsignedCPValue(cpValue);
+        return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(typeId));
+      }
+      else {
+        int value = unpackSignedCPValue(cpValue);
+        return Offset.fromIntSignExtend(value);
+      }
     }
   }
 
@@ -475,8 +578,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get description of a literal constant.
    */ 
   public final byte getLiteralDescription(int constantPoolIndex) {
-    // jtoc slot number --> description
-    return VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(getLiteralOffset(constantPoolIndex))); 
+    int cpValue = constantPool[constantPoolIndex];
+    byte type = unpackCPType(cpValue);
+    return type;
   }
 
   /**
@@ -484,7 +588,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return type that was referenced
    */
   public final VM_TypeReference getTypeRef(int constantPoolIndex) throws UninterruptiblePragma {
-    return VM_TypeReference.getTypeRef(constantPool[constantPoolIndex]);
+    return getTypeRef(constantPool, constantPoolIndex);
   }
 
   /**
@@ -492,42 +596,58 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return type that was referenced
    */
   static VM_TypeReference getTypeRef(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
-    return VM_TypeReference.getTypeRef(constantPool[constantPoolIndex]);
+    if (constantPoolIndex != 0) {
+      int cpValue = constantPool[constantPoolIndex];
+      if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_CLASS);
+      return VM_TypeReference.getTypeRef(unpackUnsignedCPValue(cpValue));
+    } else {
+      return null;
+    }
   }
 
   /**
    * Get contents of a "methodRef" constant pool entry.
    */
   public final VM_MethodReference getMethodRef(int constantPoolIndex) throws UninterruptiblePragma {
-    return (VM_MethodReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
+    return getMethodRef(constantPool, constantPoolIndex);
   }
 
   /**
    * Get contents of a "methodRef" constant pool entry.
    */
   static VM_MethodReference getMethodRef(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
-    return (VM_MethodReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
+    int cpValue = constantPool[constantPoolIndex];
+    if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
+    return  (VM_MethodReference)
+      VM_MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
   }
 
   /**
    * Get contents of a "fieldRef" constant pool entry.
    */
   public final VM_FieldReference getFieldRef(int constantPoolIndex) throws UninterruptiblePragma {
-    return (VM_FieldReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
+    int cpValue = constantPool[constantPoolIndex];
+    if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
+    return  (VM_FieldReference)
+      VM_MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
   }
 
   /**
    * Get contents of a "utf" constant pool entry.
    */
   final VM_Atom getUtf(int constantPoolIndex) throws UninterruptiblePragma {
-    return VM_Atom.getAtom(constantPool[constantPoolIndex]);
+    int cpValue = constantPool[constantPoolIndex];
+    if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
+    return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
   }
 
   /**
    * Get contents of a "utf" from a constant pool entry.
    */
   static VM_Atom getUtf(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
-    return VM_Atom.getAtom(constantPool[constantPoolIndex]);
+    int cpValue = constantPool[constantPoolIndex];
+    if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
+    return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
   }
 
   /**
@@ -578,6 +698,23 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;
     return false; 
+  }
+
+  /**
+   * Record the type information the memory manager holds about this
+   * type
+   * @param mmt the type to record
+   */
+  public void setMMType(Object mmt) {
+    mmType = mmt;
+  }
+
+  /**
+   * @return the type information the memory manager previously
+   * recorded about this type
+   */
+  public Object getMMType() throws UninterruptiblePragma {
+    return mmType;
   }
 
   //--------------------------------------------------------------------//
@@ -631,7 +768,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Constructors (<init>) methods of this class.
    */
   public final VM_Method[] getConstructorMethods() {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved(), "Error class " + this + " is not resolved but " + state);
     return constructorMethods;
   }
 
@@ -685,6 +822,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return instanceSize;
   }
 
+  /**
+   * Total size, in bytes, of an instance of this class (including
+   * object header). Doesn't perform any verification.
+   */
   public final int getInstanceSizeInternal() throws UninterruptiblePragma {
     return instanceSize;
   }
@@ -710,18 +851,18 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Offset of hole, due to alignment; 
    * returns zero if none.
    */
-  public final int getEmptySlot() {
-    return emptySlot;
+  public final Offset getEmptySlot() {
+    return Offset.fromIntSignExtend(emptySlot);
   }
 
   /**
    * Set the offset of a hole.
    */
-  public final void setEmptySlot(int off) {
+  public final void setEmptySlot(Offset off) {
     if (VM.VerifyAssertions) {
-      VM._assert(off == 0 || emptySlot == 0);
+      VM._assert(off.isZero() || (emptySlot == 0));
     }
-    emptySlot = off;
+    emptySlot = off.toInt();
   }
 
   /**
@@ -737,25 +878,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   public final void setAlignment(int align) {
     if (VM.VerifyAssertions) VM._assert(align >= alignment);
     alignment = align;
-  }
-  
-  /**
-   * Find specified virtual method description.
-   * @param memberName   method name - something like "foo"
-   * @param memberDescriptor method descriptor - something like "I" or "()I"
-   * @return method description (null --> not found)
-   */
-  public final VM_Method findVirtualMethod(VM_Atom memberName, 
-                                           VM_Atom memberDescriptor) {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method methods[] = getVirtualMethods();
-    for (int i = 0, n = methods.length; i < n; ++i) {
-      VM_Method method = methods[i];
-      if (method.getName() == memberName && 
-          method.getDescriptor() == memberDescriptor)
-        return method;
-    }
-    return null;
   }
 
   /**
@@ -799,6 +921,26 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
+  }
+
+  /**
+   * Does this slot in the TIB hold a TIB entry?
+   * @param slot the TIB slot
+   * @return false
+   */
+  public boolean isTIBSlotTIB(int slot) {
+    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
+    return false;
+  }
+
+  /**
+   * Does this slot in the TIB hold code?
+   * @param slot the TIB slot
+   * @return true if slot is one that holds a code array reference
+   */
+  public boolean isTIBSlotCode(int slot) {
+    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
+    return slot >= TIB_FIRST_VIRTUAL_METHOD_INDEX;
   }
 
   //--------------------------------------------------------------------//
@@ -878,7 +1020,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                    VM_Annotation runtimeVisibleAnnotations[],
                    VM_Annotation runtimeInvisibleAnnotations[])
   {
-    super(typeRef, runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+    super(typeRef, 0, runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
 
     // final fields
     this.constantPool           = constantPool;
@@ -912,10 +1054,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     
     VM_Callbacks.notifyClassLoaded(this);
     
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load file " + 
-                                                          typeRef.getName() + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   load file " + 
+                                                            typeRef.getName());
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + toString() + "]\n");
-
   }
 
   /**
@@ -960,55 +1101,67 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // note: slot 0 is unused
     for (int i = 1; i <constantPool.length; i++) {
-      switch (tmpTags[i] = input.readByte()) {
+      tmpTags[i] = input.readByte();
+      switch (tmpTags[i]) {
       case TAG_UTF:  {
         byte utf[] = new byte[input.readUnsignedShort()];
         input.readFully(utf);
-        constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
-        break;  
+        int atomId = VM_Atom.findOrCreateUtf8Atom(utf).getId();
+        constantPool[i] = packCPEntry(CP_UTF, atomId);
+        break;
       }
-      
       case TAG_UNUSED:
         if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
         break;
-
-      case TAG_INT:
-        constantPool[i] = VM_Statics.findOrCreateIntLiteral(input.readInt());
+        
+      case TAG_INT: {
+        int literal = input.readInt();
+        int offset = VM_Statics.findOrCreateIntSizeLiteral(literal);
+        constantPool[i] = packCPEntry(CP_INT, offset);
         break;
-
-      case TAG_FLOAT:
-        constantPool[i] = VM_Statics.findOrCreateFloatLiteral(input.readInt());
+      }
+      case TAG_FLOAT: {
+        int literal = input.readInt();
+        int offset = VM_Statics.findOrCreateIntSizeLiteral(literal);
+        constantPool[i] = packCPEntry(CP_FLOAT, offset);
         break;
-
-      case TAG_LONG:
-        constantPool[i++] = VM_Statics.findOrCreateLongLiteral(input.readLong());
+      }
+      case TAG_LONG: {
+        long literal = input.readLong();
+        int offset = VM_Statics.findOrCreateLongSizeLiteral(literal);
+        constantPool[i] = packCPEntry(CP_LONG, offset);
+        i++;
         break;
-
-      case TAG_DOUBLE:
-        constantPool[i++] = VM_Statics.findOrCreateDoubleLiteral(input.readLong());
+      }
+      case TAG_DOUBLE: {
+        long literal = input.readLong();
+        int offset = VM_Statics.findOrCreateLongSizeLiteral(literal);
+        constantPool[i] = packCPEntry(CP_DOUBLE, offset);
+        i++;
         break;
-
+      }
       case TAG_TYPEREF:
         constantPool[i] = input.readUnsignedShort();
         break;
-
+        
       case TAG_STRING:
         constantPool[i] = input.readUnsignedShort();
         break;
-
+        
       case TAG_FIELDREF:
       case TAG_METHODREF:
       case TAG_INTERFACE_METHODREF: {
         int classDescriptorIndex         = input.readUnsignedShort();
         int memberNameAndDescriptorIndex = input.readUnsignedShort();
-        constantPool[i] = (classDescriptorIndex << BITS_IN_SHORT) | memberNameAndDescriptorIndex;
+        constantPool[i] = packTempCPEntry(classDescriptorIndex,
+                                          memberNameAndDescriptorIndex);
         break; 
       }
-
+        
       case TAG_MEMBERNAME_AND_DESCRIPTOR: {
         int memberNameIndex = input.readUnsignedShort();
         int descriptorIndex = input.readUnsignedShort();
-        constantPool[i] = (memberNameIndex << BITS_IN_SHORT) | descriptorIndex;
+        constantPool[i] = packTempCPEntry(memberNameIndex, descriptorIndex);
         break;  
       }
         
@@ -1031,12 +1184,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
         case TAG_TYPEREF: { // in: utf index
           VM_Atom typeName = getUtf(constantPool, constantPool[i]);
-          constantPool[i] = VM_TypeReference.findOrCreate(typeRef.getClassLoader(), typeName.descriptorFromClassName()).getId();
+          int typeRefId = VM_TypeReference.findOrCreate(typeRef.getClassLoader(),
+                                                        typeName.descriptorFromClassName()).getId();
+          constantPool[i] = packCPEntry(CP_CLASS, typeRefId);
           break; 
         } // out: type reference id
 
         case TAG_STRING: { // in: utf index
-          constantPool[i] = VM_Statics.findOrCreateStringLiteral(getUtf(constantPool, constantPool[i]));
+          VM_Atom literal = getUtf(constantPool, constantPool[i]);
+          int offset = VM_Statics.findOrCreateStringLiteral(literal);
+          constantPool[i] = packCPEntry(CP_STRING, offset);
           break; 
         } // out: jtoc slot number
         }
@@ -1059,17 +1216,18 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       case TAG_METHODREF:
       case TAG_INTERFACE_METHODREF: { // in: classname+membername+memberdescriptor indices
         int bits                         = constantPool[i];
-        int classNameIndex               = (bits >> BITS_IN_SHORT) & 0xffff;
-        int memberNameAndDescriptorIndex = bits & 0xffff;
+        int classNameIndex               = unpackTempCPIndex1(bits);
+        int memberNameAndDescriptorIndex = unpackTempCPIndex2(bits);
         int memberNameAndDescriptorBits  = constantPool[memberNameAndDescriptorIndex];
-        int memberNameIndex              = (memberNameAndDescriptorBits >> BITS_IN_SHORT) & 0xffff;
-        int memberDescriptorIndex        = (memberNameAndDescriptorBits       ) & 0xffff;
+        int memberNameIndex              = unpackTempCPIndex1(memberNameAndDescriptorBits);
+        int memberDescriptorIndex        = unpackTempCPIndex2(memberNameAndDescriptorBits);
         
         VM_TypeReference  tref   = getTypeRef(constantPool, classNameIndex);
         VM_Atom memberName       = getUtf(constantPool, memberNameIndex);
         VM_Atom memberDescriptor = getUtf(constantPool, memberDescriptorIndex);
         VM_MemberReference mr    = VM_MemberReference.findOrCreate(tref, memberName, memberDescriptor);
-        constantPool[i] = mr.getId();
+        int mrId = mr.getId();
+        constantPool[i] = packCPEntry(CP_MEMBER, mrId);
         break; 
       } // out: VM_MemberReference id
       }
@@ -1191,9 +1349,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       }
       else if (attName == VM_ClassLoader.enclosingMethodAttributeName) {
         int enclosingClassIndex = input.readUnsignedShort();
-        int enclosingMethodIndex = input.readUnsignedShort();
         enclosingClass  = getTypeRef(constantPool, enclosingClassIndex);
-        enclosingMethod = getMethodRef(constantPool, enclosingMethodIndex);
+
+        int enclosingMethodIndex = input.readUnsignedShort();
+        if (enclosingMethodIndex != 0) {
+          int memberNameIndex = constantPool[enclosingMethodIndex] >>> BITS_IN_SHORT;
+          int memberDescriptorIndex = constantPool[enclosingMethodIndex] & ((1 << BITS_IN_SHORT) - 1);
+          VM_Atom memberName       = getUtf(constantPool, memberNameIndex);
+          VM_Atom memberDescriptor = getUtf(constantPool, memberDescriptorIndex);
+          enclosingMethod = VM_MemberReference.findOrCreate(enclosingClass, memberName, memberDescriptor).asMethodReference();
+        }
       }
       else if (attName == VM_ClassLoader.signatureAttributeName) {
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
@@ -1252,6 +1417,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if (VM.VerifyAssertions) VM._assert(superClass == null);
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
+      thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
     } else {
       if (VM.VerifyAssertions) VM._assert(superClass != null);
       depth = superClass.depth + 1;
@@ -1402,21 +1568,19 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, n = staticFields.length; i < n; ++i) {
       VM_Field field = staticFields[i];
       VM_TypeReference fieldType = field.getType();
-      byte slotType;
       if (fieldType.isReferenceType())
-        slotType = VM_Statics.REFERENCE_FIELD;
+        field.setOffset(VM_Statics.allocateReferenceSlot());
       else if (fieldType.getSize() == BYTES_IN_LONG)
-        slotType = VM_Statics.WIDE_NUMERIC_FIELD;
+        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG));
       else
-        slotType = VM_Statics.NUMERIC_FIELD;
-      field.offset = VM_Statics.allocateSlot(slotType);
+        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_INT));
 
       // (SJF): Serialization nastily accesses even final private static
       //           fields via pseudo-reflection! So, we must shove the
       //           values of final static fields into the JTOC.  Now
       //           seems to be a good time.
       if (field.isFinal()) {
-        setFinalStaticJTOCEntry(field,Offset.fromIntSignExtend(field.offset));
+        setFinalStaticJTOCEntry(field, field.getOffset());
       }
     }
 
@@ -1438,14 +1602,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
       VM_Field field = instanceFields[i];
       if (field.getType().isReferenceType())
-        referenceOffsets[j++] = field.offset;
+        referenceOffsets[j++] = field.getOffset().toInt();
     }
 
     // Allocate space for <init> method pointers
     //
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD);
+      method.setOffset(VM_Statics.allocateReferenceSlot());
     }
 
     // Allocate space for static method pointers
@@ -1453,9 +1617,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       VM_Method method = staticMethods[i];
       if (method.isClassInitializer()) {
-        method.offset = 0xdeadbeef; // should never be used.
+        method.setOffset(Offset.fromIntZeroExtend(0xebad0ff5)); // should never be used.
       } else {
-        method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD);
+        method.setOffset(VM_Statics.allocateReferenceSlot());
       }
     }
 
@@ -1480,7 +1644,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // (to be filled in by instantiate)
       for (int i = 0, n = virtualMethods.length; i < n; ++i) {
         VM_Method method = virtualMethods[i];
-        method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS;
+        method.setOffset(Offset.fromIntZeroExtend((TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS));
       }
     }
 
@@ -1653,7 +1817,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * initial values.
    */ 
   public final synchronized void initialize() 
-    // Doesn't really need declaring.
+                                 // Doesn't really need declaring.
     throws ExceptionInInitializerError
   {
     if (isInitialized())
@@ -1756,9 +1920,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i=0; i<declaredMethods.length; i++) {
       VM_Method m = declaredMethods[i];
       if (m.isNative()) {
-          VM_NativeMethod nm = (VM_NativeMethod)m;
-          nm.unregisterNativeSymbol(); 
-          m.replaceCompiledMethod(null); 
+        VM_NativeMethod nm = (VM_NativeMethod)m;
+        nm.unregisterNativeSymbol(); 
+        m.replaceCompiledMethod(null); 
       }
     }
   }
@@ -1992,14 +2156,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if(value != null) {
         if(value instanceof Integer) {
           constantPool[nextFreeConstantPoolSlot] =
-            VM_Statics.findOrCreateIntLiteral(((Integer)value).intValue());
+            VM_Statics.findOrCreateIntSizeLiteral(((Integer)value).intValue());
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;
         }
         else if(value instanceof Boolean) {
           constantPool[nextFreeConstantPoolSlot] =
-            VM_Statics.findOrCreateIntLiteral(((Boolean)value).booleanValue() ? 1 : 0);
+            VM_Statics.findOrCreateIntSizeLiteral(((Boolean)value).booleanValue() ? 1 : 0);
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;
@@ -2047,5 +2211,104 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                                   );
     annotationClass.setResolvedType(klass);
     return klass;
+  }
+
+  /**
+   * Number of [ in descriptor for arrays; -1 for primitives; 0 for
+   * classes
+   * @return 0
+   */ 
+  public int getDimensionality() throws UninterruptiblePragma {
+    return 0;
+  }
+
+
+  /**
+   * Resolution status.
+   */ 
+  public boolean isResolved() throws UninterruptiblePragma {
+    return state >= CLASS_RESOLVED;
+  }
+
+  /**
+   * Instantiation status.
+   */ 
+  public final boolean isInstantiated() throws UninterruptiblePragma { 
+    return state >= CLASS_INSTANTIATED; 
+  }
+
+  /**
+   * Initialization status.
+   */ 
+  public final boolean isInitialized() throws UninterruptiblePragma { 
+    return state == CLASS_INITIALIZED; 
+  } 
+
+  /**
+   * Only intended to be used by the BootImageWriter
+   */
+  public final void markAsBootImageClass() {
+    inBootImage = true;
+  }
+  
+  /**
+   * Is this class part of the virtual machine's boot image?
+   */ 
+  public final boolean isInBootImage() throws UninterruptiblePragma {
+    return inBootImage;
+  }
+
+  /**
+   * Get the offset in instances of this type assigned to the thin lock word.
+   * -1 if instances of this type do not have thin lock words.
+   */
+  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
+    return thinLockOffset; 
+  }
+
+  /**
+   * Set the thin lock offset for instances of this type
+   */
+  public final void setThinLockOffset(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
+    thinLockOffset = offset;
+  }
+
+  /**
+   * get number of superclasses to Object 
+   */ 
+  public int getTypeDepth () throws UninterruptiblePragma {
+    return depth;
+  }
+
+  /**
+   * Whether or not this is an instance of VM_Class?
+   * @return false
+   */
+  public boolean isClassType() throws UninterruptiblePragma {
+    return true;
+  }
+
+  /**
+   * Whether or not this is an instance of VM_Array?
+   * @return true
+   */
+  public boolean isArrayType() throws UninterruptiblePragma {
+    return false;
+  }
+
+  /**
+   * Whether or not this is a primitive type
+   * @return false
+   */
+  public boolean isPrimitiveType() throws UninterruptiblePragma {
+    return false;
+  }
+
+  /**
+   * @return whether or not this is a reference (ie non-primitive) type.
+   */
+  public boolean isReferenceType() throws UninterruptiblePragma {
+    return true;
   }
 }

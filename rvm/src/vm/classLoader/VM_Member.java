@@ -193,7 +193,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * TODO: refactor system so this functionality is in the classloader package
    * and this method doesn't have to be final.
    */
-  public final void setOffset(int off) {
-    offset = off;
+  public final void setOffset(Offset off) {
+    offset = off.toInt();
   }
 }

@@ -50,8 +50,8 @@ public class VM_Magic {
     //TODOreturn Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
   }
 
-  /** Get contents of "jtoc" register as an int[] */
-  public static int[] getJTOC() {
+  /** Get contents of "jtoc" register */
+  public static Address getJTOC() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }

@@ -175,16 +175,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Emit code to load a 32 bit constant
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected final void emit_ldc(Offset offset) {
+  protected final void emit_ldc(Offset offset, byte type) {
     asm.emitPUSH_RegDisp(JTOC, offset);   
   }
 
   /**
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected final void emit_ldc2(Offset offset) {
+  protected final void emit_ldc2(Offset offset, byte type) {
     asm.emitPUSH_RegDisp(JTOC, offset.plus(4)); // high 32 bits 
     asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
   }

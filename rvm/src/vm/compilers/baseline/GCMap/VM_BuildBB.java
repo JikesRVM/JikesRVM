@@ -1218,11 +1218,11 @@ public final class VM_BuildBB
              index = bcodes.getConstantIndex();
            byte type = method.getDeclaringClass().getLiteralDescription(index);
            switch (type) {
-           case VM_Statics.FLOAT_LITERAL:
+           case VM_Class.CP_FLOAT:
              type = FLOAT_TYPE;
              break;
-           case VM_Statics.STRING_LITERAL:
-           case VM_Statics.CLASS_LITERAL:
+           case VM_Class.CP_STRING:
+           case VM_Class.CP_CLASS:
              type = OBJECT_TYPE;
              break;
            default:
@@ -1236,7 +1236,7 @@ public final class VM_BuildBB
          {
            int index = bcodes.getWideConstantIndex();
            byte type = method.getDeclaringClass().getLiteralDescription(index);
-           if (type == VM_Statics.LONG_LITERAL) {
+           if (type == VM_Class.CP_LONG) {
              type = LONG_TYPE;
            }
            else {

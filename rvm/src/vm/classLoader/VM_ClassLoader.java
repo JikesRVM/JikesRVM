@@ -217,8 +217,6 @@ public class VM_ClassLoader implements VM_Constants,
     runtimeVisibleParameterAnnotationsAttributeName   = VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");
     runtimeInvisibleParameterAnnotationsAttributeName = VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleParameterAnnotations");
     annotationDefaultAttributeName           = VM_Atom.findOrCreateAsciiAtom("AnnotationDefault");
-
-    VM_Type.init();
   }
 
 

@@ -96,7 +96,8 @@ final class VMClassLoader
     throws ClassFormatError
   {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
-    Class ans = vmType.createClassForType(pd);
+    Class ans = vmType.getClassForType();
+    JikesRVMSupport.setClassProtectionDomain(ans, pd);
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
     if (mapForCL == null) {
       mapForCL = new VM_HashMap();

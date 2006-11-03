@@ -18,13 +18,15 @@ import com.ibm.jikesrvm.util.*;
 /**
  * The static fields and methods comprising a running virtual machine image.
  *
- * <p> These fields and methods form the "root set" of all the objects in the
- * running virtual machine. They are stored in an array whose first element
- * is always pointed to by the virtual machine's "table of contents" (jtoc)
- * register. The slots of this array hold either primitives (byte, int,
- * long, float, etc), object pointers, or array pointers. A second
- * table, co-indexed with the array, describes the contents of each
- * slot in the jtoc.
+ * <p> These fields, methods and literal constants form the "root set"
+ * of all the objects in the running virtual machine. They are stored
+ * in an array where the middle element is always pointed to by the
+ * virtual machine's "table of contents" (jtoc) register. The slots of
+ * this array hold either primitives (int, long, float, double),
+ * object pointers, or array pointers. To enable the garbage collector
+ * to differentiate between reference and non-reference values,
+ * reference values are indexed positively and numeric values
+ * negatively with respect to the middle of the table.
  *
  * <p> Consider the following declarations:
  *
@@ -35,322 +37,368 @@ import com.ibm.jikesrvm.util.*;
  *      class D { static void m() {} }
  * </pre>
  *
- * <p>Here's a picture of what the corresponding jtoc and descriptive
- * table would look like in memory:
+ * <p>Here's a picture of what the corresponding jtoc would look like
+ * in memory:
  *
  * <pre>
  *                     +---------------+
- * jtoc:               |   (header)    |
+ *                     |     ...       |
  *                     +---------------+
- * [jtoc register]-> 0:|      0        |
- *                     +---------------+       +---------------+
- *                   1:|     123       |       |   (header)    |
- *                     +---------------+       +---------------+
- *                   2:|  (objref)   --------->|    "abc"      |
- *                     +---------------+       +---------------+
- *                   3:|   4.56 (hi)   |
+ * field            -6 |   C.d (hi)    |
  *                     +---------------+
- *                   4:|   4.56 (lo)   |
+ * field            -5 |   C.d (lo)    |
+ *                     +---------------+
+ * literal          -4 |  4.56 (hi)    |
+ *                     +---------------+
+ * literal          -3 |  4.56 (lo)    |
+ *                     +---------------+
+ * field            -2 |     A.i       |
+ *                     +---------------+
+ * literal          -1 |     123       |
  *                     +---------------+       +---------------+
- *                   5:|  (coderef)  -----+    |   (header)    |
- *                     +---------------+  |    +---------------+
- *                   6:|     ...       |  +--->|  machine code |
+ * [jtoc register]-> 0:|      0        |       |   (header)    |
+ *                     +---------------+       +---------------+
+ * literal           1:|  (objref)   --------->|    "abc"      |
+ *                     +---------------+       +---------------+
+ * field             2:|     B.s       |                         
+ *                     +---------------+       +---------------+
+ *                   3:|  (coderef)  ------+   |   (header)    |
+ *                     +---------------+   |   +---------------+
+ *                     |     ...       |   +-->|  machine code |
  *                     +---------------+       |    for "m"    |
  *                                             +---------------+
- *                     +--------------------+
- * descriptions:       |     (header)       |
- *                     +--------------------+
- *                   0:|      EMPTY         |  ( unused )
- *                     +--------------------+
- *                   1:|     INT_LITERAL    |  ( A.i )
- *                     +--------------------+
- *                   2:|   REFERENCE_FIELD  |  ( B.s )
- *                     +--------------------+
- *                   3:|   DOUBLE_LITERAL   |  ( C.d )
- *                     +--------------------+
- *                     |     (unused)       |
- *                     +--------------------+
- *                   5:|      METHOD        |  ( D.m )
- *                     +--------------------+
  * </pre>
  *
+ * @author Ian Rogers
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
  * @author Kris Venstermans
  */
 public class VM_Statics implements VM_Constants {
-  // Kinds of statics that can appear in slots of the jtoc.
-  //
-  public static final byte WIDE_TAG             = 0x20;
-  public static final byte REFERENCE_TAG        = VM.BuildFor64Addr ? 0x40 | WIDE_TAG : 0x40;
-
-  public static final byte EMPTY                = 0x0;
-
-  public static final byte INT_LITERAL          = 0x01;
-  public static final byte FLOAT_LITERAL        = 0x02;
-  public static final byte LONG_LITERAL         = 0x03 | WIDE_TAG;
-  public static final byte DOUBLE_LITERAL       = 0x04 | WIDE_TAG;
-  public static final byte STRING_LITERAL       = 0x05 | REFERENCE_TAG;
-  public static final byte CLASS_LITERAL        = 0x06 | REFERENCE_TAG;
-
-  public static final byte REFERENCE_FIELD      = 0x07 | REFERENCE_TAG;
-  public static final byte NUMERIC_FIELD        = 0x08;
-  public static final byte WIDE_NUMERIC_FIELD   = 0x09 | WIDE_TAG;
-
-  public static final byte METHOD               = 0x0a | REFERENCE_TAG;
-  public static final byte TIB                  = 0x0b | REFERENCE_TAG;
-
-  public static final byte CONTINUATION         = 0x0f;  // the upper half of a wide-field
-
-
   /**
-   * static data values (pointed to by jtoc register)
+   * Static data values (pointed to by jtoc register).
    * This is currently fixed-size, although at one point the system's plans
    * called for making it dynamically growable.  We could also make it
    * non-contiguous.
    */
-  //  private static int slots[] = new int[65536];
-  private static int slots[] = new int[0x20000]; // 128K = 131072
+  private static final int slots[] = new int[0x20000]; // 128K = 131072
 
   /**
-   * corresponding descriptions (see "kinds", above)
+   * Object version of the slots used during boot image creation and
+   * destroyed shortly after. This is required to support conversion
+   * of a slot address to its associated object during boot image
+   * creation.
    */
-  private static byte descriptions[] = new byte[slots.length];
+  private static Object objectSlots[] = new Object[0x20000];
 
   /**
-   * next available slot number
+   * The middle of the table, references are slots above this and
+   * numeric values below this. The JTOC points to the middle of the
+   * table.
    */
+  public static final int middleOfTable = slots.length / 2;
 
-  // don't use slot 0.
-  private static int nextSlot = VM.BuildFor32Addr ? 1 : (VM.BuildFor64Addr ? 2 : -1);
+  /** Next available numeric slot number */
+  private static int nextNumericSlot = middleOfTable - 1;
+
+  /** next available reference slot number */
+  private static int nextReferenceSlot = middleOfTable + (VM.BuildFor32Addr ? 1 : 2);
 
   /**
-   * Mapping from int literals to the jtoc slot that contains them.
+   * Mapping from int like literals (ints and floats) to the jtoc slot
+   * that contains them.
    */
-  private static final VM_HashMap intLiterals = new VM_HashMap();
+  private static final VM_HashMap intSizeLiterals = new VM_HashMap();
 
   /**
-   * Mapping from float literals to the jtoc slot that contains them.
+   * Mapping from long like literals (longs and doubles) to the jtoc
+   * slot that contains them.
    */
-  private static final VM_HashMap floatLiterals = new VM_HashMap();
+  private static final VM_HashMap longSizeLiterals = new VM_HashMap();
 
   /**
-   * Mapping from long literals to the jtoc slot that contains them.
+   * Mapping from object literals to the jtoc slot that contains them.
    */
-  private static final VM_HashMap longLiterals = new VM_HashMap();
+  private static final VM_HashMap objectLiterals = new VM_HashMap();
 
   /**
-   * Mapping from double literals to the jtoc slot that contains them.
-   */
-  private static final VM_HashMap doubleLiterals = new VM_HashMap();
-
-  /**
-   * Mapping from string literals to the jtoc slot that contains them.
+   * A special mapping from VM_Atom objects to the jtoc slot of String
+   * objects that represent the same value.
    */
   private static final VM_HashMap stringLiterals = new VM_HashMap();
-
-  /**
-   * Mapping from class literals to the jtoc slot that contains them.
-   */
-  private static final VM_HashMap classLiterals = new VM_HashMap();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
    */
   public static final Offset slotAsOffset(int slot) throws UninterruptiblePragma {
-    return Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_INT);
+    return Offset.fromIntSignExtend((slot - middleOfTable) << LOG_BYTES_IN_INT);
   }
 
   /**
    * Conversion from JTOC offset to JTOC slot index.
    */
   public static final int offsetAsSlot(Offset offset) throws UninterruptiblePragma {
-    return offset.toInt() >>> LOG_BYTES_IN_INT;
+    if (VM.VerifyAssertions) VM._assert((offset.toInt() & 3) == 0);
+    return middleOfTable + (offset.toInt() >> LOG_BYTES_IN_INT);
   }
 
   /**
-   * Find or allocate a slot in the jtoc for an int literal.
-   * @param       literal value (as bits)
-   * @return offset of slot that was allocated
-   * Side effect: literal value is stored into jtoc
-   */ 
-  public static synchronized int findOrCreateIntLiteral(int literal) {
-    Integer off = (Integer)intLiterals.get(new Integer(literal));
-    if (off != null) return off.intValue();
-    int newOff = allocateSlot(INT_LITERAL);
-    intLiterals.put(new Integer(literal), new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, literal);
-    return newOff;
+   * Return the lowest slot number in use
+   */
+  public static final int getLowestInUseSlot() {
+    return nextNumericSlot+1;
   }
 
   /**
-   * Find or allocate a slot in the jtoc for a float literal.
-   * @param       literal value (as bits)
-   * @return offset of slot that was allocated
-   * Side effect: literal value is stored into jtoc
-   */ 
-  public static synchronized int findOrCreateFloatLiteral(int literal) {
-    Integer off = (Integer)floatLiterals.get(new Integer(literal)); // NOTE: keep mapping in terms of int bits!
-    if (off != null) return off.intValue();
-    int newOff = allocateSlot(FLOAT_LITERAL);
-    floatLiterals.put(new Integer(literal), new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, literal);
-    return newOff;
+   * Return the highest slot number in use
+   */
+  public static final int getHighestInUseSlot() {
+    return nextReferenceSlot - (VM.BuildFor32Addr ? 1 : 2);
   }
 
   /**
-   * Find or allocate a slot in the jtoc for a long literal.
-   * @param       literal value (as bits)
-   * @return offset of slot of first of two slots that were allocated
-   * Side effect: literal value is stored into jtoc
-   */ 
-  public static synchronized int findOrCreateLongLiteral(long literal) {
-    Integer off = (Integer)longLiterals.get(new Long(literal));
-    if (off != null) return off.intValue();
-    int newOff = allocateSlot(LONG_LITERAL);
-    longLiterals.put(new Long(literal), new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, literal);
-    return newOff;
+   * Find the given literal in the int like literal map, if not found
+   * create a slot for the literal and place an entry in the map
+   * @param literal the literal value to find or create
+   * @return the offset in the JTOC of the literal
+   */
+  public static final int findOrCreateIntSizeLiteral(int literal) {
+    Integer literalAsInt = new Integer(literal);
+    Integer offsetAsInt;
+    synchronized(intSizeLiterals) {
+       offsetAsInt = (Integer)intSizeLiterals.get(literalAsInt);
+    }
+    if (offsetAsInt != null) {
+      return offsetAsInt.intValue();
+    } else {
+      Offset newOff = allocateNumericSlot(BYTES_IN_INT);
+      Integer newOffAsInt = new Integer(newOff.toInt());
+      synchronized(intSizeLiterals) {
+        intSizeLiterals.put(literalAsInt, newOffAsInt);
+      }
+      setSlotContents(newOff, literal);
+      return newOff.toInt();
+    }
   }
 
   /**
-   * Find or allocate a slot in the jtoc for a double literal.
-   * @param       literal value (as bits)
-   * @return offset of slot of first of two slots that were allocated
-   * Side effect: literal value is stored into jtoc
-   */ 
-  public static synchronized int findOrCreateDoubleLiteral(long literal) {
-    Integer off = (Integer)doubleLiterals.get(new Long(literal)); // NOTE: keep mapping in terms of long bits
-    if (off != null) return off.intValue();
-    int newOff = allocateSlot(DOUBLE_LITERAL);
-    doubleLiterals.put(new Long(literal), new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, literal);
-    return newOff;
+   * Find the given literal in the long like literal map, if not found
+   * create a slot for the literal and place an entry in the map
+   * @param literal the literal value to find or create
+   * @return the offset in the JTOC of the literal
+   */
+  public static final int findOrCreateLongSizeLiteral(long literal) {
+    Long literalAsLong = new Long(literal);
+    Integer offsetAsInt;
+    synchronized(longSizeLiterals) {
+       offsetAsInt = (Integer)longSizeLiterals.get(literalAsLong);
+    }
+    if (offsetAsInt != null) {
+      return offsetAsInt.intValue();
+    } else {
+      Offset newOff = allocateNumericSlot(BYTES_IN_LONG);
+      Integer newOffAsInt = new Integer(newOff.toInt());
+      synchronized(longSizeLiterals) {
+        longSizeLiterals.put(literalAsLong, newOffAsInt);
+      }
+      setSlotContents(newOff, literal);
+      return newOff.toInt();
+    }
   }
 
   /**
-   * Find or allocate a slot in the jtoc for a string literal.
+   * Find or allocate a slot in the jtoc for a string literal from the
+   * given VM_Atom. We register a mapping in the object and string
+   * literals if not.
    * @param       literal value
    * @return offset of slot that was allocated
    * Side effect: literal value is stored into jtoc
    */ 
-  public static synchronized int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
-    Integer off = (Integer)stringLiterals.get(literal);
-    if (off != null) return off.intValue();
-    String stringValue = literal.toUnicodeString();
-    if (VM.runningVM) stringValue = stringValue.intern();
-    int newOff = allocateSlot(STRING_LITERAL);
-    stringLiterals.put(literal, new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, stringValue);
-    return newOff;
+  public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
+    Integer offAsInt;
+    synchronized (stringLiterals){
+      offAsInt = (Integer)stringLiterals.get(literal);
+    }
+    if (offAsInt != null) {
+      return offAsInt.intValue();
+    } else {
+      String stringValue = literal.toUnicodeString();
+      if (VM.runningVM) {
+        stringValue = stringValue.intern();
+      }
+      Offset newOff = allocateReferenceSlot();
+      Integer newOffAsInt = new Integer(newOff.toInt());
+      synchronized(stringLiterals) {
+        stringLiterals.put(literal, newOffAsInt);
+        synchronized(objectLiterals) {
+          objectLiterals.put(stringValue, newOffAsInt);
+          setSlotContents(newOff, stringValue);
+        }
+      }
+      return newOff.toInt();
+    }
   }
 
  /**
-   * Try to find a string literal.
+   * Try to find a string literal from the given String object.
    * @param     literal value
    * @return    String literal if it exists, otherwise null.
    */ 
-  public static synchronized String findStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
-    Integer off = (Integer)stringLiterals.get(literal);
-    if (off != null) {
-      int offiv = off.intValue();
-      return (String)getSlotContentsAsObject(Offset.fromIntSignExtend(offiv));
+  public static String findStringLiteral(String literal) {
+    Integer offAsInt;
+    synchronized(objectLiterals) {
+      offAsInt = (Integer)objectLiterals.get(literal);
+    }
+    if (offAsInt != null) {
+      Offset off = Offset.fromIntSignExtend(offAsInt.intValue());
+      return (String)getSlotContentsAsObject(off);
     }
     return null;
   }
 
   /**
-	* Find or allocate a slot in the jtoc for a class literal
-	* @param typeReferenceID the type reference ID for the class
-	* @return the offset of slot that was allocated
-	*/
-  public static synchronized int findOrCreateClassLiteral(int typeReferenceID) {
-	 Integer literal = new Integer(typeReferenceID);
-    Integer off = (Integer)classLiterals.get(literal);
-    if (off != null) return off.intValue();
-	 VM_Class type = (VM_Class)VM_TypeReference.getTypeRef(typeReferenceID).resolve();
-    Class classValue;
-	 if (VM.runningVM) {
-		classValue = type.getClassForType();
-	 } else {
-		classValue = null;
-		VM.deferClassObjectCreation(type);
-	 }
-    int newOff = allocateSlot(CLASS_LITERAL);
-    classLiterals.put(literal, new Integer(newOff));
-    Offset offset = Offset.fromIntSignExtend(newOff);
-    setSlotContents(offset, classValue);
-    return newOff;
+   * Find or allocate a slot in the jtoc for a class literal
+   * @param typeReferenceID the type reference ID for the class
+   * @return the offset of slot that was allocated
+   */
+  public static int findOrCreateClassLiteral(int typeReferenceID) {
+    Class literalAsClass =
+      VM_TypeReference.getTypeRef(typeReferenceID).resolve().asClass().getClassForType();
+    Integer offAsInt;
+    synchronized(objectLiterals) {
+      offAsInt = (Integer)objectLiterals.get(literalAsClass);
+    }
+    if (offAsInt != null) {
+      return offAsInt.intValue();
+    } else {
+      Offset newOff = allocateReferenceSlot();
+      Integer newOffAsInt = new Integer(newOff.toInt());
+      synchronized(objectLiterals) {
+        objectLiterals.put(literalAsClass, newOffAsInt);
+        setSlotContents(newOff, literalAsClass);
+      }
+      return newOff.toInt();
+    }
   }
 
   /**
-	* Class objects can't be created at boot image write time so fix
-	* class literals at the start of VM.boot
-	* @param vm_class the class to fix
-	*/
-  public static void fixClassLiteral(VM_Class vm_class) {
-	 Integer literal = new Integer(vm_class.getTypeRef().getId());
-    Integer off = (Integer)classLiterals.get(literal);
-    if (off != null) {
-		// there is a JTOC slot for this class literal so fix it
-		Class classValue = vm_class.getClassForType();
-		Offset offset = Offset.fromIntSignExtend(off.intValue());
-		setSlotContents(offset, classValue);
-	 }
+   * Find or allocate a slot in the jtoc for an object literal.
+   * @param       literal value
+   * @return offset of slot that was allocated
+   * Side effect: literal value is stored into jtoc
+   */ 
+  public static int findOrCreateObjectLiteral(Object literal) {
+    Integer offAsInt;
+    synchronized (objectLiterals){
+      offAsInt = (Integer)objectLiterals.get(literal);
+    }
+    if (offAsInt != null) {
+      return offAsInt.intValue();
+    } else {
+      Offset newOff = allocateReferenceSlot();
+      Integer newOffAsInt = new Integer(newOff.toInt());
+      synchronized(objectLiterals) {
+        objectLiterals.put(literal, newOffAsInt);
+      }
+      setSlotContents(newOff, literal);
+      return newOff.toInt();
+    }
   }
 
   /**
-   * Allocate a slot in the jtoc.
-   * @param    description of a static field or method (see "kinds", above)
+   * Find a slot in the jtoc with this object literal in else return 0
+   * @param  literal value
+   * @return offset containing literal or 0
+   */ 
+  public static int findObjectLiteral(Object literal) {
+    Integer offAsInt;
+    synchronized (objectLiterals){
+      offAsInt = (Integer)objectLiterals.get(literal);
+    }
+    if (offAsInt != null) {
+      return offAsInt.intValue();
+    } else {
+      return 0;
+    }
+  }
+
+  /**
+   * Allocate a numeric slot in the jtoc.
+   * @param size of slot
    * @return offset of slot that was allocated as int
    * (two slots are allocated for longs and doubles)
    */ 
-  public static synchronized int allocateSlot(byte description) {
-
-    if (nextSlot + 2 > slots.length) {
-      // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
-      // point to newly enlarged slots[]
-      // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
-      VM.sysFail("VM_Statics.allocateSlot: jtoc is full");
+  public static synchronized Offset allocateNumericSlot(int size) {
+    // Allocate two slots for wide items after possibly blowing
+    // another slot for alignment.  Wide things are longs or doubles
+    if (size == BYTES_IN_LONG) {
+      // widen for a wide
+      nextNumericSlot--;
+      // check alignment
+      if((nextNumericSlot & 1) == 1) {
+        nextNumericSlot--;
+      }
     }
-
-    // Allocate two slots for wide items after possibly blowing another slot for alignment.
-    // Wide things include long or double and addresses on 64-bit architecture.
-    //
-    boolean isWide = (description & WIDE_TAG) == WIDE_TAG;
-
-    if (isWide && (nextSlot & 1) == 1) {
-      descriptions[nextSlot] = EMPTY;
-      nextSlot++;
+    int slot = nextNumericSlot;
+    nextNumericSlot--;
+    if (nextNumericSlot < 0) {
+      enlargeTable();
     }
-
-    int slot = nextSlot;
-
-    if (isWide) {
-      descriptions[slot] = description;
-      descriptions[slot+1] = CONTINUATION;
-      nextSlot += 2;
-    } else {
-      descriptions[slot] = description;
-      nextSlot++;
-    } 
-         
-    int offset = slot << LOG_BYTES_IN_INT;
-    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
-    return offset;
+    return slotAsOffset(slot);
   }
 
   /**
-   * Fetch number of jtoc slots currently allocated.
+   * Allocate a reference slot in the jtoc.
+   * @return offset of slot that was allocated as int
+   * (two slots are allocated on 64bit architectures)
    */ 
-  public static int getNumberOfSlots() throws UninterruptiblePragma {
-    return nextSlot;
+  public static synchronized Offset allocateReferenceSlot() {
+    int slot = nextReferenceSlot;
+    if(VM.BuildFor64Addr) {
+      nextReferenceSlot += 2;
+    } else {
+      nextReferenceSlot++;
+    }
+    if (nextReferenceSlot >= slots.length) {
+      enlargeTable();
+    }
+    return slotAsOffset(slot);
+  }
+
+  public static void sanityCheck() {
+    for (int i=middleOfTable; i < nextReferenceSlot; i++) {
+      int val = slots[i];
+      if((val == 0) || (val > 0x100000) || (val < 0)) {
+      }
+      else {
+        VM.sysWriteln("Ian check out slot " + i + " it's got a value of " + val);
+      }
+    }
+  }
+
+  /**
+   * Grow the statics table
+   */
+  private static void enlargeTable() {
+    // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
+    // point to newly enlarged slots[]
+    // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
+    VM.sysFail("VM_Statics.enlargeTable: jtoc is full");    
+  }
+
+  /**
+   * Fetch number of numeric jtoc slots currently allocated.
+   */ 
+  public static int getNumberOfNumericSlots() throws UninterruptiblePragma {
+    return middleOfTable - nextNumericSlot;
+  }
+
+  /**
+   * Fetch number of reference jtoc slots currently allocated.
+   */ 
+  public static int getNumberOfReferenceSlots() throws UninterruptiblePragma {
+    return nextReferenceSlot - middleOfTable;
   }
 
   /**
@@ -366,58 +414,67 @@ public class VM_Statics implements VM_Constants {
    * @return true --> slot contains a reference
    */ 
   public static boolean isReference(int slot) throws UninterruptiblePragma {
-    byte type = descriptions[slot];
-    // if (type == CONTINUATION) VM.sysFail("Asked about type of a JTOC continuation slot");
-    return (type & VM_Statics.REFERENCE_TAG) == VM_Statics.REFERENCE_TAG;
+    return slot > middleOfTable;
   }
 
   /**
-   * Fetch description of specified jtoc slot.
+   * Does specified jtoc slot contain an int sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return description of slot contents (see "kinds", above)
-   */
-  public static byte getSlotDescription(int slot) throws UninterruptiblePragma {
-    return descriptions[slot];
-  }
-
-  public static int getSlotSize (int slot) throws UninterruptiblePragma {
-      return ((descriptions[slot] & WIDE_TAG) == WIDE_TAG) ? 2 : 1;
-  }
-
-  public static int getReferenceSlotSize () throws UninterruptiblePragma {
-      return ((REFERENCE_TAG & WIDE_TAG) == WIDE_TAG) ? 2 : 1;
+   * @return true --> slot contains a reference
+   */ 
+  public static boolean isIntSizeLiteral(int slot) {
+    if(isReference(slot)) {
+      return false;
+    } else {
+      int ival = getSlotContentsAsInt(slotAsOffset(slot));
+      Integer ivalAsInt = new Integer(ival);
+      Integer offsetAsInt;
+      synchronized(intSizeLiterals) {
+         offsetAsInt = (Integer)intSizeLiterals.get(ivalAsInt);
+      }
+      if (offsetAsInt == null) {
+        return false;
+      } else {
+        return slotAsOffset(slot).toInt() == offsetAsInt.intValue();
+      }
+    }
   }
 
   /**
-   * Fetch description of specified jtoc slot as a string.
-   * @param    slot number obtained from allocateSlot()
-   * @return description of slot contents (see "kinds", above)
+   * Does specified jtoc slot contain a long sized literal?
+   * @param  slot obtained from offsetAsSlot()
+   * @return true --> slot contains a reference
    */ 
-  public static String getSlotDescriptionAsString(int slot) {
-    String kind = null;
-    byte desc = descriptions[slot];
-    switch (desc) {
-      case INT_LITERAL        : kind = "INT_LITERAL";        break;
-      case FLOAT_LITERAL      : kind = "FLOAT_LITERAL";      break;
-      case LONG_LITERAL       : kind = "LONG_LITERAL";       break;
-      case DOUBLE_LITERAL     : kind = "DOUBLE_LITERAL";     break;
-      case STRING_LITERAL     : kind = "STRING_LITERAL";     break;
-      case REFERENCE_FIELD    : kind = "REFERENCE_FIELD";    break;
-      case NUMERIC_FIELD      : kind = "NUMERIC_FIELD";      break;
-      case WIDE_NUMERIC_FIELD : kind = "WIDE_NUMERIC_FIELD"; break;
-      case METHOD             : kind = "METHOD";             break;
-      case TIB                : kind = "TIB";                break;
-      case EMPTY              : kind = "EMPTY SLOT";         break;
-      case CONTINUATION       : kind = "CONTINUATION";       break;
+  public static boolean isLongSizeLiteral(int slot) {
+    if(isReference(slot)) {
+      return false;
+    } else {
+      long lval = getSlotContentsAsLong(slotAsOffset(slot));
+      Long lvalAsLong = new Long(lval);
+      Integer offsetAsInt;
+      synchronized(longSizeLiterals) {
+         offsetAsInt = (Integer)longSizeLiterals.get(lvalAsLong);
+      }
+      if (offsetAsInt == null) {
+        return false;
+      } else {
+        return slotAsOffset(slot).toInt() == offsetAsInt.intValue();
+      }
     }
-    return kind;
+  }
+
+  /**
+   * Get size occupied by a reference
+   */
+  public static int getReferenceSlotSize () throws UninterruptiblePragma {
+      return VM.BuildFor64Addr ? 2 : 1;
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
    */ 
   public static Address getSlots() throws UninterruptiblePragma {
-    return VM_Magic.objectAsAddress(slots);
+    return VM_Magic.objectAsAddress(slots).plus(middleOfTable << LOG_BYTES_IN_INT);
   }
 
   /**
@@ -431,10 +488,8 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot, as an integer
    */ 
   public static int getSlotContentsAsInt(Offset offset) throws UninterruptiblePragma {
-    if (VM.VerifyAssertions) 
-        VM._assert((getSlotDescription(offsetAsSlot(offset)) & WIDE_TAG) != WIDE_TAG);
     if (VM.runningVM) {
-      return VM_Magic.getIntAtOffset(slots, offset);
+      return VM_Magic.getIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
       int slot = offsetAsSlot(offset);
       return slots[slot];
@@ -446,7 +501,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static long getSlotContentsAsLong(Offset offset) throws UninterruptiblePragma {  
     if (VM.runningVM) {
-      return VM_Magic.getLongAtOffset(slots, offset);
+      return VM_Magic.getLongAtOffset(slots, offset.plus(middleOfTable  << LOG_BYTES_IN_INT));
     } else {
       int slot = offsetAsSlot(offset);
       long result;
@@ -465,11 +520,15 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot, as an object.
    */ 
   public static Object getSlotContentsAsObject(Offset offset) throws UninterruptiblePragma {
-    //-#if RVM_FOR_64_ADDR
-    return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
-    //-#else
-    return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
-    //-#endif
+    if(VM.runningVM) {
+      //-#if RVM_FOR_64_ADDR
+      return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
+      //-#else
+      return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
+      //-#endif
+    } else {
+      return objectSlots[offsetAsSlot(offset)];
+    }
   }
 
   /**
@@ -477,7 +536,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static void setSlotContents(Offset offset, int value) throws UninterruptiblePragma {
     if (VM.runningVM) {
-      VM_Magic.setIntAtOffset(slots, offset, value);
+      VM_Magic.setIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
       slots[offsetAsSlot(offset)] = value;
     }
@@ -488,7 +547,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static void setSlotContents(Offset offset, long value) throws UninterruptiblePragma {
     if (VM.runningVM) {
-      VM_Magic.setLongAtOffset(slots, offset, value);
+      VM_Magic.setLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
       int slot = offsetAsSlot(offset);
       if (VM.LittleEndian) {
@@ -504,8 +563,19 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as an object.
    */ 
-  public static void setSlotContents(Offset offset, Object object) throws UninterruptiblePragma {
-      setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+  public static void setSlotContents(Offset offset, Object object) throws UninterruptibleNoWarnPragma {
+	 // NB uninterruptible warnings are disabled for this method due to
+	 // the array store which could cause a fault - this can't actually
+	 // happen as the fault would only ever occur when not running the
+	 // VM. We suppress the warning as we know the error can't happen.
+
+    setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+    if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
+    if (!VM.runningVM && objectSlots != null){
+      // When creating the boot image objectSlots is populated as
+      // VM_Magic won't work in the bootstrap JVM.
+      objectSlots[offsetAsSlot(offset)] = object;
+    }
   }
 
   /**
@@ -513,7 +583,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static void setSlotContents(Offset offset, Word word) throws UninterruptiblePragma {
     if (VM.runningVM) {
-      VM_Magic.setWordAtOffset(slots, offset, word);
+      VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
     } else {
       //-#if RVM_FOR_64_ADDR
       setSlotContents(offset, word.toLong());
@@ -521,5 +591,27 @@ public class VM_Statics implements VM_Constants {
       setSlotContents(offset, word.toInt());
       //-#endif
     }
+  }
+
+  /**
+   * Inform VM_Statics that boot image instantiation is over and that
+   * unnecessary data structures, for runtime, can be released
+   */
+  public static void bootImageInstantiationFinished() {
+    objectSlots = null;
+  }
+
+  /**
+   * Search for a type that this TIB
+   * @param tibOff offset of TIB in JTOC
+   * @return type of TIB or null
+   */
+  public static VM_Type findTypeOfTIBSlot (Offset tibOff) {
+    VM_Type[] types = VM_Type.getTypes();
+    for (int i = 0; i < types.length; ++i) {
+      if (types[i] != null && types[i].getTibOffset().EQ(tibOff)) 
+        return types[i];
+    }
+    return null;
   }
 }

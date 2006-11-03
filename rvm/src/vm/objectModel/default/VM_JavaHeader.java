@@ -106,8 +106,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * What is the offset of the first word after the class?
    * For use by VM_ObjectModel.layoutInstanceFields
    */
-  public static int objectEndOffset(VM_Class klass) {
-    return klass.getInstanceSizeInternal() - OBJECT_REF_OFFSET;
+  public static Offset objectEndOffset(VM_Class klass) {
+    return Offset.fromIntSignExtend(klass.getInstanceSizeInternal() - OBJECT_REF_OFFSET);
   }
 
   /**

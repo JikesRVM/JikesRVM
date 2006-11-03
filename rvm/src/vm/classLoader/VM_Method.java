@@ -269,7 +269,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     for(int i=0, j=0; i < aMethods.length; i++) {
       if(aMethods[i].annotationDefault != null) {
         bytecode[(j*7)+5+0] = (byte)JBC_aload_0;    // stack[0] = this
-        if(VM_Statics.getSlotSize(constantPool[defaultConstants[j]]) == 1) {
+        if(VM_Class.getLiteralSize(constantPool, defaultConstants[j]) == BYTES_IN_INT) {
           bytecode[(j*7)+5+1] = (byte)JBC_ldc_w; // stack[1] = value
         }
         else {

@@ -107,7 +107,7 @@ public class BootImage extends BootImageWriterMessages
       say((numAddresses / 1024) + "k non-null object references");
       say(numNulledReferences + " references nulled because they are "+
           "non-jdk fields or point to non-bootimage objects");
-      say((VM_Statics.getNumberOfSlots() / 1024) + "k jtoc slots");
+      say(((VM_Statics.getNumberOfReferenceSlots()+VM_Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
       say((getDataSize() / 1024) + "k data in image");
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);
@@ -182,8 +182,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateScalar(VM_Class klass) {
     numObjects++;
-    klass.bootCount++;
-    klass.bootBytes += klass.getInstanceSize();
+    BootImageWriter.logAllocation(klass, klass.getInstanceSize());
     return VM_ObjectModel.allocateScalar(this, klass);
   }
 
@@ -196,8 +195,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateArray(VM_Array array, int numElements) {
     numObjects++;
-    array.bootCount++;
-    array.bootBytes += array.getInstanceSize(numElements);
+    BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateArray(this, array, numElements);
   }
 
@@ -210,8 +208,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateCode(VM_Array array, int numElements) {
     numObjects++;
-    array.bootCount++;
-    array.bootBytes += array.getInstanceSize(numElements);
+    BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateCode(this, array, numElements);
   }
 

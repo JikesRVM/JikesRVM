@@ -386,16 +386,16 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           bytecodes.getConstantIndex():bytecodes.getWideConstantIndex();
         byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
         switch (tdesc) {
-        case VM_Statics.INT_LITERAL:
+        case VM_Class.CP_INT:
           S.push(IntTypeCode);
           break;
-        case VM_Statics.FLOAT_LITERAL:
+        case VM_Class.CP_FLOAT:
           S.push(FloatTypeCode);
           break;
-        case VM_Statics.STRING_LITERAL:
+        case VM_Class.CP_STRING:
           S.push(ClassTypeCode);
           break;
-        case VM_Statics.CLASS_LITERAL:
+        case VM_Class.CP_CLASS:
           S.push(ClassTypeCode);
           break;
         default:
@@ -410,10 +410,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
         S.push(VoidTypeCode);
         switch (tdesc) {
-        case VM_Statics.LONG_LITERAL:
+        case VM_Class.CP_LONG:
           S.push(LongTypeCode);
           break;
-        case VM_Statics.DOUBLE_LITERAL:
+        case VM_Class.CP_DOUBLE:
           S.push(DoubleTypeCode);
           break;
         default:

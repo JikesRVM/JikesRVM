@@ -88,7 +88,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
     this.isSpecialForOSR = true;
 
     // set jtoc
-    this.osrJTOCoffset = VM_Statics.allocateSlot(VM_Statics.METHOD);
+    this.osrJTOCoffset = VM_Statics.allocateReferenceSlot().toInt();
     VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 

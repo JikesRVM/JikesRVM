@@ -620,8 +620,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load a 32 bit constant
    * (which may be a reference and thus really 64 bits on 64 bit platform!)
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected final void emit_ldc(Offset offset) {
+  protected final void emit_ldc(Offset offset, byte type) {
     if (VM_Statics.isReference(VM_Statics.offsetAsSlot(offset))){
       asm.emitLAddrToc(T0, offset);
       pushAddr(T0);
@@ -634,8 +635,9 @@ public class VM_Compiler extends VM_BaselineCompiler
   /**
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
+   * @param type the type of the constant
    */
-  protected final void emit_ldc2(Offset offset) {
+  protected final void emit_ldc2(Offset offset, byte type) {
     asm.emitLFDtoc(F0, offset, T0);
     pushDouble(F0);
   }

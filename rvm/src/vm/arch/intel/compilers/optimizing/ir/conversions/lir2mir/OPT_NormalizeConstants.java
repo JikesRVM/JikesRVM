@@ -69,7 +69,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
               if (dc.offset.isZero()) {
-                dc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value)));
+                dc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
@@ -78,7 +78,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
               if (fc.offset.isZero()) {
-                fc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value)));
+                fc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());

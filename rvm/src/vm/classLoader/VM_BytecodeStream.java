@@ -653,7 +653,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     if (VM.VerifyAssertions)
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 getDeclaringClass().getLiteralDescription(index) ==
-                VM_Statics.INT_LITERAL);
+                VM_Class.CP_INT);
     Offset offset = getDeclaringClass().getLiteralOffset(index) ;
     int val = VM_Statics.getSlotContentsAsInt(offset);
     return val;
@@ -675,7 +675,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_ldc2_w &&
                 getDeclaringClass().getLiteralDescription(index) ==
-                VM_Statics.LONG_LITERAL);
+                VM_Class.CP_LONG);
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     long val = VM_Statics.getSlotContentsAsLong(offset);
     return val;
@@ -697,7 +697,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     if (VM.VerifyAssertions)
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 getDeclaringClass().getLiteralDescription(index) ==
-                VM_Statics.FLOAT_LITERAL);
+                VM_Class.CP_FLOAT);
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
@@ -720,7 +720,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_ldc2_w &&
                 getDeclaringClass().getLiteralDescription(index) ==
-                VM_Statics.DOUBLE_LITERAL);
+                VM_Class.CP_DOUBLE);
     Offset offset = getDeclaringClass().getLiteralOffset(index) ;
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
@@ -743,7 +743,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     if (VM.VerifyAssertions)
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 getDeclaringClass().getLiteralDescription(index) ==
-                VM_Statics.STRING_LITERAL);
+                 VM_Class.CP_STRING);
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     String val = (String) VM_Statics.getSlotContentsAsObject(offset);
     return val;

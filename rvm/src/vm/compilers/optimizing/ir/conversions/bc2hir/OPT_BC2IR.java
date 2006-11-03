@@ -2367,7 +2367,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM.sysWriteln("PSEUDO_LoadLongConst "+value);
 
           // put on jtoc
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
 
           pushDual(new OPT_LongConstantOperand(value, offset));
           break;
@@ -2398,7 +2398,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.TraceOnStackReplacement) 
             VM.sysWriteln("PSEUDO_LoadFloatConst "+value);
 
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(ibits));
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
 
           push(new OPT_FloatConstantOperand(value, offset));
           break;
@@ -2414,7 +2414,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM.sysWriteln("PSEUDO_LoadDoubleConst "+ lbits);
 
           // put on jtoc
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(lbits));
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
 
           pushDual(new OPT_DoubleConstantOperand(value, offset));
           break;
@@ -2843,17 +2843,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     byte desc = bcodes.getConstantType(index);
     VM_Class declaringClass = bcodes.getDeclaringClass();
     switch (desc) {
-    case VM_Statics.INT_LITERAL:
+    case VM_Class.CP_INT:
       return  OPT_ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
-    case VM_Statics.FLOAT_LITERAL:
+    case VM_Class.CP_FLOAT:
       return  OPT_ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
-    case VM_Statics.STRING_LITERAL:
+    case VM_Class.CP_STRING:
       return  OPT_ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
-    case VM_Statics.LONG_LITERAL:
+    case VM_Class.CP_LONG:
       return  OPT_ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
-    case VM_Statics.DOUBLE_LITERAL:
+    case VM_Class.CP_DOUBLE:
       return  OPT_ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
-    case VM_Statics.CLASS_LITERAL:
+    case VM_Class.CP_CLASS:
       return  OPT_ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
     default:
       VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));

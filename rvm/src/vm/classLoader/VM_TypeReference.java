@@ -33,23 +33,46 @@ import com.ibm.jikesrvm.util.VM_HashMap;
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @author Ian Rogers
  * @modified Steven Augart
  */
-public class VM_TypeReference implements VM_SizeConstants {
+public final class VM_TypeReference implements VM_SizeConstants {
+  /**
+   * The initiating class loader
+   */
+  protected final ClassLoader classloader;
+
+  /**
+   * The type name
+   */
+  protected final VM_Atom name;
+
+  /**
+   * The id of this type reference.
+   */
+  protected final int id;
+
+  /**
+   * The VM_Type instance that this type reference resolves to.
+   * Null if the reference has not yet been resolved.
+   */
+  protected VM_Type resolvedType;
+
   /**
    * Used to canonicalize TypeReferences
    */
-  private static VM_HashMap dictionary = new VM_HashMap();
+  private static final VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_TypeReference instances.
    */
-  private static VM_TypeReference[] types = new VM_TypeReference[2000];
+  private static VM_TypeReference[] types = new VM_TypeReference[2500];
 
   /**
-   * Used to assign ids.  Id 0 is not used.
+   * Used to assign Ids.  Id 0 is not used. Ids are compressed and
+   * stored in the constant pool {@see VM_Class}.
    */
-  private static int nextId = -1; 
+  private static int nextId = 1;
   
   public static final VM_TypeReference Void    = findOrCreate("V");
   public static final VM_TypeReference Boolean = findOrCreate("Z");
@@ -116,25 +139,23 @@ public class VM_TypeReference implements VM_SizeConstants {
   //-#endif
 
   /**
-   * The initiating class loader
+   * Hash value based on name, used for canonical type dictionary
    */
-  protected final ClassLoader classloader;
-
+  public final int hashCode() {
+    return name.hashCode();
+  }
   /**
-   * The type name
+   * Are two keys equivalent? Used for canonical type dictionary.
+   * NB ignores id value
    */
-  protected final VM_Atom name;
-
-  /**
-   * The id of thie type reference.
-   */
-  protected int id;
-
-  /**
-   * The VM_Type instance that this type reference resolves to.
-   * Null if the reference has not yet been resolved.
-   */
-  protected VM_Type resolvedType;
+  public final boolean equals(Object other) {
+    if (other instanceof VM_TypeReference) {
+      VM_TypeReference that = (VM_TypeReference)other;
+      return name == that.name && classloader.equals(that.classloader);
+    } else {
+      return false;
+    }
+  }
 
   /**
    * Find or create the canonical VM_TypeReference instance for
@@ -178,6 +199,15 @@ public class VM_TypeReference implements VM_SizeConstants {
   }
 
   /**
+   * Shorthand for doing a find or create for a type reference that should
+   * be created using the bootstrap classloader.
+   */
+  public static VM_TypeReference findOrCreate(String tn) {
+    return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                        VM_Atom.findOrCreateAsciiAtom(tn));
+  }
+
+  /**
    * Find or create the canonical VM_TypeReference instance for
    * the given pair without type descriptor parsing.
    *
@@ -187,40 +217,43 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static synchronized VM_TypeReference findOrCreateInternal (ClassLoader cl, VM_Atom tn) 
   {
     // Next actually findOrCreate the type reference using the proper classloader.
-    VM_TypeReference key = new VM_TypeReference(cl, tn);
+    VM_TypeReference key = new VM_TypeReference(cl, tn, nextId);
     VM_TypeReference val = (VM_TypeReference)dictionary.get(key);
-    if (val != null)  return val;
-    key.id = nextId--;
-    if ((-key.id) == types.length) {
-      VM_TypeReference[] tmp = new VM_TypeReference[types.length + 500];
-      System.arraycopy(types, 0, tmp, 0, types.length);
-      types = tmp;
+    if (val == null) {
+      // Create type reference
+      val = key;
+      nextId ++; // id of val is the nextId, move it along
+      if (val.id >= types.length) {
+        // Grow the array of types if necessary
+        VM_TypeReference[] tmp = new VM_TypeReference[types.length + 500];
+        System.arraycopy(types, 0, tmp, 0, types.length);
+        types = tmp;
+      }
+      types[val.id] = val;
+      dictionary.put(key, val);
     }
-    types[-key.id] = key;
-    dictionary.put(key, key);
-    return key;
+    return val;
   }
 
   /**
-   * Shorthand for doing a find or create for a type reference that should
-   * be created using the bootstrap classloader.
-   */
-  public static VM_TypeReference findOrCreate(String tn) {
-    return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                        VM_Atom.findOrCreateAsciiAtom(tn));
-  }
-
-  public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
-    return types[-id];
-  }
-
-  /**
+   * Constructor
    * @param cl the classloader
    * @param tn the type name
+   * @param id the numeric identifier
    */
-  protected VM_TypeReference(ClassLoader cl, VM_Atom tn) {
+  private VM_TypeReference(ClassLoader cl, VM_Atom tn, int id) {
     classloader = cl;
     name = tn;
+    this.id = id;
+  }
+
+  /**
+   * Get the cannonical type reference given its id. The unused id of 0 will return null.
+   * @param id the type references id
+   * @return the type reference
+   */
+  public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
+    return types[id];
   }
 
   /**
@@ -593,22 +626,9 @@ public class VM_TypeReference implements VM_SizeConstants {
         }
       }
     } else {
-      resolvedType = new VM_Primitive(this);
+      resolvedType = VM_Primitive.createPrimitive(this);
     }
     return resolvedType;
-  }
-
-  public final int hashCode() {
-    return name.hashCode();
-  }
-
-  public final boolean equals(Object other) {
-    if (other instanceof VM_TypeReference) {
-      VM_TypeReference that = (VM_TypeReference)other;
-      return name == that.name && classloader.equals(that.classloader);
-    } else {
-      return false;
-    }
   }
 
   public final String toString() {

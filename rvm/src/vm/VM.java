@@ -167,12 +167,6 @@ public class VM extends VM_Properties
     VM_QuickCompiler.initOptions();
     //-#endif
 
-    // Create class objects for static synchronized methods in the bootimage.
-    // This must happen before any static synchronized methods of bootimage 
-    // classes can be invoked.
-    if (verboseBoot >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
-    createClassObjects();
-
     // Fetch arguments from program command line.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
@@ -473,20 +467,6 @@ public class VM extends VM_Properties
     System.arraycopy(classObjects, 0, tmp, 0, classObjects.length);
     tmp[classObjects.length] = c;
     classObjects = tmp;
-  }
-
-  /**
-   * Create the java.lang.Class objects needed for static synchronized
-   * methods in the bootimage and/or string literals in the JTOC.
-   */
-  private static void createClassObjects() throws InterruptiblePragma {
-    for (int i=0; i<classObjects.length; i++) {
-      if (verboseBoot >= 2) {
-        VM.sysWriteln(classObjects[i].toString()); 
-      }
-      classObjects[i].getClassForType();
-      VM_Statics.fixClassLiteral(classObjects[i]);
-    }
   }
 
   /**

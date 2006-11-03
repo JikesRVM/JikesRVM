@@ -34,15 +34,27 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /*
    * We hold on to a number of commonly used arrays for easy access.
    */
-  public static VM_Array BooleanArray;
-  public static VM_Array ByteArray;
-  public static VM_Array CharArray;
-  public static VM_Array ShortArray;
-  public static VM_Array IntArray;
-  public static VM_Array LongArray;
-  public static VM_Array FloatArray;
-  public static VM_Array DoubleArray;
-  public static VM_Array JavaLangObjectArray;
+  public static final VM_Array BooleanArray;
+  public static final VM_Array ByteArray;
+  public static final VM_Array CharArray;
+  public static final VM_Array ShortArray;
+  public static final VM_Array IntArray;
+  public static final VM_Array LongArray;
+  public static final VM_Array FloatArray;
+  public static final VM_Array DoubleArray;
+  public static final VM_Array JavaLangObjectArray;
+
+  static {
+    BooleanArray = (VM_Array)VM_TypeReference.BooleanArray.resolve();
+    CharArray    = (VM_Array)VM_TypeReference.CharArray.resolve();
+    FloatArray   = (VM_Array)VM_TypeReference.FloatArray.resolve();
+    DoubleArray  = (VM_Array)VM_TypeReference.DoubleArray.resolve();
+    ByteArray    = (VM_Array)VM_TypeReference.ByteArray.resolve();
+    ShortArray   = (VM_Array)VM_TypeReference.ShortArray.resolve();
+    IntArray     = (VM_Array)VM_TypeReference.IntArray.resolve();
+    LongArray    = (VM_Array)VM_TypeReference.LongArray.resolve();
+    JavaLangObjectArray = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();
+  }
 
   /**
    * The VM_Type object for elements of this array type.
@@ -60,17 +72,62 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   private final VM_Type innermostElementType;
 
   /**
-   * The TIB for this type
-   */
-  private Object[] typeInformationBlock;
-
-  /**
    * The desired alignment for instances of this type.
    * Cached rather than computed because this is a frequently
    * asked question
    */
   private final int alignment;
-  
+
+  /**
+   * Reference Count GC: is this type acyclic? 
+   */
+  private final boolean acyclic;       
+
+  /**
+   * The TIB for this type, created when the array is resolved.
+   */
+  private Object[] typeInformationBlock;
+
+  /**
+   * current class-loading stage (loaded, resolved or initialized)
+   */
+  private int state;        
+
+  /**
+   * Is this array type in the bootimage?
+   */
+  private boolean inBootImage;
+
+  /**
+   * At what offset is the thin lock word to be found in instances of
+   * objects of this type?  A value of -1 indicates that the instances of
+   * this type do not have inline thin locks.
+   */
+  private Offset thinLockOffset;
+
+  /**
+   * The memory manager's notion of this type created after the
+   * resolving
+   */
+  private Object mmType;
+ 
+  /**
+   * Record the type information the memory manager holds about this
+   * type
+   * @param mmt the type to record
+   */
+  public void setMMType(Object mmt) {
+    mmType = mmt;
+  }
+
+  /**
+   * @return the type information the memory manager previously
+   * recorded about this type
+   */
+  public Object getMMType() throws UninterruptiblePragma {
+    return mmType;
+  }
+
   /**
    * Name - something like "[I" or "[Ljava.lang.String;"
    */
@@ -143,7 +200,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param numelts number of array elements in the instance
    * @return size in bytes
    */
-  public final int getInstanceSize(int numelts) throws UninterruptiblePragma, InlinePragma {
+  public final int getInstanceSize(int numelts) throws UninterruptiblePragma,
+                                                       InlinePragma {
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
@@ -190,20 +248,146 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     return typeInformationBlock;
   }
 
-  //-------------------------------------------------------------------------------------------------//
-  //                        Load, Resolve, Instantiate, Initialize                                   //
-  //-------------------------------------------------------------------------------------------------//
+  /**
+   * Does this slot in the TIB hold a TIB entry?
+   * @param slot the TIB slot
+   * @return true if this the array element TIB
+   */
+  public boolean isTIBSlotTIB(int slot) {
+    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
+    return slot == TIB_ARRAY_ELEMENT_TIB_INDEX;
+  }
 
   /**
-   * Create an instance of a VM_Array
-   * @param typeRef the canonical type reference for this type.
-   * @param elementType the VM_Type object for the array's elements.
+   * Does this slot in the TIB hold code?
+   * @param slot the TIB slot
+   * @return true if slot is one that holds a code array reference
+   */
+  public boolean isTIBSlotCode(int slot) {
+    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
+    return slot >= TIB_FIRST_VIRTUAL_METHOD_INDEX;
+  }
+
+  /**
+   * get number of superclasses to Object 
+   * @return 1
+   */ 
+  public int getTypeDepth () throws UninterruptiblePragma {
+    return 1;
+  }
+
+  /**
+   * Reference Count GC: Is a reference of this type contained in
+   * another object inherently acyclic (without cycles) ?
+   * @return true
+   */ 
+  public boolean isAcyclicReference() throws UninterruptiblePragma {
+    return acyclic;
+  }
+
+  /**
+   * Number of [ in descriptor for arrays; -1 for primitives; 0 for
+   * classes
+   */ 
+  public int getDimensionality() throws UninterruptiblePragma {
+    return dimension;
+  }
+
+  /**
+   * Resolution status.
+   */ 
+  public boolean isResolved() throws UninterruptiblePragma {
+    return state >= CLASS_RESOLVED;
+  }
+
+  /**
+   * Instantiation status.
+   */ 
+  public final boolean isInstantiated() throws UninterruptiblePragma { 
+    return state >= CLASS_INSTANTIATED; 
+  }
+
+  /**
+   * Initialization status.
+   */ 
+  public final boolean isInitialized() throws UninterruptiblePragma { 
+    return state == CLASS_INITIALIZED; 
+  } 
+
+  /**
+   * Only intended to be used by the BootImageWriter
+   */
+  public final void markAsBootImageClass() {
+    inBootImage = true;
+  }
+  
+  /**
+   * Is this class part of the virtual machine's boot image?
+   */ 
+  public final boolean isInBootImage() throws UninterruptiblePragma {
+    return inBootImage;
+  }
+
+  /**
+   * Get the offset in instances of this type assigned to the thin lock word.
+   * -1 if instances of this type do not have thin lock words.
+   */
+  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
+    return thinLockOffset; 
+  }
+
+  /**
+   * Set the thin lock offset for instances of this type
+   */
+  public final void setThinLockOffset(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
+    thinLockOffset = offset;
+  }
+
+  /**
+   * Whether or not this is an instance of VM_Class?
+   * @return false
+   */
+  public boolean isClassType() throws UninterruptiblePragma {
+    return false;
+  }
+
+  /**
+   * Whether or not this is an instance of VM_Array?
+   * @return true
+   */
+  public boolean isArrayType() throws UninterruptiblePragma {
+    return true;
+  }
+
+  /**
+   * Whether or not this is a primitive type
+   * @return false
+   */
+  public boolean isPrimitiveType() throws UninterruptiblePragma {
+    return false;
+  }
+
+  /**
+   * @return whether or not this is a reference (ie non-primitive) type.
+   */
+  public boolean isReferenceType() throws UninterruptiblePragma {
+    return true;
+  }
+   
+  /**
+   * Constructor
+   * @param typeRef
+   * @param elementType
+   * @param classForType
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
-    super(typeRef, null, null);
-    depth = 1;
+    super(typeRef, typeRef.getDimensionality(),  null, null);
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
+    thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
+    depth = 1;
+
     if (elementType.isArrayType()) {
       innermostElementType = elementType.asArray().getInnermostElementType();
     } else {
@@ -215,14 +399,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       this.alignment = BYTES_IN_ADDRESS;
     }
     
-    acyclic = elementType.isAcyclicReference(); // RCGC: Array is acyclic if its references are acyclic
+    // RCGC: Array is acyclic if its references are acyclic
+    acyclic = elementType.isAcyclicReference();
 
     state = CLASS_LOADED;
+
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded "+this.getDescriptor()+"]\n");
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded superclasses of "+this.getDescriptor()+"]\n");
   }
 
-  
   /**
    * Resolve an array.  
    * Also forces the resolution of the element type.
@@ -306,19 +491,6 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
-  }
-
-
-  static void init() {
-    BooleanArray = (VM_Array)VM_TypeReference.BooleanArray.resolve();
-    CharArray    = (VM_Array)VM_TypeReference.CharArray.resolve();
-    FloatArray   = (VM_Array)VM_TypeReference.FloatArray.resolve();
-    DoubleArray  = (VM_Array)VM_TypeReference.DoubleArray.resolve();
-    ByteArray    = (VM_Array)VM_TypeReference.ByteArray.resolve();
-    ShortArray   = (VM_Array)VM_TypeReference.ShortArray.resolve();
-    IntArray     = (VM_Array)VM_TypeReference.IntArray.resolve();
-    LongArray    = (VM_Array)VM_TypeReference.LongArray.resolve();
-    JavaLangObjectArray = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();
   }
 
   //--------------------------------------------------------------------------------------------------//

@@ -90,7 +90,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
               Offset offset = dc.offset;
               if (offset.isZero()) {
-                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value)));
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
               }
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
@@ -101,7 +101,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
               Offset offset = fc.offset;
               if (offset.isZero()) {
-                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value)));
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
               }
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));

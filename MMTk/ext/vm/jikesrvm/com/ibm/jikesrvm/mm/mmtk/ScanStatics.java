@@ -27,13 +27,14 @@ import org.vmmagic.pragma.*;
  * $Id: ScanStatics.java,v 1.3 2006/06/05 04:30:57 steveb-oss Exp $
  *
  * @author Perry Cheng
+ * @author Ian Rogers
  */  
 public final class ScanStatics implements Constants {
-
-  /****************************************************************************
-   *
-   * Class variables
+  /**
+   * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
+   * 64bit addresses =2)
    */
+  private final static int refSlotSize = VM_Statics.getReferenceSlotSize();
 
   /**
    * Scan static variables (JTOC) for object references.  Executed by
@@ -42,31 +43,28 @@ public final class ScanStatics implements Constants {
    */
   public static void scanStatics(TraceLocal trace) 
     throws UninterruptiblePragma, InlinePragma {
+    // The address of the statics table
+    // equivalent to VM_Statics.getSlots()
+    final Address slots = VM_Magic.getJTOC();
+    // The number of collector threads
+    final int numberOfCollectors = VM_CollectorThread.numCollectors();
+    // This thread as a collector
+    final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    // The number of static references
+    final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
+    // The size to give each thread
+    final int chunkSize = numberOfReferences / numberOfCollectors;
+    // The number of this collector thread (1...n)
+    final int threadOrdinal = ct.getGCOrdinal();
 
-    int numSlots = VM_Statics.getNumberOfSlots();
-    Address slots = VM_Statics.getSlots();
-    int chunkSize = 512;
-    int slot, start, end, stride;
-    int refSlotSize = VM_Statics.getReferenceSlotSize(); //reference slots are aligned
-    VM_CollectorThread ct;
+    // Start and end of statics region to be processed
+    final int start = (threadOrdinal == 1) ? 1 : (threadOrdinal - 1) * chunkSize;
+    final int end = (threadOrdinal == numberOfCollectors) ? numberOfReferences : threadOrdinal * chunkSize;
 
-    stride = chunkSize * VM_CollectorThread.numCollectors();
-    ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-    start = (ct.getGCOrdinal() - 1) * chunkSize;
-
-    while (start < numSlots) {
-      end = start + chunkSize;
-      if (end > numSlots)
-        end = numSlots;  // doing last segment of JTOC
-      for (slot=start; slot<end; slot+=refSlotSize) {
-        if (VM_Statics.isReference(slot)) {
-          // slot contains a ref of some kind.  call collector specific
-          // processPointerField, passing address of reference
-          //
-          trace.addRootLocation(slots.plus(VM_Statics.slotAsOffset(slot)));
-        }
-      }  // end of for loop
-      start = start + stride;
-    }  // end of while loop
-  }  // scanStatics
+    // Process region
+    for (int slot=start; slot < end; slot+=refSlotSize) {
+      Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
+      trace.addRootLocation(slots.plus(slotOffset));
+    }
+  }
 }
