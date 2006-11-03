@@ -215,9 +215,6 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
    * grey. This means "pretending" that the initial object is dead,
    * and thus applying temporary decrements to each of the object's
    * decendents.
-   * 
-   * @param timeCap The time by which we must stop marking
-   * grey.
    */
   private final void doMarkGreyPhase() {
     ObjectReference object = ObjectReference.nullReference();

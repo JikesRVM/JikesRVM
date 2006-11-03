@@ -36,7 +36,7 @@ public final class DecBuffer extends ObjectReferenceBuffer implements Constants,
   /**
    * Constructor
    * 
-   * @param trace The shared deque that is used.
+   * @param queue The shared deque that is used.
    */
   public DecBuffer(SharedDeque queue) {
     super("dec", queue);

@@ -44,7 +44,7 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    * Constructor
    * 
    * @param name The name of the underlying deque.
-   * @param trace The shared deque that is used.
+   * @param queue The shared deque that is used.
    */
   public ObjectReferenceBuffer(String name, SharedDeque queue) {
     values = new ObjectReferenceDeque(name, queue);
