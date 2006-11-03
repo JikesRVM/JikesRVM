@@ -3431,6 +3431,7 @@ java/io/FileInputStream
 java/io/FileDescriptor
 java/io/VMFile
 gnu/java/nio/channels/FileChannelImpl
+gnu/java/nio/FileChannelImpl
 
     # Character conversion
     # 
