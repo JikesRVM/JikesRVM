@@ -366,17 +366,6 @@ public class VM_Statics implements VM_Constants {
     return slotAsOffset(slot);
   }
 
-  public static void sanityCheck() {
-    for (int i=middleOfTable; i < nextReferenceSlot; i++) {
-      int val = slots[i];
-      if((val == 0) || (val > 0x100000) || (val < 0)) {
-      }
-      else {
-        VM.sysWriteln("Ian check out slot " + i + " it's got a value of " + val);
-      }
-    }
-  }
-
   /**
    * Grow the statics table
    */
