@@ -283,8 +283,14 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
 
   /**
    * Instance of java.lang.Class corresponding to this type.
+   * This is commonly used for reflection.
    */   
   public final Class getClassForType() {
+    // Resolve the class so that we don't need to resolve it
+    // in reflection code
+    if (!isResolved()) {
+       resolve();
+    }
     return classForType;
   }
 
