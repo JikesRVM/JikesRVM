@@ -2169,9 +2169,9 @@ public class BootImageWriter extends BootImageWriterMessages
       }
     }
     else if (jdkObject instanceof java.lang.reflect.Constructor)   {
+      Constructor cons = (Constructor)jdkObject;
       if(rvmFieldName.equals("constructor")) {
         // fill in this VM_Method field
-        Constructor cons = (Constructor)jdkObject;
         String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
         VM_Type type = VM_TypeReference.findOrCreate(typeName).peekResolvedType();
         if (type == null) {
@@ -2213,6 +2213,11 @@ public class BootImageWriter extends BootImageWriterMessages
           bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
         }
         if (verbose >= 2) traceContext.pop();
+        return true;
+      } else if(rvmFieldName.equals("flag")) {
+        // This field is inherited accesible flag is actually part of
+        // AccessibleObject
+        bootImage.setFullWord(rvmFieldAddress, cons.isAccessible() ? 1 : 0);
         return true;
       } else {
         // Unknown Constructor field
