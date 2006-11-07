@@ -611,16 +611,13 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     /**
      * Constructor for this compiler phase
      */
-    private static Constructor constructor;
+    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
     public Constructor getClassConstructor() {
-      if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
-      }
       return constructor;
     }
 
@@ -672,16 +669,13 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     /**
      * Constructor for this compiler phase
      */
-    private static Constructor constructor;
+    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
     public Constructor getClassConstructor() {
-      if (constructor == null) {
-        constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
-      }
       return constructor;
     }
 

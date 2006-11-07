@@ -59,16 +59,13 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static Constructor constructor;
+  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_EstimateBlockFrequencies");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
   public Constructor getClassConstructor() {
-    if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_EstimateBlockFrequencies");
-    }
     return constructor;
   }
 

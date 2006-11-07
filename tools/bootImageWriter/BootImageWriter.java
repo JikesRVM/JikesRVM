@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.io.*;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.Thread;
@@ -672,7 +673,7 @@ public class BootImageWriter extends BootImageWriterMessages
           continue;
 
         if (verbose >= 2) traceContext.push(jdkObject.getClass().getName(),
-                                            getRvmStaticField(jtocOff).toString());
+                                            getRvmStaticField(jtocOff) + "");
         Address imageAddress = copyToBootImage(jdkObject, false, Address.max(), VM_Statics.getSlotsAsIntArray());
         if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
           // object not part of bootimage: install null reference
@@ -2167,6 +2168,57 @@ public class BootImageWriter extends BootImageWriterMessages
         return false;
       }
     }
+    else if (jdkObject instanceof java.lang.reflect.Constructor)   {
+      if(rvmFieldName.equals("constructor")) {
+        // fill in this VM_Method field
+        Constructor cons = (Constructor)jdkObject;
+        String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
+        VM_Type type = VM_TypeReference.findOrCreate(typeName).peekResolvedType();
+        if (type == null) {
+          throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
+        }
+        VM_Class klass = type.asClass();
+        if (klass == null) {
+          throw new Error("Failed to populate Constructor.constructor for " + cons);
+        }
+        Class consParams[] = cons.getParameterTypes();
+        VM_Method vmConstructors[] = klass.getConstructorMethods();
+        VM_Method constructor = null;
+        loop_over_all_constructors:
+        for(int i=0; i < vmConstructors.length; i++) {
+          VM_Method vmCons = vmConstructors[i];
+          VM_TypeReference vmConsParams[] = vmCons.getParameterTypes();
+          if (vmConsParams.length == consParams.length) {
+            for (int j=0; j < vmConsParams.length; j++) {
+              if(!consParams[j].equals(vmConsParams[j].resolve().getClassForType())) {
+                continue loop_over_all_constructors;
+              }
+            }
+            constructor = vmCons;
+            break loop_over_all_constructors;
+          }
+        }
+        if (constructor == null) {
+          throw new Error("Failed to populate Constructor.constructor for " + cons);
+        }
+        if (verbose >= 2) traceContext.push("VM_Method",
+                                            "java.lang.Constructor",
+                                            "constructor");
+        Address imageAddress = BootImageMap.findOrCreateEntry(constructor).imageAddress;
+        if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
+          // object not part of bootimage: install null reference
+          if (verbose >= 2) traceContext.traceObjectNotInBootImage();
+          bootImage.setNullAddressWord(rvmFieldAddress, true, false);
+        } else {
+          bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
+        }
+        if (verbose >= 2) traceContext.pop();
+        return true;
+      } else {
+        // Unknown Constructor field
+        return false;
+      }
+    } 
     else {
       // Unknown field
       return false;
@@ -2378,10 +2430,6 @@ public class BootImageWriter extends BootImageWriterMessages
    *         comprising bootimage)
    */
   private static VM_Type getRvmType(Class jdkType) {
-    // don't allow java.lang.reflect.Constructor objects to be written
-    if (jdkType.toString().equals("class java.lang.reflect.Constructor")) {
-      return null;
-    }
     return (VM_Type) bootImageTypes.get(jdkType.getName());
   }
 
