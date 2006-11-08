@@ -35,7 +35,11 @@ public final class ScanStatics implements Constants {
    * 64bit addresses =2)
    */
   private final static int refSlotSize = VM_Statics.getReferenceSlotSize();
-
+  /**
+   * Mask used when calculating the chunkSize to ensure chunks are
+   * 64bit aligned on 64bit architectures
+   */
+  private final static int chunkSizeMask = 0xFFFFFFFF - (refSlotSize - 1);
   /**
    * Scan static variables (JTOC) for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the
@@ -52,8 +56,8 @@ public final class ScanStatics implements Constants {
     final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     // The number of static references
     final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
-    // The size to give each thread (ensure its a multiple of 2 for 64bit architectures)
-    final int chunkSize = (numberOfReferences / numberOfCollectors) & 0xFFFFFFFE;
+    // The size to give each thread
+    final int chunkSize = (numberOfReferences / numberOfCollectors) & chunkSizeMask;
     // The number of this collector thread (1...n)
     final int threadOrdinal = ct.getGCOrdinal();
 
