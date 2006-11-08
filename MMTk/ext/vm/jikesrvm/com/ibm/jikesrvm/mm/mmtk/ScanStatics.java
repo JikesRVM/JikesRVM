@@ -52,8 +52,8 @@ public final class ScanStatics implements Constants {
     final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     // The number of static references
     final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
-    // The size to give each thread
-    final int chunkSize = numberOfReferences / numberOfCollectors;
+    // The size to give each thread (ensure its a multiple of 2 for 64bit architectures)
+    final int chunkSize = (numberOfReferences / numberOfCollectors) & 0xFFFFFFFE;
     // The number of this collector thread (1...n)
     final int threadOrdinal = ct.getGCOrdinal();
 
