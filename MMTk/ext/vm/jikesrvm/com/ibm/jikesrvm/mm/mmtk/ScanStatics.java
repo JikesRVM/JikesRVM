@@ -58,7 +58,7 @@ public final class ScanStatics implements Constants {
     final int threadOrdinal = ct.getGCOrdinal();
 
     // Start and end of statics region to be processed
-    final int start = (threadOrdinal == 1) ? 1 : (threadOrdinal - 1) * chunkSize;
+    final int start = (threadOrdinal == 1) ? refSlotSize : (threadOrdinal - 1) * chunkSize;
     final int end = (threadOrdinal == numberOfCollectors) ? numberOfReferences : threadOrdinal * chunkSize;
 
     // Process region
