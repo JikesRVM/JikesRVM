@@ -379,7 +379,6 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Constructor
    * @param typeRef
    * @param elementType
-   * @param classForType
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
     super(typeRef, typeRef.getDimensionality(),  null, null);
