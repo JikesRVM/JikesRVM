@@ -512,6 +512,14 @@ function on_host_set_JIKES_test_Jikes_version () {
 		JIKES_WARNING_FLAGS='+Pno-shadow +Pno-switchcheck'
 		;;
 	    
+	    *"Eclipse Java Compiler"*)
+		host_jikes_version=ecj
+		bad_byte_code=0
+		unregressed=0
+		jikes_dependency_flag=
+		JIKES_WARNING_FLAGS=
+		;;
+
 	    "") croak_nonusage "I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
    \"${JIKES} -version\"
 This looks bad; I am giving up. The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
@@ -2903,11 +2911,17 @@ build_mmtk() {
 
 EOF
 
+    if [ $host_jikes_version != ecj ]; then
     cat <<- EOF
 	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag} -sourcepath .:../MMTk.classes/mmtk -classpath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
     
 EOF
-
+    else
+    cat <<- EOF
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+    
+EOF
+    fi
     cat <<- EOF
 	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
