@@ -12,8 +12,8 @@
 
 include $(RVM_BUILD)/Make.rules.host
 
-ARCH_IFS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat
-ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/OperatorList.dat
+ARCH_IFS = $(JAL_ROOT)/rvm/src-ia32/compilers/optimizing/ir/instruction/InstructionFormatList.dat
+ARCH_OPS = $(JAL_ROOT)/rvm/src-ia32/compilers/optimizing/ir/instruction/OperatorList.dat
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
@@ -42,9 +42,9 @@ SRCS=   $(TABLES_JAVA) \
 	$(OPCODE_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
-	$(JAL_ROOT)/rvm/src/vm/arch/intel/VM_RegisterConstants.java \
+	$(JAL_ROOT)/rvm/src-ia32/VM_RegisterConstants.java \
 	$(JAL_ROOT)/rvm/src/vm/compilers/baseline/VM_ForwardReference.java \
-	$(JAL_ROOT)/rvm/src/vm/arch/intel/assembler/VM_AssemblerConstants.java
+	$(JAL_ROOT)/rvm/src-ia32/assembler/VM_AssemblerConstants.java
 
 default:		assembler clean
 

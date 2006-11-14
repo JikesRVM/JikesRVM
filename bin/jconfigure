@@ -1670,9 +1670,9 @@ then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified";
 function emitSourceToPreprocessList () {
 
     if (( RVM_FOR_POWERPC )); then
-	ARCH_DIR="powerPC"
+	ARCH_DIR="src-ppc"
     elif (( RVM_FOR_IA32 )); then
-	ARCH_DIR="intel"
+	ARCH_DIR="src-ia32"
     else
 	ARCH_DIR="UNSPECIFIED_ARCHITECTURE"
     fi
@@ -1681,8 +1681,8 @@ function emitSourceToPreprocessList () {
     #
     cleanFileList <<- EOF
 	$RVM_ROOT/rvm/src/vm
-	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
-	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
+	$RVM_ROOT/rvm/$ARCH_DIR
+	$RVM_ROOT/rvm/$ARCH_DIR/runtime
 	$RVM_ROOT/rvm/src/vm/classLoader
 	$RVM_ROOT/rvm/src/vm/jni
 	$RVM_ROOT/rvm/src/vm/runtime
@@ -1694,7 +1694,7 @@ function emitSourceToPreprocessList () {
 	$RVM_ROOT/rvm/src/vm/compilers/compiledCode
     
 
-	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
+	$RVM_ROOT/rvm/$ARCH_DIR/jni
 
     # Baseline compiler components (always part of bootimage).
     #
@@ -1702,10 +1702,10 @@ function emitSourceToPreprocessList () {
 	${RVM_ROOT}/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
 	${RVM_ROOT}/rvm/src/vm/compilers/baseline/profiling # architecture independent
 
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline    # architecture dependent
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline/GCMap
-	$( if [[ -e ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler ]]; then
-	    echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler # architecture dependent
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/baseline    # architecture dependent
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/baseline/GCMap
+	$( if [[ -e ${RVM_ROOT}/rvm/${ARCH_DIR}/assembler ]]; then
+	    echo ${RVM_ROOT}/rvm/${ARCH_DIR}/assembler # architecture dependent
     	fi)
     
 	${RVM_ROOT}/rvm/src/vm/objectModel
@@ -1716,7 +1716,7 @@ function emitSourceToPreprocessList () {
 
     # other components
     #
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/disassembler
+	${RVM_ROOT}/rvm/${ARCH_DIR}/disassembler
 
 EOF
     # Optimizing compiler components.
@@ -1779,13 +1779,13 @@ EOF
 
 	# architecture-specific components
 	#
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction/operand
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/lir2mir
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/mir2mc
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/regalloc
-	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/vmInterface/services
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/ir/instruction
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/ir/instruction/operand
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/ir/conversions/lir2mir
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/ir/conversions/mir2mc
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/regalloc
+	${RVM_ROOT}/rvm/${ARCH_DIR}/compilers/optimizing/vmInterface/services
 EOF
     fi
 
@@ -1820,9 +1820,9 @@ EOF
 
       # architecture-specific components
       #
-	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick
-	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/GCMap
-	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/writeBarrier
+	echo $RVM_ROOT/rvm/$ARCH_DIR/compilers/quick
+	echo $RVM_ROOT/rvm/$ARCH_DIR/compilers/quick/GCMap
+	echo $RVM_ROOT/rvm/$ARCH_DIR/compilers/quick/writeBarrier
 
     fi
 
@@ -1830,7 +1830,7 @@ EOF
     #
     if (( RVM_WITH_OSR )); then
 	cleanFileList <<- EOF
-	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/executionState
+	$RVM_ROOT/rvm/$ARCH_DIR/executionState
 	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
 	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
 	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
@@ -1841,7 +1841,7 @@ EOF
 
     # architecture specific writebarrier support for baseline compilers
     #
-    echo "$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier"
+    echo "$RVM_ROOT/rvm/$ARCH_DIR/compilers/baseline/writeBarrier"
 
     # Bootimage compiler components.
     #
@@ -1902,10 +1902,10 @@ EOF
     if (( $RVM_WITH_HPM )); then
 	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
  	echo $RVM_ROOT/rvm/src/vm/HPM
-	if (( RVM_FOR_LINUX )); then
-	    echo $RVM_ROOT/rvm/src/vm/HPM/intel
+	if (( RVM_FOR_IA32 )); then
+	    echo $RVM_ROOT/rvm/$ARCH_DIR/HPM/
 	elif (( RVM_FOR_POWERPC )); then
-	    echo $RVM_ROOT/rvm/src/vm/HPM/powerPC
+	    echo $RVM_ROOT/rvm/$ARCH_DIR/HPM/
 	fi
     fi
 
@@ -2526,11 +2526,11 @@ EOF
 	cat <<- EOF
 
 	# Build VM_Assembler on Intel
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-ia32/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
-run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
+run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-ia32/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
 	fi
     fi
     cat <<- EOF
@@ -4303,7 +4303,7 @@ EOF
     if (( RVM_WITH_HPM )); then
 	cat <<- EOF
 		echo >&2 -n "(build libhpm\${shlib_suffix} library) "
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR
+		chdir $ROOT_DIRECTORY_STR/rvm/$ARCH_DIR/HPM
 		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
 		    -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
 EOF
@@ -4324,7 +4324,7 @@ EOF
 		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
 		    -I$ROOT_DIRECTORY_STR/include \
-		    -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		    -I$ROOT_DIRECTORY_STR/rvm/$ARCH_DIR/HPM \
 		    -I$ROOT_DIRECTORY_STR/tools/bootImageRunner \
     		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
 
@@ -4390,14 +4390,14 @@ EOF
 	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}                      \
 	    -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}                     \
-	    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler   \
+	    -I${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler   \
 	    -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
 EOF
 	if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
 	    cat <<- EOF
 		run mkdir -p ${SCRATCH_DIRECTORY_STR}/noPthreads
 		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-		    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
+		    -I${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler\
 		    -DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR \
 		    -o ${SCRATCH_DIRECTORY_STR}/noPthreads/libvm.o libvm.C
 EOF
@@ -4409,7 +4409,7 @@ EOF
 	## The IA32 Disassembler
 	OBJECTS="\${OBJECTS} disasm.o ihnpdsm.o" 
 
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
+	chdir ${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler
 	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
 	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
 	\${BOOTER_CXX} \

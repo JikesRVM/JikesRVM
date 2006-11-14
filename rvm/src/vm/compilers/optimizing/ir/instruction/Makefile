@@ -10,7 +10,7 @@
 #
 # @author David Grove
 include                 $(RVM_BUILD)/Make.rules.host
-include $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/Make.operatorList
+include $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/instruction/Make.operatorList
 
 default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_Operators.java \
@@ -23,9 +23,9 @@ GENERATE = $(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFrom
 # make trickiness to allow generation of HIR/LIR without specifying an MIR.
 # used in the opt compiler on JikesBT configuration
 ifneq ($(ARCH_DIR),NONE)
-ARCH_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/
+ARCH_IR_DIR = $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/instruction/
 #ARCH_OPS is defined in Make.operatorList
-ARCH_IFS = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/InstructionFormatList.dat
+ARCH_IFS = $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/instruction/InstructionFormatList.dat
 ARCHITECTURE = $(ARCH_DIR)
 GENERATE_ARCH_OPERATOR_LIST = cat $(ARCH_OPS)
 else

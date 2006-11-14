@@ -12,8 +12,8 @@
 
 include		$(RVM_BUILD)/Make.rules.host
 
-MIR_LIR2MIR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/conversions/lir2mir
-MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
+MIR_LIR2MIR_DIR = $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/conversions/lir2mir
+MIR_IR_DIR = $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/instruction
 JBURG_DIR  = $(SCRATCH_DIR)
 
 BURG_TEMPLATE=$(RVM_ROOT)/tools-external/jburg/burg.template
