@@ -70,7 +70,7 @@ public final class VM_TypeReference implements VM_SizeConstants {
 
   /**
    * Used to assign Ids.  Id 0 is not used. Ids are compressed and
-   * stored in the constant pool {@see VM_Class}.
+   * stored in the constant pool (See {@link VM_Class}).
    */
   private static int nextId = 1;
   
