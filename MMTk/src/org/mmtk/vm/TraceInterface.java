@@ -19,8 +19,8 @@ import org.vmmagic.pragma.*;
  * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/21 07:38:13 $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class TraceInterface {
 

@@ -33,13 +33,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: ObjectModel.java,v 1.6 2006/06/19 06:08:15 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.6 $
- * @date $Date: 2006/06/19 06:08:15 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants, Uninterruptible {
 

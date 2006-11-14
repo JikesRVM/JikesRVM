@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: VM_JNIJavaVM.java 4855 2003-09-25 16:55:52Z dgrove-oss $
+//$Id$
 package com.ibm.jikesrvm.jni;
 
 import org.vmmagic.unboxed.Address;

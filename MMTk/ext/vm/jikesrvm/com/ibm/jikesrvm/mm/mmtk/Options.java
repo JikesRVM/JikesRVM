@@ -19,12 +19,12 @@ import com.ibm.jikesrvm.VM_CommandLineArgs;
 /**
  * Class to handle command-line arguments and options for GC.
  *
- * $Id: Options.java,v 1.4 2006/04/24 13:48:11 dgrove-oss Exp $ 
+ * $Id$ 
  *
  * @author Daniel Frampton 
  *
- * @version $Revision: 1.4 $
- * @date $Date: 2006/04/24 13:48:11 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class Options extends org.mmtk.vm.Options {
 

@@ -17,11 +17,11 @@ import org.vmmagic.unboxed.Address;
 /**
  * An option with a simple integer value.
  * 
- * $Id: IntOption.java 10489 2006-06-21 07:38:18Z steveb-oss $
+ * $Id$
  * 
  * @author Daniel Frampton
- * @version $Revision: 10489 $
- * @date $Date: 2006-06-21 17:38:18 +1000 (Wed, 21 Jun 2006) $
+ * @version $Revision$
+ * @date $Date$
  */
 public class AddressOption extends Option {
   // values

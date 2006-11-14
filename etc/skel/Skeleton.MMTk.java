@@ -7,7 +7,7 @@
  *
  * Copyright © IBM Corp 2006
  *
- * $Id: Skeleton.java 10812 2006-09-22 15:46:54Z dgrove-oss $
+ * $Id$
  */
 package com.ibm.jikesrvm;       // FILL ME IN with the appropriate package.
 

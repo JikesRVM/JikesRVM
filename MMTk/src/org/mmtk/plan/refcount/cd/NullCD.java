@@ -15,11 +15,11 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a null cycle detector.
 
- * $Id: MS.java,v 1.4 2006/06/21 07:38:15 steveb-oss Exp $
+ * $Id$
  * 
  * @author Daniel Frampton
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/21 07:38:15 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class NullCD extends CD implements Uninterruptible {
 

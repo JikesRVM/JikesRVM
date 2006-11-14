@@ -31,12 +31,12 @@ import org.vmmagic.pragma.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of RefCountLocal.
  *
- * $Id: RefCountSpace.java,v 1.36 2005/08/31 13:00:41 dgrove-oss Exp $
+ * $Id$
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Ian Warrington
- * @version $Revision: 1.36 $
- * @date $Date: 2005/08/31 13:00:41 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class RCHeader implements Constants, Uninterruptible {
 

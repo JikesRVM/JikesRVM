@@ -15,13 +15,13 @@ import org.vmmagic.pragma.Uninterruptible;
 
 
 /**
- * $Id: Strings.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $ 
+ * $Id$ 
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/21 07:38:13 $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class Strings implements Uninterruptible {
   /**

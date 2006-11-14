@@ -28,13 +28,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Scanning.java,v 1.5 2006/06/19 06:08:15 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/19 06:08:15 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Scanning extends org.mmtk.vm.Scanning implements Constants, Uninterruptible {
   /****************************************************************************

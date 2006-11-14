@@ -19,13 +19,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Strings.java,v 1.2 2006/06/19 06:08:16 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.2 $
- * @date $Date: 2006/06/19 06:08:16 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class Strings extends org.mmtk.vm.Strings implements Uninterruptible {
   /**

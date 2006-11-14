@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
  * 
  * Implementing classes will largely forward calls to the gcspy C library.
  * 
- * $Id: ServerSpace.java 10806 2006-09-22 12:17:46Z dgrove-oss $
+ * $Id$
  * 
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class ServerSpace implements Uninterruptible {
 

@@ -27,13 +27,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Memory.java,v 1.4 2006/06/19 06:08:16 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/19 06:08:16 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Memory extends org.mmtk.vm.Memory
   implements Constants, VM_HeapLayoutConstants, VM_SizeConstants, Uninterruptible {

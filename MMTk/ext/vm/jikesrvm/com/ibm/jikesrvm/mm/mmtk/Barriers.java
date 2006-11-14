@@ -19,13 +19,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Barriers.java,v 1.2 2006/06/19 06:08:15 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.2 $
- * @date $Date: 2006/06/19 06:08:15 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants, Uninterruptible {
   /**

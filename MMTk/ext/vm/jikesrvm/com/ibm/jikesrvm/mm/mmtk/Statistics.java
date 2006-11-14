@@ -19,13 +19,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Statistics.java,v 1.2 2006/06/19 06:08:15 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.2 $
- * @date $Date: 2006/06/19 06:08:15 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class Statistics extends org.mmtk.vm.Statistics implements Constants, Uninterruptible {
   /**

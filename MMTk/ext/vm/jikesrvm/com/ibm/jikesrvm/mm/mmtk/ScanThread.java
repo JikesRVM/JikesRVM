@@ -76,14 +76,14 @@ import org.vmmagic.pragma.*;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  *
- * $Id: ScanThread.java,v 1.12 2006/06/19 06:08:15 steveb-oss Exp $
+ * $Id$
  *
  * @author Stephen Smith
  * @author Perry Cheng
  * @author Steve Blackburn
  *
- * @version $Revision: 1.12 $
- * @date $Date: 2006/06/19 06:08:15 $
+ * @version $Revision$
+ * @date $Date$
  */  
 public final class ScanThread implements VM_Constants, Uninterruptible {
 

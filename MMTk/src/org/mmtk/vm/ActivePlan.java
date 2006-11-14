@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Stub to give access to plan local, constraint and global instances
  * 
- * $Id: ActivePlan.java,v 1.4 2006/06/21 07:38:13 steveb-oss Exp $
+ * $Id$
  * 
  * @author Daniel Frampton
  * @author Robin Garner

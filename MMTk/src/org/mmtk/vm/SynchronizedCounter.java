@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: SynchronizedCounter.java,v 1.4 2006/06/21 07:38:13 steveb-oss Exp $
+//$Id$
 
 package org.mmtk.vm;
 

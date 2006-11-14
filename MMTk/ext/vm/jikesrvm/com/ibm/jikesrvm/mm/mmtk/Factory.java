@@ -25,11 +25,11 @@ import com.ibm.jikesrvm.VM;
  * 
  * @see org.mmtk.vm.Factory
  * 
- * $Id: Factory.java,v 1.7 2006/06/21 07:38:13 steveb-oss Exp $
+ * $Id$
  * 
  * @author Steve Blackburn
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:13 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class Factory extends org.mmtk.vm.Factory {
 

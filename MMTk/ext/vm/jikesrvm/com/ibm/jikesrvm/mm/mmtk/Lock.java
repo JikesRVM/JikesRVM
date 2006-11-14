@@ -35,11 +35,11 @@ import org.mmtk.utility.Log;
  * 
  * This implementation relies on there being less than 1<<32 waiters.
  *
- * $Id: Lock.java,v 1.4 2006/06/23 07:16:19 steveb-oss Exp $
+ * $Id$
  * 
  * @author Perry Cheng
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/23 07:16:19 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Lock extends org.mmtk.vm.Lock implements Uninterruptible {
 

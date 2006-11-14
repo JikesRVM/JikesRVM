@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
-//$Id: VM_SysCallMagic.java 10307 2006-02-28 16:52:13Z dgrove-oss $
+//$Id$
 package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.*;

@@ -21,14 +21,14 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceLocal
  * 
- * $Id: TraceLocal.java,v 1.7 2006/06/21 07:38:14 steveb-oss Exp $
+ * $Id$
  * 
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class RCModifiedProcessor extends TraceStep implements Uninterruptible {
 

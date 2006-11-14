@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A counter that supports atomic increment and reset.
  *
- * $Id: SynchronizedCounter.java,v 1.2 2005/07/20 14:32:01 dframpton-oss Exp $
+ * $Id$
  *
  * @author Perry Cheng
  */

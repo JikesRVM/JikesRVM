@@ -19,13 +19,13 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id: Scanning.java,v 1.6 2006/06/21 07:38:13 steveb-oss Exp $
+ * $Id$
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.6 $
- * @date $Date: 2006/06/21 07:38:13 $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class Scanning implements Constants, Uninterruptible {
   /**

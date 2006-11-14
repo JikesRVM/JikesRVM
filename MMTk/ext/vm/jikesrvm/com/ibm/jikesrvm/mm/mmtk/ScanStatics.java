@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
 /**
  * Class that determines all JTOC slots (statics) that hold references
  *
- * $Id: ScanStatics.java,v 1.3 2006/06/05 04:30:57 steveb-oss Exp $
+ * $Id$
  *
  * @author Perry Cheng
  * @author Ian Rogers

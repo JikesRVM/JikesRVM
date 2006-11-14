@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
 /**
  * Scan the boot image for references using the boot image reference map
  *
- * $Id: ScanBootImage.java,v 1.2 2006/08/11 07:02:01 steveb-oss Exp $
+ * $Id$
  *
  * @author Steve Blackburn
  */  

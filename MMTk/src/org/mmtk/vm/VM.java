@@ -43,11 +43,11 @@ import org.vmmagic.unboxed.Offset;
  * <code>mmtk.hostjvm</code> to load the VM-specific concrete classes
  * and initialize the constants and singletons defined here.
  * 
- * $Id: VM.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
+ * $Id$
  * 
  * @author Steve Blackburn
- * @version $Revision: 10750 $
- * @date $Date: 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class VM {
   

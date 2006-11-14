@@ -21,13 +21,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Assert.java,v 1.3 2006/06/19 06:08:16 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/19 06:08:16 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Assert extends org.mmtk.vm.Assert implements Uninterruptible {
   /* wriggle-room to accommodate memory demands while handling failures */

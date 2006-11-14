@@ -21,11 +21,11 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceStep
  * 
- * $Id: $
+ * $Id$
  * 
  * @author Daniel Frampton
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class DecBuffer extends ObjectReferenceBuffer implements Constants, Uninterruptible {
   /****************************************************************************

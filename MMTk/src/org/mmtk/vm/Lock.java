@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id: Lock.java,v 1.4 2006/06/21 07:38:13 steveb-oss Exp $
+//$Id$
 
 package org.mmtk.vm;
 
@@ -16,8 +16,8 @@ import org.vmmagic.pragma.Uninterruptible;
  * Simple, fair locks with deadlock detection.
  * 
  * @author Perry Cheng
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/21 07:38:13 $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class Lock implements Uninterruptible {
 

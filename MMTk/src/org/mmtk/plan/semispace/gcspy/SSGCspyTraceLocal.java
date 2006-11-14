@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id: SSTraceLocal.java 10806 2006-09-22 12:17:46Z dgrove-oss $
+ * $Id$
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
@@ -31,8 +31,8 @@ import org.vmmagic.unboxed.*;
  * @author Daniel Frampton
  * @author <a href="http://www.cs.kent.ac.uk/~rej">Richard Jones</a>
  * 
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
+ * @version $Revision$
+ * @date $Date$
  */
 public class SSGCspyTraceLocal extends SSTraceLocal implements Uninterruptible {
   /**

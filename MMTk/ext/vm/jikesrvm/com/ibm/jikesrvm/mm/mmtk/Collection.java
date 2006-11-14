@@ -41,13 +41,13 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Collection.java,v 1.8 2006/06/23 06:02:04 steveb-oss Exp $ 
+ * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision: 1.8 $
- * @date $Date: 2006/06/23 06:02:04 $
+ * @version $Revision$
+ * @date $Date$
  */
 public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants, Uninterruptible {
 

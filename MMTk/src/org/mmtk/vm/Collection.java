@@ -17,13 +17,13 @@ import org.mmtk.plan.MutatorContext;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Collection.java,v 1.7 2006/06/23 03:24:49 steveb-oss Exp $
+ * $Id$
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/23 03:24:49 $
+ * @version $Revision$
+ * @date $Date$
  */
 public abstract class Collection implements Uninterruptible {
 

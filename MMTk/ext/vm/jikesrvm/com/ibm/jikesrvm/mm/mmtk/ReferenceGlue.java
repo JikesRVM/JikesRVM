@@ -7,7 +7,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  *
- * $Id: ReferenceGlue.java,v 1.4 2006/05/24 03:40:04 dframpton-oss Exp $ 
+ * $Id$ 
  */
 package com.ibm.jikesrvm.mm.mmtk;
 

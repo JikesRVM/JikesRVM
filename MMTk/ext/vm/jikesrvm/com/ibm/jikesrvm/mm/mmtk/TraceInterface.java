@@ -38,11 +38,11 @@ import org.vmmagic.pragma.*;
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
  * 
- * $Id: TraceInterface.java,v 1.3 2006/06/05 04:30:57 steveb-oss Exp $
+ * $Id$
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/05 04:30:57 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class TraceInterface extends org.mmtk.vm.TraceInterface implements VM_Constants, Uninterruptible {
 

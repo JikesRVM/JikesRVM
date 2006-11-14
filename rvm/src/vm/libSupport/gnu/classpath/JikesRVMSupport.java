@@ -5,7 +5,7 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  * (C) Copyright IBM Corp 2002, 2004, 2005
  */
-//$Id: JikesRVMSupport.java,v 1.16 2006/03/01 12:23:56 dgrove-oss Exp $
+//$Id$
 package gnu.classpath;
 
 import org.vmmagic.unboxed.Address;

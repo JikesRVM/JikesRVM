@@ -33,12 +33,12 @@ import org.vmmagic.unboxed.*;
  * If there are C CPUs and T LargeObjectSpaces, there must be C X T
  * instances of this class, one for each CPU, LargeObjectSpace pair.
  * 
- * $Id: $
+ * $Id$
  * 
  * @author Steve Blackburn
  * @author Daniel Frampton
- * @version $Revision: 1.8 $
- * @date $Date: 2006/06/21 07:38:16 $
+ * @version $Revision$
+ * @date $Date$
  */
 public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
   implements Constants, Uninterruptible {
