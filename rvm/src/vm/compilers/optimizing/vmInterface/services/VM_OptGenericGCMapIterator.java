@@ -447,8 +447,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // differently, we normalize them by ensuring that ref1 < ref2; 
     if (ref1.GT(ref2)) {
       Address tmp = ref1;
-      ref1 =ref2;
-      ref2 = ref1;
+      ref1 = ref2;
+      ref2 = tmp;
     }
 
     for (Address i = ref1.plus(BYTES_IN_ADDRESS); i.LT(ref2); i = i.plus(BYTES_IN_ADDRESS)) {
