@@ -196,7 +196,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
       last = normalizeTail(arity);
     } else {
       // a full tail buffer
-      last = tail.plus(bufferLastOffset(arity));
+      last = tailBufferEnd.minus(BYTES_IN_ADDRESS);
     }
     queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
   }
