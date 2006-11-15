@@ -14,8 +14,8 @@ include		$(RVM_BUILD)/Make.rules.host
 
 default: 	$(GEN_FILES_DIR)/VM_AOSExternalOptions.java 
 
-BOOLEAN_DAT_FILES = BooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.aos.dat
+VALUE_DAT_FILES = ValueOptions.aos.dat
 
 $(GEN_FILES_DIR)/VM_AOSExternalOptions.java:	VM_AOSOptions.template \
 					../../compilers/utility/MasterOptions.template \

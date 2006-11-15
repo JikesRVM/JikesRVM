@@ -16,8 +16,8 @@ include		$(RVM_BUILD)/Make.rules.host
 
 default: 	$(GEN_FILES_DIR)/OPT_Options.java 
 
-BOOLEAN_DAT_FILES = BooleanOptions.dat ../../utility/SharedBooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat ../../utility/SharedValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.opt.dat ../../utility/SharedBooleanOptions.dat
+VALUE_DAT_FILES = ValueOptions.opt.dat ../../utility/SharedValueOptions.dat
 
 $(GEN_FILES_DIR)/OPT_Options.java:	OPT_Options.template \
 					../../utility/MasterOptions.template \

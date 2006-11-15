@@ -13,8 +13,8 @@ include			$(RVM_BUILD)/Make.rules.host
 
 MakeTemplates:		$(GEN_FILES_DIR)/VM_Options.java
 
-BOOLEAN_DAT_FILES = BooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.vm.dat
+VALUE_DAT_FILES = ValueOptions.vm.dat
 
 $(GEN_FILES_DIR)/VM_Options.java: VM_Options.template \
 				$(BOOLEAN_DAT_FILES) \

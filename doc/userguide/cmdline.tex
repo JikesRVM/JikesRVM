@@ -208,7 +208,7 @@ option description files.  Each of the major sub-systems (VM, AOS, GC,
 Baseline Compiler, Optimzing Compiler) has its own set of description
 files and corresponding name space of options. 
 
-MMTk options are handled specially.  For the rest of the system, at a
+MMTk options are handled differently.  For the rest of the system, at a
 high level, adding a new command line argument  can be done just 
 by adding a new record to the appropriate option description file.  We
 strongly discourage adding command line options by any other means as
@@ -226,16 +226,16 @@ The Jikes RVM build process generates the {\tt OPT\_Options.java}
 file automatically from a template.  
 
 To add or modify the command-line options in {\tt OPT\_Options.java},
-you must modify either \IndexTexttt{BooleanOptions.dat} or 
-\IndexTexttt{ValueOptions.dat}.  You should describe your desired
+you must modify either \IndexTexttt{BooleanOptions.opt.dat} or 
+\IndexTexttt{ValueOptions.opt.dat}.  You should describe your desired
 command-line option in a format described below.
 Your option will be generated the next time you build the
 system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{\texttt{BooleanOptions.dat}}
+\subsubsection{\texttt{BooleanOptions.opt.dat}}
 
-The \IndexTexttt{BooleanOptions.dat} file defines boolean options for
+The \IndexTexttt{BooleanOptions.opt.dat} file defines boolean options for
 the optimizing compiler.  The file describes each command-line option 
 by a two-line record, and each record is separated
 by a blank line.  Long lines can be continued using ``$\backslash$''.
@@ -261,7 +261,7 @@ of the semantics of the option.  The system will print this
 description when so instructed by the command-line option {\tt
 -X:opt:help}.
 
-For example, the two line record in {\tt BooleanOptions.dat} that
+For example, the two line record in {\tt BooleanOptions.opt.dat} that
 defines the option of whether to perform local scalar replacement is
 \begin{verbatim}
 LOCAL_SCALAR_REPLACEMENT 1 true local_sr
@@ -269,12 +269,12 @@ Perform local scalar replacement
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{ValueOptions.dat}
+\subsubsection{ValueOptions.opt.dat}
 
-The \IndexTexttt{ValueOptions.dat} file defines non-boolean options for
+The \IndexTexttt{ValueOptions.opt.dat} file defines non-boolean options for
 the optimizing compiler.  The file describes each command-line option 
 with a three-line record, and each record is separated
-by a blank line.  As with \texttt{BooleanOptions.dat},
+by a blank line.  As with \texttt{BooleanOptions.opt.dat},
 long lines can be continued using ``$\backslash$'' and
 blank lines are once again significant.
 Lines starting with ``\#'' are ignored.
@@ -302,7 +302,7 @@ description when so instructed by the command-line option {\tt
 The third line of each record is used for enumeration options, and must
 be left blank for non-enumeration options.
 
-For example, the three-line record in {\tt ValueOptions.dat}
+For example, the three-line record in {\tt ValueOptions.opt.dat}
 that defines the maximum inlining depth when using static inlining
 heuristics is
 \begin{verbatim}
