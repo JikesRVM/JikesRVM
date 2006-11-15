@@ -122,7 +122,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
-    if (n != null) n.scheduleHighPriority();
+    if (n != null) n.schedule();
     // squirrel away lock state in current thread
     t.waitObject = l.lockedObject;
     t.waitCount  = l.recursionCount;
@@ -168,7 +168,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
-    if (n != null) n.scheduleHighPriority();
+    if (n != null) n.schedule();
     VM_Scheduler.wakeupMutex.lock();
     // squirrel away lock state in current thread
     t.waitObject = l.lockedObject;
@@ -325,7 +325,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     if (STATS) unlockOperations++;
     ownerId = 0;
     VM_Thread t = entering.dequeue();
-    if (t != null) t.scheduleHighPriority();
+    if (t != null) t.schedule();
     else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
       // Possible project: decide on a heuristic to control when lock should be deflated
       Offset lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();

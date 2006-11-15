@@ -749,24 +749,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * timeslice.
    * Assumption: VM_Thread.contextRegisters are ready to pick up execution
    *             ie. return to a yield or begin thread startup code
-   * 
-   * !!TODO: consider having an argument to schedule() that tells what priority
-   *         to give the thread. Then eliminate scheduleHighPriority().
    */ 
   public final void schedule () {
     if (trace) VM_Scheduler.trace("VM_Thread", "schedule", getIndex());
-    VM_Processor.getCurrentProcessor().scheduleThread(this);
-  }
-
-  /**
-   * Put this thread at the front of the ready queue for subsequent 
-   * execution on a future timeslice.
-   * Assumption: VM_Thread.contextRegisters are ready to pick up execution
-   *             ie. return to a yield or begin thread startup code
-   * !!TODO: this method is a no-op, stop using it
-   */ 
-  public final void scheduleHighPriority () {
-    if (trace) VM_Scheduler.trace("VM_Thread", "scheduleHighPriority", getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(this);
   }
 
