@@ -9,18 +9,25 @@
 #
 # $Id$
 #
+# author Dave Grove
+#
 # This is really an administrative script used by the core team to maintain
 # the svn repository.  It's job is to normalize the svn properties on files
 # based on their extensions.
 
+
 cd $RVM_ROOT
 
-# Java files should have the following properties set:
+# Source code files should have the following properties set:
 #   svn:keywords : Author Date Id Revision
 #   svn:eol-style : native
 #   svn:mime-type : text/plain
+for extension in .java .c .h .C; do
+    find . -name "*$extension" -exec svn propset svn:keywords 'Author Date Id Revision' {} \;
+    find . -name "*$extension" -exec svn propset svn:eol-style native {} \;
+    find . -name "*$extension" -exec svn propset svn:mime-type text/plain {} \;
+done
 
-find . -name "*.java" -exec svn propset svn:keywords 'Author Date Id Revision' {} \;
-find . -name "*.java" -exec svn propset svn:eol-style native {} \;
-find . -name "*.java" -exec svn propset svn:mime-type text/plain {} \;
+
+
 
