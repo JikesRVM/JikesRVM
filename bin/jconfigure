@@ -2526,7 +2526,7 @@ EOF
 	cat <<- EOF
 
 	# Build VM_Assembler on Intel
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-ia32/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/ia32-assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
