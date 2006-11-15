@@ -19,12 +19,12 @@
  * @author Mauricio Serrano
  */
 %}
-$$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
+$$$$ FOREACH OPERATOR ../opt-ir/OperatorList.dat
   $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
 %term OPERATOR.SYMBOL = OPERATOR.INDEX
   $$$$ END IF
 $$$$ END FOREACH
-$$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
+$$$$ FOREACH OPERATOR ../opt-ir/OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL == "ARCH_INDEPENDENT_END"
      $$$$ FOREACH INNEROP ARCH_OP_LIST
      $$$$ LET TMPVAL OPERATOR.INDEX + INNEROP.INDEX
