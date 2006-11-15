@@ -301,7 +301,7 @@ public abstract class StopTheWorld extends Plan
         (Options.verbose.getValue() == 2)) {
       Log.write("-> ");
       Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
-      Log.write(" KB   ");
+      Log.write("KB   ");
       if (Options.verbose.getValue() == 1) {
         totalTime.printLast();
         Log.writeln(" ms]");
