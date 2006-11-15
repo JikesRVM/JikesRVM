@@ -192,12 +192,15 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
-   * allocators that enforce greater than particle alignment.
+   * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
+   * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
    */
   final public static int getMaximumAlignedSize(int size, int alignment,
                                                 int knownAlignment) 
     throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
+    
     if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {

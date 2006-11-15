@@ -601,7 +601,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                       int align, int offset, int site)
     throws UninterruptiblePragma, InlinePragma {
     SelectedMutatorContext mutator = SelectedMutatorContext.get();
-    allocator = mutator.checkAllocator(size, align, allocator);
+    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
+				       align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), 
@@ -637,7 +638,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       Assert.failWithOutOfMemoryErrorStatic();
     }
     int size = elemBytes + headerSize;
-    allocator = mutator.checkAllocator(size, align, allocator);
+    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
+				       align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);

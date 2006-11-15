@@ -47,6 +47,10 @@ public class Conversions implements Constants, Uninterruptible {
     return value.and(mask);
   }
 
+  public static int roundDown(int value, int alignment) {
+	return value & ~(alignment - 1);
+  }
+  
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {
