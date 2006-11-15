@@ -35,7 +35,7 @@ public class OPT_Options implements Cloneable {
 
 $$$$ LET USE_OPT_LEVELS "YES"
 // BEGIN CODE GENERATED FROM MasterOptions.template
-    $$$$ INCLUDE ../../utility/MasterOptions.template
+    $$$$ INCLUDE MasterOptions.template
 // END CODE GENERATED FROM MasterOptions.template
 $$$$ END LET USE_OPT_LEVELS
 

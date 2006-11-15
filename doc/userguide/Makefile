@@ -38,31 +38,28 @@ endif
 GENERATOR_DIR := $(RVM_ROOT)/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
-VM_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/utility
-VM_BOOLEAN_DAT_FILES := $(VM_OPTION_DIR)/BooleanOptions.vm.dat
-VM_VALUE_DAT_FILES   := $(VM_OPTION_DIR)/ValueOptions.vm.dat
+OPTION_DIR        := $(RVM_ROOT)/rvm/src-generated/options
+
+VM_BOOLEAN_DAT_FILES := $(OPTION_DIR)/BooleanOptions.vm.dat
+VM_VALUE_DAT_FILES   := $(OPTION_DIR)/ValueOptions.vm.dat
 VM_DAT_FILES         := $(VM_BOOLEAN_DAT_FILES)
 
-ADAPT_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
-ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.aos.dat
-ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.aos.dat
+ADAPT_BOOLEAN_DAT_FILES := ${OPTION_DIR}/BooleanOptions.aos.dat
+ADAPT_VALUE_DAT_FILES   := ${OPTION_DIR}/ValueOptions.aos.dat
 ADAPT_DAT_FILES         := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
 
-COMPILER_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/utility
-COMPILER_BOOLEAN_DAT_FILES := $(COMPILER_OPTION_DIR)/SharedBooleanOptions.dat
-COMPILER_VALUE_DAT_FILES   := $(COMPILER_OPTION_DIR)/SharedValueOptions.dat
+COMPILER_BOOLEAN_DAT_FILES := $(OPTION_DIR)/SharedBooleanOptions.dat
+COMPILER_VALUE_DAT_FILES   := $(OPTION_DIR)/SharedValueOptions.dat
 COMPILER_DAT_FILES         := $(COMPILER_BOOLEAN_DAT_FILES) $(COMPILER_VALUE_DAT_FILES)
 
-BASE_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
-BASE_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) $(BASE_OPTION_DIR)/BooleanOptions.baseline.dat
-BASE_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) $(BASE_OPTION_DIR)/ValueOptions.baseline.dat
+BASE_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) $(OPTION_DIR)/BooleanOptions.baseline.dat
+BASE_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) $(OPTION_DIR)/ValueOptions.baseline.dat
 BASE_DAT_FILES         := $(BASE_BOOLEAN_DAT_FILES) $(BASE_VALUE_DAT_FILES)
 
-OPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
 OPT_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) \
-			 ${OPT_OPTION_DIR}/BooleanOptions.opt.dat
+			 ${OPTION_DIR}/BooleanOptions.opt.dat
 OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
-			 ${OPT_OPTION_DIR}/ValueOptions.opt.dat
+			 ${OPTION_DIR}/ValueOptions.opt.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 ifneq (${USER_GUIDE_CONFIG},)

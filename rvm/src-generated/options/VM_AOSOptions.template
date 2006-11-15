@@ -6,31 +6,34 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm.quick;
-import com.ibm.jikesrvm.*;
+package com.ibm.jikesrvm.adaptive;
+
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for the 
- * quick compiler.
+ * adaptive system.
  * <p>
- * Note: This file is mechanically generated from VM_QuickOptions.template
+ * Note: This file is mechanically generated from VM_AOSOptions.template
  *       and MasterOptions.template
  * <p>
- * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
- *       All other options are defined in VALUE_DAT_FILES 
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES
+ *       All other options are defined in VALUE_DAT_FILES
  *       (value, enumeration, bitmask)
  *
- * @author Chris Hoffmann
+ * @author Dave Grove
  **/
-public final class VM_QuickOptions implements Cloneable {
+public class VM_AOSExternalOptions implements Cloneable {
 
   private void printOptionsHeader() {
-    VM.sysWriteln("Current value of options for Quick compiler:");
+    VM.sysWriteln("Current value of options:");
   }
 
 $$$$ LET USE_OPT_LEVELS "NO"
 // BEGIN CODE GENERATED FROM MasterOptions.template
-    $$$$ INCLUDE ../utility/MasterOptions.template
+    $$$$ INCLUDE MasterOptions.template
 // END CODE GENERATED FROM MasterOptions.template
 $$$$ END LET USE_OPT_LEVELS
 
@@ -40,8 +43,9 @@ $$$$ END LET USE_OPT_LEVELS
 
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");
-    VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of quick compiler's command-line arguments\n");
-    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the active quick compiler options\n");
+    VM.sysWrite(prefix+"[:help]       Print a brief description of AOS command-line options\n");
+    VM.sysWrite(prefix+":printOptions Print the current option values of AOS\n");
+    VM.sysWrite(prefix+":o=v          Pass the option-value pair, o=v, to AOS\n");
     VM.sysWrite("\n");
   }
 

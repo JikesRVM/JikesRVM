@@ -17,7 +17,6 @@ SHELL=${BASH}			# Set shell to bash because we use 'echo -n'
 
 MakeTemplates:;	(cd ir/instruction && $(MAKE))
 		(cd ir/conversions/lir2mir && $(MAKE))
-		(cd driver && $(MAKE))
 		(cd optimizations/local/instructionScheduler && $(MAKE))
 		@echo -n "(opt templates expanded) "
 
