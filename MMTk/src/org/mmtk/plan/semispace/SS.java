@@ -46,22 +46,23 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class SS extends StopTheWorld implements Uninterruptible {
-
+  /** Fraction of available virtual memory available to each semispace */
+  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30; 
+  
   /****************************************************************************
    * 
    * Class variables
    */
 
-  // GC state
+  /** True if allocating into the "higher" semispace */
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.32, false);
+  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, false);
+  public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.32, true);
-
-  public static final int SS0 = copySpace0.getDescriptor();
+  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, true);
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
