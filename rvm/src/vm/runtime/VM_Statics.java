@@ -264,7 +264,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateClassLiteral(int typeReferenceID) {
     Class literalAsClass =
-      VM_TypeReference.getTypeRef(typeReferenceID).resolve().asClass().getClassForType();
+      VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
     Integer offAsInt;
     synchronized(objectLiterals) {
       offAsInt = (Integer)objectLiterals.get(literalAsClass);
