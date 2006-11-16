@@ -10,7 +10,6 @@
 #
 # @author David Grove
 include                 $(RVM_BUILD)/Make.rules.host
-include $(RVM_ROOT)/rvm/src-generated/opt-ir/$(ARCH_DIR)/Make.operatorList
 
 default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_Operators.java \
@@ -18,6 +17,21 @@ default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/InstructionFormats.RAW
 
 GENERATE = $(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate 
+
+ifeq ($(RVM_FOR_IA32),1)
+  ARCH_OPS = $(ARCH_IR_DIR)/OperatorList.dat 
+endif
+ifeq ($(RVM_FOR_POWERPC),1)
+  ifeq ($(RVM_FOR_64_ADDR),1)
+    ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
+               $(ARCH_IR_DIR)/OperatorList_Alu64.dat \
+               $(ARCH_IR_DIR)/OperatorList_Mem64.dat
+  else 
+    ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
+               $(ARCH_IR_DIR)/OperatorList_Alu32.dat \
+               $(ARCH_IR_DIR)/OperatorList_Mem32.dat
+  endif
+endif
 
 
 # make trickiness to allow generation of HIR/LIR without specifying an MIR.
