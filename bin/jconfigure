@@ -2124,7 +2124,12 @@ EOF
     else
 	croak_nonusage "The configuration must specify one of RVM_FOR_32_ADDR or RVM_FOR_64_ADDR; it does not."
     fi
-	
+
+    if (( RVM_FOR_IA32 )); then
+	echo "RVM_FOR_IA32 := 1"
+    elif (( RVM_FOR_POWERPC )); then
+	echo "RVM_FOR_POWERPC := 1"
+    fi
 
     [[ ! ${HOST_JAVA_HOME-} ]] || echo "HOST_JAVA_HOME = $HOST_JAVA_HOME"
     [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"

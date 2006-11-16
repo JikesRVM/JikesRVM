@@ -12,14 +12,27 @@
 
 include		$(RVM_BUILD)/Make.rules.host
 
-MIR_LIR2MIR_DIR = $(RVM_ROOT)/rvm/$(ARCH_DIR)/compilers/optimizing/ir/conversions/lir2mir
 MIR_IR_DIR = $(RVM_ROOT)/rvm/src-generated/opt-ir/$(ARCH_DIR)/
 JBURG_DIR  = $(SCRATCH_DIR)
 
 BURG_TEMPLATE=$(RVM_ROOT)/tools-external/jburg/burg.template
 
-# define RULE_FILES
-include $(MIR_LIR2MIR_DIR)/Makefile
+# Pick the input rules file depending on the target architecture
+ifeq ($(RVM_FOR_IA32),1)
+  RULE_FILES = src-ia32/IA32.rules 
+endif
+
+ifeq ($(RVM_FOR_POWERPC),1)
+ ifeq ($(RVM_FOR_64_ADDR),1)
+   RULE_FILES =	src-ppc/PPC_Common.rules \
+		src-ppc/PPC_Alu64.rules \
+		src-ppc/PPC_Mem64.rules 
+ else 
+   RULE_FILES =	src-ppc/PPC_Common.rules \
+		src-ppc/PPC_Alu32.rules \
+		src-ppc/PPC_Mem32.rules 
+ endif
+endif
 
 all:	$(GEN_FILES_DIR)/OPT_BURS_STATE.java
 
