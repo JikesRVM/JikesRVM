@@ -42,9 +42,9 @@ SRCS=   $(TABLES_JAVA) \
 	$(OPCODE_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
-	$(JAL_ROOT)/rvm/src-ia32/VM_RegisterConstants.java \
-	$(JAL_ROOT)/rvm/src/vm/compilers/baseline/VM_ForwardReference.java \
-	$(JAL_ROOT)/rvm/src-ia32/assembler/VM_AssemblerConstants.java
+	$(JAL_ROOT)/rvm/src/com/ibm/jikesrvm/VM_ForwardReference.java \
+	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/VM_RegisterConstants.java \
+	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/VM_AssemblerConstants.java
 
 default:		assembler clean
 

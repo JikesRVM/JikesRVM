@@ -1662,108 +1662,41 @@ function emitSourceToPreprocessList () {
     # Common components.
     #
     cleanFileList <<- EOF
-	$RVM_ROOT/rvm/src/vm
-	$RVM_ROOT/rvm/src-$ARCH_DIR
-	$RVM_ROOT/rvm/src-$ARCH_DIR/runtime
-	$RVM_ROOT/rvm/src/vm/classLoader
-	$RVM_ROOT/rvm/src/vm/jni
-	$RVM_ROOT/rvm/src/vm/runtime
-	$RVM_ROOT/rvm/src/vm/scheduler
-	$RVM_ROOT/rvm/src/vm/utility
-	$RVM_ROOT/rvm/src/vm/verifier
-	$RVM_ROOT/rvm/src/vm/vmmagic/unboxed
-	$RVM_ROOT/rvm/src/vm/vmmagic/pragma
-	$RVM_ROOT/rvm/src/vm/compilers/compiledCode
-    
+        # For 'Dummy' files which are in default package
+	$RVM_ROOT/rvm/src/
 
-	$RVM_ROOT/rvm/src-$ARCH_DIR/jni
+	#VMMagic
+	$RVM_ROOT/rvm/src/org/vmmagic
+	$RVM_ROOT/rvm/src/org/vmmagic/pragma
+	$RVM_ROOT/rvm/src/org/vmmagic/unboxed
 
-    # Baseline compiler components (always part of bootimage).
-    #
-	${RVM_ROOT}/rvm/src/vm/compilers/baseline           # architecture independent
-	${RVM_ROOT}/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
-	${RVM_ROOT}/rvm/src/vm/compilers/baseline/profiling # architecture independent
+	# Core VM that is included in all configurations
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/classloader
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/memorymanagers
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/memorymanagers/mminterface
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/util
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/jni
 
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/baseline    # architecture dependent
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/baseline/GCMap
-	$( if [[ -e ${RVM_ROOT}/rvm/src-${ARCH_DIR}/assembler ]]; then
-	    echo ${RVM_ROOT}/rvm/src-${ARCH_DIR}/assembler # architecture dependent
-    	fi)
-    
-	${RVM_ROOT}/rvm/src/vm/objectModel
-
-    # other components
-    #
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/disassembler
-
+	# Jikes RVM code in MMTk tree
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk
+	# UGH: Why do we have to include GCSpy in all configurations?
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
+	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy/util
+	
+	# Core VM arch-specific
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/jni
 EOF
     # Optimizing compiler components.
     #
     if (( RVM_WITH_OPT_COMPILER )); then
-	# core components
-	#
 	cleanFileList <<- EOF
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/driver
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/instrumentation
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/cfg
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/bc2hir
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/hir2lir
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/mir2mc
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/gcmap
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction/operand
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/util
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveRangeSplitting
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/builder
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/codePlacement
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loopAnalysis
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/summaries
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/depGraph
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/linearScan
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/util
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dataflowUtil
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/exception
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/list
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dotgraph
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/set
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader/jikesrvm
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/services
-	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt/ir
 
-	# architecture-specific components
-	#
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/ir/instruction
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/ir/instruction/operand
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/ir/conversions/lir2mir
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/ir/conversions/mir2mc
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/regalloc
-	${RVM_ROOT}/rvm/src-${ARCH_DIR}/compilers/optimizing/vmInterface/services
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt/ir
 EOF
     fi
 
@@ -1771,116 +1704,40 @@ EOF
     #
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cleanFileList <<- EOF
-	${RVM_ROOT}/rvm/src/vm/adaptive/controller
-	${RVM_ROOT}/rvm/src/vm/adaptive/recompilation
-	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements
-	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/listeners
-	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/organizers
-	${RVM_ROOT}/rvm/src/vm/adaptive/database
-	${RVM_ROOT}/rvm/src/vm/adaptive/database/methodSamples
-	${RVM_ROOT}/rvm/src/vm/adaptive/database/callGraph
-	${RVM_ROOT}/rvm/src/vm/adaptive/recompilation/instrumentation
-	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation
-	${RVM_ROOT}/rvm/src/vm/adaptive/utility
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/adaptive
 EOF
     fi
 
     if (( RVM_WITH_QUICK_COMPILER )); then
-      # core components
-      #
-	echo $RVM_ROOT/rvm/src/vm/compilers/quick
-	echo $RVM_ROOT/rvm/src/vm/compilers/quick/util
-	echo $RVM_ROOT/rvm/src/vm/compilers/quick/GCMap
-      # The inliner
-	if (( RVM_WITH_QUICK_COMPILER_INLINING )); then
-	    echo $RVM_ROOT/rvm/src/vm/compilers/quick/inline
-	fi
-
-      # architecture-specific components
-      #
-	echo $RVM_ROOT/rvm/src-$ARCH_DIR/compilers/quick
-	echo $RVM_ROOT/rvm/src-$ARCH_DIR/compilers/quick/GCMap
-	echo $RVM_ROOT/rvm/src-$ARCH_DIR/compilers/quick/writeBarrier
-
+	cleanFileList <<- EOF
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/quick
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/quick
+EOF
     fi
 
     # On stack replacement components.
     #
     if (( RVM_WITH_OSR )); then
 	cleanFileList <<- EOF
-	$RVM_ROOT/rvm/src-$ARCH_DIR/executionState
-	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
-	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
-	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
-	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
-	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/osr
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/osr
 EOF
     fi
-
-    # architecture specific writebarrier support for baseline compilers
-    #
-    echo "$RVM_ROOT/rvm/src-$ARCH_DIR/compilers/baseline/writeBarrier"
-
-    # Bootimage compiler components.
-    #
-    echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage
-    if (( ${RVM_WITH_BASE_BOOTIMAGE_COMPILER} )); then
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/baseline
-    elif (( ${RVM_WITH_OPT_BOOTIMAGE_COMPILER} )); then
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/optimizing
-    elif (( $RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
-	echo $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/quick
-    fi
-    cleanFileList <<- EOF
-    # Runtime compiler components.
-    #
-	${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime
-
-    # Common memory manager components.
-    #
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk
-EOF
-
-    cleanFileList <<- EOF
-    # Local projects (template)
-    #
-    #    $RVM_ROOT/projects/myproject
-EOF
-
-     cleanFileList <<- EOF
-     # GCspy components
-     #
-	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
-	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy/util
-EOF
-#     fi
 
     # standard library support
     #
     cat <<EOF
-	$RVM_ROOT/rvm/src/vm/libSupport
-	$RVM_ROOT/rvm/src/vm/libSupport/java/lang
-	$RVM_ROOT/rvm/src/vm/libSupport/java/lang/ref
-	$RVM_ROOT/rvm/src/vm/libSupport/java/lang/reflect
-	$RVM_ROOT/rvm/src/vm/libSupport/java/net
-	$RVM_ROOT/rvm/src/vm/libSupport/java/io
-	$RVM_ROOT/rvm/src/vm/libSupport/java/nio
+	$RVM_ROOT/rvm/src/java/io
+	$RVM_ROOT/rvm/src/java/lang
+	$RVM_ROOT/rvm/src/java/lang/ref
+	$RVM_ROOT/rvm/src/java/lang/reflect
+	$RVM_ROOT/rvm/src/java/net
+	$RVM_ROOT/rvm/src/java/nio
+	$RVM_ROOT/rvm/src/java/util
+
+	$RVM_ROOT/rvm/src/gnu/classpath
+	$RVM_ROOT/rvm/src/gnu/java/lang
 EOF
-    # We actually aren't using java.security right now, except in a branch,
-    # but this does no harm.	
-    echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
-    echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
-
-    echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/classpath"
-    echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/java/lang"
-
-    # Add support for hardware performance monitors on PowerPC
-    #
-    if (( $RVM_WITH_HPM )); then
-	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
- 	echo $RVM_ROOT/rvm/src/vm/HPM
-    fi
 
     # Add the configuration specific directories
     #

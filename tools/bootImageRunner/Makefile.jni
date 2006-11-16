@@ -32,7 +32,7 @@ $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h: 	$(THIS_DIR)/com_ibm_jikesrvm_VM_
 # running "rm".
 	chmod +w $@
 else
-$(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/vm/runtime/VM_Process.java
+$(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/com/ibm/jikesrvm/VM_Process.java
 	$(RM) $@
 	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.jikesrvm.VM_Process
 endif
