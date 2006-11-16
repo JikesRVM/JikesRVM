@@ -4393,14 +4393,14 @@ EOF
 	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}                      \
 	    -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}                     \
-	    -I${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler   \
+	    -I${ROOT_DIRECTORY_STR}/tools/ia32-disassembler   \
 	    -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
 EOF
 	if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
 	    cat <<- EOF
 		run mkdir -p ${SCRATCH_DIRECTORY_STR}/noPthreads
 		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-		    -I${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler\
+		    -I${ROOT_DIRECTORY_STR}//tools/ia32-disassembler\
 		    -DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR \
 		    -o ${SCRATCH_DIRECTORY_STR}/noPthreads/libvm.o libvm.C
 EOF
@@ -4412,7 +4412,7 @@ EOF
 	## The IA32 Disassembler
 	OBJECTS="\${OBJECTS} disasm.o ihnpdsm.o" 
 
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src-ia32/disassembler
+	chdir ${ROOT_DIRECTORY_STR}/tools/ia32-disassembler
 	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
 	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
 	\${BOOTER_CXX} \
