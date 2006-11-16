@@ -1228,13 +1228,6 @@ declare -i RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_QUICK_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 
-# Here are the choices for the object model
-#
-declare -i RVM_WITH_DEFAULT_OBJECT_MODEL=1
-declare -i RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL=0
-declare -i RVM_WITH_ONE_WORD_PTR_OBJECT_MODEL=0
-declare -i RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL=0
-
 # Here are the choices for additional components that are under development and/or are excluded from default build.
 #
 declare -i RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access multiple CPU's (or not).  This can be overridden with the -X:singleVirtualProcessor= command-line argument.
@@ -1474,17 +1467,6 @@ fi
 # in the preamble and have processed any args that would modify them.
 rationalize_preprocessor_constants; 
 
-# set the relative path to the object model.
-if (( RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL )); then
-    OBJECT_MODEL_PATH_STR=objectModel/oneWordMaskTIB
-elif (( RVM_WITH_ONE_WORD_PTR_OBJECT_MODEL )); then
-    OBJECT_MODEL_PATH_STR=objectModel/oneWordTIBPtr
-elif (( RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL )); then
-    OBJECT_MODEL_PATH_STR=objectModel/oneWordIndexTIB
-else
-    OBJECT_MODEL_PATH_STR=objectModel/default
-fi
-
 if (( RVM_FOR_AIX )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
@@ -1709,10 +1691,6 @@ function emitSourceToPreprocessList () {
     	fi)
     
 	${RVM_ROOT}/rvm/src/vm/objectModel
-	$( if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
-	    echo ${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
-    	fi)
-	${RVM_ROOT}/rvm/src/vm/${OBJECT_MODEL_PATH_STR}
 
     # other components
     #
@@ -3820,12 +3798,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 		[Lcom/ibm/jikesrvm/adaptive/VM_NullListener;
 EOF
 	fi
-
-	if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
-	cat <<- EOF
-	        [Lcom/ibm/jikesrvm/VM_LockNursery\$VM_LockBucket;
-EOF
-        fi
 
     fi
 

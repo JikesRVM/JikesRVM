@@ -629,9 +629,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
       deflations = 0;
 
       VM_ThinLock.notifyAppRunStart("", 0);
-      //-#if !RVM_WITH_DEFAULT_OBJECT_MODEL
-      VM_LockNursery.notifyAppRunStart("", 0);
-      //-#endif
     }
   }
 
@@ -651,9 +648,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
       VM.sysWrite("FatLocks: "); VM.sysWrite(deflations);          VM.sysWrite(" deflations\n");
 
       VM_ThinLock.notifyExit(totalLocks);
-      //-#if !RVM_WITH_DEFAULT_OBJECT_MODEL
-      VM_LockNursery.notifyExit(totalLocks);
-      //-#endif
     }
   }
 
