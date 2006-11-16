@@ -1902,11 +1902,6 @@ EOF
     if (( $RVM_WITH_HPM )); then
 	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
  	echo $RVM_ROOT/rvm/src/vm/HPM
-	if (( RVM_FOR_IA32 )); then
-	    echo $RVM_ROOT/rvm/src-$ARCH_DIR/HPM/
-	elif (( RVM_FOR_POWERPC )); then
-	    echo $RVM_ROOT/rvm/src-$ARCH_DIR/HPM/
-	fi
     fi
 
     # Add the configuration specific directories
@@ -4311,9 +4306,9 @@ EOF
     if (( RVM_WITH_HPM )); then
 	cat <<- EOF
 		echo >&2 -n "(build libhpm\${shlib_suffix} library) "
-		chdir $ROOT_DIRECTORY_STR/rvm/src-$ARCH_DIR/HPM
 		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
-		    -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+		    -o $SCRATCH_DIRECTORY_STR/hpm.o \
+		    $ROOT_DIRECTORY_STR/tools/HPM/$ARCH_DIR/hpm.c
 EOF
 	if (( RVM_FOR_POWERPC )); then
 	    cat <<- EOF
@@ -4329,12 +4324,12 @@ EOF
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm\${shlib_suffix} hpm.o \${SYS_HPM_LIBS}
 
 		echo >&2 -n "(building libJava2HPM\${shlib_suffix} JNI library) "
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
 		    -I$ROOT_DIRECTORY_STR/include \
-		    -I$ROOT_DIRECTORY_STR/rvm/src-$ARCH_DIR/HPM \
+		    -I$ROOT_DIRECTORY_STR/tools/HPM/$ARCH_DIR \
 		    -I$ROOT_DIRECTORY_STR/tools/bootImageRunner \
-    		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
+    		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o \
+		    $ROOT_DIRECTORY_STR/tools/HPM/Java2HPM.C
 
 		ALL_HPM_LIBS="\${SYS_HPM_LIBS} -L$BUILD_DIRECTORY_STR -lhpm"
 		chdir $SCRATCH_DIRECTORY_STR
