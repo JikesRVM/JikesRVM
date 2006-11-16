@@ -12,8 +12,8 @@
 
 include $(RVM_BUILD)/Make.rules.host
 
-ARCH_IFS = $(JAL_ROOT)/rvm/src-generated/opt-ir/src-ia32/InstructionFormatList.dat
-ARCH_OPS = $(JAL_ROOT)/rvm/src-generated/opt-ir/src-ia32/OperatorList.dat
+ARCH_IFS = $(JAL_ROOT)/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat
+ARCH_OPS = $(JAL_ROOT)/rvm/src-generated/opt-ir/ia32/OperatorList.dat
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 

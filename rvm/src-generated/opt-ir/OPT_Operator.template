@@ -92,7 +92,7 @@ public final class OPT_Operator {
   public final int implicitUses;
 
 $$$$ IF ARCHITECTURE != "NONE"
-$$$$ IF ARCHITECTURE == "src-ppc"
+$$$$ IF ARCHITECTURE == "ppc"
   /**
    * Instruction template used by the assembler to
    * generate binary code.  Only valid on MIR operators.
@@ -708,7 +708,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // END   Architecture Independent opcodes.
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
-$$$$ IF ARCHITECTURE == "src-ppc"
+$$$$ IF ARCHITECTURE == "ppc"
   $$$$ FOREACH OPERATOR ARCH_OP_LIST
      new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
                       OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
@@ -792,7 +792,7 @@ $$$$ END IF
     this.implicitUses = iUses;
   }                             
 
-$$$$ IF ARCHITECTURE == "src-ppc"
+$$$$ IF ARCHITECTURE == "ppc"
   // For MIR
   private OPT_Operator(char opcode, byte format, int traits, 
 		       int numDefs, int numDefUses, int numUses,
