@@ -1680,9 +1680,7 @@ function emitSourceToPreprocessList () {
 
 	# Jikes RVM code in MMTk tree
 	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk
-	# UGH: Why do we have to include GCSpy in all configurations?
 	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
-	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy/util
 	
 	# Core VM arch-specific
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm
@@ -2486,13 +2484,14 @@ function emitCopier () {
 	    PREPROC_FLAGS="-trace \$PREPROC_FLAGS"
 	fi
 	for d in \$(< ${SOURCE_TO_PREPROCESS_LIST_STR} ); do
+	    cd \${d}
 	    if tracing preprocessor; then
 	         cleanline
 	         echo -n "\${ME}: expanding \${d}: "
 	    fi
 	    shopt -s nullglob
 	    # FILES may be empty.
-	    FILES="\$(echo \${d}/*.java)"
+	    FILES="\$(echo *.java)"
 EOF
     emit_disable_exit_on_error
 
@@ -2514,7 +2513,7 @@ EOF
     ## newline-separated list to a space-separated list.
 
     cat <<- EOF
-	    ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${JAVA_PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
+	    ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${JAVA_PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES
 	    status=\$?
 	    $(emit_enable_exit_on_error)
 	    if (( status == 1 )); then
