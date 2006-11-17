@@ -150,7 +150,6 @@
 
 import java.io.*;
 import java.util.Vector;
-import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -223,7 +222,7 @@ class QuotedStringTokenizer {
         pos++;
       if (pos >= maxPos) break;
       if (str.charAt(pos) == '\"') {
-        int start = ++pos;
+        pos++;
         boolean quoted = false;
         while (quoted || str.charAt(pos) != '\"') {
           quoted = !quoted && str.charAt(pos) == '\\';
@@ -233,7 +232,6 @@ class QuotedStringTokenizer {
         }
         pos++;
       } else {
-        int start = pos;
         while (pos < maxPos && delim.indexOf(str.charAt(pos)) < 0)
           pos++;
       }
@@ -920,7 +918,7 @@ public class GenerateFromTemplate {
 
   private String evalLet(StreamTokenizer st) throws IOException {
      String val = evalStrExpr(st);
-     if (st.nextToken() != st.TT_EOF) throw new IOException("Extra input: '"+st.ttype+"'");
+     if (st.nextToken() != StreamTokenizer.TT_EOF) throw new IOException("Extra input: '"+st.ttype+"'");
      return val;
   }
 
@@ -936,10 +934,10 @@ public class GenerateFromTemplate {
     pst.ordinaryChar('-'); pst.ordinaryChar('/'); pst.ordinaryChar('*');
     pst.wordChars('@','@'); pst.wordChars('_', '_');
     int tok = pst.nextToken();
-    if (tok != pst.TT_WORD)
+    if (tok != StreamTokenizer.TT_WORD)
        throw new IOException("Missing var name in LET");
     String var_name = pst.sval;
-    if (pst.nextToken() == pst.TT_EOF)
+    if (pst.nextToken() == StreamTokenizer.TT_EOF)
        throw new IOException("Missing value in LET");
     pst.pushBack();
     String value = evalLet(pst);
