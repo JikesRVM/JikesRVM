@@ -1,0 +1,29 @@
+#! /bin/bash
+#
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
+# (C) Copyright IBM Corp. 2006
+#
+# $Id$
+#
+# Wrapper script to set ANT_HOME and then invoke ant.
+# Used to insulate Jikes RVM build process from details of 
+# where ant is located and and how to invoke it. 
+
+ME="${0##*/}"
+if [[ ! ${JAL_BUILD-} ]]; then
+    if ! [[ ${RVM_BUILD-} ]]; then
+	echo >&2 "$ME: RVM_BUILD must be set if you're not running this program
+    as a subsidiary of jbuild.  It isn't; aborting."
+	exit 1
+    fi
+    . ${RVM_BUILD}/environment.host
+fi
+
+export JAVACMD=$HOST_VM_RT
+export ANT_HOME=$JAL_ROOT/tools-external/apache-ant-1.6.5
+
+$ANT_HOME/bin/ant $@
