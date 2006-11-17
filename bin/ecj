@@ -25,4 +25,4 @@ fi
 
 ECJ_DEFAULT_ARGS=""
 
-$HOST_VM_RT -jar $JAL_ROOT/tools-external/ecj/ecj.jar $ECJ_DEFAULT_ARGS $@
+$HOST_VM_RT -jar $JAL_ROOT/tools-external/ecj/ecj.jar $ECJ_DEFAULT_ARGS "$@"
