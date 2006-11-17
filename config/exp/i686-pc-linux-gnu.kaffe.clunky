@@ -113,8 +113,6 @@ export UNZIP_CMD="/usr/bin/unzip"
 ########## 
 # These are used only by the jbuild.plugin build script.
 
-export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
-
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
 ##########

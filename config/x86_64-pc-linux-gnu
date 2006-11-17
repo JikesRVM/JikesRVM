@@ -199,10 +199,6 @@ export ZIP_CMD="/usr/bin/zip"
 ## so, though.)
 # export XALAN_J_DIR="/usr/local/xalan-j_2_6_0"
 
-## ANT is only used by the jbuild.plugin build script.
-## Uncomment this if you have Ant installed, and edit it appropriately.
-# export ANT_CMD=$ANT_HOME/bin/ant
-
 ##########
 # PART IV: Miscellaneous variables.
 #

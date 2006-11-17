@@ -139,9 +139,6 @@ export UNZIP_CMD="/usr/bin/unzip"
 ## so, though.)
 # export XALAN_J_DIR="/usr/local/xalan-j_2_6_0"
 
-## ANT is only used by the jbuild.plugin build script.
-export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
-
 ##########
 # PART IV: Miscellaneous variables.
 #

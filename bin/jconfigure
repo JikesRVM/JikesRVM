@@ -1345,7 +1345,7 @@ function unsetEnvironment() {
     unset LDSHARED $HOST_SHLD_STR1 
     unset WGET XARGS UNZIP 
     unset HOST_JAVA_LD_LIBRARY_PATH
-    unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
+    unset BISON ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
     unset CLASSPATH_INSTALLATION
     unset CLASSPATH_SOURCE_DIR # XXX Experimental
     unset CLASSPATH_BUILD_DIR # XXX Experimental
@@ -1886,7 +1886,6 @@ EOF
     [[ ! ${CPP-} ]] || echo "export $HOST_CPP_STR1='$CPP'"
     [[ ! ${FASTJAR-} ]] || echo "export FASTJAR='$FASTJAR'"
     [[ ! ${BISON-} ]] || echo "export BISON='$BISON'"  
-    [[ ! ${ANT_CMD-} ]] || echo "export ANT_CMD='$ANT_CMD'"
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
     [[ ! ${XALAN_J_DIR-} ]] || echo "export XALAN_J_DIR='${XALAN_J_DIR}'"
@@ -4580,13 +4579,6 @@ function emitPluginBuilder () {
 	    exit 2
 	fi >&2
 
-	# must have Ant
-	if [[ ! \${ANT_CMD-} ]]; then
-	    echo "must specify ANT_CMD in \${RVM_TARGET_CONFIG}"
-	    trap "" EXIT
-	    exit 2
-	fi
-
 	# build the plugin
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 
@@ -4621,7 +4613,7 @@ function emitPluginBuilder () {
 	    QUIET_ANT=-quiet
 	fi
 
-	cmd="\${ANT_CMD} \$QUIET_ANT \${VERBOSE_ANT} \${TARGET}"
+	cmd="${ROOT_DIRECTORY_STR}/bin/ant \$QUIET_ANT \${VERBOSE_ANT} \${TARGET}"
 	if tracing jbuild || tracing ant || tracing make ; then
 	    echo \$cmd
 	fi
