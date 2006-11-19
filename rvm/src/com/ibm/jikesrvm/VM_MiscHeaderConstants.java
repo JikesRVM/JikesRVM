@@ -9,11 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
 /**
  * Defines other header words not used for 
  * core Java language support of memory allocation.

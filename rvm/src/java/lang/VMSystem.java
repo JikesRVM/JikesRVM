@@ -21,8 +21,6 @@ import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Class;
 import com.ibm.jikesrvm.classloader.VM_Field;
 
-import java.lang.reflect.Field;
-import java.util.Properties;
 import java.io.*;
 
 import org.vmmagic.unboxed.Offset;

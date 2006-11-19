@@ -16,7 +16,6 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.io.DataInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 

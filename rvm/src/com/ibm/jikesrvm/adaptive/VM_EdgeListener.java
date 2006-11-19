@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
-import java.util.*;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

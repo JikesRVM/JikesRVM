@@ -11,14 +11,11 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
 
-import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
 import java.nio.Buffer;
 
-import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**

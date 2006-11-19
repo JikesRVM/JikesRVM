@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
-import com.ibm.jikesrvm.classloader.*;
 import java.io.*;
 
 /**

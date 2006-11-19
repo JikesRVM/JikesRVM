@@ -26,7 +26,6 @@ import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.classloader.VM_Class;
 import com.ibm.jikesrvm.classloader.VM_Type;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
 import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
 
 import org.vmmagic.unboxed.*;

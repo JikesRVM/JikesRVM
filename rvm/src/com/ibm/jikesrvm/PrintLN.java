@@ -15,9 +15,6 @@ import com.ibm.jikesrvm.classloader.VM_Member;
 import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Class;
 
-import java.io.PrintWriter;
-import java.io.PrintStream;
-
 /**
  * This interface is implemented by com.ibm.jikesrvm.PrintContainer.  The
  * interfaces is used by our java.lang.Throwable to print stack traces.

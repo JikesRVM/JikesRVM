@@ -20,7 +20,7 @@ final class VMDouble {
 
   static {
     initIDs();
-  };
+  }
 
   static long doubleToLongBits(double value) {
     long val = VM_Magic.doubleAsLongBits(value);

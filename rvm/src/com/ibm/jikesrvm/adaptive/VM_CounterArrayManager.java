@@ -13,9 +13,6 @@ import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Statics;
-import com.ibm.jikesrvm.VM_CompiledMethods;
-import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 

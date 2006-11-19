@@ -10,7 +10,6 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_SizeConstants;
 
 /**

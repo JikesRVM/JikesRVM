@@ -14,9 +14,6 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
-import org.mmtk.utility.Log;
-import org.mmtk.vm.Assert;
-
 import com.ibm.jikesrvm.VM_SysCall;
 
 import org.vmmagic.pragma.*;

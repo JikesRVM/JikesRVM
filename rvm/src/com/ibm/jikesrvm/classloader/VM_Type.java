@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.classloader;
 
-import java.security.ProtectionDomain;
-
 import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

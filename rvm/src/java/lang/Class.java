@@ -12,10 +12,6 @@ package java.lang;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import java.security.AccessController;
-import java.security.AllPermission;
-import java.security.Permissions;
-import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 
 import java.lang.annotation.Annotation;
@@ -41,7 +37,6 @@ import com.ibm.jikesrvm.VM_Callbacks;
 import com.ibm.jikesrvm.VM_Reflection;
 import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.VM_UnimplementedError;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import gnu.java.lang.reflect.ClassSignatureParser;
 

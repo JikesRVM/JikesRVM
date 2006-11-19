@@ -13,7 +13,6 @@ package com.ibm.jikesrvm;
 // import java.io.PrintWriter;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.classloader.VM_Class;
-import java.lang.reflect.Method;
 import com.ibm.jikesrvm.PrintLN;
 // import java.lang.Class;  // Not needed, redundant with language def.
 

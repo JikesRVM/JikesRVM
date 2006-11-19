@@ -23,7 +23,6 @@ import com.ibm.jikesrvm.jni.VM_JNIGCMapIterator;
 import com.ibm.jikesrvm.VM_HardwareTrapGCMapIterator;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.unboxed.*;

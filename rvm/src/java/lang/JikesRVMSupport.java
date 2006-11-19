@@ -17,7 +17,6 @@ import com.ibm.jikesrvm.classloader.VM_Type;
 import org.vmmagic.pragma.*;
 
 import com.ibm.jikesrvm.VM;              // for VerifyAssertions and _assert()
-import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.VM_Thread;
 
 /**

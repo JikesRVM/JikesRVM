@@ -11,7 +11,6 @@ package com.ibm.jikesrvm;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_Controller;
-import com.ibm.jikesrvm.opt.*;
 //-#endif
 //-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;

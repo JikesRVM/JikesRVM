@@ -19,7 +19,6 @@ import com.ibm.jikesrvm.opt.*;
 //-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
 //-#endif
-import java.util.*;
 import org.vmmagic.unboxed.Offset;
 
 /**

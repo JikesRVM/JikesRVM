@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 // Used for Javadoc:
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread; 
 
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 
 import org.mmtk.utility.Log;
@@ -25,15 +24,11 @@ import org.vmmagic.unboxed.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
-import com.ibm.jikesrvm.adaptive.VM_Controller;
-import com.ibm.jikesrvm.adaptive.VM_ControllerMemory;
 //-#endif
 
 //-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementTrigger;
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
-import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 import com.ibm.jikesrvm.adaptive.OSR_Listener;
 //-#endif
 

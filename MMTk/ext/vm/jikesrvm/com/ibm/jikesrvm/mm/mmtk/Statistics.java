@@ -15,7 +15,6 @@ import org.mmtk.utility.Constants;
 import com.ibm.jikesrvm.VM_Time;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**

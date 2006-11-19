@@ -17,7 +17,6 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Scheduler;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**

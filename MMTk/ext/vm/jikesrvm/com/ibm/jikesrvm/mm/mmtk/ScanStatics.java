@@ -9,12 +9,9 @@
 package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.deque.AddressDeque;
 import org.mmtk.utility.Constants;
 import com.ibm.jikesrvm.VM_Statics;
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
-import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 

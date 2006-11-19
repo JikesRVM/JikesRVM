@@ -12,9 +12,6 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import java.util.Enumeration;
-
-import org.vmmagic.pragma.*;
 
 /**
  * <p> The main driver of the OPT_Compiler. 

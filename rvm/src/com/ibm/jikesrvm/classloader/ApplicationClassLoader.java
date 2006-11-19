@@ -10,8 +10,6 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Entrypoints;
-import com.ibm.jikesrvm.VM_FileSystem;
 import com.ibm.jikesrvm.VM_Magic;
 
 import java.io.File;

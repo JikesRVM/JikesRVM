@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Runtime;
 import org.vmmagic.pragma.*;
 
 /**

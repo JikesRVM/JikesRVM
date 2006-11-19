@@ -9,7 +9,6 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_ObjectModel;
 import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.classloader.*;

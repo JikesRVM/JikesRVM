@@ -14,7 +14,6 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 import com.ibm.jikesrvm.VM_Constants;
-import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_JavaHeader;
 import com.ibm.jikesrvm.BootImageInterface;
 

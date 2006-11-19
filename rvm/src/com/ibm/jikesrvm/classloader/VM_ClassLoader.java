@@ -12,13 +12,8 @@ package com.ibm.jikesrvm.classloader;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Properties;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
-import java.util.StringTokenizer;
 import java.io.*;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipEntry;
-import java.security.ProtectionDomain;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>

@@ -9,7 +9,6 @@
 //$Id$ 
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
 import org.vmmagic.unboxed.*;
 

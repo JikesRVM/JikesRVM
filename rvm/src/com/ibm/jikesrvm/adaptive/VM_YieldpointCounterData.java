@@ -24,8 +24,6 @@ import com.ibm.jikesrvm.opt.*;
  * @author Matthew Arnold
  *
 **/
-
-import java.util.Hashtable;
 import java.util.Enumeration;
 
 public final class VM_YieldpointCounterData extends VM_StringEventCounterData

@@ -10,7 +10,6 @@ package com.ibm.jikesrvm.mm.mmtk;
  
 import org.mmtk.utility.options.*;
 
-import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 
 import com.ibm.jikesrvm.VM;

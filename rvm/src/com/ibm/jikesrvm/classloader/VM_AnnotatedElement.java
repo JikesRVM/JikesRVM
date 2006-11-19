@@ -15,7 +15,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import com.ibm.jikesrvm.VM;
-import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
  * A common abstract super class for all elements that can be

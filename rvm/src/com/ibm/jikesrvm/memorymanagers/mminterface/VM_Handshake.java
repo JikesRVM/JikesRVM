@@ -12,20 +12,10 @@ package com.ibm.jikesrvm.memorymanagers.mminterface;
 import com.ibm.jikesrvm.mm.mmtk.Lock;
 import com.ibm.jikesrvm.mm.mmtk.Collection;
 
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.VM;
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import com.ibm.jikesrvm.VM_BootRecord;
-import com.ibm.jikesrvm.VM_ObjectModel;
 import com.ibm.jikesrvm.VM_Scheduler;
-import com.ibm.jikesrvm.VM_Memory;
-import com.ibm.jikesrvm.VM_Time;
-import com.ibm.jikesrvm.VM_Entrypoints;
-import com.ibm.jikesrvm.VM_Reflection;
-import com.ibm.jikesrvm.VM_Synchronization;
-import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_Thread;
 
 /**

@@ -14,15 +14,8 @@ import java.io.PrintWriter;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Options;
 import com.ibm.jikesrvm.VM_StackTrace;
-import com.ibm.jikesrvm.VM_UnimplementedError;
 import com.ibm.jikesrvm.PrintLN;
 import com.ibm.jikesrvm.PrintContainer;
-import com.ibm.jikesrvm.classloader.VM_Atom;
-import com.ibm.jikesrvm.classloader.VM_Type;
-import com.ibm.jikesrvm.classloader.VM_TypeReference;
-import com.ibm.jikesrvm.VM_ObjectModel;
-
-
 
 /**
  * Jikes RVM implementation of java.lang.Throwable.

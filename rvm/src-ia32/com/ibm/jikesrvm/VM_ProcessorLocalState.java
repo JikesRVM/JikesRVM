@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm;
 
 //-#if RVM_WITH_OPT_COMPILER
-import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 //-#endif 

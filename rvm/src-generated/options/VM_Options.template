@@ -12,7 +12,6 @@
 package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /**
  * Class to handle command-line arguments and options meant

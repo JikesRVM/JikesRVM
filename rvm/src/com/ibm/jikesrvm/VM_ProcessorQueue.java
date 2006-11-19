@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /**
  * A queue to handle a set of  virtual processors  

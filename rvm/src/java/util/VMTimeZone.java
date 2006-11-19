@@ -10,7 +10,6 @@
  */
 package java.util;
 
-import com.ibm.jikesrvm.VM_SysCall;
 /** java.util.VMTimeZone for compatibility with GNU classpath 0.11.
  *
  * @author Steven Augart

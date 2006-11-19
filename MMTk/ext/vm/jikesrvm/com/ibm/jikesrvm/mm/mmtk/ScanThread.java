@@ -10,12 +10,9 @@ package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.deque.*;
-import org.mmtk.utility.Constants;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.memorymanagers.mminterface.DebugUtil;
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
 
@@ -23,9 +20,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Constants;
-import com.ibm.jikesrvm.VM_CodeArray;
 
-import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_Scheduler;

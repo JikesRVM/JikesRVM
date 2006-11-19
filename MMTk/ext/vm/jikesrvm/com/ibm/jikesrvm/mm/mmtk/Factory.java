@@ -15,7 +15,6 @@ package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
-import com.ibm.jikesrvm.mm.mmtk.gcspy.*;
 
 import com.ibm.jikesrvm.VM;
 

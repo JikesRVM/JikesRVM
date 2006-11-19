@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.VM_CompiledMethod;

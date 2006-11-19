@@ -11,7 +11,6 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
-import java.io.*;
 
 import org.vmmagic.unboxed.*;
 

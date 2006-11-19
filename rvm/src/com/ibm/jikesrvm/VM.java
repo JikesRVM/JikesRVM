@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import java.lang.ref.Reference;
 //-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
 //-#endif

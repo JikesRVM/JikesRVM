@@ -9,10 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.VM_Time;
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
 //-#endif

@@ -11,10 +11,7 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Scheduler;
-import com.ibm.jikesrvm.VM_RuntimeCompiler;
 import com.ibm.jikesrvm.VM_CompiledMethod;
-import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 
 /**

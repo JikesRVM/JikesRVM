@@ -17,7 +17,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.zip.*;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.io.*;

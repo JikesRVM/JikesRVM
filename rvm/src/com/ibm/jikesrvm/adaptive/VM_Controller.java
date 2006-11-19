@@ -9,10 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.adaptive;
 
-import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.VM_Callbacks;
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM_EdgeCounts;
 import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_RecompilationManager; 

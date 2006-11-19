@@ -15,7 +15,6 @@ import org.vmmagic.pragma.*;
 
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM_CompiledMethod;
-import com.ibm.jikesrvm.VM_CompiledMethods;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses

@@ -15,7 +15,6 @@ import com.ibm.jikesrvm.PrintLN;
 import com.ibm.jikesrvm.VM;
 
 import com.ibm.jikesrvm.classloader.VM_Atom;
-import com.ibm.jikesrvm.classloader.VM_Class;
 import com.ibm.jikesrvm.classloader.VM_Member;
 
 import java.io.PrintStream;

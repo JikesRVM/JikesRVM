@@ -10,10 +10,7 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_CompiledMethod;
-import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_Scheduler;
-import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 
 /**
  * An organizer for method listener information that 

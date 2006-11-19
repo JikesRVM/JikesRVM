@@ -12,7 +12,6 @@ package java.lang.reflect;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.VM_Reflection;
 import com.ibm.jikesrvm.VM_Runtime;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import gnu.java.lang.ClassHelper;
 import gnu.java.lang.reflect.MethodSignatureParser;

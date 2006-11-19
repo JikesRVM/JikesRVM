@@ -11,10 +11,6 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.classloader.*;
-import java.util.Vector;
-import java.util.Enumeration;
 
 import org.vmmagic.pragma.*;
 

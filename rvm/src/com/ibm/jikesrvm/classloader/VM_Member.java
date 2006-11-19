@@ -10,8 +10,6 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.*;
-import java.io.DataInputStream;
-import java.io.IOException;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 

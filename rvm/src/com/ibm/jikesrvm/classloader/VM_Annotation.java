@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM_Statics;
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.VM_Reflection;
 import java.io.DataInputStream;

@@ -10,7 +10,6 @@
 
 package com.ibm.jikesrvm.osr;
 
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.VM;
 import org.vmmagic.unboxed.*;

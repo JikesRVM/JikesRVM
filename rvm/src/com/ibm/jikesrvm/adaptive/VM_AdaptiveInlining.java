@@ -11,9 +11,6 @@ package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.*;
-import java.util.*;
-import java.io.*;
 
 /**
  * Collection of static methods to assist with adaptive inlining.

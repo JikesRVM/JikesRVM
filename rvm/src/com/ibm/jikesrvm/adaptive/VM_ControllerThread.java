@@ -11,8 +11,6 @@ package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.VM_BaselineCompiler;
-import java.util.Vector;
 import java.util.Enumeration;
 
 /**

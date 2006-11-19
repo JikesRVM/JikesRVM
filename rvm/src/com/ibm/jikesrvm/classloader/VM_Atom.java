@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.util.*;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /** 
  * An  utf8-encoded byte string.

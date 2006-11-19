@@ -12,10 +12,8 @@
 package com.ibm.jikesrvm.mm.mmtk;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_CommandLineArgs;
 import com.ibm.jikesrvm.VM_Processor;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**

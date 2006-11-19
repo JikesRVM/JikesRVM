@@ -14,7 +14,6 @@ package com.ibm.jikesrvm.mm.mmtk;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TraceStep;
 import org.mmtk.utility.scan.Scan;
-import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Constants;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;

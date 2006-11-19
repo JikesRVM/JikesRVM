@@ -13,7 +13,6 @@
 
 package com.ibm.jikesrvm.adaptive;
 
-import java.util.List;
 import java.util.Iterator;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
