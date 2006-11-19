@@ -10,16 +10,11 @@
 package java.lang;
 
 import java.io.File;
-import java.util.Properties;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.VM_ClassLoader;
 import com.ibm.jikesrvm.memorymanagers.mminterface.*;
-import com.ibm.jikesrvm.VM_Configuration;
 
 import org.vmmagic.unboxed.Offset;
-
-import gnu.classpath.VMSystemProperties;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
@@ -36,9 +31,9 @@ final class VMRuntime {
     instance = new VMRuntime();
     gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
   }
-  private static VMRuntime instance;
+  private static final VMRuntime instance;
   private int gcLock;
-  private static Offset gcLockOffset;
+  private static final Offset gcLockOffset;
   
   private VMRuntime() { }
 

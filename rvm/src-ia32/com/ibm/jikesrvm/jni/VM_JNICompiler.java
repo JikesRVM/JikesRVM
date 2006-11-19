@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.jni;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 
-import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -272,7 +271,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     Offset emptyStackOffset  = Offset.fromIntSignExtend(firstLocalOffset - ((parameterWords+2) << LG_WORDSIZE) + WORDSIZE);
     Offset firstParameterOffset = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET 
                                   + STACKFRAME_HEADER_SIZE + (parameterWords<<LG_WORDSIZE));
-    int firstActualParameter;
 
 
     VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
@@ -381,12 +379,10 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegDisp (EBX, JTOC, tibOffset);
       asm.emitMOV_Reg_RegInd  (EBX, EBX);
       asm.emitMOV_Reg_RegDisp (EBX, EBX, VM_Entrypoints.classForTypeField.getOffset());
-      firstActualParameter = 0;
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame
       asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.plus(WORDSIZE));
-      firstActualParameter = 1;
     }
 
     // Generate the code to push this pointer in ebx on to the JNIRefs stack 

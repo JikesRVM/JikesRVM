@@ -507,7 +507,7 @@ public final class VM_BuildBB
    * as a predecessor of the block that starts at branchtarget.
    */
   private void processBackwardBranch(int index, int branchtarget) {
-    VM_BasicBlock existingBB, currentBB, newBB, targetBB;
+    VM_BasicBlock existingBB, currentBB, newBB;
     int newBlockNum, i, newBlockEnd;
 
     existingBB = basicBlocks[byteToBlockMap[branchtarget]];

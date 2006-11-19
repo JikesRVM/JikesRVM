@@ -13,7 +13,6 @@ package com.ibm.jikesrvm.memorymanagers.mminterface;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -41,7 +40,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
   static final void boot (VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
-    VM_Type t = VM_Array.getPrimitiveArrayType(10);
+    VM_Type t = VM_Array.IntArray;
     tibForArrayType = VM_ObjectModel.getTIB(t);
     tibForPrimitiveType = VM_ObjectModel.getTIB(VM_Type.IntType);
     t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);

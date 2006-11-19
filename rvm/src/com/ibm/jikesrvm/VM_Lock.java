@@ -154,7 +154,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    * @see java.lang.Object#wait(long time)
    */
   public static void wait (Object o, long millis) throws LogicallyUninterruptiblePragma /* only loses control at expected points -- I think -dave */{
-    double time;
     VM_Thread t = VM_Thread.getCurrentThread();
     if (STATS) timedWaitOperations++;
     // Get proxy and set wakeup time
@@ -370,7 +369,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
                  boolean       active;
   private        VM_Lock       nextFreeLock;
                  int           index;
-  private static int           nextLockIndex;
 
   // Maximum number of VM_Lock's that we can support
   //

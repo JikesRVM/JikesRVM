@@ -170,7 +170,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     VM_Magic.sync();
     
     int max = numCompiledMethods(); 
-    for (int i=0; i<numCompiledMethods(); i++) {
+    for (int i=0; i<max; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm != null) {
         if (cm.isActiveOnStack()) {

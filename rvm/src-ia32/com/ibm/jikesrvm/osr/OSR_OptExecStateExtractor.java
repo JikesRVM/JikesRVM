@@ -13,7 +13,6 @@ package com.ibm.jikesrvm.osr;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
-import java.util.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -92,8 +91,6 @@ public final class OSR_OptExecStateExtractor
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
-    VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
-    
     OSR_EncodedOSRMap fooOSRMap = fooCM.getOSRMap();
 
     /* get register reference map from OSR map
@@ -566,7 +563,6 @@ public final class OSR_OptExecStateExtractor
     VM.disableGC();
     Address upper = VM_Magic.objectAsAddress(stack).loadAddress(fpOffset);
     VM.enableGC();
-    Offset upOffset = upper.diff(VM_Magic.objectAsAddress(stack));
 
     int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_OptCompiledMethod cm = 

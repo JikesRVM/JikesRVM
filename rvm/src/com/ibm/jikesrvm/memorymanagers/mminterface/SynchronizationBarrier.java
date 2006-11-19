@@ -15,13 +15,11 @@ import org.mmtk.utility.Barrier;
 import org.vmmagic.pragma.*;
 
 import com.ibm.jikesrvm.VM_Scheduler;
-import com.ibm.jikesrvm.VM_Time;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM_SysCall;
-import com.ibm.jikesrvm.VM_BootRecord;
 
 /**
  * A synchronization barrier used to synchronize collector threads,
@@ -45,7 +43,7 @@ public final class SynchronizationBarrier {
   // number of physical processors on running computer 
   private int   numRealProcessors; 
 
-  Barrier barrier = new Barrier();
+  final Barrier barrier = new Barrier();
 
   /**
    * Constructor

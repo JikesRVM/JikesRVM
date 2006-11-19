@@ -159,7 +159,7 @@ public abstract class VM_TypeDescriptorParsing
    */
   public static boolean isVMIdentifierStart (char c) {
 	  
-    return ((!Character.isSpace(c)) && isVMIdentifierPart(c));
+    return ((!Character.isWhitespace(c)) && isVMIdentifierPart(c));
   }
   
   /**
@@ -246,7 +246,7 @@ public abstract class VM_TypeDescriptorParsing
   {
     try {
       // Atoms are always utf-8.
-      String s = a.toUnicodeString();
+      a.toUnicodeString();
     } catch (java.io.UTFDataFormatException udfe) {
       IllegalArgumentException iae 
         = new IllegalArgumentException("The atom in question does not represent a valid UTF8 string, so it's not a type descriptor.");

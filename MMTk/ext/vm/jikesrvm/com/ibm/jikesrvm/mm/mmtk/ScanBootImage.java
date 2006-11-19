@@ -11,14 +11,11 @@
 package com.ibm.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.deque.AddressDeque;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
-import com.ibm.jikesrvm.VM_Statics;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_BootRecord;
 import com.ibm.jikesrvm.VM_Magic;
-import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
@@ -300,10 +297,10 @@ public class ScanBootImage implements Constants {
   throws UninterruptiblePragma, InlinePragma {
     int value;
     value  = ((int) cursor.loadByte())                                    & 0x000000fc;
-    value |= ((int) cursor.loadByte(Offset.fromInt(1))<<BITS_IN_BYTE)     & 0x0000ff00;
-    value |= ((int) cursor.loadByte(Offset.fromInt(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
-    value |= ((int) cursor.loadByte(Offset.fromInt(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
-    return Offset.fromInt(value);
+    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
+    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
+    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
+    return Offset.fromIntSignExtend(value);
   }
   
   /**

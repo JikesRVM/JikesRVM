@@ -44,10 +44,10 @@ import org.mmtk.utility.Log;
 public class Lock extends org.mmtk.vm.Lock implements Uninterruptible {
 
   // Internal class fields
-  private static Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
-  private static Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
-  private static Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
-  private static Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
+  private static final Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
+  private static final Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
+  private static final Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
+  private static final Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
   private static long SLOW_THRESHOLD = Long.MAX_VALUE>>1; // set to a real value by fullyBooted
   private static long TIME_OUT = Long.MAX_VALUE;       // set to a real value by fullyBooted
 
@@ -59,17 +59,17 @@ public class Lock extends org.mmtk.vm.Lock implements Uninterruptible {
 
   // Core Instance fields
   private String name;        // logical name of lock
-  private int id;             // lock id (based on a non-resetting counter)
+  private final int id;       // lock id (based on a non-resetting counter)
   private int dispenser;      // ticket number of next customer
   private int serving;        // number of customer being served
   // Diagnosis Instance fields
   private VM_Thread thread;   // if locked, who locked it?
   private long start;         // if locked, when was it locked?
   private int where = -1;     // how far along has the lock owner progressed?
-  private int[] servingHistory = new int[100];
-  private int[] tidHistory = new int[100];
-  private long[] startHistory = new long[100];
-  private long[] endHistory = new long[100];
+  private final int[] servingHistory = new int[100];
+  private final int[] tidHistory = new int[100];
+  private final long[] startHistory = new long[100];
+  private final long[] endHistory = new long[100];
 
   public static void fullyBooted() {
     SLOW_THRESHOLD = VM_Time.millisToCycles(200); // cycles for .2 seconds

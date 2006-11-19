@@ -10,8 +10,6 @@
 package com.ibm.jikesrvm;
 
 import java.lang.reflect.Method;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.vmmagic.unboxed.*;
@@ -84,7 +82,7 @@ class DebuggerThread extends VM_Thread {
     switch (command) {
     case 't': // display thread(s)
       if (tokens.length == 1) { //
-        for (int i = 0, col = 0; i < VM_Scheduler.threads.length; ++i) {
+        for (int i = 0; i < VM_Scheduler.threads.length; ++i) {
           VM_Thread thread = VM_Scheduler.threads[i];
           if (thread == null) continue;
           VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) + leftJustify(thread.toString(), 40) + getThreadState(thread) + "\n");

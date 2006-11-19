@@ -44,7 +44,6 @@ class VM_YieldCounterListener extends VM_NullListener implements Uninterruptible
     int yp = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
     if (yp == yieldThreshold) {
       totalYields += yp;
-      numYields = 0;
       activateOrganizer();
     }
   }

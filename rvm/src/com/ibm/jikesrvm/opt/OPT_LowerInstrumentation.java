@@ -69,12 +69,14 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     * @param ir the governing IR
    */ 
   static final void lowerInstrumentation(OPT_IR ir) {
+    /*
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
-      //bb.printExtended();
+      bb.printExtended();
     }
-    
+    */
+
     ArrayList instrumentedInstructions = new ArrayList();
     
     // Go through all instructions and find the instrumented ones.  We
@@ -112,11 +114,13 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
       counterManager.mutateOptEventCounterInstruction(i,ir);
     }
     
+    /*
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
-      //       bb.printExtended();
+      bb.printExtended();
     }
+    */
   } // end of lowerInstrumentation
   
 }

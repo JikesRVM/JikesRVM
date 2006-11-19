@@ -460,22 +460,26 @@ emitcase(Term p)
     Rule r;
 
     if (p->arity == -1) return;
-    print("private void label_%S(OPT_BURS_TreeNode p) {\n%1int c;\n", p);
+    print("private void label_%S(OPT_BURS_TreeNode p) {\n", p);
     print("%1p.word0 = 0;\n");
     print("%1p.initCost();\n"); 
-    print("%1OPT_BURS_TreeNode lchild, rchild;\n");
-    print("%1lchild = p.child1;\n");
-    print("%1rchild = p.child2;\n"); 
 
     switch (p->arity) {
     case 0: 
         break;
     case 1:
+        print("%1OPT_BURS_TreeNode lchild;\n");
+        print("%1lchild = p.child1;\n");
         print("%1label(lchild);\n");
+        print("%1int c;\n");
         break;
     case 2:
+        print("%1OPT_BURS_TreeNode lchild, rchild;\n");
+        print("%1lchild = p.child1;\n");
+        print("%1rchild = p.child2;\n"); 
         print("%1label(lchild);\n");
         print("%1label(rchild);\n");
+        print("%1int c;\n");
         break;
     default: assert(0);
     }
@@ -583,7 +587,6 @@ emitdefs(Nonterm nts_)
     Nonterm p;
 
     print("package com.ibm.jikesrvm.opt; \n");
-    print("import com.ibm.jikesrvm.*; \n");
     print("interface OPT_BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1static final byte %S_NT  \t= %d;\n", p, p->number);

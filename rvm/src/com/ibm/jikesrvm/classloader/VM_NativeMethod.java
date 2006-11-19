@@ -141,7 +141,6 @@ public final class VM_NativeMethod extends VM_Method {
     String mangledClassName, mangledMethodName;
     String className = getDeclaringClass().toString();
     String methodName = getName().toString();
-    int first, next;
 
     // Mangled Class name
     // Special case: underscore in class name

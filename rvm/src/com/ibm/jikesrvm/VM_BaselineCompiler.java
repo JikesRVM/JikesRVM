@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_OSR
@@ -270,38 +269,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     }
   }
 
-
-  //-#if RVM_WITH_OSR
-  /* for invoke compiled method, we have to fool GC map, 
-   * InvokeCompiledMethod has two parameters compiledMethodID 
-   * and originalBytecodeIndex of that call site
-   * 
-   * we make the InvokeCompiledMethod pending until generating code
-   * for the original call.
-   * it looks like following instruction sequence:
-   *    invokeCompiledMethod cmid, bc
-   *
-   *  ==>  forward (x)
-   *
-   *          bc:  forward(x')
-   *             resolve (x):
-   *               invoke cmid
-   *               forward(x")
-   *             resolve (x'):
-   *               invoke xxxx
-   *             resolve (x");
-   * in this way, the instruction for invokeCompiledMethod is right before
-   * the original call, and it uses the original call's GC map
-   */
-  private int pendingCMID = -1;
-  private int pendingIdx  = -1;
-  private VM_ForwardReference pendingRef = null;
-  //-#endif
-
   protected String getCompilerName() {
     return "baseline";
   }
-
-
-
 }

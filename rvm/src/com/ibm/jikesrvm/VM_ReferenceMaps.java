@@ -1475,7 +1475,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     VM.sysWrite("in showOffset- #maps = ");
     VM.sysWrite(mapCount);
     VM.sysWrite("\n");
-    int i,j, toffset = 0;
+    int i, toffset = 0;
 
     if (mapCount == 0) {
       VM.sysWrite(" no maps for method");

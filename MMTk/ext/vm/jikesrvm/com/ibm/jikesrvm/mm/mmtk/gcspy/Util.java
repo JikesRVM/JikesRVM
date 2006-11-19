@@ -9,7 +9,6 @@
  */
 package com.ibm.jikesrvm.mm.mmtk.gcspy;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.plan.Plan;
@@ -136,7 +135,7 @@ public class Util extends org.mmtk.vm.gcspy.Util implements Uninterruptible, Con
           //-#endif
           shift += BITS_IN_BYTE;
         }
-        rtn.store(value, Offset.fromInt(offset));
+        rtn.store(value, Offset.fromIntSignExtend(offset));
       }
       if (DEBUG_) {
         VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");

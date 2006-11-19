@@ -108,7 +108,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     //
     VM_BytecodeStream  bcodes;                // byte codes for the method
     short              brBBNum;               // For processing branches, need block number of target
-    VM_Class           declaringClass;        // The declaring class of the method 
 
     // Note that the mapping done here is "double mapping" of parameters.
     // Double mapping is when the parameters for a method are included in the map of 
@@ -133,7 +132,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
     // Get information from the method being processed
     bcodes = method.getBytecodes();
-    declaringClass = method.getDeclaringClass();
 
     // Set up the array of maps per block; block 0 is not used
     int numBB = buildBB.bbf.getNumberofBlocks();
@@ -1664,7 +1662,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
                              int blockStkTop[], VM_PendingRETInfo bbPendingRETs[], 
                              VM_PendingRETInfo currPendingRET, VM_JSRSubroutineInfo[] JSRSubs, 
                              short[] workStk) {
-    boolean inJSROnReturn;
     short newworkStk[] = workStk;
 
     // If the destination block doesn't already have a map, then use this map to build

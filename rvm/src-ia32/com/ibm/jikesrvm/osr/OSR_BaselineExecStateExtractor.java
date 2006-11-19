@@ -70,7 +70,6 @@ public final class OSR_BaselineExecStateExtractor
       VM.sysWriteln("BASE execStateExtractor starting ...");    
     }
 
-    VM_Registers contextRegisters = thread.contextRegisters;
     byte[] stack = thread.stack;
 
     if (VM.VerifyAssertions) {

@@ -112,7 +112,6 @@ class VM_CompilerAdviceInfoReader {
    */
   private static VM_CompilerAdviceAttribute readOneAttribute(StringTokenizer st)
   {
-    String className, methodName, methodSignature;
     int compiler, optLevel = -1;
     
     try {

@@ -11,10 +11,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.adaptive.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import com.ibm.jikesrvm.opt.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
@@ -64,9 +61,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * Temporary variables
    */
   private OPT_RegisterOperand cbsReg = null;
-  private OPT_LocationOperand cbsLoc = null;
-  private OPT_LocationOperand resetLoc = null;
-  private OPT_BasicBlock origLastBlock = null;
 
   /**
    * Constructor for this compiler phase
@@ -154,9 +148,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     // Clear the static variables 
     cbsReg=null;
-    cbsLoc=null;
-    resetLoc=null;
-    origLastBlock = null;
 
     // 
     //    OPT_RegisterInfo.computeRegisterList(ir);
@@ -175,9 +166,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     HashMap origToDupMap = new HashMap();           // Used to store mapping from original to duplicated blocks
     HashSet exceptionHandlerBlocks = new HashSet(); // Used to remember all exception handler blocks
     cbsReg = ir.regpool.makeTempInt();              // The register containing the counter value to check
-    cbsLoc = new OPT_LocationOperand(VM_Entrypoints.globalCBSField);
-    resetLoc = new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField);
-
     
     // 1) Make a copy of all basic blocks
     duplicateCode(ir, origToDupMap, exceptionHandlerBlocks);
@@ -482,7 +470,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     if (DEBUG)VM.sysWrite("Adding store to "+ bb + "\n");
     OPT_Instruction store = null;
     if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
-      OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
       store = Store.create(INT_STORE, 
                            cbsReg.copyRO(),
                            OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
@@ -665,8 +652,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param ir the governing IR */
   private final static void adjustPointersInDuplicatedCode(OPT_IR ir, HashMap origToDupMap){
-
-    Hashtable handlerCache = new Hashtable();
 
     // Iterate over the original version of all duplicate blocks
     Iterator dupBlocks = origToDupMap.values().iterator();

@@ -227,7 +227,6 @@ implements Uninterruptible, VM_Constants {
    */ 
   private VM_Thread getRunnableThread() throws InlinePragma {
 
-    int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();

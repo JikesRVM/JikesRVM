@@ -101,7 +101,6 @@ public final class VM_ControllerMemory implements VM_Constants {
   static synchronized void insert(VM_ControllerPlan plan) {
 
     if (VM.LogAOSEvents) {
-      VM_Method method = plan.getCompPlan().getMethod();
       numMethodsScheduledForRecomp++;
       int optLevel = plan.getCompPlan().options.getOptLevel();
       switch (optLevel) {
@@ -204,7 +203,6 @@ public final class VM_ControllerMemory implements VM_Constants {
       // iterate over the planList until we find a plan whose status is
       // inprogress, completed, 
       synchronized(planList) {
-        boolean found = false;
         VM_ControllerPlan curPlan = null;
         ListIterator iter = planList.listIterator();
         while (iter.hasNext()) {

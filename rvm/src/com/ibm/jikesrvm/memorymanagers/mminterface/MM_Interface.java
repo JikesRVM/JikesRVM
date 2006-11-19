@@ -10,15 +10,12 @@
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
-import java.util.Date;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.CollectorContext;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Constants;
@@ -27,17 +24,13 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
-import org.mmtk.utility.statistics.Stats;
-import org.mmtk.utility.options.*;
 import com.ibm.jikesrvm.mm.mmtk.Assert;
 import com.ibm.jikesrvm.mm.mmtk.Lock;
 import com.ibm.jikesrvm.mm.mmtk.Options;
 import com.ibm.jikesrvm.mm.mmtk.ReferenceGlue;
-import com.ibm.jikesrvm.mm.mmtk.Scanning;
 import com.ibm.jikesrvm.mm.mmtk.SynchronizedCounter;
 import com.ibm.jikesrvm.mm.mmtk.Collection;
 
-import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Type;
 import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.classloader.VM_Class;
@@ -53,12 +46,10 @@ import com.ibm.jikesrvm.VM_CodeArray;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_HeapLayoutConstants;
 import com.ibm.jikesrvm.VM_DynamicLibrary;
-import com.ibm.jikesrvm.VM_JavaHeader;
 
 import com.ibm.jikesrvm.VM_Memory;
 import com.ibm.jikesrvm.VM_ObjectModel;
 import com.ibm.jikesrvm.VM_Processor;
-import com.ibm.jikesrvm.VM_Scheduler;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -163,7 +154,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static final void boot(VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
-    int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     Mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);

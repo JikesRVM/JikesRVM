@@ -73,7 +73,7 @@ public class FinalizerThread extends VM_Thread {
            try {
              VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
              if (VM.VerifyAssertions) VM._assert(method != null);
-             Object    ret = VM_Reflection.invoke(method, o, none);
+             VM_Reflection.invoke(method, o, none);
            }
            catch (Exception e) {
                if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");

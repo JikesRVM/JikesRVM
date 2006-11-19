@@ -11,8 +11,6 @@ package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.classloader.VM_NormalMethod;
-import java.util.Vector;
-import java.util.Enumeration;
 
 /**
  * An instance of this class is created for each method that is
@@ -25,7 +23,7 @@ import java.util.Enumeration;
  */
 public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
   /** The method that this plan is for */
-  private VM_NormalMethod method;
+  private final VM_NormalMethod method;
 
   /**
    * Construct empty plan, must setup manually
@@ -38,6 +36,7 @@ public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
    * Construct based on options
    **/ 
   public VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_NormalMethod method) {
+    this.method = method;
     // If we want to collect method invocation counts.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
     }

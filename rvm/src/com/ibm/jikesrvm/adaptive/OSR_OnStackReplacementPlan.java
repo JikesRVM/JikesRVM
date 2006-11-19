@@ -27,9 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Feng Qian
  */
 public class OSR_OnStackReplacementPlan implements VM_Constants {
-  private double priority;
   private int CMID;
-  private int whereFrom;
   private Offset tsFromFPoff;
   private Offset ypTakenFPoff;
 
@@ -38,10 +36,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private VM_Thread suspendedThread;
   private OPT_CompilationPlan compPlan;
 
-  private int timeCreated;
   private int timeInitiated = -1;
   private int timeCompleted = -1;
-  private double compilationCPUTime;
 
   public OSR_OnStackReplacementPlan(VM_Thread thread,
                                     OPT_CompilationPlan cp,
@@ -53,10 +49,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     this.suspendedThread = thread;
     this.compPlan = cp;
     this.CMID = cmid;
-    this.whereFrom = source;
     this.tsFromFPoff = tsoff;
     this.ypTakenFPoff = ypoff;
-    this.priority = priority;
     this.status = VM_ControllerPlan.UNINITIALIZED;
   }
 

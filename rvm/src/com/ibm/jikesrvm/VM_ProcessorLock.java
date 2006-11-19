@@ -108,7 +108,6 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
     if (VM.VerifyAssertions) i.lockCount += 1;
     VM_Processor p;
     int attempts = 0;
-    int retries = 0;
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     do {
       p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepareAddress(this, latestContenderOffset)));
@@ -174,7 +173,6 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
       return;
     }
     VM_Processor p;
-    int retries = 0;
     do {
       p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepareAddress(this, latestContenderOffset)));
       if (p == i) { // nobody is waiting for the lock

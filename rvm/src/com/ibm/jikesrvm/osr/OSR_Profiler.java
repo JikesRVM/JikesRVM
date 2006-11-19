@@ -11,7 +11,6 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 
@@ -100,7 +99,6 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
         if (VM.VerifyAssertions) {
           VM._assert(attr.getCompiler() == VM_CompiledMethod.OPT);
         }
-        int newCMID = -2;
         if (VM_Controller.options.counters()) {
           // for invocation counter, we only use one optimization level
           cmplplan = VM_InvocationCounts.createCompilationPlan(state.meth);

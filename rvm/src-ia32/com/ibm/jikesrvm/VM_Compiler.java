@@ -29,7 +29,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private final int parameterWords;
   private int firstLocalOffset;
-  private boolean hasCounterArray;
 
   private static final Offset NO_SLOT  = Offset.zero(); 
   private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE); 
@@ -43,7 +42,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
-    hasCounterArray = cm.hasCounterArray();
   }
 
   /**

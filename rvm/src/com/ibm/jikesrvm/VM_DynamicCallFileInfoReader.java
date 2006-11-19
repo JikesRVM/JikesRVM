@@ -53,7 +53,6 @@ public class VM_DynamicCallFileInfoReader {
    * @param file The annoation file to be read
    */
   public static void readDynamicCallFile(String file, boolean boot) {
-    List dynamicCallInfo = null;
     BufferedReader fileIn = null;
     
     if (file == null) return;// null;

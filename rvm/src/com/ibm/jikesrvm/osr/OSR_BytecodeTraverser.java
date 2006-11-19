@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
-import java.util.*;
 
 /**
  * OSR_BytecodeTraverser does depth first search on a bytecode
@@ -308,7 +307,6 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     VM_Class declaringClass = method.getDeclaringClass();
     bytecodes.reset(startpc);
     
-    int tmpl = 0;
     boolean found = false;
 
     while (bytecodes.hasMoreBytecodes()) {
