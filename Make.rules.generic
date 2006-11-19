@@ -23,7 +23,7 @@
 SHELL=/bin/bash
 
 # This is the name to use to compile "normal" (non-RVM) java files.
-JCOMPILE = $(HOST_JAVAC) $(HOST_JAVAC_CLASSPATH)
+JCOMPILE = $(RVM_ROOT)/bin/ecj 
 
 RM=rm -f
 CP=cp -f
