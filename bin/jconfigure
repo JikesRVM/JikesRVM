@@ -2702,7 +2702,7 @@ build_mmtk() {
     copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
     copy_source \$MMTK_SOURCE/src mmtk
 
-    \${HOST_JAVAC} -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
+    ${ROOT_DIRECTORY_STR}/bin/ecj -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
 
     #
     # Build mmtk.jar
@@ -2747,17 +2747,10 @@ build_mmtk() {
 
 EOF
 
-    if [ $host_jikes_version != ecj ]; then
     cat <<- EOF
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag} -sourcepath .:../MMTk.classes/mmtk -classpath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+	    jikes_invocation="$ROOT_DIRECTORY_STR/bin/ecj -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
     
 EOF
-    else
-    cat <<- EOF
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
-    
-EOF
-    fi
     cat <<- EOF
 	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
@@ -2939,15 +2932,10 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 
-	eval run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
+	eval run $ROOT_DIRECTORY_STR/bin/ecj -g \
 	  -classpath \$cp \
 	  -bootclasspath \$cp \
 	   \${generator_sources}
-
-# 	eval run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
-# 	  -classpath \$cp \
-# 	  -bootclasspath \$cp \
-# 	   \$generator_prefix/${generator_classes}.java
 
 	#
 	# generate InterfaceDeclarations.h
@@ -3728,7 +3716,7 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 
 	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
-	run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
+	run $ROOT_DIRECTORY_STR/bin/ecj \
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
 
@@ -4376,7 +4364,7 @@ function emitToolCompiler () {
 	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	
-	run exec $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
+	run exec $ROOT_DIRECTORY_STR/bin/ecj -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
 EOF
 }
   
