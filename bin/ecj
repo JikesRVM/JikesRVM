@@ -23,6 +23,6 @@ if [[ ! ${JAL_BUILD-} ]]; then
     . ${RVM_BUILD}/environment.host
 fi
 
-ECJ_DEFAULT_ARGS=""
+ECJ_DEFAULT_ARGS="-warn:-unusedPrivate"
 
 $HOST_VM_RT -Xmx256m -jar $JAL_ROOT/tools-external/ecj/ecj.jar $ECJ_DEFAULT_ARGS "$@"
