@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.*;
-import java.util.*;
 
 /**
  *  This class represents the set of inlined method calls that are

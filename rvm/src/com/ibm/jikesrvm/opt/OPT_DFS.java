@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import java.util.*;
+import java.util.HashMap;
 
 /**
  * This class implements depth-first search over a OPT_Graph,
@@ -53,7 +53,7 @@ class OPT_DFS extends OPT_Stack {
 
     // Implementation
 
-   private java.util.HashMap info = new java.util.HashMap(); // f: vertex -> VertexInfo
+   private final HashMap info = new HashMap(); // f: vertex -> VertexInfo
    private int time;
 
    /**

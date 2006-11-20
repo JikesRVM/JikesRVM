@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
 import java.lang.reflect.Constructor;
-import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -424,8 +423,6 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       }
       else {
         // Phase is being used in LIR
-        OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
-        
         // Insert the load instruction. 
         load = 
           Load.create(INT_LOAD, cbsReg.copyRO(), 

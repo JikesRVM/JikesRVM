@@ -1582,7 +1582,6 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   // Store Status Word into AX register/noexecptions
   public final void emitFNSTSW () {
     int miStart = mi;
-    int relOffset = 0;
     setMachineCodes(mi++, (byte) 0xDF);
     setMachineCodes(mi++, (byte) 0xE0);
     if (lister != null) lister.OP(miStart, "FNSTSW");

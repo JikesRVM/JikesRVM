@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
+import  java.util.Iterator;
 
 /**
  * OPT_DF_LatticeCell.java
@@ -26,7 +26,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
-  public java.util.Iterator getUses ();
+  public Iterator getUses ();
 
   /** 
    * Returns an enumeration of the equations in which this
@@ -34,7 +34,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
-  public java.util.Iterator getDefs ();
+  public Iterator getDefs ();
 
   /** 
    * Return a string representation of the cell

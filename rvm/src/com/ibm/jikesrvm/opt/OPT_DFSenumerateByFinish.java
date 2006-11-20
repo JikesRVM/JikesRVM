@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
-
 /**
  * This class implements depth-first search over a OPT_Graph,
  * return an enumeration of the nodes of the graph in order of
@@ -120,11 +118,11 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
   /**
    * an enumeration of all nodes to search from
    */
-  private OPT_GraphNodeEnumeration e;
+  private final OPT_GraphNodeEnumeration e;
   /**
    * an enumeration of child nodes for each node being searched
    */
-  private OPT_GraphNodeEnumeration[] info;
+  private final OPT_GraphNodeEnumeration[] info;
 
   /**
    * get the out edges of a given node

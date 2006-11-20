@@ -31,7 +31,6 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_StackBrowser;
 import com.ibm.jikesrvm.VM_Entrypoints;
 
-import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.classloader.VM_Type;
 
 
@@ -123,7 +122,6 @@ public final class VMStackWalker {
 
   public static Class getCallingClass(int skip) {
     VM_StackBrowser b = new VM_StackBrowser();
-    int frames = 0;
     VM.disableGC();
     
     b.init();

@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
-
 /**
  *  This class generates an enumeration of nodes of a graph, in order
  * of increasing finishing time in a reverse Depth First Search,

@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.Enumeration;
-
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley

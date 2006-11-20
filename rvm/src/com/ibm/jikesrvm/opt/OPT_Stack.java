@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.Enumeration;
-
 /**
  * OPT_Stack
  * OPT_Stack is a smaller implementation of java.util.Stack, that uses a linked

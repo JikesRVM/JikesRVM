@@ -290,7 +290,7 @@ public final class OPT_Instruction
     OPT_Operand op;
     int N = getNumberOfOperands();
     int numDefs = getNumberOfDefs();
-    int numIDefs = operator.getNumberOfImplicitDefs();
+    //int numIDefs = operator.getNumberOfImplicitDefs();
 
     // print explicit defs
     int defsPrinted = 0;

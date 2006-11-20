@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
+import java.util.HashMap;
 
 /**
  * OPT_DF_Solution.java
@@ -19,7 +19,7 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-public class OPT_DF_Solution extends java.util.HashMap {
+public class OPT_DF_Solution extends HashMap {
 
   /** 
    * Return a string representation of the dataflow solution

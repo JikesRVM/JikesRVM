@@ -171,7 +171,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * The live interval information, a set of Basic Intervals 
      * sorted by increasing start point
      */
-    public ArrayList intervals;
+    public final ArrayList intervals = new ArrayList();
 
     /**
      * Was any register spilled?
@@ -912,17 +912,17 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Governing ir
      */
-    private OPT_IR ir;
+    private final OPT_IR ir;
 
     /**
      * Manager of spill locations;
      */
-    private SpillLocationManager spillManager;
+    private final SpillLocationManager spillManager;
 
     /**
      * An object to help estimate spill costs
      */ 
-    private OPT_SpillCostEstimator spillCost;
+    private final OPT_SpillCostEstimator spillCost;
 
     /**
      * Have we spilled anything?
@@ -950,6 +950,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           break;
         default:
           OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
+	  spillCost = null;
       }
     }
 
@@ -1760,7 +1761,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       LinearScanState state = new LinearScanState();
       ir.MIRInfo.linearScanState = state;
-      state.intervals = new ArrayList();
 
       // create topological list and a reverse topological list
       // the results are on listOfBlocks and reverseTopFirst lists
@@ -1974,13 +1974,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * The governing IR
      */
-    private OPT_IR ir;
+    private final OPT_IR ir;
 
     /**
      * Set of spill locations which were previously allocated, but may be
      * free since the assigned register is no longer live.
      */
-    HashSet freeIntervals = new HashSet();
+    final HashSet freeIntervals = new HashSet();
 
     /**
      * Return a spill location that is valid to hold the contents of
@@ -2143,14 +2143,14 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * The spill location, an offset from the frame pointer
      */
-    private int frameOffset;
+    private final int frameOffset;
     int getOffset() { 
       return frameOffset;
     }
     /**
      * The size of the spill location, in bytes.
      */
-    private int size;
+    private final int size;
     int getSize() { 
       return size;
     }
@@ -2327,7 +2327,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
            GCenum.hasMoreElements(); ) {
         OPT_GCIRMapElement GCelement = GCenum.next();
-        OPT_Instruction GCinst = GCelement.getInstruction();
         if (gcdebug) { 
           VM.sysWrite("GCelement " + GCelement);
         }

@@ -10,7 +10,6 @@
 package gnu.java.lang;
 
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Method;
 
 import com.ibm.jikesrvm.classloader.*;
 

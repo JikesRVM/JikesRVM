@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.*;
-import java.util.*;
 
 /**
  * The nodes of an OPT_CallSiteTree.  They represent inlined call

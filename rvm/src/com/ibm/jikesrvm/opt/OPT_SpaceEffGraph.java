@@ -10,9 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.IOException;
 
 /**
  * OPT_SpaceEffGraph package implements a generic directed graph that can

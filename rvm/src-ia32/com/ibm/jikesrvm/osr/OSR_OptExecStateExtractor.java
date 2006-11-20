@@ -560,10 +560,6 @@ public final class OSR_OptExecStateExtractor
   }
 
   private static void dumpStackContent(byte[] stack, Offset fpOffset) {
-    VM.disableGC();
-    Address upper = VM_Magic.objectAsAddress(stack).loadAddress(fpOffset);
-    VM.enableGC();
-
     int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_OptCompiledMethod cm = 
       (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);

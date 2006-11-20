@@ -201,10 +201,6 @@ public class Throwable implements java.io.Serializable {
     printStackTrace(err, (Throwable) null, depth);
   }
 
-  /** How deep into trace printing are we? Includes cascaded exceptions; the
-    other tests (above) were broken.   Access to this is synchronized around
-    the class Throwable. */
-  static private int depth = 0;
   /** How deep can we go? */
   final static private int maxDepth = 7;
   

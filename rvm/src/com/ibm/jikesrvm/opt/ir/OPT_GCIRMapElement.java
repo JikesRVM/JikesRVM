@@ -20,12 +20,12 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   /**
    *  The instruction, i.e., GC point
    */
-  private OPT_Instruction inst;
+  private final OPT_Instruction inst;
 
   /**
    *  The list of references (either symbolic regs or physical regs & spills)
    */
-  private OPT_LinkedList regSpillList;
+  private final OPT_LinkedList regSpillList;
 
   /**
    * Constructor
@@ -150,6 +150,3 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     return  buf.toString();
   }
 }
-
-
-

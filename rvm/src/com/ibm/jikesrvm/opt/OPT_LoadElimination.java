@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
@@ -54,7 +53,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
   /**
    * which round of load elimination is this?
    */
-  private int round;
+  private final int round;
 
   final static class LoadEliminator extends OPT_CompilerPhase implements OPT_Operators{
     public final String getName() {

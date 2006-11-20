@@ -73,7 +73,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
   /**
    * A pointer to the governing IR
    */  
-  private OPT_IR ir;
+  private final OPT_IR ir;
 
   // -oO Blocks that get set up during the recognition of the loop Oo-
   /**
@@ -1160,11 +1160,11 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
   /**
    * Exception thrown when a non-regular loop is encountered
    */
-  private class NonRegularLoopException extends Exception {
+  private static class NonRegularLoopException extends Exception {
     /**
      * Brief description of problem
      */
-    private String _summary;
+    private final String _summary;
     /**
      * Constructor
      */
@@ -1189,7 +1189,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
     /**
      * ArrayList holding basic blocks
      */
-    private ArrayList blocks;
+    private final ArrayList blocks;
     /**
      * The current block of the iterator
      */

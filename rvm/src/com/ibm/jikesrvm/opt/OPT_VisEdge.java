@@ -10,8 +10,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import java.util.Enumeration;
-
 /**
  * OPT_VisEdge provides the minimum set of routines for graph edge
  * visualization.  The graph should implement OPT_VisGraph interface, and

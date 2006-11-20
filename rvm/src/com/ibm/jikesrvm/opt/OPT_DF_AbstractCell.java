@@ -9,7 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
+import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * OPT_DF_LatticeCell.java
@@ -25,8 +26,8 @@ abstract class OPT_DF_AbstractCell
    * Default Constructor 
    */
   OPT_DF_AbstractCell () {
-    uses = new java.util.HashSet(1);
-    defs = new java.util.HashSet(1);
+    uses = new HashSet(1);
+    defs = new HashSet(1);
   }
 
   /** 
@@ -34,8 +35,8 @@ abstract class OPT_DF_AbstractCell
    * @param capacity the initial capacity of the "uses" set
    */
   OPT_DF_AbstractCell (int capacity) {
-    uses = new java.util.HashSet(capacity);
-    defs = new java.util.HashSet(capacity);
+    uses = new HashSet(capacity);
+    defs = new HashSet(capacity);
   }
 
   /** 
@@ -44,7 +45,7 @@ abstract class OPT_DF_AbstractCell
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
-  public java.util.Iterator getUses () {
+  public Iterator getUses () {
     return  uses.iterator();
   }
 
@@ -54,7 +55,7 @@ abstract class OPT_DF_AbstractCell
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
-  public java.util.Iterator getDefs () {
+  public Iterator getDefs () {
     return  defs.iterator();
   }
 
@@ -85,15 +86,15 @@ abstract class OPT_DF_AbstractCell
   /**
    * Set of OPT_DF_Equations which use this lattice cell.
    */
-  java.util.HashSet uses; 
+  private final HashSet uses; 
   /**
    * Set of OPT_DF_Equations which define this lattice cell.
    */
-  java.util.HashSet defs; 
+  private final HashSet defs; 
 
   public OPT_GraphNodeEnumeration inNodes() {
       return new OPT_GraphNodeEnumeration() {
-              private java.util.Iterator i = defs.iterator();
+              private Iterator i = defs.iterator();
               public boolean hasMoreElements() { return i.hasNext(); }
               public OPT_GraphNode next() { return (OPT_GraphNode)i.next(); }
               public Object nextElement() { return next(); }
@@ -102,7 +103,7 @@ abstract class OPT_DF_AbstractCell
 
   public OPT_GraphNodeEnumeration outNodes() {
       return new OPT_GraphNodeEnumeration() {
-              private java.util.Iterator i = uses.iterator();
+              private Iterator i = uses.iterator();
               public boolean hasMoreElements() { return i.hasNext(); }
               public OPT_GraphNode next() { return (OPT_GraphNode)i.next(); }
               public Object nextElement() { return next(); }
