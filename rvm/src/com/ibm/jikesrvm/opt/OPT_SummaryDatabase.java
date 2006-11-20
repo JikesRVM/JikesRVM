@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.util.*;
 import com.ibm.jikesrvm.classloader.*;
 
@@ -62,8 +61,7 @@ public class OPT_SummaryDatabase {
   }
 
   /** Implementation */
-  private static final boolean DEBUG = false;
-  private static VM_HashMap hash = new VM_HashMap();
+  private static final VM_HashMap hash = new VM_HashMap();
 
 }
 

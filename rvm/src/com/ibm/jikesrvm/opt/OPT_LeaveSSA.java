@@ -313,9 +313,6 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
             OPT_Register r = c.source.asRegister().register;
             usedByAnother.add(r);
           }
-          if (c.destination instanceof OPT_RegisterOperand) {
-            OPT_Register r = c.destination.asRegister().register;
-          }
         }
       }
     }

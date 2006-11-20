@@ -281,7 +281,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         this.ir = ir;
 
         //  The registerManager has already been initialized
-        OPT_GenericStackManager sm = ir.stackManager;
+        //OPT_GenericStackManager sm = ir.stackManager;
 
         // Get register restrictions
         // OPT_RegisterRestrictions restrict = sm.getRestrictions(); - unused
@@ -2266,7 +2266,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
   static abstract class IntervalSet extends TreeSet {
 
-    private boolean sortByStart = true;
+    private final boolean sortByStart;
 
     /**
      * Create an interval set sorted by increasing start or end number

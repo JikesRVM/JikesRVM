@@ -96,7 +96,6 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
       // computation completed, so set flag
       ir.HIRInfo.dominatorsAreComputed = true;
     } catch (OPT_OperationNotImplementedException e) {
-      OPT_Options options = ir.options;
         OPT_Compiler.report(e.getMessage());
     }
   }

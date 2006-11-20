@@ -26,9 +26,6 @@ be a pain in the butt and since it currently isn't required, we don't do it.
 
 package INSTRFMTPKG;
 
-import RVMPKGopt.OPT_OptimizingCompilerException;
-import RVMPKGVM;
-
 /**
  * Abstract parent class of all InstructionFormat classes.
  * 

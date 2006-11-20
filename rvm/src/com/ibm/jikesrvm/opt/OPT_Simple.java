@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import java.lang.reflect.Constructor;
-import java.util.Enumeration;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /*

@@ -253,7 +253,6 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
     VM.sysWrite("Regs [");
     // Inspect the register bit map for the entry passed and print
     // those bit map entries that are true
-    int bitmap = gcMap[entry];
     for (int registerNumber = FIRST_GCMAP_REG; 
          registerNumber <= LAST_GCMAP_REG; 
          registerNumber++) {

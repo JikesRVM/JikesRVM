@@ -11,7 +11,6 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
@@ -43,9 +42,6 @@ public class OSR_EncodedOSRMap
   private int[] osrMaps;
   private int mapSize   = 16;
   private int lastIndex = 0;
-
-  /* the inlining encoding */
-  private int[] ieMaps;
 
   public static final boolean registerIsSet(int map, int regnum) 
     throws InlinePragma {
@@ -128,9 +124,6 @@ public class OSR_EncodedOSRMap
         inliningTree.addLocation(instr.position);
       }
     }
-
-    //get inlining encoding
-    ieMaps = VM_OptEncodedCallSiteTree.getEncoding(inliningTree);
 
     for (int i=0; i<n; i++) {
 

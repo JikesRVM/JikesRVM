@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
-import java.util.*;
 
 /**
  * This class implements global value numbering 

@@ -141,7 +141,6 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
     OPT_BasicBlock cand = ci.candBB;
     OPT_BasicBlock prev = ci.prevBB;
     OPT_BasicBlock succ = ci.succBB;
-    OPT_Instruction test = ci.test;
     OPT_BasicBlock clone = cand.copyWithoutLinks(ir);
 
     // Redirect clone to always stay on cold path.

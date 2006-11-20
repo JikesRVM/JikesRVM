@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
-import  java.util.*;
 
 /**
  * This class implements a vertex in the value graph used in global 

@@ -340,7 +340,6 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
     /******* First basic block */
     OPT_RegisterOperand t;
-    int last;
     if (lowLimit != 0) {
       t = InsertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, IC(-lowLimit));
     } else {

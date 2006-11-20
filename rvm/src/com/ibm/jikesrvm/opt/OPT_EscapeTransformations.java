@@ -9,10 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 
-import  java.util.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**

@@ -26,7 +26,7 @@ class OPT_LTDominatorInfo {
   private int semiDominator;
   private OPT_BasicBlock dominator;             // the imediate dominator
   private OPT_BasicBlock parent;
-  private java.util.HashSet bucket;
+  private final HashSet bucket;
   private OPT_BasicBlock label;
   private OPT_BasicBlock ancestor;
   // Used to keep the trees balanced, during path compression
@@ -48,7 +48,7 @@ class OPT_LTDominatorInfo {
     semiDominator = 0;
     dominator = null;
     parent = null;
-    bucket = new java.util.HashSet();
+    bucket = new HashSet();
     ancestor = null;
     label = block;
     size = 1;
@@ -151,7 +151,7 @@ class OPT_LTDominatorInfo {
    * Returns an iterator over this block's bucket
    * @return an iterator over this block's bucket
    */
-  public java.util.Iterator getBucketIterator() {
+  public Iterator getBucketIterator() {
     return  bucket.iterator();
   }
 

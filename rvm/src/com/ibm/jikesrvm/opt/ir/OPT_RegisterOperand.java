@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 
 /**

@@ -12,8 +12,6 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.OPT_LSTGraph;
 import com.ibm.jikesrvm.VM;
-import java.util.Vector;
-import java.util.Enumeration;
 
 /**
  * Extends the functionality of a {@link OPT_LSTGraph} so that it comprises

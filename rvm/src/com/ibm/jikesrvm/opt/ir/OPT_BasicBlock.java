@@ -187,7 +187,6 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return a String that is the name of the block.
    */
   public String toString() {
-    String result = "";
     int number = getNumber();
     if (isExit()) return "EXIT"+number;
     if (number==0) return "BB0 (ENTRY)";
@@ -1364,7 +1363,6 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   public final OPT_BasicBlock copyWithoutLinks(OPT_IR ir) {
     // create a new block with the same bytecode index and exception handlers
     int bytecodeIndex = -1;
-    OPT_InlineSequence position = null;
 
     // Make the label instruction of the new block have the same
     // bc info as the label of the original block.

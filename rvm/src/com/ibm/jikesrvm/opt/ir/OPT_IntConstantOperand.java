@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.OPT_Bits;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
-import com.ibm.jikesrvm.VM_Scheduler;
 
 /**
  * Represents a constant int operand.

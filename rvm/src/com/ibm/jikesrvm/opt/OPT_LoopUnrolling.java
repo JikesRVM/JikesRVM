@@ -57,15 +57,10 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 				(options.LOOP_VERSIONING == false));
   }
   
-  private OPT_IR ir = null;
-  
   /**
    * This is the method that actually does the work of the phase.
    */
   public void perform (OPT_IR ir) {
-
-    this.ir = ir;
-
     unrollFactor = (1 << ir.options.UNROLL_LOG);
     
     if (ir.hasReachableExceptionHandlers()) return;

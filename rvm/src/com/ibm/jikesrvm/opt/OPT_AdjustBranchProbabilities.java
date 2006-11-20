@@ -9,11 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
-
-import org.vmmagic.pragma.*;
 
 /**
  * This pass adjusts branch probabilities derived from static estimates

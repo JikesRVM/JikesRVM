@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.opt.OPT_Bits;
 import org.vmmagic.unboxed.*;
 import com.ibm.jikesrvm.VM_SizeConstants;
 import com.ibm.jikesrvm.VM;

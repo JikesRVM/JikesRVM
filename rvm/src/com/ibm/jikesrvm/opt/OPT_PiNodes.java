@@ -10,8 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
-import java.util.*;
-import java.math.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 

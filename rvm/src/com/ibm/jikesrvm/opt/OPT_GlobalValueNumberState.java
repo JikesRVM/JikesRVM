@@ -41,10 +41,6 @@ public final class OPT_GlobalValueNumberState {
   final private static boolean NO_PARAM_ALIAS = false;
 
   /**
-   * Governing IR
-   */
-  private final OPT_IR ir;
-  /**
    * ArrayList of OPT_GVCongruenceClass, indexed by value number.
    */
   private final ArrayList B;
@@ -63,7 +59,6 @@ public final class OPT_GlobalValueNumberState {
    * @param ir governing IR
    */
   OPT_GlobalValueNumberState (OPT_IR ir) {
-    this.ir = ir;
     B = new ArrayList();
     workList = new Stack();
     valueGraph = new OPT_ValueGraph(ir);

@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 import org.vmmagic.unboxed.*;
 

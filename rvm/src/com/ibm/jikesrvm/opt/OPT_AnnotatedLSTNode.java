@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_Operand;
-import com.ibm.jikesrvm.opt.ir.OPT_HeapOperand;
 import com.ibm.jikesrvm.opt.ir.OPT_Operators;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.VM;
@@ -353,7 +352,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
                 "\n");
 
     OPT_BasicBlockEnumeration loopBlocks = getBasicBlocks();   
-    loop_over_basic_blocks:
+    // loop_over_basic_blocks:
     while(loopBlocks.hasMoreElements()){
       // The current basic block
       OPT_BasicBlock curLoopBB = loopBlocks.next();
@@ -871,7 +870,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
     // The blocks (copy of) that are branched to from this block
     OPT_BasicBlockEnumeration block_outEdges = block.getOut();
     // Check that the blocks that we branch into are all inside the loop
-    loop_over_loop_body_block_out_edges:
+    // loop_over_loop_body_block_out_edges:
     while(block_outEdges.hasMoreElements()){
       OPT_BasicBlock curEdgeBB = block_outEdges.next();
       // Is this block in the loop?
@@ -892,7 +891,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
     // The blocks (copy of) that branch to this block
     OPT_BasicBlockEnumeration block_inEdges = block.getIn();
     // Check that the blocks that branch into this one are all inside the loop too
-    loop_over_loop_body_block_in_edges:
+    // loop_over_loop_body_block_in_edges:
     while(block_inEdges.hasMoreElements()){
       OPT_BasicBlock curEdgeBB = block_inEdges.next();
       // Is this block in the loop?
@@ -920,7 +919,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
       OPT_BasicBlockEnumeration loopBlocks = getBasicBlocks();
 
       // Loop over all blocks within this loop and calculate iterator.. information
-      loop_over_basic_blocks:
+      // loop_over_basic_blocks:
       while(loopBlocks.hasMoreElements()) {
         // The current basic block
         OPT_BasicBlock curLoopBB = loopBlocks.next();
@@ -953,7 +952,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
     // The blocks (copy of) that branch to this block
     OPT_BasicBlockEnumeration head_inEdges = header.getIn();
     // Loop over blocks that branch to this one
-    loop_over_header_in_edges: 
+    // loop_over_header_in_edges: 
     while(head_inEdges.hasMoreElements()){
       OPT_BasicBlock curEdgeBB = head_inEdges.next();
       // Is this block in the loop?
@@ -994,7 +993,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
     // Check the exit block leaves the loop
     OPT_BasicBlockEnumeration exitBlock_outEdges = exit.getOut();
     boolean exits = false;
-    check_exit_block_exits:
+    // check_exit_block_exits:
     while(exitBlock_outEdges.hasMoreElements()){
       OPT_BasicBlock curExitBlockOutEdgeBB = exitBlock_outEdges.next();
       if(isInLoop(curExitBlockOutEdgeBB)){

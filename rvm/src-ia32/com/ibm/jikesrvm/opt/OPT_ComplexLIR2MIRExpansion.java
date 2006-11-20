@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.*;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 
@@ -282,7 +281,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   // can't do that in burs!
   private static OPT_Instruction fp_ifcmp(OPT_Instruction s, OPT_IR ir) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
-    OPT_Operator op = s.operator();
     OPT_BranchOperand testFailed;
     OPT_BasicBlock bb = s.getBasicBlock();
     OPT_Instruction lastInstr = bb.lastRealInstruction();

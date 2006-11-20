@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
-import  java.util.*; 
 
 /**
  * OPT_DominatorInfo.java

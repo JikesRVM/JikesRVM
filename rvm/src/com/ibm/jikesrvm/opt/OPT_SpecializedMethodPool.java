@@ -10,9 +10,6 @@
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
-import  java.util.Vector;
-import  java.util.Enumeration;
-
 /**
  * This class holds the static array of pointers to instructions
  * of specialized methods

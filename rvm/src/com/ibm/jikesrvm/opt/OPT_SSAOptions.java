@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
-
 /**
  * This module defines parameters to the SSA construction process.
  * This is used to pass information between compiler phases.  

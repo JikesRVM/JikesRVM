@@ -835,7 +835,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
     relocated = new HashSet();
     if (ir.IRStage == OPT_IR.HIR) {
-      OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
+      // OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
       // escapeSummary = analyzer.simpleEscapeAnalysis(ir); - unused
     }
     // Note: the following unfactors the CFG
@@ -903,7 +903,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private OPT_BasicBlock block[];
   private OPT_BasicBlock origBlock[];
   private OPT_Instruction earlyPos[];
-  private OPT_SSA ssa;
   private OPT_SSADictionary ssad;
   private OPT_DominatorTree dominator;
   private OPT_IR ir;

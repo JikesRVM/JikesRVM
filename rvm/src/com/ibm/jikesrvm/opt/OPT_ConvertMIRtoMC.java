@@ -10,9 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Convert an IR object from MIR to final Machinecode
@@ -52,8 +50,6 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
     }
 
     public final void perform (OPT_IR ir) {
-      OPT_Options options = ir.options;
-
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before Final MIR Expansion", true);
       }

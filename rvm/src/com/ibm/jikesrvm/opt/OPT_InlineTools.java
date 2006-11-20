@@ -14,8 +14,6 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Stack;
 
-import org.vmmagic.pragma.*;
-
 /**
  * This class provides some utilities that are useful for inlining.
  *

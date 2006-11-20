@@ -25,17 +25,17 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * This array holds a pool of objects representing physical registers
    */
-  private OPT_Register[] reg = new OPT_Register[getSize()];
+  private final OPT_Register[] reg = new OPT_Register[getSize()];
 
   /**
    * Cache the set of volatile registers for efficiency
    */
-  private OPT_BitSet volatileSet;
+  private final OPT_BitSet volatileSet;
 
   /**
    * Cache the set of floating-point registers for efficiency
    */
-  private OPT_BitSet fpSet;
+  private final OPT_BitSet fpSet;
 
   /**
    * Return the total number of physical registers.
@@ -606,10 +606,8 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * An enumerator for use by the physical register utilities.
    */
   final static class PhysicalRegisterEnumeration implements Enumeration {
-    private int start;
-    private int end;
     private int index;
-    private OPT_Register r[];
+    private final OPT_Register r[];
     PhysicalRegisterEnumeration(OPT_Register[] r) {
       this.r = r;
       this.index = 0;
@@ -625,17 +623,15 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * An enumerator for use by the physical register utilities.
    */
   final class RangeEnumeration implements Enumeration {
-    private int start;
-    private int end;
+    private final int end;
     private int index;
-    private int exclude = -1; // an index in the register range to exclude
+    private final int exclude; // an index in the register range to exclude
     RangeEnumeration(int start, int end) {
-      this.start = start;
       this.end = end;
+      this.exclude = -1;
       this.index = start;
     }
     RangeEnumeration(int start, int end, int exclude) {
-      this.start = start;
       this.end = end;
       this.exclude = exclude;
       this.index = start;

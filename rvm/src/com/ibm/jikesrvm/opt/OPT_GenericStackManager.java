@@ -289,8 +289,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @param s the instruction for which we need r in a register
    */
   private ScratchRegister getCurrentScratchRegister(OPT_Register r,OPT_Instruction s) {
-    ScratchRegister result = null;
-
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
       if (sr.currentContents == r) {
@@ -319,8 +317,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * Else return null.
    */
   private ScratchRegister getPhysicalScratchRegister(OPT_Register r) {
-    ScratchRegister result = null;
-
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
       if (sr.scratch == r) {

@@ -78,7 +78,6 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
           int numUses = s.getNumberOfUses();
           if (numUses > 0) {
             boolean didSomething = false;
-            int numDefs = s.getNumberOfDefs();
             for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements(); ) {
               OPT_Operand use = e.next();
               if (use instanceof OPT_RegisterOperand) {

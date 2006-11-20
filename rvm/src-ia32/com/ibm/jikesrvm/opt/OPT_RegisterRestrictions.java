@@ -74,7 +74,6 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           break;
         case IA32_MOVZX__B_opcode: case IA32_MOVSX__B_opcode:
           {
-            OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
             if (MIR_Unary.getVal(s).isRegister()) {
               OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
               restrictTo8Bits(val.register);

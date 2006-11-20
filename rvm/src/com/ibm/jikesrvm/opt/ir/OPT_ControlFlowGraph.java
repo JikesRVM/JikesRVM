@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
-import java.util.NoSuchElementException;
 
 /**
  * The Factored Control Flow Graph (FCFG). 

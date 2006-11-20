@@ -11,7 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import  java.util.*;
+import java.util.*;
 
 /**
  * Calculate dominators using Langauer and Tarjan's fastest algorithm.

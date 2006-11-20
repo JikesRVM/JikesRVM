@@ -1657,8 +1657,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           
           if (ref.isMiranda()) {
             // An invokevirtual that is really an invokeinterface.
-            VM_Method resolvedMethod = null;
-
             s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, null));
             OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
             VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();

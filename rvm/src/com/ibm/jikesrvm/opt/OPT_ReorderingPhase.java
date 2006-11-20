@@ -294,7 +294,6 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 
       // Find the next chain to append.
       nextChoice = null;
-      float placedWeight = 0f;
       for (Iterator i = chainInfo.values().iterator(); i.hasNext();) {
         ChainInfo cand = (ChainInfo)i.next();
         if (cand.placedWeight > 0f) {

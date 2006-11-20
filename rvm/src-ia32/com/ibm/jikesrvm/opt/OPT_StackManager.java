@@ -14,8 +14,6 @@ import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.HashSet;
-import java.util.HashMap;
 import org.vmmagic.unboxed.Offset;
 
 /**

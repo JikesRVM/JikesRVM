@@ -9,9 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import java.util.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import java.lang.reflect.Constructor;
 
 /**
  * Global code placement comes in two flavours. The first is loop

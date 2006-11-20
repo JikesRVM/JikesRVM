@@ -1247,7 +1247,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       for (int i=0, n=ls.length; i<n; i++) {
         if (ls[i] != VoidTypeCode) {
           // check liveness
-          int cur_idx = elm_idx;
           OPT_Operand op = OsrPoint.getElement(inst, elm_idx++);
           OSR_LocalRegPair tuple =
             new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);

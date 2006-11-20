@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.OPT_ClassLoaderProxy;
 import com.ibm.jikesrvm.opt.OPT_MagicNotImplementedException;
 
 import org.vmmagic.pragma.*;
@@ -631,7 +630,6 @@ class OPT_GenerateMagic implements OPT_Operators,
   static boolean generatePolymorphicMagic(OPT_BC2IR bc2ir, 
                                           OPT_GenerationContext gc, 
                                           VM_MethodReference meth, VM_Atom methodName) {
-    VM_TypeReference [] paramTypes = meth.getParameterTypes();
     VM_TypeReference resultType = meth.getReturnType();
     if (methodName == VM_MagicNames.wordFromInt ||
         methodName == VM_MagicNames.wordFromIntSignExtend) {

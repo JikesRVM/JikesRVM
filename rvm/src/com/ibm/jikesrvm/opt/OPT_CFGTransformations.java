@@ -197,7 +197,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * part of the loop, but guards it.
    */
   private static boolean turnLoopIntoUntil(OPT_LSTNode n, OPT_IR ir) {
-    OPT_BitVector nloop = n.loop;
     OPT_BasicBlock header = n.header;
     OPT_BasicBlock newLoopTest = null;
 

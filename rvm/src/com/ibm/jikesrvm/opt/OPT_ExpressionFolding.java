@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import org.vmmagic.unboxed.Address;
 
@@ -23,9 +22,6 @@ import org.vmmagic.unboxed.Address;
  * @author Stephen Fink
  */
 class OPT_ExpressionFolding implements OPT_Operators {
-  /** Generate verbose debug output? */
-  private static final boolean DEBUG = false;
-
   private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
 
   /** 

@@ -305,10 +305,6 @@ final class OPT_CallingConvention extends OPT_IRTools
   static void saveNonvolatilesBeforeSysCall(OPT_Instruction call, OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_StackManager sm = (OPT_StackManager)ir.stackManager;
-    OPT_Instruction result = null;
-
-    // add one to account for the processor register.  
-    int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     // get the offset into the stack frame of where to stash the first
     // nonvolatile for this case.
@@ -346,9 +342,6 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_StackManager sm = (OPT_StackManager)ir.stackManager;
     
-    // add one to account for the processor register.  
-    int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
-
     // get the offset into the stack frame of where to stash the first
     // nonvolatile for this case.
     int location = sm.getOffsetForSysCall();
@@ -386,7 +379,6 @@ final class OPT_CallingConvention extends OPT_IRTools
     int nGPRParams = 0;
     int nFPRParams = 0;
     int parameterBytes = 0;
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // walk over the parameters in reverse order
     // NOTE: All params to syscall are passed on the stack!

@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
-import java.lang.reflect.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
 

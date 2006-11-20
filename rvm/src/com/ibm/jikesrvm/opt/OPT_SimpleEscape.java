@@ -218,7 +218,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
   private static boolean checkEscapesThread (OPT_RegisterOperand use, 
       OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
-    OPT_Register reg = use.register;
     switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
       case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
@@ -401,7 +400,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
   private static boolean checkEscapesMethod (OPT_RegisterOperand use, 
       OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
-    OPT_Register reg = use.register;
     switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
       case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:

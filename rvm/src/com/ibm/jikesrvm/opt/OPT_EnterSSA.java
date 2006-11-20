@@ -695,7 +695,7 @@ implements OPT_Operators, OPT_Constants {
         // populate the Stacks with initial names for
         // each parameter, and push "null" for other symbolic registers
         if (i >= symbolicRegisters.length) continue;
-        OPT_Register r = symbolicRegisters[i];
+        //OPT_Register r = symbolicRegisters[i];
         // If a register's name is "null", that means the
         // register has not yet been defined.
         S[i].push(null);

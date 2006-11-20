@@ -247,7 +247,6 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
-      int dst = 0;
       for (int src=0; src<numPairs; src++) {
         OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
         if (bbop.block == B1) {

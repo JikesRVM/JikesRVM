@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.opt.ir.*;
 /**
  * Describes a reservation on a particular resource.
  * A reservation is for a continuous period of time.
@@ -24,11 +23,11 @@ final class OPT_ResourceReservation {
   /**
    * Start Time.
    */
-  int start;
+  final int start;
   /**
    * Duration of Use.
    */
-  int duration;
+  final int duration;
 
   /**
    * Creates a new reservation for specified resource class
