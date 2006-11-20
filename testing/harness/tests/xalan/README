@@ -1,0 +1,12 @@
+We are keeping the stand alone xalan test in addition
+to the DaCapo xalan because the standalone test we
+run here tests a JVM feature in which the application
+defines a java Class from a stream of bytes without
+providing the class name (forces JVM to parse
+bytestream to extract the class name).  This is a useful
+regression test for a fringe feature of classloading
+and until we have some other more focused unit test for
+just this behavior we can't drop this test in favor of
+DaCapo xalan.
+
+
