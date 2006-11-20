@@ -76,9 +76,9 @@ Soot_HOME=$(BENCHMARK_ROOT)/soot-2.2.3
 Xerces_HOME=$(BENCHMARK_ROOT)/xerces-2_0_2
 
 #
-# Xalan 2.4.D1
+# Xalan 2.7.0
 #
-Xalan_HOME=$(BENCHMARK_ROOT)/xalan-j_2_4_D1
+Xalan_HOME=$(BENCHMARK_ROOT)/xalan-j_2_7_0
 
 #
 # Shakespeare in XML obtained from

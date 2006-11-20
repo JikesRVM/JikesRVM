@@ -21,7 +21,7 @@ HEAPSIZE=250
 
 DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
 BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
-BENCH_CLASS_PATH=$(BENCH_HOME)/bin/xalan.jar:$(BENCH_HOME)/bin/xercesImpl.jar:$(BENCH_HOME)/bin/xml-apis.jar:$(BENCH_HOME)/bin/xalansamples.jar:$(BENCH_HOME)/bin/xsltc.jar
+BENCH_CLASS_PATH=$(BENCH_HOME)/xalan.jar:$(BENCH_HOME)/xercesImpl.jar:$(BENCH_HOME)/xml-apis.jar:$(BENCH_HOME)/serializer.jar:$(BENCH_HOME)/samples/xalansamples.jar
 
 ifeq ($(MODE),PERFORMANCE)
   ITERATIONS=11
