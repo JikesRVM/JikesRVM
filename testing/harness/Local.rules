@@ -33,7 +33,8 @@ QBJC_HOME=$(BENCHMARK_ROOT)/QBJC
 #
 # jBYTEmark
 #
-jBYTEmark_HOME=$(BENCHMARK_ROOT)/jBYTEmark-0.9+
+jBYTEmark_HOME=$(BENCHMARK_ROOT)/jBYTEmark-0.9
+jBYTEmark_JARS=$(jBYTEmark_HOME)/jBYTEmark-0.9.jar
 
 #
 # SPECjbb2000
