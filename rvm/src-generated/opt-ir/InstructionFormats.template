@@ -26,6 +26,11 @@ be a pain in the butt and since it currently isn't required, we don't do it.
 
 package INSTRFMTPKG;
 
+$$$$ IF VERIFY_INSTRUCTION_FORMATS != ""
+import RVMPKGopt.OPT_OptimizingCompilerException;
+import RVMPKGVM;
+$$$$ END IF
+
 /**
  * Abstract parent class of all InstructionFormat classes.
  * 
