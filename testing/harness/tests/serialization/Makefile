@@ -13,7 +13,7 @@
 #
 include $(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/testing/tests/serialization
+BENCH_HOME=./src
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=50
 TIME_LIMIT=300

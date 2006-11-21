@@ -15,7 +15,7 @@ TESTS = TracingTest
 
 include         $(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME = $(JAL_ROOT)/testing/tests/gctracingtest
+BENCH_HOME = ./src
 BENCH_SOURCE_PATH =$(BENCH_HOME)
 EXPECTED =
 BENCH_RVM_ARGS = "-X:sysLogfile=/dev/null"

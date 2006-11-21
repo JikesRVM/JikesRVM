@@ -18,7 +18,7 @@ TESTS =ReferenceTest FixedLive LargeAlloc Exhaust
 
 include		$(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/testing/tests/gctest
+BENCH_HOME=./src
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE   = 300

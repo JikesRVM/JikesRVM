@@ -12,7 +12,7 @@
 #
 include		$(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/testing/tests/bytecodeTests
+BENCH_HOME=./src
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 START_NAME=TestAll
