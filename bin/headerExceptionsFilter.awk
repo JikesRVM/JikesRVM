@@ -35,17 +35,16 @@
 /\/doc\/userguide\// { next }
 /\/MMTk\/doc\// { next }
 
-/\/testing\/harness\/tests\/javalex\/qb1.lex.ref/ {next}
-/\/testing\/harness\/tests\/jBYTEmark\/jBYTEmark.java/ {next}
-/\/testing\/harness\/tests\/SPECjbb2000\/SPECjbb./ {next}
-/\/testing\/harness\/tests\/SPECjbb2005\/SPECjbb./ {next}
-/\/testing\/harness\/tests\/pseudojbb\/pseudojbb/ {next}
-/\/testing\/harness\/tests\/pseudojbb\/props/ {next}
-/\/testing\/harness\/tests\/mauve\/mauve-jikesrvm/ {next}
-/\/testing\/tests\/javaagent\/MANIFEST.MF/ {next}
+/\/testing\/tests\/javalex\/qb1.lex.ref/ {next}
+/\/testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
+/\/testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
+/\/testing\/tests\/pseudojbb\/pseudojbb/ {next}
+/\/testing\/tests\/pseudojbb\/props/ {next}
+/\/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
+/\/testing\/tests\/javaagent\/src\/MANIFEST.MF/ {next}
 
 # actually has the right headers, but utf8 characters break the checkers
-/\/testing\/harness\/tests\/utf8\/utf8test.java/ {next}
+/\/testing\/tests\/utf8\/src\/utf8test.java/ {next}
 
 /\/tools\/bootImageRunner\/com_ibm_jikesrvm_VM_0005fProcess.h/ { next }
 /\/tools\/bootImageWriter\/rvm.security/ { next }
