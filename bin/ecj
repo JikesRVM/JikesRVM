@@ -9,6 +9,8 @@
 #
 # $Id$
 #
+# @author Dave Grove
+#
 # Wrapper script to invoke ecj.
 # Used to insulate Jikes RVM build process from details of 
 # where ecp is located and and how to invoke it. 

@@ -9,6 +9,8 @@
 #
 # $Id$
 #
+# @author Dave Grove
+#
 # Wrapper script to set ANT_HOME and then invoke ant.
 # Used to insulate Jikes RVM build process from details of 
 # where ant is located and and how to invoke it. 
