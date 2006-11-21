@@ -38,7 +38,7 @@ $(WORKING)/william.pdom:	$(WORKING)
 sanity: 	$(WORKING)/william.pdom sanity-check-rule
 
 do-gather-performance:
-	 @$(AWK) -f $(JAL_ROOT)/testing/harness/tests/ipsixql/perf.awk $(OUT) >> $(PERF_LOG)
+	 @$(AWK) -f $(JAL_ROOT)/testing/tests/ipsixql/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:
 	@$(FGREP) "Normal completion" $(OUT) > /dev/null

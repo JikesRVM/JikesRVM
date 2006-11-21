@@ -12,7 +12,7 @@ The support for running
 sanity and performance tests comprises a set of scripts and makefiles
 that define a common interface for running a variety of programs, and
 for determining their performance and correctness.  The individual
-tests are all located in {\tt{\$RVM\_\-ROOT/testing/harness/tests}}, and
+tests are all located in {\tt{\$RVM\_\-ROOT/testing/tests}}, and
 consist of makefiles, scripts, sample inputs and outputs; each
 directory contains support for running an individual application in
 the testing harness.  The support for night sanity runs is a layer on
@@ -68,7 +68,7 @@ tests to run.  If the filename is an absolute path, that file is read,
 if it is a relative path, it is assumed to be relative to
 {\tt \$RVM\_\-ROOT/testing/harness/config}.  In either case, the items in the
 list of tests to run must be subdirectories of
-{\tt \$RVM\_\-ROOT/testing/harness/tests} (the directory that contains the
+{\tt \$RVM\_\-ROOT/testing/tests} (the directory that contains the
 individual tests).
 
 \item{\tt{-configuration}} ``{\em{configuration names}}''

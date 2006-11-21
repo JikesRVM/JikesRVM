@@ -561,12 +561,12 @@ function doTests {
 	echo "Ignoring -numprocs for single processor image"
 	NUM_PROCS=1
 	for test in $TEST_LIST; do
-	    cd $RVM_ROOT/testing/harness/tests/$test && doRun
+	    cd $RVM_ROOT/testing/tests/$test && doRun
 	done
     else
 	for NUM_PROCS in $NUM_PROCS_LIST; do
 	    for test in $TEST_LIST; do
-         cd $RVM_ROOT/testing/harness/tests/$test && doRun
+         cd $RVM_ROOT/testing/tests/$test && doRun
        done
      done
    fi

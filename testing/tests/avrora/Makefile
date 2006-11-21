@@ -44,7 +44,7 @@ $(WORKING)/fibonacci-10.asm:	$(WORKING)
 sanity: 	$(WORKING)/fibonacci.asm $(WORKING)/fibonacci-10.asm sanity-check-rule
 
 do-gather-performance:
-	 @$(AWK) -f $(JAL_ROOT)/testing/harness/tests/avrora/perf.awk $(OUT) >> $(PERF_LOG)
+	 @$(AWK) -f $(JAL_ROOT)/testing/tests/avrora/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:
 	@$(FGREP) "Time for simulation" $(OUT) > /dev/null

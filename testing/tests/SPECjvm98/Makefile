@@ -52,7 +52,7 @@ sanity:	$(WORKING)/spec $(WORKING)/props
 	@$(MAKE) START_ARGS="-a -g -m20 -M20 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 do-gather-performance:
-	$(JAL_ROOT)/testing/harness/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
+	$(JAL_ROOT)/testing/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
 
 else
 ifeq ($(MODE),MEASURE_COMPILATION)

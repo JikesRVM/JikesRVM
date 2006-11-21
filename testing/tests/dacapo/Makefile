@@ -33,7 +33,7 @@ Harness.class : $(JARFILE)
 	:
 
 check:
-	@$(JAL_ROOT)/testing/harness/tests/dacapo/sanity-check2.sh $(OUT) $(START_ARGS)
+	@$(JAL_ROOT)/testing/tests/dacapo/sanity-check2.sh $(OUT) $(START_ARGS)
 
 $(TESTS): %:
 	@$(MAKE) TEST_NAME="DaCapo $@" START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule

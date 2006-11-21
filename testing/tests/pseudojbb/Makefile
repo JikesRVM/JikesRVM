@@ -59,7 +59,7 @@ endif
 # performance runs
 #
 do-gather-performance:
-	$(AWK) -f $(JAL_ROOT)/testing/harness/tests/pseudojbb/summarize.awk $(OUT) >> $(PERF_LOG)
+	$(AWK) -f $(JAL_ROOT)/testing/tests/pseudojbb/summarize.awk $(OUT) >> $(PERF_LOG)
 
 
 #
@@ -89,7 +89,7 @@ finish:
 #
 spec/jbb/JBBmain.class:		jbb.jar
 
-$(WORKING)/%.props:		$(JAL_ROOT)/testing/harness/tests/pseudojbb/%.props $(WORKING)
+$(WORKING)/%.props:		$(JAL_ROOT)/testing/tests/pseudojbb/%.props $(WORKING)
 ifneq ($(WORKING),.)
 	cp $< $@
 	chmod a+rw $@

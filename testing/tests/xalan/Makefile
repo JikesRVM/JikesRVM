@@ -54,7 +54,7 @@ sanity: $(WORKING)/birds.xml $(WORKING)/birds.xsl
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
 do-gather-performance:
-	 @$(AWK) -f $(JAL_ROOT)/testing/harness/tests/xerces/perf.awk $(OUT) >> $(PERF_LOG)
+	 @$(AWK) -f $(JAL_ROOT)/testing/tests/xerces/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:  
 	@$(FGREP) -q "The result is in birds.out" < $(OUT)

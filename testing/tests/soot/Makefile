@@ -19,7 +19,7 @@ include		$(JAL_ROOT)/testing/harness/Local.rules
 HEAPSIZE=300
 
 BENCH_CLASS_PATH=$(BENCH_HOME)/soot/classes:$(BENCH_HOME)/jasmin/classes
-BENCH_SOURCE_PATH=$(JAL_ROOT)/testing/harness/tests/soot
+BENCH_SOURCE_PATH=$(JAL_ROOT)/testing/tests/soot
 START_NAME=soot.Main
 
 JCOMPILE=$(RVM_BUILD)/jbuild.tool
@@ -40,12 +40,12 @@ sanity:		$(WORKING)/Hello.class sanity-check-rule
 
 
 do-gather-performance:
-	 @$(AWK) -f $(JAL_ROOT)/testing/harness/tests/soot/perf.awk $(OUT) >> $(PERF_LOG)
+	 @$(AWK) -f $(JAL_ROOT)/testing/tests/soot/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:
 	@$(FGREP) -q "Soot has run for" < $(OUT)
 
-$(WORKING)/Hello.java:		$(JAL_ROOT)/testing/harness/tests/soot/Hello.java $(WORKING)
+$(WORKING)/Hello.java:		$(JAL_ROOT)/testing/tests/soot/Hello.java $(WORKING)
 ifneq ($(WORKING),.)
 	cp $< $@
 	chmod a+rw $@
