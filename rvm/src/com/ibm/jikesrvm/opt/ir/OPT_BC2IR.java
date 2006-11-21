@@ -349,7 +349,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       currentBBLE.high = instrIndex = bcodes.index();
       int code = bcodes.nextInstruction();
       if (DBG_BCPARSE) {
-        db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code));
+        db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code) + " " +
+           ((code < JBC_name.length) ? JBC_name[code] : "unknown bytecode"));
       }
       OPT_Instruction s = null;
 
@@ -1484,51 +1485,28 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               }
             }
 
-            // optimization: 
-            // if the field is final and either initialized or
-            // we're writing the bootimage and in an RVM bootimage class,
-            // then get the value at compile time. We restrict to RVM bootimage classes
-            // to avoid problems with different impls of java.* classes between bootimage
-            // writing and runtime.
-            // TODO: applying this optimization to Floats or Doubles 
-            //       causes problems.  Figure out why and fix it!
+            // optimization: if the field is final and either
+            // initialized or we're writing the bootimage and in an
+            // RVM bootimage class, then get the value at compile
+            // time.
+            // TODO: applying this optimization to Floats or Doubles
+            //       See bug #1543866
             if (!fieldType.isDoubleType() && !fieldType.isFloatType()) {
               if (field.isFinal()) {
                 VM_Class declaringClass = field.getDeclaringClass();
-                if (declaringClass.isInitialized() ||
-                    (VM.writingBootImage &&
-                     declaringClass.isInBootImage() &&
-                     declaringClass.getDescriptor().isRVMDescriptor())) {
+                if (declaringClass.isInitialized() || declaringClass.isInBootImage()) {
                   try {
-                    if (fieldType.isPrimitiveType()) {
-                      OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
-                      // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
-                      push (rhs, fieldType);
-                      break;
-                    } else {
-                      if (OPT_StaticFieldReader.isStaticFieldNull(field)) {
-                        // VM.sysWrite("Replaced getstatic of "+field+" with <null>\n");
-                        push(new OPT_NullConstantOperand(), fieldType);
-                        break;
-                      } else {
-                        VM_TypeReference rtType = OPT_StaticFieldReader.getTypeFromStaticField(field);
-                        if (rtType == VM_TypeReference.JavaLangString) {
-                          OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
-                          // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
-                          push (rhs, fieldType);
-                          break;
-                        } else {
-                          t.type = rtType;
-                          if (rtType != fieldType) t.clearDeclaredType();
-                          t.setPreciseType();
-                          markGuardlessNonNull(t);
-                          // VM.sysWrite("Tightened type info for getstatic of "+field+" to "+t+"\n");
-                        }
-                      }
-                    }
+                    OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
+                    // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+                    push (rhs, fieldType);
+                    break;
                   } catch (NoSuchFieldException e) {
-                    // Sigh, host JDK java.* class didn't have this RVM field.
-                    // VM.sysWrite("Field "+field+" does not exist on host JDK\n");
+                    if (VM.runningVM) { // this is unexpected
+                      throw new Error("Unexpected exception", e);
+                    } else {
+                      // Field not found during bootstrap due to chasing a field
+                      // only valid in the bootstrap JVM
+                    }
                   }
                 }
               }
@@ -1571,6 +1549,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
           OPT_Operand offsetOp;
           VM_TypeReference fieldType = ref.getFieldContentsType();
+          VM_Field field = null;
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
           if (unresolved) {
             OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
@@ -1578,7 +1557,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
-            VM_Field field = ref.peekResolvedField();
+            field = ref.peekResolvedField();
             offsetOp = new OPT_AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type.
@@ -1596,11 +1575,30 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               }
             }
           }
-          
+
           OPT_Operand op1 = pop();
           clearCurrentGuard();
           if (do_NullCheck(op1))
             break;
+
+          // optimization: if the field is final and referenced by a
+          // constant reference then get the value at compile time.
+          // NB avoid String fields
+          if(op1.isConstant() && field.isFinal()) {
+            try {
+              OPT_ConstantOperand rhs = OPT_StaticFieldReader.getFieldValueAsConstant(field, op1.asObjectConstant().value);
+              push(rhs, fieldType);
+              break;
+            }
+            catch (NoSuchFieldException e) {
+              if (VM.runningVM) { // this is unexpected
+                throw new Error("Unexpected exception", e);
+              } else {
+                // Field not found during bootstrap due to chasing a field
+                // only valid in the bootstrap JVM
+              }
+            }
+          }
           
           s = GetField.create(GETFIELD, t, op1, offsetOp, fieldOp, getCurrentGuard());
           push(t.copyD2U(), fieldType);
@@ -1658,8 +1656,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (ref.isMiranda()) {
             // An invokevirtual that is really an invokeinterface.
             s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, null));
-            OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
-            VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
+            OPT_Operand receiver = Call.getParam(s, 0);
+            VM_Class receiverType = (VM_Class)receiver.getType().peekResolvedType();
             // null check on this parameter of call
             clearCurrentGuard();
             if (do_NullCheck(receiver)) {
@@ -1680,7 +1678,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (vmeth != null) {
               VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
               OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
-              if (receiver.isPreciseType()) {
+              if (receiver.isConstant() ||
+             (receiver.isRegister() && receiver.asRegister().isPreciseType())) {
                 mop.refine(vmeth, true);
               }
               Call.setMethod(s, mop);
@@ -1694,9 +1693,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 Call.setAddress(s, new OPT_AddressConstantOperand(vmeth.getOffset()));
               }
 
-            
               // Attempt to inline virtualized call.
-              if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
+              if (maybeInlineMethod(shouldInline(s, receiver.isConstant() ||
+                (receiver.isRegister() &&
+                 receiver.asRegister().isExtant())), s)) {
                 return;
               }
             }
@@ -1742,16 +1742,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               isExtant = rop.isExtant();
               isPreciseType = rop.isPreciseType();
               tr = rop.type;
-            } else if (receiver.isStringConstant()) {
+            } else {
               isExtant = true;
               isPreciseType = true;
-              tr = VM_TypeReference.JavaLangString;
-            } else if (receiver.isClassConstant()) {
-              isExtant = true;
-              isPreciseType = true;
-              tr = VM_TypeReference.JavaLangClass;
-            } else if (VM.VerifyAssertions) {
-              VM._assert(false, "unexpected receiver " + receiver);
+              tr = receiver.getType();
             }
             VM_Type type = tr.peekResolvedType();
             if (type != null && type.isResolved() && type.isClassType()) {
@@ -1882,8 +1876,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           //-#endif
 
           s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, resolvedMethod));
-          OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
-          VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
+          OPT_Operand receiver = Call.getParam(s, 0);
+          VM_Class receiverType = (VM_Class)receiver.getType().peekResolvedType();
           // null check on this parameter of call
           // TODO: Strictly speaking we need to do dynamic linking of the
           //       interface type BEFORE we do the null check. FIXME.
@@ -1915,7 +1909,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               OPT_RegisterOperand tibPtr = 
                 gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
               OPT_Instruction getTib = 
-                GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copyU2U(), getCurrentGuard());
+                GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copy(), getCurrentGuard());
               appendInstruction(getTib);
               getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
@@ -1963,13 +1957,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             // Note that at this point requiresImplementsTest => resolvedMethod != null 
             if (requiresImplementsTest) {
               appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                                 receiver.copyU2U(),
+                                                 receiver.copy(),
                                                  makeTypeOperand(resolvedMethod.getDeclaringClass()),
                                                  getCurrentGuard()));
               rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
             }
             OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
-            if (receiver.isPreciseType()) {
+            if (receiver.isConstant() || receiver.asRegister().isPreciseType()) {
               mop.refine(vmeth, true);
             }
             Call.setMethod(s, mop);
@@ -1985,7 +1979,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
             
             // Attempt to inline virtualized call.
-            if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
+            if (maybeInlineMethod(shouldInline(s, receiver.isConstant() || receiver.asRegister().isExtant()), s)) {
               return;
             }
           } else {
@@ -1997,7 +1991,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             } else {
               if (requiresImplementsTest) {
                 appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                                   receiver.copyU2U(),
+                                                   receiver.copy(),
                                                    makeTypeOperand(resolvedMethod.getDeclaringClass()),
                                                    getCurrentGuard()));
                 // don't have to rectify with error handlers; rectify call below subsusmes.
@@ -2364,10 +2358,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.TraceOnStackReplacement) 
             VM.sysWriteln("PSEUDO_LoadLongConst "+value);
 
-          // put on jtoc
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
-
-          pushDual(new OPT_LongConstantOperand(value, offset));
+          pushDual(new OPT_LongConstantOperand(value, Offset.zero()));
           break;
         }
         case PSEUDO_LoadWordConst: {
@@ -2396,9 +2387,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.TraceOnStackReplacement) 
             VM.sysWriteln("PSEUDO_LoadFloatConst "+value);
 
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
-
-          push(new OPT_FloatConstantOperand(value, offset));
+          push(new OPT_FloatConstantOperand(value, Offset.zero()));
           break;
         }
 
@@ -2411,10 +2400,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.TraceOnStackReplacement) 
             VM.sysWriteln("PSEUDO_LoadDoubleConst "+ lbits);
 
-          // put on jtoc
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
-
-          pushDual(new OPT_DoubleConstantOperand(value, offset));
+          pushDual(new OPT_DoubleConstantOperand(value, Offset.zero()));
           break;
         }
 
@@ -3281,7 +3267,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   public VM_TypeReference getArrayTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
-    return op.asRegister().type;
+    return op.getType();
   }
 
   /**
@@ -3372,7 +3358,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   (rop.scratchObject instanceof OPT_TrueGuardOperand));
       return rop.scratchObject != null;
     } else {
-      return op.isStringConstant() || op.isClassConstant();
+      return op.isConstant();
     }
   }
 
@@ -3425,7 +3411,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
     }
     if (VM.VerifyAssertions)
-      VM._assert(op.isStringConstant() || op.isClassConstant());
+      VM._assert(op.isConstant());
     return new OPT_TrueGuardOperand();
   }
 
@@ -3617,6 +3603,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   /**
    * Generate a storecheck for the given array and elem
+   * @param ref the array reference
+   * @param elem the element to be written to the array
+   * @param elemType the type of the array references elements
    * @return true if an unconditional throw is generated, false otherwise
    */
   private boolean do_CheckStore(OPT_Operand ref, OPT_Operand elem, 

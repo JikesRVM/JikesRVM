@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.*;
 
 /**
@@ -52,6 +53,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * represents the default result from an annotation method.
    */
   protected final Object annotationDefault;
+  /**
+   * The offset of this virtual method in the jtoc if it's been placed
+   * there by constant propagation, otherwise 0.
+   */
+  private Offset jtocOffset;
 
   /**
    * Construct a read method
@@ -91,6 +97,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     this.annotationDefault = annotationDefault;
     memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
+    this.jtocOffset = Offset.fromIntSignExtend(-1);
   }
   
   /**
@@ -649,6 +656,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     // all subclasses that inherited the method.
     getDeclaringClass().updateMethod(this);
 
+    // Replace constant-ified virtual method in JTOC if necessary
+    if(jtocOffset.toInt() != -1) {
+      VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
+    }
+
     // Now that we've updated the jtoc/tib, old version is obsolete
     if (oldCompiledMethod != null) {
       VM_CompiledMethods.setCompiledMethodObsolete(oldCompiledMethod);
@@ -663,5 +675,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (currentCompiledMethod == cm) {
       replaceCompiledMethod(null);
     }
+  }
+
+  /**
+   * Find or create a jtoc offset for this method
+   */
+  public final synchronized Offset findOrCreateJtocOffset() {
+    if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());
+    if(jtocOffset.EQ(Offset.zero())) {
+      jtocOffset = VM_Statics.allocateReferenceSlot();
+      VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
+    }
+    return jtocOffset;
   }
 }

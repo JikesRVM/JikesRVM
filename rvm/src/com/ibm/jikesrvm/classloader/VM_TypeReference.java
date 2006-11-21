@@ -134,8 +134,8 @@ public final class VM_TypeReference implements VM_SizeConstants {
 
   //-#if RVM_WITH_OPT_COMPILER
   // Synthetic types used by the opt compiler 
-  public static final VM_TypeReference NULL_TYPE = findOrCreate("Lcom/ibm/jikesrvm/VM_TypeReference$NULL;");
-  public static final VM_TypeReference VALIDATION_TYPE = findOrCreate("Lcom/ibm/jikesrvm/VM_TypeReference$VALIDATION;");
+  public static final VM_TypeReference NULL_TYPE = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$NULL;");
+  public static final VM_TypeReference VALIDATION_TYPE = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$VALIDATION;");
   //-#endif
 
   /**
@@ -516,8 +516,7 @@ public final class VM_TypeReference implements VM_SizeConstants {
    * Do this and that definitely refer to the same type?
    */
   public final boolean definitelySame(VM_TypeReference that) {
-    if (that == null) System.out.println("that is null :)");
-    if (this == null) System.out.println("this is null :)");
+    if (VM.VerifyAssertions) VM._assert(that != null);
     if (this == that) return true;
     if (name != that.name) return false;
     VM_Type mine = peekResolvedType();

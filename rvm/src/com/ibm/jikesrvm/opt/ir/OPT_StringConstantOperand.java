@@ -18,17 +18,7 @@ import org.vmmagic.unboxed.Offset;
  * @see OPT_Operand
  * @author John Whaley
  */
-public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
-
-  /**
-   * The string value
-   */
-  public String value;
-
-  /**
-   * Offset in JTOC where this string constant lives.
-   */
-  public Offset offset;
+public final class OPT_StringConstantOperand extends OPT_ObjectConstantOperand {
 
   /**
    * Construct a new string constant operand
@@ -37,8 +27,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @param i JTOC offset of the string constant
    */
   public OPT_StringConstantOperand(String v, Offset i) {
-    value = v;
-    offset = i;
+    super (v,i);
   }
 
   /**
@@ -47,7 +36,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_StringConstantOperand(value, offset);
+    return new OPT_StringConstantOperand((String)value, offset);
   }
 
   /**
@@ -56,29 +45,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return VM_TypeReference.JavaLangString
    */
   public final VM_TypeReference getType() {
-	 return VM_TypeReference.JavaLangString;
-  }
-
-  /**
-   * Does the operand represent a value of the reference data type?
-   * 
-   * @return <code>true</code>
-   */
-  public final boolean isRef() {
-	 return true;
-  }
-
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
-   *           if they are not.
-   */
-  public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_StringConstantOperand) &&
-      (value.equals(((OPT_StringConstantOperand)op).value));
+    return VM_TypeReference.JavaLangString;
   }
 
   /**
@@ -87,6 +54,6 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "\""+ value + "\"";
+    return "string \""+ value + "\"";
   }
 }

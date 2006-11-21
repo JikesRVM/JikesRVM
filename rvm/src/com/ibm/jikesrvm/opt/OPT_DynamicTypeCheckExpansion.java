@@ -78,7 +78,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       myBlock.insertOut(instanceOfBlock);
       myBlock.insertOut(falseBranch);
       ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
-      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
+      OPT_Operand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
       return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                         trueBranch, falseBranch, oldGuard, bp);
     } else {
@@ -102,7 +102,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       prevBB.insertOut(nullCaseBB);
       nullCaseBB.insertOut(nextBB);
       ir.cfg.addLastInCodeOrder(nullCaseBB);
-      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
+      OPT_Operand RHStib = getTIB(s, ir, ref, guard.copyD2U());
       return generateValueProducingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                              result);
     }
@@ -142,7 +142,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_RegisterOperand oldGuard = IfCmp.getGuardResult(next);
       next.remove();
       OPT_BasicBlock fallThroughBB = fallThroughBB(s, ir);
-      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
+      OPT_Operand RHStib = getTIB(s, ir, ref, guard);
       if (branchCondition) {
         return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, branchBB, 
                                           fallThroughBB, oldGuard,
@@ -154,7 +154,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       }
     } else {
       // Not a branching pattern
-      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
+      OPT_Operand RHStib = getTIB(s, ir, ref, guard);
       return generateValueProducingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                              result);
     }
@@ -197,7 +197,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       Trap.create(TRAP, null, OPT_TrapCodeOperand.CheckCast());
     raiseError.copyPosition(s);
     failBlock.appendInstruction(raiseError);
-    OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
+    OPT_Operand RHStib = getTIB(s, ir, ref, guard.copyD2U());
     return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, succBlock, 
                                       failBlock, null, OPT_BranchProfileOperand.never());
   }
@@ -227,7 +227,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       Trap.create(TRAP, null, OPT_TrapCodeOperand.CheckCast());
     raiseError.copyPosition(s);
     failBlock.appendInstruction(raiseError);
-    OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
+    OPT_Operand RHStib = getTIB(s, ir, ref, guard);
     return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, succBlock, 
                                       failBlock, null, OPT_BranchProfileOperand.never());
   }
@@ -262,7 +262,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     raiseError.copyPosition(s);
     failBlock.appendInstruction(raiseError);
     
-    OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
+    OPT_Operand RHStib = getTIB(s, ir, ref, guard);
     OPT_RegisterOperand doesImpl = 
       InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, 
                   VM_TypeReference.IntArray, RHStib);
@@ -368,7 +368,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         VM_Class etc = (VM_Class)compType.asArray().getElementType();
         if (etc.isResolved() && etc.isFinal()) {
           if (VM.VerifyAssertions) VM._assert(!etc.isInterface());
-          OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
+          OPT_Operand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
           OPT_Operand etTIB = getTIB(curBlock.lastInstruction(), ir, etc);
           curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
                                                   rhsTIB, etTIB,
@@ -383,7 +383,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       }
 
       // optionally (2) from above
-      OPT_RegisterOperand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
+      OPT_Operand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
       if (((arrayRef instanceof OPT_RegisterOperand)&&((OPT_RegisterOperand)arrayRef).isDeclaredType()) || compType == VM_Type.JavaLangObjectArrayType) {
         OPT_Operand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
         curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
@@ -397,11 +397,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
       // On our way to doing (3) from above attempt another short-circuit.
       // If lhsElemTIB == rhsTIB, then we are done.
-      OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
+      OPT_Operand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
       OPT_RegisterOperand lhsElemTIB = 
         InsertUnary(curBlock.lastInstruction(), ir, GET_ARRAY_ELEMENT_TIB_FROM_TIB, 
                     VM_TypeReference.JavaLangObjectArray, 
-                    lhsTIB.copyRO());
+                    lhsTIB.copy());
       curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
                                               rhsTIB, lhsElemTIB,
                                               OPT_ConditionOperand.EQUAL(), 
@@ -420,7 +420,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                         lhsElemTIB.copyU2U());
           OPT_RegisterOperand rhsSuperclassIds = 
             InsertUnary(curBlock.lastInstruction(), ir, GET_SUPERCLASS_IDS_FROM_TIB, 
-                        VM_TypeReference.ShortArray, rhsTIB.copyD2U());
+                        VM_TypeReference.ShortArray, rhsTIB.copy());
           OPT_RegisterOperand lhsElemDepth = 
             getField(curBlock.lastInstruction(), ir, lhsElemType, VM_Entrypoints.depthField, TG());
           OPT_RegisterOperand rhsSuperclassIdsLength = 
@@ -490,7 +490,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @param ir       The OPT_IR containing the instruction to be expanded.
    * @param RHSobj   The OPT_RegisterOperand containing the rhs object.
    * @param LHStype  The VM_Type to be tested against.
-   * @param RHStib   The OPT_RegisterOperand containing the TIB of the rhs.
+   * @param RHStib   The OPT_Operand containing the TIB of the rhs.
    * @param result   The OPT_RegisterOperand that the result of dynamic 
    *                 type check is to be stored in.
    * @return the opt instruction immediately before the 
@@ -500,7 +500,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                                  OPT_IR ir, 
                                                                  OPT_Operand RHSobj, 
                                                                  VM_TypeReference LHStype, 
-                                                                 OPT_RegisterOperand RHStib, 
+                                                                 OPT_Operand RHStib, 
                                                                  OPT_RegisterOperand result) {
     // Is LHStype a class?
     if (LHStype.isClassType()) {
@@ -636,7 +636,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @param ir       The OPT_IR containing the instruction to be expanded.
    * @param RHSobj   The OPT_RegisterOperand containing the rhs object.
    * @param LHStype  The VM_TypeReference to be tested against.
-   * @param RHStib   The OPT_RegisterOperand containing the TIB of the rhs.
+   * @param RHStib   The OPT_Operand containing the TIB of the rhs.
    * @param result   The OPT_RegisterOperand that the result of dynamic 
    * @return the opt instruction immediately before the instruction to 
    *         continue expansion.
@@ -645,7 +645,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                              OPT_IR ir,
                                                              OPT_Operand RHSobj, 
                                                              VM_TypeReference LHStype,
-                                                             OPT_RegisterOperand RHStib,
+                                                             OPT_Operand RHStib,
                                                              OPT_RegisterOperand result) {
     OPT_BasicBlock myBlock = s.getBasicBlock();
     OPT_BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
@@ -678,7 +678,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @param ir         The OPT_IR containing the instruction to be expanded.
    * @param RHSobj     The OPT_RegisterOperand containing the rhs object.
    * @param LHStype    The VM_TypeReference to be tested against.
-   * @param RHStib     The OPT_RegisterOperand containing the TIB of the rhs.
+   * @param RHStib     The OPT_Operand containing the TIB of the rhs.
    * @param trueBlock  The OPT_BasicBlock to continue at if the typecheck 
    *                   evaluates to true
    * @param falseBlock The OPT_BasicBlock to continue at if the typecheck 
@@ -691,7 +691,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                             OPT_IR ir, 
                                                             OPT_Operand RHSobj,
                                                             VM_TypeReference LHStype, 
-                                                            OPT_RegisterOperand RHStib, 
+                                                            OPT_Operand RHStib, 
                                                             OPT_BasicBlock trueBlock, 
                                                             OPT_BasicBlock falseBlock,
                                                             OPT_RegisterOperand oldGuard,
@@ -724,8 +724,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                            OPT_ConditionOperand.LESS_EQUAL(), 
                            falseBlock.makeJumpTarget(),
                            OPT_BranchProfileOperand.unlikely());
-				if (oldGuard != null)
-				  oldGuard = oldGuard.copyD2D();
+            if (oldGuard != null)
+              oldGuard = oldGuard.copyD2D();
             continueAt.insertBefore(lengthCheck);
             OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
             oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -773,8 +773,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                              OPT_ConditionOperand.LESS(), 
                              falseBlock.makeJumpTarget(),
                              OPT_BranchProfileOperand.unlikely());
-				  if (oldGuard != null) 
-					 oldGuard = oldGuard.copyD2D();
+              if (oldGuard != null) 
+                oldGuard = oldGuard.copyD2D();
               continueAt.insertBefore(lengthCheck);
               OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
               oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -838,8 +838,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                        OPT_ConditionOperand.EQUAL(), 
                        trueBlock.makeJumpTarget(),
                        new OPT_BranchProfileOperand());
-		  if (oldGuard != null)
-			 oldGuard = oldGuard.copyD2D();
+        if (oldGuard != null)
+          oldGuard = oldGuard.copyD2D();
         continueAt.insertBefore(shortcircuit);
         OPT_BasicBlock myBlock = shortcircuit.getBasicBlock();
         OPT_BasicBlock mainBlock = 
@@ -847,7 +847,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         myBlock.insertOut(trueBlock);       // must come after the splitNodeAt
         OPT_RegisterOperand rhsType = 
           InsertUnary(continueAt, ir, GET_TYPE_FROM_TIB, 
-                      VM_TypeReference.VM_Type, RHStib.copyD2U());
+                      VM_TypeReference.VM_Type, RHStib.copy());
         if (innermostElementType.isJavaLangObjectType()) {
           OPT_IntConstantOperand lhsDimension = IC(LHStype.getDimensionality());
           OPT_RegisterOperand rhsDimension = 
@@ -860,8 +860,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                           OPT_ConditionOperand.LESS(), 
                           falseBlock.makeJumpTarget(),
                           (OPT_BranchProfileOperand)falseProb.copy());
-			 if (oldGuard != null)
-				oldGuard = oldGuard.copyD2D();
+          if (oldGuard != null)
+            oldGuard = oldGuard.copyD2D();
           continueAt.insertBefore(dimTest);
           OPT_BasicBlock testBlock = 
             mainBlock.splitNodeWithLinksAt(dimTest, ir);

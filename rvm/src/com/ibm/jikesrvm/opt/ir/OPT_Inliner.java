@@ -229,14 +229,14 @@ public class OPT_Inliner implements OPT_Operators,
       // operand (and not a string constant) because we are doing a 
       // guarded inlining....if it was a string constant we'd have
       // been able to inline without a guard.
-      OPT_RegisterOperand receiver = Call.getParam(callSite, 0).asRegister();
+      OPT_Operand receiver = Call.getParam(callSite, 0);
       OPT_MethodOperand mo = Call.getMethod(callSite);
       boolean isInterface = mo.isInterface();
       if (isInterface) {
         if (VM.BuildForIMTInterfaceInvocation ||
             (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
           VM_Type interfaceType = mo.getTarget().getDeclaringClass();
-          VM_TypeReference recTypeRef = receiver.type;
+          VM_TypeReference recTypeRef = receiver.getType();
           VM_Class recType = (VM_Class)recTypeRef.peekResolvedType();
           // Attempt to avoid inserting the check by seeing if the 
           // known static type of the receiver implements the interface.
@@ -249,7 +249,7 @@ public class OPT_Inliner implements OPT_Operators,
           if (requiresImplementsTest) {
             OPT_Instruction dtc = 
               TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                               receiver.copyU2U(),
+                               receiver.copy(),
                                new OPT_TypeOperand(interfaceType),
                                Call.getGuard(callSite).copy());
             dtc.copyPosition(callSite);
@@ -345,7 +345,7 @@ public class OPT_Inliner implements OPT_Operators,
         }
 
         if (guards[i] == OPT_Options.IG_CLASS_TEST) {
-          tmp = InlineGuard.create(IG_CLASS_TEST, receiver.copyU2U(), 
+          tmp = InlineGuard.create(IG_CLASS_TEST, receiver.copy(), 
                                    Call.getGuard(callSite).copy(), 
                                    new OPT_TypeOperand(target.getDeclaringClass()), 
                                    testFailed.makeJumpTarget(),
@@ -358,7 +358,7 @@ public class OPT_Inliner implements OPT_Operators,
             OPT_RegisterOperand t = parent.temps.makeTempInt();
             OPT_Instruction test = InstanceOf.create(INSTANCEOF_NOTNULL, t,
                                                      new OPT_TypeOperand(target.getDeclaringClass().getTypeRef()),
-                                                     receiver.copyU2U());
+                                                     receiver.copy());
             test.copyPosition(callSite);
             lastIfBlock.appendInstruction(test);
 
@@ -384,13 +384,13 @@ public class OPT_Inliner implements OPT_Operators,
             lastIfBlock = subclassTest;
           }
 
-          tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copyU2U(), 
+          tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copy(), 
                                    Call.getGuard(callSite).copy(), 
                                    OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
                                    testFailed.makeJumpTarget(),
                                    OPT_BranchProfileOperand.unlikely());
         } else {
-          tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copyU2U(), 
+          tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copy(), 
                                    Call.getGuard(callSite).copy(), 
                                    OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
                                    testFailed.makeJumpTarget(),

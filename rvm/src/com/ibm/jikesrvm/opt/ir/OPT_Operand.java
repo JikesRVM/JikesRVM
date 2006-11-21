@@ -181,6 +181,28 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand an {@link OPT_ObjectConstantOperand}?
+   * 
+   * @return <code>true</code> if <code>this</code> is an
+   *         <code>instanceof</code> an {@link OPT_ObjectConstantOperand}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isObjectConstant() { 
+    return this instanceof OPT_ObjectConstantOperand; 
+  }
+
+  /**
+   * Is the operand an {@link OPT_TIBConstantOperand}?
+   * 
+   * @return <code>true</code> if <code>this</code> is an
+   *         <code>instanceof</code> an {@link OPT_TIBConstantOperand}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isTIBConstant() { 
+    return this instanceof OPT_TIBConstantOperand; 
+  }
+
+  /**
    * Is the operand an {@link OPT_NullConstantOperand}?
    * 
    * @return <code>true</code> if <code>this</code> is an
@@ -350,6 +372,24 @@ public abstract class OPT_Operand {
    */
   public final OPT_ClassConstantOperand asClassConstant() { 
     return (OPT_ClassConstantOperand)this; 
+  }
+
+  /**
+   * Cast to an {@link OPT_ObjectConstantOperand}.
+   * 
+   * @return <code>this</code> cast as an {@link OPT_ObjectConstantOperand}
+   */
+  public final OPT_ObjectConstantOperand asObjectConstant() { 
+    return (OPT_ObjectConstantOperand)this; 
+  }
+
+  /**
+   * Cast to an {@link OPT_TIBConstantOperand}.
+   * 
+   * @return <code>this</code> cast as an {@link OPT_TIBConstantOperand}
+   */
+  public final OPT_TIBConstantOperand asTIBConstant() { 
+    return (OPT_TIBConstantOperand)this; 
   }
 
   /**

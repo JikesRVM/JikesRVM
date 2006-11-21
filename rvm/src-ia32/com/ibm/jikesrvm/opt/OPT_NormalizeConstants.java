@@ -19,6 +19,7 @@ import org.vmmagic.unboxed.Offset;
  * to match the patterns supported in LIR2MIR.rules
  *
  * @author Dave Grove
+ * @author Ian Rogers
  */
 abstract class OPT_NormalizeConstants implements OPT_Operators {
 
@@ -44,23 +45,20 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
         for (int idx = numDefs; idx < numUses + numDefs; idx++) {
           OPT_Operand use = s.getOperand(idx);
           if (use != null) {
-            if (use instanceof OPT_StringConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
+            if (use instanceof OPT_ObjectConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(use.getType());
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
-              OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
-              Offset offset = sc.offset;
-              if (offset.isZero())
-                throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
-              s.putOperand(idx, rop.copyD2U());
-            } else if (use instanceof OPT_ClassConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangClass);
-              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
-              OPT_ClassConstantOperand cc = (OPT_ClassConstantOperand)use;
-              Offset offset = cc.offset;
-              if (offset.isZero())
-                throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+              OPT_ObjectConstantOperand oc = (OPT_ObjectConstantOperand)use;
+              Offset offset = oc.offset;
+              if (offset.isZero()) {
+                if (use instanceof OPT_StringConstantOperand) {
+                  throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
+                }
+                else if (use instanceof OPT_ClassConstantOperand) {
+                  throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+                }
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
+              }
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
               s.putOperand(idx, rop.copyD2U());
@@ -87,6 +85,20 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
             } else if (use instanceof OPT_AddressConstantOperand) {
               int v = ((OPT_AddressConstantOperand)use).value.toInt();
               s.putOperand(idx, new OPT_IntConstantOperand(v));
+            } else if (use instanceof OPT_TIBConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              Offset offset = ((OPT_TIBConstantOperand)use).value.getTibOffset();
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
+              s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_CodeConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              Offset offset = ((OPT_CodeConstantOperand)use).value.findOrCreateJtocOffset();
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
+              s.putOperand(idx, rop.copyD2U());
             }
           }
         }

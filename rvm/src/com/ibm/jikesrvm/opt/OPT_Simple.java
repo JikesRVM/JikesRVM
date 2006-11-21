@@ -331,7 +331,8 @@ public final class OPT_Simple extends OPT_CompilerPhase
         continue;
       OPT_RegisterOperand rhs = (OPT_RegisterOperand)rhsOp;
       // Propagate the type in the def
-      lhs.type = rhs.type;
+      lhs.copyType(rhs);
+
       // Now propagate lhs into all uses; substitute rhs.type for lhs.type
       for (OPT_RegisterOperand use = reg.useList; use != null; 
           use = (OPT_RegisterOperand)use.getNext()) {
@@ -343,7 +344,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
         // don't undo the effects!
         if (rhs.type.isPrimitiveType() && !use.type.isPrimitiveType())
           continue;
-        use.type = rhs.type;
+        use.copyType(rhs);
       }
     }
   }

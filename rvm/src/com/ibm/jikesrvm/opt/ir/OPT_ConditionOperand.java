@@ -462,12 +462,12 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         return evaluate(v1.asDoubleConstant().value, 
                         v2.asDoubleConstant().value);
       } 
-    } else if (v1.isStringConstant()) {
-      if (v2.isStringConstant()) {
+    } else if (v1.isObjectConstant()) {
+      if (v2.isObjectConstant()) {
         if (isEQUAL()) {
-          return (v1.asStringConstant().value == v2.asStringConstant().value) ? TRUE : FALSE;
+          return (v1.asObjectConstant().value == v2.asObjectConstant().value) ? TRUE : FALSE;
         } else if (isNOT_EQUAL()) {
-          return (v1.asStringConstant().value != v2.asStringConstant().value) ? TRUE : FALSE;
+          return (v1.asObjectConstant().value != v2.asObjectConstant().value) ? TRUE : FALSE;
         }
       } else if (v2.isNullConstant() ||
                  (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
@@ -484,7 +484,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         return evaluate(0, v2.asIntConstant().value);
       } else if (v2.isAddressConstant()) {
         return evaluate(Address.zero(), v2.asAddressConstant().value);
-      } else if (v2.isStringConstant()) {
+      } else if (v2.isObjectConstant()) {
         if (isEQUAL()) {
           return FALSE;
         } else if (isNOT_EQUAL()) {

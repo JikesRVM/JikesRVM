@@ -118,6 +118,12 @@ final class OPT_ValueGraph implements OPT_Operators {
       name = new Double(((OPT_DoubleConstantOperand)name).value);
     } else if (name instanceof OPT_StringConstantOperand) {
       name = ((OPT_StringConstantOperand)name).value;
+    } else if (name instanceof OPT_ClassConstantOperand) {
+      name = ((OPT_ClassConstantOperand)name).value;
+    } else if (name instanceof OPT_ObjectConstantOperand) {
+      name = ((OPT_ObjectConstantOperand)name).value;
+    } else if (name instanceof OPT_TIBConstantOperand) {
+      name = ((OPT_TIBConstantOperand)name).value;
     }
     return (OPT_ValueGraphVertex)nameMap.get(name);
   }
@@ -637,14 +643,18 @@ final class OPT_ValueGraph implements OPT_Operators {
       name = new Double(op.asDoubleConstant().value);
     } else if (op.isStringConstant()) {
       name = op.asStringConstant().value;
+    } else if (op instanceof OPT_ClassConstantOperand) {
+      name = op.asClassConstant().value;
+    } else if (op instanceof OPT_ObjectConstantOperand) {
+      name = op.asObjectConstant().value;
+    } else if (op instanceof OPT_TIBConstantOperand) {
+      name = op.asTIBConstant().value;
     } else if (op.isNullConstant()) {
       name = op;
     } else if (op instanceof OPT_TrueGuardOperand) {
       name = op;
     } else if (op instanceof OPT_UnreachableOperand) {
       name = op;
-    } else if (op instanceof OPT_ClassConstantOperand) {
-      name = op.asClassConstant().value;
     } else {
       throw  new OPT_OptimizingCompilerException(
           "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand: " + op);

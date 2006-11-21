@@ -41,7 +41,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * internal methods that don't have 'real' Java method but come from
    * VM_OutOfLineMachineCode.
    */
-  protected VM_MemberReference memRef;
+  protected final VM_MemberReference memRef;
   
   /**
    * Target VM_Method of invocation.
@@ -253,6 +253,16 @@ public final class OPT_MethodOperand extends OPT_Operand {
     */
    public void refine(VM_Method target) {
      this.target = target;
+     setPreciseTarget();
+   }
+
+   /**
+    * Refine the target information. Used to reduce the set of 
+    * targets for an invokevirtual.
+    */
+   public void refine(VM_Type targetClass) {
+     this.target = targetClass.findVirtualMethod(memRef.getName(),
+                                                 memRef.getDescriptor());
      setPreciseTarget();
    }
 

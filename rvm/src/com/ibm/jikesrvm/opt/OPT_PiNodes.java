@@ -56,14 +56,16 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_PiNodes",
-                                                                             new Class[]{Boolean.TYPE, Boolean.TYPE});
+  private static Constructor constructor;
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
   public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_PiNodes");
+    }
     return constructor;
   }
 
@@ -90,7 +92,6 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @param insert If true, we insert PI nodes,  If false, we remove them.
    */
   OPT_PiNodes(boolean insert) {
-    super(new Object[]{Boolean.valueOf(insert), Boolean.FALSE});
     this.insertion = insert;
     this.typeChecks = false;
   }
@@ -101,8 +102,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @param insert If true, we insert PI nodes,  If false, we remove them.
    * @param typeChecks If true, we insert PI nodes only for type checks.
    */
-  public OPT_PiNodes(boolean insert, boolean typeChecks) {
-    super(new Object[]{Boolean.valueOf(insert), Boolean.valueOf(typeChecks)});
+  OPT_PiNodes(boolean insert, boolean typeChecks) {
     this.insertion = insert;
     this.typeChecks = typeChecks;
   }
@@ -328,6 +328,12 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
           OPT_RegisterOperand lval = (OPT_RegisterOperand)obj.copy();
           lval.type = TypeCheck.getType(instr).getTypeRef();
           lval.clearDeclaredType();
+          if (lval.type.isResolved() && lval.type.isClassType()
+              && lval.type.peekResolvedType().asClass().isFinal()) {
+              lval.setPreciseType();
+          } else {
+              lval.clearPreciseType();
+          }
           OPT_Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
           s.position = instr.position;
           s.bcIndex = instr.bcIndex;

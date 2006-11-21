@@ -335,19 +335,10 @@ public final class OPT_GenerationContext
         local = child.makeLocal(localNum++, objPtr);
         child.arguments[0] = local; // Avoid confusion in BC2IR of callee 
         // when objPtr is a local in the caller.
-      } else if (receiver.isStringConstant()) {
-        local = child.makeLocal(localNum++, VM_TypeReference.JavaLangString);
+      } else if (receiver.isConstant()) {
+        local = child.makeLocal(localNum++, receiver.getType());
         local.setPreciseType();
-        // String constants trivially non-null
-        OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
-        OPT_BC2IR.setGuard(local, guard);
-        child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
-                                                     guard.copyRO(), 
-                                                     new OPT_TrueGuardOperand()));
-      } else if (receiver.isClassConstant()) {
-        local = child.makeLocal(localNum++, VM_TypeReference.JavaLangClass);
-        local.setPreciseType();
-        // Class constants trivially non-null
+        // Constants trivially non-null
         OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
         OPT_BC2IR.setGuard(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
@@ -571,9 +562,9 @@ public final class OPT_GenerationContext
       guard = temps.makeTempValidation();
       _ncGuards.put(ref, guard.copyRO());
     }
-	 else {
-		guard = guard.copyRO();
-	 }
+    else {
+      guard = guard.copyRO();
+    }
     return guard;
   }
 
@@ -735,13 +726,6 @@ public final class OPT_GenerationContext
   private OPT_Operand getLockObject(int bcIndex, OPT_BasicBlock target) {
     if (method.isStatic()) {
       VM_Class c = method.getDeclaringClass();
-      // make sure java.lang.Class object will be created before
-      // the static method we are compiling can execute.
-      if (VM.writingBootImage) {
-        VM.deferClassObjectCreation(c);
-      } else {
-        c.getClassForType();
-      }
       OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
                                        temps.makeTemp(VM_TypeReference.JavaLangClass),
                                        new OPT_TypeOperand(c));

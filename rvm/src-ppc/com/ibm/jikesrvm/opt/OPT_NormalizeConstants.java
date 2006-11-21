@@ -64,23 +64,20 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         for (int idx = numDefs; idx < numUses + numDefs; idx++) {
           OPT_Operand use = s.getOperand(idx);
           if (use != null) {
-            if (use instanceof OPT_StringConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
+            if (use instanceof OPT_ObjectConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(use.getType());
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
-              OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
-              Offset offset = sc.offset;
-              if (offset.isZero())
-                throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
-              s.putOperand(idx, rop.copyD2U());
-				} else if (use instanceof OPT_ClassConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangClass);
-              OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
-              OPT_ClassConstantOperand cc = (OPT_ClassConstantOperand)use;
-              Offset offset = cc.offset;
-              if (offset.isZero())
-                throw  new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+              OPT_ObjectConstantOperand oc = (OPT_ObjectConstantOperand)use;
+              Offset offset = oc.offset;
+              if (offset.isZero()) {
+                if (use instanceof OPT_StringConstantOperand) {
+                  throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
+                }
+                else if (use instanceof OPT_ClassConstantOperand) {
+                  throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+                }
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
+              }
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
@@ -115,7 +112,21 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
                 }
               }
             } else if (use instanceof OPT_NullConstantOperand) {
-                s.putOperand(idx, AC(Address.zero()));
+              s.putOperand(idx, AC(Address.zero()));
+            } else if (use instanceof OPT_TIBConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              Offset offset = ((OPT_TIBConstantOperand)use).value.getTibOffset();
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
+              s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_CodeConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              Offset offset = ((OPT_CodeConstantOperand)use).value.findOrCreateJtocOffset();
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
+              s.putOperand(idx, rop.copyD2U());
             }
           }
         }

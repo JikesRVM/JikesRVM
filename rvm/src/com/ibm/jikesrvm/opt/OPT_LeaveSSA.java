@@ -89,14 +89,14 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     this.ir = ir;
     translateFromSSA(ir);
 
-	 // reset ir.SSADictionary 
-	 ir.HIRInfo.SSADictionary = null;
-	 // reset ssa options
+    // reset ir.SSADictionary 
+    ir.HIRInfo.SSADictionary = null;
+    // reset ssa options
     ir.actualSSAOptions = null;
 
     branchOpts.perform(ir, true);
 
-	 ir.HIRInfo.dominatorsAreComputed = false;
+    ir.HIRInfo.dominatorsAreComputed = false;
   }
 
   /**
@@ -382,7 +382,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         OPT_Instruction ci = null;
         
         // insert copy operation required to remove phi
-		  if (c.source instanceof OPT_ConstantOperand) {
+        if (c.source instanceof OPT_ConstantOperand) {
           if (c.source instanceof OPT_UnreachableOperand) {
             ci = null;
           } else {

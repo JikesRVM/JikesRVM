@@ -30,20 +30,26 @@ import org.vmmagic.unboxed.*;
  */
 public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   implements OPT_Operators, VM_Constants, OPT_Constants {
-  // We have slightly different ideas of what the LIR should look like
-  // for IA32 and PowerPC.  The main difference is that for IA32 
-  // instead of bending over backwards in BURS to rediscover array loads, 
-  // (where we can use base + index*scale addressing modes), we'll leave
-  // array loads in the LIR.
+  /**
+   * We have slightly different ideas of what the LIR should look like
+   * for IA32 and PowerPC.  The main difference is that for IA32
+   * instead of bending over backwards in BURS to rediscover array
+   * loads, (where we can use base + index*scale addressing modes),
+   * we'll leave array loads in the LIR.
+   */
   static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
-
+  /**
+   * Plant virtual calls via the JTOC rather than from the tib of an
+   * object when possible
+   */
+  static final boolean CALL_VIA_JTOC = false;
   /**
    * Converts the given HIR to LIR.
    *
    * @param ir IR to convert
    */
   static void convert (OPT_IR ir, OPT_Options options) {
-	 boolean didArrayStoreCheck = false;
+    boolean didArrayStoreCheck = false;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
          s != null; 
          s = s.nextInstructionInCodeOrder()) {
@@ -210,7 +216,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       case IG_METHOD_TEST_opcode:
         {
           OPT_MethodOperand methOp = InlineGuard.getClearGoal(s).asMethod();
-          OPT_RegisterOperand t1 = 
+          OPT_Operand t1 = 
             getTIB(s, ir, 
                    InlineGuard.getClearValue(s), 
                    InlineGuard.getClearGuard(s));
@@ -406,18 +412,33 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       thisBB.appendInstruction(Goto.create(GOTO, defTarget));
       thisBB.insertOut(defaultBB);
     } else {
-      OPT_RegisterOperand reg = 
-        LookupSwitch.getValue(switchInstr).asRegister();
-
-      // If you're not already at the end of the code order
-      if (nextBB != null) 
-        ir.cfg.breakCodeOrder(thisBB, nextBB);
-      // generate the binary search tree into thisBB
-      OPT_BasicBlock lastNewBB = 
-        _lookupswitchHelper(switchInstr, reg, defaultBB, ir, thisBB, 0, 
-                            high, Integer.MIN_VALUE, Integer.MAX_VALUE);
-      if (nextBB != null)
-        ir.cfg.linkInCodeOrder(lastNewBB, nextBB);
+      OPT_Operand match = LookupSwitch.getValue(switchInstr);
+      if (match.isConstant()) {
+          // switch on a constant
+          int value = match.asIntConstant().value;
+          int numMatches = LookupSwitch.getNumberOfMatches(switchInstr);
+          OPT_BranchOperand target = LookupSwitch.getDefault(switchInstr);
+          for (int i=0; i<numMatches; i++) {
+            if (value == LookupSwitch.getMatch(switchInstr, i).value) {
+              target = LookupSwitch.getTarget(switchInstr, i);
+              break;
+            }
+          }
+          thisBB.appendInstruction(Goto.create(GOTO, target));
+          thisBB.insertOut(target.target.getBasicBlock());
+      } else {
+          OPT_RegisterOperand reg = match.asRegister();
+          
+          // If you're not already at the end of the code order
+          if (nextBB != null) 
+              ir.cfg.breakCodeOrder(thisBB, nextBB);
+          // generate the binary search tree into thisBB
+          OPT_BasicBlock lastNewBB = 
+              _lookupswitchHelper(switchInstr, reg, defaultBB, ir, thisBB, 0, 
+                                  high, Integer.MIN_VALUE, Integer.MAX_VALUE);
+          if (nextBB != null)
+              ir.cfg.linkInCodeOrder(lastNewBB, nextBB);
+      }
     }
 
     // skip all the instrs just inserted by _lookupswitchHelper
@@ -593,7 +614,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
         } else {
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
-		  }
+        }
       }
       Load.mutate(s, op, result, array, offset, loc, ALoad.getClearGuard(s));
     }
@@ -623,8 +644,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
         } else {
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
-		  }
-		}
+        }
+      }
       Store.mutate(s, op, value, array, offset, loc, AStore.getClearGuard(s));
     }
   }
@@ -679,10 +700,21 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                            Call.getClearAddress(v)));
     } else if (methOp.isVirtual()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
-      OPT_RegisterOperand tib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-      Call.setAddress(v, InsertLoadOffset(v, ir, REF_LOAD, 
-                                          VM_TypeReference.CodeArray, 
-                                          tib, Call.getClearAddress(v), null, TG()));
+      if (CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
+        // Call to precise type can go via JTOC
+        VM_Method target = methOp.getTarget();
+        Call.setAddress(v, 
+                        InsertLoadOffsetJTOC(v, ir, REF_LOAD, 
+                                             VM_TypeReference.CodeArray, 
+                                             target.findOrCreateJtocOffset()
+                                             ));
+      }
+      else {
+        OPT_Operand tib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
+        Call.setAddress(v, InsertLoadOffset(v, ir, REF_LOAD, 
+                                            VM_TypeReference.CodeArray, 
+                                            tib, Call.getClearAddress(v), null, TG()));
+      }
     } else if (methOp.isSpecial()) {
       VM_Method target = methOp.getTarget();
       if (target == null || target.isObjectInitializer() || target.isStatic()) {
@@ -691,18 +723,27 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                 VM_TypeReference.CodeArray, 
                                                 Call.getClearAddress(v)));
       } else {
-        // invoking a virtual method; do it via TIB of target's declaring class.
-        OPT_Operand tib = getTIB(v, ir, target.getDeclaringClass());
-        Call.setAddress(v, InsertLoadOffset(v, ir, REF_LOAD, 
-                                            VM_TypeReference.CodeArray, 
-                                            tib, Call.getClearAddress(v), null, TG()));
+        if (CALL_VIA_JTOC) {
+          Call.setAddress(v, 
+                          InsertLoadOffsetJTOC(v, ir, REF_LOAD, 
+                                               VM_TypeReference.CodeArray, 
+                                               target.findOrCreateJtocOffset()
+                                               ));
+        }
+        else {
+          // invoking a virtual method; do it via TIB of target's declaring class.
+          OPT_Operand tib = getTIB(v, ir, target.getDeclaringClass());
+          Call.setAddress(v, InsertLoadOffset(v, ir, REF_LOAD, 
+                                              VM_TypeReference.CodeArray, 
+                                              tib, Call.getClearAddress(v), null, TG()));
+        }
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(methOp.isInterface());
       if (VM.VerifyAssertions) VM._assert(!Call.hasAddress(v));
       if (VM.BuildForIMTInterfaceInvocation) {
         // SEE ALSO: OPT_FinalMIRExpansion (for hidden parameter)
-        OPT_RegisterOperand RHStib = 
+        OPT_Operand RHStib = 
           getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
         VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methOp.getMemberRef());
         Offset offset = sig.getIMTOffset();
@@ -710,12 +751,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         if (VM.BuildForEmbeddedIMT) {
           address = InsertLoadOffset(v, ir, REF_LOAD, 
                                      VM_TypeReference.CodeArray, 
-                                     RHStib.copyD2U(), 
+                                     RHStib.copy(), 
                                      offset);
         } else {
           OPT_RegisterOperand IMT = InsertLoadOffset(v, ir, REF_LOAD,
                                                      VM_TypeReference.JavaLangObjectArray,
-                                                     RHStib.copyD2U(),
+                                                     RHStib.copy(),
                                                      Offset.fromIntZeroExtend(TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
           address = InsertLoadOffset(v, ir, REF_LOAD,
                                      VM_TypeReference.CodeArray,
@@ -729,12 +770,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                  methOp.hasTarget() &&
                  methOp.getTarget().getDeclaringClass().isResolved()) {
         VM_Class I = methOp.getTarget().getDeclaringClass();
-        OPT_RegisterOperand RHStib = 
+        OPT_Operand RHStib = 
           getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
         OPT_RegisterOperand iTables = 
           InsertLoadOffset(v, ir, REF_LOAD,
                            VM_TypeReference.JavaLangObjectArray,
-                           RHStib.copyD2U(),
+                           RHStib.copy(),
                            Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
         OPT_RegisterOperand iTable = 
           InsertLoadOffset(v, ir, REF_LOAD,
@@ -782,7 +823,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           // itable address
           OPT_RegisterOperand iTable = 
             ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
-          OPT_RegisterOperand RHStib = 
+          OPT_Operand RHStib = 
             getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
           VM_Method target = VM_Entrypoints.findItableMethod;
           OPT_Instruction fi = 
@@ -1041,10 +1082,21 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     return regTarget.copyD2U();
   }
 
-  // get the tib from the object pointer to by obj
-  static OPT_RegisterOperand getTIB (OPT_Instruction s, OPT_IR ir, 
+  /** get the tib from the object pointer to by obj */
+  static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, 
                                      OPT_Operand obj, 
                                      OPT_Operand guard) {
+    if (obj.isObjectConstant()) {
+      // NB Constant types must already be resolved
+      try {
+        VM_Type type = obj.getType().resolve();
+        return new OPT_TIBConstantOperand(type);
+      } catch(NoClassDefFoundError e) {
+        if (VM.runningVM) throw e;
+        // Class not found during bootstrap due to chasing a class
+        // only valid in the bootstrap JVM
+      }
+    }   
     OPT_RegisterOperand res = 
       ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Instruction s2 = GuardedUnary.create(GET_OBJ_TIB, res, obj, guard);
@@ -1052,12 +1104,13 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     return res.copyD2U();
   }
 
-  // get the class tib for type
+  /** get the class tib for type */
   static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, VM_Type type) {
-    return getTIB(s, ir, new OPT_TypeOperand(type));
+    return new OPT_TIBConstantOperand(type);
+    //return getTIB(s, ir, new OPT_TypeOperand(type));
   }
 
-  // get the class tib for type
+  /** get the class tib for type */
   static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, 
                              OPT_TypeOperand type) {
     VM_Type t = type.getVMType();
@@ -1065,11 +1118,13 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         VM.runningVM && t != null && t.isResolved()) {
       Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
       return new OPT_AddressConstantOperand(addr);
-    } else {
+    } else if (!t.isResolved()) {
       OPT_RegisterOperand res = 
         ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
       s.insertBack(Unary.create(GET_CLASS_TIB, res, type));
       return res.copyD2U();
+    } else {
+      return new OPT_TIBConstantOperand(t);      
     }
   }
 

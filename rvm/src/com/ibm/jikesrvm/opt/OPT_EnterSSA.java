@@ -1016,8 +1016,11 @@ implements OPT_Operators, OPT_Constants {
           OPT_RegisterOperand result = (OPT_RegisterOperand)Phi.getResult(phi);
           result.type = meet;
           for (Enumeration e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) { 
-            OPT_RegisterOperand rop = (OPT_RegisterOperand)e.nextElement();
-            rop.type = meet;
+              OPT_RegisterOperand rop = (OPT_RegisterOperand)e.nextElement();
+              if (rop.type != meet) {
+                  rop.clearPreciseType();
+                  rop.type = meet;
+              }
           }
         }
       }

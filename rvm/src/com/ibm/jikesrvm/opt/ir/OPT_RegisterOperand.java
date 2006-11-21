@@ -230,6 +230,17 @@ public final class OPT_RegisterOperand extends OPT_Operand {
      scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
   }
 
+  /**
+   * Copy type information from the given operand into this one
+   * including scratch information on whether this is a precise type
+   * or not
+   * @param rhs the type to copy information from
+   */
+  public void copyType(OPT_RegisterOperand rhs) {
+     this.type = rhs.type;
+     this.scratch = rhs.scratch;
+  }
+
   /* Some bits used to characterize guards.  TODO: Maybe declare a new
      type OPT_GuardOperand extends OPT_RegisterOperand, and save this
      state there? */

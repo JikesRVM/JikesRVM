@@ -10,8 +10,11 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_TIBLayoutConstants;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.*;
+import java.lang.reflect.Array;
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
  *
@@ -47,15 +50,26 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
   public static final boolean CF_ADDR = true;
 
   /** 
-   * Constant fold float operations?  Default is false to avoid consuming
-   * precious JTOC slots to hold new constant values.
+   * Constant fold float operations?  Default is true, flip to avoid
+   * consuming precious JTOC slots to hold new constant values.
    */
   public static final boolean CF_FLOAT = true;
   /** 
-   * Constant fold double operations?  Default is false to avoid consuming
-   * precious JTOC slots to hold new constant values.
+   * Constant fold double operations?  Default is true, flip to avoid
+   * consuming precious JTOC slots to hold new constant values.
    */
   public static final boolean CF_DOUBLE = true;
+  /** 
+   * Constant fold field operations?  Default is true, flip to avoid
+   * consuming precious JTOC slots to hold new constant values.
+   */
+  public static final boolean CF_FIELDS = true;
+
+  /** 
+   * Constant fold TIB operations?  Default is true, flip to avoid
+   * consuming precious JTOC slots to hold new constant values.
+   */
+  public static final boolean CF_TIB = true;
 
   /**
    * Enumeration value to indicate an operation is unchanged, although the
@@ -124,12 +138,20 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       return longZeroCheck(s);
     case CHECKCAST_opcode:
       return checkcast(regpool, s);
+    case CHECKCAST_UNRESOLVED_opcode:
+      return checkcast(regpool, s);
     case CHECKCAST_NOTNULL_opcode:
       return checkcastNotNull(s);
     case INSTANCEOF_opcode:
       return instanceOf(regpool, s);
     case INSTANCEOF_NOTNULL_opcode:
       return instanceOfNotNull(s);
+    case OBJARRAY_STORE_CHECK_opcode:
+      return objarrayStoreCheck(s);
+    case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
+      return objarrayStoreCheckNotNull(s);
+    case MUST_IMPLEMENT_INTERFACE_opcode:
+      return mustImplementInterface(s);
       ////////////////////
       // Conditional moves
       ////////////////////
@@ -323,32 +345,60 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       return long2Double(s);
     case LONG_BITS_AS_DOUBLE_opcode:
       return longBitsAsDouble(s);
+      ////////////////////
+      // Field operations
+      ////////////////////
+    case ARRAYLENGTH_opcode:
+      return arrayLength(s);
+    case BOUNDS_CHECK_opcode:
+      return boundsCheck(s);
+    case CALL_opcode:
+      return call(s);
+    case GETFIELD_opcode:
+      return getField(s);
+    case GET_OBJ_TIB_opcode:
+      return getObjTib(s);
+    case GET_CLASS_TIB_opcode:
+      return getClassTib(s);
+    case GET_TYPE_FROM_TIB_opcode:
+      return getTypeFromTib(s);
+    case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
+      return getArrayElementTibFromTib(s);
+    case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
+      return getSuperclassIdsFromTib(s);
+    case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
+      return getDoesImplementFromTib(s);
+    case REF_LOAD_opcode:
+      return refLoad(s);
     default:
       return UNCHANGED;
     }
   }
   
   private static byte guardCombine(OPT_Instruction s) {
-	{
-      OPT_Operand op2 = Binary.getVal2(s);
-      if (op2 instanceof OPT_TrueGuardOperand) {
-        OPT_Operand op1 = Binary.getVal1(s);
-        if (op1 instanceof OPT_TrueGuardOperand) {
-          // BOTH TrueGuards: FOLD
-          Move.mutate(s, GUARD_MOVE, Binary.getClearResult(s), op1);
-          return MOVE_FOLDED;
-        } else {
-          // ONLY OP2 IS TrueGuard: MOVE REDUCE
-          Move.mutate(s, GUARD_MOVE, Binary.getClearResult(s), 
-                      Binary.getClearVal1(s));
-          return MOVE_REDUCED;
-        }
+    OPT_Operand op1 = Binary.getVal1(s);
+    OPT_Operand op2 = Binary.getVal2(s);
+    if (op1.similar(op2) || (op2 instanceof OPT_TrueGuardOperand)) {
+      Move.mutate(s, GUARD_MOVE, Binary.getClearResult(s), op1);
+      if (op1 instanceof OPT_TrueGuardOperand) {
+        // BOTH true guards: FOLD
+        return MOVE_FOLDED;
+      } else {
+        // ONLY OP2 IS TrueGuard: MOVE REDUCE
+        return MOVE_REDUCED;
       }
     }
-    return UNCHANGED;
+    else if(op1 instanceof OPT_TrueGuardOperand) {
+      // ONLY OP1 IS TrueGuard: MOVE REDUCE
+      Move.mutate(s, GUARD_MOVE, Binary.getClearResult(s), op2);
+      return MOVE_REDUCED;
+    }
+    else {
+      return UNCHANGED;
+    }
   }
   private static byte trapIf(OPT_Instruction s) {
-	{ 
+   { 
       OPT_Operand op1 = TrapIf.getVal1(s);
       OPT_Operand op2 = TrapIf.getVal2(s);
       if (op1.isConstant()) {
@@ -375,33 +425,27 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte nullCheck(OPT_Instruction s) {
-	{
       OPT_Operand ref = NullCheck.getRef(s);
-      if (ref.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                    OPT_TrapCodeOperand.NullPtr());
-        return TRAP_REDUCED;
-      } else if (ref.isStringConstant()) {
-        Move.mutate(s, GUARD_MOVE, NullCheck.getClearGuardResult(s), TG());
-        return MOVE_FOLDED;
-      } else if (ref.isAddressConstant()) {
-        if (ref.asAddressConstant().value.isZero()) {
+      if (ref.isNullConstant() ||
+          (ref.isAddressConstant() && ref.asAddressConstant().value.isZero())) {
           Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
                       OPT_TrapCodeOperand.NullPtr());
           return TRAP_REDUCED;
-        } else {
+      } else if (ref.isConstant()) {
+          // object, string, class or non-null address constant
+          
           // Make the slightly suspect assumption that all non-zero address
           // constants are actually valid pointers. Not necessarily true,
           // but unclear what else we can do.
           Move.mutate(s, GUARD_MOVE, NullCheck.getClearGuardResult(s), TG());
           return MOVE_FOLDED;
-        }
       }
-      return UNCHANGED;
-    }
+      else {
+          return UNCHANGED;
+      }
   }
   private static byte intZeroCheck(OPT_Instruction s) {
-	{
+   {
       OPT_Operand op = ZeroCheck.getValue(s);
       if (op.isIntConstant()) {
         int val = op.asIntConstant().value;
@@ -418,7 +462,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longZeroCheck(OPT_Instruction s) {
-	{
+   {
       OPT_Operand op = ZeroCheck.getValue(s);
       if (op.isLongConstant()) {
         long val = op.asLongConstant().value;
@@ -435,57 +479,57 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte checkcast(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
-	{ 
-      OPT_Operand ref = TypeCheck.getRef(s);
-      if (ref.isNullConstant()) {
-        Empty.mutate(s, NOP);
-        return REDUCED;
-      } else if (ref.isStringConstant()) {
-        s.operator = CHECKCAST_NOTNULL;
-        return simplify(regpool, s);
-      } else {
-        VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
-        VM_TypeReference rhsType = ref.getType();
-        byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
-        if (ans == OPT_Constants.YES) {
-          Empty.mutate(s, NOP);
-          return REDUCED;
-        }
-        // NOTE: OPT_Constants.NO can't help us because (T)null always succeeds
-      }
-    }
-    return UNCHANGED;
-  }
-  private static byte checkcastNotNull(OPT_Instruction s) {
-	{ 
-      OPT_Operand ref = TypeCheck.getRef(s);
+    OPT_Operand ref = TypeCheck.getRef(s);
+    if (ref.isNullConstant()) {
+      Empty.mutate(s, NOP);
+      return REDUCED;
+    } else if (ref.isConstant()) {
+      s.operator = CHECKCAST_NOTNULL;
+      return checkcastNotNull(s);
+    } else {
       VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       VM_TypeReference rhsType = ref.getType();
       byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == OPT_Constants.YES) {
         Empty.mutate(s, NOP);
         return REDUCED;
-      } else if (ans == OPT_Constants.NO) {
-        VM_Type rType = rhsType.peekResolvedType();
-        if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
-          // only final (or precise) rhs types can be optimized since rhsType may be conservative
-          Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.CheckCast());
-          return TRAP_REDUCED;
-        }
+      } else {
+        // NOTE: OPT_Constants.NO can't help us because (T)null always succeeds
+        return UNCHANGED;
       }
     }
-    return UNCHANGED;
+  }
+  private static byte checkcastNotNull(OPT_Instruction s) {
+    OPT_Operand ref = TypeCheck.getRef(s);
+    VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
+    VM_TypeReference rhsType = ref.getType();
+    byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+    if (ans == OPT_Constants.YES) {
+      Empty.mutate(s, NOP);
+      return REDUCED;
+    } else if (ans == OPT_Constants.NO) {
+      VM_Type rType = rhsType.peekResolvedType();
+      if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
+        // only final (or precise) rhs types can be optimized since rhsType may be conservative
+        Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.CheckCast());
+        return TRAP_REDUCED;
+      } else {
+        return UNCHANGED;
+      }
+    }
+    else {
+      return UNCHANGED;
+    }
   }
   private static byte instanceOf(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
-	{
-      OPT_Operand ref = InstanceOf.getRef(s);
-      if (ref.isNullConstant()) {
-        Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
-        return MOVE_FOLDED;
-      } else if (ref.isStringConstant()) {
-        s.operator = INSTANCEOF_NOTNULL;
-        return simplify(regpool, s);
-      }
+    OPT_Operand ref = InstanceOf.getRef(s);
+    if (ref.isNullConstant()) {
+      Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
+      return MOVE_FOLDED;
+    } else if (ref.isConstant()) {
+      s.operator = INSTANCEOF_NOTNULL;
+      return instanceOfNotNull(s);
+    } else {
       VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       VM_TypeReference rhsType = ref.getType();
       byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
@@ -497,12 +541,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
           return MOVE_FOLDED;
         }
+        else {
+          return UNCHANGED;
+        }
+      }
+      else {
+        return UNCHANGED;
       }
     }
-    return UNCHANGED;
   }
   private static byte instanceOfNotNull(OPT_Instruction s) {
-	{
+   {
       OPT_Operand ref = InstanceOf.getRef(s);
       VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       VM_TypeReference rhsType = ref.getType();
@@ -521,8 +570,113 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     }
     return UNCHANGED;
   }
+  private static byte objarrayStoreCheck(OPT_Instruction s){
+    OPT_Operand val = StoreCheck.getVal(s);
+    if (val.isNullConstant()) {
+      // Writing null into an array is trivially safe
+      Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
+      return MOVE_REDUCED;
+    }
+    else {
+      OPT_Operand ref = StoreCheck.getRef(s);
+      VM_TypeReference arrayTypeRef = ref.getType();
+      VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekResolvedType();
+      if (typeOfIMElem != null) {
+        VM_Type typeOfVal = val.getType().peekResolvedType();
+        if ((typeOfIMElem == typeOfVal) &&
+            (typeOfIMElem.isPrimitiveType() ||
+             typeOfIMElem.asClass().isFinal())) {
+          // Writing something of a final type to an array of that
+          // final type is safe
+          Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
+                      StoreCheck.getClearGuard(s));
+          return MOVE_REDUCED;
+        }
+      }
+      if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
+        // We know this to be an array of objects so any store must
+        // be safe
+        Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
+                    StoreCheck.getClearGuard(s));
+        return MOVE_REDUCED;          
+      }
+      if (val.isConstant() && ref.isConstant()) {
+        // writing a constant value into a constant array
+        byte ans = OPT_ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
+        if (ans == OPT_Constants.YES) {
+          // all stores should succeed
+          Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
+          return MOVE_REDUCED;
+        }
+        else if (ans == OPT_Constants.NO) {
+          // all stores will fail
+          Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), OPT_TrapCodeOperand.StoreCheck());
+          return TRAP_REDUCED;
+        }
+      }
+      return UNCHANGED;
+    }
+  }
+  private static byte objarrayStoreCheckNotNull(OPT_Instruction s){
+    OPT_Operand val = StoreCheck.getVal(s);
+    OPT_Operand ref = StoreCheck.getRef(s);
+    VM_TypeReference arrayTypeRef = ref.getType();
+    VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekResolvedType();
+    if (typeOfIMElem != null) {
+      VM_Type typeOfVal = val.getType().peekResolvedType();
+      if ((typeOfIMElem == typeOfVal) &&
+          (typeOfIMElem.isPrimitiveType() ||
+           typeOfIMElem.asClass().isFinal())) {
+        // Writing something of a final type to an array of that
+        // final type is safe
+        Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
+        return MOVE_REDUCED;
+      }
+    }
+    if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
+      // We know this to be an array of objects so any store must
+      // be safe
+      Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
+                  StoreCheck.getClearGuard(s));
+      return MOVE_REDUCED;          
+    }
+    if (val.isConstant() && ref.isConstant()) {
+      // writing a constant value into a constant array
+      byte ans = OPT_ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
+      if (ans == OPT_Constants.YES) {
+        // all stores should succeed
+        Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
+        return MOVE_REDUCED;
+      }
+      else if (ans == OPT_Constants.NO) {
+        // all stores will fail
+        Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), OPT_TrapCodeOperand.StoreCheck());
+        return TRAP_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte mustImplementInterface(OPT_Instruction s) {
+    OPT_Operand ref = TypeCheck.getRef(s);
+    if (VM.VerifyAssertions) VM._assert(!ref.isNullConstant());       
+    VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
+    VM_TypeReference rhsType = ref.getType();                     // our type
+    byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+    if (ans == OPT_Constants.YES) {
+      Empty.mutate(s, NOP);
+      return REDUCED;
+    } else if (ans == OPT_Constants.NO) {
+      VM_Type rType = rhsType.peekResolvedType();
+      if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
+        // only final (or precise) rhs types can be optimized since rhsType may be conservative
+        Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.MustImplement());
+        return TRAP_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
   private static byte intCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       OPT_Operand val2 = CondMove.getVal2(s);
       int cond = CondMove.getCond(s).evaluate(val1, val2);
@@ -580,7 +734,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       OPT_Operand val2 = CondMove.getVal2(s);
       int cond = CondMove.getCond(s).evaluate(val1, val2);
@@ -638,18 +792,18 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       OPT_Operand val2 = CondMove.getVal2(s);
-	  int cond = CondMove.getCond(s).evaluate(val1, val2);
-	  if (cond != OPT_ConditionOperand.UNKNOWN) {
+     int cond = CondMove.getCond(s).evaluate(val1, val2);
+     if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val = 
           (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
           : CondMove.getClearFalseValue(s);
         Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
-	  }
+     }
       if (val1.isConstant() && !val2.isConstant()) {
         // Canonicalize by switching operands and fliping code.
         OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -667,18 +821,18 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       OPT_Operand val2 = CondMove.getVal2(s);
-	  int cond = CondMove.getCond(s).evaluate(val1, val2);
-	  if (cond != OPT_ConditionOperand.UNKNOWN) {
+     int cond = CondMove.getCond(s).evaluate(val1, val2);
+     if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val = 
           (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
           : CondMove.getClearFalseValue(s);
         Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
-	  }
+     }
       if (val1.isConstant() && !val2.isConstant()) {
         // Canonicalize by switching operands and fliping code.
         OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -696,7 +850,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       if (val1.isConstant()) {
         OPT_Operand val2 = CondMove.getVal2(s);
@@ -727,7 +881,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte guardCondMove(OPT_Instruction s) {
-	{
+   {
       OPT_Operand val1 = CondMove.getVal1(s);
       if (val1.isConstant()) {
         OPT_Operand val2 = CondMove.getVal2(s);
@@ -758,7 +912,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte booleanNot(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -774,7 +928,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte booleanCmpInt(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op1 = BooleanCmp.getVal1(s);
       OPT_Operand op2 = BooleanCmp.getVal2(s);
       if (op1.isConstant()) {
@@ -798,7 +952,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte booleanCmpAddr(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op1 = BooleanCmp.getVal1(s);
       OPT_Operand op2 = BooleanCmp.getVal2(s);
       if (op1.isConstant()) {
@@ -822,7 +976,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intAdd(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -846,7 +1000,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intAnd(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -880,7 +1034,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intDiv(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op1 = GuardedBinary.getVal1(s);
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -925,7 +1079,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intMul(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -951,7 +1105,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                         Binary.getClearVal1(s));
             return MOVE_REDUCED;
-          }	    
+          }       
           // try to reduce x*c into shift and adds, but only if cost is cheap
           if (s.getPrev() != null) {
             // don't attempt to reduce if this instruction isn't
@@ -1006,7 +1160,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intNeg(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -1018,7 +1172,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intNot(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -1030,7 +1184,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intOr(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1065,7 +1219,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intRem(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op1 = GuardedBinary.getVal1(s);
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1103,7 +1257,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intShl(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1132,7 +1286,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intShr(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1156,7 +1310,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intSub(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1190,7 +1344,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intUshr(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1219,7 +1373,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte intXor(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1256,13 +1410,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refAdd(OPT_Instruction s) {
-	if (CF_ADDR) {
+    if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
-      if (op2.isConstant()) {
+      if (op2.isConstant() && !op2.isObjectConstant()) {
         Address val2 = getAddressValue(op2);
         OPT_Operand op1 = Binary.getVal1(s);
-        if (op1.isConstant()) {
+        if (op1.isConstant() && !op1.isObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.plus(val2.toWord().toOffset())));
@@ -1283,7 +1437,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refAnd(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1317,7 +1471,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refShl(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1346,7 +1500,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refShr(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1370,7 +1524,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refNot(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isAddressConstant()) {
         // CONSTANT: FOLD
@@ -1382,7 +1536,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refOr(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1417,7 +1571,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refSub(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1426,9 +1580,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                     IC(0));
         return MOVE_FOLDED;
       }
-      if (op2.isConstant()) {
+      if (op2.isConstant() && !op2.isObjectConstant()) {
         Address val2 = getAddressValue(op2);
-        if (op1.isConstant()) {
+        if (op1.isConstant() && !op1.isObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.minus(val2.toWord().toOffset())));
@@ -1454,7 +1608,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte regUshr(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1483,7 +1637,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte refXor(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1519,7 +1673,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longAdd(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isLongConstant()) {
@@ -1543,7 +1697,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longAnd(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1578,7 +1732,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longCmp(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1601,7 +1755,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longDiv(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op1 = GuardedBinary.getVal1(s);
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1639,7 +1793,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longMul(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isLongConstant()) {
@@ -1673,7 +1827,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longNeg(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -1685,7 +1839,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longNot(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         long val = op.asLongConstant().value;
@@ -1697,7 +1851,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longOr(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1732,7 +1886,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longRem(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op1 = GuardedBinary.getVal1(s);
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1770,7 +1924,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longShl(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1799,7 +1953,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longShr(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1823,7 +1977,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longSub(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1859,7 +2013,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longUshr(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
@@ -1888,7 +2042,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte longXor(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -1924,7 +2078,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatAdd(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
@@ -1948,7 +2102,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatCmpg(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -1965,7 +2119,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatCmpl(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -1982,7 +2136,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatDiv(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -1999,7 +2153,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatMul(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
@@ -2023,7 +2177,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatNeg(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -2035,7 +2189,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatRem(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -2052,7 +2206,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte floatSub(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         float val2 = op2.asFloatConstant().value;
@@ -2075,7 +2229,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleAdd(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
@@ -2099,7 +2253,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleCmpg(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -2116,7 +2270,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleCmpl(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -2133,7 +2287,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleDiv(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -2150,7 +2304,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleMul(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
@@ -2174,7 +2328,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleNeg(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2186,7 +2340,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleRem(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         OPT_Operand op1 = Binary.getVal1(s);
@@ -2203,7 +2357,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleSub(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         double val2 = op2.asDoubleConstant().value;
@@ -2226,7 +2380,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte double2Float(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2238,7 +2392,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte double2Int(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2250,7 +2404,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte double2Long(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2262,7 +2416,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte doubleAsLongBits(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2275,7 +2429,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2Double(OPT_Instruction s) {
-	if (CF_DOUBLE) {
+   if (CF_DOUBLE) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2288,7 +2442,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2Byte(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2300,7 +2454,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2UShort(OPT_Instruction s) {
-	if (CF_INT) {
+   if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2312,7 +2466,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2Float(OPT_Instruction s) {
-	if (CF_FLOAT) {
+   if (CF_FLOAT) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2324,7 +2478,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2Long(OPT_Instruction s) {
-	if (CF_LONG) {
+   if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2336,7 +2490,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2AddrSigExt(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2348,7 +2502,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     return UNCHANGED;
   }
   private static byte int2AddrZerExt(OPT_Instruction s) {
-	if (CF_ADDR) {
+   if (CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2524,7 +2678,253 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     }
     return UNCHANGED;
   }
+  private static byte arrayLength(OPT_Instruction s) {
+    if (CF_FIELDS) {
+      OPT_Operand op = GuardedUnary.getVal(s);
+      if(op.isObjectConstant()) {
+        int length = Array.getLength(op.asObjectConstant().value);
+        Move.mutate(s, INT_MOVE, GuardedUnary.getClearResult(s),
+                    IC(length));
+        return MOVE_REDUCED;          
+      } else if (op.isNullConstant()) {
+        // TODO: this arraylength operation is junk so destroy
+        return UNCHANGED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte boundsCheck(OPT_Instruction s) {
+    if (CF_FIELDS) {
+      OPT_Operand ref = BoundsCheck.getRef(s);
+      OPT_Operand index = BoundsCheck.getIndex(s);
+      if (ref.isNullConstant()) {
+        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
+                    OPT_TrapCodeOperand.NullPtr());
+        return TRAP_REDUCED;
+      } else if(index.isIntConstant()) {
+        int indexAsInt = index.asIntConstant().value;
+        if (indexAsInt < 0) {
+          Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
+          return TRAP_REDUCED;
+        } else if(ref.isConstant()) {
+          int refLength = Array.getLength(ref.asObjectConstant().value);
+          if(indexAsInt < refLength) {
+            Move.mutate(s, GUARD_MOVE, BoundsCheck.getClearGuardResult(s),
+                        BoundsCheck.getClearGuard(s));
+            return MOVE_REDUCED;
+          }
+          else {
+            Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
+            return TRAP_REDUCED;
+          }
+        }
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte call(OPT_Instruction s) {
+    if (CF_FIELDS) {
+      OPT_MethodOperand methOp = Call.getMethod(s);
+      if ((methOp != null) && methOp.isVirtual() && !methOp.hasPreciseTarget()) {
+        OPT_Operand calleeThis = Call.getParam(s, 0);
+        if (calleeThis.isNullConstant()) {
+          Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
+                      OPT_TrapCodeOperand.NullPtr());
+          return TRAP_REDUCED;
+        }
+        else if(calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
+          VM_TypeReference calleeClass = calleeThis.getType();
+          if (calleeClass.isResolved()) {
+            methOp.refine(calleeClass.peekResolvedType());
+            return REDUCED;
+          }
+        }
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getField(OPT_Instruction s) {
+    if (CF_FIELDS) {
+      OPT_Operand ref = GetField.getRef(s);
+      if (ref.isNullConstant()) {
+        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
+                    OPT_TrapCodeOperand.NullPtr());
+        return TRAP_REDUCED;
+      } else if(ref.isObjectConstant() &&
+                GetField.getLocation(s).getFieldRef().resolve().isFinal()) {
+        // A constant object references this field which is
+        // final. NB as the fields are final and have assigned
+        // values they must already have been resolved.
+        VM_Field field = GetField.getLocation(s).getFieldRef().resolve();
+        try {
+          OPT_ConstantOperand op = OPT_StaticFieldReader.getFieldValueAsConstant(field, ref.asObjectConstant().value);
+          Move.mutate(s, OPT_IRTools.getMoveOp(field.getType()),
+                      GetField.getClearResult(s), op);
+          return MOVE_REDUCED;
+        }
+        catch (NoSuchFieldException e) {
+          if (VM.runningVM) {
+            // this is unexpected
+            throw new Error("Unexpected exception", e);
+          } else {
+            // Field not found during bootstrap due to chasing a field
+            // only valid in the bootstrap JVM
+          }
+        }
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getObjTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand op = GuardedUnary.getVal(s);
+      if (op.isNullConstant()) {
+        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
+                    OPT_TrapCodeOperand.NullPtr());
+        return TRAP_REDUCED;
+      } else if (op.isConstant()) {
+        try{
+          // NB as the operand is final it must already have been
+          // resolved.
+          VM_Type type = op.getType().resolve();
+          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s),
+                      new OPT_TIBConstantOperand(type));
+          return MOVE_REDUCED;
+        } catch(NoClassDefFoundError e) {
+          if (VM.runningVM) {
+            // this is unexpected
+            throw e;
+          } else {
+            // Class not found during bootstrap due to chasing a class
+            // only valid in the bootstrap JVM
+            System.out.println("Failed to resolve: " + op.getType() + ": " + e.getMessage());
+          }
+        }
+      } else {
+        OPT_RegisterOperand rop = op.asRegister();
+        VM_TypeReference typeRef = rop.getType();
+        if (typeRef.isResolved() && rop.isPreciseType()) {
+          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s),
+                      new OPT_TIBConstantOperand(typeRef.peekResolvedType())); 
+        }
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getClassTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_TypeOperand typeOp = Unary.getVal(s).asType();
+      if(typeOp.getTypeRef().isResolved()) {
+        Move.mutate(s, REF_MOVE,
+                    Unary.getClearResult(s),
+                    new OPT_TIBConstantOperand(typeOp.getTypeRef().peekResolvedType()));
+        return MOVE_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getTypeFromTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand tibOp = Unary.getVal(s);
+      if(tibOp.isTIBConstant()) {
+        OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
+        Move.mutate(s, REF_MOVE,
+                    Unary.getClearResult(s),
+                    new OPT_ObjectConstantOperand(tib.value, Offset.zero()));
+        return MOVE_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getArrayElementTibFromTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand tibOp = Unary.getVal(s);
+      if(tibOp.isTIBConstant()) {
+        OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
+        Move.mutate(s, REF_MOVE,
+                    Unary.getClearResult(s),
+                    new OPT_TIBConstantOperand(tib.value.asArray().getElementType()));
+        return MOVE_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getSuperclassIdsFromTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand tibOp = Unary.getVal(s);
+      if(tibOp.isTIBConstant()) {
+        OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
+        Move.mutate(s, REF_MOVE,
+                    Load.getClearResult(s),
+                    new OPT_ObjectConstantOperand(tib.value.getSuperclassIds(), Offset.zero()));
+        return MOVE_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte getDoesImplementFromTib(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand tibOp = Unary.getVal(s);
+      if(tibOp.isTIBConstant()) {
+        OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
+        Move.mutate(s, REF_MOVE,
+                    Load.getClearResult(s),
+                    new OPT_ObjectConstantOperand(tib.value.getDoesImplement(), Offset.zero()));
+        return MOVE_REDUCED;
+      }
+    }
+    return UNCHANGED;
+  }
+  private static byte refLoad(OPT_Instruction s) {
+    if (CF_TIB) {
+      OPT_Operand base = Load.getAddress(s);
+      if(base.isTIBConstant()) {
+        OPT_TIBConstantOperand tib = base.asTIBConstant();
+        OPT_Operand offset = Load.getOffset(s);
+        if(tib.value.isInstantiated() && offset.isConstant()) {
+          // Reading from a fixed offset from an effectively
+          // constant array
+          int intOffset;
+          if (offset.isIntConstant()) {
+            intOffset = offset.asIntConstant().value;
+          }
+          else {
+            intOffset = offset.asAddressConstant().value.toInt();
+          }
+          int intSlot = intOffset >> LOG_BYTES_IN_ADDRESS;
 
+          // Create appropriate constant operand for TIB slot
+          OPT_ConstantOperand result;
+          Object tibArray[] = tib.value.getTypeInformationBlock();
+          if(tib.value.isTIBSlotTIB(intSlot)) {
+            VM_Type typeOfTIB = (VM_Type)(((Object[])tibArray[intSlot])[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+            result = new OPT_TIBConstantOperand(typeOfTIB);
+          } else if (tib.value.isTIBSlotCode(intSlot)) {
+            // Only generate code constants when we want to make
+            // some virtual calls go via the JTOC
+            if (OPT_ConvertToLowLevelIR.CALL_VIA_JTOC) {
+              VM_Method method = tib.value.getTIBMethodAtSlot(intSlot);
+              result = new OPT_CodeConstantOperand(method);
+            } else {
+              return UNCHANGED;
+            }
+          } else {
+            if (tibArray[intSlot] == null) {
+              result = new OPT_NullConstantOperand();
+            } else {
+              result = new OPT_ObjectConstantOperand(tibArray[intSlot],
+                                                     Offset.zero());
+            }
+          }
+          Move.mutate(s, REF_MOVE,
+                      Load.getClearResult(s),
+                      result);
+          return MOVE_REDUCED;
+        }
+      }
+    }
+    return UNCHANGED;
+  }
   /**
    * To reduce the number of conditions to consider, we 
    * transform all commutative
@@ -2559,5 +2959,4 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       }
     return power;
   }
-
 }

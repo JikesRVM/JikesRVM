@@ -29,6 +29,96 @@ import org.vmmagic.unboxed.*;
 public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 
   /**
+   * Read the field from obj and return as the appropriate constant
+   */
+  public static OPT_ConstantOperand getFieldValueAsConstant(VM_Field field, Object obj) throws NoSuchFieldException {
+    VM_TypeReference type = field.getType();
+    if (VM.runningVM) {
+      if(type.isReferenceType() && !type.isMagicType()) {
+        return new OPT_ObjectConstantOperand(field.getObjectValueUnchecked(obj), Offset.zero());
+      }
+      else if(type.isIntType()) {
+        return new OPT_IntConstantOperand(field.getIntValueUnchecked(obj));
+      }
+      else if(type.isBooleanType()) {
+        return new OPT_IntConstantOperand(field.getBooleanValueUnchecked(obj) ? 1 : 0);
+      }
+      else if(type.isByteType()) {
+        return new OPT_IntConstantOperand(field.getByteValueUnchecked(obj));
+      }
+      else if(type.isCharType()) {
+        return new OPT_IntConstantOperand(field.getCharValueUnchecked(obj));
+      }
+      else if(type.isDoubleType()) {
+        return new OPT_DoubleConstantOperand(field.getDoubleValueUnchecked(obj));
+      }
+      else if(type.isFloatType()) {
+        return new OPT_FloatConstantOperand(field.getFloatValueUnchecked(obj));
+      }
+      else if(type.isLongType()) {
+        return new OPT_LongConstantOperand(field.getLongValueUnchecked(obj));
+      }
+      else if(type.isShortType()) {
+        return new OPT_IntConstantOperand(field.getShortValueUnchecked(obj));
+      }
+      else {
+        OPT_OptimizingCompilerException.UNREACHABLE("Unknown type " + type);
+        return null;
+      }
+    }
+    else {
+      try {
+        String cn = field.getDeclaringClass().toString();
+        Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
+        f.setAccessible(true);
+        if(type.isReferenceType() && !type.isMagicType()) {
+          return new OPT_ObjectConstantOperand(f.get(obj), Offset.zero());
+        }
+        else if(type.isIntType()) {
+          return new OPT_IntConstantOperand(f.getInt(obj));
+        }
+        else if(type.isBooleanType()) {
+          return new OPT_IntConstantOperand(f.getBoolean(obj) ? 1 : 0);
+        }
+        else if(type.isByteType()) {
+          return new OPT_IntConstantOperand(f.getByte(obj));
+        }
+        else if(type.isCharType()) {
+          return new OPT_IntConstantOperand(f.getChar(obj));
+        }
+        else if(type.isDoubleType()) {
+          return new OPT_DoubleConstantOperand(f.getDouble(obj));
+        }
+        else if(type.isFloatType()) {
+          return new OPT_FloatConstantOperand(f.getFloat(obj));
+        }
+        else if(type.isLongType()) {
+          return new OPT_LongConstantOperand(f.getLong(obj));
+        }
+        else if(type.isShortType()) {
+          return new OPT_IntConstantOperand(f.getShort(obj));
+        }
+        else {
+          OPT_OptimizingCompilerException.UNREACHABLE("Unknown type " + type);
+          return null;
+        }
+      } catch (IllegalArgumentException e) {
+        throw new NoSuchFieldException(field.toString());
+      } catch (IllegalAccessException e) {
+        throw new NoSuchFieldException(field.toString());
+      } catch (NoSuchFieldError e) {
+        throw new NoSuchFieldException(field.toString());
+      } catch (ClassNotFoundException e) {
+        throw new NoSuchFieldException(field.toString());
+      } catch (NoClassDefFoundError e) {
+        throw new NoSuchFieldException(field.toString());
+      } catch (ExceptionInInitializerError e) {
+        throw new NoSuchFieldException(field.toString());      
+      }
+    }
+  }
+
+  /**
    * Returns a constant operand with the current value of a static field.
    *
    * @param field the static field whose current value we want to read
@@ -68,12 +158,25 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     } else if (fieldType.isDoubleType()) {
       double val = getDoubleStaticFieldValue(field);
       return new OPT_DoubleConstantOperand(val, off);
-    } else if (fieldType == VM_TypeReference.JavaLangString) {
-      String val = (String)getObjectStaticFieldValue(field);
-      return new OPT_StringConstantOperand(val, off);
-    } else {
-      // TODO: Add array and scalar reference constant operands
-      throw new OPT_OptimizingCompilerException("Unsupported type " + fieldType);
+    } else { // Reference type
+      if (VM.VerifyAssertions) VM._assert(fieldType.isReferenceType());
+      Object val = getObjectStaticFieldValue(field);
+      if (val == null) {
+        return new OPT_NullConstantOperand();
+      } else if (fieldType == VM_TypeReference.JavaLangString) {
+        return new OPT_StringConstantOperand((String)val, off);
+      } else if (fieldType == VM_TypeReference.JavaLangClass) {
+        Class klass = (Class)getObjectStaticFieldValue(field);
+        VM_Type type;
+        if (VM.runningVM) {
+          type = java.lang.JikesRVMSupport.getTypeForClass(klass);
+        } else {
+          type = getTypeRefFromClass(klass).resolve();
+        }
+        return new OPT_ClassConstantOperand(type.getClassForType(), off);
+      } else {
+        return new OPT_ObjectConstantOperand(val, off);
+      }
     }
   }
 
@@ -224,34 +327,55 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     if (VM.runningVM) {
       return VM_Magic.getObjectType(o).getTypeRef();
     } else {
-      Class rc = o.getClass();
-      String className = rc.getName();
-      VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+      return getTypeRefFromClass(o.getClass());
+    }
+  }
+
+  /**
+   * Convert a java.lang.Class into a type reference the slow way. For
+   * use in boot image writing
+   */
+  private static VM_TypeReference getTypeRefFromClass(Class klass) {
+      String className = klass.getName();
       if (className.startsWith("[")) {
         // an array
+        VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
         return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
       } else {
         // a class
+        VM_Atom classAtom;
+        if     (className.equals("int"))     return VM_TypeReference.Int;
+        else if(className.equals("boolean")) return VM_TypeReference.Boolean;
+        else if(className.equals("byte"))    return VM_TypeReference.Byte;
+        else if(className.equals("char"))    return VM_TypeReference.Char;
+        else if(className.equals("double"))  return VM_TypeReference.Double;
+        else if(className.equals("float"))   return VM_TypeReference.Float;
+        else if(className.equals("long"))    return VM_TypeReference.Long;
+        else if(className.equals("short"))   return VM_TypeReference.Short;
+        else if(className.equals("void"))    return VM_TypeReference.Void;
+        else {
+          classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+        }
         VM_Atom classDescriptor = classAtom.descriptorFromClassName();
         return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
       }
-    }
   }
 
   private static Field getJDKField(VM_Field field)
     throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
-      if (VM.writingBootImage) {
-        if (cn.startsWith("java")) {
-          throw new NoSuchFieldException("Avoiding host JDK/RVM incompatability problems");
-        }
-      }
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
       f.setAccessible(true);
       return f;
+    } catch (NoSuchFieldError e) {
+      throw new NoSuchFieldException(field.toString());
     } catch (ClassNotFoundException e) {
       throw new NoSuchFieldException(field.toString());
-	 }
+    } catch (NoClassDefFoundError e) {
+      throw new NoSuchFieldException(field.toString());
+    } catch (ExceptionInInitializerError e) {
+      throw new NoSuchFieldException(field.toString());      
+    } 
   }
 }

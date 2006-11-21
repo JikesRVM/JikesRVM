@@ -18,6 +18,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Doug Lorch (retired)
  * @author Dave Grove
  * @author Julian Dolby
+ * @author Ian Rogers
  **/
 public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 
@@ -332,24 +333,13 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
-    String val;
-    if (VM.runningVM) {
+    try {
+      String val;
       val = (String)VM_Statics.getSlotContentsAsObject(offset);
-    } else {
-      // Sigh. What we really want to do is acquire the 
-      // String object from the class constant pool.
-      // But, we aren't set up to do that.  The following
-      // isn't strictly correct, but is closer than the completely bogus
-      // thing we were doing before. 
-      // TODO: Fix this to do the right thing. 
-      //       This will be wrong if someone is comparing string constants
-      //       using ==, != since we're very unlikely to get the aliasing right.
-      //       Then again, if you are using ==, != with strings and one of them
-      //       isn't <null>, perhaps you deserve what you get.
-      // This is defect 2838.
-      val = ("BootImageStringConstant "+VM_Statics.offsetAsSlot(offset)).intern();
+      return new OPT_StringConstantOperand(val, offset);
+    } catch (ClassCastException e) {
+      throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
     }
-    return new OPT_StringConstantOperand(val, offset);
   }
 
   /**
@@ -358,7 +348,11 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_ClassConstantOperand getClassFromConstantPool (VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
-	 VM_TypeReference val = klass.getTypeRef(index);
-	 return new OPT_ClassConstantOperand(val, offset);
+    try {
+      Class val = klass.getClassForType();
+      return new OPT_ClassConstantOperand(val, offset);
+    } catch (ClassCastException e) {
+      throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
+    }
   }
 }
