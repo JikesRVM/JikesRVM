@@ -166,6 +166,13 @@ public final class VM_Field extends VM_Member {
     return (modifiers & ACC_SYNTHETIC) != 0;
   }
 
+ /**
+  * Enum constant
+  */
+  public boolean isEnumConstant() {
+    return (modifiers & ACC_ENUM) != 0;
+  }
+
   /**
    * Get index of constant pool entry containing this 
    * "static final constant" field's value.

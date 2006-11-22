@@ -15,6 +15,7 @@ import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.VM_Statics;
 import com.ibm.jikesrvm.VM_SysCall; // for VM_SysCall.sysGetenv
 import com.ibm.jikesrvm.VM_Time;
+import com.ibm.jikesrvm.VM_UnimplementedError;
 
 import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.classloader.VM_Atom;
@@ -22,6 +23,7 @@ import com.ibm.jikesrvm.classloader.VM_Class;
 import com.ibm.jikesrvm.classloader.VM_Field;
 
 import java.io.*;
+import java.util.List;
 
 import org.vmmagic.unboxed.Offset;
 
@@ -146,4 +148,7 @@ final class VMSystem {
     return new String(buf, 0, len);
   }
 
+  static List environ() {
+    throw new VM_UnimplementedError();
+  }
 }

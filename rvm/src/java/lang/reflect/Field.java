@@ -151,6 +151,10 @@ public final class Field extends AccessibleObject implements Member {
     return field.isSynthetic();
   }
 
+  public boolean isEnumConstant() {
+    return field.isEnumConstant();
+  }
+
   public void set(Object object, Object value) 
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
