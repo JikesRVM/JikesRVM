@@ -73,41 +73,49 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
   // Thread creation and deletion.
   //
-  public static VM_Thread[]          threads;             // list of threads that have been created (slot 0 always empty)
+  /** list of threads that have been created (slot 0 always empty) */
+  public static final VM_Thread[]    threads = new VM_Thread[MAX_THREADS];
 
   //-#if RVM_WITH_HPM
   // Hack, don't to any GC of thread slots!
   // never forget about a thread for reporting.
-  public static VM_Thread[]      hpm_threads; 
+  public static final VM_Thread[]    hpm_threads = new VM_Thread[MAX_THREADS];
   //-#endif
 
-  static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
-  public static int           threadHighWatermark; // highest thread index allocated 
-  static int                  numActiveThreads;    // number of threads running or waiting to run
-  static int                  numDaemons;          // number of "daemon" threads, in the java sense
-  static VM_ProcessorLock     threadCreationMutex; // guard for serializing access to fields above
-  static VM_ProcessorQueue    deadVPQueue;         // queue for VPs waiting for callToNative function
-  static VM_ProcessorQueue    availableProcessorQueue;         // queue for VPs waiting for callToNative function
+  /** place to start searching threads[] for next free slot */
+  static int                  threadAllocationIndex;
+  /** highest thread index allocated */
+  public static int           threadHighWatermark;
+  /** number of threads running or waiting to run */
+  static int                  numActiveThreads;
+  /** number of "daemon" threads, in the java sense */
+  static int                  numDaemons;
+  /** guard for serializing access to fields above */
+  static final VM_ProcessorLock     threadCreationMutex = new VM_ProcessorLock();
+  /** queue for VPs waiting for callToNative function */
+  static final VM_ProcessorQueue    deadVPQueue = new VM_ProcessorQueue();
+  /** queue for VPs waiting for callToNative function */
+  static final VM_ProcessorQueue    availableProcessorQueue = new VM_ProcessorQueue();
 
   // Thread execution.
   //
-  static VM_ProxyWakeupQueue  wakeupQueue;         // threads waiting to wake up from a sleep()
-  static VM_ProcessorLock     wakeupMutex;
+   /** threads waiting to wake up from a sleep() */
+  static final VM_ProxyWakeupQueue  wakeupQueue = new VM_ProxyWakeupQueue();
+  static final VM_ProcessorLock     wakeupMutex = new VM_ProcessorLock();
 
-  static VM_ThreadQueue       debuggerQueue;       // thread waiting to service debugging requests
-  static VM_ProcessorLock     debuggerMutex;
+   /** thread waiting to service debugging requests */
+  static final VM_ThreadQueue       debuggerQueue = new VM_ThreadQueue();
+  static final VM_ProcessorLock     debuggerMutex = new VM_ProcessorLock();
 
-  public static VM_ThreadQueue       collectorQueue;      // collector threads waiting to be resumed
-  public static VM_ProcessorLock     collectorMutex;
+  /** collector threads waiting to be resumed */
+  public static final VM_ThreadQueue   collectorQueue = new VM_ThreadQueue();
+  public static final VM_ProcessorLock collectorMutex = new VM_ProcessorLock();
 
-  public static VM_ThreadQueue       finalizerQueue;      // Finalizer thread waits here when idle
-  public static VM_ProcessorLock     finalizerMutex;
+  /** Finalizer thread waits here when idle */
+  public static final VM_ThreadQueue   finalizerQueue = new VM_ThreadQueue();
+  public static final VM_ProcessorLock finalizerMutex = new VM_ProcessorLock();
 
   // Debugging output.
-  //
-  // DEPRECATED! use lockOutput() and unlock Output() instead
-  //
-  public static VM_ProcessorLock     outputMutex;         // guard for improving readability of trace output
 
   // Thick locks.
   //
@@ -166,12 +174,6 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
    * Initialize boot image.
    */
   static void init() throws InterruptiblePragma {
-    threadCreationMutex     = new VM_ProcessorLock();
-    outputMutex             = new VM_ProcessorLock();
-    threads                 = new VM_Thread[MAX_THREADS];
-    //-#if RVM_WITH_HPM
-    hpm_threads             = new VM_Thread[MAX_THREADS];
-    //-#endif
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
@@ -233,23 +235,6 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
       }
       //-#endif
     }
-
-    // Create work queues.
-    //
-    wakeupQueue     = new VM_ProxyWakeupQueue();
-    wakeupMutex     = new VM_ProcessorLock();
-
-    debuggerQueue   = new VM_ThreadQueue();
-    debuggerMutex   = new VM_ProcessorLock();
-
-    collectorQueue  = new VM_ThreadQueue();
-    collectorMutex  = new VM_ProcessorLock();
-
-    finalizerQueue  = new VM_ThreadQueue();
-    finalizerMutex  = new VM_ProcessorLock();
-
-    deadVPQueue     = new VM_ProcessorQueue();
-    availableProcessorQueue     = new VM_ProcessorQueue();
 
     VM_CollectorThread.boot(numProcessors);
 

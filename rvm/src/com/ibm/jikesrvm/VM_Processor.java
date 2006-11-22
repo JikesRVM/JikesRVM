@@ -38,7 +38,7 @@ implements Uninterruptible, VM_Constants {
   // pthreads that "enter" the VM via attachVM.
   //
   public static int            numberAttachedProcessors   = 0;
-  public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
+  public static final VM_Processor[] attachedProcessors   = new VM_Processor[100];
 
   /**
    * Create data object to be associated with an o/s kernel thread 

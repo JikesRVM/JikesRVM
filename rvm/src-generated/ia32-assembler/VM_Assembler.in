@@ -177,7 +177,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   /**
    * The lister object is used to print generated machine code.
    */
-  protected VM_Lister lister;
+  protected final VM_Lister lister;
 
   /**
    * The array holding the generated binary code.  

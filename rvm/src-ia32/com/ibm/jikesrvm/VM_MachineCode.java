@@ -13,7 +13,7 @@ package com.ibm.jikesrvm;
  * @author Julian Dolby
  */
 public class VM_MachineCode {
-  private VM_CodeArray instructions;
+  private final VM_CodeArray instructions;
   private int[] bytecodeMap;
 
   public VM_MachineCode (VM_CodeArray i, int[] bm) {

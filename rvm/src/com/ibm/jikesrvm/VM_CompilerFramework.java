@@ -49,22 +49,17 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * The method being compiled
    */
-  protected VM_NormalMethod method;
+  protected final VM_NormalMethod method;
 
   /** 
    * The declaring class of the method being compiled
    */
-  protected VM_Class klass;
-
-  /**
-   * The VM_Assembler being used for this compilation
-   */
-  protected VM_Assembler asm; 
+  protected final VM_Class klass;
 
   /**
    * The bytecodes of the method being compiled
    */
-  protected VM_BytecodeStream bcodes;
+  protected final VM_BytecodeStream bcodes;
 
   /**
    * Mapping from bytecodes to machine code offsets
@@ -77,9 +72,14 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   protected int biStart; 
 
   /**
+   * The VM_Assembler being used for this compilation
+   */
+  protected VM_Assembler asm; 
+
+  /**
    * The compiledMethod assigned to this compilation of method
    */
-  protected VM_CompiledMethod compiledMethod;
+  protected final VM_CompiledMethod compiledMethod;
 
   /** 
    * The height of the expression stack at the start of each bytecode.

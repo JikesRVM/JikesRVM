@@ -29,11 +29,11 @@ import org.vmmagic.pragma.*;
  */
 final class VM_Proxy implements Uninterruptible {
   
-  VM_Thread        patron;
-  VM_Proxy         waitingNext;
-  VM_Proxy         wakeupNext;
-  long             wakeupCycle;
-  VM_ProcessorLock lock = new VM_ProcessorLock();
+  VM_Thread              patron;
+  VM_Proxy               waitingNext;
+  VM_Proxy               wakeupNext;
+  long                   wakeupCycle;
+  final VM_ProcessorLock lock = new VM_ProcessorLock();
  
   // Create a proxy for a thread on a waiting queue
   //

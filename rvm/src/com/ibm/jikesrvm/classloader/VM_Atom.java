@@ -38,7 +38,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Used to canonicalize VM_Atoms: Key => VM_Atom
    */
-  private static VM_HashMap dictionary = new VM_HashMap();
+  private static final VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_Atom instances.

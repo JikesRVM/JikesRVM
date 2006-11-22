@@ -80,7 +80,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   // globally unique thread id counter.  Increment ever time a thread is created.
   static private int global_hpm_tid = 1;
   // globally unique thread id counter.  Increment ever time a thread is created.
-  static private Object global_hpm_tid_LOCK = new Object();
+  static private final Object global_hpm_tid_LOCK = new Object();
   // generate a globally unique thread id (only called from constructors)
   private final void assignGlobalTID() throws LogicallyUninterruptiblePragma
   {
@@ -1682,7 +1682,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   private static final int INT_BUFFER_SIZE = 20;
 
   /** A buffer for building string representations of <code>long</code>s */
-  private static char [] intBuffer = new char[INT_BUFFER_SIZE];
+  private static final char [] intBuffer = new char[INT_BUFFER_SIZE];
 
   /** A lock for {@link #intBuffer} */
   private static int intBufferLock = 0;
@@ -1741,7 +1741,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   //-----------------//
 
   /** Support for suspend and resume */
-  VM_ProcessorLock suspendLock;
+  final VM_ProcessorLock suspendLock;
   boolean          suspendPending;
   boolean          suspended;
   
@@ -1802,13 +1802,13 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /**
    * Place to save register state when this thread is not actually running.
    */ 
-  public VM_Registers contextRegisters; 
+  public final VM_Registers contextRegisters; 
   
   /**
    * Place to save register state when C signal handler traps 
    * an exception while this thread is running.
    */ 
-  public VM_Registers hardwareExceptionRegisters;
+  public final VM_Registers hardwareExceptionRegisters;
   
   /**
    * Place to save/restore this thread's monitor state during 

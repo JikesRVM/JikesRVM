@@ -142,7 +142,7 @@ $$$$ END FOREACH
    /**
     * Latencies to other classes
     */
-   private ArrayList latencies;
+   private final ArrayList latencies;
 
    // Returns latency lookup in the hashtable for a given operator class.
    // For internal use only.
@@ -277,7 +277,7 @@ $$$$ END FOREACH
    /**
     * Resource Classes used by this Operator Class
     */
-   ArrayList rclasses;
+   final ArrayList rclasses;
 
    /**
     * Resource Usage Masks

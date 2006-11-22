@@ -248,11 +248,11 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
   /** The number of times the owning thread (if any) has acquired this lock. */
   int                  recursionCount;
   /** A queue of threads contending for this lock (guarded by <code>mutex</code>). */
-  VM_ThreadQueue       entering;   
+  final VM_ThreadQueue       entering;   
   /** A queue of (proxies for) threads awaiting notification on this object (guarded by <code>mutex</code>). */
-  VM_ProxyWaitingQueue waiting; 
+  final VM_ProxyWaitingQueue waiting; 
   /** A spin lock to handle contention for the data structures of this lock. */
-  VM_ProcessorLock     mutex;
+  final VM_ProcessorLock     mutex;
 
   /**
    * A heavy weight lock to handle extreme contention and wait/notify
@@ -377,7 +377,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
           static final int MAX_LOCKS = LOCK_ALLOCATION_UNIT_SIZE * LOCK_ALLOCATION_UNIT_COUNT ;
           static final int INIT_LOCKS = 4096;
 
-  private static VM_ProcessorLock lockAllocationMutex;
+  private static final VM_ProcessorLock lockAllocationMutex = new VM_ProcessorLock();
   private static int              lockUnitsAllocated;
   private static VM_Lock          globalFreeLock;
   private static int              globalFreeLocks;
@@ -386,7 +386,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    * Sets up the data structures for holding heavy-weight locks.
    */
   static void init() throws InterruptiblePragma {
-    lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
       VM._assert((VM_Scheduler.locks.length-1<=VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt())

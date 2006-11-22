@@ -229,7 +229,7 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
   private static final int   delayMultiplier = 10;
   private static final int   delayBase       = 64;
   private static       int   delayIndex;
-  private static       int[] delayCount = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+  private static final int[] delayCount = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 
   /**
    * For MCS locking, indicates that another processor is changing the

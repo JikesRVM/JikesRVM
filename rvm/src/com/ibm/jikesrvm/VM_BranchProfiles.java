@@ -17,9 +17,9 @@ import com.ibm.jikesrvm.classloader.*;
  * @author Dave Grove
  */
 public final class VM_BranchProfiles implements VM_BytecodeConstants {
-  private VM_NormalMethod method;
-  private int numCounters;
-  private VM_BranchProfile[] data;
+  private final VM_NormalMethod method;
+  private final int numCounters;
+  private final VM_BranchProfile[] data;
 
   /**
    * Find the BranchProfile for a given bytecode index in the BranchProfile array
@@ -65,7 +65,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     // least two edges, supposingly. Then we found that the lookupswitch 
     // bytecode could have only one edge, so the number of branch profiles 
     // is not necessarily less than half of the number of edges.
-    data = new VM_BranchProfile[cs.length]; 
+    VM_BranchProfile data[] = new VM_BranchProfile[cs.length]; 
     VM_BytecodeStream bcodes = m.getBytecodes();
     int dataIdx = 0;
     int countIdx = 0;
@@ -131,5 +131,6 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       }
       data = newData;
     }
+    this.data = data;
   }
 }

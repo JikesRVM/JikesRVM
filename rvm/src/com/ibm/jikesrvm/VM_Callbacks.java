@@ -140,7 +140,7 @@ public final class VM_Callbacks {
    * Class resolution callback list.
    */
   private static CallbackList classResolvedCallbacks = null;
-  private static Object classResolvedLock = new Object();
+  private static final Object classResolvedLock = new Object();
   private static boolean classResolvedEnabled = true;
 
   /**
@@ -200,7 +200,7 @@ public final class VM_Callbacks {
    * Class instantiation callback list.
    */
   private static CallbackList classInstantiatedCallbacks = null;
-  private static Object classInstantiatedLock = new Object();
+  private static final Object classInstantiatedLock = new Object();
   private static boolean classInstantiatedEnabled = true;
 
   /**
@@ -261,7 +261,7 @@ public final class VM_Callbacks {
    * Class initialization callback list.
    */
   private static CallbackList classInitializedCallbacks = null;
-  private static Object classInitializedLock = new Object();
+  private static final Object classInitializedLock = new Object();
   private static boolean classInitializedEnabled = true;
 
   /**
@@ -323,7 +323,7 @@ public final class VM_Callbacks {
    * Method override callback list.
    */
   private static CallbackList methodOverrideCallbacks = null;
-  private static Object methodOverrideLock = new Object();
+  private static final Object methodOverrideLock = new Object();
   private static boolean methodOverrideEnabled = true;
 
   /**
@@ -393,7 +393,7 @@ public final class VM_Callbacks {
    * Method compile callback list.
    */
   private static CallbackList methodCompileCallbacks = null;
-  private static Object methodCompileLock = new Object();
+  private static final Object methodCompileLock = new Object();
   private static boolean methodCompileEnabled = true;
 
   /**
@@ -459,7 +459,7 @@ public final class VM_Callbacks {
    * forName call callback list.
    */
   private static CallbackList forNameCallbacks = null;
-  private static Object forNameLock = new Object();
+  private static final Object forNameLock = new Object();
   private static boolean forNameEnabled = true;
 
   /**
@@ -520,7 +520,7 @@ public final class VM_Callbacks {
    * defineclass call callback list.
    */
   private static CallbackList defineClassCallbacks = null;
-  private static Object defineClassLock = new Object();
+  private static final Object defineClassLock = new Object();
   private static boolean defineClassEnabled = true;
 
   /**
@@ -582,7 +582,7 @@ public final class VM_Callbacks {
    * loadclass call callback list.
    */
   private static CallbackList loadClassCallbacks = null;
-  private static Object loadClassLock = new Object();
+  private static final Object loadClassLock = new Object();
   private static boolean loadClassEnabled = true;
 
   /**
@@ -643,7 +643,7 @@ public final class VM_Callbacks {
    * Boot image writing callback list.
    */
   private static CallbackList bootImageCallbacks = null;
-  private static Object bootImageLock = new Object();
+  private static final Object bootImageLock = new Object();
   private static boolean bootImageEnabled = true;
 
   /**
@@ -699,7 +699,7 @@ public final class VM_Callbacks {
    * VM startup callback list.
    */
   private static CallbackList startupCallbacks = null;
-  private static Object startupLock = new Object();
+  private static final Object startupLock = new Object();
   private static boolean startupEnabled = true;
 
   /**
@@ -817,7 +817,7 @@ public final class VM_Callbacks {
    * Application Start executing callback list.
    */
   private static CallbackList appStartCallbacks = null;
-  private static Object appStartLock = new Object();
+  private static final Object appStartLock = new Object();
 
   /**
    * Register a callback for when the application starts executing
@@ -871,7 +871,7 @@ public final class VM_Callbacks {
    * Application Execution Complete callback list.
    */
   private static CallbackList appCompleteCallbacks = null;
-  private static Object appCompleteLock = new Object();
+  private static final Object appCompleteLock = new Object();
 
   /**
    * Register a callback for when the application completes executing

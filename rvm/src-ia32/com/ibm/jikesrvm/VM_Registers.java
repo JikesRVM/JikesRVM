@@ -23,8 +23,8 @@ public class VM_Registers implements VM_Constants, Uninterruptible {
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.
   //
-  public WordArray gprs; // general purpose registers
-  public double fprs[]; // floating point registers
+  public final WordArray gprs; // general purpose registers
+  public final double fprs[]; // floating point registers
   public Address ip;     // instruction address register
   public Address fp;     // frame pointer
   
