@@ -29,7 +29,7 @@ import gnu.java.lang.reflect.MethodSignatureParser;
  * @author Dave Grove
  * @modified Ian Rogers
  */
-public final class Constructor extends AccessibleObject
+public final class Constructor<T> extends AccessibleObject
   implements GenericDeclaration, Member
 {
   final VM_Method constructor;

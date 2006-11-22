@@ -14,7 +14,7 @@ if (( sum == 0 )); then
     # NOTE to core team: if you change the default version of classpath here, 
     #      also change it in doc/userguide.tex
     export RVM_WITH_CLASSPATH_0_92=1
-    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.92.tar.gz
+    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.92-generics.tar.gz
 fi
 
 ## CLASSPATH_INSTALLATION

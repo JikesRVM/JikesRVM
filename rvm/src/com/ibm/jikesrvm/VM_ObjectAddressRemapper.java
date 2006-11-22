@@ -22,17 +22,18 @@ import org.vmmagic.unboxed.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public interface VM_ObjectAddressRemapper
-   {
-   // Map an object to an address.
-   // Taken:    an object in "local" virtual machine
-   // Returned: its address in a foreign virtual machine
-   //
-   public Address objectAsAddress(Object object);
+public interface VM_ObjectAddressRemapper {
+  /**
+   * Map an object to an address.
+   * @param object in "local" virtual machine
+   * @return its address in a foreign virtual machine
+   */
+   public <T> Address objectAsAddress(T object);
 
-   // Map an address to an object.
-   // Taken:    value obtained from "objectAsAddress"
-   // Returned: corresponding object
-   //
-   public Object addressAsObject(Address address);
-   }
+  /**
+   * Map an address to an object.
+   * @param address value obtained from "objectAsAddress"
+   * @return corresponding object
+   */
+   public <T> T addressAsObject(Address address);
+}

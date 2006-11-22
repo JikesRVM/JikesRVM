@@ -54,7 +54,7 @@ import gnu.java.lang.reflect.ClassSignatureParser;
  * @modified Steven Augart
  * @modified Ian Rogers
  */
-public final class Class implements Serializable, Type, AnnotatedElement, GenericDeclaration {
+public final class Class<T> implements Serializable, Type, AnnotatedElement, GenericDeclaration {
 
   static final long serialVersionUID = 3206093459760846163L;
     
@@ -120,7 +120,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Class[0];
     
-    ArrayList publicClasses = new ArrayList();
+    ArrayList<Class> publicClasses = new ArrayList<Class>();
     for (Class c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
       VM_TypeReference[] declaredClasses 
@@ -137,7 +137,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
       }
     }
     Class result[] = new Class[publicClasses.size()];
-    result = (Class[]) publicClasses.toArray(result);
+    result = publicClasses.toArray(result);
     return result;
   }
 
@@ -159,7 +159,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
       : null;
   }
 
-  public Constructor getConstructor(Class parameterTypes[]) 
+  public Constructor<T> getConstructor(Class parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
@@ -188,7 +188,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
       if (method.isPublic()) {
-        coll.collect(JikesRVMSupport.createConstructor(method));
+        coll.collect( JikesRVMSupport.createConstructor(method));
       }
     }
     return coll.constructorArray();
@@ -230,7 +230,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     return result;
   }
 
-  public Constructor getDeclaredConstructor(Class parameterTypes[]) 
+  public Constructor<T> getDeclaredConstructor(Class parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
@@ -581,7 +581,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     return type.isPrimitiveType();
   }
 
-  public Object newInstance() throws IllegalAccessException, 
+  public T newInstance() throws IllegalAccessException, 
                                      InstantiationException,
                                      ExceptionInInitializerError,
                                      SecurityException {
@@ -632,7 +632,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     }
 
     // Allocate an uninitialized instance;
-    Object obj = VM_Runtime.resolvedNewScalar(cls);
+    T obj = (T)VM_Runtime.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
     VM_Reflection.invoke(defaultConstructor, obj, null);
@@ -937,7 +937,7 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
       }
   }
   
-  public TypeVariable[] getTypeParameters() {
+  public TypeVariable<Class<T>>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
     }

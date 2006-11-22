@@ -84,8 +84,8 @@ public class JikesRVMSupport {
     return new Method(m);
   }
 
-  public static Constructor createConstructor(VM_Method m) {
-    return new Constructor(m);
+  public static <T> Constructor<T> createConstructor(VM_Method m) {
+    return new Constructor<T>(m);
   }
 
   public static VM_Field getFieldOf(Field f) {

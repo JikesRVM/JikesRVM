@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * The JikesRVM implementation of the java.lang.ref.Reference class.
  * @author Chris Hoffmann
  */
-public abstract class Reference {
+public abstract class Reference<T> {
 
   /**
    * The underlying object.  This field is a Address so it will not
@@ -75,7 +75,7 @@ public abstract class Reference {
    * @return the object, this reference refers to, or null if the 
    * reference was cleared.
    */
-  public Object get() {
+  public T get() {
 
     Address tmp = referent;
     

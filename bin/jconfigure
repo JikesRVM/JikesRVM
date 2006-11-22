@@ -2702,7 +2702,7 @@ build_mmtk() {
     copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
     copy_source \$MMTK_SOURCE/src mmtk
 
-    ${ROOT_DIRECTORY_STR}/bin/ecj -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
+    ${ROOT_DIRECTORY_STR}/bin/ecj -1.5 -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
 
     #
     # Build mmtk.jar
@@ -2748,7 +2748,7 @@ build_mmtk() {
 EOF
 
     cat <<- EOF
-	    jikes_invocation="$ROOT_DIRECTORY_STR/bin/ecj -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+	    jikes_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
     
 EOF
     cat <<- EOF
@@ -2932,7 +2932,7 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 
-	eval run $ROOT_DIRECTORY_STR/bin/ecj -g \
+	eval run $ROOT_DIRECTORY_STR/bin/ecj -1.5 -g \
 	  -classpath \$cp \
 	  -bootclasspath \$cp \
 	   \${generator_sources}
@@ -3716,7 +3716,7 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 
 	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
-	run $ROOT_DIRECTORY_STR/bin/ecj \
+	run $ROOT_DIRECTORY_STR/bin/ecj -1.5\
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
 
@@ -4364,7 +4364,7 @@ function emitToolCompiler () {
 	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	
-	run exec $ROOT_DIRECTORY_STR/bin/ecj -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
+	run exec $ROOT_DIRECTORY_STR/bin/ecj -1.5 -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
 EOF
 }
   
