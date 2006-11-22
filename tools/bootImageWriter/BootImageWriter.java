@@ -23,10 +23,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.Thread;
 import java.util.Comparator;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.jni.*;
 import com.ibm.jikesrvm.classloader.*;
@@ -245,6 +243,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * A wrapper around the calling context to aid in tracing.
    */
   private static class TraceContext extends Stack {
+    private static final long serialVersionUID = -9048590130621822408L;
     /**
      * Report a field that is part of our library's (GNU Classpath's)
      implementation, but not the host JDK's implementation.
@@ -828,7 +827,7 @@ public class BootImageWriter extends BootImageWriterMessages
         VM_Type typeB = (VM_Type) b;
         DemographicInformation infoA = (DemographicInformation)demographicData.get(typeA);
         if (infoA == null) return 1;
-        DemographicInformation infoB = (DemographicInformation)demographicData.get(typeA);
+        DemographicInformation infoB = (DemographicInformation)demographicData.get(typeB);
         if (infoB == null) return -1;
 
         if (infoA.size > infoB.size) return -1;
@@ -1060,9 +1059,11 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      Address brAddress = bootImage.allocateDataStorage(rvmBRType.getInstanceSize(), 
-                                                        VM_ObjectModel.getAlignment(rvmBRType), 
-                                                        VM_ObjectModel.getOffsetForAlignment(rvmBRType));
+      // allocate storage for boot record
+      bootImage.allocateDataStorage(rvmBRType.getInstanceSize(), 
+                                    VM_ObjectModel.getAlignment(rvmBRType), 
+                                    VM_ObjectModel.getOffsetForAlignment(rvmBRType));
+      // allocate storeage for JTOC
       Address jtocAddress = bootImage.allocateDataStorage(intArrayType.getInstanceSize(0),
                                                           VM_ObjectModel.getAlignment(intArrayType),
                                                           VM_ObjectModel.getOffsetForAlignment(intArrayType));
