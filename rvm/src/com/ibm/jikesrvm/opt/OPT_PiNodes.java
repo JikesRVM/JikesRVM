@@ -56,16 +56,13 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   /**
    * Constructor for this compiler phase
    */
-  private static Constructor constructor;
-
+  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_PiNodes",
+                                                                              new Class[]{Boolean.TYPE, Boolean.TYPE});
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
   public Constructor getClassConstructor() {
-    if (constructor == null) {
-      constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_PiNodes");
-    }
     return constructor;
   }
 
@@ -102,7 +99,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @param insert If true, we insert PI nodes,  If false, we remove them.
    * @param typeChecks If true, we insert PI nodes only for type checks.
    */
-  OPT_PiNodes(boolean insert, boolean typeChecks) {
+  public OPT_PiNodes(boolean insert, boolean typeChecks) {
+    super(new Object[]{Boolean.valueOf(insert), Boolean.valueOf(typeChecks)});
     this.insertion = insert;
     this.typeChecks = typeChecks;
   }
