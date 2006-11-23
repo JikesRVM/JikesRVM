@@ -95,9 +95,9 @@ fi
 ## we are OK.
 
 if [[ -e $SRC/config.guess ]]; then
-    export USE_LOCAL_CLASSPATH="yes"
+    export CLASSPATH_SRC_UNPACKED="yes"
 else
-    export USE_LOCAL_CLASSPATH="no"
+    export CLASSPATH_SRC_UNPACKED="no"
 fi
 
 
@@ -146,7 +146,7 @@ function classpath_configure_args () {
 ## Warn if timestamps do not match.
 ##
 mismatch=0
-if ! [[ ${BUILDING_CLASSPATH_FROM_CVS_HEAD-} ]] && [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
+if ! [[ ${BUILDING_CLASSPATH_FROM_CVS_HEAD-} ]]; then
     if [[ -e $DEST_DIR/stamp ]]; then
 	declare -i stat=0
 	echo $RVM_CLASSPATH_URL > /tmp/classpath.stamp
@@ -196,7 +196,7 @@ fi
 ## download classpath if needed
 ##
 if [[ ! -e $SRC/TODO ]]; then
-    if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
+    if [[ $CLASSPATH_SRC_UNPACKED != "no" ]]; then
 	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
 	echo >&2 "(See $RVM_ROOT/config/classpath-version for version information)"
 	exit 1
