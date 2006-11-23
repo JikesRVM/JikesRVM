@@ -78,7 +78,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 [[ ${HOST_VM_TYPE-} ]] || HOST_VM_TYPE=Sun
 
 # Root of JDK installation.
-[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
+[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/opt/ibm-java2-i386-50"
 
 # the JDK java executable
 export HOST_VM_RT="$HOST_JAVA_HOME/jre/bin/java"
