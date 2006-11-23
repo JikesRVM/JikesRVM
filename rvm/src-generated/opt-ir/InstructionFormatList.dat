@@ -67,7 +67,7 @@ Multianewarray
 # how do we verify that the operand is a ref?
 Athrow
 0 0 1
-"U Value OPT_RegisterOperand"
+"U Value OPT_Operand"
 
 
 # how do we verify that the operand is a ref?

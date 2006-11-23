@@ -2088,7 +2088,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             appendInstruction(CacheOp.create(SET_CAUGHT_EXCEPTION, op0));
             s = Goto.create(GOTO, definiteTarget.makeJumpTarget());
           } else {
-            s = Athrow.create(ATHROW, (OPT_RegisterOperand)op0);
+            s = Athrow.create(ATHROW, op0);
           }
         }
         break;
