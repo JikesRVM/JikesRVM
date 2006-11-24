@@ -56,7 +56,8 @@ getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sani
 # produce the html summary
 #
 my $html;
-open($html, ">$root/".getdatestr($svnstamp).".html");
+#open($html, ">$root/results/".getdatestr($svnstamp).".html");
+open($html, ">$root/results/report.html");
 printhtmlhdr($html);
 gensummary($html, \%perf, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
 genbuildfailures($html, \@sanity, \@error, \@stackid);
@@ -78,10 +79,12 @@ sub gensummary {
   print $html "<h2>Summary</h2>\n";
   print $html "<table columns=\"2\">\n";#
   print $html "<tr><td align=\"right\">Regression tests:<td><b>";
-  if ($ran > $passed) {
-    print $html "<font color=\"#ff0000\">".($ran-$passed)."</font>+";
-  } 
-  print $html "$passed/$ran</b> (".int(100*$passed/$ran)."%)</tr>\n";
+  my $failed = ($ran - $passed);
+  if ($failed > 0) {
+    print $html "<font color=\"#ff0000\">Failed $failed</font>/$ran</b> (<font color=\"#ff0000\">".int(100*$failed/$ran)."%</font>)</tr>\n";
+  } else {
+    print $html "<font color=\"#00ff00\">PASSED $passed/$ran (100%)</font></b></tr>\n";
+  }
   print $html "<tr><td align=\"right\">JavaDoc errors:<td><b>".scalar(@javadocerrs)."</b></tr>\n";
   print $html "<tr><td align=\"right\">jbb2000 score:<td><b>".${$perf}{"jbb2000"}."</b></tr>\n";
   print $html "<tr><td align=\"right\">jvm98 best:<td><b>".${$perf}{"jvm98-bottomline"}."</b></tr>\n";
