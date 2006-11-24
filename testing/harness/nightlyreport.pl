@@ -338,8 +338,7 @@ sub getsanity {
   my $resultfile = "";
   my $thiserror = "";
   my $thistest = 0;
-  $basedir .= "/results";
-  open(IN, "$basedir/run.log");
+  open(IN, "$basedir/results/run.log");
   while (<IN>) {
     my $build = "";
     my $bm = "";
@@ -435,7 +434,7 @@ sub geterrmsg {
   } elsif ($error =~ /Build status: FAILED/) {
     ($error) = $error =~ /Build status: (FAILED to build .+) at /;
   } else {
-    $error = "Error: ".scanerrorlog("$base/$resultfile", $stackid, $stacks);
+    $error = "Error: ".scanerrorlog("$base/results/$resultfile", $stackid, $stacks);
   }
   return $error;
 }
@@ -446,7 +445,7 @@ sub geterrmsg {
 #
 sub getbuilderr {
   my ($base, $build, $stackid, $stacks) = @_;
-  $error = scanerrorlog("images/$build/RVM.trace", $stackid, $stacks);
+  $error = scanerrorlog("$base/images/$build/RVM.trace", $stackid, $stacks);
   return "FAILED to build $build:$error";
 }
 
