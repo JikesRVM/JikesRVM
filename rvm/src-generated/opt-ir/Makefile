@@ -90,7 +90,7 @@ $(GEN_FILES_DIR)/InstructionFormats.RAW: InstructionFormats.template OperatorLis
 ## TODO FIX these three rules!!
 uncheckedInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	$(GEN_FILES_DIR)/InstructionFormats.RAW \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCH_IF_LIST=$(ARCH_IFS)
 	VERIFY_INSTRUCTION_FORMATS="" ARCHITECTURE=$(ARCHITECTURE) \
@@ -99,7 +99,7 @@ uncheckedInstructionFormat:
 
 warnInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	$(GEN_FILES_DIR)/InstructionFormats.RAW \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCH_IF_LIST=$(ARCH_IFS)\
 	VERIFY_INSTRUCTION_FORMATS="warn" ARCHITECTURE=$(ARCHITECTURE) \
@@ -108,7 +108,7 @@ warnInstructionFormat:
 
 fatalInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	$(GEN_FILES_DIR)/InstructionFormats.RAW \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCH_IF_LIST=$(ARCH_IFS) \
 	VERIFY_INSTRUCTION_FORMATS="fatal" ARCHITECTURE=$(ARCHITECTURE) \
