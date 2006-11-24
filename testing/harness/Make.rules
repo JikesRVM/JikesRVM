@@ -94,6 +94,7 @@ ifneq (x$(ID),x)
 endif
 endif
 OUTFILE=out.$(START_NAME)$(EXT)$(SUFFIX)
+OUT=$(WORKING)/$(OUTFILE)
 
 TEST_NAME=$(BENCH_NAME)
 
@@ -184,8 +185,6 @@ server-sanity-check-rules:
 #
 
 do-sanity-check-rule:
-	OUT=$(WORKING)/$(OUTFILE)
-	echo "Output from the run will go to '$OUTFILE'"
 	@$(MAKE) bench JVM=rvm
 	@($(MAKE) check && echo "You are sane $(CONFIG_NAME) $(TEST_NAME)") || (echo "You are NOT sane $(CONFIG_NAME) $(TEST_NAME)"; exit 1)
 
