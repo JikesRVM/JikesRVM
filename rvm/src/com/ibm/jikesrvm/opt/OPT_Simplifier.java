@@ -63,13 +63,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
    * Constant fold field operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_FIELDS = true;
+  public static final boolean CF_FIELDS = false;
 
   /** 
    * Constant fold TIB operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_TIB = true;
+  public static final boolean CF_TIB = false;
 
   /**
    * Enumeration value to indicate an operation is unchanged, although the
