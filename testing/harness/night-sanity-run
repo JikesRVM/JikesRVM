@@ -343,6 +343,11 @@ if [[ ! $RESULT_MAILING_LIST ]] || [[ $do_mail != 1 ]]; then
 fi
 mail < $MSG -s "$subject" $RESULT_MAILING_LIST
 
+##
+## Generate the html report
+##
+$RVM_ROOT/testing/harness/nightlyreport.pl $RVM_ROOT
+
 if [[ $dry_run ]]; then
     echo >&2 "$ME: dry run: We are now going to do findDeviantFiles"
 fi

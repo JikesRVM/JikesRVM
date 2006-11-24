@@ -12,6 +12,12 @@
 # Parse the various nightly sanity logs and produce a html summary.
 #
 
+my $root = shift(@ARGV);
+if (!(-e $root)) {
+  $root = `pwd`;
+  ($root) = $root =~ /^(.+)\s*$/;
+}
+
 # constants etc
 my @shortmonths = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 my @days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
@@ -43,14 +49,14 @@ my $passed = 0;
 
 # dig out the data from the various log files...
 #
-getsanity("results", \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed);
-getperf("results", \%perf, \%jvm98details);
-getdetails("results", \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sanityconfig, \$perfconfig);
+getsanity($root, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed);
+getperf($root, \%perf, \%jvm98details);
+getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sanityconfig, \$perfconfig);
 
 # produce the html summary
 #
 my $html;
-open($html, ">".getdatestr($svnstamp).".html");
+open($html, ">$root/".getdatestr($svnstamp).".html");
 printhtmlhdr($html);
 gensummary($html, \%perf, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
 genbuildfailures($html, \@sanity, \@error, \@stackid);
@@ -332,6 +338,7 @@ sub getsanity {
   my $resultfile = "";
   my $thiserror = "";
   my $thistest = 0;
+  $basedir .= "/results";
   open(IN, "$basedir/run.log");
   while (<IN>) {
     my $build = "";
@@ -389,7 +396,7 @@ sub getsanity {
 #
 sub getperf {
   my ($basedir, $perf, $jvm98details) = @_;
-  open(IN, "$basedir/performance.log");
+  open(IN, "$basedir/results/performance.log");
   my $run = "";
   my $resultcount = 0;
   while (<IN>) {
@@ -515,7 +522,7 @@ sub scanerrorlog {
 #
 sub getdetails {
   my ($basedir, $javadocerrs, $optdetails, $svnstamp, $svnrevision, $sanityconfig, $perfconfig) = @_;
-  open(IN, "MSG");
+  open(IN, "$basedir/MSG");
   my $injavadoc = 0;
   my $optlevel = -1;
   while (<IN>) {
