@@ -355,7 +355,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     s.replace(IfCmp.create(INT_IFCMP, null, t, IC(highLimit - lowLimit),
                            OPT_ConditionOperand.HIGHER(), 
                            defaultLabel, defaultProb));
-    float weight = 1f / (1f - defaultProb.takenProbability);
+    float weight = defaultProb.takenProbability >= 1f ?
+      0f : 1f / (1f - defaultProb.takenProbability);
 
     /********** second Basic Block ******/
     s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number*2);
