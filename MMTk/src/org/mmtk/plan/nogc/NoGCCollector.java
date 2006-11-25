@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class NoGCCollector extends CollectorContext implements Uninterruptible {
+@Uninterruptible public abstract class NoGCCollector extends CollectorContext {
 
   /************************************************************************
    * Instance fields

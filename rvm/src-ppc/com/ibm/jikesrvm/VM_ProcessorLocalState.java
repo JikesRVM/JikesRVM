@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Stephen Fink
  */
-public final class VM_ProcessorLocalState implements Uninterruptible {
+@Uninterruptible public final class VM_ProcessorLocalState {
   
   /**
    * The C bootstrap program has placed a pointer to the initial

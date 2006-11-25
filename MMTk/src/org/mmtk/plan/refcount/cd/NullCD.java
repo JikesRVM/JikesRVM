@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class NullCD extends CD implements Uninterruptible {
+@Uninterruptible public final class NullCD extends CD {
 
   /*****************************************************************************
    * 

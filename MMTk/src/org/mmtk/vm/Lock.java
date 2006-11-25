@@ -19,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Lock implements Uninterruptible {
+@Uninterruptible public abstract class Lock {
 
   /**
    * Set the name of this lock instance

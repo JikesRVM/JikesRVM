@@ -23,8 +23,8 @@ import org.vmmagic.unboxed.*;
  *
  * @author Michael Hind
  */
-public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-  implements Uninterruptible , VM_SizeConstants{
+@Uninterruptible public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
+  implements VM_SizeConstants{
 
   private static final boolean DEBUG = false;
  

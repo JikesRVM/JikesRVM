@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class NoGC extends Plan implements Uninterruptible {
+@Uninterruptible public class NoGC extends Plan {
 
   /*****************************************************************************
    * 

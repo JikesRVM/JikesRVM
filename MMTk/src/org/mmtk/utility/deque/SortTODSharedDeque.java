@@ -23,8 +23,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-final public class SortTODSharedDeque extends SortSharedDeque 
-  implements Uninterruptible {
+@Uninterruptible final public class SortTODSharedDeque extends SortSharedDeque {
   public final static String Id = "$Id$"; 
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;

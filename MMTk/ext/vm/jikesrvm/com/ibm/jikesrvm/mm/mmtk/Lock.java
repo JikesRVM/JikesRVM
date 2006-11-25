@@ -41,7 +41,7 @@ import org.mmtk.utility.Log;
  * @version $Revision$
  * @date $Date$
  */
-public class Lock extends org.mmtk.vm.Lock implements Uninterruptible {
+@Uninterruptible public class Lock extends org.mmtk.vm.Lock {
 
   // Internal class fields
   private static final Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();

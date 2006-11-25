@@ -54,7 +54,7 @@ import java.lang.ref.PhantomReference;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public final class ReferenceGlue extends org.mmtk.vm.ReferenceGlue implements Uninterruptible {
+@Uninterruptible public final class ReferenceGlue extends org.mmtk.vm.ReferenceGlue {
   /********************************************************************
    * Class fields 
    */

@@ -48,8 +48,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class SegregatedFreeList extends Allocator 
-  implements Constants, Uninterruptible {
+@Uninterruptible public abstract class SegregatedFreeList extends Allocator 
+  implements Constants {
 
   /****************************************************************************
    * 

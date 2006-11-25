@@ -99,7 +99,7 @@ import org.vmmagic.unboxed.*;
    @author Bowen Alpern 
 */
 
-public final class VM_Lock implements VM_Constants, Uninterruptible {
+@Uninterruptible public final class VM_Lock implements VM_Constants {
 
   ////////////////////////////////////////////////////////////////////////
   /// Section 1: Support for synchronizing methods of java.lang.Object ///

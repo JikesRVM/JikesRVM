@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Trace implements Constants, Uninterruptible {
+@Uninterruptible public class Trace implements Constants {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;

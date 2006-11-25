@@ -17,9 +17,8 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-public class VM_ThreadQueue 
-  extends VM_AbstractThreadQueue 
-  implements Uninterruptible {
+@Uninterruptible public class VM_ThreadQueue 
+  extends VM_AbstractThreadQueue {
 
   /**
    * First thread on list.

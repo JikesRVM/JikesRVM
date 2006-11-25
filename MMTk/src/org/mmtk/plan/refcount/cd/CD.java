@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class CD implements Uninterruptible {
+@Uninterruptible public abstract class CD {
 
   /****************************************************************************
    * Constants

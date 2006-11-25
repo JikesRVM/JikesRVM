@@ -31,8 +31,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SimplePhase extends Phase
-  implements Uninterruptible, Constants {
+@Uninterruptible public final class SimplePhase extends Phase
+  implements Constants {
   /****************************************************************************
    * Instance fields
    */

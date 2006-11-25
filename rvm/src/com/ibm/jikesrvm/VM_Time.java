@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_Time implements Uninterruptible {
+@Uninterruptible public class VM_Time {
 
   /**
    * Conversion factor from cycles to time in milliseconds

@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Log implements Constants, Uninterruptible {
+@Uninterruptible public class Log implements Constants {
 
   /****************************************************************************
    * 

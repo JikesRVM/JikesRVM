@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  *
  * @author David Hovemeyer
  */
-public abstract class VM_ThreadEventWaitDataVisitor implements Uninterruptible {
+@Uninterruptible public abstract class VM_ThreadEventWaitDataVisitor {
 
   /**
    * Visit a VM_ThreadIOWaitData object.

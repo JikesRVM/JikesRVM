@@ -59,7 +59,7 @@ import com.ibm.jikesrvm.VM_Processor;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterruptible {
+@Uninterruptible public class MM_Interface implements VM_HeapLayoutConstants, Constants {
 
   /***********************************************************************
    *

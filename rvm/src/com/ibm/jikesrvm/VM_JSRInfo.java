@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @modified Perry Cheng
  * @modified Dave Grove
  */
-public final class VM_JSRInfo implements VM_BaselineConstants, Uninterruptible  {
+@Uninterruptible public final class VM_JSRInfo implements VM_BaselineConstants {
 
   int              numberUnusualMaps;
   VM_UnusualMaps[] unusualMaps;

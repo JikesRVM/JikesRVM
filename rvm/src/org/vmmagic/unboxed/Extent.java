@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng
  * @see Address Word Offset
  */
-public final class Extent implements Uninterruptible {
+@Uninterruptible public final class Extent {
 
   // Do not try to create a static field containing special offset values.
   //   Suboptimal code will be generated.

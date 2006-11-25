@@ -25,6 +25,5 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class RCConstraints extends RCBaseConstraints
-  implements Uninterruptible {
+@Uninterruptible public class RCConstraints extends RCBaseConstraints {
 }

@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * @date   2 June 2000
  */
 
-abstract class VM_NullListener extends VM_Listener implements Uninterruptible {
+@Uninterruptible abstract class VM_NullListener extends VM_Listener {
   /**
    * Entry point when listener is awoken.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or

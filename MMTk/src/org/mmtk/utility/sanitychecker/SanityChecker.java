@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SanityChecker implements Uninterruptible, Constants {
+@Uninterruptible public final class SanityChecker implements Constants {
 
   /* Counters */
   public static long referenceCount;

@@ -88,7 +88,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCTrace extends SS implements Uninterruptible {
+@Uninterruptible public class GCTrace extends SS {
 
   /****************************************************************************
    * 

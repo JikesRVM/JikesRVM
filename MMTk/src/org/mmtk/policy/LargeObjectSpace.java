@@ -36,8 +36,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class LargeObjectSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class LargeObjectSpace extends Space 
+  implements Constants {
 
   /****************************************************************************
    * 

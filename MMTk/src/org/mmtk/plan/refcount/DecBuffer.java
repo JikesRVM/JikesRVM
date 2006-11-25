@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class DecBuffer extends ObjectReferenceBuffer implements Constants, Uninterruptible {
+@Uninterruptible public final class DecBuffer extends ObjectReferenceBuffer implements Constants {
   /****************************************************************************
    * 
    * Initialization

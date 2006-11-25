@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-abstract public class AbstractDriver implements Uninterruptible {
+@Uninterruptible abstract public class AbstractDriver {
 
   /****************************************************************************
    *

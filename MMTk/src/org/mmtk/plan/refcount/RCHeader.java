@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class RCHeader implements Constants, Uninterruptible {
+@Uninterruptible public final class RCHeader implements Constants {
 
   /****************************************************************************
    *

@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MCCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public class MCCollector extends StopTheWorldCollector {
 
   private static final boolean TRACE_MARK = false;
   private static final boolean TRACE_FORWARD = true;
@@ -53,12 +53,12 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
    * Instance fields
    */
 
-  private MCMarkTraceLocal markTrace;
-  private MCForwardTraceLocal forwardTrace;
+  private final MCMarkTraceLocal markTrace;
+  private final MCForwardTraceLocal forwardTrace;
   private boolean currentTrace;
 
   // Sanity checking
-  private MCSanityCheckerLocal sanityChecker;
+  private final MCSanityCheckerLocal sanityChecker;
 
   
   /****************************************************************************

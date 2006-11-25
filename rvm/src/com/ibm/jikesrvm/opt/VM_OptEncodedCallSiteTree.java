@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
  * @author Julian Dolby
  * @modified Dave Grove
  */
-public abstract class VM_OptEncodedCallSiteTree implements Uninterruptible {
+@Uninterruptible public abstract class VM_OptEncodedCallSiteTree {
 
   public static int getMethodID(int entryOffset, int[] encoding) {
     return  encoding[entryOffset + 1];

@@ -31,8 +31,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class GenNurseryTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class GenNurseryTraceLocal extends TraceLocal {
 
   /****************************************************************************
    * 

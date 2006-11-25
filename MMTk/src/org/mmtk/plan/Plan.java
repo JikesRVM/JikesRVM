@@ -60,7 +60,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Plan implements Uninterruptible, Constants {
+@Uninterruptible public abstract class Plan implements Constants {
   /****************************************************************************
    * Constants
    */

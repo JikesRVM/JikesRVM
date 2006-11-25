@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-abstract public class PageResource implements Constants, Uninterruptible {
+@Uninterruptible abstract public class PageResource implements Constants {
 
   /****************************************************************************
    * 

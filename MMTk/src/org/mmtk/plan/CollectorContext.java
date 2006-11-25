@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class CollectorContext implements Uninterruptible, Constants {
+@Uninterruptible public abstract class CollectorContext implements Constants {
 
   /****************************************************************************
    * Instance fields

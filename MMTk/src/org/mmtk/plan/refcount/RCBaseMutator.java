@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class RCBaseMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields

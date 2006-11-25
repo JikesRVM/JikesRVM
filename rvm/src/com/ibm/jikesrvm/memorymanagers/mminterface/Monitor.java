@@ -23,8 +23,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Monitor 
-  implements Constants, Uninterruptible, VM_Callbacks.ExitMonitor {
+@Uninterruptible public class Monitor 
+  implements Constants, VM_Callbacks.ExitMonitor {
   public final static String Id = "$Id$"; 
 
   /**

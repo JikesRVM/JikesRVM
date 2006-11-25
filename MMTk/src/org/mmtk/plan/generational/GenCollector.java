@@ -40,8 +40,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenCollector extends StopTheWorldCollector
-implements Uninterruptible {
+@Uninterruptible public abstract class GenCollector extends StopTheWorldCollector {
 
   /*****************************************************************************
    * Instance fields

@@ -32,8 +32,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
-  implements Uninterruptible, VM_JavaHeaderConstants {
+@Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
+  implements VM_JavaHeaderConstants {
   
   
   /**

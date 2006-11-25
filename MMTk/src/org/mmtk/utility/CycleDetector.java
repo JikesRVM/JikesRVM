@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-abstract class CycleDetector implements Uninterruptible {
+@Uninterruptible abstract class CycleDetector {
   public final static String Id = "$Id$"; 
 
   static {

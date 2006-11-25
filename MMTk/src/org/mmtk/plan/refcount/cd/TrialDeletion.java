@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class TrialDeletion extends CD implements Uninterruptible {
+@Uninterruptible public final class TrialDeletion extends CD {
 
   /****************************************************************************
    * 

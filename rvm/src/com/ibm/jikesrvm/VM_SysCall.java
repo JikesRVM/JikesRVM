@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_SysCall implements Uninterruptible { 
+@Uninterruptible public class VM_SysCall { 
 
   // lowlevel write to console
   public static void sysWriteChar(char v) {

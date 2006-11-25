@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Util implements Uninterruptible {
+@Uninterruptible public abstract class Util {
   
   /**
    * Allocate an array of bytes with malloc

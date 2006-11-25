@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class EmbeddedMetaData implements Constants, Uninterruptible {
+@Uninterruptible public final class EmbeddedMetaData implements Constants {
 
   /* The (log of the) size of each region of meta data management */
   public static final int LOG_BYTES_IN_REGION = 22;

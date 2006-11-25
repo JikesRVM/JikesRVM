@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenMSCollector extends GenCollector implements Uninterruptible {
+@Uninterruptible public abstract class GenMSCollector extends GenCollector {
 
   /*****************************************************************************
    * 

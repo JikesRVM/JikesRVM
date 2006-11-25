@@ -30,8 +30,8 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-public final class VM_OptCompiledMethod extends VM_CompiledMethod
-  implements OPT_Operators, Uninterruptible  {
+@Uninterruptible public final class VM_OptCompiledMethod extends VM_CompiledMethod
+  implements OPT_Operators  {
 
   public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    

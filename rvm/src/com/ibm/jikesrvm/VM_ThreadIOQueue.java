@@ -28,8 +28,8 @@ import org.vmmagic.pragma.*;
  * @author David Hovemeyer (made it a subclass of VM_ThreadEventWaitQueue)
  * @date 25 June 1999 
  */
-public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
-  implements Uninterruptible, VM_ThreadEventConstants, VM_ThreadIOConstants {
+@Uninterruptible public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
+  implements VM_ThreadEventConstants, VM_ThreadIOConstants {
 
   // Note: this class was modified by David Hovemeyer
   // for Extreme Blue 2002 to implement it as a subclass of
@@ -44,8 +44,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * a thread switch, which is obviously bad in uninterruptible
    * code.
    */
-  private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor
-    implements Uninterruptible {
+  @Uninterruptible private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
 
     public VM_ThreadIOWaitData waitData;
 
@@ -62,7 +61,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * Private downcaster object for this queue.
    * Avoids having to create them repeatedly.
    */
-  private WaitDataDowncaster myDowncaster = new WaitDataDowncaster();
+  private final WaitDataDowncaster myDowncaster = new WaitDataDowncaster();
  
   private static final int FD_SETSIZE = 2048;
 

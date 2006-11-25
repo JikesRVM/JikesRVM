@@ -29,8 +29,7 @@ import org.vmmagic.unboxed.Address;
  * @date $Date$
  */
 
-public class ShortStream extends org.mmtk.vm.gcspy.ShortStream
-    implements Uninterruptible {
+@Uninterruptible public class ShortStream extends org.mmtk.vm.gcspy.ShortStream {
 
   /****************************************************************************
    *

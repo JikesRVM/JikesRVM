@@ -60,8 +60,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_JavaHeader implements VM_JavaHeaderConstants,
-                                            Uninterruptible 
+@Uninterruptible public final class VM_JavaHeader implements VM_JavaHeaderConstants
                                             //-#if RVM_WITH_OPT_COMPILER
                                             ,OPT_Operators
                                             //-#endif

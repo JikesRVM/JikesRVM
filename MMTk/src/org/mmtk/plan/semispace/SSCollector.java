@@ -45,7 +45,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class SSCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public abstract class SSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields

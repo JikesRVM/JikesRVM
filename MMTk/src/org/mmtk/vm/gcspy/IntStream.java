@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-
-public abstract class IntStream extends Stream implements  Uninterruptible {
+@Uninterruptible public abstract class IntStream extends Stream {
 
   /****************************************************************************
    *

@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
 /*
  * @author Perry Cheng
  */
-public class Synchronize implements Uninterruptible {
+@Uninterruptible public class Synchronize{
 
 
 }

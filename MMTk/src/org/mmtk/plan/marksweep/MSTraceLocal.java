@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MSTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class MSTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

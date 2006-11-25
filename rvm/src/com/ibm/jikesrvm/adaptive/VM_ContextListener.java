@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @author Peter Sweeney
  * @date   2 June 2000
  */
-abstract class VM_ContextListener extends VM_Listener implements Uninterruptible {
+@Uninterruptible abstract class VM_ContextListener extends VM_Listener {
 
   /**
    * Entry point when listener is awoken.

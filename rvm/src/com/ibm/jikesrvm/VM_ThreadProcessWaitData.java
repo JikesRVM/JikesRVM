@@ -19,9 +19,8 @@ import org.vmmagic.pragma.*;
  * @author David Hovemeyer
  * @see VM_ThreadProcessWaitQueue
  */
-public class VM_ThreadProcessWaitData
-  extends VM_ThreadEventWaitData
-  implements Uninterruptible {
+@Uninterruptible public class VM_ThreadProcessWaitData
+  extends VM_ThreadEventWaitData {
 
   /** Process ID of process being waited for. */
   int pid;

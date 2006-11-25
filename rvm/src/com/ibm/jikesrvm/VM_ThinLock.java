@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
+@Uninterruptible final class VM_ThinLock implements VM_ThinLockConstants {
 
   ////////////////////////////////////////
   /// Support for light-weight locking ///

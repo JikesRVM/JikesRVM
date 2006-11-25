@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ImmortalLocal extends BumpPointer 
-  implements Uninterruptible  {
+@Uninterruptible public final class ImmortalLocal extends BumpPointer {
   public final static String Id = "$Id$"; 
 
   /**

@@ -27,8 +27,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MCConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class MCConstraints extends StopTheWorldConstraints {
 
   public boolean movesObjects() { return true; }
 

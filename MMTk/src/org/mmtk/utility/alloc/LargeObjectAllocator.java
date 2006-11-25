@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class LargeObjectAllocator extends Allocator implements Constants, Uninterruptible {
+@Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

@@ -45,7 +45,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class MCMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields

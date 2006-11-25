@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Mmapper implements Constants, Uninterruptible {
+@Uninterruptible public final class Mmapper implements Constants {
   
   /****************************************************************************
    * Constants

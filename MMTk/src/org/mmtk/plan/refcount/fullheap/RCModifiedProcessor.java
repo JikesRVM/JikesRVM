@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class RCModifiedProcessor extends TraceStep implements Uninterruptible {
+@Uninterruptible public final class RCModifiedProcessor extends TraceStep {
 
   /**
    * Trace a reference during GC.

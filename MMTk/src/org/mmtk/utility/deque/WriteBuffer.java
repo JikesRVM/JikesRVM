@@ -21,8 +21,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class WriteBuffer extends LocalSSB
-  implements Constants, Uninterruptible {
+@Uninterruptible public class WriteBuffer extends LocalSSB
+  implements Constants {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

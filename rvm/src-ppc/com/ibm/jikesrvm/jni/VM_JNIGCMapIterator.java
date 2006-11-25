@@ -31,10 +31,9 @@ import org.vmmagic.pragma.*;
  *
  * @author Steve Smith
  */
-public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
+@Uninterruptible public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
-             VM_JNIStackframeLayoutConstants,
-             Uninterruptible {
+             VM_JNIStackframeLayoutConstants {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.

@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class NullCDMutator extends CDMutator 
-  implements Uninterruptible {
+@Uninterruptible public final class NullCDMutator extends CDMutator {
 }
 

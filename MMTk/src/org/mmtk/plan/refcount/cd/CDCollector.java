@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class CDCollector implements Uninterruptible {
+@Uninterruptible public abstract class CDCollector {
   /****************************************************************************
    * Instance fields
    */

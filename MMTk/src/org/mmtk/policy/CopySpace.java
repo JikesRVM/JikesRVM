@@ -34,8 +34,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class CopySpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class CopySpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 

@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Address implements Uninterruptible, VM_SizeConstants {
+@Uninterruptible public final class Address implements VM_SizeConstants {
 
   // Do not try to create a static field containing special address values.
   // Suboptimal code will be generated.

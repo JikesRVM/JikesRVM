@@ -27,8 +27,8 @@ import com.ibm.jikesrvm.quick.*;
  *                          such as when out of memory)
  * @date 10 July 2003
  */
-public class VM extends VM_Properties 
-  implements VM_Constants, VM_ExitStatus, Uninterruptible
+@Uninterruptible public class VM extends VM_Properties 
+  implements VM_Constants, VM_ExitStatus
 { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //

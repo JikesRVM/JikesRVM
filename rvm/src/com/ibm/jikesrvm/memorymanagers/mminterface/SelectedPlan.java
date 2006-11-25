@@ -21,9 +21,9 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SelectedPlan extends
+@Uninterruptible public final class SelectedPlan extends
 //-#value RVM_WITH_MMTK_PLAN
-  implements Uninterruptible {
+  {
 
   public static final SelectedPlan singleton = new SelectedPlan();
   

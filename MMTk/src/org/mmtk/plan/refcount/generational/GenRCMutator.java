@@ -53,7 +53,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenRCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+@Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * Instance fields
    */

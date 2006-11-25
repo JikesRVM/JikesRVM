@@ -25,7 +25,7 @@ import com.ibm.jikesrvm.VM_CompiledMethod;
  *
  * @author Janice Shepherd
  */
-public abstract class VM_GCMapIterator implements Uninterruptible {
+@Uninterruptible public abstract class VM_GCMapIterator {
   
   /** thread whose stack is currently being scanned */
   public VM_Thread thread; 

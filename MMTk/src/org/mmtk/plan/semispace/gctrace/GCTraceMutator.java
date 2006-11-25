@@ -48,7 +48,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCTraceMutator extends SSMutator implements Uninterruptible {
+@Uninterruptible public class GCTraceMutator extends SSMutator {
 
   /****************************************************************************
    * 

@@ -40,7 +40,7 @@ import com.ibm.jikesrvm.classloader.VM_Method;
  * @date 2/6/2003
  * @modified Matthias Hauswirth (8/8/2003) added support to collect method IDs
  */
-public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeConstants
+@Uninterruptible public class VM_HardwarePerformanceMonitor implements VM_SizeConstants
 {
   /*
    * My consumer.

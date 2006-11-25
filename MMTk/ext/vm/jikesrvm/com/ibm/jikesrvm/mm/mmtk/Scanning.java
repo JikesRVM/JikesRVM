@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Scanning extends org.mmtk.vm.Scanning implements Constants, Uninterruptible {
+@Uninterruptible public class Scanning extends org.mmtk.vm.Scanning implements Constants {
   /****************************************************************************
    *
    * Class variables

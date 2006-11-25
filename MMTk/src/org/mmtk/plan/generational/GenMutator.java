@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class GenMutator extends StopTheWorldMutator {
 
   /*****************************************************************************
    * 

@@ -31,7 +31,7 @@ import com.ibm.jikesrvm.VM_Thread;
  *
  * @author Stephen Smith
  */  
-public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
+@Uninterruptible public class DebugUtil implements VM_Constants, Constants {
 
   private static Object[] tibForArrayType;
   private static Object[] tibForClassType;

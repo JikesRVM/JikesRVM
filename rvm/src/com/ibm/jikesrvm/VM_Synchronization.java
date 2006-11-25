@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  * @author Bowen Alpern
  * @author Anthony Cocchi
  */
-public class VM_Synchronization implements Uninterruptible {
+@Uninterruptible public class VM_Synchronization {
 
   public static final boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) throws InlinePragma {
     int oldValue;

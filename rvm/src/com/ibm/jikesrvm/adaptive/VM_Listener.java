@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  *
  * CONSTRAINTS:
  * Classes that are derived from VM_Listener 
- * must inherit directly from Uninterruptible to ensure that they
+ * must be annotated as Uninterruptible to ensure that they
  * are not interrupted by a thread switch.  
  * Since thread switching is disabled, listeners are 
  * expected to complete execution quickly, and therefore, 
@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @author Peter Sweeney
  * @author Dave Grove
  */
-abstract class VM_Listener implements Uninterruptible {
+@Uninterruptible abstract class VM_Listener {
 
   /**
    * Entry point to dump what has been collected.

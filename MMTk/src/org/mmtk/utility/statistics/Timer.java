@@ -23,8 +23,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public class Timer extends LongCounter
-  implements Uninterruptible {
+@Uninterruptible public class Timer extends LongCounter {
 
   /****************************************************************************
    * 

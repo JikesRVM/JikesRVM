@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class BlockAllocator implements Constants, Uninterruptible {
+@Uninterruptible public final class BlockAllocator implements Constants {
   public final static String Id = "$Id$"; 
 
 

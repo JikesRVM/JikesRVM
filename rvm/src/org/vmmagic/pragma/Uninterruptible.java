@@ -9,8 +9,13 @@
 //$Id$
 package org.vmmagic.pragma; 
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.ElementType;
+
 /** 
- * Methods of a class that implements this (pseudo-)interface
+ * Methods of a class that use this annotation
  * are treated specially by the  compilers:
  * (1) the normal thread switch test that would be
  *     emitted in the method prologue is omitted.
@@ -32,10 +37,13 @@ package org.vmmagic.pragma;
  * {@link InterruptiblePragma} to control
  * this property at a per-method granularity.
  * <P>
- * There is no matching <code>Interruptible</code> pseudo-interface, 
+ * There is no matching <code>Interruptible</code> annotation,
  * since that is the default.
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
+ * @author Ian Rogers
  */
-public interface Uninterruptible { }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Uninterruptible { }

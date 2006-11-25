@@ -30,8 +30,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SanityDataTable extends SimpleHashtable 
-  implements Uninterruptible, Constants {
+@Uninterruptible public final class SanityDataTable extends SimpleHashtable 
+  implements Constants {
 
   /** The number of bits for the normal reference count */
   private static final int NORMAL_RC_BITS = 25;

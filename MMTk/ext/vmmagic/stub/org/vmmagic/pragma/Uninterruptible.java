@@ -9,11 +9,16 @@
 //$Id$
 package org.vmmagic.pragma;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.ElementType;
+
 /**
  * Commenting required.
  * 
  * @author Daniel Frampton
  */
-public interface Uninterruptible {
-  static final long serialVersionUID = 0; // Keep Eclipse quiet
-}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Uninterruptible { }

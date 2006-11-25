@@ -40,7 +40,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants, Uninterruptible {
+@Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
 
   protected final Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
 

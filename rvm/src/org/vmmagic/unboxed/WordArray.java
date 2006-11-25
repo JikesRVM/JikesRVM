@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.VM;
  *
  * @author Perry Cheng
  */
-final public class WordArray implements Uninterruptible {
+@Uninterruptible final public class WordArray {
 
   private Word[] data;
 

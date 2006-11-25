@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SharedDeque extends Deque implements Constants, Uninterruptible {
+@Uninterruptible public class SharedDeque extends Deque implements Constants {
 
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 

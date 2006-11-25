@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public class SizeCounter implements Uninterruptible {
+@Uninterruptible public class SizeCounter {
 
   /****************************************************************************
    * 

@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SpaceDescriptor implements Uninterruptible, Constants {
+@Uninterruptible public class SpaceDescriptor implements Constants {
 
   /****************************************************************************
    * 

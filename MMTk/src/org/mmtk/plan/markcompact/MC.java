@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MC extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public class MC extends StopTheWorld {
 
   /****************************************************************************
    * Class variables

@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-final class VM_ProcessorQueue implements Uninterruptible {
+@Uninterruptible final class VM_ProcessorQueue {
 
   /**
    * first thread on list

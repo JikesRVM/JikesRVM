@@ -27,8 +27,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 
-public abstract class ByteStream extends Stream
-	implements  Uninterruptible {
+@Uninterruptible public abstract class ByteStream extends Stream {
 
   /****************************************************************************
    *

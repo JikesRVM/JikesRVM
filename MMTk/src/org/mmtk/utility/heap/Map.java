@@ -29,14 +29,14 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Map implements Constants, Uninterruptible {
+@Uninterruptible public class Map implements Constants {
 
   /****************************************************************************
    * 
    * Class variables
    */
-  private static int[] descriptorMap;
-  private static Space[] spaceMap;
+  private static final int[] descriptorMap;
+  private static final Space[] spaceMap;
 
   /****************************************************************************
    * 

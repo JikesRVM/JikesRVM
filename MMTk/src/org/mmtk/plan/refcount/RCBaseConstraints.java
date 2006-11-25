@@ -25,8 +25,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class RCBaseConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class RCBaseConstraints extends StopTheWorldConstraints {
 
   public boolean needsWriteBarrier() { return true; }
 

@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class RCTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class RCTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

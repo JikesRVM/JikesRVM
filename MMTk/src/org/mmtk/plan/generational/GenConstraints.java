@@ -27,8 +27,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class GenConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class GenConstraints extends StopTheWorldConstraints {
 
   /** @return True if this plan is generational. */
   public boolean generational() { return true; }

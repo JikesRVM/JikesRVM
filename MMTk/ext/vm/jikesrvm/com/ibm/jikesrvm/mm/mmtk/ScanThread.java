@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */  
-public final class ScanThread implements VM_Constants, Uninterruptible {
+@Uninterruptible public final class ScanThread implements VM_Constants {
 
   /***********************************************************************
    *

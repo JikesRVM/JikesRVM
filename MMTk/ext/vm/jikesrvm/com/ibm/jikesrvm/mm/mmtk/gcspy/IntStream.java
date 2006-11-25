@@ -27,8 +27,7 @@ import org.vmmagic.unboxed.Address;
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 
-public class IntStream extends org.mmtk.vm.gcspy.IntStream
-    implements Uninterruptible {
+@Uninterruptible public class IntStream extends org.mmtk.vm.gcspy.IntStream {
 
   /****************************************************************************
    *

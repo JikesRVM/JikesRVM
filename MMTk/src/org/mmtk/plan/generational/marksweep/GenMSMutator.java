@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenMSMutator extends GenMutator implements Uninterruptible {
+@Uninterruptible public abstract class GenMSMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */

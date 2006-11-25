@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-public class VM_Memory implements Uninterruptible , VM_SizeConstants {
+@Uninterruptible public class VM_Memory implements VM_SizeConstants {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory

@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @author Derek Lieber
  * @date 17 Sep 1999  
  */
-class VM_DynamicLinkerHelper implements VM_Constants, Uninterruptible {
+@Uninterruptible class VM_DynamicLinkerHelper implements VM_Constants {
 
   /**
    * Reach up two stack frames into a frame that is compiled

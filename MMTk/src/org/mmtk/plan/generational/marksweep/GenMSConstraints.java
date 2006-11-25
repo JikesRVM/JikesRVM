@@ -25,6 +25,5 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class GenMSConstraints extends GenConstraints
-  implements Uninterruptible {
+@Uninterruptible public class GenMSConstraints extends GenConstraints {
 }

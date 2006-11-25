@@ -474,9 +474,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
-      if (interfaces[i].isUninterruptibleType()) return false;
       if (interfaces[i].isUnpreemptibleType()) return false;
     }
+    if(getDeclaringClass().isUninterruptible()) return false;
     return true;
   }
 
@@ -513,10 +513,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
-    VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
-    for (int i = 0; i < interfaces.length; i++) {
-      if (interfaces[i].isUninterruptibleType()) return true;
-    }
+    if(getDeclaringClass().isUninterruptible()) return true;
     return false;
   }
 
@@ -588,7 +585,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
           return VM_LazyCompilationTrampolineGenerator.getTrampoline();
         }
       } else {
-        // We'll never to a method test against this method.
+        // We'll never do a method test against this method.
         // Therefore we can use the lazy method invoker directly.
         return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
       }

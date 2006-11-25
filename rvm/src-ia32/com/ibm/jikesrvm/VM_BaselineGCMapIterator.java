@@ -26,9 +26,8 @@ import org.vmmagic.unboxed.*;
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants,
-             Uninterruptible {
+@Uninterruptible public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+  implements VM_BaselineConstants {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL  = false; // dynamic link frames
 

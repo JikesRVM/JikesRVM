@@ -23,8 +23,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Michael Hind
  */
-public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator 
-  implements Uninterruptible {
+@Uninterruptible public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
   private final static boolean DEBUG = false;
 

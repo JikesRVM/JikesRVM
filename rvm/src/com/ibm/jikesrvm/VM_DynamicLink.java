@@ -21,8 +21,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public final class VM_DynamicLink implements VM_BytecodeConstants, 
-                                      Uninterruptible {
+@Uninterruptible public final class VM_DynamicLink implements VM_BytecodeConstants {
   /** method referenced at a call site */
   private VM_MethodReference methodRef;
   /** how method was called at that site */

@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
  * @author Perry Cheng
  * @author Dave Grove
  */
-public abstract class HeapGrowthManager implements Constants, Uninterruptible {
+@Uninterruptible public abstract class HeapGrowthManager implements Constants {
 
   /**
    * The initial heap size (-Xms) in bytes

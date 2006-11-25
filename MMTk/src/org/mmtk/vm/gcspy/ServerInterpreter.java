@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Address;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class ServerInterpreter implements Uninterruptible {
+@Uninterruptible public abstract class ServerInterpreter {
 
   protected static final int MAX_LEN = 64 * 1024; // Buffer size
   protected static final int MAX_SPACES = 32;     // Maximum number of spaces

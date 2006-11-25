@@ -31,8 +31,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class FreeListPageResource extends PageResource 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class FreeListPageResource extends PageResource 
+  implements Constants {
 
   private GenericFreeList freeList;
   private int highWaterMark = 0;

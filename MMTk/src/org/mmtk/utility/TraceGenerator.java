@@ -33,8 +33,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class TraceGenerator 
-  implements Constants, Uninterruptible, TracingConstants {
+@Uninterruptible public final class TraceGenerator 
+  implements Constants, TracingConstants {
 
   public final static String Id = "$Id$"; 
 

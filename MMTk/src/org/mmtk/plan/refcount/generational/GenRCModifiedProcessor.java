@@ -31,8 +31,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class GenRCModifiedProcessor extends TraceStep implements Uninterruptible { 
-  private GenRCTraceLocal trace;
+@Uninterruptible public final class GenRCModifiedProcessor extends TraceStep { 
+  private final GenRCTraceLocal trace;
 
   
   public GenRCModifiedProcessor(GenRCTraceLocal t) {

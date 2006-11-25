@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Uninterruptible {
+@Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 
   /**
    * Constructor

@@ -35,7 +35,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
  * @author Derek Lieber
  * PFS added calls to set HPM settings and start counting.
  */
-public class VM_Scheduler implements VM_Constants, Uninterruptible {
+@Uninterruptible public class VM_Scheduler implements VM_Constants {
 
   /** Index of initial processor in which "VM.boot()" runs. */
   public static final int PRIMORDIAL_PROCESSOR_ID = 1;

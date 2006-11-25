@@ -25,7 +25,7 @@ import com.ibm.jikesrvm.VM;
  * @author Perry Cheng
  * @see Address Word
  */
-public final class Offset implements Uninterruptible {
+@Uninterruptible public final class Offset {
 
   // Do not try to create a static field containing special offset values.
   //   Suboptimal code will be generated.

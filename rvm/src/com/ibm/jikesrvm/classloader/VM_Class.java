@@ -689,6 +689,24 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
+   * Does this class, its parents or one of its interfaces have an
+   * Uninterruptible pragma annotation?
+   */
+  public final boolean isUninterruptible() {
+    if(isAnnotationPresent(Uninterruptible.class)) return true;
+    /*
+    else if ((superClass != null) && (superClass.isUninterruptible())) return true;
+    else {
+      VM_Class[] interfaces = getDeclaredInterfaces();
+      for (int i = 0, n = interfaces.length; i < n; ++i) {
+        if (interfaces[i].isUninterruptible()) return true;
+      }
+    }
+    */
+    return false;
+  }
+
+  /**
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */

@@ -25,8 +25,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class GenRCConstraints extends RCBaseConstraints
-  implements Uninterruptible {
+@Uninterruptible public class GenRCConstraints extends RCBaseConstraints {
   
   public boolean movesObjects() { return true; }
 }

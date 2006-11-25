@@ -26,8 +26,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class TraceBuffer extends LocalQueue 
-  implements Constants, TracingConstants, Uninterruptible {
+@Uninterruptible public class TraceBuffer extends LocalQueue 
+  implements Constants, TracingConstants {
   public final static String Id = "$Id$"; 
 
   /***********************************************************************

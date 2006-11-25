@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class TrialDeletionScanBlackStep extends TraceStep implements Uninterruptible {
+@Uninterruptible public final class TrialDeletionScanBlackStep extends TraceStep {
 
   /**
    * Trace a reference during GC.

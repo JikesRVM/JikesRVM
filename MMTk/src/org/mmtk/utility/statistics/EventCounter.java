@@ -25,15 +25,14 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public class EventCounter extends Counter
-  implements Uninterruptible {
+@Uninterruptible public class EventCounter extends Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private long count[];
+  private final long count[];
 
   protected long totalCount = 0;
   private boolean running = false;

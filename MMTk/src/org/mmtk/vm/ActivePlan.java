@@ -26,7 +26,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public abstract class ActivePlan implements Uninterruptible {
+@Uninterruptible public abstract class ActivePlan {
 
   /** @return The active Plan instance. */
   public abstract Plan global();

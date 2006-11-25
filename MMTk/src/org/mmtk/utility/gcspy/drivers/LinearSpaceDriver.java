@@ -37,8 +37,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class LinearSpaceDriver extends AbstractDriver
-  implements Uninterruptible {
+@Uninterruptible public class LinearSpaceDriver extends AbstractDriver {
 
   // The GCspy streams
   protected IntStream   scalarUsedSpaceStream;

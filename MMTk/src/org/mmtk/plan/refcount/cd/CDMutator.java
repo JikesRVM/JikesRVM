@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class CDMutator implements Uninterruptible {
+@Uninterruptible public abstract class CDMutator {
   /****************************************************************************
    * Instance fields
    */

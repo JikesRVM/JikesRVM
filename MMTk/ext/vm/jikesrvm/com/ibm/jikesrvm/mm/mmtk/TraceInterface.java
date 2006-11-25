@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class TraceInterface extends org.mmtk.vm.TraceInterface implements VM_Constants, Uninterruptible {
+@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements VM_Constants {
 
   /***********************************************************************
    *

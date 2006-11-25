@@ -97,7 +97,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Array ExtentArrayType;             
   public static final VM_Primitive CodeType;
   public static final VM_Array CodeArrayType;
-  public static final VM_Class UninterruptibleType;
   public static final VM_Class UnpreemptibleType;   
   public static final VM_Class SynchronizedObjectType;   
   public static final VM_Class DynamicBridgeType;     
@@ -123,10 +122,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     // Jikes RVM classes
     ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
     MagicType           = VM_TypeReference.Magic.resolve().asClass();
-    UninterruptibleType =
-      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")
-                                    ).resolve().asClass();
     UnpreemptibleType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")
@@ -452,13 +447,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public final boolean isMagicType() throws UninterruptiblePragma {
     return isWordType() || isWordArrayType() ||
       this == MagicType || this == CodeArrayType;
-  }
-  /**
-   * @return is this type the Jikes RVM internal uninterruptible
-   * pragma type?
-   */
-  public final boolean isUninterruptibleType() throws UninterruptiblePragma {
-    return this == UninterruptibleType;
   }
   /**
    * @return is this type the Jikes RVM internal unpreemptible pragma

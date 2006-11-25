@@ -36,7 +36,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Subspace implements Uninterruptible {
+@Uninterruptible public class Subspace {
 
   private Address start_;       // The Subspace spans the address range [start_, end_)
   private Address end_;

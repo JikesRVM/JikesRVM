@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Scanning implements Constants, Uninterruptible {
+@Uninterruptible public abstract class Scanning implements Constants {
   /**
    * Delegated scanning of a object, processing each pointer field
    * encountered. 

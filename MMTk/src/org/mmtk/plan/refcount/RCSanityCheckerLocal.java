@@ -26,8 +26,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RCSanityCheckerLocal extends SanityCheckerLocal 
-  implements Uninterruptible {
+@Uninterruptible public class RCSanityCheckerLocal extends SanityCheckerLocal {
 
   /**
    * Return the expected reference count. For non-reference counting 

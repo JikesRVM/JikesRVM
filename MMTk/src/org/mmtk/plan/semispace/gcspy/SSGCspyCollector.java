@@ -49,7 +49,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspyCollector extends SSCollector implements Uninterruptible {
+@Uninterruptible public class SSGCspyCollector extends SSCollector {
 
   /****************************************************************************
    * 

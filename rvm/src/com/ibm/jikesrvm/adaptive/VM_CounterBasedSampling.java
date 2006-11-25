@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  *
  *  @author Matthew Arnold 
  * */
-public final class VM_CounterBasedSampling implements Uninterruptible, VM_Constants
+@Uninterruptible public final class VM_CounterBasedSampling implements VM_Constants
 {
   static final boolean DEBUG = false;
 

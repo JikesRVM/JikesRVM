@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Strings extends org.mmtk.vm.Strings implements Uninterruptible {
+@Uninterruptible public final class Strings extends org.mmtk.vm.Strings {
   /**
    * Log a message.
    *

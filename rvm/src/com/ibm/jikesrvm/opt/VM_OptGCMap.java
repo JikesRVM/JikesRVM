@@ -40,8 +40,7 @@ import org.vmmagic.pragma.*;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
-                                          Uninterruptible {
+@Uninterruptible public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR        = -2;
 

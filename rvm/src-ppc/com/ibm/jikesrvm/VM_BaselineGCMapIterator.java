@@ -27,9 +27,8 @@ import org.vmmagic.unboxed.*;
  * @author Anthony Cocchi
  * @author Derek Lieber
  */
-public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants,
-             Uninterruptible  {
+@Uninterruptible public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+  implements VM_BaselineConstants {
 
   // Iterator state for mapping any stackframe.
   //

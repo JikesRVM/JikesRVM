@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class MSMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields

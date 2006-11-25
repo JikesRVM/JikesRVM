@@ -32,8 +32,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenLOSDriver extends TreadmillDriver 
-  implements Uninterruptible {
+@Uninterruptible public class GenLOSDriver extends TreadmillDriver {
   
   private static final boolean DEBUG = false;
 

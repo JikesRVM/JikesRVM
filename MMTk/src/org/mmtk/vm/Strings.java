@@ -23,7 +23,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Strings implements Uninterruptible {
+@Uninterruptible public abstract class Strings {
   /**
    * Log a message.
    * 

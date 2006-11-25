@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants, Uninterruptible {
+@Uninterruptible public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   /**
    * Perform the actual write of the write barrier.
    *

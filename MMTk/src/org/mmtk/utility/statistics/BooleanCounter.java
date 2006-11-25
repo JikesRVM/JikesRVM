@@ -25,15 +25,14 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public class BooleanCounter extends Counter
-  implements Uninterruptible {
+@Uninterruptible public class BooleanCounter extends Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private boolean state[];
+  private final boolean state[];
 
   protected int total = 0;
   private boolean running = false;

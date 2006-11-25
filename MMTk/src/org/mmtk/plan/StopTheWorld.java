@@ -44,8 +44,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class StopTheWorld extends Plan
-  implements Uninterruptible, Constants {
+@Uninterruptible public abstract class StopTheWorld extends Plan
+  implements Constants {
   /****************************************************************************
    * Constants
    */

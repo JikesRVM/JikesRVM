@@ -39,7 +39,7 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
  * @modified Peter F. Sweeney (2003) added support for accessing HPM counter values
  * @modified Matthias Hauswirth (August, 2003) collect mid's with HPM counter values
  */
-public class VM_Thread implements VM_Constants, Uninterruptible {
+@Uninterruptible public class VM_Thread implements VM_Constants {
 
   /**
    * debug flag

@@ -27,8 +27,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class CopyMSConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class CopyMSConstraints extends StopTheWorldConstraints {
 
   public boolean movesObjects() { return true; }
 

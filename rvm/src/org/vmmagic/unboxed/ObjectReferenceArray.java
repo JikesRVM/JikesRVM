@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.VM;
  *
  * @author Daniel Frampton
  */
-final public class ObjectReferenceArray implements Uninterruptible {
+@Uninterruptible final public class ObjectReferenceArray {
 
   private ObjectReference[] data;
 

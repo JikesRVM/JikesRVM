@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @version $Revision$
  * @date $Date$
  */
-public final class MarkCompactLocal extends BumpPointer implements Uninterruptible {
+@Uninterruptible public final class MarkCompactLocal extends BumpPointer {
   public final static String Id = "$Id$"; 
 
   /**

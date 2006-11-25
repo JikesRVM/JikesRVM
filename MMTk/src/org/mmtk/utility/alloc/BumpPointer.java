@@ -57,8 +57,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class BumpPointer extends Allocator 
-  implements Constants, Uninterruptible {
+@Uninterruptible public class BumpPointer extends Allocator 
+  implements Constants {
 
   /****************************************************************************
    * 

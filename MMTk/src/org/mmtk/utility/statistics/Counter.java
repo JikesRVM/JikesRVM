@@ -21,16 +21,16 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public abstract class Counter implements Uninterruptible {
+@Uninterruptible public abstract class Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private String name;
-  private boolean start;
-  private boolean mergephases;
+  private final String name;
+  private final boolean start;
+  private final boolean mergephases;
 
   /****************************************************************************
    * 

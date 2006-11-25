@@ -46,17 +46,17 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenCopyCollector extends GenCollector implements Uninterruptible {
+@Uninterruptible public abstract class GenCopyCollector extends GenCollector {
 
   /******************************************************************
    * Instance fields
    */
 
   /** The allocator for the mature space */
-  private CopyLocal mature;
+  private final CopyLocal mature;
 
   /** The trace object for full-heap collections */
-  private GenCopyMatureTraceLocal matureTrace;
+  private final GenCopyMatureTraceLocal matureTrace;
 
   /****************************************************************************
    * 

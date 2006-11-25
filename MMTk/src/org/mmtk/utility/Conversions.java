@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Perry Cheng
  */
-public class Conversions implements Constants, Uninterruptible {
+@Uninterruptible public class Conversions implements Constants {
 
   // public static Address roundDownVM(Address addr) {
 //     return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();

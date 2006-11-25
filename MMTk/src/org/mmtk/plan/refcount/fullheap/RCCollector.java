@@ -47,8 +47,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class RCCollector extends RCBaseCollector
-  implements Uninterruptible, Constants {
+@Uninterruptible public abstract class RCCollector extends RCBaseCollector
+  implements Constants {
   /****************************************************************************
    * Instance fields
    */

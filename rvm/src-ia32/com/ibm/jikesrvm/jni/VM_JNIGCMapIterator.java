@@ -26,8 +26,8 @@ import org.vmmagic.unboxed.*;
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-public final class VM_JNIGCMapIterator extends VM_GCMapIterator
-    implements VM_BaselineConstants, Uninterruptible {
+@Uninterruptible public final class VM_JNIGCMapIterator extends VM_GCMapIterator
+    implements VM_BaselineConstants {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
   //

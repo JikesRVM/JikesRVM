@@ -40,8 +40,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
+  implements Constants {
 
   /****************************************************************************
    * 

@@ -34,8 +34,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class TreadmillDriver extends AbstractDriver
-  implements Uninterruptible {
+@Uninterruptible public class TreadmillDriver extends AbstractDriver {
 
   private static final boolean DEBUG = false;
 

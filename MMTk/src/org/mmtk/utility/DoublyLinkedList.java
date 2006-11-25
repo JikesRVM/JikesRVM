@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class DoublyLinkedList implements Constants, Uninterruptible {
+@Uninterruptible public final class DoublyLinkedList implements Constants {
 
   /****************************************************************************
    * 

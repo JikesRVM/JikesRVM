@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @modified Perry Cheng
  * @modified Dave Grove
  */
-public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterruptible  {
+@Uninterruptible public final class VM_ReferenceMaps implements VM_BaselineConstants  {
 
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;

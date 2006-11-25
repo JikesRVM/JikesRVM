@@ -20,7 +20,7 @@ import com.ibm.jikesrvm.VM;
  * @modified Daniel Frampton
  */
 
-final public class AddressArray implements Uninterruptible {
+@Uninterruptible final public class AddressArray {
 
   private Address[] data;
 

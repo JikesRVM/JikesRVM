@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Perry Cheng
  */
-public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter implements Uninterruptible {
+@Uninterruptible public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 
   private static Offset offset = Offset.max();
 

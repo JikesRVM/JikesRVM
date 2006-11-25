@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class AddressPairDeque extends LocalDeque implements Constants, Uninterruptible {
+@Uninterruptible public class AddressPairDeque extends LocalDeque implements Constants {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

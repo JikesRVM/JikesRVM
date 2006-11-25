@@ -30,8 +30,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenMatureTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public abstract class GenMatureTraceLocal extends TraceLocal {
 
   /****************************************************************************
    * 

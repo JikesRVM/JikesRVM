@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Statistics extends org.mmtk.vm.Statistics implements Constants, Uninterruptible {
+@Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**
    * Returns the number of collections that have occured.
    *

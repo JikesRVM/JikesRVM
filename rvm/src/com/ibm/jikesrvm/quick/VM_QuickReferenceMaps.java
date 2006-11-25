@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Chris Hoffmann
  */
-public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninterruptible  {
+@Uninterruptible public final class VM_QuickReferenceMaps implements VM_BaselineConstants {
 
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;

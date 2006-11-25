@@ -25,8 +25,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class NoGCConstraints extends PlanConstraints
-  implements Uninterruptible {
+@Uninterruptible public class NoGCConstraints extends PlanConstraints {
 
   public int gcHeaderBits() { return 0; }
 

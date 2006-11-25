@@ -116,8 +116,7 @@ import org.vmmagic.pragma.*;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-public final class VM_ObjectModel implements Uninterruptible, 
-                                             VM_JavaHeaderConstants,
+@Uninterruptible public final class VM_ObjectModel implements VM_JavaHeaderConstants,
                                              VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */

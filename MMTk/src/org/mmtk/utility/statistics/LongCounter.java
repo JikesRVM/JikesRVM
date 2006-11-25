@@ -25,15 +25,14 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public abstract class LongCounter extends Counter
-  implements Uninterruptible {
+@Uninterruptible public abstract class LongCounter extends Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private long count[];
+  private final long count[];
 
   private long startValue = 0;
   protected long totalCount = 0;

@@ -73,7 +73,7 @@ import org.vmmagic.unboxed.*;
  * @author Bowen Alpern
  * @see VM_Processor
  * @see VM_Lock */
-public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
+@Uninterruptible public final class VM_ProcessorLock implements VM_Constants {
 
 //-#if RVM_FOR_MCS_PROCESSOR_LOCKS
   /**

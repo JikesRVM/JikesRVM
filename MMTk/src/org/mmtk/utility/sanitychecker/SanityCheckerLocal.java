@@ -29,10 +29,10 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SanityCheckerLocal implements Uninterruptible, Constants {
+@Uninterruptible public class SanityCheckerLocal implements Constants {
 
   /* Trace */
-  private SanityTraceLocal sanityTrace;
+  private final SanityTraceLocal sanityTrace;
 
 
   /****************************************************************************

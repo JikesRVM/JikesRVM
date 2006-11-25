@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspyConstraints extends SSConstraints
-  implements Uninterruptible {
+@Uninterruptible public class SSGCspyConstraints extends SSConstraints {
 
   public boolean needsLinearScan() { return true; }
 

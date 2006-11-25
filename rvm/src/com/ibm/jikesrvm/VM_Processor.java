@@ -23,11 +23,11 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @modified Peter F. Sweeney (added HPM support)
  */
-public final class VM_Processor 
+@Uninterruptible public final class VM_Processor 
 //-#if RVM_WITH_MMTK_INLINE_PLAN
 extends SelectedMutatorContext
 //-#endif
-implements Uninterruptible, VM_Constants {
+implements VM_Constants {
 
   // definitions for VP status for implementation of jni
   public static final int IN_JAVA                 = 1;

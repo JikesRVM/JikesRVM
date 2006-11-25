@@ -51,9 +51,8 @@ import org.vmmagic.unboxed.Offset;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-public final class VM_OptMachineCodeMap implements VM_Constants, 
-                                                   OPT_Constants,
-                                                   Uninterruptible {
+@Uninterruptible public final class VM_OptMachineCodeMap
+    implements VM_Constants, OPT_Constants {
   
   /**
    * Constructor, called during compilation

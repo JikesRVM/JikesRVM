@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Util extends org.mmtk.vm.gcspy.Util implements Uninterruptible, Constants {
+@Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
   private static final boolean DEBUG_ = false;
   private static final int LOG_BYTES_IN_WORD = LOG_BYTES_IN_INT;
   private static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;

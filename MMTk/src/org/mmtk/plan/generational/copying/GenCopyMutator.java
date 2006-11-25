@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenCopyMutator extends GenMutator implements Uninterruptible {
+@Uninterruptible public abstract class GenCopyMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */

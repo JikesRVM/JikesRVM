@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Feng Qian
  */
 
-public class OSR_ObjectHolder implements Uninterruptible, VM_SizeConstants {
+@Uninterruptible public class OSR_ObjectHolder implements VM_SizeConstants {
 
   // initialize pool size
   private final static int POOLSIZE = 8;

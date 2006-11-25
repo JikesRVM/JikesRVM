@@ -30,8 +30,8 @@ import org.vmmagic.pragma.*;
  * @see VM_ThreadProcessWaitQueue
  * @see VM_ThreadEventConstants
  */
-abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
-  implements Uninterruptible, VM_ThreadEventConstants {
+@Uninterruptible abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
+  implements VM_ThreadEventConstants {
 
   protected VM_Thread head, tail;
 

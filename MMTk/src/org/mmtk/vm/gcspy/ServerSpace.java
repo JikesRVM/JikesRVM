@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class ServerSpace implements Uninterruptible {
+@Uninterruptible public abstract class ServerSpace {
 
   /****************************************************************************
    *

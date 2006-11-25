@@ -22,7 +22,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Assert implements Uninterruptible {
+@Uninterruptible public abstract class Assert {
   /**
    * Logs a message and traceback, then exits.
    * 

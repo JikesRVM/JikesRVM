@@ -23,7 +23,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Statistics implements Uninterruptible {
+@Uninterruptible public abstract class Statistics {
   /**
    * Returns the number of collections that have occured.
    * 

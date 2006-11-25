@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Scan implements Uninterruptible {
+@Uninterruptible public final class Scan {
   /**
    * Scan a object, processing each pointer field encountered.
    * 

@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCspy implements Uninterruptible {
+@Uninterruptible public class GCspy {
 
   /****************************************************************************
    * 

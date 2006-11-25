@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenCopy extends Gen implements Uninterruptible {
+@Uninterruptible public class GenCopy extends Gen {
 
   /****************************************************************************
    * 

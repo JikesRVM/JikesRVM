@@ -27,8 +27,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class SortSharedDeque extends SharedDeque 
-  implements Uninterruptible {
+@Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
   public final static String Id = "$Id$"; 
 

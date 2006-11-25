@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @author Susan Flynn Hummel
  * @author Bowen Alpern
  */
-final class VM_Proxy implements Uninterruptible {
+@Uninterruptible final class VM_Proxy {
   
   VM_Thread              patron;
   VM_Proxy               waitingNext;

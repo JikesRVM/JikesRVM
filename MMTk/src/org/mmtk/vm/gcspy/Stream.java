@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Address;
  * @date $Date$
  */
 
-public abstract class Stream implements  Uninterruptible {
+@Uninterruptible public abstract class Stream {
   
   /****************************************************************************
   *

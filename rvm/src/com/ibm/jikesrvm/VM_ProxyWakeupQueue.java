@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Bowen Alpern
  */
-final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements Uninterruptible {
+@Uninterruptible final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
   
   private VM_Proxy head; // first thread on list
 

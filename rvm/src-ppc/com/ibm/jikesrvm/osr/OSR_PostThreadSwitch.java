@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  * @author Feng Qian
  */
 
-public class OSR_PostThreadSwitch implements VM_BaselineConstants, Uninterruptible {
+@Uninterruptible public class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
   /* This method must be inlined to keep the correctness 
    * This method is called at the end of threadSwitch, the caller

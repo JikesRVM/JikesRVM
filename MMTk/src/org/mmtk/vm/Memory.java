@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Memory implements Uninterruptible
+@Uninterruptible public abstract class Memory
 {
   
   /**

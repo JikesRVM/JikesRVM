@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public abstract class ReferenceGlue implements Uninterruptible {
+@Uninterruptible public abstract class ReferenceGlue {
   /**
    * Scan through the list of references with the specified semantics.
    * @param semantics the number representing the semantics

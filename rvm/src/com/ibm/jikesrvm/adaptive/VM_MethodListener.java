@@ -31,8 +31,7 @@ import org.vmmagic.pragma.*;
  * @author Michael Hind
  * @author Peter Sweeney
  */
-final class VM_MethodListener extends VM_Listener 
-  implements Uninterruptible {
+@Uninterruptible final class VM_MethodListener extends VM_Listener {
 
   /**
    * Number of samples to be gathered before they are processed 

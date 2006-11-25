@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_AbstractThreadQueue implements Uninterruptible {
+@Uninterruptible abstract class VM_AbstractThreadQueue {
 
   // Are any threads on the queue?
   //

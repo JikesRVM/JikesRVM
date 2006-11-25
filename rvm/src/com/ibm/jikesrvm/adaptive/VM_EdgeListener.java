@@ -31,8 +31,8 @@ import org.vmmagic.pragma.*;
  * @author Michael Hind
  * @date   May 18, 2000
  */
-class VM_EdgeListener extends VM_ContextListener 
-  implements Uninterruptible, VM_StackframeLayoutConstants {
+@Uninterruptible class VM_EdgeListener extends VM_ContextListener 
+  implements VM_StackframeLayoutConstants {
 
   protected static final boolean DEBUG = false;
 

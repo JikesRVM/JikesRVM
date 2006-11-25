@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class ServerSpace extends org.mmtk.vm.gcspy.ServerSpace implements  Uninterruptible { 
+@Uninterruptible public class ServerSpace extends org.mmtk.vm.gcspy.ServerSpace { 
 
   /**
    * Create a new GCspy Space

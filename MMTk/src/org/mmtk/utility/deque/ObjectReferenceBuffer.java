@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class ObjectReferenceBuffer extends TraceStep implements Constants, Uninterruptible {
+@Uninterruptible public abstract class ObjectReferenceBuffer extends TraceStep implements Constants {
   /****************************************************************************
    * 
    * Instance variables

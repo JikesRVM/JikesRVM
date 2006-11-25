@@ -27,9 +27,8 @@ import org.vmmagic.pragma.*;
  *
  * @author Chris Hoffmann
  */
-public final class VM_QuickGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants, VM_QuickConstants,
-             Uninterruptible  {
+@Uninterruptible public final class VM_QuickGCMapIterator extends VM_GCMapIterator 
+  implements VM_BaselineConstants, VM_QuickConstants {
 
   // Iterator state for mapping any stackframe.
   //

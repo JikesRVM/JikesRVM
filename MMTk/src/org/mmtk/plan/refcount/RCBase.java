@@ -52,7 +52,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class RCBase extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public abstract class RCBase extends StopTheWorld {
 
   /****************************************************************************
    * Constants

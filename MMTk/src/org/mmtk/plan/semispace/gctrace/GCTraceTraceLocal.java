@@ -84,7 +84,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterruptible {
+@Uninterruptible public final class GCTraceTraceLocal extends SSTraceLocal {
 
   /**
    * Constructor

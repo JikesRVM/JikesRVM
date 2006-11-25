@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-class VM_YieldCounterListener extends VM_NullListener implements Uninterruptible {
+@Uninterruptible class VM_YieldCounterListener extends VM_NullListener {
 
   /**
    * Constructor

@@ -39,7 +39,7 @@ import org.vmmagic.pragma.*;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public class ReferenceProcessor implements Uninterruptible {
+@Uninterruptible public class ReferenceProcessor {
 
   public static final int SOFT_SEMANTICS = 0;
   public static final int WEAK_SEMANTICS = 1;

@@ -36,8 +36,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class Treadmill
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class Treadmill
+  implements Constants {
 
   /****************************************************************************
    * 

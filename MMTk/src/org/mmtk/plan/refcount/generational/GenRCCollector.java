@@ -52,8 +52,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenRCCollector extends RCBaseCollector
-implements Uninterruptible, Constants {
+@Uninterruptible public abstract class GenRCCollector extends RCBaseCollector
+implements Constants {
 
   /****************************************************************************
    * Instance fields

@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * $Id$
  */
-public class Stats implements Uninterruptible {
+@Uninterruptible public class Stats {
 
   /****************************************************************************
    * 

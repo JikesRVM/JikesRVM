@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.VM;
  *
  * @author Perry Cheng
  */
-final public class ExtentArray implements Uninterruptible {
+@Uninterruptible final public class ExtentArray {
   
   private Extent[] data;
 

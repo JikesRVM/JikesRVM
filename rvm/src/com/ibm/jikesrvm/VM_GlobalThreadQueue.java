@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements Uninterruptible {
+@Uninterruptible public final class VM_GlobalThreadQueue extends VM_ThreadQueue {
 
   private final VM_ProcessorLock mutex; // TODO check that mutex is heald when manipulating this queue.
   private int length;

@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenMS extends Gen implements Uninterruptible {
+@Uninterruptible public class GenMS extends Gen {
 
   /*****************************************************************************
    * 

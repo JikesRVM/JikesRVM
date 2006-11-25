@@ -29,8 +29,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class LocalDeque extends LocalQueue 
-  implements Constants, Uninterruptible {
+@Uninterruptible public class LocalDeque extends LocalQueue 
+  implements Constants {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

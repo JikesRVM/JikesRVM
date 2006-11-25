@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class NoGCMutator extends MutatorContext implements Uninterruptible {
+@Uninterruptible  public abstract class NoGCMutator extends MutatorContext {
 
   /************************************************************************
    * Instance fields

@@ -45,7 +45,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 
-public abstract class Allocator implements Constants, Uninterruptible {
+@Uninterruptible public abstract class Allocator implements Constants {
   /**
    * Maximum number of retries on consecutive allocation failure.
    * 

@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Chris Hoffmann
  */
-class VM_QuickUnusualMaps implements Uninterruptible {
+@Uninterruptible class VM_QuickUnusualMaps {
 
   // set the offset in the stack frame of the return address for this map
   //

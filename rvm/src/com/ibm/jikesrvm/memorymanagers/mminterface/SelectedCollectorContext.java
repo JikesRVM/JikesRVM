@@ -24,11 +24,11 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 
-public final class SelectedCollectorContext extends
+@Uninterruptible public final class SelectedCollectorContext extends
 //-#value RVM_WITH_MMTK_COLLECTORCONTEXT
-  implements Uninterruptible {
+  {
 
-  private VM_Processor processor;
+  private final VM_Processor processor;
 
   /**
    * Constructor.  Create a back-link from this context to our parent

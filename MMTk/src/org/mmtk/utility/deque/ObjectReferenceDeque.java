@@ -26,8 +26,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class ObjectReferenceDeque extends LocalDeque 
-  implements Constants, Uninterruptible {
+@Uninterruptible public class ObjectReferenceDeque extends LocalDeque 
+  implements Constants {
 
   /****************************************************************************
    * 

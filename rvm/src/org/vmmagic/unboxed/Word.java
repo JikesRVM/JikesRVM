@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @modified Daniel Frampton
  * @see Address
  */
-public final class Word implements Uninterruptible {
+@Uninterruptible public final class Word {
 
   // Do not try to create a static field containing special values.
   //   Suboptimal code will be generated.

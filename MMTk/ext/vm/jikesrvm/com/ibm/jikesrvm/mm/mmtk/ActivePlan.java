@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ActivePlan extends org.mmtk.vm.ActivePlan implements Uninterruptible {
+@Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /* Collector and Mutator Context Management */
   private static final int MAX_CONTEXTS = 100;

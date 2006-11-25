@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class SimpleHashtable implements Uninterruptible, Constants {
+@Uninterruptible public abstract class SimpleHashtable implements Constants {
   /** The number of low order bits to ignore */
   private static final int HASH_SHIFT = 3;
 

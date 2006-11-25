@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Anthony Cocchi
  */
-final class VM_UnusualMaps implements Uninterruptible {
+@Uninterruptible final class VM_UnusualMaps {
 
   // set the offset in the stack frame of the return address for this map
   //

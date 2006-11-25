@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public abstract class PlanConstraints implements Uninterruptible {
+@Uninterruptible public abstract class PlanConstraints {
   /** @return True if this Plan requires write barriers. */
   public boolean needsWriteBarrier() { return false; }
 

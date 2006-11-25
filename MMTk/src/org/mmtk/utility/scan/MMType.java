@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MMType implements Constants, Uninterruptible {
+@Uninterruptible public final class MMType implements Constants {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.
   private final boolean isReferenceArray;
   private final boolean isDelegated;

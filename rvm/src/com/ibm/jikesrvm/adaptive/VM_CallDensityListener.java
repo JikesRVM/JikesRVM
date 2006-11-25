@@ -21,8 +21,7 @@ import org.vmmagic.pragma.*;
  * 
  * @author Dave Grove
  */
-final class VM_CallDensityListener extends VM_NullListener
-                                   implements Uninterruptible {
+@Uninterruptible final class VM_CallDensityListener extends VM_NullListener {
 
   private double numSamples = 0;
   private double numBackedgeSamples = 0;

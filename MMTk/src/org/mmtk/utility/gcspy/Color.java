@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Color implements Uninterruptible {
+@Uninterruptible public class Color {
 
   /**
    * Some gcspy standard colours (taken from gcspy_color_db.c).

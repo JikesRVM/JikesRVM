@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class RCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+@Uninterruptible public abstract class RCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * 
    * Mutator-time allocation

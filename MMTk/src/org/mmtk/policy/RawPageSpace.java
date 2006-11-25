@@ -31,8 +31,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class RawPageSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class RawPageSpace extends Space 
+  implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for

@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public class SSTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

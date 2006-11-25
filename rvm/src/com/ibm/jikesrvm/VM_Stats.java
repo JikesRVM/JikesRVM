@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * @author David Bacon
  */
 
-final class VM_Stats implements Uninterruptible {
+@Uninterruptible final class VM_Stats {
 
   static final void println() { VM.sysWrite("\n"); }
   static final void print(String s) { VM.sysWrite(s); }

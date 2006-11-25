@@ -83,7 +83,7 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 
-public abstract class MutatorContext implements Uninterruptible, Constants {
+@Uninterruptible  public abstract class MutatorContext implements Constants {
   /****************************************************************************
    * Instance fields
    */

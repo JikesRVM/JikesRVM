@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-class VM_DynamicLinkerHelper implements VM_Constants, Uninterruptible {
+@Uninterruptible class VM_DynamicLinkerHelper implements VM_Constants {
 
   /**
    * Reach up two stack frames into a frame that is compiled

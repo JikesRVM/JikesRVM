@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspyMutator extends SSMutator implements Uninterruptible {
+@Uninterruptible public class SSGCspyMutator extends SSMutator {
 
   /*****************************************************************************
    * Instance fields

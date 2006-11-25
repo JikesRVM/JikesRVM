@@ -33,8 +33,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class ImmortalSpaceDriver extends LinearSpaceDriver
-  implements Uninterruptible {
+@Uninterruptible public class ImmortalSpaceDriver extends LinearSpaceDriver {
 
   private static final boolean DEBUG = false;
 

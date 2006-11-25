@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @modified <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
-public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_MiscHeaderConstants {
+@Uninterruptible public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants {
 
   private static final Offset MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
 

@@ -36,7 +36,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Phase implements Uninterruptible, Constants {
+@Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;
   private static final Phase[] phases = new Phase[MAX_PHASES];
   private static short phaseId = 0;

@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCTraceConstraints extends SSConstraints implements Uninterruptible {
+@Uninterruptible public class GCTraceConstraints extends SSConstraints {
   public boolean needsWriteBarrier() { return true; }
 
   public boolean generateGCTrace() { return true; }

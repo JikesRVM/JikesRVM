@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Collection implements Uninterruptible {
+@Uninterruptible public abstract class Collection {
 
   /****************************************************************************
    * 

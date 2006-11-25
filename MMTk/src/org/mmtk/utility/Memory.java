@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Memory implements Uninterruptible, Constants {
+@Uninterruptible public class Memory implements Constants {
 
   /****************************************************************************
    * 

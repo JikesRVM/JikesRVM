@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date    $Date$
  */
-abstract public class LinearScan implements Uninterruptible {
+@Uninterruptible abstract public class LinearScan {
   /**
    * Scan an object.
    * 

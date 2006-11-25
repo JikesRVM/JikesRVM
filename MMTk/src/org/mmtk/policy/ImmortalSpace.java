@@ -33,8 +33,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ImmortalSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class ImmortalSpace extends Space 
+  implements Constants {
 
   /****************************************************************************
    * 

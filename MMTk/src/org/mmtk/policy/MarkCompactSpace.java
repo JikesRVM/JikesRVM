@@ -28,8 +28,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MarkCompactSpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class MarkCompactSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 

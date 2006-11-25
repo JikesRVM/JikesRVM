@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RC extends RCBase implements Uninterruptible { 
+@Uninterruptible public class RC extends RCBase { 
   /*****************************************************************************
    * 
    * Collection

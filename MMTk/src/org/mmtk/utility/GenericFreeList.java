@@ -97,7 +97,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  * 
  */
-public final class GenericFreeList extends BaseGenericFreeList implements Constants, Uninterruptible {
+@Uninterruptible public final class GenericFreeList extends BaseGenericFreeList implements Constants {
    public final static String Id = "$Id$";
 
   /****************************************************************************

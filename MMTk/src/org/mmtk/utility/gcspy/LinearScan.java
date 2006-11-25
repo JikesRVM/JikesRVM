@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class LinearScan extends org.mmtk.utility.alloc.LinearScan
-  implements Uninterruptible {
+@Uninterruptible public class LinearScan extends org.mmtk.utility.alloc.LinearScan {
 
   private final AbstractDriver driver;
 

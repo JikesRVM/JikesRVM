@@ -24,8 +24,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @version $Revision$
  * @date $Date$
  */
-public final class NullCDCollector extends CDCollector 
-  implements Uninterruptible {
+@Uninterruptible public final class NullCDCollector extends CDCollector {
   /**
    * Buffer an object after a successful update when shouldBufferOnDecRC
    * returned true.

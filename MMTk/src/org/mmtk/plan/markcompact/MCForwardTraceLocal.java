@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MCForwardTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class MCForwardTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

@@ -27,8 +27,7 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class MSConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class MSConstraints extends StopTheWorldConstraints {
 
   public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
 

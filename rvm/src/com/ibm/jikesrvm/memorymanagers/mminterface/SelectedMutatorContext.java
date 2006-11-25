@@ -24,13 +24,14 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 
+@Uninterruptible
 //-#if RVM_WITH_MMTK_INLINE_PLAN
 public class SelectedMutatorContext extends
 //-#else
 public final class SelectedMutatorContext extends
 //-#endif
 //-#value RVM_WITH_MMTK_MUTATORCONTEXT
-  implements Uninterruptible {
+  {
 
   //-#if !RVM_WITH_MMTK_INLINE_PLAN
   private VM_Processor processor;

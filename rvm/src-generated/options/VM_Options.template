@@ -33,8 +33,7 @@ import org.vmmagic.pragma.*;
  * @author Stephen Fink
  * @author Dave Grove
  **/
-public class VM_Options extends VM_Configuration 
-                        implements Uninterruptible {
+@Uninterruptible public class VM_Options extends VM_Configuration {
 
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES

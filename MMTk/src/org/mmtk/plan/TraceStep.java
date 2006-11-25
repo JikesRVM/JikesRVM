@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class TraceStep implements Constants, Uninterruptible {
+@Uninterruptible public abstract class TraceStep implements Constants {
 
   /**
    * Trace a reference during GC.

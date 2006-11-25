@@ -30,7 +30,7 @@ import java.io.*;
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private VM_HashMap loaded = new VM_HashMap(); // Map Strings to VM_Types.
+  private final VM_HashMap loaded = new VM_HashMap(); // Map Strings to VM_Types.
 
   private final static boolean DBG = false;
 

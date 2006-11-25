@@ -35,8 +35,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenImmortalSpaceDriver extends ImmortalSpaceDriver
-  implements Uninterruptible {
+@Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 
   private static final boolean DEBUG = false;
 

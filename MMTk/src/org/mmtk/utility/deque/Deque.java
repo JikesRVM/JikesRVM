@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-class Deque implements Constants, Uninterruptible {
+@Uninterruptible class Deque implements Constants {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @version $Revision$
  * @date $Date$
  */
-public final class TrialDeletionCollector extends CDCollector implements Uninterruptible, Constants {
+@Uninterruptible public final class TrialDeletionCollector extends CDCollector implements Constants {
 
   /****************************************************************************
    * 

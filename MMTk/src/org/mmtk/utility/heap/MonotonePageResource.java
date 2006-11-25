@@ -32,8 +32,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class MonotonePageResource extends PageResource 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class MonotonePageResource extends PageResource 
+  implements Constants {
 
   /****************************************************************************
    * 

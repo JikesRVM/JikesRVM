@@ -35,8 +35,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Memory extends org.mmtk.vm.Memory
-  implements Constants, VM_HeapLayoutConstants, VM_SizeConstants, Uninterruptible {
+@Uninterruptible public class Memory extends org.mmtk.vm.Memory
+  implements Constants, VM_HeapLayoutConstants, VM_SizeConstants {
 
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
   protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }

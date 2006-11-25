@@ -48,7 +48,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GCTraceCollector extends SSCollector implements Uninterruptible {
+@Uninterruptible public class GCTraceCollector extends SSCollector {
   /****************************************************************************
    * Instance fields
    */

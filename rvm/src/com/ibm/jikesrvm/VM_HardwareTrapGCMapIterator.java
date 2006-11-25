@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
-public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements Uninterruptible, VM_SizeConstants {
+@Uninterruptible public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_SizeConstants {
 
   public VM_HardwareTrapGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations;

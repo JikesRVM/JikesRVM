@@ -24,9 +24,9 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SanityTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class SanityTraceLocal extends TraceLocal {
 
-  private SanityCheckerLocal sanityChecker;
+  private final SanityCheckerLocal sanityChecker;
 
   /**
    * Constructor

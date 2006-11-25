@@ -24,9 +24,8 @@ import org.vmmagic.pragma.*;
  *
  * @author Michael Hind
  */
-abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
-  implements VM_OptGCMapIteratorConstants, VM_Constants,
-             Uninterruptible {
+@Uninterruptible abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
+    implements VM_OptGCMapIteratorConstants, VM_Constants {
 
   /**
    * The compiled method

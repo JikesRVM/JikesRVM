@@ -28,8 +28,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class NoGCTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class NoGCTraceLocal extends TraceLocal {
 
   /**
    * Constructor

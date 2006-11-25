@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class Barriers implements Uninterruptible {
+@Uninterruptible public abstract class Barriers {
   /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be

@@ -49,7 +49,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants, Uninterruptible {
+@Uninterruptible public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {
 
   /****************************************************************************
    *

@@ -44,8 +44,8 @@ import org.vmmagic.pragma.*;
  * @author David Hovemeyer
  * @see VM_Process
  */
-public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
-  implements Uninterruptible, VM_ThreadEventConstants {
+@Uninterruptible public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
+  implements VM_ThreadEventConstants {
 
   /**
    * Class to safely downcast from <code>VM_ThreadEventWaitData</code>
@@ -54,8 +54,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    * a thread switch, which is obviously bad in uninterruptible
    * code.
    */
-  private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor
-    implements Uninterruptible {
+  @Uninterruptible private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
 
     public VM_ThreadProcessWaitData waitData;
 

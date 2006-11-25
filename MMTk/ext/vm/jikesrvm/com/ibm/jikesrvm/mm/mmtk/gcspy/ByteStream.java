@@ -28,8 +28,7 @@ import org.vmmagic.unboxed.Address;
  * @date $Date$
  */
 
-public class ByteStream extends org.mmtk.vm.gcspy.ByteStream
-    implements Uninterruptible {
+@Uninterruptible public class ByteStream extends org.mmtk.vm.gcspy.ByteStream {
 
   /****************************************************************************
    *

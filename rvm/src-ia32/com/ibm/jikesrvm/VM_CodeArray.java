@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  *
  * @author Perry Cheng
  */
-public final class VM_CodeArray implements Uninterruptible {
+@Uninterruptible public final class VM_CodeArray {
   private byte [] data;
 
   // only intended to be called from VM_CodeArray.factory

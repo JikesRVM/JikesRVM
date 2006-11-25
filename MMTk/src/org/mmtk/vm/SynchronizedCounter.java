@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * 
  * @author Perry Cheng
  */
-public abstract class SynchronizedCounter implements Uninterruptible {
+@Uninterruptible public abstract class SynchronizedCounter {
 
   /**
    * Reset the counter to 0, returning its previous value.

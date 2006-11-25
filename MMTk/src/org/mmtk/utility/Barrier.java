@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  * 
  * @author Perry Cheng
  */
-public final class Barrier implements Uninterruptible {
+@Uninterruptible public final class Barrier {
 
   public static final int verbose = 0;
 
@@ -34,7 +34,7 @@ public final class Barrier implements Uninterruptible {
   //
   private volatile int target = -1;
   private static final int NUM_COUNTERS = 3;
-  SynchronizedCounter[] counters;
+  final SynchronizedCounter[] counters;
   SynchronizedCounter currentCounter;
 
   // Debugging constants

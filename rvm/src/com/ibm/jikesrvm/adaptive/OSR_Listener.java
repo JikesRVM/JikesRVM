@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @author Dave Grove
  * @author Feng Qian
  */
-public class OSR_Listener implements Uninterruptible {
+@Uninterruptible public class OSR_Listener {
 
   public static boolean checkForOSRPromotion(int whereFrom) throws NoInlinePragma {
     if (VM_Thread.getCurrentThread().isIdleThread()) return false;

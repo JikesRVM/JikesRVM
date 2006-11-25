@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
+@Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 
   /****************************************************************************
    * 

@@ -28,9 +28,8 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-public class VM_OptSaveVolatile implements VM_SaveVolatile,
-                                           Uninterruptible {
- 
+@Uninterruptible public class VM_OptSaveVolatile implements VM_SaveVolatile {
+
   /**
    * Handle timer interrupt taken in method prologue.
    * This method is identical to the yieldpointFromPrologue() 

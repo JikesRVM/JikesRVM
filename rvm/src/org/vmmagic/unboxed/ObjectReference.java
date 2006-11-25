@@ -22,7 +22,7 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  * 
  * @author Daniel Frampton
  */
-public final class ObjectReference implements Uninterruptible, VM_SizeConstants {
+@Uninterruptible public final class ObjectReference implements VM_SizeConstants {
   
   /**
    * Convert from an object to a reference.  Note: this is a JikesRVM
