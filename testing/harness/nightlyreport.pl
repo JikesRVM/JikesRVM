@@ -201,7 +201,7 @@ sub genoptdetails {
 #
 sub genbuildfailures {
   my ($html, $sanity, $errors, $stackid) = @_;
-  $errornum = 0;
+  $errnum = 0;
   for($s = 0; $s <= $#{$sanity}; $s++) {
     my $error = ${$errors}[$s];
     if ($error =~ /FAILED to build/) {
