@@ -66,6 +66,7 @@ genperfdetails($html, \%perf, \%jvm98details);
 genstacks($html, \@sanity, \@error, \@cmd, \@stackid, \@stacks);
 genjavadoc($html, \@javadocerrs);
 genoptdetails($html, \@optdetails);
+gentestsuccesses($html, \@sanity, \@error);
 printhtmlftr($html);
 close($html);
 
@@ -109,6 +110,7 @@ sub gensummary {
   print $html "\t\t<li><a href=\"#opt1details\">Level 1</a></li>\n";
   print $html "\t\t<li><a href=\"#opt2details\">Level 2</a></li>\n";
   print $html "\t</ul>\n";
+  print $html "\t<li><a href=\"#testsuccesses\">Regression Successes</a></li>\n";
   print $html "</ul>\n";
   print $html "<hr>\n";
 }
@@ -239,6 +241,38 @@ sub genbuildfailures {
 }
 
 #
+# generate html listing each of the regression test successes
+#
+sub gentestsuccesses {
+  my ($html, $sanity, $errors) = @_;
+  $errornum = 0;
+  my $passnum = 0;
+  for($s = 0; $s <= $#{$sanity}; $s++) {
+    if (!${$errors}[$s]) {
+      $passnum++;
+    }
+  }
+  print $html "<h2><a id=\"testsuccesses\">$passnum Regression Test Successes</a></h2>\n";
+  print $html "<table columns=\"3\" style=\"border-collapse:collapse;font-weight:normal;\">\n";
+  print $html "<tr><th></th><th align=\"left\" >Build</th><th align=\"left\" >Test</th></tr>\n";
+  $passnum = 0;
+  for($s = 0; $s <= $#{$sanity}; $s++) {
+    if (!${$errors}[$s]) {
+      $passnum++;
+      my $build;
+      my $test;
+      ($build,$test) = split(/:/, ${$sanity}[$s]);
+      print $html "<tr>\n";
+      print $html "\t<td><a id=\"pass_$s\">$passnum</a>\n";
+      print $html "\t<td>$build\n";
+      print $html "\t<td>$test\n";
+      print $html "</tr>\n";
+    }
+  }
+  print $html "</table>\n";
+}
+
+#
 # generate html listing each of the regression test failures
 #
 sub gentestfailures {
@@ -288,7 +322,6 @@ sub gentestfailures {
   print $html "</table>\n";
 }
 
-
 #
 # generate html for each of the unique stack traces
 #
@@ -330,8 +363,6 @@ sub getdatestr {
   return $today;
 }
 
-
-
 #
 # read in sanity details from run.log
 #
@@ -345,11 +376,14 @@ sub getsanity {
   while (<IN>) {
     my $build = "";
     my $bm = "";
-    if (/are.* sane/) {
+    if (/You are sane \S+ .+/ || /You are NOT sane. All tests for/ || /You are NOT sane /) {
       ${$stackidx}[$thistest] = -1;
-      if (/You are sane/) {
+      if (/You are sane \S+ .+/) {
          ($build, $bm) = /You are sane (\S+) (.+)\s*$/;
         ${$passed}++;
+        if ($bm eq "") {
+          print "---->$bm<---$_";
+        }
         ${$sanity}[$thistest] = "$build:$bm";
         ${$ran}++;
       } elsif (/You are NOT sane. All tests for/) {
