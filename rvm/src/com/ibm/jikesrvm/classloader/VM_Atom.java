@@ -585,6 +585,40 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
     
 
+  //-------------//
+  // annotations //
+  //-------------//
+  
+  /**
+   * Create an annotation name from a class name. For example Lfoo.bar;
+   * becomes Lfoo.bar$$;
+   */
+  public VM_Atom annotationInterfaceToAnnotationClass() {
+    byte annotationClassName_tmp[] = new byte[val.length+2];
+    System.arraycopy(val, 0, annotationClassName_tmp, 0, val.length-1);
+    annotationClassName_tmp[val.length-1] = '$';
+    annotationClassName_tmp[val.length]   = '$';
+    annotationClassName_tmp[val.length+1] = ';';
+    return VM_Atom.findOrCreateUtf8Atom(annotationClassName_tmp);
+  }
+  /**
+   * Create a class name from a type name. For example Lfoo.bar$$;
+   * becomes the string foo.bar
+   */
+  public String annotationClassToAnnotationInterface() {
+    if (VM.VerifyAssertions){
+      VM._assert(val.length > 0);
+      VM._assert(val[0] == 'L' && val[val.length-1] == ';', toString()); 
+    }
+    return new String(val, 0, 1, val.length - 4).replace('/','.'); 
+  }
+  /**
+   * Is this an annotation class name of the form Lfoo.bar$$;
+   */
+  public boolean isAnnotationClass() {
+    return (val.length > 4) && (val[val.length-3] == '$') && (val[val.length-2] == '$');
+  }
+
   //-----------//
   // debugging //
   //-----------//

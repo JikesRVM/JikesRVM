@@ -273,6 +273,13 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     /**
+     * Report an object of a class that is not part of the bootImage.
+     */
+    public void traceObjectFoundThroughKnown() {
+      say(this.toString(), ": object found through known");
+    }
+
+    /**
      * Generic trace routine.
      */
     public void trace(String message) {
@@ -2134,17 +2141,9 @@ public class BootImageWriter extends BootImageWriterMessages
           value = VM_Type.VoidType;
         }
         else {
-          String className = ((Class)jdkObject).getName().replace('.','/');
-          String typeName;
-          if(className.charAt(0) == '[') {
-            typeName = className;
-          }
-          else {
-            typeName = "L" + className + ";";
-          }
-          value = VM_TypeReference.findOrCreate(typeName).peekResolvedType();
+          value = VM_TypeReference.findOrCreate((Class)jdkObject).peekResolvedType();
           if (value == null) {
-            throw new Error("Failed to populate Class.type for " + typeName);
+             throw new Error("Failed to populate Class.type for " + jdkObject);
           }
         }
         fieldName = "type";
@@ -2156,10 +2155,15 @@ public class BootImageWriter extends BootImageWriterMessages
                                             fieldName);
         Address imageAddress = BootImageMap.findOrCreateEntry(value).imageAddress;
         if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
-          // object not part of bootimage: install null reference
-          if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-          bootImage.setNullAddressWord(rvmFieldAddress, true, false);
+            // object not part of bootimage: install null reference
+            if (verbose >= 2) traceContext.traceObjectNotInBootImage();
+            bootImage.setNullAddressWord(rvmFieldAddress, true, false);
+        } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
+            imageAddress = copyToBootImage(value, false, Address.max(), jdkObject);
+            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), !fieldIsFinal);
         } else {
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
           bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), !fieldIsFinal);
         }
         if (verbose >= 2) traceContext.pop();
@@ -2210,7 +2214,12 @@ public class BootImageWriter extends BootImageWriterMessages
           // object not part of bootimage: install null reference
           if (verbose >= 2) traceContext.traceObjectNotInBootImage();
           bootImage.setNullAddressWord(rvmFieldAddress, true, false);
+        } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
+            imageAddress = copyToBootImage(constructor, false, Address.max(), jdkObject);
+            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
         } else {
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
           bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
         }
         if (verbose >= 2) traceContext.pop();

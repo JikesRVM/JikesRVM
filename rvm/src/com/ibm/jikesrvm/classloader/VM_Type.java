@@ -97,7 +97,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Array ExtentArrayType;             
   public static final VM_Primitive CodeType;
   public static final VM_Array CodeArrayType;
-  public static final VM_Class UninterruptibleType;   
+  public static final VM_Class UninterruptibleType;
   public static final VM_Class UnpreemptibleType;   
   public static final VM_Class SynchronizedObjectType;   
   public static final VM_Class DynamicBridgeType;     
@@ -571,11 +571,15 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);
     }
-    else if (VM.writingBootImage) {
+    else {
       Exception x;
       try {
         VM_Atom className = typeRef.getName();
-        if(className.isClassDescriptor()) {
+        if (className.isAnnotationClass()) {
+          return Class.forName(className.annotationClassToAnnotationInterface(),
+                               false, VM_Type.class.getClassLoader());
+        }
+        else if (className.isClassDescriptor()) {
           return Class.forName(className.classNameFromDescriptor(), false, VM_Type.class.getClassLoader());
         }
         else {
@@ -587,11 +591,15 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
         // ignore - we expect not to have a concrete version of the code class
         return null;
+      } else if (!VM.runningVM) {
+        // Give a warning as this is probably a protection issue for
+        // the tool and JVM
+        VM.sysWriteln("Warning unable to find Java class for RVM type");
+        x.printStackTrace();
+        return null;
       } else {
         throw new Error("Unable to find Java class for RVM type", x);
       }
-    } else {
-      return null;
     }
   }
 

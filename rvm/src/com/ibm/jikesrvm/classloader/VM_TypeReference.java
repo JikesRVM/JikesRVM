@@ -201,10 +201,46 @@ public final class VM_TypeReference implements VM_SizeConstants {
   /**
    * Shorthand for doing a find or create for a type reference that should
    * be created using the bootstrap classloader.
+   * @param tn type name
    */
   public static VM_TypeReference findOrCreate(String tn) {
     return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                         VM_Atom.findOrCreateAsciiAtom(tn));
+  }
+  
+  /**
+   * Convert a java.lang.Class into a type reference the slow way. For
+   * use in boot image writing
+   * @param klass java.lang.Class to convert to typereference
+   */
+  public static VM_TypeReference findOrCreate(Class klass) {
+    if (VM.runningVM) {
+      return java.lang.JikesRVMSupport.getTypeForClass(klass).getTypeRef();
+    } else {
+      String className = klass.getName();
+      if (className.startsWith("[")) {
+        // an array
+        VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+        return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
+      } else {
+        // a class
+        VM_Atom classAtom;
+        if     (className.equals("int"))     return VM_TypeReference.Int;
+        else if(className.equals("boolean")) return VM_TypeReference.Boolean;
+        else if(className.equals("byte"))    return VM_TypeReference.Byte;
+        else if(className.equals("char"))    return VM_TypeReference.Char;
+        else if(className.equals("double"))  return VM_TypeReference.Double;
+        else if(className.equals("float"))   return VM_TypeReference.Float;
+        else if(className.equals("long"))    return VM_TypeReference.Long;
+        else if(className.equals("short"))   return VM_TypeReference.Short;
+        else if(className.equals("void"))    return VM_TypeReference.Void;
+        else {
+          classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+        }
+        VM_Atom classDescriptor = classAtom.descriptorFromClassName();
+        return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
+      }
+    }
   }
 
   /**
@@ -566,13 +602,13 @@ public final class VM_TypeReference implements VM_SizeConstants {
    */
   public final VM_Type resolve() throws NoClassDefFoundError, 
                                         IllegalArgumentException {
-	/*
-	 * Lock the classloader instead of this to avoid conflicting locking order.
-	 * Suppose we locked this, then one thread could call resolve(), locking this,
-	 * call classloader.loadClass(), trying to lock the classloader. Meanwhile,
-	 * another thread could call loadClass(), locking the classloader, then
-	 * try to resolve() the VM_TypeReference, resulting in a deadlock
-	 */
+   /*
+    * Lock the classloader instead of this to avoid conflicting locking order.
+    * Suppose we locked this, then one thread could call resolve(), locking this,
+    * call classloader.loadClass(), trying to lock the classloader. Meanwhile,
+    * another thread could call loadClass(), locking the classloader, then
+    * try to resolve() the VM_TypeReference, resulting in a deadlock
+    */
     synchronized (classloader) {
       return resolveInternal();
     }

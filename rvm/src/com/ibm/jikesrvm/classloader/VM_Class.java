@@ -2090,14 +2090,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private static VM_Class createAnnotationClass(VM_Class annotationInterface) {
     // Compute name of class based on the name of the annotation interface
-    VM_Atom annotationClassName;
-    {
-      byte annotationName[] = annotationInterface.getDescriptor().toByteArray();
-      byte annotationClassName_tmp[] = new byte[annotationName.length+2];
-      System.arraycopy(annotationName, 0, annotationClassName_tmp, 0, annotationName.length-1);
-      System.arraycopy(new byte[]{'$','$',';'}, 0, annotationClassName_tmp, annotationName.length-1, 3);
-      annotationClassName = VM_Atom.findOrCreateUtf8Atom(annotationClassName_tmp);
-    }
+    VM_Atom annotationClassName =
+      annotationInterface.getDescriptor().annotationInterfaceToAnnotationClass();
 
     // Create a handle to the new synthetic type
     VM_TypeReference annotationClass = VM_TypeReference.findOrCreateInternal(annotationInterface.getClassLoader(),
@@ -2132,7 +2126,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Atom newFieldDescriptor = currentAnnotationValue.getReturnType().getName();
       VM_MemberReference newFieldRef = VM_MemberReference.findOrCreate(annotationClass, newFieldName, newFieldDescriptor);
       annotationFields[i] = VM_Field.createAnnotationField(annotationClass, newFieldRef);
-      constantPool[i] = newFieldRef.getId();
+      constantPool[i] = packCPEntry(CP_UTF, newFieldRef.getId());
     }
 
     // Create copy of methods from the annotation
@@ -2145,7 +2139,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       annotationMethods[i] =
         VM_Method.createAnnotationMethod(annotationClass, constantPool,
                                          newMethodRef, annotationInterface.declaredMethods[i], i);
-      constantPool[numFields+i] = annotationMethods[i].getMemberRef().getId();      
+      constantPool[numFields+i] = packCPEntry(CP_MEMBER,
+                                              annotationMethods[i].getMemberRef().getId());
     }
     // Create default value constants
     int nextFreeConstantPoolSlot = numFields + annotationInterface.declaredMethods.length;
@@ -2155,14 +2150,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if(value != null) {
         if(value instanceof Integer) {
           constantPool[nextFreeConstantPoolSlot] =
-            VM_Statics.findOrCreateIntSizeLiteral(((Integer)value).intValue());
+            packCPEntry(CP_INT,
+                        VM_Statics.findOrCreateIntSizeLiteral(((Integer)value).intValue()));
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;
         }
         else if(value instanceof Boolean) {
           constantPool[nextFreeConstantPoolSlot] =
-            VM_Statics.findOrCreateIntSizeLiteral(((Boolean)value).booleanValue() ? 1 : 0);
+            packCPEntry(CP_INT,
+                        VM_Statics.findOrCreateIntSizeLiteral(((Boolean)value).booleanValue() ? 1 : 0));
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;
@@ -2170,7 +2167,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         else if(value instanceof String) {
           try {
             constantPool[nextFreeConstantPoolSlot] =
-              VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom((String)value));
+              packCPEntry(CP_STRING,
+                          VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom((String)value)));
           } catch (UTFDataFormatException e) {
             throw new Error(e);
           }
@@ -2186,7 +2184,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // Create initialiser
     int objectInitIndex = nextFreeConstantPoolSlot;
     VM_MethodReference baInitMemRef = VM_Annotation.getBaseAnnotationInitMemberReference();
-    constantPool[objectInitIndex] = baInitMemRef.getId();
+    constantPool[objectInitIndex] = packCPEntry(CP_MEMBER, baInitMemRef.getId());
 
     VM_MemberReference initMethodRef =
       VM_MemberReference.findOrCreate(annotationClass,

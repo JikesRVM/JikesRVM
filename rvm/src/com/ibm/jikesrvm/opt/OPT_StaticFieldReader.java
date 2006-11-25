@@ -35,7 +35,13 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     VM_TypeReference type = field.getType();
     if (VM.runningVM) {
       if(type.isReferenceType() && !type.isMagicType()) {
-        return new OPT_ObjectConstantOperand(field.getObjectValueUnchecked(obj), Offset.zero());
+        Object value = field.getObjectValueUnchecked(obj);
+        if (value != null) {
+          return new OPT_ObjectConstantOperand(value, Offset.zero());
+        }
+        else {
+          return new OPT_NullConstantOperand();
+        }
       }
       else if(type.isIntType()) {
         return new OPT_IntConstantOperand(field.getIntValueUnchecked(obj));
@@ -72,7 +78,13 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
         Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
         f.setAccessible(true);
         if(type.isReferenceType() && !type.isMagicType()) {
-          return new OPT_ObjectConstantOperand(f.get(obj), Offset.zero());
+          Object value = f.get(obj);
+          if (value != null) {
+            return new OPT_ObjectConstantOperand(value, Offset.zero());
+          }
+          else {
+            return new OPT_NullConstantOperand();
+          }
         }
         else if(type.isIntType()) {
           return new OPT_IntConstantOperand(f.getInt(obj));
@@ -171,7 +183,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
         if (VM.runningVM) {
           type = java.lang.JikesRVMSupport.getTypeForClass(klass);
         } else {
-          type = getTypeRefFromClass(klass).resolve();
+          type = VM_TypeReference.findOrCreate(klass).resolve();
         }
         return new OPT_ClassConstantOperand(type.getClassForType(), off);
       } else {
@@ -327,40 +339,13 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     if (VM.runningVM) {
       return VM_Magic.getObjectType(o).getTypeRef();
     } else {
-      return getTypeRefFromClass(o.getClass());
+      return VM_TypeReference.findOrCreate(o.getClass());
     }
   }
 
   /**
-   * Convert a java.lang.Class into a type reference the slow way. For
-   * use in boot image writing
+   * Utilitiy to convert a VM_Field to a java.lang.reflect.Field
    */
-  private static VM_TypeReference getTypeRefFromClass(Class klass) {
-      String className = klass.getName();
-      if (className.startsWith("[")) {
-        // an array
-        VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
-        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
-      } else {
-        // a class
-        VM_Atom classAtom;
-        if     (className.equals("int"))     return VM_TypeReference.Int;
-        else if(className.equals("boolean")) return VM_TypeReference.Boolean;
-        else if(className.equals("byte"))    return VM_TypeReference.Byte;
-        else if(className.equals("char"))    return VM_TypeReference.Char;
-        else if(className.equals("double"))  return VM_TypeReference.Double;
-        else if(className.equals("float"))   return VM_TypeReference.Float;
-        else if(className.equals("long"))    return VM_TypeReference.Long;
-        else if(className.equals("short"))   return VM_TypeReference.Short;
-        else if(className.equals("void"))    return VM_TypeReference.Void;
-        else {
-          classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
-        }
-        VM_Atom classDescriptor = classAtom.descriptorFromClassName();
-        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
-      }
-  }
-
   private static Field getJDKField(VM_Field field)
     throws NoSuchFieldException {
     try {

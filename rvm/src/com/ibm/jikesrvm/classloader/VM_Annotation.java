@@ -122,6 +122,9 @@ public final class VM_Annotation {
   private Annotation createValue() {
     // Find the annotation then find its implementing class
     VM_Class annotationInterface = VM_TypeReference.findOrCreate(classLoader, type).resolve().asClass();
+    if(!annotationInterface.isResolved()) {
+      annotationInterface.resolve();
+    }
     VM_Class annotationClass = annotationInterface.getAnnotationClass();
     if(!annotationClass.isResolved()) {
       annotationClass.resolve();
@@ -237,7 +240,9 @@ public final class VM_Annotation {
     case 'e':
       {
         int typeNameIndex = input.readUnsignedShort();
-        Class enumType = Class.forName(VM_Class.getUtf(constantPool, typeNameIndex).toString());
+        Class enumType = VM_TypeReference.findOrCreate(classLoader,
+                                                       VM_Class.getUtf(constantPool, typeNameIndex)
+                                                       ).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
         value = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
         break;
@@ -270,13 +275,13 @@ public final class VM_Annotation {
   }
   
   /**
-   * Return the Class object of the declared annotation, ie an
+   * Return the VM_TypeReference of the declared annotation, ie an
    * interface and not the class object of this instance
    *
-   * @return Class object of interface annotation object implements
+   * @return VM_TypeReferernce of interface annotation object implements
    */
-  Class annotationType() {
-    return JikesRVMSupport.createClass(VM_TypeReference.findOrCreate(classLoader, type).resolve());
+  VM_TypeReference annotationType() {
+    return VM_TypeReference.findOrCreate(classLoader, type);
   }
 
   /**
@@ -377,7 +382,7 @@ public final class VM_Annotation {
      * @return Class object of interface annotation object implements
      */
     public Class annotationType() {
-      return vmAnnotation.annotationType();
+      return vmAnnotation.annotationType().resolve().getClassForType();
     }
     /**
      * Are two annotations logically equivalent?

@@ -3382,6 +3382,11 @@ java/nio/charset/CoderResult\\\$2
 java/util/zip/ZipFile\\\$1
 gnu/java/net/loader/URLStreamHandlerCache
 gnu/java/nio/VMChannel
+org/vmmagic/pragma/Uninterruptible
+com/ibm/jikesrvm/classloader/VM_AnnotatedElement
+com/ibm/jikesrvm/classloader/VM_Annotation
+com/ibm/jikesrvm/classloader/VM_Annotation\\\$AnnotationMember
+com/ibm/jikesrvm/classloader/VM_Annotation\\\$BaseAnnotation
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
@@ -3604,6 +3609,8 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/jikesrvm/util/VM_HashMap\$Bucket;
 
 	[Lcom/ibm/jikesrvm/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
+   [Lcom/ibm/jikesrvm/classloader/VM_Annotation;
+   [Lcom/ibm/jikesrvm/classloader/VM_Annotation\$AnnotationMember;
 
 	[Lcom/ibm/jikesrvm/VM_CommandLineArgs\$Prefix; # For command-line argument processing
 	EOF
@@ -3716,7 +3723,7 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 
 	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
-	run $ROOT_DIRECTORY_STR/bin/ecj -1.5\
+	run $ROOT_DIRECTORY_STR/bin/ecj -1.5 \
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
 

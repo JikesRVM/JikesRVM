@@ -148,10 +148,19 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Get the annotation implementing the specified class or null
    */
   public Annotation getAnnotation(Class annotationClass) {
-    Annotation annotations[] = getDeclaredAnnotations();
-    for(int i=0; i<annotations.length; i++) {
-      if(annotations[i].annotationType() == annotationClass) {
-        return annotations[i];
+    VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
+    if (runtimeVisibleAnnotations != null) {       
+      for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
+         if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
+            return runtimeVisibleAnnotations[i].getValue();
+         }
+      }
+    }
+    if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
+      for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
+         if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
+            return runtimeInvisibleAnnotations[i].getValue();
+         }
       }
     }
     return null;
@@ -161,6 +170,21 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * element?
    */
   public boolean isAnnotationPresent(Class annotationClass) {
-    return getAnnotation(annotationClass) == null;
+    VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
+    if (runtimeVisibleAnnotations != null) {       
+      for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
+         if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
+             return true;
+         }
+      }
+    }
+    if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
+      for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
+        if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
