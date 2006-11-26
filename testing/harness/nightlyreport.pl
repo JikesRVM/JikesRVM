@@ -372,18 +372,24 @@ sub getsanity {
   my $resultfile = "";
   my $thiserror = "";
   my $thistest = 0;
+  my $performancemode = 0;
+  my $compilationmode = 0;
   open(IN, "$basedir/results/run.log");
   while (<IN>) {
     my $build = "";
     my $bm = "";
     if (/You are sane \S+ .+/ || /You are NOT sane. All tests for/ || /You are NOT sane /) {
       ${$stackidx}[$thistest] = -1;
+      my ($bmsuffix) = $resultfile =~ /([.]O\d)[.]/;  # check for Opt level suffix
+      if ($performancemode) {
+        $bmsuffix = ".perf$bmsuffix";
+      } elsif ($compilationmode) {
+        $bmsuffix = ".comp$bmsuffix";
+      }
       if (/You are sane \S+ .+/) {
          ($build, $bm) = /You are sane (\S+) (.+)\s*$/;
+        $bm .= $bmsuffix;
         ${$passed}++;
-        if ($bm eq "") {
-          print "---->$bm<---$_";
-        }
         ${$sanity}[$thistest] = "$build:$bm";
         ${$ran}++;
       } elsif (/You are NOT sane. All tests for/) {
@@ -395,6 +401,7 @@ sub getsanity {
         (${$error}[$thistest]) = $thiserror;
       } elsif (/You are NOT sane /) {
         ($build, $bm) = /You are NOT sane (\S+) (.+)/;
+        $bm .= $bmsuffix;
         ${$sanity}[$thistest] = "$build:$bm";
         my $suite; my $test;
         ($suite, $test) = split(/ /, $bm);
@@ -413,6 +420,12 @@ sub getsanity {
       ($thiserror) = /(.+)$/;
     } elsif (/^Results to /) {
       ($resultsdir) = /Results to .+results.(.+testing.tests.+)$/;
+      $performancemode = 0;
+      $compilationmode = 0;
+   } elsif (/^Performance mode: results to /) {
+      $performancemode = 1;
+    } elsif (/^Measure compilation mode/) {
+      $compilationmode = 1;
     } elsif (/^Running .+ with limit/) {
       my $outfile;
       ($outfile) = /output to ['](.+)[']/;
