@@ -22,7 +22,7 @@ START_NAME=Harness
 ifeq ($(MODE),PERFORMANCE)
   TIME_LIMIT=1800
 else
-  TIME_LIMIT=480
+  TIME_LIMIT=600
 endif
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
