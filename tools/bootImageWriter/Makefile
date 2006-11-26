@@ -29,11 +29,12 @@ SHELL=${BASH}			# Set shell to bash because we use 'echo -n'
                                 # 'echo -n'.
 
 ifeq (${HOST_VM_TYPE},IBM-50)
-    HOST_JDK_FLAGS=-Xss1m -Xjit:optlevel=warm
+    HOST_JDK_FLAGS=-Xjit:optlevel=warm
 else 
     HOST_JDK_FLAGS=
 endif
 HOST_MEM_MAX=500M
+HOST_STACK_MAX=2m
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -75,6 +76,8 @@ else
    host_mem_size_arg := 	   -Xmx$(HOST_MEM_MAX)
 endif
 
+host_stack_size_arg  :=            -Xss$(HOST_STACK_MAX)
+
 bootimage: 
 ifeq (${HOST_VM_TYPE},Kaffe)
 	$(RM) $(phony_home_dir)/.kafferc
@@ -84,6 +87,7 @@ endif
 	$(HOST_VM_RT) \
 	   $(host_vm_bootclasspath_args) \
 		$(host_mem_size_arg) \
+                $(host_stack_size_arg) \
 	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   -Dmmtk.hostjvm=com.ibm.jikesrvm.mm.mmtk \
