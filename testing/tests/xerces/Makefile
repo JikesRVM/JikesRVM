@@ -36,7 +36,7 @@ else
 endif
 
 $(TESTS): %: 
-	 $(MAKE) START_NAME=Driver START_ARGS="$(ITERATIONS) $@ main $(INPUT_FILES)" OUT=$(OUT).$@ sanity-check-rule
+	 $(MAKE) TEST_NAME="$(BENCH_NAME) $@" START_NAME=Driver START_ARGS="$(ITERATIONS) $@ main $(INPUT_FILES)" OUT=$(OUT).$@ sanity-check-rule
 
 sanity:		$(TESTS)
 	 $(MAKE) do-sanity-finish
