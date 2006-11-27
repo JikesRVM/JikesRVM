@@ -590,8 +590,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   //-------------//
   
   /**
-   * Create an annotation name from a class name. For example Lfoo.bar;
-   * becomes Lfoo.bar$$;
+   * Create an annotation name from a class name. For example
+   * Lfoo.bar; becomes Lfoo.bar$$; NB in Sun VMs the annotation name
+   * of the first annotation is $Proxy1. Classpath may later rely on
+   * this to implement serialization correctly.
    */
   public VM_Atom annotationInterfaceToAnnotationClass() {
     byte annotationClassName_tmp[] = new byte[val.length+2];
