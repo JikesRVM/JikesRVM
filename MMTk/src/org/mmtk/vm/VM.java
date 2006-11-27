@@ -105,7 +105,7 @@ public final class VM {
    * classes.
    */
   private static final Factory factory;
-  private static final String vmPackage;
+  private static final String vmFactory;
 
   /**
    * This class initializer establishes a VM-specific factory class
@@ -116,10 +116,10 @@ public final class VM {
    */
   static {
     /* Identify the VM-specific factory using reflection */
-    vmPackage = System.getProperty("mmtk.hostjvm");
+    vmFactory = System.getProperty("mmtk.hostjvm");
     Factory xfa = null;
     try {
-      xfa = (Factory) Class.forName(vmPackage+".Factory").newInstance();
+      xfa = (Factory) Class.forName(vmFactory).newInstance();
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);     // we must *not* go on if the above has failed
