@@ -2943,7 +2943,7 @@ EOF
 	rm -f \$interface
 	declare -a args=( -Xmx200M \
 	   -classpath \$cp		\
-	   -Dmmtk.hostjvm=com.ibm.jikesrvm.mm.mmtk		\
+	   -Dmmtk.hostjvm=com.ibm.jikesrvm.mm.mmtk.Factory	\
 	   \${generator_class} \
 	   -da $BOOTIMAGE_DATA_ADDRESS \
 	   -ca $BOOTIMAGE_CODE_ADDRESS \
