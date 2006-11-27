@@ -116,10 +116,6 @@ final class OPT_ValueGraph implements OPT_Operators {
       name = new Long(((OPT_LongConstantOperand)name).value);
     } else if (name instanceof OPT_DoubleConstantOperand) {
       name = new Double(((OPT_DoubleConstantOperand)name).value);
-    } else if (name instanceof OPT_StringConstantOperand) {
-      name = ((OPT_StringConstantOperand)name).value;
-    } else if (name instanceof OPT_ClassConstantOperand) {
-      name = ((OPT_ClassConstantOperand)name).value;
     } else if (name instanceof OPT_ObjectConstantOperand) {
       name = ((OPT_ObjectConstantOperand)name).value;
     } else if (name instanceof OPT_TIBConstantOperand) {
@@ -641,10 +637,6 @@ final class OPT_ValueGraph implements OPT_Operators {
       name = new Long(op.asLongConstant().value);
     } else if (op.isDoubleConstant()) {
       name = new Double(op.asDoubleConstant().value);
-    } else if (op.isStringConstant()) {
-      name = op.asStringConstant().value;
-    } else if (op instanceof OPT_ClassConstantOperand) {
-      name = op.asClassConstant().value;
     } else if (op instanceof OPT_ObjectConstantOperand) {
       name = op.asObjectConstant().value;
     } else if (op instanceof OPT_TIBConstantOperand) {
