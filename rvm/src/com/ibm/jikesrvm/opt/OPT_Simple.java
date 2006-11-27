@@ -539,15 +539,14 @@ public final class OPT_Simple extends OPT_CompilerPhase
     boolean recomputeRegList = false;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; 
         s = s.nextInstructionInCodeOrder()) {
-      byte code = 0;
-      OPT_Simplifier.simplify(ir.regpool, s);
+      OPT_Simplifier.DefUseEffect code = OPT_Simplifier.simplify(ir.regpool, s);
       // If something was reduced (as opposed to folded) then its uses may 
       // be different. This happens so infrequently that it's cheaper to 
       // handle it by  recomputing the DU from
       // scratch rather than trying to do the incremental bookkeeping. 
-      recomputeRegList |= (code == OPT_Simplifier.MOVE_REDUCED || 
-                           code == OPT_Simplifier.TRAP_REDUCED || 
-                           code == OPT_Simplifier.REDUCED);
+      recomputeRegList |= (code == OPT_Simplifier.DefUseEffect.MOVE_REDUCED || 
+                           code == OPT_Simplifier.DefUseEffect.TRAP_REDUCED || 
+                           code == OPT_Simplifier.DefUseEffect.REDUCED);
     }
     if (recomputeRegList) {
       OPT_DefUse.computeDU(ir);
