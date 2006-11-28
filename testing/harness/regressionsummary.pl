@@ -316,7 +316,7 @@ sub getfailures {
     if ($kday eq $day) {
       if (${$allsanity}{$key} == -1) {
         $fail++;
-        if ($type eq "new failures" && ${$sane}{"$kbuild:$kbm"} == 1) {
+        if ($type eq "new failures" && ${$insane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
         } elsif ($type eq "transient failures" && ${$sane}{"$kbuild:$kbm"} > 1) {
           push (@failures, "$kbm:$kbuild");
