@@ -2644,7 +2644,7 @@ EOF
 	    echo '    echo "OptDummy.java"'
 	fi
 	if (( RVM_WITH_OPT_TEST_HARNESS )); then
-	    echo '    echo "OptDummy.java OptTestHarness.java"'
+	    echo '    echo "OptTestHarness.java"'
 	fi
 	echo '    find gnu java -name \*.java -print'
     fi
