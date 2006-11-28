@@ -3623,6 +3623,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 		Ljava/io/LineNumberReader;
 		Ljava/io/FileReader;
 		Ljava/io/PushbackReader;
+		[Lcom/ibm/jikesrvm/opt/OPT_Simplifier\$DefUseEffect;
 	EOF
 	if (( RVM_WITH_ALL_CLASSES )); then
 	cat <<- EOF
