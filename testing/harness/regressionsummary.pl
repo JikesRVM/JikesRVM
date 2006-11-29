@@ -12,6 +12,8 @@
 # Produce an email which summarizes a nightly regression run.
 #
 
+my $reportrecipient = shift(@ARGV);
+
 # constants etc
 my @DAYS = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 my @SHORTDAYS = ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
@@ -31,7 +33,7 @@ my $short = 1;
 my $regressiondomain = "anu.edu.au";
 my $regressionhost = "rvmx86lnx64";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
-my $reportrecipient = "Steve.Blackburn\@anu.edu.au";
+#my $reportrecipient = "Steve.Blackburn\@anu.edu.au";
 #my $reportrecipient = "Steve.Blackburn\@anu.edu.au, groved\@us.ibm.com, hindm\@us.ibm.com";
 my $platform = "Linux.x86_64.32";
 
@@ -272,11 +274,17 @@ sub printperfoverview {
       my $delta = int (100*($score - $best)/$best);
       if ($delta < 0) {
         $score = "$score ($delta\%)";
-        if ($delta < -5) {
+        if ($delta <= -5) {
           $textcolor = "color: red;";
+          if ($delta <= -10) {
+            $textcolor .= "font-weight: bold;";
+          }
         }
       } else {
         $textcolor = "color: green;";
+        if ($score == $best) {
+           $textcolor .= "font-weight: bold;";
+        }
       }
     }
     if ($html) {

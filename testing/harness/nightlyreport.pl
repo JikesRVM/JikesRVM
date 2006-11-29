@@ -11,7 +11,9 @@
 #
 # Parse the various nightly sanity logs and produce a html summary.
 #
+use Sys::Hostname;
 
+my $host = hostname();
 my $root = shift(@ARGV);
 if (!(-e $root)) {
   $root = `pwd`;
@@ -28,6 +30,8 @@ my $GREEN = "#00FF00";
 my $BLACK = "#000000";
 my $normalfont = "font-weight:normal;";
 my $boldfont = "font-weight:bold;";
+my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
+my $regressionhost = $host;
 
 # key variables
 my @sanity = ();
@@ -56,8 +60,10 @@ getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sani
 # produce the html summary
 #
 my $html;
+my $outputfile = $root/results/report.html;
+my $webtarget = "steveb@littleblue:public_html/jikesrvm/$hostname/".getdatestr($svnstamp).".html"
 #open($html, ">$root/results/".getdatestr($svnstamp).".html");
-open($html, ">$root/results/report.html");
+open($html, ">$outputfile");
 printhtmlhdr($html);
 gensummary($html, \%perf, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
 genbuildfailures($html, \@sanity, \@error, \@stackid);
@@ -69,7 +75,7 @@ genoptdetails($html, \@optdetails);
 gentestsuccesses($html, \@sanity, \@error);
 printhtmlftr($html);
 close($html);
-
+system("scp $outputfile $webtarget");
 exit(0);
 
 #
