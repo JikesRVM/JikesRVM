@@ -13,7 +13,6 @@
 package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.SSMutator;
-import org.mmtk.plan.semispace.*;
 import org.mmtk.plan.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.VM;

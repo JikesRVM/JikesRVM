@@ -10,7 +10,6 @@
 package org.mmtk.plan.nogc;
 
 import org.mmtk.plan.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

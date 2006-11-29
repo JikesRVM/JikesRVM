@@ -296,7 +296,6 @@ import org.vmmagic.unboxed.*;
     stackLoc = 0;
 
     Address endOfBlock = tail;
-    Address trailer = tail;
     Address startPtr = bufferStart(endOfBlock);
     Word min = Word.max();
     Word max = Word.zero();
@@ -355,7 +354,7 @@ import org.vmmagic.unboxed.*;
    */
   private final void checkIfSorted() {
     if (VM.VERIFY_ASSERTIONS) {
-      Address next, buf, end;
+      Address buf, end;
       Word prevKey = Word.max();
       end = tail;
       buf = bufferStart(end);

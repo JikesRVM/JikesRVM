@@ -12,7 +12,6 @@
 package org.mmtk.vm;
 
 import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning Objects or Arrays for references

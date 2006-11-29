@@ -13,7 +13,6 @@ import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.utility.scan.Scan;
 
