@@ -371,13 +371,17 @@ public final class VM_TypeReference implements VM_SizeConstants {
    * Return the innermost element type reference for an array
    */
   public final VM_TypeReference getInnermostElementType() {
-    if (isWordArrayType() || isCodeArrayType()) {
-      return getArrayElementType();
+    VM_TypeReference elem = getArrayElementType();
+    if (elem.isArrayType()) {
+      // NOTE: we must recur instead of attempting to parse
+      //       the array descriptor for ['s so we correctly handle
+      //       [AddressArray and similar evil VMMagic
+      return elem.getInnermostElementType();
     } else {
-      return findOrCreate(classloader, name.parseForInnermostArrayElementDescriptor());
+      return elem;
     }
   }
-
+  
   /**
    * Does 'this' refer to a class?
    */ 
