@@ -10,8 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -23,10 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @modified Peter F. Sweeney (added HPM support)
  */
-@Uninterruptible public final class VM_Processor 
-//-#if RVM_WITH_MMTK_INLINE_PLAN
-extends SelectedMutatorContext
-//-#endif
+@Uninterruptible public final class VM_Processor extends MM_ProcessorContext
 implements VM_Constants {
 
   // definitions for VP status for implementation of jni
@@ -65,7 +61,6 @@ implements VM_Constants {
     this.isInSelect        = false;
     this.vpStatus = IN_JAVA;
 
-    MM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
     hpm = new VM_HardwarePerformanceMonitor(id);
     //-#endif
@@ -472,11 +467,6 @@ implements VM_Constants {
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
   int arrayIndexTrapParam; 
-  //-#endif
-
-  public final SelectedCollectorContext collectorContext = new SelectedCollectorContext(this);
-  //-#if !RVM_WITH_MMTK_INLINE_PLAN
-  public final SelectedMutatorContext mutatorContext = new SelectedMutatorContext(this);
   //-#endif
 
   // More GC fields

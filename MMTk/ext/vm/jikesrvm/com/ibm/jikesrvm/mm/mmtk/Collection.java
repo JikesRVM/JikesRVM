@@ -33,9 +33,7 @@ import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedPlan;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.Selected;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -134,7 +132,7 @@ import org.vmmagic.pragma.*;
       VM_Scheduler.dumpStack();
     }
     if (why == EXTERNAL_GC_TRIGGER) {
-      SelectedPlan.get().userTriggeredGC();
+      Selected.Plan.get().userTriggeredGC();
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2) 
         VM.sysWrite("[Forced GC]");
     }
@@ -147,7 +145,7 @@ import org.vmmagic.pragma.*;
     double gcTime = VM_Time.cyclesToMillis(end - start);
     if (Options.verbose.getValue() > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
-    if (SelectedPlan.get().isLastGCFull() && 
+    if (Selected.Plan.get().isLastGCFull() && 
    sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
     
@@ -171,7 +169,7 @@ import org.vmmagic.pragma.*;
       VM_Scheduler.dumpStack();
     }
     if (why == EXTERNAL_GC_TRIGGER) {
-      SelectedPlan.get().userTriggeredGC();
+      Selected.Plan.get().userTriggeredGC();
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2) 
         VM.sysWrite("[Forced GC]");
     }
@@ -185,7 +183,7 @@ import org.vmmagic.pragma.*;
     if (Options.verbose.getValue() > 2) 
       VM.sysWriteln("Collection finished (ms): ", gcTime);
 
-    if (SelectedPlan.get().isLastGCFull() && 
+    if (Selected.Plan.get().isLastGCFull() && 
         sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
     
@@ -239,7 +237,7 @@ import org.vmmagic.pragma.*;
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
         
-        int currentAvail = SelectedPlan.get().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
+        int currentAvail = Selected.Plan.get().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
         int headroom = OOM_EXN_HEADROOM_BYTES - currentAvail;
         MM_Interface.emergencyGrowHeap(headroom);  
         OutOfMemoryError oome = new OutOfMemoryError();
@@ -265,7 +263,7 @@ import org.vmmagic.pragma.*;
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
-    VM_Processor vp = ((SelectedMutatorContext) m).getProcessor();
+    VM_Processor vp = ((Selected.Mutator) m).getProcessor();
     int vpStatus = vp.vpStatus;
     if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
       
@@ -285,7 +283,7 @@ import org.vmmagic.pragma.*;
    * @param c the collector to prepare
    */
   public final void prepareCollector(CollectorContext c) {
-    VM_Processor vp = ((SelectedCollectorContext) c).getProcessor();
+    VM_Processor vp = ((Selected.Collector) c).getProcessor();
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
     VM_Thread t = VM_Thread.getCurrentThread();

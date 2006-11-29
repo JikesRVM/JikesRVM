@@ -334,7 +334,7 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* actually perform the GC... */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) SelectedCollectorContext.get().collect(); // gc
+      if (isActive) Selected.Collector.get().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);
@@ -343,7 +343,7 @@ public class VM_CollectorThread extends VM_Thread {
         long elapsedCycles = VM_Time.cycles() - startCycles;
         HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
-      if (gcOrdinal == 1 && SelectedPlan.get().isLastGCFull()) {
+      if (gcOrdinal == 1 && Selected.Plan.get().isLastGCFull()) {
         boolean heapSizeChanged = false;
         if (Options.variableSizeHeap.getValue() && 
             handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {

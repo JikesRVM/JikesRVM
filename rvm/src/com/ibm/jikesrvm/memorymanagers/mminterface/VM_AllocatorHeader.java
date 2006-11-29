@@ -28,10 +28,10 @@ public final class VM_AllocatorHeader implements VM_Constants {
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
   // not supported during expected transition to new object model.
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
-  public static final boolean NEEDS_LINEAR_SCAN = SelectedPlanConstraints.get().needsLinearScan();
+  public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
 
-  public static final int REQUESTED_BITS = SelectedPlanConstraints.get().gcHeaderBits();
-  public static final int NUM_BYTES_HEADER = SelectedPlanConstraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
+  public static final int REQUESTED_BITS = Selected.Constraints.get().gcHeaderBits();
+  public static final int NUM_BYTES_HEADER = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
 
   /**
    * Override the boot-time initialization method here, so that
@@ -42,7 +42,7 @@ public final class VM_AllocatorHeader implements VM_Constants {
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = SelectedPlan.get().setBootTimeGCBits(ref, 
+    Word status = Selected.Plan.get().setBootTimeGCBits(ref, 
       ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }

@@ -3545,8 +3545,8 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/jikesrvm/classloader/VM_Type;
 	[Lcom/ibm/jikesrvm/classloader/VM_TypeReference;
 	[Lcom/ibm/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
-	[Lcom/ibm/jikesrvm/memorymanagers/mminterface/SelectedCollectorContext;
-	[Lcom/ibm/jikesrvm/memorymanagers/mminterface/SelectedMutatorContext;
+	[Lcom/ibm/jikesrvm/memorymanagers/mminterface/Selected\$Collector;
+	[Lcom/ibm/jikesrvm/memorymanagers/mminterface/Selected\$Mutator;
 	[Lorg/mmtk/vm/SynchronizedCounter;
 	[Lorg/mmtk/plan/Phase;
 	[Lorg/mmtk/policy/Space;

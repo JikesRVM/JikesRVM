@@ -74,7 +74,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * AJG: Is this correct?
    */
   public static final boolean NEEDS_WRITE_BARRIER 
-    = SelectedPlanConstraints.get().needsWriteBarrier();
+    = Selected.Constraints.get().needsWriteBarrier();
 
   /**
    * <code>true</code> if a write barrier for putstatic operations is
@@ -84,7 +84,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * AJG: Is this correct?
    */
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER
-    = SelectedPlanConstraints.get().needsStaticWriteBarrier();
+    = Selected.Constraints.get().needsStaticWriteBarrier();
 
   /* AJG: Not used. But will be. needed */
   /**
@@ -98,7 +98,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * example, a copying collector will move objects.
    */
   public static final boolean MOVES_OBJECTS 
-    = SelectedPlanConstraints.get().movesObjects();
+    = Selected.Constraints.get().movesObjects();
 
   /**
    * <code>true</code> if the memory manager moves type information
@@ -117,7 +117,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * collection trace of the run.
    */
   public static final boolean GENERATE_GC_TRACE 
-    = SelectedPlanConstraints.get().generateGCTrace(); 
+    = Selected.Constraints.get().generateGCTrace(); 
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
@@ -158,7 +158,7 @@ import com.ibm.jikesrvm.VM_Processor;
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
-    SelectedPlan.get().boot();
+    Selected.Plan.get().boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -187,14 +187,14 @@ import com.ibm.jikesrvm.VM_Processor;
    * which is necessarily after the basic allocator boot).
    */
   public static void postBoot() throws InterruptiblePragma {
-    SelectedPlan.get().postBoot();
+    Selected.Plan.get().postBoot();
   }
 
   /**
    * Notify the MM that the host VM is now fully booted.
    */
   public static void fullyBootedVM() throws InterruptiblePragma {
-    SelectedPlan.get().fullyBooted();
+    Selected.Plan.get().fullyBooted();
     Lock.fullyBooted();
     Barrier.fullyBooted();
   }
@@ -227,7 +227,7 @@ import com.ibm.jikesrvm.VM_Processor;
                                           int locationMetadata)
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
-    SelectedMutatorContext.get().writeBarrier(src,
+    Selected.Mutator.get().writeBarrier(src,
                                     src.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -267,7 +267,7 @@ import com.ibm.jikesrvm.VM_Processor;
     throws InlinePragma {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
-    SelectedMutatorContext.get().writeBarrier(array,
+    Selected.Mutator.get().writeBarrier(array,
                                     array.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -295,7 +295,7 @@ import com.ibm.jikesrvm.VM_Processor;
                                               Object tgt, Offset tgtOffset,
                                               int bytes) 
     throws InlinePragma {
-    return SelectedMutatorContext.get().writeBarrier(ObjectReference.fromObject(src),
+    return Selected.Mutator.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,
                                            ObjectReference.fromObject(tgt),
                                                tgtOffset, bytes);
@@ -521,7 +521,7 @@ import com.ibm.jikesrvm.VM_Processor;
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (SelectedPlanConstraints.get().withGCspy()) {
+      if (Selected.Constraints.get().withGCspy()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
           return Plan.ALLOC_GCSPY;
@@ -550,7 +550,7 @@ import com.ibm.jikesrvm.VM_Processor;
     if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType())
       allocator = Plan.ALLOC_NON_REFERENCE;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (SelectedPlanConstraints.get().withGCspy()) {
+    if (Selected.Constraints.get().withGCspy()) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
                isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
         allocator = Plan.ALLOC_GCSPY;
@@ -561,7 +561,7 @@ import com.ibm.jikesrvm.VM_Processor;
         isPrefix("Lcom/ibm/jikesrvm/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
-    if (SelectedPlanConstraints.get().needsImmortalTypeInfo() && 
+    if (Selected.Constraints.get().needsImmortalTypeInfo() && 
         (isPrefix("Lcom/ibm/jikesrvm/classloader/VM_Class", typeBA) ||
          isPrefix("Lcom/ibm/jikesrvm/classloader/VM_Array", typeBA)))
       allocator = Plan.ALLOC_IMMORTAL;
@@ -590,7 +590,7 @@ import com.ibm.jikesrvm.VM_Processor;
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset, int site)
     throws UninterruptiblePragma, InlinePragma {
-    SelectedMutatorContext mutator = SelectedMutatorContext.get();
+    Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
 				       align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
@@ -620,7 +620,7 @@ import com.ibm.jikesrvm.VM_Processor;
                                      int allocator,
                                      int align, int offset, int site) 
     throws UninterruptiblePragma, InlinePragma {
-    SelectedMutatorContext mutator = SelectedMutatorContext.get();
+    Selected.Mutator mutator = Selected.Mutator.get();
 
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
@@ -649,7 +649,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * @param site Allocation site.
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static Address allocateSpace(SelectedMutatorContext mutator,
+  private static Address allocateSpace(Selected.Mutator mutator,
 				       int bytes, int align, int offset,
 				       int allocator, int site)
     throws UninterruptiblePragma, InlinePragma {
@@ -679,7 +679,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * @param from The source object from which this is to be copied
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  public static Address allocateSpace(SelectedCollectorContext collector,
+  public static Address allocateSpace(Selected.Collector collector,
 				      int bytes, int align, int offset,
                                        int allocator, ObjectReference from)
     throws UninterruptiblePragma, InlinePragma {
@@ -809,7 +809,7 @@ import com.ibm.jikesrvm.VM_Processor;
     Object [] arrayTib = arrayType.getTypeInformationBlock();
 
     return (int[]) allocateArray(size, width, headerSize, arrayTib,
-                                 (SelectedPlanConstraints.get().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
+                                 (Selected.Constraints.get().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
                                  align, offset, Plan.DEFAULT_SITE);
 					      
   }

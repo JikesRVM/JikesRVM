@@ -40,6 +40,6 @@ import org.vmmagic.pragma.*;
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    SelectedPlan.get().notifyExit(value);
+    Selected.Plan.get().notifyExit(value);
   }
 }

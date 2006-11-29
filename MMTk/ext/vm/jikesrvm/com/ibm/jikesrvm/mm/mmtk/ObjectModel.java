@@ -26,7 +26,7 @@ import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.classloader.VM_Class;
 import com.ibm.jikesrvm.classloader.VM_Type;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
+import com.ibm.jikesrvm.memorymanagers.mminterface.Selected;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    SelectedCollectorContext plan = SelectedCollectorContext.get();
+    Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    SelectedCollectorContext plan = SelectedCollectorContext.get();
+    Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);

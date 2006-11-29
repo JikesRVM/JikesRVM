@@ -14,10 +14,7 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedPlan;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedCollectorContext;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedMutatorContext;
-import com.ibm.jikesrvm.memorymanagers.mminterface.SelectedPlanConstraints;
+import com.ibm.jikesrvm.memorymanagers.mminterface.Selected;
 
 import org.vmmagic.pragma.*;
 
@@ -37,35 +34,35 @@ import org.vmmagic.pragma.*;
 
   /* Collector and Mutator Context Management */
   private static final int MAX_CONTEXTS = 100;
-  private static SelectedCollectorContext[] collectors = new SelectedCollectorContext[MAX_CONTEXTS];
+  private static Selected.Collector[] collectors = new Selected.Collector[MAX_CONTEXTS];
   private static int collectorCount = 0; // Number of collector instances 
-  private static SelectedMutatorContext[] mutators = new SelectedMutatorContext[MAX_CONTEXTS];
+  private static Selected.Mutator[] mutators = new Selected.Mutator[MAX_CONTEXTS];
   private static int mutatorCount = 0; // Number of mutator instances 
   private static SynchronizedCounter mutatorCounter = new SynchronizedCounter();
 
   /** @return The active Plan instance. */
   public final Plan global() throws InlinePragma {
-    return SelectedPlan.get();
+    return Selected.Plan.get();
   } 
   
   /** @return The active PlanConstraints instance. */
   public final PlanConstraints constraints() throws InlinePragma {
-    return SelectedPlanConstraints.get();
+    return Selected.Constraints.get();
   } 
   
   /** @return The active CollectorContext instance. */
   public final CollectorContext collector() throws InlinePragma {
-    return SelectedCollectorContext.get();
+    return Selected.Collector.get();
   }
   
   /** @return The active MutatorContext instance. */
   public final MutatorContext mutator() throws InlinePragma {
-    return SelectedMutatorContext.get();
+    return Selected.Mutator.get();
   }
 
   /** Flush the mutator remembered sets (if any) for this active plan */
   public static final void flushRememberedSets() {
-     SelectedMutatorContext.get().flushRememberedSets();
+     Selected.Mutator.get().flushRememberedSets();
   }
     
   /**
@@ -89,21 +86,21 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Return the SelectedCollectorContext instance given its unique identifier.
+   * Return the Selected.Collector instance given its unique identifier.
    * 
-   * @param id The identifier of the SelectedCollectorContext to return
-   * @return The specified SelectedCollectorContext
+   * @param id The identifier of the Selected.Collector to return
+   * @return The specified Selected.Collector
    */ 
-  public final SelectedCollectorContext selectedCollector(int id) throws InlinePragma {
+  public final Selected.Collector selectedCollector(int id) throws InlinePragma {
     return collectors[id];
   }
   /**
-   * Return the SelectedMutatorContext instance given its unique identifier.
+   * Return the Selected.Mutator instance given its unique identifier.
    *
-   * @param id The identifier of the SelectedMutatorContext to return
-   * @return The specified SelectedMutatorContext
+   * @param id The identifier of the Selected.Mutator to return
+   * @return The specified Selected.Mutator
    */
-  public final SelectedMutatorContext selectedMutator(int id) throws InlinePragma {
+  public final Selected.Mutator selectedMutator(int id) throws InlinePragma {
     return mutators[id];
   }
 
@@ -145,7 +142,7 @@ import org.vmmagic.pragma.*;
    * @return The CollectorContext's unique identifier
    */
   public final int registerCollector(CollectorContext collector) throws InterruptiblePragma {
-    collectors[collectorCount] = (SelectedCollectorContext) collector;
+    collectors[collectorCount] = (Selected.Collector) collector;
     return collectorCount++;
   }
   
@@ -158,7 +155,7 @@ import org.vmmagic.pragma.*;
    * @return The MutatorContext's unique identifier
    */
   public final int registerMutator(MutatorContext mutator) throws InterruptiblePragma {
-    mutators[mutatorCount] = (SelectedMutatorContext) mutator;
+    mutators[mutatorCount] = (Selected.Mutator) mutator;
     return mutatorCount++;
   } 
 }
