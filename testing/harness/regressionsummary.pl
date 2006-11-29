@@ -38,8 +38,8 @@ my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 my $platform = "Linux.x86_64.32";
 
 # initialize things
-open($out, ">summary.eml");
-#open($out, "|sendmail -t");
+#open($out, ">summary.eml");
+open($out, "|sendmail -t");
 my $today = 1;
 my %allsanity = ();
 my %allperf = ();
@@ -418,7 +418,7 @@ sub getfailures {
       }
     }
   }
-  print "==> pass: $day $pass fail: $fail\n";
+#  print "==> pass: $day $pass fail: $fail\n";
   return @failures;
 }
 
