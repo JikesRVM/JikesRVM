@@ -6,27 +6,21 @@ import org.vmmagic.pragma.*;
 
 public class Selected {
   @Uninterruptible
-  public static final class Plan {
-    private static final 
+  public static final class Plan extends 
 //-#value RVM_WITH_MMTK_PLAN
-    plan = new 
-//-#value RVM_WITH_MMTK_PLAN
-    ();
-    public static 
-//-#value RVM_WITH_MMTK_PLAN
-    get() throws InlinePragma { return plan; }
+  {
+    private static final Plan plan = new Plan(); 
+    
+    public static Plan get() throws InlinePragma { return plan; }
   }
 
   @Uninterruptible
-  public static final class Constraints {
-    private static final 
+  public static final class Constraints extends
 //-#value RVM_WITH_MMTK_PLANCONSTRAINTS
-    constraints = new 
-//-#value RVM_WITH_MMTK_PLANCONSTRAINTS
-    ();
-    public static 
-//-#value RVM_WITH_MMTK_PLANCONSTRAINTS
-    get() throws InlinePragma { return constraints; }
+  {
+    private static final Constraints constraints = new Constraints();
+    
+    public static Constraints get() throws InlinePragma { return constraints; }
   }
 
   @Uninterruptible
