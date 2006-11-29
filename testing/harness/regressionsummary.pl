@@ -22,7 +22,7 @@ my $GREEN = "#00FF00";
 my $BLACK = "#000000";
 my $NORMALFONT = "font-weight:normal;";
 my $BOLDFONT = "font-weight:bold;";
-my $MIMEBOUNDARY = "--_jkkdsffds32432dlkjifewks_";
+my $MIMEBOUNDARY = "======".time()."======";
 my $SVNURL = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=";
 my $html = 1;
 my $short = 1;
@@ -30,8 +30,9 @@ my $short = 1;
 # these will need to change
 my $regressiondomain = "anu.edu.au";
 my $regressionhost = "rvmx86lnx64";
-my $reporturl = "http://cs.anu.edu.au/~Steve.Blackburn/jikesrvm";
+my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 my $reportrecipient = "Steve.Blackburn\@anu.edu.au";
+#my $reportrecipient = "Steve.Blackburn\@anu.edu.au, groved\@us.ibm.com, hindm\@us.ibm.com";
 my $platform = "Linux.x86_64.32";
 
 # initialize things
@@ -40,22 +41,26 @@ open($out, ">summary.eml");
 my $today = 1;
 my %allsanity = ();
 my %allperf = ();
+my %bestperf = ();
 my %allerrors = ();
 my @allrevisions = ();
 my $checkout = "";
+my @javadocerrors = ();
 my $datestring = "";
 
 # grab the data and process it
-$today = getdata(\%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout);
+$today = getdata(\%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout, \@javadocerrors);
 $datestring = getdatestringfromcheckout($checkout);
+updatebestperf($today, \%allperf, \%bestperf);
 
 # produce the html
 printemailhdr($out, getpasses(-1, $today, \%allsanity), $platform);
 if ($html) { printhtmlhdr($out); }
-printhdr($out, $html, $checkout, $datestring);
+printsummary($out, $html, $checkout, $datestring);
 printrevisions($out, $html, $today, $checkout, \@allrevisions);
 printfailures($out, $html, 1, $today, $datestring, \%allsanity, \%allerrors);
-printweeklyoverview($out, $html, $today, \%allperf, \%allsanity);
+printjavadoc($out, $html, $javadocerrors[today], $datestring);
+printweeklyoverview($out, $html, $today, \%allperf, \%bestperf, \%allsanity);
 printsanitytable($out, $html, 0, "build", $short, \%allsanity);
 printsanitytable($out, $html, 1, "benchmark", $short, \%allsanity);
 if (0) { printfailures($out, $html, 0, $today, \%allsanity, \%allerrors);}
@@ -74,14 +79,18 @@ sub printemailhdr {
   print $out "From: regression\@$regressionhost.$regressiondomain\n";
   print $out "To: $reportrecipient\n";
   print $out "MIME-Version: 1.0\n";
-  print $out "Content-Type: multipart/alternative";
-  print $out "boundary=\"$MIMEBOUNDARY\"\n";
   print $out "Subject: $subject\n";
-#  print $out "\n$MIMEBOUNDARY\n";
-#  print $out "Content-Type: text/plain; charset=\"iso-8859-1\"\n\n";
+#  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
+#  print $out "Content-Base: $reporturl/$regressionhost/\n";
+#  print $out "\n--$MIMEBOUNDARY\n";
+#  print $out "Content-Type: text/plain; charset=\"iso-8859-1\"\n";
+#  print $out "Content-Transfer-Encoding: quoted-printable\n\n";
 #  print $out "plain text version would be here\n";
-  print $out "\n$MIMEBOUNDARY\n";
-  print $out "Content-Type: text/html; charset=\"iso-8859-1\"\n\n";
+#  print $out "\n--$MIMEBOUNDARY\n";
+  print $out "Content-Type: text/html; charset=\"iso-8859-1\"\n";
+  print $out "Content-Transfer-Encoding: 7bit\n";
+  print $out "Content-Disposition: inline\n";
+  print $out "\n";
 }
 
 #
@@ -89,19 +98,20 @@ sub printemailhdr {
 #
 sub printemailftr {
   my ($out) = @_;
-  print $out "\n$MIMEBOUNDARY\n";
+#  print $out "\n--$MIMEBOUNDARY\n";
 }
+
 #
 # print the header/summary of this message
 #
-sub printhdr {
+sub printsummary {
   my ($out, $html, $checkout, $datestring) = @_;
   if ($html) {
     print $out "<h2>Regression summary for $regressionhost, $checkout</h2>\n";
     print $out "Details are available <a href=\"$reporturl/$regressionhost/$datestring.html\">here</a><br>\n";
   } else {
     print $out "Regression summary for $regressionhost, $checkout\n";
-    print $out "Details are available at: $reporturl/$regressionhost/$datestring.html\n";
+    print $out "Details are available at: $datestring.html\n";
   }
 }
 
@@ -171,10 +181,61 @@ sub printfailures {
 }
 
 #
+# update performance bests
+#
+sub updatebestperf {
+  my ($today, $allperf, $bestperf) = @_;
+  getbestperf(($today - 1) % 7, $bestperf);
+  open(OUT, ">results/best.txt");
+  my $key;
+  foreach $key (sort keys %{$allperf}) {
+    my ($day,$bm) = split(/:/, $key);
+    if ($day == $today) {
+      if (${$bestperf}{$bm} < ${$allperf}{"$today:$bm"}) {
+        ${$bestperf}{$bm} = ${$allperf}{"$today:$bm"};
+      }
+      print OUT "$bm ".${$bestperf}{$bm}."\n";
+    }
+  }
+  close(OUT);
+}
+
+#
+# extract performance bests from a particular day's archive
+#
+sub getbestperf {
+  my ($day, $bestperf) = @_;
+  open(IN, "tar xzf archive/$DAYS[$day].$platform.tar.gz results/best.txt --to-stdout|");
+  my ($bm, $score);
+  while (<IN>) {
+    if (($bm, $score) = /(\S+)\s+([0-9.]+)/) {
+      ${$bestperf}{$bm} = $score;
+    }
+  }
+  close(IN);
+}
+
+#
+# print summary info on javadoc failures
+#
+sub printjavadoc {
+  my ($out, $html, $javadocerrors, $datestring) = @_;
+  my $str = "$javadocerrors Javadoc errors";
+  my $jdurl = "$reporturl/$regressionhost/$datestring.html\#javadoc";
+  if ($html) {
+    print $out "<h2>$str</h2>\n";
+    print $out "Details <a href=\"$jdurl\">here</a><br>\n";
+  } else {
+    print $out $str;
+    print $out "Details here: $jdurl\n"
+  }
+}
+
+#
 # print a day-by-day overview of sanity and performance numbers
 #
 sub printweeklyoverview {
-  my ($out, $html, $today, $allperf, $allsanity) = @_;
+  my ($out, $html, $today, $allperf, $bestperf, $allsanity) = @_;
   my $str = "Day-by-day overview";
   if ($html) { 
     print $out "<h2>$str</h2>\n";
@@ -183,8 +244,8 @@ sub printweeklyoverview {
     print $out "$str\n";
   }
   printsanityoverview($out, $html, $today, $allsanity);
-  printperfoverview($out, $html, $today, "jvm98 score", "jvm98-bottomline", $allperf);
-  printperfoverview($out, $html, $today, "jbb2000 score", "jbb2000", $allperf);
+  printperfoverview($out, $html, $today, "jvm98 score", "jvm98-bottomline", $allperf, $bestperf);
+  printperfoverview($out, $html, $today, "jbb2000 score", "jbb2000", $allperf, $bestperf);
   if ($html) { print $out "</table>\n";  }
 }
 
@@ -192,7 +253,7 @@ sub printweeklyoverview {
 # print a day-by-day overview of performance
 #
 sub printperfoverview {
-  my ($out, $html, $today, $name, $bmkey, $allperf) = @_;
+  my ($out, $html, $today, $name, $bmkey, $allperf, $bestperf) = @_;
   if ($html) {
     print $out "<tr>\n";
     print $out "\t<td align=\"right\">$name\n";
@@ -203,10 +264,24 @@ sub printperfoverview {
   for ($d = 1; $d <= 7; $d++) {
     my $day = ($today + $d) % 7;
     my $score = ${$allperf}{"$day:$bmkey"};
-    if ($score == "") { $score = "-"; }
+    my $textcolor = "";
+    if ($score == "") { 
+      $score = "-";
+    } else {
+      my $best = ${$bestperf}{$bmkey};
+      my $delta = int (100*($score - $best)/$best);
+      if ($delta < 0) {
+        $score = "$score ($delta\%)";
+        if ($delta < -5) {
+          $textcolor = "color: red;";
+        }
+      } else {
+        $textcolor = "color: green;";
+      }
+    }
     if ($html) {
-      my $color = ($day == $today) ? "" : "background-color: rgb(233,233,233);";
-      print $out "\t<td style=\"$color\">$score\n";
+      $textcolor .= ($day == $today) ? "" : "background-color: silver;";
+      print $out "\t<td style=\"$textcolor\">$score\n";
     } else {
       print $out "$score ";
     }
@@ -237,7 +312,7 @@ sub printsanityoverview {
     my $run = $bad+getpasses(1, $day, $allsanity);
     my $str = "$bad/$run";
     if ($html) {
-      my $color = ($day == $today) ? "" : "background-color: rgb(233,233,233);";
+      my $color = ($day == $today) ? "" : "background-color: silver;";
       print $out "\t<td style=\"$color\">$str\n";
     } else {
       print $out "$str ";
@@ -454,15 +529,15 @@ sub printonesanitytable {
 # read in all data from the respective sources
 #
 sub getdata {
-  my ($allsanity, $allperf, $allerrors, $allrevisions, $checkout) = @_;
+  my ($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $javadocerrors) = @_;
   my $source = "results/report.html";
   my $today = gettodayfromsvn($source, $checkout);
   my @errors = "";
-  getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source);
+  getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source,$javadocerrors);
   for ($day = 0; $day < 7; $day++) {
     if ($day != $today) {
       $source = "tar xzf archive/$DAYS[$day].$platform.tar.gz results/report.html --to-stdout|";
-      getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source);
+      getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
     }
   }
   return $today;
@@ -507,7 +582,7 @@ sub gettodayfromsvn {
 # Dig out a day's summary information from the given source
 #
 sub getdaydata {
-  my ($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source) = @_;
+  my ($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source, $javadocerrors) = @_;
   my $regressionfailures = 0;
   my $regressionsuccesses = 0;
   my $buildfailures = 0;
@@ -526,7 +601,9 @@ sub getdaydata {
 #      print "--->$value/$value<---\n";
     } elsif (($value) = /Revision:<td><b>.+>(\d+)<\/a><\/b>/) {
       ${$allrevisions}[$day] = $value;
-    } elsif (($value) = /jbb2000 score:<td><b>(\d+.\d+)<\/b>/) {
+    } elsif (($value) = /JavaDoc errors:<td><b>(\d+)<\/b>/) {
+      ${$javadocerrors}[$day] = $value;
+    }  elsif (($value) = /jbb2000 score:<td><b>(\d+.\d+)<\/b>/) {
       ${$allperf}{"$day:jbb2000"} = $value;
     } elsif (($value) = /jvm98 best:<td><b>(\d+.\d+)<\/b>/) {
       $value = int($value + 0.5); # round
@@ -628,6 +705,7 @@ sub aggregateweeksanity {
 #
 sub printhtmlhdr {
   my ($html) = @_;
+  print $html "<html>\n";
   print $html "<style>\n";
   my $margin = "10px";
   print $html "body\n{\n\tmargin-left:        $margin;\n\tmargin-top:         $margin;\n\tmargin-right:       $margin;\n\tmargin-bottom:      $margin;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-size:          x-small;\n\tfont-weight:        normal;\n\tbackground-color:   #FFFFFF;\n\tcolor:              #000000;\n}\n";
@@ -642,7 +720,7 @@ sub printhtmlhdr {
 #
 sub printhtmlftr {
   my ($out) = @_;
-  print $out "</body>\n";
+  print $out "</body>\n</html>";
 }
 
 #
