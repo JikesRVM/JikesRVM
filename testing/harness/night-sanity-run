@@ -209,12 +209,6 @@ function archiveResults() {
     fi >> $VERBOSE_LOG 2>&1
 }
 
-declare -i archived=0
-
-if (( do_archive == 1 )); then
-  archiveResults && archived=1
-fi
-
 echo "Sanity tests were specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
 if [ ! $perf_cfg ]; then
     echo "No performance tests were specified." >> $MSG
@@ -395,4 +389,12 @@ if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
   $RVM_ROOT/testing/harness/regressionsummary.pl Steve.Blackburn@anu.edu.au
 fi
 
+##
+## Finally, archive the results
+##
+declare -i archived=0
+
+if (( do_archive == 1 )); then
+  archiveResults && archived=1
+fi
 
