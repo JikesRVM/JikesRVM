@@ -51,6 +51,8 @@ import org.vmmagic.pragma.*;
  *    (2b) LHS is [^k class:
  *        If so, the dimensionality of the RHS must be k
  *        and the baseclass of the RHS must be assignable with class (see #3)
+ *        _OR_ the dimensionality of the RHS must be >k
+ *        and the baseclass of the LHS is java.lang.Cloneable or java.io.Serializable
  *    (2c) LHS is [^k Ljava.lang.Object:
  *        If so, either the dimensionality of the RHS is greater than k
  *        or, this dimensionality is k and the baseclass is NOT primitive
@@ -275,11 +277,19 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       if (RHSDimension > LHSDimension) return true;
       return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
     } else if (!LHSInnermostElementType.isPrimitiveType()) {
-      if (RHSDimension != LHSDimension) return false;
-      VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
-      if (RHSInnermostElementType.isPrimitiveType()) return false;
-      return instanceOfNonArray(LHSInnermostElementType.asClass(), 
-                                RHSInnermostElementType.getTypeInformationBlock());
+      if (RHSDimension == LHSDimension) {
+        VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
+        if (RHSInnermostElementType.isPrimitiveType()) return false;
+        return instanceOfNonArray(LHSInnermostElementType.asClass(), 
+                                  RHSInnermostElementType.getTypeInformationBlock());
+      } else {
+        // All array types implicitly implement java.lang.Cloneable and java.io.Serializable
+        // so if LHS is if lesser dimensionality then this check must succeed if its innermost
+        // element type is one of these special interfaces.
+        return (LHSDimension < RHSDimension &&
+                (LHSInnermostElementType == VM_Type.JavaLangCloneableType ||
+                 LHSInnermostElementType == VM_Type.JavaIoSerializableType));
+      }
     } else {
       return false;
     }
