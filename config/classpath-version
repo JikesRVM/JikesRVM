@@ -1,5 +1,5 @@
-## Currently we recommend GNU Classpath 0.90 for all platforms. 
-## This and is the only release of Classpath with which Jikes RVM is 
+## Currently we recommend GNU Classpath 0.92-generics for all platforms. 
+## This is the only release of Classpath with which Jikes RVM is 
 ## reguarly tested.  If you try an older version that is still mentioned
 ## in this file, and it no longer works, please let us know so that we 
 ## can remove it.  
