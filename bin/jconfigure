@@ -2298,7 +2298,7 @@ build_mmtk() {
       run mkdir \$TARGET
 
       ( chdir \$SOURCE_TREE
-        \${FIND} . -type d ! -name CVS ! -name . | 
+        \${FIND} . -type d ! -name .svn ! -name . | 
           while read dir
           do
             run mkdir \$TARGET/\$dir
@@ -4012,13 +4012,13 @@ function emitPluginBuilder () {
 	    # Eclipse's assertions require a numeric first and third component,
 	    # at least.  Sigh.
 	    local vnum="${JIKESRVM_VERSION//*[jJ][iI][kK][eE][sS]*[rR][vV][mM]}";
-	    # CVS or +cvs or .cvs turns into .99
-	    vnum="\${vnum//[cC][vV][sS]/cvs}";
-	    vnum="\${vnum//[^0-9]cvs/cvs}";
-	    vnum="\${vnum//cvs[^0-9]/cvs}";
-	    vnum="\${vnum/cvs?[hH][eE][aA][dD]/cvs}";
-	    vnum="\${vnum/cvs[hH][eE][aA][dD]/cvs}";
-	    vnum="\${vnum/(cvs)/cvs}";
+	    # SVN or +svn or .svn turns into .99
+	    vnum="\${vnum//[sS][vV][nN]/svn}";
+	    vnum="\${vnum//[^0-9]svn/svn}";
+	    vnum="\${vnum//svn[^0-9]/svn}";
+	    vnum="\${vnum/svn?[hH][eE][aA][dD]/svn}";
+	    vnum="\${vnum/svn[hH][eE][aA][dD]/svn}";
+	    vnum="\${vnum/(svn)/svn}";
 	    while [[ \$vnum == *' '* ]]; do
 		vnum="\${vnum// }"      # trim spaces if present (there usually 
 				       # is at least one after the words "Jikes RVM")
@@ -4035,7 +4035,7 @@ function emitPluginBuilder () {
 			 Version information, \\"$JIKESRVM_VERSION\\",
 	   	         into a numeric form for use with the Eclipse plugin, 
 			 I found a non-numeric component, even after 
-			 the \\"CVS\\" transformation; the result looks like
+			 the \\"SVN\\" transformation; the result looks like
 			 this: \\"\$vnum\\".   This message is intended
 			 primarily for Jikes RVM maintainers, and suggests 
 			 that you try a numeric format for JIKESRVM_VERSION"
