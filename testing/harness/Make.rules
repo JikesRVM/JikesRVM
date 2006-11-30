@@ -53,7 +53,7 @@ ALL_PATH = $(BENCH_SOURCE_PATH) \
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
 %.class:		%.java $(WORKING)/cp 
-	$(HOST_JAVAC) -d $(WORKING)/cp -classpath $(ALL_CP) $<
+	$(JCOMPILE) -d $(WORKING)/cp -classpath $(ALL_CP) $<
 
 #
 # how to run

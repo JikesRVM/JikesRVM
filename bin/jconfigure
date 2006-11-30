@@ -280,11 +280,6 @@ function help_message () {
 	variables before you invoke "jconfigure", or invoke jconfigure
 	with the -DCFLAGS and -DCXXFLAGS options.
 
-	If you want to see Java warnings, set the values of
-	JAVAC_WARNING_FLAGS and JIKES_WARNING_FLAGS with -D
-	in the arguments to jconfigure, or in the config files.  
-	The default value for both is "-nowarn".
-
 	You can invoke this script as "${ME} < /dev/null" in order to
 	suppress interactive questions.
 
@@ -391,160 +386,6 @@ function setSomeFromPath () {
     done
 }
 
-
-
-## Set JIKES, the path for the Jikes java-to-byte-code compiler.  
-## A necessary part of the build process.  We only run JIKES on the host.
-## Check the version of Jikes, and print appropriate warning messages.
-##
-## We also set the following variables that are used elsewhere:
-##    host_jikes_version   
-##    jikes_dependency_flag
-## and set the default value for the following configuration variable:
-##    JIKES_WARNING_FLAGS
-function on_host_set_JIKES_test_Jikes_version () {
-    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]	\
-	&& ! [[ ${JIKES-} ]]				\
-	&& ! export JIKES=$(type -p jikes)
-    then
-	## Note: This is quite possibly bogus if we're reading in the target
-	## file instead of the host file, during a cross-build.
-	show_mesg "I can't find the Jikes java-to-byte-code compiler.  Please set the variable JIKES in $CURRENT_CONFIG_FILE or put an executable named \"jikes\" in your command search path"
-	trap '' EXIT
-	exit $Exit_Status_Bad_Args
-    fi
-
-    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]] \
-	&& ! [[ $host_jikes_version ]]
-    then
-	## Check the Jikes version for the HOST.  We don't care 
-	## about the version of Jikes for the TARGET.
-	## Jikes 1.13 will exit with status 1 in response to "jikes -version",
-	## and spits the version message to stderr.
-
-	local jikes_msg # If you combine the "local" declaration of
-			# jikes_msg and the assigment of a value to
-			# jikes_msg, it will always yield exit status
-			# zero, which is bad for us.
-	set +e 
-	jikes_msg="$(${JIKES} -version 2>&1)"
-	local -i status=$?
-	set -e
-#	echo "STATUS=$status"
-	if (( $status != 0 )) && (( $status != 1 )); then
-	    show_mesg >&2 "ERROR: I am having trouble running the Jikes compiler.  When I ran the command:"
-	    echo >&2 "	\"${JIKES} -version\""
-	    show_mesg_raw >&2 " that command exited with status code # $status and gave the message:"
-	    echo >&2 "	\"$jikes_msg\""
-	    show_mesg >&2 "This looks bad; I am giving up.  
-  The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
-	    trap '' EXIT
-	    exit 2
-	fi
-	local -i bad_byte_code=0
-	## unregressed indicates a version that can run "Hello, World", but has
-	## not been through a full nightly Jikes RVM regression test.
-	local -i unregressed=0
-	local -r known_good="1.13, 1.18, 1.19, and 1.22"
-	case "$jikes_msg" in
-	    *"Version 1.14"*)
-		host_jikes_version=1.14
-		bad_byte_code=1
-		;;
-
-	    *"Version 1.15"*)
-		host_jikes_version=1.15
-		bad_byte_code=1
-		;;
-
-	    *"Version 1.16"*)
-		host_jikes_version=1.16
-		bad_byte_code=1
-		;;
-
-	    *"Version 1.17"*)
-		host_jikes_version=1.17
-		bad_byte_code=1
-		;;
-
-	    *"Version 1.18"*)
-		host_jikes_version=1.18 
-		bad_byte_code=0
-		jikes_dependency_flag=+U
-		JIKES_WARNING_FLAGS=-nowarn; # there are just too many style warnings...
-		;;
-
-	    *"Version 1.19"*)
-		host_jikes_version=1.19 
-		jikes_dependency_flag=+U
-		bad_byte_code=0
-		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
-		;;
-	    
-	    *"Version 1.20"*)
-		host_jikes_version=1.20
-		bad_byte_code=0	# Verified by Steve Augart, at least as far as
-				# running "Hello, World" works.
-		unregressed=1
-		jikes_dependency_flag= # +U triggers a Jikes assertion.
-		# This will reduce the warnings down to a so-so level,
-		# but it's not enough to completely eliminate them.
-		# Some of them are legitimate, though.
-		# JIKES_WARNING_FLAGS='+Pno-switchcheck +Pno-shadow'
-		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
-		;;
-	    
- 	    *"Version 1.21"*)
- 		host_jikes_version=1.21
-		bad_byte_code=0	# Verified by Steve Augart, at least as far as
-				# running "Hello, World" works.
-		unregressed=1
-		jikes_dependency_flag= # +U triggers a Jikes assertion.
- 		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
- 		;;
-	    
-	    *"Version 1.22"*)
-		host_jikes_version=1.22 
-		bad_byte_code=0	# Verified by Steve Augart, at least as far as
-				# running "Hello, World" works.
-		unregressed=0   # Regression tests run by Dave Grove on Linux/IA32.
-		jikes_dependency_flag= # +U triggers a Jikes assertion.
-		JIKES_WARNING_FLAGS='+Pno-shadow +Pno-switchcheck'
-		;;
-	    
-	    *"Eclipse Java Compiler"*)
-		host_jikes_version=ecj
-		bad_byte_code=0
-		unregressed=0
-		jikes_dependency_flag=
-		JIKES_WARNING_FLAGS=
-		;;
-
-	    "") croak_nonusage "I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
-   \"${JIKES} -version\"
-This looks bad; I am giving up. The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
-		;;
-	    *)
-		(( quiet_cautions )) || show_mesg >&2 "CAUTION: \"${JIKES}\" is a version of Jikes that has not been tested against Jikes RVM -- the known good versions are ${known_good}.  Your version gives me the message:"
-		## If we can't find a line with the string Version, then
-		## print the whole message.
-		( echo "$jikes_msg" | ${FGREP-fgrep} "Version" \
-		      || echo "\"$jikes_msg\"" ) >&2 
-		host_jikes_version=UNKNOWN
-		;;
-	esac
-    #     echo "JIKES VERSION: $jikes_version"
-
-	if (( bad_byte_code )); then
-	    (( quiet_warnings )) || show_mesg >&2 "WARNING: Jikes Version $host_jikes_version is known to have generated bad byte code when compiling Jikes RVM.  If you're lucky, the failure will be spectacular.   If you're not, it will waste a lot of your time.  PLEASE consider using one of the known good versions, ${known_good}."
-	elif (( unregressed )); then
-	    (( quiet_cautions )) || show_mesg >&2 "CAUTION: Versions of Jikes RVM compiled with Jikes Version $host_jikes_version have not gone through a rigorous regression test, although we do not have evidence of problems, and they do run \"Hello, World\" OK.  This message will be removed once someone runs a rigorous regression test  (perhaps you'd like to be the one to run it and to remove this message?)"
-	fi
-    fi
-}
-
-
-
 function on_host_set_HOST_VM_variables () {
         ## HOST_VM_TYPE: Valid working values: Sun, Kaffe, IBM-50
     ##			In-progress values: JikesRVM, gij
@@ -638,31 +479,6 @@ function rationalize_config_file_settings () {
     on_host_set_HOST_VM_variables
 
     setSomeFromPath fgrep
-
-    on_host_set_JIKES_test_Jikes_version
-
-    ## HOST_JAVAC:
-    ## The Java compiler.
-    if [[ ! ${HOST_JAVAC-} ]]; then
-	if [[ $HOST_VM_TYPE = gij ]]; then
-	    ## -fjni isn't compatible with generating class files, so we will
-	    ## leave it out.
-	    export HOST_JAVAC="gcj -C"
-	elif [[ $HOST_VM_TYPE = Sun ]]; then
-	    ## Use the Sun compiler.
-	    export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
-	elif [[ ${JIKES-} ]]; then	# always true
-	    # JIKES_WARNING_FLAGS won't be set the first time we read 
-	    # RVM_HOST_CONFIG; that is OK.  It will be set the second time,
-	    #  before we generate the output.
-	    export HOST_JAVAC="CLASSPATH=${RVM_BUILD}/RVM.classes:${RVM_BUILD}/RVM.classes/rvmrt.jar $JIKES ${JIKES_WARNING_FLAGS-}"
-#	    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]; then
-#		export HOST_JAVAC=$bin_dir/fake-javac
-#	    else
-#		export HOST_JAVAC=$JIKES # pray
-#	    fi
-	fi
-    fi
 
     # HOST_TOOLS: 
     # The Sun-derived JDKs have this, which we only use for doing 
@@ -902,68 +718,6 @@ function load_config_file () {
 # SECTION 1c -- Get HOST_CLASSPATH_ROOT					    #
 #---------------------------------------------------------------------------#
 
-
-## At the same time, we'll automatically set the configuration variables
-## for Jikes.
-
-# If $host_jikes_version is the empty string, that means we have never 
-# tried to auto-detect the host's Jikes version.  We'll only auto-detect
-# the host's jikes version once.
-#
-# It may be a numeric string, such as 1.13 or 1.22, or it may be "UNKNOWN"
-declare host_jikes_version=""
-
-# Start off blank.  These all get set at the same time that we set 
-# host_jikes_version
-
-# Use Java warnings?
-## This would need to be set independently for the host and target,
-## if we ever ran Jikes on the target.
-## This default can be overridden by the config file(s) or by -D arguments
-## to jconfigure.
-declare JIKES_WARNING_FLAGS=
-
-## Encoding to use with Jikes?
-## Jikes will probably always take iso-8859-1 (iso-latin-1) input without
-## griping.  And, we have experienced problems on AIX/ppc32, where Jikes
-## complained that it could not find the encoding iso-8859-1.  So,
-## this is staying unset for now.  If we ever find ourselves in a
-## situation where we need it, we will have to perform more
-## auto-detection.
-declare jikes_encoding_flag="" # "-encoding iso-8859-1"
-
-
-# The +U option is used to ensure that the source code in files in
-# vm/libSupport/* (the VM* classes we have for GNU classpath
-# compatibility) actually get seen when you recompile.  Otherwise,
-# Jikes sees the precompiled VM* files in the GNU Claspath Jar, and
-# doesn't see our versions that are supposed to supersede them.
-# 
-# We make this resettable for a couple of reasons.  First, since some
-# versions of Jikes will generate an assertion failure when they read
-# the bytecode generated for some of the files in GNU Classpath.
-# Second, so that we can use Java compilers other than Jikes.
-# TODO: The need for the dependency flag can probably be fixed by
-# explicitly invoking jikes/javac on each of those files.  Or some
-# other piece of scripting that made sure that our source files for
-# java.* are found instead of the class files in the jar.
-declare jikes_dependency_flag=+U
-
-## Similar to the flags for Jikes, let's define some for Sun's Javac.
-declare JAVAC_WARNING_FLAGS="-nowarn"
-
-## This is here to shut up a problem that Brian Carlstrom reported
-## when building on Linux/PowerPC, while his locale was set to
-## en_US.utf-8.  
-declare javac_encoding_flag="-encoding iso-8859-1"
-
-
-
-## An alternative we can use if we are dealing with a complier other
-## than Jikes.  TODO; currently unused.
-declare -i all_sources_are_top_level=0
-
-
 ## You can also set the optimization and debugging levels
 ## for the compiler.  We had a bunch of code in here that had hardwired
 ## stuff like -O for HPM and -O2 for everything else.
@@ -997,8 +751,6 @@ load_config_file "${RVM_HOST_CONFIG}"
 ## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
 ## *and* set CLASSPATH_BUILD_DIR to the directory
 ## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
-
-
 
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r HOST_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION} # XXX Experimental
@@ -1125,8 +877,6 @@ CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 #
 # These could be overridden by someone with -D on the command line, or 
 # in the config file.
-JIKES_STR1="JIKES"
-JIKES_STR="\$$JIKES_STR1"
 # HOST_JAVA is a deprecated alias for HOST_VM_RT
 HOST_JAVA_STR1="HOST_JAVA_RT"
 HOST_JAVA_STR="\$$HOST_JAVA_STR1"
@@ -1134,8 +884,6 @@ HOST_VM_RT_STR1="HOST_VM_RT"
 HOST_VM_RT_STR="\$$HOST_VM_RT_STR1"
 HOST_VM_TYPE_STR1="HOST_VM_TYPE"
 HOST_VM_TYPE_STR="\$$HOST_VM_TYPE_STR1"
-HOST_JAVAC_STR1="HOST_JAVAC"
-HOST_JAVAC_STR="\$$HOST_JAVAC_STR1"
 HOST_JAVA_HOME_STR1="HOST_JAVA_HOME"
 HOST_JAVA_HOME_STR="\$$HOST_JAVA_HOME_STR1"
 HOST_JAVADOC_STR1="HOST_JAVADOC"
@@ -1328,11 +1076,9 @@ function unsetEnvironment() {
     # some older Bash versions do not support the ERR trap.
     trap '' ERR 2> /dev/null || :
 
-    unset JIKES $JIKES_STR1
     unset HOST_JAVA $HOST_JAVA_STR1 # Deprecated.
     unset HOST_VM_RT $HOST_VM_RT_STR1
     unset HOST_VM_TYPE $HOST_VM_TYPE_STR1
-    unset HOST_JAVAC $HOST_JAVAC_STR1
     unset HOST_JAVA_HOME $HOST_JAVA_HOME_STR1 
     unset HOST_JAVADOC $HOST_JAVADOC_STR1 
     unset JAR $JAR_STR1 
@@ -1367,8 +1113,6 @@ load_config_file "${RVM_TARGET_CONFIG}"
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r TARGET_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION}
 [[ ${CLASSPATH_SOURCE_DIR-} ]]  && declare -r TARGET_CLASSPATH_SOURCE_DIR=${CLASSPATH_SOURCE_DIR}
 [[ ${CLASSPATH_BUILD_DIR-} ]]  && declare -r TARGET_CLASSPATH_BUILD_DIR=${CLASSPATH_BUILD_DIR}
-
-# echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
 #--------------------------------------#
 # SECTION 4 - ARGUMENT PARSING         #
@@ -1745,9 +1489,6 @@ EOF
 }
 
 
-# echo >&2 "before emitBoilerplate def!  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-
-
 ## We only emit the boilerplate inline.
 function emitBoilerplate () {
 ## NEW version:
@@ -1812,13 +1553,9 @@ function emitEnvironmentBash () {
 	else
 	    export ${BUILD_DIRECTORY_STR1}=\${RVM_BUILD}
 	fi
-
 	
-	export HOST_JIKES='$JIKES $jikes_encoding_flag'		# Deprecated
-	export $JIKES_STR1='$JIKES $jikes_encoding_flag'
 	export $HOST_JAVA_STR1='${HOST_VM_RT}'	# Deprecated
 	export $HOST_VM_RT_STR1='${HOST_VM_RT}'
-	export $HOST_JAVAC_STR1='$HOST_JAVAC $javac_encoding_flag'
 EOF
     # Javadoc is optional; we won't always have free alternatives installed
     if [[ ${HOST_JAVADOC-} ]]; then
@@ -1856,8 +1593,6 @@ cat <<- EOF
 	export ZIP_CMD='$ZIP_CMD'
 	export RVM_CLASSPATH_URL='$RVM_CLASSPATH_URL'
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
-	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
-	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
 EOF
     [[ ${HOST_JAVA_HOME-} ]] && echo "export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'"
     if [ "${HOST_JAVA_LD_LIBRARY_PATH-}" ]; then
@@ -1933,9 +1668,6 @@ function emitMakefile () {
 	else
 	    ${BUILD_DIRECTORY_STR1}:=${RVM_BUILD}
 	endif
-	
-	HOST_JIKES = $JIKES  $jikes_encoding_flag	# Deprecated
-	$JIKES_STR1 = $JIKES $jikes_encoding_flag
 EOF
 	
     # The configuration for building the user guide.
@@ -1972,7 +1704,6 @@ EOF
 	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
 	HOST_VM_RT = ${HOST_VM_RT}
 	HOST_VM_TYPE := ${HOST_VM_TYPE}
-	HOST_JAVAC = $HOST_JAVAC $javac_encoding_flag
 	HOST_JAR := ${JAR}	# Deprecated
 	JAR = $JAR
 	
@@ -2002,7 +1733,6 @@ EOF
 	UNZIP_CMD = $UNZIP_CMD
 	ZIP_CMD = $ZIP_CMD
 
-	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
     [[ ! ${FASTJAR-} ]] || echo "FASTJAR = '$FASTJAR'"  
@@ -2573,8 +2303,6 @@ EOF
 # echo >&2  "HERE I AM! emitCompiler" # DBG
 
 function emitCompiler () {
-#  echo >&2 "In emitCompiler!  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-
     cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate VM class files from Java files.
@@ -2628,26 +2356,23 @@ EOF
     # Generate classes
     #
 
-    cat <<- 'EOF'
+    cat <<- EOF
 	## Generate a list of the source files in RVM.classes that we'll
 	## feed to the Jikes compiler.
 	function get_top_level_sources () {
 	EOF
 
-    if (( all_sources_are_top_level )); then
-	echo '    find . -name \*.java -print'
-	echo '    find ../MMTk.classes/mmtk -name \*.java -print'
-    else
-	echo '    echo "Dummy.java"'
-	echo '    find com/ibm/jikesrvm/mm/mmtk -name \*.java -print'
-	if (( RVM_WITH_OPT_COMPILER )); then
-	    echo '    echo "OptDummy.java"'
-	fi
-	if (( RVM_WITH_OPT_TEST_HARNESS )); then
-	    echo '    echo "OptTestHarness.java"'
-	fi
-	echo '    find gnu java -name \*.java -print'
+    echo '    echo "Dummy.java"'
+    echo '    find com/ibm/jikesrvm/mm/mmtk -name \*.java -print'
+
+    if (( RVM_WITH_OPT_COMPILER )); then
+	echo '    echo "OptDummy.java"'
     fi
+    if (( RVM_WITH_OPT_TEST_HARNESS )); then
+	echo '    echo "OptTestHarness.java"'
+    fi
+    echo '    find gnu java -name \*.java -print'
+
     cat <<- EOF
 	    echo '${CONF_SPECIFIC_TOP_LEVEL_SOURCES}'
 	}
@@ -2657,12 +2382,8 @@ EOF
 	## XXX TODO Make this consistent with the place above where we touch
 	## XXX $CLASSES_INVALID_STR
 	if [[ -e $CLASSES_INVALID_STR ]]; then
-	    if [[ "X${jikes_dependency_flag}" != X ]]; then
-	        TOP_LEVEL_CLASSES="\$(builtin echo \${TOP_LEVEL_SOURCES}| sed 's@\.java@.class@g')"
-	        run rm -f \$TOP_LEVEL_CLASSES
-	    else
-	        run_evaled find . -name '\*.class' \| \$XARGS rm -f
-	    fi
+	    run_evaled find . -name '\*.class' \| \$XARGS rm -f
+	fi
 	EOF
 
 	cat <<- EOF
@@ -2809,7 +2530,6 @@ EOF
 	        \$FIND gnu -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
 	    close_paren 'rvmrt.jar augmented'
 
-	else
 	    if tracing jbuild; then
 	        echo -n "(nothing needed to be compiled) "
 	    fi

@@ -94,9 +94,6 @@ export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/
 # the JDK Javadoc executable
 export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 
-# the JDK javac executable
-export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
-
 # the JDK jar executable
 export JAR="$HOST_JAVA_HOME/bin/jar"
 
@@ -105,10 +102,6 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # Path for GNU make
 export GNU_MAKE="/usr/bin/make"
-
-# Path for the Jikes java-to-byte-code compiler.
-# We recommend version 1.22
-export JIKES=/usr/bin/jikes
 
 ## What C compiler should be used?  We only use the GNU C compiler on
 ## the project, although we have tried to conditionalize any
