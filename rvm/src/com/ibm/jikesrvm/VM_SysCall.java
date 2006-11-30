@@ -343,25 +343,7 @@ import org.vmmagic.pragma.*;
      VM_SysCallMagic.sysSlibclean(VM_BootRecord.the_boot_record.sysSlibcleanIP);
   }
 
-  //-#if RVM_WITH_UNUSED_SYSCALLS
   // network
-  public static int sysNetLocalHostName(Address buf, int limit) {
-     return VM_SysCallMagic.sysNetLocalHostName(VM_BootRecord.the_boot_record.sysNetLocalHostNameIP, buf, limit);
-  }
-  public static int sysNetRemoteHostName(int internetAddress, 
-                                         buf,
-                                         limit) {
-     return VM_SysCallMagic.sysNetRemoteHostName(VM_BootRecord.the_boot_record.sysNetRemoteHostNameIP, internetAddress, 
-                                         buf,
-                                         limit);
-  }
-  public static int sysNetHostAddresses(Address hostname, Address buf, 
-                                        int limit) {
-     return VM_SysCallMagic.sysNetHostAddresses(VM_BootRecord.the_boot_record.sysNetHostAddressesIP, hostname, buf, 
-                                        limit);
-  }
-  //-#endif
-
   public static int sysNetSocketCreate(int isStream) {
      return VM_SysCallMagic.sysNetSocketCreate(VM_BootRecord.the_boot_record.sysNetSocketCreateIP, isStream);
   }

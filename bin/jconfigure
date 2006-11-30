@@ -920,10 +920,6 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 declare -i RVM_WITH_CLASSPATH_0_92=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
-## There are a few syscalls that seem to have fallen into disuse -- 
-## I've surrounded them with this. --Steve Augart
-declare -i RVM_WITH_UNUSED_SYSCALLS=0
-
 #
 # intercept blocking system calls (currently Linux-only)
 #

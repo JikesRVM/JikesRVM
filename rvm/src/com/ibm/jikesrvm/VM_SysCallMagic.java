@@ -208,22 +208,7 @@ public class VM_SysCallMagic {
   public static Address sysDlsym(Address functionAddress, Address libHandler, byte[] symbolName) { return null; }
   public static void sysSlibclean(Address functionAddress) {}
 
-  //-#if RVM_WITH_UNUSED_SYSCALLS
   // network
-  public static int sysNetLocalHostName(Address functionAddress, Address buf, int limit) {
-    return 0;
-  }
-  public static int sysNetRemoteHostName(Address functionAddress, int internetAddress, 
-                                         Address buf,
-                                         int limit) {
-    return 0;
-  }
-  public static int sysNetHostAddresses(Address functionAddress, Address hostname, Address buf, 
-                                        int limit) {
-    return 0;
-  }
-  //-#endif
-
   public static int sysNetSocketCreate(Address functionAddress, int isStream) { return 0; }
   public static int sysNetSocketPort(Address functionAddress, int fd) { return 0; }
   public static int sysNetSocketSndBuf(Address functionAddress, int fd) { return 0; }
