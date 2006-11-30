@@ -361,43 +361,18 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   /// Support for debugging and performance tuning ///
   ///////////////////////////////////////////////////////////////
 
-  //-#if RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT
   /**
    * Number of times a thread yields before inflating the lock on a
    * object to a heavy-weight lock.  The current value was for the
    * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  This
    * is almost certainly not the optimal value.
-   *
-   * Preprocessor directive RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=1.  
-   */
-  private static int retryLimit = 40; // (-1 is effectively infinity)
-  //-#else
-  /**
-   * Number of times a thread yields before inflating the lock on a
-   * object to a heavy-weight lock.  The current value was for the
-   * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  This
-   * is almost certainly not the optimal value.
-   *
-   * Preprocessor directive RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0.
    */
   private static final int retryLimit = 40; // (-1 is effectively infinity)
-  //-#endif
 
-  //-#if RVM_WITH_LOCK_CONTENTION_TRACING
   /**
-   * Report lock contention (for debugging).
-   *
-   * Preprocessor directive RVM_WITH_LOCK_CONTENTION_TRACING=1.
-   */
-  private static final boolean traceContention = true;
-  //-#else
-  /**
-   * Don't report lock contention. 
-   *
-   * Preprocessor directive RVM_WITH_LOCK_CONTENTION_TRACING=0.
+   * Should we trace lockContention to enable debugging?
    */
   private static final boolean traceContention = false;
-  //-#endif
 
   //////////////////////////////////////////////
   //             Statistics                   //

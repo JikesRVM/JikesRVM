@@ -544,43 +544,17 @@ import org.vmmagic.unboxed.*;
   /// Section 4: Support for debugging and performance tuning ///
   ///////////////////////////////////////////////////////////////
 
-//-#if RVM_WITH_FREE_LOCK_BALANCING
   /**
-   * Attempt to keep the roughly equal sized pools for free
-   * heavy-weight locks on each processor.
-   *
-   * Preprocessor directive RVM_WITH_FREE_LOCK_BALANCING=1.  
-   */
-  private static final boolean balanceFreeLocks = true;
-//-#else
-  /**
-   * Don't attempt to keep the roughly equal sized pools for free
-   * heavy-weight locks on each processor.  Each virual processor
-   * keeps its own free pool of the locks that it has freed 
-   * (deflated).
-   *
-   * Preprocessor directive RVM_WITH_FREE_LOCK_BALANCING=0.
+   * Should we attempt to keep the roughly equal sized pools for free
+   * heavy-weight locks on each processor?
    */
   private static final boolean balanceFreeLocks = false;
-//-#endif
 
-//-#if RVM_WITH_TENTATIVE_MICROLOCKING
   /**
-   * Give up the attempt to get a heavy-weight lock, if its
-   * <code>mutex</code> microlock is held by another procesor.
-   *
-   * Preprocessor directive RVM_WITH_TENTATIVE_MICROLOCKING=1.
-   */
-  private static final boolean tentativeMicrolocking = true;
-//-#else
-  /**
-   * Persist in attempting to get a heavy-weight lock, if its
-   * <code>mutex</code> microlock is held by another procesor.
-   *
-   * Preprocessor directive RVM_WITH_TENTATIVE_MICROLOCKING=0.
+   * Should we give up or persist in the attempt to get a heavy-weight lock,
+   * if its <code>mutex</code> microlock is held by another procesor.
    */
   private static final boolean tentativeMicrolocking = false;
-//-#endif
 
   /**
    * Reports the state of a heavy-weight lock, via {@link VM#sysWrite}.

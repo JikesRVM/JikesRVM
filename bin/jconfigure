@@ -940,11 +940,6 @@ declare -i RVM_WITH_OSR=0
 # complains about any tests against undefined conditionals.
 # Search for "BUILD_WITH_PARANOID_PREPROCESSOR" below and way below.
 
-declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
-declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
-declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
-declare -i RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0
-declare -i RVM_WITH_LOCK_CONTENTION_TRACING=0
 declare -i RVM_WITH_DEBUG=0
 
 ## Just affects the configuration process:
@@ -1284,11 +1279,6 @@ BOOTIMAGE_WRITER_DIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageWriter"
 #--------------------------------------#
 # SECTION 5 - DEFINITIONS OF FUNCTIONS #
 #--------------------------------------#
-
-# Check configuration options for sanity.
-function checkConfigurationOptions {
-}
-
 
 # Emit list of source tree directories in the current
 # configuration whose Java files need to be preprocessed.
@@ -4248,9 +4238,6 @@ function emitConfigSummary () {
 #------------------------------------------------#
     
 echo "${ME}: setting up ${BUILD_DIRECTORY} for ${CONFIGURATION_NAME}"
-
-# Ensure configuration options are sensible.
-checkConfigurationOptions
 
 # Make a fresh start.
 #

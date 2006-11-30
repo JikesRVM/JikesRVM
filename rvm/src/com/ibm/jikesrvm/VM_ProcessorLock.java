@@ -24,8 +24,7 @@ import org.vmmagic.unboxed.*;
  * this processor lock's <code>latestContender</code> field.  If
  * <code>MCS_Locking</code> is set, the processors spin on processor
  * local data.  This is loosely based on an idea in Mellor-Crummey and
- * Scott's paper in ASPLOS-IV (1991).  MCS locking is indicated by
- * setting the preprocessor directive RVM_FOR_MCS_PROCESSOR_LOCKS to
+ * Scott's paper in ASPLOS-IV (1991).  
  * 1.  Possible project: determine those conditions under which MCS
  * locking performs better than spinning on a global address.
  *
@@ -75,17 +74,11 @@ import org.vmmagic.unboxed.*;
  * @see VM_Lock */
 @Uninterruptible public final class VM_ProcessorLock implements VM_Constants {
 
-//-#if RVM_FOR_MCS_PROCESSOR_LOCKS
   /**
-   * Contending <code>VM_Processor</code>s spin on processor local addresses.
-   */
-  private static final boolean MCS_Locking = true;
-//-#else
-  /**
-   * Contending <code>VM_Processor</code>s spin on a globally shared address.
+   * Should contending <code>VM_Processor</code>s spin on processor local addresses (true)
+   * or on a globally shared address (false).
    */
   private static final boolean MCS_Locking = false;
-//-#endif
   
   /**
    * The state of the processor lock.
