@@ -49,18 +49,6 @@ export RVM_WITH_HPM=1
 
 [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/usr/java5"
 
-# the JDK java executable
-export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
-
-# the JDK javadoc executable
-export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
-
-# the JDK jar executable
-export HOST_JAR="${HOST_JAVA_HOME}/bin/jar"
-
-# the JDK standard library jar files
-export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
-
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 

@@ -387,34 +387,10 @@ function setSomeFromPath () {
 }
 
 function on_host_set_HOST_VM_variables () {
-        ## HOST_VM_TYPE: Valid working values: Sun, Kaffe, IBM-50
-    ##			In-progress values: JikesRVM, gij
+    ## HOST_VM_TYPE: Valid working values: Sun, IBM-50
     : ${HOST_VM_TYPE=Sun}	# the default
 
     case $HOST_VM_TYPE in
-	gij)
-	    if [[ ! ${JAVAH-} ]]; then
-		setFromPath JAVAH gcjh
-		[[ ${JAVAH} ]] && JAVAH="${JAVAH} -jni"
-	    fi
-	    ;;
-
-	Kaffe)
-	    [[ ${KAFFE_HOME-} ]] || export KAFFE_HOME=/usr/local/kaffe
-	    [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME=${KAFFE_HOME}
-	    # The javah that comes with Kaffe balks at some of Jikes RVM's 
-	    # different versions of the java.* classes.
-	    export DO_NOT_RUN_JAVAH=true
-	    ;;
-
-	JikesRVM)
-	    : ${DONOR_RVM_ROOT?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=JikesRVM, so you need to set DONOR_RVM_ROOT too}
-	    : ${DONOR_RVM_BUILD?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=JikesRVM, so you need to set DONOR_RVM_BUILD too}
-	    ## Doesn't ship with a "javah"
-
-	    export DO_NOT_RUN_JAVAH=true
-	    ;;
-
 	Sun)
 	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=Sun, so you need to set HOST_JAVA_HOME too}
 	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
@@ -433,73 +409,24 @@ function on_host_set_HOST_VM_variables () {
     esac
 
     if ! [[ ${HOST_VM_RT-} ]]; then
-	## HOST_JAVA is deprecated; the free virtual machines haven't passed
-	## the Java Compatibility Tests, so legally aren't "Java".
-	! [[ ${HOST_JAVA-} ]] || export HOST_VM_RT=${HOST_JAVA}
-    fi
-
-    if ! [[ ${HOST_VM_RT-} ]]; then
-	if [[ $HOST_VM_TYPE = gij ]]; then
-	    setFromPath HOST_VM_RT gij
-	    setFromPath FASTJAR jar
-	elif [[ $HOST_VM_TYPE = Kaffe ]]; then
-	    HOST_VM_RT=${KAFFE_HOME}/bin/kaffe
-	elif [[ $HOST_VM_TYPE = Sun ]]; then
-	    HOST_VM_RT=${HOST_JAVA_HOME}/bin/java
-	    # the JDK java executable
-	    export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
-
-	    # 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
-	    # the JRE's various library paths (otherwise they don't find their .so files 
-	    # when invoked from shell scripts and make).
-	    # Here's how to do it to use HotSpot server with Blackdown 1.4.1
-	    export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
-	    # Here's how to do it to using the IBM 1.4.1 DK 
-	    #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
-	elif [[ $HOST_VM_TYPE = JikesRVM ]]; then
-	    ## This blows up if either of the variables 
-	    ## DONOR_RVM_ROOT or DONOR_RVM_BUILD contain spaces in their values.
-	    HOST_VM_RT="${DONOR_RVM_ROOT}/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"
-	fi
-    fi
-    
-    if ! [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
-	TemplateExpander_HOST_VM_RT="${HOST_VM_RT}"
+	HOST_VM_RT=${HOST_JAVA_HOME}/bin/java
     fi
 }
 
 function rationalize_config_file_settings () {
 
-    if ! [[ ${HOST_JAVADOC-} ]] && [[ ${HOST_JAVA_HOME-} ]]; then
-	# The JDK Javadoc executable
-	# Might be replaceable with Doxygen, but I'm not holding my breath.
-	export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
-    fi
-
     on_host_set_HOST_VM_variables
 
     setSomeFromPath fgrep
 
-    # HOST_TOOLS: 
-    # The Sun-derived JDKs have this, which we only use for doing 
-    # regression tests: 
-    if [[ ! ${HOST_TOOLS-} ]] && [[ $HOST_VM_TYPE = Sun ]]; then
-	export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+    # The "jar" executable program.
+    if [[ ! ${JAR-} ]]; then
+	export JAR=${HOST_JAVA_HOME}/bin/jar
     fi
 
-    # The "jar" executable program.
-    # This has a convenient OSS replacement, fastjar
-    # (Except that fastjar doesn't support -u)
-    # Kaffe also comes with a "jar".
-    if [[ ! ${JAR-} ]]; then
-	if [[ ${HOST_JAR-} ]]; then
-	    # obsolete name
-	    export JAR=${HOST_JAR}
-	elif [[ ${FASTJAR-} ]]; then
-	    export JAR=${FASTJAR}
-	elif [[ ${HOST_JAVA_HOME-} ]]; then
-	    export JAR=${HOST_JAVA_HOME}/bin/jar
-	fi
+    # javadoc executable program
+    if ! [[ ${HOST_JAVADOC-} ]] && [[ ${HOST_JAVA_HOME-} ]]; then
+	export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
     fi
 
     # CC: What C compilers should be used?
@@ -877,9 +804,6 @@ CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 #
 # These could be overridden by someone with -D on the command line, or 
 # in the config file.
-# HOST_JAVA is a deprecated alias for HOST_VM_RT
-HOST_JAVA_STR1="HOST_JAVA_RT"
-HOST_JAVA_STR="\$$HOST_JAVA_STR1"
 HOST_VM_RT_STR1="HOST_VM_RT"
 HOST_VM_RT_STR="\$$HOST_VM_RT_STR1"
 HOST_VM_TYPE_STR1="HOST_VM_TYPE"
@@ -1076,21 +1000,17 @@ function unsetEnvironment() {
     # some older Bash versions do not support the ERR trap.
     trap '' ERR 2> /dev/null || :
 
-    unset HOST_JAVA $HOST_JAVA_STR1 # Deprecated.
     unset HOST_VM_RT $HOST_VM_RT_STR1
     unset HOST_VM_TYPE $HOST_VM_TYPE_STR1
     unset HOST_JAVA_HOME $HOST_JAVA_HOME_STR1 
     unset HOST_JAVADOC $HOST_JAVADOC_STR1 
     unset JAR $JAR_STR1 
-    unset FASTJAR
-    unset HOST_TOOLS $HOST_TOOLS_STR1 
     unset GNU_MAKE $GNU_MAKE_STR1 
     unset CC $HOST_CC_STR1 
     unset CPP $HOST_CPP_STR1 
     unset CPLUS $HOST_CPLUS_STR1 
     unset LDSHARED $HOST_SHLD_STR1 
     unset WGET XARGS UNZIP 
-    unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
     unset CLASSPATH_INSTALLATION
     unset CLASSPATH_SOURCE_DIR # XXX Experimental
@@ -1554,15 +1474,11 @@ function emitEnvironmentBash () {
 	    export ${BUILD_DIRECTORY_STR1}=\${RVM_BUILD}
 	fi
 	
-	export $HOST_JAVA_STR1='${HOST_VM_RT}'	# Deprecated
 	export $HOST_VM_RT_STR1='${HOST_VM_RT}'
 EOF
     # Javadoc is optional; we won't always have free alternatives installed
     if [[ ${HOST_JAVADOC-} ]]; then
 	echo "export $HOST_JAVADOC_STR1='$HOST_JAVADOC'"
-    fi
-    if [[ ${HOST_TOOLS-} ]]; then
-	echo "export $HOST_TOOLS_STR1='$HOST_TOOLS'"
     fi
     cat <<-EOF
 	export HOST_JAR='$JAR'	# Deprecated
@@ -1595,12 +1511,6 @@ cat <<- EOF
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 EOF
     [[ ${HOST_JAVA_HOME-} ]] && echo "export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'"
-    if [ "${HOST_JAVA_LD_LIBRARY_PATH-}" ]; then
-	cat <<- EOF
-	[[ \${LD_LIBRARY_PATH-} ]] && LD_LIBRARY_PATH=:\${LD_LIBRARY_PATH}
-	export LD_LIBRARY_PATH="${HOST_JAVA_LD_LIBRARY_PATH}\${LD_LIBRARY_PATH-}"
-EOF
-    fi
     cat <<- EOF
 	SINGLE_VIRTUAL_PROCESSOR_DEFAULT=${single_virtual_processor_default}
 EOF
@@ -1619,7 +1529,6 @@ EOF
 
     # CPP is only used by the PowerPC build.
     [[ ! ${CPP-} ]] || echo "export $HOST_CPP_STR1='$CPP'"
-    [[ ! ${FASTJAR-} ]] || echo "export FASTJAR='$FASTJAR'"
     [[ ! ${BISON-} ]] || echo "export BISON='$BISON'"  
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
@@ -1632,8 +1541,6 @@ EOF
     echo "declare -i RVM_WITH_GCSPY=${RVM_WITH_GCSPY}"
     echo ""
     # For self-booting with Jikes RVM (work in progress)
-    [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
-    [[ ! ${DONOR_RVM_BUILD-} ]] || echo "export DONOR_RVM_BUILD=$DONOR_RVM_BUILD"
     if [[ ${OBJECT_MODE-} ]]; then
 	echo ""
 	echo "export OBJECT_MODE=$OBJECT_MODE   # Horrible kludge for AIX"
@@ -1691,20 +1598,11 @@ EOF
     fi
 
     [[ ! ${HOST_JAVA_HOME-} ]] || echo "HOST_JAVA_HOME = $HOST_JAVA_HOME"
-    [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"
-    [[ ! ${HOST_TOOLS-} ]] || echo "HOST_TOOLS = $HOST_TOOLS"
     [[ ! ${HOST_JAVADOC-} ]] || echo "HOST_JAVADOC := $HOST_JAVADOC"
 
-    if [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
-	echo "# Experimental!"
-	echo "TemplateExpander_HOST_VM_RT := ${TemplateExpander_HOST_VM_RT-}"
-    fi
-
     cat <<- EOF
-	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
 	HOST_VM_RT = ${HOST_VM_RT}
 	HOST_VM_TYPE := ${HOST_VM_TYPE}
-	HOST_JAR := ${JAR}	# Deprecated
 	JAR = $JAR
 	
 	RVM_WITH_GCSPY:=${RVM_WITH_GCSPY}
@@ -1735,10 +1633,7 @@ EOF
 
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
-    [[ ! ${FASTJAR-} ]] || echo "FASTJAR = '$FASTJAR'"  
     [[ ! ${BENCHMARK_ROOT-} ]] || echo "BENCHMARK_ROOT = $BENCHMARK_ROOT"
-    [[ ! ${DONOR_RVM_ROOT-} ]] || echo "DONOR_RVM_ROOT = $DONOR_RVM_ROOT"
-    [[ ! ${DONOR_RVM_BUILD-} ]] || echo "DONOR_RVM_BUILD = $DONOR_RVM_BUILD"
     if [[ ${OBJECT_MODE-} ]]; then
 	echo "# Horrible kludge for AIX:"
 	echo "export OBJECT_MODE = $OBJECT_MODE"
@@ -1905,8 +1800,6 @@ function emitController () {
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 
 	# Take the GNU Classpath jar and repackage as rvmrt.jar
-	# We need it very early in the build process if we are using Jikes compiler,
-	# since it needs rvmrt.jar to use as the base libraries to compile against.
         if [[ \${CLASSPATH_BUILD_DIR-} ]]; then
 	    # Use a pre-built GNU Classpath in a 
 	    # user-specified directory.
@@ -2358,7 +2251,7 @@ EOF
 
     cat <<- EOF
 	## Generate a list of the source files in RVM.classes that we'll
-	## feed to the Jikes compiler.
+	## feed to ecj.
 	function get_top_level_sources () {
 	EOF
 
@@ -2384,7 +2277,8 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    run_evaled find . -name '\*.class' \| \$XARGS rm -f
 	fi
-	EOF
+
+EOF
 
 	cat <<- EOF
 build_mmtk() {
@@ -2459,85 +2353,69 @@ build_mmtk() {
 	    else
 	        status=\$?
 	        close_paren 'compilation FAILED'
-		## Now that we invoke Jikes with a longer list of TOP_LEVEL_SOURCES,
+		## Now that we invoke ecj with a longer list of TOP_LEVEL_SOURCES,
 		## this message has grown Much Too Long.
 	        echo >&2 "\$ME: The Java compiler exited with status \${status}"
 	        echo >&2 "     Run \$ME -trace if you need more information"
 	        exit \$status
+	    fi
+
+    ecj_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+    
+    open_paren 'compiling classes'
+    if tracing jbuild || tracing make || tracing; then
+        cleanline
+        echo "  "\${ecj_invocation}
+    fi
+    if \${ecj_invocation}; then
+        close_paren 'classes compiled'
+    else
+        status=\$?
+        close_paren 'compilation FAILED'
+	## Now that we invoke ecj with a longer list of TOP_LEVEL_SOURCES,
+	## this message has grown Much Too Long.
+        echo >&2 "\$ME: The Java compiler exited with status \${status}"
+        echo >&2 "     Run \$ME -trace if you need more information"
+        exit \$status
     fi
 
+    open_paren 'building jksvm.jar'
+    ## We do not want Dummy.class or OptDummy.class to go into 
+    ## jksvm.jar -- otherwise, "rvm Dummy" or "rvm OptDummy" would run
+    ## that class!  And that's NOT what the user expects :)
+    run rm -f jksvm.jar Dummy.class OptDummy.class
+
+    ## The Sun JAR manual page claims that '-O' (the letter Oh) 
+    ## is the flag for no-compression.  It is actually
+    ## '0' (the number zero), not the letter 'O'.
+
+    ## Create a blank .jar file and put in Jikes RVM classes
+    run touch jksvm.jar
+    \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+    \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+    if [[ -f OptTestHarness.java ]]; then
+	run $JAR_STR -u0f jksvm.jar OptTestHarness*.class
+    fi
+    close_paren 'jksvm.jar built'
+
+    open_paren 'building jksvmsrc.jar'
+    run rm -f jksvmsrc.jar
+    run touch jksvmsrc.jar
+    \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
+    close_paren 'jksvmsrc.jar built'
+
+    open_paren 'Augmenting rvmrt.jar'
+        \$FIND java -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
+        \$FIND gnu -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
+    close_paren 'rvmrt.jar augmented'
+
+    if tracing jbuild; then
+        echo -n "(nothing needed to be compiled) "
+    fi
+    rm -f $CLASSES_INVALID_STR
+
+    trap '' EXIT
 EOF
-
-    cat <<- EOF
-	    jikes_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
-    
-EOF
-    cat <<- EOF
-	    open_paren 'compiling classes'
-	    if tracing jbuild || tracing make || tracing; then
-	        cleanline
-	        echo "  "\${jikes_invocation}
-	    fi
-	    if \${jikes_invocation}; then
-	        close_paren 'classes compiled'
-	    else
-	        status=\$?
-	        close_paren 'compilation FAILED'
-		## Now that we invoke Jikes with a longer list of TOP_LEVEL_SOURCES,
-		## this message has grown Much Too Long.
-	        echo >&2 "\$ME: The Jikes compiler exited with status \${status}"
-	        echo >&2 "     Run \$ME -trace if you need more information"
-	        exit \$status
-	    fi
-
-	    open_paren 'building jksvm.jar'
-	    ## We do not want Dummy.class or OptDummy.class to go into 
-	    ## jksvm.jar -- otherwise, "rvm Dummy" or "rvm OptDummy" would run
-	    ## that class!  And that's NOT what the user expects :)
-	    run rm -f jksvm.jar Dummy.class OptDummy.class
-	    ## NB: "fastjar", the open-source program, has a broken -u flag,
-	    ## at least temporarily.  However, it DOES have a very nice @ flag,
-	    ## which the Sun-derived JDKs lack.
-	    if [[ \${FASTJAR-} ]]; then
- 	        \$FIND . -name '*.class' | \$FASTJAR -c0@f jksvm.jar
-	    else
-	        ## The Sun JAR manual page claims that '-O' (the letter Oh) 
-	        ## is the flag for no-compression.  It is actually
-	        ## '0' (the number zero), not the letter 'O'.
-
-		## Create a blank .jar file and put in Jikes RVM classes
-		run touch jksvm.jar
-	        \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
-	        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
-		if [[ -f OptTestHarness.java ]]; then
-		    run $JAR_STR -u0f jksvm.jar OptTestHarness*.class
-		fi
-	    fi
-	    close_paren 'jksvm.jar built'
-
-	    open_paren 'building jksvmsrc.jar'
-	    run rm -f jksvmsrc.jar
-	    if [[ \${FASTJAR-} ]]; then
- 	        \$FIND . -name '*.java' | \$FASTJAR -c0@f jksvmsrc.jar
-	    else
-	        run touch jksvmsrc.jar
-	        \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
-	    fi
-	    close_paren 'jksvmsrc.jar built'
-
-	    open_paren 'Augmenting rvmrt.jar'
-	        \$FIND java -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
-	        \$FIND gnu -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
-	    close_paren 'rvmrt.jar augmented'
-
-	    if tracing jbuild; then
-	        echo -n "(nothing needed to be compiled) "
-	    fi
-	fi
-	rm -f $CLASSES_INVALID_STR
-
-	trap '' EXIT
-	EOF
 }
 
 function emitInterfaceDeclarationsWriter () {
@@ -2669,14 +2547,7 @@ EOF
 	   -ca $BOOTIMAGE_CODE_ADDRESS \
 	   -ra $BOOTIMAGE_RMAP_ADDRESS \
 	   -out \$interface )
-	if [[ \$HOST_VM_TYPE == "JikesRVM" ]]; then
-#	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar:\$DONOR_RVM_BUILD/RVM.classes/mmtk.jar" "\${args[@]}")
-	    args=("\${args[@]}" -alternateRealityClasspath  "\$cp" )
-	    args=("\${args[@]}" -alternateRealityNativeLibDir  \
-					"$BUILD_DIRECTORY_STR" )
-	fi
-
-	if [[ \$HOST_VM_TYPE == "Sun" ]]; then
+	if [[ \$HOST_VM_TYPE == "Sun" ]] || [[ \$HOST_VM_TYPE == "IBM-50" ]]; then
 	    args=(-Xbootclasspath/a:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar "\${args[@]}")
 	fi
 

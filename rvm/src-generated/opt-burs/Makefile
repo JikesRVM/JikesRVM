@@ -40,7 +40,7 @@ $(GEN_FILES_DIR)/LIR2MIR.rules:	$(RULE_FILES)
 	cat $(RULE_FILES) > $(GEN_FILES_DIR)/LIR2MIR.rules
 
 $(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src-generated/opt-ir/OperatorList.dat ir.template $(GEN_FILES_DIR)/LIR2MIR.rules
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate ir.template \
 	$(GEN_FILES_DIR)/ir.brg \
 	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR) \

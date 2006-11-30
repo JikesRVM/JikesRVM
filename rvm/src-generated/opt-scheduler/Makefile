@@ -25,7 +25,7 @@ endif
 default:  $(GEN_FILES_DIR)/OPT_OperatorClass.java
 
 $(GEN_FILES_DIR)/OPT_OperatorClass.java:	OPT_OperatorClass.template $(ARCH_DIR)/ResourceList.dat $(ARCH_DIR)/OperatorClassList.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_OperatorClass.template  \
 	$(GEN_FILES_DIR)/OPT_OperatorClass.java \
 	ARCHITECTURE_IR_DIR=$(ARCH_DIR) \

@@ -59,18 +59,6 @@ export RVM_WITH_HPM=1
 # Root of JDK installation.
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/java15"
 
-# the JDK java executable
-export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
-
-# the JDK Javadoc executable
-export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
-
-# the JDK jar executable
-export JAR="$HOST_JAVA_HOME/bin/jar"
-
-# the JDK tools jar
-export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
-
 # Path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 

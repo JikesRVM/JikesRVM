@@ -17,7 +17,7 @@ ARCH_OPS = $(JAL_ROOT)/rvm/src-generated/opt-ir/ia32/OperatorList.dat
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
-GENERATE = $(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
+GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 TABLES_JAVA=$(SCRATCH_DIR)/OPT_InstructionFormatTables.java
 TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class

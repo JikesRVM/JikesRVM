@@ -16,7 +16,7 @@ default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_OperatorNames.java \
 			$(GEN_FILES_DIR)/InstructionFormats.RAW
 
-GENERATE = $(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate 
+GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate 
 
 ifeq ($(RVM_FOR_IA32),1)
   ARCH_OPS = $(ARCH_IR_DIR)/OperatorList.dat 

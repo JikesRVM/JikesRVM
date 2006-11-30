@@ -33,7 +33,7 @@ $(GEN_FILES_DIR)/VM_AOSExternalOptions.java:	VM_AOSOptions.template \
 					MasterOptions.template \
 					BooleanOptions.aos.dat \
 					ValueOptions.aos.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate VM_AOSOptions.template \
 	$(GEN_FILES_DIR)/VM_AOSExternalOptions.java \
 	BOOLEAN_DAT_FILES="BooleanOptions.aos.dat" \
@@ -44,7 +44,7 @@ $(GEN_FILES_DIR)/VM_BaselineOptions.java:  VM_BaselineOptions.template \
 					MasterOptions.template \
 					BooleanOptions.baseline.dat SharedBooleanOptions.dat \
 					ValueOptions.baseline.dat SharedValueOptions.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate VM_BaselineOptions.template \
 	$(GEN_FILES_DIR)/VM_BaselineOptions.java \
         BOOLEAN_DAT_FILES="BooleanOptions.baseline.dat SharedBooleanOptions.dat" \
@@ -55,7 +55,7 @@ $(GEN_FILES_DIR)/VM_QuickOptions.java:  VM_QuickOptions.template \
 					MasterOptions.template \
 					BooleanOptions.quick.dat SharedBooleanOptions.dat \
 					ValueOptions.quick.dat SharedValueOptions.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate VM_QuickOptions.template \
 	$(GEN_FILES_DIR)/VM_QuickOptions.java \
         BOOLEAN_DAT_FILES="BooleanOptions.quick.dat SharedBooleanOptions.dat" \
@@ -66,7 +66,7 @@ $(GEN_FILES_DIR)/OPT_Options.java:  OPT_Options.template \
 					MasterOptions.template \
 					BooleanOptions.opt.dat SharedBooleanOptions.dat \
 					ValueOptions.opt.dat SharedValueOptions.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_Options.template \
 	$(GEN_FILES_DIR)/OPT_Options.java \
         BOOLEAN_DAT_FILES="BooleanOptions.opt.dat SharedBooleanOptions.dat" \
@@ -76,7 +76,7 @@ $(GEN_FILES_DIR)/OPT_Options.java:  OPT_Options.template \
 $(GEN_FILES_DIR)/VM_Options.java: VM_Options.template \
 				BooleanOptions.vm.dat \
 				ValueOptions.vm.dat
-	$(TemplateExpander_HOST_VM_RT) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate VM_Options.template \
 	$(GEN_FILES_DIR)/VM_Options.java \
         BOOLEAN_DAT_FILES="BooleanOptions.vm.dat" \
