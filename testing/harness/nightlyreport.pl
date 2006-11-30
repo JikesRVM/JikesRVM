@@ -60,8 +60,8 @@ getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sani
 # produce the html summary
 #
 my $html;
-my $outputfile = $root/results/report.html;
-my $webtarget = "steveb@littleblue:public_html/jikesrvm/$hostname/".getdatestr($svnstamp).".html"
+my $outputfile = "$root/results/report.html";
+my $webtarget = "steveb\@littleblue.anu.edu.au:public_html/jikesrvm/$host/".getdatestr($svnstamp).".html";
 #open($html, ">$root/results/".getdatestr($svnstamp).".html");
 open($html, ">$outputfile");
 printhtmlhdr($html);
@@ -75,7 +75,9 @@ genoptdetails($html, \@optdetails);
 gentestsuccesses($html, \@sanity, \@error);
 printhtmlftr($html);
 close($html);
-system("scp $outputfile $webtarget");
+$cmd = "scp $outputfile $webtarget";
+#print "$cmd\n";
+system($cmd);
 exit(0);
 
 #
