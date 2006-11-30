@@ -267,7 +267,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * Create a new Util instance using the appropriate VM-specific
    * concrete Util sub-class.
    * 
-   * @see Util
+   * @see org.mmtk.vm.gcspy.Util
    * @return A concrete VM-specific Util instance.
    */
   public org.mmtk.vm.gcspy.Util newGCspyUtil() {
@@ -283,7 +283,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * Create a new ServerInterpreter instance using the appropriate VM-specific
    * concrete ServerInterpreter sub-class.
    * 
-   * @see ServerInterpreter
+   * @see org.mmtk.vm.gcspy.ServerInterpreter
    * @return A concrete VM-specific ServerInterpreter instance.
    */
   public org.mmtk.vm.gcspy.ServerInterpreter newGCspyServerInterpreter() {
@@ -308,7 +308,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * @param unused A label for unused blocks
    * @param mainSpace Whether this space is the main space
    * 
-   * @see ServerSpace
+   * @see org.mmtk.vm.gcspy.ServerSpace
    * @return A concrete VM-specific ServerSpace instance.
    */
   public org.mmtk.vm.gcspy.ServerSpace newGCspyServerSpace(
@@ -348,7 +348,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * @param paintStyle     How the value is to be painted.   
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
-   * @see IntStream
+   * @see org.mmtk.vm.gcspy.IntStream
    * 
    * @return A concrete VM-specific ByteStream instance. 
    */
@@ -395,7 +395,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * @param paintStyle     How the value is to be painted.   
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
-   * @see IntStream
+   * @see org.mmtk.vm.gcspy.IntStream
    * 
    * @return A concrete VM-specific IntStream instance. 
    */
@@ -443,7 +443,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * @param paintStyle     How the value is to be painted.   
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
-   * @see IntStream
+   * @see org.mmtk.vm.gcspy.IntStream
    * 
    * @return A concrete VM-specific ShortStream instance. 
    */
