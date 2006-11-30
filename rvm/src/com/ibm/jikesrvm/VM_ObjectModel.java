@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.ir.*;
 //-#endif
@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * <li> The JavaHeader defined by {@link VM_JavaHeader}. This portion of the
  *      object supports language-level functions such as locking, hashcodes,
  *      dynamic type checking, virtual function invocation, and array length.
- * <li> The GCHeader defined by {@link VM_AllocatorHeader}. This portion
+ * <li> The GCHeader defined by {@link MM_Interface}. This portion
  *      of the object supports allocator-specific requirements such as 
  *      mark/barrier bits, reference counts, etc.
  * <li> The MiscHeader defined by {@link VM_MiscHeader}. This portion supports 
@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
  *  
  * @see VM_JavaHeader
  * @see VM_MiscHeader
- * @see VM_AllocatorHeader
+ * @see MM_Interface
  * 
  * @author Bowen Alpern
  * @author David Bacon
@@ -762,7 +762,7 @@ import org.vmmagic.pragma.*;
     int offset = getOffsetForAlignment(klass);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = VM_JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
-    VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, true);
+    MM_Interface.initializeHeader(bootImage, ref, tib, size, true);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
     return ref;
   }
@@ -817,7 +817,7 @@ import org.vmmagic.pragma.*;
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
-    VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
+    MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;
   }
@@ -843,7 +843,7 @@ import org.vmmagic.pragma.*;
     Address ptr = bootImage.allocateCodeStorage(size, align, offset);
     Address ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
-    VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
+    MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;
   }
@@ -866,7 +866,6 @@ import org.vmmagic.pragma.*;
     VM.sysWrite(" TIB=");
     VM.sysWrite(VM_Magic.objectAsAddress(getTIB(ref)));
     VM_JavaHeader.dumpHeader(ref);
-    VM_AllocatorHeader.dumpHeader(ref);
     VM_MiscHeader.dumpHeader(ref);
   }
 

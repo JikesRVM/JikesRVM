@@ -10,8 +10,8 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -95,7 +95,7 @@ import com.ibm.jikesrvm.opt.ir.*;
 
   static {
     if (VM.VerifyAssertions) {
-      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + MM_Constants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 
@@ -919,7 +919,7 @@ import com.ibm.jikesrvm.opt.ir.*;
     VM.sysWriteln("NUM_THIN_LOCK_BITS = ", NUM_THIN_LOCK_BITS);
     VM.sysWriteln("THIN_LOCK_SHIFT = ", THIN_LOCK_SHIFT);
     VM.sysWriteln("VM_MiscHeader.REQUESTED_BITS = ", VM_MiscHeader.REQUESTED_BITS);
-    VM.sysWriteln("VM_AllocatorHeader.REQUESTED_BITS  = ", VM_AllocatorHeader.REQUESTED_BITS);
+    VM.sysWriteln("MM_Constants.GC_HEADER_BITS  = ", MM_Interface.REQUESTED_BITS);
   }
   */
 

@@ -134,13 +134,6 @@ import com.ibm.jikesrvm.quick.*;
     //    This can happen at any point before we start running
     //    multi-threaded.  
     VM_Thread.boot();
-
-    // Initialize memory manager's virtual processor local state.
-    // This must happen before any putfield or arraystore of object refs
-    // because the buffer is accessed by compiler-generated write barrier code.
-    //
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up write barrier");
-    MM_Interface.setupProcessor(VM_Processor.getCurrentProcessor());
     
     // Initialize memory manager.
     //    This must happen before any uses of "new".

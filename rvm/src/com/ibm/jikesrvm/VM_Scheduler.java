@@ -236,8 +236,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
       //-#endif
     }
 
-    VM_CollectorThread.boot(numProcessors);
-
     // Create one one idle thread per processor.
     //
     for (int i = 0; i < numProcessors; ++i) {

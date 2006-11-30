@@ -10,9 +10,32 @@
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
+import com.ibm.jikesrvm.BootImageInterface;
+import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_BootRecord;
+import com.ibm.jikesrvm.VM_CodeArray;
+import com.ibm.jikesrvm.VM_CompiledMethod;
+import com.ibm.jikesrvm.VM_HeapLayoutConstants;
+import com.ibm.jikesrvm.VM_DynamicLibrary;
+import com.ibm.jikesrvm.VM_JavaHeader;
+import com.ibm.jikesrvm.VM_Magic;
+import com.ibm.jikesrvm.VM_Memory;
+import com.ibm.jikesrvm.VM_ObjectModel;
+import com.ibm.jikesrvm.VM_Processor;
+import com.ibm.jikesrvm.classloader.VM_Type;
+import com.ibm.jikesrvm.classloader.VM_Array;
+import com.ibm.jikesrvm.classloader.VM_Class;
+import com.ibm.jikesrvm.classloader.VM_Method;
+import com.ibm.jikesrvm.mm.mmtk.Assert;
+import com.ibm.jikesrvm.mm.mmtk.Lock;
+import com.ibm.jikesrvm.mm.mmtk.Options;
+import com.ibm.jikesrvm.mm.mmtk.ReferenceGlue;
+import com.ibm.jikesrvm.mm.mmtk.SynchronizedCounter;
+import com.ibm.jikesrvm.mm.mmtk.Collection;
+
+import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
-import java.lang.ref.PhantomReference;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -24,32 +47,9 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
-import com.ibm.jikesrvm.mm.mmtk.Assert;
-import com.ibm.jikesrvm.mm.mmtk.Lock;
-import com.ibm.jikesrvm.mm.mmtk.Options;
-import com.ibm.jikesrvm.mm.mmtk.ReferenceGlue;
-import com.ibm.jikesrvm.mm.mmtk.SynchronizedCounter;
-import com.ibm.jikesrvm.mm.mmtk.Collection;
 
-import com.ibm.jikesrvm.classloader.VM_Type;
-import com.ibm.jikesrvm.classloader.VM_Array;
-import com.ibm.jikesrvm.classloader.VM_Class;
-import com.ibm.jikesrvm.classloader.VM_Method;
-
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
-
-import com.ibm.jikesrvm.VM_BootRecord;
-import com.ibm.jikesrvm.VM_CodeArray;
-import com.ibm.jikesrvm.VM_CompiledMethod;
-import com.ibm.jikesrvm.VM_HeapLayoutConstants;
-import com.ibm.jikesrvm.VM_DynamicLibrary;
-
-import com.ibm.jikesrvm.VM_Memory;
-import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Processor;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -86,13 +86,6 @@ import com.ibm.jikesrvm.VM_Processor;
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER
     = Selected.Constraints.get().needsStaticWriteBarrier();
 
-  /* AJG: Not used. But will be. needed */
-  /**
-   * <code>true</code> if a write barrier for TIB store operations is
-   * requried.  Note: This field is not used.
-   */
-  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
-
   /**
    * <code>true</code> if the memory manager moves objects. For
    * example, a copying collector will move objects.
@@ -106,12 +99,12 @@ import com.ibm.jikesrvm.VM_Processor;
    */
   public static final boolean MOVES_TIBS = false;
 
-  /**
-   * <code>true</code> if checking of allocated memory to ensure it is
-   * zeroed is desired.
-   */
+ /**
+  * <code>true</code> if checking of allocated memory to ensure it is
+  * zeroed is desired.
+  */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
-
+  
   /**
    * <code>true</code> if the memory manager will generate a garbage
    * collection trace of the run.
@@ -121,7 +114,7 @@ import com.ibm.jikesrvm.VM_Processor;
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
-  
+   
   /***********************************************************************
    *
    * Initialization
@@ -140,7 +133,7 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * This is the entry point for all build-time activity in the collector.
    */
-  public static final void init() throws InterruptiblePragma {
+  public static void init() throws InterruptiblePragma {
     VM_CollectorThread.init();
     com.ibm.jikesrvm.mm.mmtk.Collection.init();
   }
@@ -152,7 +145,7 @@ import com.ibm.jikesrvm.VM_Processor;
    * @param theBootRecord the boot record. Contains information about
    * the heap size.
    */
-  public static final void boot(VM_BootRecord theBootRecord)
+  public static void boot(VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
     Mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
@@ -161,24 +154,6 @@ import com.ibm.jikesrvm.VM_Processor;
     Selected.Plan.get().boot();
     SynchronizedCounter.boot();
     Monitor.boot();
-  }
-
-  /**
-   * Sets up the fields of a <code>VM_Processor</code> object to
-   * accommodate allocation and garbage collection running on that processor.
-   * This may involve creating a remset array or a buffer for GC tracing.
-   * 
-   * This method is called from the constructor of VM_Processor. For the
-   * PRIMORDIAL processor, which is allocated while the bootimage is being
-   * built, this method is called a second time, from VM.boot, when the 
-   * VM is starting.
-   *
-   * @param proc   The <code>VM_Processor</code> object.
-   */
-  public static final void setupProcessor(VM_Processor proc)
-    throws InterruptiblePragma {
-    // if (proc.mmPlan == null) proc.mmPlan = new Plan();
-    // if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
   }
 
   /**
@@ -334,7 +309,7 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * @return The number of collections that have occured.
    */
-  public static final int getCollectionCount()
+  public static int getCollectionCount()
     throws UninterruptiblePragma {
     return VM_CollectorThread.collectionCount;
   }
@@ -350,7 +325,7 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * @return The amount of free memory.
    */
-  public static final Extent freeMemory() {
+  public static Extent freeMemory() {
     return Plan.freeMemory();
   }
 
@@ -359,7 +334,7 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * @return The amount of total memory.
    */
-  public static final Extent totalMemory() {
+  public static Extent totalMemory() {
     return Plan.totalMemory();
   }
 
@@ -368,14 +343,14 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * @return The maximum amount of memory VM will attempt to use.
    */
-  public static final Extent maxMemory() {
+  public static Extent maxMemory() {
     return HeapGrowthManager.getMaxHeapSize();
   }
 
   /**
    * External call to force a garbage collection.
    */
-  public static final void gc() throws InterruptiblePragma {
+  public static void gc() throws InterruptiblePragma {
     if (!org.mmtk.utility.options.Options.ignoreSystemGC.getValue())
       Collection.triggerCollectionStatic(Collection.EXTERNAL_GC_TRIGGER);
   }
@@ -436,7 +411,7 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * Allocation
    */
-
+  
   /**
    * Return an allocation site upon request.  The request may be made
    * in the context of compilation.
@@ -448,23 +423,7 @@ import com.ibm.jikesrvm.VM_Processor;
   public static int getAllocationSite(boolean compileTime) {
     return Plan.getAllocationSite(compileTime);
   }
-  
-  /**
-   * Return an allocation site for a given allocation site upon
-   * request.  The request may be made in the context of compilation.
-   *
-   * @param str String identifying the allocation site
-   * @param bcidx Bytecode index of the allocation site
-   * @param method The method containing the allocation site
-   * @param compileTime True if this request is being made in the
-   * context of a compilation.
-   * @return an allocation site
-   */
-  public static int getAllocationSite(String str, int bcidx, VM_Method method, 
-				      boolean compileTime) {
-    return Plan.getAllocationSite(compileTime);
-  }
-  
+     
   /**
    * Returns the appropriate allocation scheme/area for the given
    * type.  This form is deprecated.  Without the VM_Method argument,
@@ -503,9 +462,7 @@ import com.ibm.jikesrvm.VM_Processor;
     }
     return true;
   }
-
-  public static int getDefaultAllocator() { return Plan.ALLOC_DEFAULT; }
-
+  
   /**
    * Returns the appropriate allocation scheme/area for the given type
    * and given method requesting the allocation.
@@ -712,35 +669,13 @@ import com.ibm.jikesrvm.VM_Processor;
    * that the return value is aligned according to the above
    * constraints.
    */
-  public static final Offset alignAllocation(Offset initialOffset, int align,
+  public static Offset alignAllocation(Offset initialOffset, int align,
                                           int offset)
     throws UninterruptiblePragma, InlinePragma {
     Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
                                        MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
-
-  /**
-   * Allocate an array object, using the given array as an example of
-   * the required type.
-   *
-   * @param array an array of the type to be allocated
-   * @param allocator which allocation scheme/area JMTk should
-   * allocation the memory from.
-   * @param length the number of elements in the array to be allocated
-   * @return the initialzed array object
-   */
-  public static Object cloneArray(Object [] array, int allocator, int length)
-      throws UninterruptiblePragma {
-    VM_Array type = VM_Magic.getObjectType(array).asArray();
-    Object [] tib = type.getTypeInformationBlock();
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
-    int align = VM_ObjectModel.getAlignment(type);
-    int offset = VM_ObjectModel.getOffsetForAlignment(type);
-    return allocateArray(length, type.getLogElementSize(), headerSize,
-                         tib, allocator, align, offset, Plan.DEFAULT_SITE);
-  }
-
 
   /**
    * Allocate a VM_CodeArray into a code space.
@@ -846,16 +781,6 @@ import com.ibm.jikesrvm.VM_Processor;
     return new VM_CompiledMethod[n];
   }
 
-  /**
-   * Allocate a contiguous VM_DynamicLibrary array
-   * @param n The number of objects
-   * @return The contiguous object array
-   */ 
-  public static VM_DynamicLibrary[] newContiguousDynamicLibraryArray(int n)
-    throws InlinePragma, InterruptiblePragma {
-    return new VM_DynamicLibrary[n];
-  }
-
   /***********************************************************************
    *
    * Finalizers
@@ -927,25 +852,16 @@ import com.ibm.jikesrvm.VM_Processor;
    *
    * Heap size and heap growth
    */
-
-  /**
-   * Return the max heap size in bytes (as set by -Xmx).
-   *
-   * @return The max heap size in bytes (as set by -Xmx).
-   */
-  public static Extent getMaxHeapSize() {
-    return HeapGrowthManager.getMaxHeapSize();
-  }
-
-  /**
-   * Return the initial heap size in bytes (as set by -Xms).
-   *
-   * @return The initial heap size in bytes (as set by -Xms).
-   */
-  public static Extent getInitialHeapSize() {
-    return HeapGrowthManager.getInitialHeapSize();
-  }
-
+   
+   /**
+    * Return the max heap size in bytes (as set by -Xmx).
+    *
+    * @return The max heap size in bytes (as set by -Xmx).
+    */
+   public static Extent getMaxHeapSize() {
+     return HeapGrowthManager.getMaxHeapSize();
+   }
+   
   /**
    * Increase heap size for an emergency, such as processing an out of
    * memory exception.
@@ -991,26 +907,6 @@ import com.ibm.jikesrvm.VM_Processor;
   }
 
   /**
-   * Generic hook to allow benchmarks to be harnessed.  A plan may use
-   * this to perform certain actions prior to the commencement of a
-   * benchmark, such as a full heap collection, turning on
-   * instrumentation, etc.
-   */
-  public static void harnessBegin() throws InterruptiblePragma {
-    Plan.harnessBegin();
-  }
-
-  /**
-   * Generic hook to allow benchmarks to be harnessed.  A plan may use
-   * this to perform certain actions after the completion of a
-   * benchmark, such as a full heap collection, turning off
-   * instrumentation, etc.
-   */
-  public static void harnessEnd() {
-    Plan.harnessEnd();
-  }
-
-  /**
    * Check if object might be a TIB.
    *
    * @param obj address of object to check
@@ -1020,15 +916,15 @@ import com.ibm.jikesrvm.VM_Processor;
   public static boolean mightBeTIB(ObjectReference obj)
     throws InlinePragma, UninterruptiblePragma {
     return !obj.isNull() && Space.isMappedObject(obj) && Space.isImmortal(obj)
-      && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
+       && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
   }
-
+  
   /**
    * Returns true if GC is in progress.
    *
    * @return True if GC is in progress.
    */
-  public static final boolean gcInProgress() throws UninterruptiblePragma {
+  public static boolean gcInProgress() throws UninterruptiblePragma {
     return Plan.gcInProgress();
   }
 
@@ -1039,6 +935,26 @@ import com.ibm.jikesrvm.VM_Processor;
     GCspy.startGCspyServer();
   }
 
+ /***********************************************************************
+  *
+  * Header initialization
+  */
+
+  /**
+   * Override the boot-time initialization method here, so that
+   * the core JMTk code doesn't need to know about the 
+   * BootImageInterface type.
+   */
+  public static void initializeHeader(BootImageInterface bootImage, Address ref,
+                                      Object[] tib, int size, boolean isScalar)
+    throws InterruptiblePragma {
+    //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
+    Word status = Selected.Plan.get().setBootTimeGCBits(ref, 
+      ObjectReference.fromObject(tib), size, Word.zero());
+    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
+  }
+
+  
  /***********************************************************************
   *
   * Deprecated and/or broken.  The following need to be expunged.

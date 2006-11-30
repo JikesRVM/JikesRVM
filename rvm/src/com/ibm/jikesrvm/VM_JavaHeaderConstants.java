@@ -9,7 +9,8 @@
 //$Id$ 
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_AllocatorHeader;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
+
 import org.vmmagic.unboxed.*;
 
 /**
@@ -39,7 +40,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
                                         : BYTES_IN_INT;
 
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
-  static final int GC_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER;
+  static final int GC_HEADER_BYTES = MM_Constants.GC_HEADER_BYTES;
   static final int MISC_HEADER_BYTES = VM_MiscHeaderConstants.NUM_BYTES_HEADER;
   static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
@@ -77,7 +78,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * after the data (at a dynamic offset)
    */
   static final boolean DYNAMIC_HASH_OFFSET 
-    = ADDRESS_BASED_HASHING && VM_AllocatorHeader.NEEDS_LINEAR_SCAN;
+    = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
                                            
   /**
    * Can we perform a linear scan?

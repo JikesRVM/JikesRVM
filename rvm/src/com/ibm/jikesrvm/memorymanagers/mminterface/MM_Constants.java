@@ -11,7 +11,7 @@
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.utility.Constants;
+import com.ibm.jikesrvm.VM_SizeConstants;
 
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM
@@ -22,5 +22,9 @@ import org.mmtk.utility.Constants;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Constants implements Constants {}
+public class MM_Constants implements VM_SizeConstants {
+  public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
+  public static final int GC_HEADER_BITS = Selected.Constraints.get().gcHeaderBits();
+  public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;  
+}
 

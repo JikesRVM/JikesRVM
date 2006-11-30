@@ -215,9 +215,6 @@ public abstract class VM_Configuration {
   public final static boolean ForceFrequentGC = false;
   //-#endif
 
-  public final static boolean CompileForGCTracing = 
-    MM_Interface.GENERATE_GC_TRACE;
-
   //-#if RVM_FOR_IA32
   /**
    * Is ESI dedicated to always hold the processor register?

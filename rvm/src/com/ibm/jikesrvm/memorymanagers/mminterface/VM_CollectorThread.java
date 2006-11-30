@@ -184,18 +184,6 @@ public class VM_CollectorThread extends VM_Thread {
   }
   
   /**
-   * Record number of processors that will be participating in gc
-   * synchronization.  
-   * XXX SB: This comment seems bogus
-   * 
-   * @param numProcessors Unused
-   */
-  public static void boot(int numProcessors) throws InterruptiblePragma {
-    VM_Processor proc = VM_Processor.getCurrentProcessor();
-    MM_Interface.setupProcessor(proc);
-  }
-  
-  /**
    * Make a collector thread that will participate in gc.<p>
    *
    * Note: the new thread's stack must be in pinned memory: currently
