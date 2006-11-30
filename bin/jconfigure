@@ -905,14 +905,10 @@ declare -i RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access 
 declare -i RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=-1	# Should we even have the support for SINGLE_VIRTUAL_PROCESSOR?  -1 means unset.
 declare -i RVM_FOR_DEBIAN_GLIBC=0 # Whether to auto-switch single-virtual-processor mode based on the kernel version.  If set, this overrides RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  Can be overridden with -X:singleVirtualProcessor
 declare -i RVM_FOR_MULTIBOOT_GLIBC=-1 # Whether to auto-switch single-virtual-processor mode based on the kernel version and based upon whether we are even running Debian GLIBC.  If set, this overrides RVM_FOR_DEBIAN_GLIBC.  Can be overridden with -X:singleVirtualProcessor.  This set by default, if building with the support for multiboot.
-declare -i RVM_WITH_DETERMINISTIC_THREAD_SWITCHING=0 # thread switch after n method calls, do not use interrupts to drive preemption
-declare -i RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING=0 # thread switch only at explicit yield and wait calls
 declare -i RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not just those needed for startup
-declare -i RVM_WITH_JAR_CLASSES=1   # include the classes we need to get the Application Class Loader working even if the user specifies the -jar argument.
 declare -i RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
-declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 ## Classpath versions that might work with Jikes RVM.
@@ -1291,13 +1287,6 @@ BOOTIMAGE_WRITER_DIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageWriter"
 
 # Check configuration options for sanity.
 function checkConfigurationOptions {
-    if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )) \
-	&& (( RVM_WITH_NATIVE_DAEMON_PROCESSOR ))
-    then
-	croak_nonusage "\
-If RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS is not specified,\
-then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified";
-    fi
 }
 
 
@@ -2975,9 +2964,7 @@ com/ibm/jikesrvm/classloader/VM_Annotation\\\$BaseAnnotation
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
-
-    if (( RVM_WITH_ALL_CLASSES )) || (( RVM_WITH_JAR_CLASSES)); then
-	cat <<- EOF
+cat <<- EOF
 java/util/jar/JarException
 java/util/jar/JarInputStream
 java/util/jar/Attributes
@@ -2986,8 +2973,6 @@ java/util/jar/JarEntry
 java/util/jar/JarFile
 java/util/jar/Manifest
 	EOF
-
-    fi
 
 	cat <<- EOF
 java/io/BufferedOutputStream
