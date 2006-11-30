@@ -26,10 +26,6 @@ ifneq (${RVM_HOST_CONFIG},)
    ifeq (${HOST_VM_RT},)
         HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVA-})
    endif
-
-   ifeq (${HOST_JAVAC},)
-       HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVAC-})
-   endif
 endif
 
 
@@ -195,7 +191,7 @@ ${GENERATOR}.java:	${GENERATOR_DIR}/${GENERATOR}.java
 			cp $< $@
 
 ${GENERATOR_FILES}:	${GENERATOR}.java
-			$(HOST_JAVAC) -g -d . $<
+			$(JCOMPILE) -g -d . $<
 
 vm_options.tex:		${GENERATOR_FILES} options.template $(VM_DAT_FILES)
 			$(HOST_VM_RT) ${GENERATOR} options.template \
