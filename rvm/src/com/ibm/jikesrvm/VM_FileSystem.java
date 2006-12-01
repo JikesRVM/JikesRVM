@@ -648,42 +648,10 @@ public class VM_FileSystem {
   }
 
   /**
-   * Prepare a standard file descriptor (stdin, stdout, or stderr)
-   * for use in a Java IO stream.  Basically, we try to set it
-   * to be nonblocking if we think it wouldn't cause problems.
-   * (See the javadoc comment for this class.)  If we have to leave
-   * it as blocking, then we enable a kluge that will allow us
-   * to cope later on.
-   */
-  private static void prepareStandardFd(int fd) {
-    if (VM.VerifyAssertions) VM._assert(VM.NonBlockingFDs);
-    int isTTY = VM_SysCall.sysIsTTY(fd);
-    if (isTTY == 0) {
-      // This file descriptor is not connected to a tty, so we ASSUME
-      // that our reference to the actual file is private, and that
-      // we can safely set it to be nonblocking without confusing anyone.
-      // (Generally, it is only terminals that are shared with other
-      // processes.)
-      int rc = VM_SysCall.sysNetSocketNoBlock(fd, 1);
-      if (rc == 0) {
-        // Groovy
-        standardFdIsNonblocking[fd] = true;
-      } else {
-        VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
-      }
-    }
-  }
-  
-  /**
    * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
    * and java.lang.System.err
    */
   static void initializeStandardStreams() {
-    if (VM.NonBlockingFDs) {
-      VM_FileSystem.prepareStandardFd(0);
-      VM_FileSystem.prepareStandardFd(1);
-      VM_FileSystem.prepareStandardFd(2);
-    }
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);

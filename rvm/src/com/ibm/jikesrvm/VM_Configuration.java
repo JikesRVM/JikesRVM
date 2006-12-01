@@ -196,14 +196,6 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  /** Do we use nonblocking I/O for files? */
-  public static final boolean NonBlockingFDs = 
-    //-#if RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH
-    true;
-    //-#else
-    false;
-    //-#endif
-
   /** The following configuration objects are final when disabled, but
       non-final when enabled. */
   

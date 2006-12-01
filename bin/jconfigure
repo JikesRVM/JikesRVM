@@ -952,12 +952,6 @@ declare -i CPP_EXPLICIT_UNDEFS=0
 declare -i HAS_DLCOMPAT=0
 # : ${HAS_DLCOMPAT=0}
 
-## These should be flushed, since they are now almost hardwired
-## with these values set (I added these definitions to shut up the
-## "paranoid preprocessor". 
-declare -r -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
-
-
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
