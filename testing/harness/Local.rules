@@ -72,6 +72,11 @@ JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
 Soot_HOME=$(BENCHMARK_ROOT)/soot-2.2.3
 
 #
+# Veiovis
+#
+Veiovis_HOME=$(BENCHMARK_ROOT)/Veiovis
+
+#
 # Xerces 2.8.1
 #
 Xerces_HOME=$(BENCHMARK_ROOT)/xerces-2_8_1
