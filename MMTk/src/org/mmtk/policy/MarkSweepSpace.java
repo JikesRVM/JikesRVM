@@ -300,7 +300,7 @@ import org.vmmagic.unboxed.*;
    * @return the mark state incremented or decremented by one.
    */
   private final Word deltaMarkState(boolean increment) {
-    Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
+    Word mask = Word.fromIntZeroExtend((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
     Word rtn = increment ? markState.plus(MARK_COUNT_INCREMENT) : markState.minus(MARK_COUNT_INCREMENT);
     rtn = rtn.and(mask);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());

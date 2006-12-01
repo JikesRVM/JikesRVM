@@ -33,19 +33,19 @@ import org.vmmagic.unboxed.*;
    * 
    * Class based constants
    */
-  private static final Word TRACE_NEW_RECORD = Word.fromInt(3);
-  private static final Word TRACE_ALLOC_SIZE = Word.fromInt(5);
-  private static final Word TRACE_ALLOC_NAME = Word.fromInt(6);
-  private static final Word TRACE_ALLOC_FP = Word.fromInt(7);
-  private static final Word TRACE_ALLOC_THREAD = Word.fromInt(9);
-  private static final Word TRACE_TIB_VALUE = Word.fromInt(10);
-  private static final Word TRACE_DEATH_TIME = Word.fromInt(11);
-  private static final Word TRACE_FIELD_TARGET = Word.fromInt(12);
-  private static final Word TRACE_ARRAY_TARGET = Word.fromInt(13);
-  private static final Word TRACE_FIELD_SLOT = Word.fromInt(14);
-  private static final Word TRACE_ARRAY_ELEMENT = Word.fromInt(15);
-  private static final Word TRACE_STATIC_TARGET = Word.fromInt(17);
-  private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromInt(18);
+  private static final Word TRACE_NEW_RECORD = Word.fromIntSignExtend(3);
+  private static final Word TRACE_ALLOC_SIZE = Word.fromIntSignExtend(5);
+  private static final Word TRACE_ALLOC_NAME = Word.fromIntSignExtend(6);
+  private static final Word TRACE_ALLOC_FP = Word.fromIntSignExtend(7);
+  private static final Word TRACE_ALLOC_THREAD = Word.fromIntSignExtend(9);
+  private static final Word TRACE_TIB_VALUE = Word.fromIntSignExtend(10);
+  private static final Word TRACE_DEATH_TIME = Word.fromIntSignExtend(11);
+  private static final Word TRACE_FIELD_TARGET = Word.fromIntSignExtend(12);
+  private static final Word TRACE_ARRAY_TARGET = Word.fromIntSignExtend(13);
+  private static final Word TRACE_FIELD_SLOT = Word.fromIntSignExtend(14);
+  private static final Word TRACE_ARRAY_ELEMENT = Word.fromIntSignExtend(15);
+  private static final Word TRACE_STATIC_TARGET = Word.fromIntSignExtend(17);
+  private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromIntSignExtend(18);
 
   /*
    * Debugging and trace reducing constants 

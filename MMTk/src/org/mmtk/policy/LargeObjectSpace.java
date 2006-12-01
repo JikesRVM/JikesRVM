@@ -46,8 +46,8 @@ import org.vmmagic.unboxed.*;
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   private static final Word MARK_BIT = Word.one(); // ...01
-  private static final Word NURSERY_BIT = Word.fromInt(2); // ...10
-  private static final Word LOS_BIT_MASK = Word.fromInt(3); // ...11
+  private static final Word NURSERY_BIT = Word.fromIntZeroExtend(2); // ...10
+  private static final Word LOS_BIT_MASK = Word.fromIntZeroExtend(3); // ...11
 
   /****************************************************************************
    * 

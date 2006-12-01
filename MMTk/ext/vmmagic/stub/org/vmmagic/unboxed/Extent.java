@@ -15,14 +15,6 @@ package org.vmmagic.unboxed;
  * @author Daniel Frampton
  */
 public final class Extent {
-
-  /**
-   * To be deprecated as soon as we find a good alternative
-   */
-  public static Extent fromInt(int address) {
-    return null;
-  }
-
   public static Extent fromIntSignExtend(int address) {
     return null;
   }

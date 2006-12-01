@@ -248,7 +248,7 @@ import org.vmmagic.pragma.*;
    * @return The given address rounded down to an mmap chunk size
    */
   private static Address chunkAlignDown(Address addr) {
-    return addr.toWord().and(Word.fromInt(MMAP_CHUNK_MASK).not()).toAddress();
+    return addr.toWord().and(Word.fromIntSignExtend(MMAP_CHUNK_MASK).not()).toAddress();
   }
 }
 

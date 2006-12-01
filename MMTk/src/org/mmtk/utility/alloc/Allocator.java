@@ -102,13 +102,13 @@ import org.vmmagic.pragma.*;
       if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_WORD) {
         // At most a single hole
         if (delta.toInt() == (BYTES_IN_WORD)) {
-          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
           region = region.plus(delta);
         return region;
         }
       } else {
         while (delta.toInt() >= (BYTES_IN_WORD)) {
-          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
           region = region.plus(BYTES_IN_WORD);
           delta = delta.minus(BYTES_IN_WORD);
         }

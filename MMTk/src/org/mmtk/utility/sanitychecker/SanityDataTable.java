@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.*;
    * @param logSize The log of the number of table entries. 
    */
   public SanityDataTable(RawPageSpace rps, int logSize) {
-    super(rps, logSize, Extent.fromInt(BYTES_IN_WORD));
+    super(rps, logSize, Extent.fromIntSignExtend(BYTES_IN_WORD));
   }
 
   /**

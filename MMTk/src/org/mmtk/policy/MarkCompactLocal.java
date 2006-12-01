@@ -209,5 +209,5 @@ import org.vmmagic.unboxed.ObjectReference;
    * load balancing or increments based on region size.
    * @return the maximum region size
    */
-  protected Extent maximumRegionSize() { return Extent.fromInt(4 << LOG_CHUNK_SIZE) ; }
+  protected Extent maximumRegionSize() { return Extent.fromIntZeroExtend(4 << LOG_CHUNK_SIZE) ; }
 }

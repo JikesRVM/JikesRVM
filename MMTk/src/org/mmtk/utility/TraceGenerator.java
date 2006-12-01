@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.*;
 
   static {
     traceBusy = false;
-    lastGC = Word.fromInt(4);
+    lastGC = Word.fromIntZeroExtend(4);
     Options.traceRate = new TraceRate();
   }
 
@@ -232,7 +232,7 @@ import org.vmmagic.unboxed.*;
     Word oid = VM.traceInterface.getOID(ref);
     Word allocType;
     if (gcAllowed
-        && (oid.GE(lastGC.plus(Word.fromInt(Options.traceRate.getValue())))))
+        && (oid.GE(lastGC.plus(Word.fromIntZeroExtend(Options.traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else {
       allocType = TRACE_ALLOC;
@@ -250,9 +250,9 @@ import org.vmmagic.unboxed.*;
        else
          trace.push(allocType);
        trace.push(VM.traceInterface.getOID(ref));
-       trace.push(Word.fromInt(bytes - VM.traceInterface.getHeaderSize()));
+       trace.push(Word.fromIntZeroExtend(bytes - VM.traceInterface.getHeaderSize()));
        trace.push(fp.toWord());
-       trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
+       trace.push(Word.zero()); /* VM_Magic.getThreadId() */
        trace.push(TRACE_TIB_SET);
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(VM.traceInterface.getOID(typeRef));
@@ -278,9 +278,9 @@ import org.vmmagic.unboxed.*;
        else
          trace.push(allocType);
        trace.push(VM.traceInterface.getOID(ref));
-       trace.push(Word.fromInt(bytes - VM.traceInterface.getHeaderSize()));
+       trace.push(Word.fromIntZeroExtend(bytes - VM.traceInterface.getHeaderSize()));
        trace.push(fp.toWord());
-       trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
+       trace.push(Word.zero()); /* VM_Magic.getThreadId() */
        trace.push(TRACE_TIB_SET);
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(VM.traceInterface.getOID(typeRef));

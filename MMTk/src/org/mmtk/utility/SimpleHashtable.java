@@ -63,9 +63,9 @@ import org.vmmagic.unboxed.*;
    * @param es The size of each entry.
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
-    mask = Word.fromInt((1 << logSize) - 1);
+    mask = Word.fromIntZeroExtend((1 << logSize) - 1);
     entrySize = es.plus(BYTES_IN_WORD);
-    size = Extent.fromInt((1 << logSize) * entrySize.toInt());
+    size = Extent.fromIntZeroExtend((1 << logSize) * entrySize.toInt());
     base = Address.zero();
     space = rps;
     valid = false;
@@ -147,7 +147,7 @@ import org.vmmagic.unboxed.*;
    * @return An address to the entry.
    */
   private final Address getEntry(int index) throws InlinePragma {
-    return base.plus(Extent.fromInt(index * entrySize.toInt()));
+    return base.plus(Extent.fromIntZeroExtend(index * entrySize.toInt()));
   }
 
   /**

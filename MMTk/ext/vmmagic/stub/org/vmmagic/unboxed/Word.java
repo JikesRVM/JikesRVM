@@ -17,13 +17,6 @@ package org.vmmagic.unboxed;
  */
 public final class Word {
 
-  /**
-   * To be deprecated as soon as we find an alternative
-   */
-  public static Word fromInt(int val) {
-    return null;
-  }
-
   public static Word fromIntSignExtend(int val) {
     return null;
   }

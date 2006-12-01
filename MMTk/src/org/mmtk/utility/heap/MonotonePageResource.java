@@ -181,7 +181,7 @@ import org.vmmagic.unboxed.*;
    }
   
   private static final Address getRegionStart(Address addr) {
-    return addr.toWord().and(Word.fromInt(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
+    return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
 
   /**

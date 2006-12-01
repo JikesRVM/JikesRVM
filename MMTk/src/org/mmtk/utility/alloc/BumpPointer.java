@@ -225,7 +225,7 @@ import org.vmmagic.pragma.*;
    * @return The start of the card containing the address
    */
   private static final Address getCard(Address address) {
-    return address.toWord().and(Word.fromInt(CARD_MASK).not()).toAddress();
+    return address.toWord().and(Word.fromIntSignExtend(CARD_MASK).not()).toAddress();
   }
   
   /**
