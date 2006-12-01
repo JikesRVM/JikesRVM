@@ -21,7 +21,7 @@ HEAPSIZE=150
 
 DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
 BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
-BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSamples.jar:$(BENCH_HOME)/build/xmlParserAPIs.jar:$(XML_DATA)/shakespeare.1.10.xml.zip
+BENCH_CLASS_PATH=$(BENCH_HOME)/xercesImpl.jar:$(BENCH_HOME)/xercesSamples.jar:$(BENCH_HOME)/xml-apis.jar
 
 INPUT_FILES=$(wildcard $(XML_DATA)/shakespeare.1.10.xml/*.xml)
 
