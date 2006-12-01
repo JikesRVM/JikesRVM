@@ -49,7 +49,7 @@ SRCS=   $(TABLES_JAVA) \
 default:		assembler clean
 
 $(VM_ASM_JAVA):
-	$(CP) $(GEN_FILES_DIR)/VM_Assembler.java $(VM_ASM_JAVA)
+	$(CP) $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Assembler.java $(VM_ASM_JAVA)
 
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 	$(GENERATE) OPT_InstructionFormatTables.template $(TABLES_JAVA) FORMAT_FILE=$(ARCH_IFS)
@@ -66,14 +66,15 @@ $(SCRATCH_DIR)/org/vmmagic/pragma/%.java:	%.fake
 $(SCRATCH_DIR)/org/vmmagic/unboxed/%.java:	%.fake
 	$(CP) $< $@
 
-assembler:		$(GEN_FILES_DIR)/OPT_Assembler.java
+assembler:		$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_Assembler.java
 
 $(SCRATCH_DIR)/GenerateAssembler.java:	GenerateAssembler.java
 	$(CP) GenerateAssembler.java $(SCRATCH_DIR) 
 
-$(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt
 	$(JCOMPILE) -d $(SCRATCH_DIR) $(SRCS) $(SCRATCH_DIR)/GenerateAssembler.java
-	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
+	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt GenerateAssembler
 
 clean:
 	$(RM) $(FAKE_SRC) $(FAKE_CLS) 

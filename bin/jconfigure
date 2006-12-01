@@ -1907,8 +1907,7 @@ function emitExpander () {
     #fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
-	    cd ${GENERATED_FILES_DIRECTORY_STR}/instructionFormats
-	    echo *.* | \$XARGS rm -f
+            rm -rf ${GENERATED_FILES_DIRECTORY_STR}/com/ibm/jikesrvm/opt/ir/*.*
 	EOF
     fi
     cat <<- EOF
@@ -1931,8 +1930,8 @@ EOF
     fi
     cat <<- EOF
 
-	# Build the command line options for the core VM
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options vm_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	# Build the command line options
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options all_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
 EOF
 
@@ -1947,23 +1946,10 @@ EOF
 run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/ia32-assembler-opt GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
 	fi
     fi
-    cat <<- EOF
 
-	# Do the expansion
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options base_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-EOF
-
-    if (( RVM_WITH_QUICK_COMPILER )); then
-	cat <<- EOF
-		# (QUICK Compiler only:)
-		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options quick_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-EOF
-
-    fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 		# (OPT Compiler only:)
-		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options opt_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-ir ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-burs ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-scheduler ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
@@ -1974,12 +1960,6 @@ EOF
 		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-ir fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	fi
-    fi
-    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	cat <<- EOF
-		# (Adaptive system only)
-		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options aos_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-EOF
     fi
     cat <<EOF
 
@@ -4258,7 +4238,6 @@ fi
 #
 mkdir -p ${BUILD_DIRECTORY}
 mkdir -p ${GENERATED_FILES_DIRECTORY}
-mkdir -p ${GENERATED_FILES_DIRECTORY}/instructionFormats
 mkdir -p ${SCRATCH_DIRECTORY}
 mkdir -p ${CLASSES_DIRECTORY}
 

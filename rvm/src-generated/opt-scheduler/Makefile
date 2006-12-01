@@ -22,12 +22,13 @@ else
   endif
 endif
 
-default:  $(GEN_FILES_DIR)/OPT_OperatorClass.java
+default:  $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_OperatorClass.java
 
-$(GEN_FILES_DIR)/OPT_OperatorClass.java:	OPT_OperatorClass.template $(ARCH_DIR)/ResourceList.dat $(ARCH_DIR)/OperatorClassList.dat
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_OperatorClass.java:	OPT_OperatorClass.template $(ARCH_DIR)/ResourceList.dat $(ARCH_DIR)/OperatorClassList.dat
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt
 	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_OperatorClass.template  \
-	$(GEN_FILES_DIR)/OPT_OperatorClass.java \
+	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_OperatorClass.java \
 	ARCHITECTURE_IR_DIR=$(ARCH_DIR) \
 	ADDRESS_MODE=$(ADDR_MODE)
 

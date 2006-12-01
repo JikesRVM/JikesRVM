@@ -22,7 +22,7 @@ open(STDIN, "<$inputFile") || die "cannot redirect standard input";
 while (<>) {
     if (m/\#\#NEW_FILE_STARTS_HERE (\S+)\#\#/) {
 	$currentFile = $1;
-	open(WORKING_FILE, ">$outputDir/instructionFormats/$currentFile");
+	open(WORKING_FILE, ">$outputDir/$currentFile");
 	$infile = 1;
     } elsif ($infile) {
 	print(WORKING_FILE $_);
