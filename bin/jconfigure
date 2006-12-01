@@ -2257,12 +2257,12 @@ build_mmtk() {
       run mkdir \$TARGET
 
       ( chdir \$SOURCE_TREE
-        \${FIND} . -type d ! -name .svn ! -name . | 
+        \${FIND} . -name .svn -prune -o -type d -not -name . -print | 
           while read dir
           do
             run mkdir \$TARGET/\$dir
           done
-        \${FIND} . -name "*.java" ! -name .svn |
+        \${FIND} . -name .svn -prune -o -type f -name "*.java" -print |
           while read file
           do
             run cp \$file \$TARGET/\$file
