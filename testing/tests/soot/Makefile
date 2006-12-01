@@ -16,28 +16,30 @@ include         $(RVM_BUILD)/Make.rules.target
 BENCH_NAME=Soot
 include		$(JAL_ROOT)/testing/harness/Local.rules
 
+
 HEAPSIZE=300
 
-BENCH_CLASS_PATH=$(BENCH_HOME)/soot/classes:$(BENCH_HOME)/jasmin/classes
 BENCH_SOURCE_PATH=$(JAL_ROOT)/testing/tests/soot
 START_NAME=soot.Main
 
-JCOMPILE=$(RVM_BUILD)/jbuild.tool
-
 ifeq ($(MODE),PERFORMANCE)
-  START_ARGS=-O --app -time -d cp --soot-classpath cp:$(SPECjvm98_HOME):$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar SpecApplication -f J
+  EXTRA_CLASSPATH=:$(Dacapo_JARS)
+  CLASS=Harness
   TIME_LIMIT=900
 else
-  START_ARGS=-O -app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar Hello -f J
+  CLASS=Hello
   TIME_LIMIT=600
 endif
 
+START_ARGS=-O --app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar${EXTRA_CLASSPATH} ${CLASS} -f J
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
 
+
 sanity:		$(WORKING)/Hello.class sanity-check-rule
 
+soot/Main.class: $(Soot_JARS)
 
 do-gather-performance:
 	 @$(AWK) -f $(JAL_ROOT)/testing/tests/soot/perf.awk $(OUT) >> $(PERF_LOG)

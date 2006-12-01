@@ -70,6 +70,7 @@ JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
 # Soot v2.2.3
 #
 Soot_HOME=$(BENCHMARK_ROOT)/soot-2.2.3
+Soot_JARS=$(Soot_HOME)/sootclasses-2.2.3.jar $(Soot_HOME)/jasminclasses-2.2.3.jar
 
 #
 # Veiovis
