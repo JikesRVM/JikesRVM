@@ -38,8 +38,8 @@ my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 my $platform = "Linux.x86_64.32";
 
 # initialize things
-#open($out, ">summary.eml");
-open($out, "|sendmail -t");
+open($out, ">summary.eml");
+#open($out, "|sendmail -t");
 my $today = 1;
 my %allsanity = ();
 my %allperf = ();
@@ -556,6 +556,7 @@ sub getdata {
 #
 sub getdatestringfromcheckout {
   my ($checkout) = @_;
+  $checkout =~ s/  / /;
   my ($wday, $mon, $mday, $time, $tz, $year) = split(/ /, $checkout);
   my $month = 0;
   for ($month = 0; ($month < 12) && ($mon ne $SHORTMONTHS[$month]); $month++) {};
