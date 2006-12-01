@@ -65,9 +65,6 @@ $$$$ END LET USE_OPT_LEVELS
 
 
   private static void instancePrintHelpFooter(String prefix) {
-    //-#if RVM_WITH_OPT_INSTRUMENTATION
-    VM_OptInstrumentor.printHelp();
-    //-#endif
   }	
 
 

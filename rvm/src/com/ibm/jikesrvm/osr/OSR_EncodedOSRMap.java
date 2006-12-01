@@ -43,6 +43,8 @@ public class OSR_EncodedOSRMap
   private int mapSize   = 16;
   private int lastIndex = 0;
 
+  private static final boolean DEBUG = false;
+  
   public static final boolean registerIsSet(int map, int regnum) 
     throws InlinePragma {
 
@@ -317,15 +319,15 @@ public class OSR_EncodedOSRMap
       break;
     case ReturnAddressTypeCode:
 
-      //-#if RVM_WITH_DEBUG
-      VM.sysWrite("returnaddress type for ");
-      if (tuple.kind == LOCAL) {
-        VM.sysWrite("L"+tuple.num);
-      } else {
-        VM.sysWrite("S"+tuple.num);
-      } 
-      VM.sysWrite("\n");
-      //-#endif
+      if (DEBUG) {
+        VM.sysWrite("returnaddress type for ");
+        if (tuple.kind == LOCAL) {
+          VM.sysWrite("L"+tuple.num);
+        } else {
+          VM.sysWrite("S"+tuple.num);
+        } 
+        VM.sysWrite("\n");
+      }
       
       first |= (RET_ADDR << TCODE_SHIFT);
       break;

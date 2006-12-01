@@ -940,18 +940,12 @@ declare -i RVM_WITH_OSR=0
 # complains about any tests against undefined conditionals.
 # Search for "BUILD_WITH_PARANOID_PREPROCESSOR" below and way below.
 
-declare -i RVM_WITH_DEBUG=0
-
 ## Just affects the configuration process:
 declare -i jconfigure_do_not_override=0
 
 ## Just affects the build process
 declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
 declare -i CPP_EXPLICIT_UNDEFS=0
-
-## MISC (to be categorized)
-declare -i RVM_WITH_NOFLUSH=0
-# : ${RVM_WITH_NOFLUSH=0}
 
 ## Consequences of the target Operating System.
 ## These are overridden in the OSX config file.
@@ -961,9 +955,7 @@ declare -i HAS_DLCOMPAT=0
 ## These should be flushed, since they are now almost hardwired
 ## with these values set (I added these definitions to shut up the
 ## "paranoid preprocessor". 
-declare -r -i RVM_WITH_OPT_INSTRUMENTATION=0
 declare -r -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
-
 
 
 #---------------------------------------#
@@ -2276,7 +2268,7 @@ build_mmtk() {
           do
             run mkdir \$TARGET/\$dir
           done
-        \${FIND} . -name "*.java" |
+        \${FIND} . -name "*.java" ! -name .svn |
           while read file
           do
             run cp \$file \$TARGET/\$file
@@ -3244,10 +3236,6 @@ EOF
 	# DEBUG_ARGS may be set at run time before invoking jbuild.linkImage
 	OPT_ARGS="${OPT_ARGS-} \${DEBUG_ARGS-}"
 EOF
-
-    if (( RVM_WITH_NOFLUSH )); then
-	echo ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
-    fi
 
     cat <<- EOF
 	VERBOSE_STR=''
