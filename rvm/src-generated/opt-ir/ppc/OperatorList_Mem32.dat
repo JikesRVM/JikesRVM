@@ -122,23 +122,6 @@ immedPEI | dynLink
 
 (31<<26 | 4<<1)
 
-####################
-#PPC64_TD
-#MIR_Trap
-#immedPEI | dynLink
-#
-#
-#(31<<26 | 68<<1)
-#
-####################
-#PPC64_TDI
-#MIR_Trap
-#immedPEI | dynLink
-#
-#
-#(2<<26)
-#
-####################
 MIR_END
 Unassigned
 none
