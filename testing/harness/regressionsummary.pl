@@ -61,7 +61,7 @@ if ($html) { printhtmlhdr($out); }
 printsummary($out, $html, $checkout, $datestring);
 printrevisions($out, $html, $today, $checkout, \@allrevisions);
 printfailures($out, $html, 1, $today, $datestring, \%allsanity, \%allerrors);
-printjavadoc($out, $html, $javadocerrors[today], $datestring);
+printjavadoc($out, $html, $javadocerrors[$today], $datestring);
 printweeklyoverview($out, $html, $today, \%allperf, \%bestperf, \%allsanity);
 printsanitytable($out, $html, 0, "build", $short, \%allsanity);
 printsanitytable($out, $html, 1, "benchmark", $short, \%allsanity);
@@ -611,6 +611,7 @@ sub getdaydata {
     } elsif (($value) = /Revision:<td><b>.+>(\d+)<\/a><\/b>/) {
       ${$allrevisions}[$day] = $value;
     } elsif (($value) = /JavaDoc errors:<td><b>(\d+)<\/b>/) {
+#      print "--->$day--$value/$valueb<---\n";
       ${$javadocerrors}[$day] = $value;
     }  elsif (($value) = /jbb2000 score:<td><b>(\d+.\d+)<\/b>/) {
       ${$allperf}{"$day:jbb2000"} = $value;
