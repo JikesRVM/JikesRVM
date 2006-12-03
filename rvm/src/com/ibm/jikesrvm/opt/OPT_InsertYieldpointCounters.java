@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.adaptive.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /** 
  * An opt compiler phase that inserts yieldpoint counters.  Searches
@@ -21,8 +22,7 @@ import com.ibm.jikesrvm.adaptive.*;
  *
  * @author Matthew Arnold 
  */
-class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase {
 
    static final boolean DEBUG = false;
 

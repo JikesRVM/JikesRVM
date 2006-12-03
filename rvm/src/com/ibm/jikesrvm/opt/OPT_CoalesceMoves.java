@@ -17,7 +17,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Stephen Fink
  */
-class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
+class OPT_CoalesceMoves extends OPT_CompilerPhase {
   
   /**
    *  verbose debugging flag 
@@ -68,7 +68,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
     ir.numberInstructions();
 
     // Maintain a set of dead move instructions.
-    HashSet dead = new HashSet(5);
+    HashSet<OPT_Instruction> dead = new HashSet<OPT_Instruction>(5);
 
     // for each Move instruction ...
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {

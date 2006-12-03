@@ -13,15 +13,14 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /*
  * Loop unrolling
  *
  * @author Martin Trapp
  */
-class OPT_LoopUnrolling extends OPT_CompilerPhase
-  implements OPT_Operators {
-
+class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
   static final boolean DEBUG = false;
   static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;

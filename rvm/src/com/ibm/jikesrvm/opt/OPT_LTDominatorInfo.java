@@ -26,7 +26,7 @@ class OPT_LTDominatorInfo {
   private int semiDominator;
   private OPT_BasicBlock dominator;             // the imediate dominator
   private OPT_BasicBlock parent;
-  private final HashSet bucket;
+  private final HashSet<OPT_BasicBlock> bucket;
   private OPT_BasicBlock label;
   private OPT_BasicBlock ancestor;
   // Used to keep the trees balanced, during path compression
@@ -48,7 +48,7 @@ class OPT_LTDominatorInfo {
     semiDominator = 0;
     dominator = null;
     parent = null;
-    bucket = new HashSet();
+    bucket = new HashSet<OPT_BasicBlock>();
     ancestor = null;
     label = block;
     size = 1;

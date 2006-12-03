@@ -13,7 +13,9 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
+import static com.ibm.jikesrvm.VM_Constants.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -28,8 +30,8 @@ import org.vmmagic.unboxed.*;
  * @author Igor Pechtchanski
  * @modified Peter F. Sweeney
  */
-public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
+
   /**
    * We have slightly different ideas of what the LIR should look like
    * for IA32 and PowerPC.  The main difference is that for IA32

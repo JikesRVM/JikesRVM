@@ -22,7 +22,7 @@ class OPT_DF_Graph implements OPT_Graph {
   /**
    * The nodes of the graph.
    */
-  public ArrayList nodes = new ArrayList();
+  public final ArrayList<OPT_GraphNode> nodes = new ArrayList<OPT_GraphNode>();
 
   /**
    * Number of nodes in the graph.
@@ -55,7 +55,7 @@ class OPT_DF_Graph implements OPT_Graph {
       }
 
       public OPT_GraphNode next () {
-        return (OPT_GraphNode)nodes.get(i++);
+        return nodes.get(i++);
       }
 
       public Object nextElement () {

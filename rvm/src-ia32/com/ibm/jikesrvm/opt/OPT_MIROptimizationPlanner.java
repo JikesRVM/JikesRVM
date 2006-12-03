@@ -37,7 +37,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIR2MIR(ArrayList p) {
+  private static void LIR2MIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Split very large basic blocks into smaller ones.
       new OPT_SplitBasicBlock(), 

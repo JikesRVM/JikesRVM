@@ -155,7 +155,7 @@ public final class OPT_InvalidationDatabase {
    * The following defines a set of methods that share a common "key"
    */
   static class MethodSet {
-    Object key;
+    final Object key;
     /**
      * a set of cmids (Integers)
      */ 
@@ -166,11 +166,11 @@ public final class OPT_InvalidationDatabase {
     }
 
     void add (int cmid) {
-      methods.add(new Integer(cmid));
+      methods.add(Integer.valueOf(cmid));
     }
 
     void remove (int cmid) {
-      methods.remove(new Integer(cmid));
+      methods.remove(Integer.valueOf(cmid));
     }
 
     public Iterator iterator () {

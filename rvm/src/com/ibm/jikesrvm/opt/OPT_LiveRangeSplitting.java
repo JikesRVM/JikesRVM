@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,8 +60,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           });
   }
 
-  private static class LiveRangeSplitting extends OPT_CompilerPhase 
-    implements OPT_Operators{
+  private static class LiveRangeSplitting extends OPT_CompilerPhase {
     
     /**
      * Return this instance of this phase. This phase contains no
@@ -108,7 +108,8 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
       // 3. Perform the analysis
       OPT_DefUse.computeDU(ir);
-      HashMap result = findSplitPoints(ir,live,lst);
+      HashMap<BasicBlockPair,HashSet<OPT_Register>> result =
+        findSplitPoints(ir,live,lst);
 
       // 4. Perform the transformation.
       transform(ir,result);
@@ -128,10 +129,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param lst a valid loop structure tree
      * @return the result as a mapping from BasicBlockPair to a set of registers
      */
-    private static HashMap findSplitPoints(OPT_IR ir, OPT_LiveAnalysis live,
-                                           OPT_LSTGraph lst) {
+    private static HashMap<BasicBlockPair,HashSet<OPT_Register>> findSplitPoints(OPT_IR ir,
+                                                                                 OPT_LiveAnalysis live,
+                                                                                 OPT_LSTGraph lst) {
 
-      HashMap result = new HashMap(10);
+      HashMap<BasicBlockPair,HashSet<OPT_Register>> result =
+        new HashMap<BasicBlockPair,HashSet<OPT_Register>>(10);
       for (Enumeration e = lst.enumerateNodes(); e.hasMoreElements(); ) {
         OPT_LSTNode node = (OPT_LSTNode)e.nextElement();
         OPT_BasicBlock header = node.getHeader();
@@ -142,11 +145,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
         for (Enumeration in = header.getIn(); in.hasMoreElements(); ) {
           OPT_BasicBlock bb = (OPT_BasicBlock)in.nextElement();
           if (loop.get(bb.getNumber())) continue;
-          HashSet liveRegisters = live.getLiveRegistersOnEdge(bb,header);
+          HashSet<OPT_Register> liveRegisters =
+            live.getLiveRegistersOnEdge(bb,header);
           for (Iterator i = liveRegisters.iterator(); i.hasNext();) {
             OPT_Register r = (OPT_Register)i.next();
             if (r.isSymbolic()) {
-              HashSet s = findOrCreateSplitSet(result,bb,header);
+              HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,header);
               s.add(r);
             }
           }
@@ -163,7 +167,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
               for (Iterator it = liveRegisters.iterator(); it.hasNext();) {
                 OPT_Register r = (OPT_Register)it.next();
                 if (r.isSymbolic()) {
-                  HashSet s = findOrCreateSplitSet(result,bb,dest);
+                  HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,dest);
                   s.add(r);
                 }
               }
@@ -187,7 +191,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param result mapping from BasicBlockPair to a set of registers
      */
     private static void addEntriesForInfrequentBlocks(OPT_IR ir, OPT_LiveAnalysis live,
-                                                      HashMap result) {
+                                                      HashMap<BasicBlockPair,HashSet<OPT_Register>> result) {
       for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
         OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
         boolean bbInfrequent = bb.getInfrequent();
@@ -199,7 +203,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
             for (Iterator it = liveRegisters.iterator(); it.hasNext();) {
               OPT_Register r = (OPT_Register)it.next();
               if (r.isSymbolic()) {
-                HashSet s = findOrCreateSplitSet(result,bb,dest);
+                HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,dest);
                 s.add(r);
               }
             }
@@ -217,12 +221,14 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param b1 the first basic block in the pair
      * @param b2 the second basic block in the pair
      */
-    private static HashSet findOrCreateSplitSet(HashMap map, OPT_BasicBlock b1, 
-                                                OPT_BasicBlock b2) {
-      HashSet set = (HashSet)map.get(new BasicBlockPair(b1,b2));
+    private static HashSet<OPT_Register> findOrCreateSplitSet(HashMap<BasicBlockPair,HashSet<OPT_Register>> map,
+                                                              OPT_BasicBlock b1, 
+                                                              OPT_BasicBlock b2) {
+      BasicBlockPair pair = new BasicBlockPair(b1,b2);
+      HashSet<OPT_Register> set = map.get(pair);
       if (set == null) {
-        set = new HashSet(5);
-        map.put(new BasicBlockPair(b1,b2), set);
+        set = new HashSet<OPT_Register>(5);
+        map.put(pair, set);
       }
       return set;
     }
@@ -234,7 +240,8 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param xform a mapping from BasicBlockPair to the set of registers 
      * to split
      */
-    private static void transform(OPT_IR ir, HashMap xform) {
+    private static void transform(OPT_IR ir,
+                                  HashMap<BasicBlockPair,HashSet<OPT_Register>> xform) {
       for (Iterator i = xform.keySet().iterator(); i.hasNext(); ) {
         BasicBlockPair bbp = (BasicBlockPair)i.next();
         HashSet toSplit = (HashSet)xform.get(bbp);
@@ -328,12 +335,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       /**
        * The source of a control-flow edge
        */
-      OPT_BasicBlock src;
+      final OPT_BasicBlock src;
 
       /**
        * The sink of a control-flow edge
        */
-      OPT_BasicBlock dest;
+      final OPT_BasicBlock dest;
 
       BasicBlockPair(OPT_BasicBlock src, OPT_BasicBlock dest) {
         this.src = src;

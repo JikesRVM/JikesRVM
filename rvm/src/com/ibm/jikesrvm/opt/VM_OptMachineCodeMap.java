@@ -14,6 +14,8 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
+import com.ibm.jikesrvm.adaptive.VM_CallSite;
+import java.util.ArrayList;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
@@ -144,8 +146,8 @@ import org.vmmagic.unboxed.Offset;
    * @return an arraylist of VM_CallSite objects representing all non-inlined
    *         callsites in the method. Returns null if there are no such callsites.
    */
-  public java.util.ArrayList getNonInlinedCallSites() throws InterruptiblePragma {
-    java.util.ArrayList ans = null;
+  public ArrayList<VM_CallSite> getNonInlinedCallSites() throws InterruptiblePragma {
+    ArrayList<VM_CallSite> ans = null;
     if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
       int callInfo = getCallInfo(entry);
@@ -158,7 +160,7 @@ import org.vmmagic.unboxed.Offset;
             VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
               if (ans == null) ans = new java.util.ArrayList();
-              ans.add(new com.ibm.jikesrvm.adaptive.VM_CallSite(caller, bcIndex));
+              ans.add(new VM_CallSite(caller, bcIndex));
             }
           }
         }

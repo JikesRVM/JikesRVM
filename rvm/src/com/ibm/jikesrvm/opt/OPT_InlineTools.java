@@ -77,7 +77,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
       return true;
     } else if (searchSubclasses) {
       // see if any subclasses have overridden the method
-      Stack s = new Stack();
+      Stack<VM_Class> s = new Stack<VM_Class>();
       for (int i = 0; i < subClasses.length; i++) {
         s.push(subClasses[i]);
       }

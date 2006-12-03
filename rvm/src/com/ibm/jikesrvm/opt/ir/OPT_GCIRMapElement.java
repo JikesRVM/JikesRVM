@@ -88,8 +88,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     // traverse the list and compute how many regs exist
     OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
     while (rslEnum.hasMoreElements()) {
-      OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) rslEnum.nextElement();
+      rslEnum.nextElement();
       count++;
     }
     return count;

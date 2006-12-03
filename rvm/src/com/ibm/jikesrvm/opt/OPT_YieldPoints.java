@@ -11,6 +11,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 
 /**
  * This class inserts yield points in
@@ -22,8 +24,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Dave Grove
  * @author Michael Hind
  */
-class OPT_YieldPoints extends OPT_CompilerPhase
-  implements OPT_Operators, OPT_Constants {
+class OPT_YieldPoints extends OPT_CompilerPhase {
 
   /**
    * Should this phase be performed?

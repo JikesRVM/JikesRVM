@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import  java.util.Enumeration;
+import  java.util.ArrayList;
+import  java.util.ListIterator;
 
 /**
  *  This class provides enumeration of elements of a tree in a town-down manner
@@ -19,24 +21,24 @@ import  java.util.Enumeration;
  *
  *  @author Michael Hind
  */
-final class OPT_TreeTopDownEnumerator implements Enumeration {
+final class OPT_TreeTopDownEnumerator implements Enumeration<OPT_TreeNode> {
 
   /**
    * List of nodes in preorder
    */
-  private java.util.ArrayList list;
+  private final ArrayList<OPT_TreeNode> list;
 
   /**
    * an iterator of the above list
    */
-  private java.util.ListIterator iterator;
+  private final ListIterator<OPT_TreeNode> iterator;
 
   /**
    * constructor: it creates the list of nodes
    * @param   root Root of the tree to traverse
    */
   OPT_TreeTopDownEnumerator(OPT_TreeNode root) {
-    list = new java.util.ArrayList();
+    list = new ArrayList<OPT_TreeNode>();
 
     // Perform a DFS, saving nodes in preorder
     DFS(root);
@@ -57,7 +59,7 @@ final class OPT_TreeTopDownEnumerator implements Enumeration {
    * returns the next element in the list iterator
    * @return the next element in the list iterator or null
    */
-  public Object nextElement() {
+  public OPT_TreeNode nextElement() {
     return  iterator.next();
   }
 

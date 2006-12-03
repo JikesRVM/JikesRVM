@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import java.util.HashMap;
 
 /**
  * Perform local constant propagation for a factored basic block.
@@ -19,7 +20,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * 
  * @author Dave Grove
  */
-public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Operators {
+public class OPT_LocalConstantProp extends OPT_CompilerPhase {
 
   public final boolean shouldPerform (OPT_Options options) {
     return options.LOCAL_CONSTANT_PROP;
@@ -51,7 +52,8 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
    */
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_ConstantOperand.
-    java.util.HashMap info = new java.util.HashMap();
+    HashMap<OPT_Register, OPT_ConstantOperand> info =
+      new HashMap<OPT_Register, OPT_ConstantOperand>();
     boolean runBranchOpts = false;
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
          bb != null; 
@@ -98,7 +100,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
         }
         // GEN
         if (Move.conforms(s) && Move.getVal(s).isConstant()) {
-          info.put(Move.getResult(s).register, Move.getVal(s));
+          info.put(Move.getResult(s).register, (OPT_ConstantOperand)Move.getVal(s));
         } 
       }
       info.clear();

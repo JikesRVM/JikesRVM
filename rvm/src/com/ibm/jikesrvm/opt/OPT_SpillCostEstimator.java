@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import java.util.HashMap;
 
 /**
  * An object that returns an estimate of the relative cost of spilling a 
@@ -19,7 +20,8 @@ import com.ibm.jikesrvm.opt.ir.*;
  */
 abstract class OPT_SpillCostEstimator {
 
-  private java.util.HashMap map = new java.util.HashMap(); 
+  private final HashMap<OPT_Register,Double> map =
+	 new HashMap<OPT_Register,Double>(); 
 
   /**
    * Return a number that represents an estimate of the relative cost of
@@ -42,6 +44,6 @@ abstract class OPT_SpillCostEstimator {
   protected void update(OPT_Register r, double delta) {
     double c = getCost(r);
     c += delta;
-    map.put(r, new Double(c));
+    map.put(r, Double.valueOf(c));
   }
 }

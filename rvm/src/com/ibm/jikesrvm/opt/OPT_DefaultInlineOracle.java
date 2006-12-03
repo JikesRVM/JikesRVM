@@ -166,8 +166,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
       if (targets == null) return OPT_InlineDecision.NO("No potential targets identified");
       
       // Stage 3: We have one or more targets.  Determine what if anything should be done with them.
-      final ArrayList methodsToInline = new ArrayList(); 
-      final ArrayList methodsNeedGuard = new ArrayList();
+      final ArrayList<VM_Method> methodsToInline = new ArrayList<VM_Method>(); 
+      final ArrayList<Boolean> methodsNeedGuard = new ArrayList<Boolean>();
       final double callSiteWeight = targets.totalWeight();
       final boolean goosc = guardOverrideOnStaticCallee; // real closures anyone?
       final boolean ps = purelyStatic;                   // real closures anyone?

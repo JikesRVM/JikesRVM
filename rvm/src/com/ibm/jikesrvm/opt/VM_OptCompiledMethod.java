@@ -16,6 +16,7 @@ import com.ibm.jikesrvm.opt.ir.*;
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
 //-#endif
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -30,8 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-@Uninterruptible public final class VM_OptCompiledMethod extends VM_CompiledMethod
-  implements OPT_Operators  {
+@Uninterruptible public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    

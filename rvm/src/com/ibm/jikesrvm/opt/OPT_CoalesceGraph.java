@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 /**
  * This class represents a graph, where
@@ -30,7 +31,8 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
   /**
    * Mapping register -> Node
    */
-  java.util.HashMap nodeMap = new java.util.HashMap();
+  final HashMap<OPT_Register,Node> nodeMap =
+    new HashMap<OPT_Register,Node>();
 
   /**
    * find or create a node in the graph corresponding to a register.

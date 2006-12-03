@@ -12,7 +12,9 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import org.vmmagic.unboxed.*;
+
 /**
  * Expansion of Dynamic Type Checking operations.
  *
@@ -863,7 +865,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           if (oldGuard != null)
             oldGuard = oldGuard.copyD2D();
           continueAt.insertBefore(dimTest);
-          OPT_BasicBlock testBlock = 
+          //OPT_BasicBlock testBlock = 
             mainBlock.splitNodeWithLinksAt(dimTest, ir);
           mainBlock.insertOut(trueBlock);
           mainBlock.insertOut(falseBlock);

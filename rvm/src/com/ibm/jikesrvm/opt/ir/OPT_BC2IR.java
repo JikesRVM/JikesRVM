@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
@@ -4491,7 +4492,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /* create an OSR Barrier instruction at the current position.
    */
   private OPT_Instruction _createOsrBarrier() {
-    ArrayList livevars = new ArrayList();
+    ArrayList<OPT_Operand> livevars =
+      new ArrayList<OPT_Operand>();
  
     /* for local variables, we have to use helper to make a register. */
     /* ltypes and stypes should be the full length
@@ -5387,7 +5389,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private void initializeExceptionHandlers(BasicBlockLE bble, 
                                              OPT_Operand[] simLocals) {
       if (startPCs != null) {
-        java.util.HashSet caughtTypes = new java.util.HashSet();
+        HashSet<VM_TypeReference> caughtTypes =
+          new HashSet<VM_TypeReference>();
         for (int i = 0; i < startPCs.length; i++) {
         VM_TypeReference caughtType = exceptionTypes[i].getTypeRef();
           if (bble.low >= startPCs[i] && bble.max <= endPCs[i] && 

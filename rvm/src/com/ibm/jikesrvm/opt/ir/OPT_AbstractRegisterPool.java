@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
+import java.util.HashMap;
 
 /**
  * @author Julian Dolby
@@ -231,7 +232,8 @@ public abstract class OPT_AbstractRegisterPool {
       return getInteger();
   }
 
-  private java.util.HashMap _regPairs = new java.util.HashMap();
+  private final HashMap<OPT_Register, OPT_Register> _regPairs =
+    new HashMap<OPT_Register, OPT_Register>();
   /**
    * MIR: Get the other half of the register pair that is 
    * associated with the argument register.
@@ -291,8 +293,8 @@ public abstract class OPT_AbstractRegisterPool {
     if (op.isRegister()) {
       result = makeTemp((OPT_RegisterOperand)op);
     } else {
-		result = makeTemp(op.getType());
-	 }
+      result = makeTemp(op.getType());
+    }
     return result;
   }
 

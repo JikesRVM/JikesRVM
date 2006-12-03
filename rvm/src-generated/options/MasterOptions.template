@@ -24,7 +24,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
        $$$$ IF TAG == S
        $$$$ LET PRETTY_NAME @PAD(FULL_NAME,23-@LENGTH("TYPE")," ")
-   private java.util.HashSet PRETTY_NAME= null; // OPTION.DESCRIP
+   private java.util.HashSet<String> PRETTY_NAME= null; // OPTION.DESCRIP
        $$$$ END LET PRETTY_NAME
        $$$$ ELSE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
@@ -98,7 +98,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
         if (FULL_NAME != null) {
-          clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
+          clone.FULL_NAME = (java.util.HashSet<String>)this.FULL_NAME.clone();
         }
      $$$$ END IF 
      $$$$ END SPLIT  
@@ -222,7 +222,7 @@ $$$$ FOREACH OPTION VDATFILE
          $$$$ IF TAG == S
            $$$$ IF TYPE == String
        if (FULL_NAME == null) {
-         FULL_NAME = new java.util.HashSet();
+         FULL_NAME = new java.util.HashSet<String>();
        }
        FULL_NAME.add(value);
        return true;

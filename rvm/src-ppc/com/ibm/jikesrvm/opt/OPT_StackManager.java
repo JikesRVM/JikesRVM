@@ -13,7 +13,10 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 import java.util.Iterator;
-
+import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.VM_StackframeLayoutConstants.*;
+import static com.ibm.jikesrvm.VM_Constants.*;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -26,8 +29,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Mauricio J. Serrano
  * @author Stephen Fink
  */
-public final class OPT_StackManager extends OPT_GenericStackManager
-  implements OPT_Operators {
+public final class OPT_StackManager extends OPT_GenericStackManager {
   
   /**
    * stack locaiton to save the XER register

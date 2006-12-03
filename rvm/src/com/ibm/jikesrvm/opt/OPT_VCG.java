@@ -64,7 +64,7 @@ public final class OPT_VCG implements OPT_VCGConstants
      * Process nodes
      */
 
-    Hashtable nodeNames = new Hashtable();
+    Hashtable<OPT_VisNode, String> nodeNames = new Hashtable<OPT_VisNode,String>();
     int nodenum = 0;
 
     for (Enumeration nodes = g.nodes(); nodes.hasMoreElements();) {

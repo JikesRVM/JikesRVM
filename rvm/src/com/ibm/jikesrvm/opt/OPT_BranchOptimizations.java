@@ -15,6 +15,7 @@ import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.HashSet;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Perform simple peephole optimizations for branches.
@@ -34,7 +35,7 @@ public final class OPT_BranchOptimizations
    * After we run code reordering, we disallow this transformation to avoid
    * destroying the desired code order.
    */
-  private boolean mayReorderCode;
+  private final boolean mayReorderCode;
 
   /**
    * Are we allowed to duplication conditional branches?
@@ -43,11 +44,8 @@ public final class OPT_BranchOptimizations
    * a conditional branch in a loop header into a block outside the
    * loop, thus creating two loop entry blocks.
    */
-  private boolean mayDuplicateCondBranches;
+  private final boolean mayDuplicateCondBranches;
    
-
-  private OPT_BranchOptimizations () { }
-
   /** 
    * @param level the minimum optimization level at which the branch 
    *              optimizations should be performed.
@@ -623,43 +621,43 @@ public final class OPT_BranchOptimizations
     if (taken != null && hasCMTaboo(taken)) return false;
     if (notTaken != null && hasCMTaboo(notTaken)) return false;
 
-	 // Do not generate when we don't know the branch probability or
-	 // when branch probability is high. CMOVs reduce performance of
-	 // the out-of-order engine (Intel Optimization Guide -
-	 // Assembly/Compiler Coding Rule 2)
-	 OPT_BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
-	 if(!VM.runningVM ||
-		 (profile.takenProbability >= OPT_BranchProfileOperand.LIKELY)||
-		 (profile.takenProbability <= OPT_BranchProfileOperand.UNLIKELY)) {
-		return false;
-	 }
+    // Do not generate when we don't know the branch probability or
+    // when branch probability is high. CMOVs reduce performance of
+    // the out-of-order engine (Intel Optimization Guide -
+    // Assembly/Compiler Coding Rule 2)
+    OPT_BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
+    if(!VM.runningVM ||
+       (profile.takenProbability >= OPT_BranchProfileOperand.LIKELY)||
+       (profile.takenProbability <= OPT_BranchProfileOperand.UNLIKELY)) {
+      return false;
+    }
 
     // if we must generate FCMP, make sure the condition code is OK
-	 OPT_ConditionOperand cond = IfCmp.getCond(cb);
+    OPT_ConditionOperand cond = IfCmp.getCond(cb);
     if (cond.isFLOATINGPOINT()) {
       if (!fpConditionOK(cond)) {
-		  // Condition not OK, but maybe if we flip the operands
-		  if(!fpConditionOK(cond.flipOperands())) {
-			 // still not ok so flip operands back and give up
-			 cond.flipOperands();
-			 return false;
-		  }
-		  else {
-			 // flip operands
-			 OPT_Operand val1 = IfCmp.getVal1(cb);
-			 OPT_Operand val2 = IfCmp.getVal2(cb);
-			 IfCmp.setVal1(cb, val2);
-			 IfCmp.setVal2(cb, val1);
-		  }
-		}
+        // Condition not OK, but maybe if we flip the operands
+        if(!fpConditionOK(cond.flipOperands())) {
+          // still not ok so flip operands back and give up
+          cond.flipOperands();
+          return false;
+        }
+        else {
+          // flip operands
+          OPT_Operand val1 = IfCmp.getVal1(cb);
+          OPT_Operand val2 = IfCmp.getVal2(cb);
+          IfCmp.setVal1(cb, val2);
+          IfCmp.setVal2(cb, val1);
+        }
+      }
     }
-	 
-	 // Can only generate FMOV instructions for FP and unsigned int compares
-	 if(!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
-		if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
-		  return false;
-		}
-	 }
+    
+    // Can only generate FMOV instructions for FP and unsigned int compares
+    if(!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
+      if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
+        return false;
+      }
+    }
 
     // Don't generate CMOVs for branches that can be folded.
     if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
@@ -712,10 +710,10 @@ public final class OPT_BranchOptimizations
     case OPT_ConditionOperand.CMPL_LESS_EQUAL:    return true; // (CF == 1 || ZF == 1) and unordered
     case OPT_ConditionOperand.CMPL_GREATER_EQUAL: return true; // (CF == 0) and ordered
     case OPT_ConditionOperand.CMPL_LESS:          return true; // (CF == 1) and unordered
-	 default:
+    default:
       OPT_OptimizingCompilerException.UNREACHABLE();
-		return false; // keep jikes happy
-	 }
+      return false; // keep jikes happy
+    }
   }
 
   /**
@@ -764,7 +762,7 @@ public final class OPT_BranchOptimizations
 
     // Note: it is taboo to assign more than once to any register in the
     // block.
-    HashSet defined = new HashSet();
+    HashSet<OPT_Register> defined = new HashSet<OPT_Register>();
 
     for (Enumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
@@ -837,7 +835,7 @@ public final class OPT_BranchOptimizations
    * </ul>
    */
   private OPT_Instruction[] copyAndMapInstructions(OPT_BasicBlock bb,
-                                                   HashMap map) {
+                                                   HashMap<OPT_Instruction,OPT_Instruction> map) {
     if (bb == null) return new OPT_Instruction[0];
                 
     int count = 0;
@@ -870,7 +868,8 @@ public final class OPT_BranchOptimizations
   private void rewriteWithTemporaries(OPT_Instruction[] set, OPT_IR ir) {
 
     // Maintain a mapping holding the new name for each register
-    HashMap map = new HashMap();
+    HashMap<OPT_Register,OPT_Register> map =
+      new HashMap<OPT_Register,OPT_Register>();
     for (int i=0; i<set.length; i++) {
       OPT_Instruction s = set[i];
 
@@ -921,11 +920,13 @@ public final class OPT_BranchOptimizations
     // for each non-branch instruction s in the diamond, 
     // copy s to a new instruction s'
     // and store a mapping from s to s'
-    HashMap takenInstructions = new HashMap();
+    HashMap<OPT_Instruction,OPT_Instruction> takenInstructions =
+      new HashMap<OPT_Instruction,OPT_Instruction>();
     OPT_Instruction[] takenInstructionList = copyAndMapInstructions
       (taken, takenInstructions);
 
-    HashMap notTakenInstructions = new HashMap();
+    HashMap<OPT_Instruction,OPT_Instruction> notTakenInstructions =
+      new HashMap<OPT_Instruction,OPT_Instruction>();
     OPT_Instruction[] notTakenInstructionList =
       copyAndMapInstructions(notTaken, notTakenInstructions);
     
@@ -953,7 +954,8 @@ public final class OPT_BranchOptimizations
     
     // For each register defined in the TAKEN branch, save a mapping to
     // the corresponding conditional move.
-    HashMap takenMap = new HashMap();
+    HashMap<OPT_Register,OPT_Instruction> takenMap =
+      new HashMap<OPT_Register,OPT_Instruction>();
     
     // Now insert conditional moves to replace each instruction in the diamond.
     // First handle the taken branch.
@@ -984,7 +986,8 @@ public final class OPT_BranchOptimizations
     }
     // For each register defined in the NOT-TAKEN branch, save a mapping to
     // the corresponding conditional move.
-    HashMap notTakenMap = new HashMap();
+    HashMap<OPT_Register,OPT_Instruction> notTakenMap =
+      new HashMap<OPT_Register,OPT_Instruction>();
     // Next handle the not taken branch.
     if (notTaken != null) {
       for (Enumeration e = notTaken.forwardRealInstrEnumerator(); 

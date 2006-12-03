@@ -15,6 +15,8 @@ import com.ibm.jikesrvm.VM_TIBLayoutConstants;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.*;
 import java.lang.reflect.Array;
+import static com.ibm.jikesrvm.VM_SizeConstants.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
  *
@@ -31,8 +33,9 @@ import java.lang.reflect.Array;
  * 500 lines of clever code. 
  *
  * @author Dave Grove
+ * @author Ian Rogers
  */
-public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
+public abstract class OPT_Simplifier extends OPT_IRTools {
   // NOTE: The convention is that constant folding is controlled based
   // on the type of the result of the operator, not the type of its inputs.
   /** 

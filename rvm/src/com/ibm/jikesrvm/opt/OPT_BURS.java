@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * A few common utilites used for invoking BURS tree-pattern matching
@@ -21,7 +22,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Vivek Sarkar
  * @author Mauricio Serrano
  */
-public abstract class OPT_BURS implements OPT_Operators {
+public abstract class OPT_BURS {
 
   protected static final boolean DEBUG = false;
 

@@ -18,8 +18,7 @@ import org.vmmagic.unboxed.Address;
  * @author Dave Grove
  * @author Stephen Fink
  */
-abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
-  implements OPT_Operators, OPT_PhysicalRegisterConstants {
+abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools {
 
   /** Infinte cost for a rule */
   protected static final int INFINITE = 0x7fff;

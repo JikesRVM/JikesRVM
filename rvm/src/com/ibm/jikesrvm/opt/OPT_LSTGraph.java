@@ -32,7 +32,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private static final boolean DEBUG = false;
 
   protected OPT_LSTNode rootNode;
-  private java.util.HashMap loopMap; // bb -> OPT_LSTNode of innermost loop containing bb
+  /** Map of bb to OPT_LSTNode of innermost loop containing bb */
+  private final HashMap<OPT_BasicBlock,OPT_LSTNode> loopMap;
 
   /**
    * The main entry point
@@ -45,8 +46,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
       OPT_VCG.printVCG("cfg", ir.cfg);
       OPT_VCG.printVCG("lst", ir.HIRInfo.LoopStructureTree);
       System.out.println(ir.HIRInfo.LoopStructureTree.toString());
-    }
-    
+    }    
   }
 
   /**
@@ -127,13 +127,13 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    */
 
   /**
-	* Copying constructor
-	*
-	* @param graph to copy
-	*/
+   * Copying constructor
+   *
+   * @param graph to copy
+   */
   protected OPT_LSTGraph(OPT_LSTGraph graph) {
-	 rootNode = graph.rootNode;
-	 loopMap = graph.loopMap;
+    rootNode = graph.rootNode;
+    loopMap = graph.loopMap;
   }
 
   /**
@@ -141,7 +141,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param  ir the IR
    */
   private OPT_LSTGraph(OPT_IR ir) {
-	 loopMap = new java.util.HashMap();
+    loopMap = new HashMap<OPT_BasicBlock,OPT_LSTNode>();
 
     OPT_ControlFlowGraph cfg = ir.cfg;
     OPT_BasicBlock entry = ir.cfg.entry();

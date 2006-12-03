@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.*;
 
 /**
@@ -29,7 +30,7 @@ import java.util.*;
  * NOTE: the check for exactly one in edge is used to rule out
  *       situations like the following:
  * <pre>
- *      if (C) goto L2              // cb2
+[5~ *      if (C) goto L2              // cb2
  *      x = x + 1;
  *  L2: x = x + 1;
  *      if (C) goto L3.            // cb1
@@ -65,9 +66,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
           });
   }
 
-  private static final class EnsureSSA extends OPT_CompilerPhase implements OPT_Operators{
-           
-              
+  private static final class EnsureSSA extends OPT_CompilerPhase {
+
     public String getName() {
       return "Ensure SSA";
     }
@@ -83,7 +83,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     }
   }
 
-  private static final class RBE extends OPT_CompilerPhase implements OPT_Operators {
+  private static final class RBE extends OPT_CompilerPhase {
     private static final boolean DEBUG = false;
     public final String getName() { return "RBE Transform"; }
     public final boolean printingEnabled (OPT_Options options, boolean before) {

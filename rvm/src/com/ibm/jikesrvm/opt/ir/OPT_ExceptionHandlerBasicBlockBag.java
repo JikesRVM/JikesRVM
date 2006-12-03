@@ -34,7 +34,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    * method's (the caller's) ExcpetionHandlerBasicBlockBag.  If this is 
    * the outermost method, then this is null
    */
-  private OPT_ExceptionHandlerBasicBlockBag caller;
+  private final OPT_ExceptionHandlerBasicBlockBag caller;
 
   /**
    * only for use by BC2IR; return {@link #caller}
@@ -55,27 +55,27 @@ final class OPT_ExceptionHandlerBasicBlockBag {
     caller = c;
   }
 
-    /**
-     * take an element out f the bag.  Throw an exception if the block
-     * to remove is not in the bag
-     */
-    public void remove(OPT_BasicBlock bb) {
-        for(int i = 0; i < local.length; i++) {
-            if (bb == local[i]) {
-                OPT_ExceptionHandlerBasicBlock[] newLocal =
-                    new OPT_ExceptionHandlerBasicBlock[ local.length - 1 ];
+  /**
+   * take an element out f the bag.  Throw an exception if the block
+   * to remove is not in the bag
+   */
+  public void remove(OPT_BasicBlock bb) {
+    for(int i = 0; i < local.length; i++) {
+      if (bb == local[i]) {
+        OPT_ExceptionHandlerBasicBlock[] newLocal =
+          new OPT_ExceptionHandlerBasicBlock[ local.length - 1 ];
                
-                for(int j = 0; j < i; j++) newLocal[j] = local[j];
+        for(int j = 0; j < i; j++) newLocal[j] = local[j];
 
-                for(int j = i+1; j < local.length; j++) newLocal[j-1]=local[j];
+        for(int j = i+1; j < local.length; j++) newLocal[j-1]=local[j];
 
-                local = newLocal;
-                return;
-            }
-        }
-
-        throw new OPT_OptimizingCompilerException("Removing block not present in bag: " + bb);
+        local = newLocal;
+        return;
+      }
     }
+
+    throw new OPT_OptimizingCompilerException("Removing block not present in bag: " + bb);
+  }
 
   /**
    * An enumeration of all the exception handler basic blocks 
@@ -84,38 +84,38 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    */
   public OPT_BasicBlockEnumeration enumerator() {
     return new OPT_BasicBlockEnumeration() {
-      private int cur_idx = 0;
-      private OPT_ExceptionHandlerBasicBlockBag cur_bag = null;
-      // Initialize enumeration to point to first ehbb (if any)
-      {
-        OPT_ExceptionHandlerBasicBlockBag c = OPT_ExceptionHandlerBasicBlockBag.this;
-        while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
-        if (c != null) {
-          cur_bag = c;
+        private int cur_idx = 0;
+        private OPT_ExceptionHandlerBasicBlockBag cur_bag = null;
+        // Initialize enumeration to point to first ehbb (if any)
+        {
+          OPT_ExceptionHandlerBasicBlockBag c = OPT_ExceptionHandlerBasicBlockBag.this;
+          while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
+          if (c != null) {
+            cur_bag = c;
+          }
         }
-      }
-      public boolean hasMoreElements() { return cur_bag != null; }
-      public Object nextElement() { return next(); }
-      public OPT_BasicBlock next() {
-        OPT_ExceptionHandlerBasicBlock ans;
-        try {
-          ans = cur_bag.local[cur_idx++];
-        } catch (NullPointerException e) {
-          throw new java.util.NoSuchElementException();
-        }
-        // Now advance state to point to next element.
-        if (cur_idx == cur_bag.local.length) {
-          cur_bag = cur_bag.caller;
-          while (cur_bag != null && (cur_bag.local == null || cur_bag.local.length == 0)) {
+        public boolean hasMoreElements() { return cur_bag != null; }
+        public OPT_BasicBlock nextElement() { return next(); }
+        public OPT_BasicBlock next() {
+          OPT_ExceptionHandlerBasicBlock ans;
+          try {
+            ans = cur_bag.local[cur_idx++];
+          } catch (NullPointerException e) {
+            throw new java.util.NoSuchElementException();
+          }
+          // Now advance state to point to next element.
+          if (cur_idx == cur_bag.local.length) {
             cur_bag = cur_bag.caller;
+            while (cur_bag != null && (cur_bag.local == null || cur_bag.local.length == 0)) {
+              cur_bag = cur_bag.caller;
+            }
+            if (cur_bag != null) {
+              cur_idx = 0; // found the next array, reset idx to first element.
+            }
           }
-          if (cur_bag != null) {
-            cur_idx = 0; // found the next array, reset idx to first element.
-          }
+          return ans;
         }
-        return ans;
-      }
-    };
+      };
   }
 }
 

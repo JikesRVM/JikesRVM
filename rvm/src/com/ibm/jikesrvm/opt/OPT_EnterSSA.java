@@ -12,6 +12,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import java.util.*;
 import java.lang.reflect.Constructor;
 
@@ -39,8 +41,7 @@ import java.lang.reflect.Constructor;
  * @author Julian Dolby
  * @author Martin Trapp
  */
-class OPT_EnterSSA extends OPT_CompilerPhase
-implements OPT_Operators, OPT_Constants {
+class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * flag to optionally print verbose debugging messages
    */
@@ -59,12 +60,12 @@ implements OPT_Operators, OPT_Constants {
   /**
    * A set of registers determined to span basic blocks
    */
-  private HashSet nonLocalRegisters;
+  private HashSet<OPT_Register> nonLocalRegisters;
 
   /**
    * The set of scalar phi functions inserted
    */
-  private HashSet scalarPhis = new HashSet();
+  private final HashSet<OPT_Instruction> scalarPhis = new HashSet<OPT_Instruction>();
 
   /**
    * For each basic block, the number of predecessors that have been
@@ -191,10 +192,10 @@ implements OPT_Operators, OPT_Constants {
    * </code> field.
    */
   private void computeNonLocals () {
-    nonLocalRegisters = new HashSet(20);
+    nonLocalRegisters = new HashSet<OPT_Register>(20);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      HashSet killed = new HashSet(5);
+      HashSet<OPT_Register> killed = new HashSet<OPT_Register>(5);
       OPT_BasicBlock block = blocks.next();
       OPT_InstructionEnumeration instrs = block.forwardRealInstrEnumerator();
       while (instrs.hasMoreElements()) {
@@ -226,7 +227,7 @@ implements OPT_Operators, OPT_Constants {
     // this only applies if there are exception handlers
     if (!ir.hasReachableExceptionHandlers()) return;
 
-    HashSet needed = new HashSet(4);
+    HashSet<OPT_Pair> needed = new HashSet<OPT_Pair>(4);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
       OPT_BasicBlock block = blocks.next();
@@ -466,9 +467,9 @@ implements OPT_Operators, OPT_Constants {
    * @param ir the governing IR
    */
   private void insertHeapPhiFunctions (OPT_IR ir) {
-    Enumeration e = ir.HIRInfo.SSADictionary.getHeapVariables();
-    for (; e.hasMoreElements();) {
-      OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
+    Iterator<OPT_HeapVariable<?>> e = ir.HIRInfo.SSADictionary.getHeapVariables();
+    for (; e.hasNext();) {
+      OPT_HeapVariable<?> H = e.next();
 
       if (DEBUG) System.out.println("Inserting phis for Heap " + H);
       if (DEBUG) System.out.println("Start iterated frontier...");
@@ -689,9 +690,9 @@ implements OPT_Operators, OPT_Constants {
     */
     private void renameSymbolicRegisters(OPT_Register[] symbolicRegisters) {
       int n = ir.getNumberOfSymbolicRegisters();
-      Stack[] S = new Stack[n + 1];
+      Stack<OPT_RegisterOperand>[] S = new Stack[n + 1];
       for (int i = 0; i < S.length; i++) {
-        S[i] = new Stack();
+        S[i] = new Stack<OPT_RegisterOperand>();
         // populate the Stacks with initial names for
         // each parameter, and push "null" for other symbolic registers
         if (i >= symbolicRegisters.length) continue;
@@ -716,7 +717,7 @@ implements OPT_Operators, OPT_Constants {
    * @param X basic block to search dominator tree from
    * @param S stack of names for each register
    */
-  private void search(OPT_BasicBlock X, Stack[] S) {
+  private void search(OPT_BasicBlock X, Stack<OPT_RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
     for (OPT_InstructionEnumeration ie = 
          X.forwardInstrEnumerator(); ie.hasMoreElements();) {
@@ -730,7 +731,7 @@ implements OPT_Operators, OPT_Constants {
             OPT_Register r1 = rop.register;
             if (r1.isSSA()) continue;
             if (r1.isPhysical()) continue;
-            OPT_RegisterOperand r2 = (OPT_RegisterOperand)S[r1.getNumber()].peek();
+            OPT_RegisterOperand r2 = S[r1.getNumber()].peek();
             if (DEBUG) System.out.println("REPLACE NORMAL USE " + r1 + " with " + r2);
             if (r2 != null) {
               rop.register = r2.register;
@@ -772,7 +773,7 @@ implements OPT_Operators, OPT_Constants {
           OPT_Register r1 = ((OPT_RegisterOperand)Phi.getValue(s,j)).register;
           // ignore registers already marked SSA by a previous pass
           if (!r1.isSSA()) {
-            OPT_RegisterOperand r2 = (OPT_RegisterOperand)S[r1.getNumber()].peek();
+            OPT_RegisterOperand r2 = S[r1.getNumber()].peek();
             if (r2 == null) {
               // in this case, the register is never defined along
               // this particular control flow path into the basic
@@ -833,13 +834,14 @@ implements OPT_Operators, OPT_Constants {
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
     // use stacks.get(OPT_ClassLoaderProxy.IntType);
-    HashMap stacks = new HashMap(n);
+    HashMap<Object, Stack<OPT_HeapOperand<?>>> stacks =
+      new HashMap<Object, Stack<OPT_HeapOperand<?>>>(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
-    for (Enumeration e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
-         e.hasMoreElements();) {
-      OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
-      Stack S = new Stack();
+    for (Iterator<OPT_HeapVariable<?>> e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
+         e.hasNext();) {
+      OPT_HeapVariable<?> H = e.next();
+      Stack<OPT_HeapOperand<?>> S = new Stack<OPT_HeapOperand<?>>();
       S.push(new OPT_HeapOperand(H));
       Object heapType = H.getHeapType();
       stacks.put(heapType, S);
@@ -860,7 +862,8 @@ implements OPT_Operators, OPT_Constants {
    * variable
    * used and defined by each instruction.
    */
-  private void search2(OPT_BasicBlock X, HashMap stacks) {
+  private void search2(OPT_BasicBlock X,
+                       HashMap<Object, Stack<OPT_HeapOperand<?>>> stacks) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (Enumeration ie = dictionary.getAllInstructions(X); ie.hasMoreElements();) {
@@ -872,8 +875,7 @@ implements OPT_Operators, OPT_Constants {
         if (uses != null) {
           OPT_HeapOperand[] newUses = new OPT_HeapOperand[uses.length];
           for (int i = 0; i < uses.length; i++) {
-            Stack S = (Stack)stacks.get
-              (uses[i].getHeapType());
+            Stack<OPT_HeapOperand<?>> S = stacks.get(uses[i].getHeapType());
             newUses[i] = (OPT_HeapOperand)((OPT_HeapOperand)S.peek()).copy();
             if (DEBUG)
               System.out.println("NORMAL USE PEEK " + newUses[i]);
@@ -887,14 +889,14 @@ implements OPT_Operators, OPT_Constants {
         if (defs != null) {
           OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
           for (int i = 0; i < r.length; i++) {
-            Stack S = (Stack)stacks.get(r[i].getHeapType());
+            Stack<OPT_HeapOperand<?>> S = stacks.get(r[i].getHeapType());
             S.push(r[i]);
             if (DEBUG) System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
           }
         }
       } else {
         OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
-        Stack S = (Stack)stacks.get(r[0].getHeapType());
+        Stack<OPT_HeapOperand<?>> S = stacks.get(r[0].getHeapType());
         S.push(r[0]);
         if (DEBUG) System.out.println("PUSH " + r[0] + " FOR " + r[0].getHeapType());
       }
@@ -905,11 +907,11 @@ implements OPT_Operators, OPT_Constants {
       if (Y.isExit()) continue;
       int j = numPredProcessed[Y.getNumber()]++;
       // replace each USE in each HEAP-PHI function for Y
-      for (Enumeration hp = dictionary.getHeapPhiInstructions(Y); hp.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)hp.nextElement();
+      for (Iterator<OPT_Instruction> hp = dictionary.getHeapPhiInstructions(Y); hp.hasNext();) {
+        OPT_Instruction s = hp.next();
         OPT_HeapOperand H1 = (OPT_HeapOperand)Phi.getResult(s);
-        Stack S = (Stack)stacks.get(H1.getHeapType());
-        OPT_HeapOperand H2 = (OPT_HeapOperand)S.peek();
+        Stack<OPT_HeapOperand<?>> S = stacks.get(H1.getHeapType());
+        OPT_HeapOperand<?> H2 = S.peek();
         Phi.setValue(s, j, new OPT_HeapOperand(H2.getHeapVariable()));
         Phi.setPred(s, j, new OPT_BasicBlockOperand(X));
       }
@@ -928,14 +930,14 @@ implements OPT_Operators, OPT_Constants {
         OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
           for (int i = 0; i < defs.length; i++) {
-            Stack S = (Stack)stacks.get(defs[i].getHeapType());
+            Stack<OPT_HeapOperand<?>> S = stacks.get(defs[i].getHeapType());
             S.pop();
             if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
           }
         }
       } else {
-        OPT_HeapOperand H = (OPT_HeapOperand)Phi.getResult(A);
-        Stack S = (Stack)stacks.get(H.getHeapType());
+        OPT_HeapOperand<?> H = (OPT_HeapOperand<?>)Phi.getResult(A);
+        Stack<OPT_HeapOperand<?>> S = stacks.get(H.getHeapType());
         S.pop();
         if (DEBUG) System.out.println("POP " + H.getHeapType());
       }
@@ -977,7 +979,7 @@ implements OPT_Operators, OPT_Constants {
    * @param ir governing IR
    * @param store place to store copies
    */
-  private void copyHeapDefs (OPT_IR ir, HashMap store) {
+  private void copyHeapDefs (OPT_IR ir, HashMap<OPT_Instruction,OPT_HeapOperand<?>[]> store) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); 
          be.hasMoreElements();) {

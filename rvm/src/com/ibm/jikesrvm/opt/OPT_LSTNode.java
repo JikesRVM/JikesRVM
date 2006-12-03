@@ -23,7 +23,7 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
   /**
    * Basic block which is the loop head
    */
-  OPT_BasicBlock header;
+  final OPT_BasicBlock header;
   
   /**
    * Basic blocks in the loop
@@ -44,7 +44,7 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
   /**
    * The CFG Edges that are exits from the loop.
    */
-  ArrayList loopExits;
+  ArrayList<Edge> loopExits;
 
 
   OPT_LSTNode(OPT_BasicBlock bb) {
@@ -95,7 +95,7 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
   }
 
   public void initializeLoopExits() {
-    loopExits = new ArrayList();
+    loopExits = new ArrayList<Edge>();
   }
 
   public void addLoopExit(OPT_BasicBlock source, OPT_BasicBlock target, float prob) {

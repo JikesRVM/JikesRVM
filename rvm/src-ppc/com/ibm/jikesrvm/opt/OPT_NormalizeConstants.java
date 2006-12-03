@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 /**
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules

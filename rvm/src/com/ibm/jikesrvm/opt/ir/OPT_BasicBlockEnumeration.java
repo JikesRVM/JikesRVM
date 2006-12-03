@@ -9,13 +9,14 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import java.util.Enumeration;
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty basic block enumeration.
  *
  * @author Dave Grove
  */
-public interface OPT_BasicBlockEnumeration extends java.util.Enumeration {
+public interface OPT_BasicBlockEnumeration extends Enumeration<OPT_BasicBlock> {
   /**
    * Same as nextElement but avoid the need to downcast from Object.
    */

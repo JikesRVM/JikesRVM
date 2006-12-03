@@ -17,13 +17,15 @@ package com.ibm.jikesrvm.opt;
  * @author Dave Grove
  */
 public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
+  /** Support for exception serialization */
+  static final long serialVersionUID = -5731701797088209175L;
 
   /**
    * A very few magics, we have no intention of ever implementing 
    * in the opt compiler.  Supress warning messages for them
    * to avoid confusing users with "expected" error messages
    */
-  public boolean isExpected = false;
+  public final boolean isExpected;
 
   private OPT_MagicNotImplementedException (String s, boolean isExpected) {
     super(s);

@@ -12,6 +12,7 @@ import com.ibm.jikesrvm.*;
 import java.util.Enumeration;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 import org.vmmagic.pragma.*;
 
@@ -26,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @author Dave Grove
  * @modified Mauricio Serrano
  */
-public final class OPT_DefUse implements OPT_Operators {
+public final class OPT_DefUse {
   final static boolean DEBUG = false;
   final static boolean TRACE_DU_ACTIONS = false;
   final static boolean SUPRESS_DU_FOR_PHYSICALS = true;

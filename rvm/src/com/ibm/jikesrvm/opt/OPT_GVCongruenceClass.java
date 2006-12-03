@@ -32,7 +32,7 @@ final class OPT_GVCongruenceClass {
   /**
    * The set of vertices in this congruence class
    */
-  private final HashSet vertices;
+  private final HashSet<OPT_ValueGraphVertex> vertices;
 
   /**
    * A representative of the congruence class
@@ -49,7 +49,7 @@ final class OPT_GVCongruenceClass {
   OPT_GVCongruenceClass (int valueNumber, Object label) {
     this.valueNumber = valueNumber;
     this.label = label;
-    vertices = new HashSet(1);
+    vertices = new HashSet<OPT_ValueGraphVertex>(1);
   }
 
   public Object getLabel () {

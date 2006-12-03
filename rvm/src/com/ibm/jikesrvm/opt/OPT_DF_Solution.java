@@ -19,8 +19,9 @@ import java.util.HashMap;
  *
  * @author Stephen Fink
  */
-public class OPT_DF_Solution extends HashMap {
-
+public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
+  /** Support for serialization */
+  static final long serialVersionUID = -335649266901802532L;
   /** 
    * Return a string representation of the dataflow solution
    * @return a string representation of the dataflow solution

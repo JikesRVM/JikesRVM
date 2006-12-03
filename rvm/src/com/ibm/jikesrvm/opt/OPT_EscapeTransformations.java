@@ -10,8 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.classloader.*;
-
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Transformations that use escape analysis.
@@ -23,8 +23,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Stephen Fink
  *
  */
-class OPT_EscapeTransformations extends OPT_CompilerPhase
-    implements OPT_Operators {
+class OPT_EscapeTransformations extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

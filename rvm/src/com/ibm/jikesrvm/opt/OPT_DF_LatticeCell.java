@@ -26,7 +26,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
-  public Iterator getUses ();
+  public Iterator<OPT_DF_Equation> getUses ();
 
   /** 
    * Returns an enumeration of the equations in which this
@@ -34,7 +34,7 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
-  public Iterator getDefs ();
+  public Iterator<OPT_DF_Equation> getDefs ();
 
   /** 
    * Return a string representation of the cell

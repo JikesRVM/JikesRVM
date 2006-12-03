@@ -13,6 +13,8 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -30,8 +32,7 @@ import java.lang.reflect.Constructor;
  * @author Dave Grove
  * @author Martin Trapp
  */
-public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
 
   /**
    * Constructor for this compiler phase

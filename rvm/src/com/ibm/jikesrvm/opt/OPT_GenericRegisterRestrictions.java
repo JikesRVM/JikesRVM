@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * An instance of this class provides a mapping from symbolic register to
@@ -27,15 +28,16 @@ import java.util.Enumeration;
  * 
  * @author Stephen Fink
  */
-abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
+abstract class OPT_GenericRegisterRestrictions {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
-  private HashMap hash = new HashMap();
+  private final HashMap<OPT_Register,RestrictedRegisterSet> hash =
+    new HashMap<OPT_Register,RestrictedRegisterSet>();
 
   // a set of symbolic registers that must not be spilled.
-  private HashSet noSpill = new HashSet();
+  private final HashSet<OPT_Register> noSpill = new HashSet<OPT_Register>();
 
-  protected OPT_PhysicalRegisterSet phys;
+  protected final OPT_PhysicalRegisterSet phys;
 
   /**
    * Default Constructor
@@ -83,8 +85,10 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * instruction is stored in its <code>scratch</code> field.
    */
   final private void processBlock(OPT_BasicBlock bb) {
-    ArrayList symbolic = new ArrayList(20);
-    ArrayList physical = new ArrayList(20);
+    ArrayList<OPT_LiveIntervalElement> symbolic =
+      new ArrayList<OPT_LiveIntervalElement>(20);
+    ArrayList<OPT_LiveIntervalElement> physical =
+      new ArrayList<OPT_LiveIntervalElement>(20);
     
     // 1. walk through the live intervals and identify which correspond to
     // physical and symbolic registers

@@ -9,9 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.adaptive.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -26,8 +26,7 @@ import java.util.Iterator;
  * 
  * @author Matthew Arnold 
  */
-class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+class OPT_InsertInstructionCounters  extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -66,7 +65,8 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 
      // Create a vector of basic blocks up front because the blocks
      // are modified as we iterate below.
-     ArrayList bbList = new ArrayList();
+     ArrayList<OPT_BasicBlock> bbList =
+       new ArrayList<OPT_BasicBlock>();
      for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
           bbe.hasMoreElements(); ) {
        OPT_BasicBlock bb = bbe.next();
@@ -81,7 +81,8 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
        // Add instructions to vector so enumeration doesn't mess
        // things up.  There is probably a better way to do this, but
        // it doesn't matter because this is a debugging phase.
-       ArrayList iList = new ArrayList();
+       ArrayList<OPT_Instruction> iList =
+         new ArrayList<OPT_Instruction>();
        OPT_Instruction i = bb.firstInstruction();
        while (i!=null && i!=bb.lastInstruction()) {
          iList.add(i);
@@ -109,7 +110,8 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
            // then we can't instrument as-is because a basic block
            // must end with branches only.  Solve by splitting block.
            if (prev.isBranch()) {
-             OPT_BasicBlock newBlock = bb.splitNodeWithLinksAt(prev,ir);
+             // OPT_BasicBlock newBlock =
+             bb.splitNodeWithLinksAt(prev,ir);
              bb.recomputeNormalOut(ir);
            }
            

@@ -22,6 +22,8 @@ import  java.io.PrintWriter;
  * @author Vivek Sarkar
  */
 public class OPT_OptimizingCompilerException extends RuntimeException {
+  /** Support for exception serialization */
+  static final long serialVersionUID = -868535710873341956L;
   /** 
    * When running in the RVM, typically optimizing compiler
    * exceptions are caught, optionally a message is printed, and we 

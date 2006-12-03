@@ -1951,7 +1951,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Byte java_lang_Byte_byteCache[] = new Byte[256];
       // Populate table, although unnecessary
       for(int i=-128; i < 128; i++) {
-        Byte value = new Byte((byte)i); // NB Byte.valueOf appears in Java 1.5
+        Byte value = Byte.valueOf((byte)i);
         BootImageMap.findOrCreateEntry(value);
         java_lang_Byte_byteCache[128+i] = value;
       }
@@ -2009,7 +2009,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Integer java_lang_Integer_intCache[] = new Integer[256];
       // Populate table, although unnecessary
       for(int i=-128; i < 128; i++) {
-        Integer value = new Integer(i); // NB Integer.valueOf(i) appears in Java 1.5
+        Integer value = Integer.valueOf(i);
         java_lang_Integer_intCache[128+i] = value;
       }
       VM_Statics.setSlotContents(rvmFieldOffset, java_lang_Integer_intCache);
@@ -2053,7 +2053,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Short java_lang_Short_shortCache[] = new Short[256];
       // Populate table, although unnecessary
       for(short i=-128; i < 128; i++) {
-        Short value = new Short(i); // NB Short.valueOf(i) appears in Java 1.5
+        Short value = Short.valueOf(i);
         BootImageMap.findOrCreateEntry(value);
         java_lang_Short_shortCache[128+i] = value;
       }
@@ -2242,7 +2242,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
   private static final int OBJECT_HEADER_SIZE = 8;
   private static Hashtable traversed = null;
-  private static final Integer VISITED = new Integer(0);
+  private static final Integer VISITED = Integer.valueOf(0);
 
   /**
    * Traverse an object (and, recursively, any of its fields or elements that
@@ -2395,7 +2395,7 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       }
 
-      traversed.put(key, new Integer(size));
+      traversed.put(key, Integer.valueOf(size));
       if (verbose >= 2) depth--;
       return size;
     }

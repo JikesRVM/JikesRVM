@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Perform local common-subexpression elimination for a factored basic
@@ -28,7 +29,7 @@ import java.lang.reflect.Constructor;
  * @modified Dave Grove (elimination of checks, 
  *                       partially based on OPT_LocalBoundsCheck)
  */
-public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
+public class OPT_LocalCSE extends OPT_CompilerPhase {
   private final boolean isHIR;
 
   /**
@@ -411,10 +412,11 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   protected static final class AvExCache {
     /** Implementation of the cache */
-    private ArrayList cache = new ArrayList(3);
+    private final ArrayList<AvailableExpression> cache =
+      new ArrayList<AvailableExpression>(3);
 
-    private OPT_Options options;
-    private boolean doMemory;
+    private final OPT_Options options;
+    private final boolean doMemory;
 
     AvExCache(OPT_Options opts, boolean doMem) {
       options = opts;
@@ -689,27 +691,27 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     /**
      * the instruction which makes this expression available
      */
-    OPT_Instruction inst;
+    final OPT_Instruction inst;
     /**
      * the operator of the expression
      */
-    OPT_Operator opr;
+    final OPT_Operator opr;
     /**
      * first operand
      */
-    OPT_Operand op1;
+    final OPT_Operand op1;
     /**
      * second operand
      */
-    OPT_Operand op2;
+    final OPT_Operand op2;
     /**
      * third operand
      */
-    OPT_Operand op3;
+    final OPT_Operand op3;
     /**
      * location operand for memory (load/store) expressions
      */
-    OPT_LocationOperand location;
+    final OPT_LocationOperand location;
     /**
      * temporary register holding the result of the available
      * expression

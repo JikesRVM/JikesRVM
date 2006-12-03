@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * This class implements the value graph used in global value numbering
@@ -29,7 +30,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Stephen Fink
  */
-final class OPT_ValueGraph implements OPT_Operators {
+final class OPT_ValueGraph {
 
   /**
    * Internal graph structure of the value graph.
@@ -38,7 +39,7 @@ final class OPT_ValueGraph implements OPT_Operators {
   /**
    * A mapping from name to value graph vertex.
    */
-  private final HashMap nameMap;
+  private final HashMap<Object, OPT_ValueGraphVertex> nameMap;
 
   /** 
    *  Construct a value graph from an IR. 
@@ -48,7 +49,7 @@ final class OPT_ValueGraph implements OPT_Operators {
    */
   OPT_ValueGraph(OPT_IR ir) {
     graph = new OPT_SpaceEffGraph();
-    nameMap = new HashMap(); 
+    nameMap = new HashMap<Object, OPT_ValueGraphVertex>(); 
     // TODO!!: compute register lists incrementally
     // we need register lists in order to call OPT_Register.getFirstDef()
     OPT_DefUse.computeDU(ir);
@@ -109,13 +110,13 @@ final class OPT_ValueGraph implements OPT_Operators {
     if (name instanceof OPT_RegisterOperand) {
       name = ((OPT_RegisterOperand)name).asRegister().register;
     } else if (name instanceof OPT_IntConstantOperand) {
-      name = new Integer(((OPT_IntConstantOperand)name).value);
+      name = Integer.valueOf(((OPT_IntConstantOperand)name).value);
     } else if (name instanceof OPT_FloatConstantOperand) {
-      name = new Float(((OPT_FloatConstantOperand)name).value);
+      name = Float.valueOf(((OPT_FloatConstantOperand)name).value);
     } else if (name instanceof OPT_LongConstantOperand) {
-      name = new Long(((OPT_LongConstantOperand)name).value);
+      name = Long.valueOf(((OPT_LongConstantOperand)name).value);
     } else if (name instanceof OPT_DoubleConstantOperand) {
-      name = new Double(((OPT_DoubleConstantOperand)name).value);
+      name = Double.valueOf(((OPT_DoubleConstantOperand)name).value);
     } else if (name instanceof OPT_ObjectConstantOperand) {
       name = ((OPT_ObjectConstantOperand)name).value;
     } else if (name instanceof OPT_TIBConstantOperand) {
@@ -131,7 +132,7 @@ final class OPT_ValueGraph implements OPT_Operators {
    */
   public String toString() {
     // print the nodes
-    StringBuffer s = new StringBuffer("VALUE GRAPH: \n");
+    StringBuilder s = new StringBuilder("VALUE GRAPH: \n");
     for (Enumeration n = graph.enumerateNodes(); n.hasMoreElements();) {
       OPT_ValueGraphVertex node = (OPT_ValueGraphVertex)n.nextElement();
       s.append(node).append("\n");
@@ -623,15 +624,17 @@ final class OPT_ValueGraph implements OPT_Operators {
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
     if (op.isAddressConstant()) {
-      name = (VM.BuildFor32Addr) ? new Integer(op.asAddressConstant().value.toInt()) : new Long(op.asAddressConstant().value.toLong());
+      name = (VM.BuildFor32Addr) ?
+		  Integer.valueOf(op.asAddressConstant().value.toInt()) :
+		  Long.valueOf(op.asAddressConstant().value.toLong());
     } else if (op.isIntConstant()) {
-      name = new Integer(op.asIntConstant().value);
+      name = Integer.valueOf(op.asIntConstant().value);
     } else if (op.isFloatConstant()) {
-      name = new Float(op.asFloatConstant().value);
+      name = Float.valueOf(op.asFloatConstant().value);
     } else if (op.isLongConstant()) {
-      name = new Long(op.asLongConstant().value);
+      name = Long.valueOf(op.asLongConstant().value);
     } else if (op.isDoubleConstant()) {
-      name = new Double(op.asDoubleConstant().value);
+      name = Double.valueOf(op.asDoubleConstant().value);
     } else if (op instanceof OPT_ObjectConstantOperand) {
       name = op.asObjectConstant().value;
     } else if (op instanceof OPT_TIBConstantOperand) {
@@ -707,7 +710,7 @@ final class OPT_ValueGraph implements OPT_Operators {
    * @return a value graph vertex corresponding to this type
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConditionOperand op) {
-    Object name = new Integer(op.value); // kludge.
+    Object name = Integer.valueOf(op.value); // kludge.
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);

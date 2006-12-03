@@ -11,14 +11,14 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Class that performs scalar replacement of short arrays
  *
  * @author Stephen Fink
  */
-public class OPT_ShortArrayReplacer
-    implements OPT_Operators, OPT_AggregateReplacer {
+public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
   final private static boolean DEBUG = false;
 
   /**

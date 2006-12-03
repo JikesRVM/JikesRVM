@@ -9,7 +9,11 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
+import  java.util.Enumeration;
+import  java.util.HashSet;
+import  java.util.Iterator;
+import  java.util.TreeSet;
+import  java.util.Comparator;
 
 /**
  * Represents a system of Data Flow equations
@@ -67,7 +71,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @return the solution
    */
   public OPT_DF_Solution getSolution() {
-    return  cells;
+    return cells;
   }
 
   /** 
@@ -120,13 +124,13 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   public void addNewEquationsToWorkList() {
     if (DEBUG)
       System.out.println("new equations:");
-    for (java.util.Iterator e = newEquations.iterator(); e.hasNext();) {
+    for (Iterator<OPT_DF_Equation> e = newEquations.iterator(); e.hasNext();) {
       OPT_DF_Equation eq = (OPT_DF_Equation)e.next();
       if (DEBUG)
         System.out.println(eq.toString());
       addToWorkList(eq);
     }
-    newEquations = new java.util.HashSet();
+    newEquations = new HashSet<OPT_DF_Equation>();
     if (DEBUG)
       System.out.println("end of new equations");
   }
@@ -148,7 +152,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @param cell the lattice cell that has changed
    */
   public void changedCell(OPT_DF_LatticeCell cell) {
-    java.util.Iterator e = cell.getUses();
+    Iterator e = cell.getUses();
     while (e.hasNext()) {
       newEquations.add((OPT_DF_Equation)e.next());
     }
@@ -331,32 +335,36 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   /**
    * The equations that comprise this dataflow system.
    */
-  OPT_Graph equations = new OPT_DF_Graph();
+  final OPT_Graph equations = new OPT_DF_Graph();
+
+  private static final Comparator<Object> dfComparator =
+    new Comparator<Object>() {
+    public int compare(Object o1, Object o2) {
+      if (!(o1 instanceof OPT_DF_Equation))
+        throw  new OPT_OptimizingCompilerException();
+      if (!(o2 instanceof OPT_DF_Equation))
+        throw  new OPT_OptimizingCompilerException();
+      OPT_DF_Equation eq1 = (OPT_DF_Equation)o1;
+      OPT_DF_Equation eq2 = (OPT_DF_Equation)o2;
+      return  (eq1.topologicalNumber - eq2.topologicalNumber);
+    }
+  };
 
   /**
    * Set of equations pending evaluation
    */
-  protected java.util.SortedSet workList = new java.util.TreeSet(
-                                                                 new java.util.Comparator() {
-                                                                 public int compare(Object o1, Object o2) {
-                                                                 if (!(o1 instanceof OPT_DF_Equation))
-                                                                 throw  new OPT_OptimizingCompilerException();
-                                                                 if (!(o2 instanceof OPT_DF_Equation))
-                                                                 throw  new OPT_OptimizingCompilerException();
-                                                                 OPT_DF_Equation eq1 = (OPT_DF_Equation)o1;
-                                                                 OPT_DF_Equation eq2 = (OPT_DF_Equation)o2;
-                                                                 return  (eq1.topologicalNumber - eq2.topologicalNumber);
-                                                                 }
-                                                                 });
+  protected final TreeSet<OPT_DF_Equation> workList =
+    new TreeSet<OPT_DF_Equation>(dfComparator);
 
   /**
    * Set of equations considered "new"
    */
-  java.util.Set newEquations = new java.util.HashSet();
+  HashSet<OPT_DF_Equation> newEquations = new HashSet<OPT_DF_Equation>();
+
   /**
    * The lattice cells of the system: Mapping from Object to OPT_DF_LatticeCell
    */
-  protected OPT_DF_Solution cells = new OPT_DF_Solution();
+  protected final OPT_DF_Solution cells = new OPT_DF_Solution();
 
   /**
    * Initialize all lattice cells in the system.
@@ -384,7 +392,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   protected void updateWorkList(OPT_DF_Equation eq) {
     // find each equation which uses this lattice cell, and
     // add it to the work list
-    java.util.Iterator e = eq.getLHS().getUses();
+    Iterator<OPT_DF_Equation> e = eq.getLHS().getUses();
     while (e.hasNext()) {
       workList.add(e.next());
     }

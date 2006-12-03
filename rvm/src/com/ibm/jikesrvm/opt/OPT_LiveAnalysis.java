@@ -12,9 +12,11 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
+import static com.ibm.jikesrvm.osr.OSR_Constants.*;
 //-#endif
 
 import java.util.Stack;
@@ -37,12 +39,7 @@ import java.util.LinkedList;
  * @author Martin Trapp
  * @author Stephen Fink
  */
-final class OPT_LiveAnalysis extends OPT_CompilerPhase 
-  implements OPT_Operators 
-//-#if RVM_WITH_OSR
-             , OSR_Constants
-//-#endif
-{
+final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   // Real Instance Variables
   /**
    *  Should we also create GC maps while we are computing liveness
@@ -87,7 +84,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * For each register, the set of live interval elements describing the
    * register.
    */
-  private ArrayList[] registerMap;
+  private ArrayList<OPT_LiveIntervalElement> registerMap[];
   
   // Debugging information
   // Live Intervals, GC Maps, and fixed-point results
@@ -300,7 +297,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * are now intervals for r1.
    */
   public void merge(OPT_Register r1, OPT_Register r2) {
-    ArrayList toRemove = new ArrayList(5);
+    ArrayList<OPT_LiveIntervalElement> toRemove =
+      new ArrayList<OPT_LiveIntervalElement>(5);
 
     for (Iterator i = iterateLiveIntervals(r2); i.hasNext(); ) {
       OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
@@ -311,7 +309,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       toRemove.add(interval);
     }
     // perform deferred removals
-    for (Iterator i = toRemove.iterator(); i.hasNext(); ) {
+    for (Iterator<OPT_LiveIntervalElement> i = toRemove.iterator(); i.hasNext(); ) {
       OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
       removeFromRegisterMap(r2,interval);
     }
@@ -323,6 +321,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * <p>
    * Side effect: map each live interval element to its basic block.
    */
+  @SuppressWarnings("unchecked")
   private void computeRegisterMap(OPT_IR ir) {
     registerMap = new ArrayList[ir.regpool.getNumberOfSymbolicRegisters()];
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
@@ -341,9 +340,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * Add the live interval element i to the map for register r.
    */
   private void addToRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
-    ArrayList set = registerMap[r.getNumber()];
+    ArrayList<OPT_LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
-      set = new ArrayList(3);
+      set = new ArrayList<OPT_LiveIntervalElement>(3);
       registerMap[r.getNumber()] = set;
     }
     set.add(i);
@@ -354,7 +353,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    */
   private void removeFromRegisterMap(OPT_Register r, 
                                      OPT_LiveIntervalElement i) {
-    ArrayList set = registerMap[r.getNumber()];
+    ArrayList<OPT_LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
       return;
     } else {
@@ -714,13 +713,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     if (debug) {
       System.out.println(" .... starting local propagation\n");
     }
-    Stack blockStack = null;
+    Stack<MapElement> blockStack = null;
     if (createGCMaps) {
       // We want to add GC map entries in IR instruction order. However, we are 
       // visiting instructions in reverse order within a block. We solve this
       // by pushing all additions to a local stack and pop (and add)
       // the information to the GC map after the block has been processed.
-      blockStack = new Stack();
+      blockStack = new Stack<MapElement>();
     }
     for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); 
          block != null; 
@@ -1045,9 +1044,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * Return the set of registers that are live on the control-flow edge 
    * basic block bb1 to basic block bb2
    */
-  HashSet getLiveRegistersOnEdge(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
-    HashSet s1 = getLiveRegistersOnExit(bb1);
-    HashSet s2 = getLiveRegistersOnEntry(bb2);
+  HashSet<OPT_Register> getLiveRegistersOnEdge(OPT_BasicBlock bb1,
+                                               OPT_BasicBlock bb2) {
+    HashSet<OPT_Register> s1 = getLiveRegistersOnExit(bb1);
+    HashSet<OPT_Register> s2 = getLiveRegistersOnEntry(bb2);
     s1.retainAll(s2);
     return s1;
   }
@@ -1056,8 +1056,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * Return the set of registers that are live across a basic block, and who 
    * are live after the basic block exit.
    */   
-  HashSet getLiveRegistersOnExit(OPT_BasicBlock bb) {
-    HashSet result = new HashSet(10);
+  HashSet<OPT_Register> getLiveRegistersOnExit(OPT_BasicBlock bb) {
+    HashSet<OPT_Register> result = new HashSet<OPT_Register>(10);
     for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
       OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
       OPT_Instruction end = lie.getEnd(); 
@@ -1069,8 +1069,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * Return the set of registers that are live across a basic block, and who 
    * are live before the basic block entry.
    */   
-  HashSet getLiveRegistersOnEntry(OPT_BasicBlock bb) {
-    HashSet result = new HashSet(10);
+  HashSet<OPT_Register> getLiveRegistersOnEntry(OPT_BasicBlock bb) {
+    HashSet<OPT_Register> result = new HashSet<OPT_Register>(10);
     for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
       OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
       OPT_Instruction begin = lie.getBegin(); 
@@ -1218,7 +1218,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   /* collect osr info according to live information */
   private void collectOsrInfo(OPT_Instruction inst, OPT_LiveSet lives) {
     // create an entry to the OSRIRMap, order: callee => caller
-    LinkedList mvarList = new LinkedList();
+    LinkedList<OSR_MethodVariables> mvarList =
+      new LinkedList<OSR_MethodVariables>();
  
     // get the type info for locals and stacks
     OPT_InlinedOsrTypeInfoOperand typeInfo =
@@ -1238,7 +1239,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     int snd_long_idx = typeInfo.validOps;
     for (int midx = 0; midx < nummeth; midx++) {
 
-      LinkedList tupleList = new LinkedList();
+      LinkedList<OSR_LocalRegPair> tupleList =
+        new LinkedList<OSR_LocalRegPair>();
 
       byte[] ls = ltypes[midx];
       byte[] ss = stypes[midx];

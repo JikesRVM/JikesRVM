@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.lang.Math;
 
 /**
@@ -21,7 +22,7 @@ import java.lang.Math;
  * @see OPT_DepGraph
  * @author Vivek Sarkar
  */
-class OPT_DepGraphStats implements OPT_Operators {
+class OPT_DepGraphStats {
   /**
    * The number of nodes in the dependence graph
    */
@@ -117,8 +118,9 @@ class OPT_DepGraphStats implements OPT_Operators {
 
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
-      OPT_DepGraph dg = new OPT_DepGraph(ir, bb.firstRealInstruction(), 
-                                         bb.lastRealInstruction(), bb);
+      //OPT_DepGraph dg =
+                          new OPT_DepGraph(ir, bb.firstRealInstruction(), 
+                                           bb.lastRealInstruction(), bb);
     }
     System.out.println("**** END OF printBasicBlockStatistics() ****");
   }

@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * This module performs two tasks:
@@ -32,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Mauricio J. Serrano
  * @modified Daniel Frampton
  */
-public class OPT_NullCheckCombining extends OPT_CompilerPhase
-    implements OPT_Operators {
+public class OPT_NullCheckCombining extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

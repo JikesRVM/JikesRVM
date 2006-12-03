@@ -17,20 +17,21 @@ import com.ibm.jikesrvm.opt.*;
  * @see OPT_Operand
  * @see OPT_HeapVariable
  * @author Stephen Fink
+ * @modified Ian Rogers
  */
-public final class OPT_HeapOperand extends OPT_Operand {
+public final class OPT_HeapOperand<T> extends OPT_Operand {
 
   /**
    * The heap variable corresponding to this operand.
    */
-  public final OPT_HeapVariable value;
+  public final OPT_HeapVariable<T> value;
 
   /**
    * Return  the heap variable corresponding to this operand.
    * @return the heap variable corresponding to this operand.
    */
-  public OPT_HeapVariable getHeapVariable() {
-    return  value;
+  public OPT_HeapVariable<T> getHeapVariable() {
+    return value;
   }
 
   /**
@@ -40,7 +41,7 @@ public final class OPT_HeapOperand extends OPT_Operand {
    * operand. 
    */
   public int getNumber() {
-    return  value.number;
+    return value.getNumber();
   }
 
   /**
@@ -49,15 +50,15 @@ public final class OPT_HeapOperand extends OPT_Operand {
    * @return the type corresponding to the heap variable associated with
    * this operand.
    */
-  public Object getHeapType() {
-    return  value.type;
+  public T getHeapType() {
+    return value.getHeapType();
   }
 
   /**
    * Construct an operand corresponding to a heap variable.
    * @param   heap the heap variable corresponding to this operand.
    */
-  public OPT_HeapOperand(OPT_HeapVariable heap) {
+  public OPT_HeapOperand(OPT_HeapVariable<T> heap) {
     value = heap;
   }
 
@@ -69,7 +70,7 @@ public final class OPT_HeapOperand extends OPT_Operand {
    * this operand
    */
   public OPT_Operand copy() {
-    return  new OPT_HeapOperand(value);
+    return new OPT_HeapOperand<T>(value);
   }
 
   /**
@@ -80,9 +81,9 @@ public final class OPT_HeapOperand extends OPT_Operand {
    * @return true or false
    */
   public boolean similar(OPT_Operand op) {
-    if (!(op instanceof OPT_HeapOperand))
+    if (!(op instanceof OPT_HeapOperand<?>))
       return  false;
-    OPT_HeapOperand h = (OPT_HeapOperand)op;
+    OPT_HeapOperand<?> h = (OPT_HeapOperand<?>)op;
     return  (h.value == value);
   }
 
@@ -110,6 +111,3 @@ public final class OPT_HeapOperand extends OPT_Operand {
     return  instruction;
   }
 }
-
-
-

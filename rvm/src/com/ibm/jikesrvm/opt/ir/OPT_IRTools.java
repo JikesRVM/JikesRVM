@@ -9,11 +9,10 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import java.util.Enumeration;
 import org.vmmagic.unboxed.*;
-
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 /**
  * This abstract class contains a bunch of useful static methods for
  * performing operations on IR.
@@ -23,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio Serrano
  * @author John Whaley
  */
-public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
+public abstract class OPT_IRTools {
 
   /**
    * Create an integer register operand for a given register.

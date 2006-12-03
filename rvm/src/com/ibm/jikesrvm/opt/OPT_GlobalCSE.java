@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Enumeration;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * This class provides global common sub expression elimination.
@@ -21,7 +22,7 @@ import java.lang.reflect.Constructor;
  * @author Martin Trapp
  * @modified Stephen Fink
  */
-final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
+final class OPT_GlobalCSE extends OPT_CompilerPhase {
 
   /** Output debug messages */
   public boolean verbose = true;
@@ -44,13 +45,13 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * from a value number to the first instruction to define it as we
    * traverse the dominator tree.
    */
-  private final HashMap avail;
+  private final HashMap<Integer, OPT_Instruction> avail;
 
   /**
    * Constructor
    */
   public OPT_GlobalCSE() {
-    avail = new HashMap();
+    avail = new HashMap<Integer, OPT_Instruction>();
   }
 
   /**
@@ -149,7 +150,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
         continue;
       }
       // was this the first definition of the value number?
-      Integer Vn = new Integer(vn);
+      Integer Vn = Integer.valueOf(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former == null) {
         // first occurance of value number, record it in the available
@@ -209,7 +210,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
         inst = next;
         continue;
       }
-      Integer Vn = new Integer(vn);
+      Integer Vn = Integer.valueOf(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former == inst) {
         avail.remove(Vn);

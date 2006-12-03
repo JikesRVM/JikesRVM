@@ -8,9 +8,10 @@
  */
 //$Id$
 package com.ibm.jikesrvm.opt;
-import com.ibm.jikesrvm.*;
 
+import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 

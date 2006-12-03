@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.*;
 
 /**
@@ -26,8 +27,7 @@ import java.util.*;
  * @author Vivek Sarkar
  * @author Dave Grove
  */
-final class OPT_ReorderingPhase extends OPT_CompilerPhase
-  implements OPT_Operators {
+final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
 
@@ -165,8 +165,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
     //     (c) Create a set of blocks
     //     (d) Make fallthroughs explict by adding GOTOs
     int numBlocks = 0;
-    SortedSet edges = new TreeSet();
-    Set chainHeads = new HashSet();
+    TreeSet<Edge> edges = new TreeSet<Edge>();
+    HashSet<OPT_BasicBlock> chainHeads = new HashSet<OPT_BasicBlock>();
     OPT_BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
@@ -227,7 +227,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
     }
 
     if (DEBUG) VM.sysWriteln("Chains constructed ");
-    Map chainInfo = new HashMap();
+    HashMap<OPT_BasicBlock,ChainInfo> chainInfo = new HashMap<OPT_BasicBlock,ChainInfo>();
     for (Iterator chainI = chainHeads.iterator(); chainI.hasNext();) {
       OPT_BasicBlock head = (OPT_BasicBlock)chainI.next();
       if (DEBUG) dumpChain(head);
@@ -248,7 +248,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
         if (value != null) {
           weight += ((Float)value).floatValue();
         }
-        sourceInfo.outWeights.put(targetInfo, new Float(weight));
+        sourceInfo.outWeights.put(targetInfo, Float.valueOf(weight));
         targetInfo.inWeight += e.weight;
         if (DEBUG) VM.sysWriteln("\t"+targetInfo + ","+sourceInfo.outWeights.get(targetInfo));
       }
@@ -342,7 +342,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
     final OPT_BasicBlock head;
     float placedWeight;
     float inWeight;
-    final HashMap outWeights = new HashMap();
+    final HashMap<ChainInfo,Object> outWeights = new HashMap<ChainInfo,Object>();
 
     ChainInfo(OPT_BasicBlock h) {
       head = h;

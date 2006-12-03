@@ -15,6 +15,7 @@ import  java.util.HashSet;
 import  java.util.Iterator;
 import  com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * This class does the job. It is a subphase of OPT_GCP.
@@ -22,7 +23,7 @@ import java.lang.reflect.Constructor;
  * @author Martin Trapp
  * @modified Stephen Fink 
  */
-class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
+class OPT_LICM extends OPT_CompilerPhase {
   /** Generate debug output? */
   private final static boolean DEBUG = false;
   /** Generate verbose debug output? */
@@ -833,7 +834,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   void initialize(OPT_IR ir) {
     this.ir = ir;
 
-    relocated = new HashSet();
+    relocated = new HashSet<OPT_Instruction>();
     if (ir.IRStage == OPT_IR.HIR) {
       // OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
       // escapeSummary = analyzer.simpleEscapeAnalysis(ir); - unused
@@ -851,9 +852,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
-      Enumeration pe = ssad.getHeapPhiInstructions(b);
-      while (pe.hasMoreElements()) {
-        OPT_Instruction inst = (OPT_Instruction)pe.nextElement();
+      Iterator<OPT_Instruction> pe = ssad.getHeapPhiInstructions(b);
+      while (pe.hasNext()) {
+        OPT_Instruction inst = (OPT_Instruction)pe.next();
         inst.scratch = instructions++;
         inst.scratchObject = null;
       }
@@ -897,7 +898,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private static final int late = 2;
   private static final int done = 3;
 
-  private HashSet relocated;
+  private HashSet<OPT_Instruction> relocated;
   
   private int state[];
   private OPT_BasicBlock block[];
@@ -907,7 +908,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private OPT_DominatorTree dominator;
   private OPT_IR ir;
   //  private OPT_FI_EscapeSummary escapeSummary; - unused
-  private final HashSet moved = new HashSet();
+  private final HashSet<OPT_Operator> moved =
+    DEBUG ? new HashSet<OPT_Operator>() : null;
   
   private boolean simplify(OPT_Instruction inst, OPT_BasicBlock block)
   {
@@ -944,7 +946,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
                                          Phi.getPred  (inst, xidx), true);
 
     OPT_HeapOperand hop = (OPT_HeapOperand) resOp;
-    if (hop.value.type == ssad.exceptionState) return false;
+    if (hop.value.isExceptionHeapType()) return false;
 
     /* check that inside the loop, the heap variable is only used/defed
        by simple, non-volatile loads or only by stores
@@ -990,8 +992,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
         }
         OPT_HeapOperand[] ops = ssad.getHeapUses (y);
         for (int j = 0;  j < ops.length;  ++j) {
-          if (ops[j].value.type == ssad.exceptionState) continue;
-          if (ops[j].value.type != hop.value.type) return CL_COMPLEX;
+          if (ops[j].value.isExceptionHeapType()) continue;
+          if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
           y = definingInstruction (ops[j]);
         }
       }
@@ -1010,7 +1012,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private int checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx,
                          OPT_BasicBlock block)
   {
-    HashSet seen = new HashSet();
+    HashSet<OPT_Instruction> seen = new HashSet<OPT_Instruction>();
     OPT_Queue workList = new OPT_Queue();
     int _state = CL_NONE;
     int instUses = 0;
@@ -1059,8 +1061,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
         }
         OPT_HeapOperand[] ops = ssad.getHeapUses (y);
         for (int j = 0;  j < ops.length;  ++j) {
-          if (ops[j].value.type == ssad.exceptionState) continue;
-          if (ops[j].value.type != hop.value.type) return CL_COMPLEX;
+          if (ops[j].value.isExceptionHeapType()) continue;
+          if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
           y = definingInstruction (ops[j]);
           if (y == inst) instUses++;
           if (!(seen.contains (y))) {

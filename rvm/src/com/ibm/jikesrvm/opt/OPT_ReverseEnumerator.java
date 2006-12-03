@@ -18,16 +18,16 @@ import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
-public final class OPT_ReverseEnumerator implements Enumeration {
+public final class OPT_ReverseEnumerator<T> implements Enumeration<T> {
 
-  private ArrayList vec = new ArrayList();
+  private final ArrayList<T> vec;
   private int index;
 
   public boolean hasMoreElements () {
     return index > 0;
   }
 
-  public Object nextElement () {
+  public T nextElement () {
     index--;
     if (index >= 0) {
       return vec.get(index);
@@ -36,7 +36,8 @@ public final class OPT_ReverseEnumerator implements Enumeration {
     }
   }
 
-  public OPT_ReverseEnumerator(Enumeration e) {
+  public OPT_ReverseEnumerator(Enumeration<T> e) {
+    vec = new ArrayList<T>();
     while(e.hasMoreElements()) {
       vec.add(e.nextElement());
     }

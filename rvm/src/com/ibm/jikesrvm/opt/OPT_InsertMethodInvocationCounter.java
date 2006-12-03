@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.adaptive.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
@@ -27,8 +26,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Matthew Arnold 
  */
-class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

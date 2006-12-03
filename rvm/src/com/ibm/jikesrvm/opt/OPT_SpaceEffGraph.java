@@ -237,7 +237,8 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    */
   public void buildTopSort() {
     if (!forwardTopSorted) {
-      OPT_SortedGraphNode node = OPT_TopSort.buildTopological(this, true);
+      //OPT_SortedGraphNode node =
+      OPT_TopSort.buildTopological(this, true);
       // currently, no one cares about the return value, so we don't return it
     }
   }

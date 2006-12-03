@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_IndexPropagation.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.*;
 
 /**
@@ -20,8 +21,7 @@ import java.util.*;
  *
  * @author Stephen Fink
  */
-class OPT_IndexPropagationSystem extends OPT_DF_System
-implements OPT_Operators {
+class OPT_IndexPropagationSystem extends OPT_DF_System {
 
   /**
    * The governing IR.

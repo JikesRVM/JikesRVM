@@ -93,7 +93,8 @@ public class OPT_OptimizationPlanner {
       initializeMasterPlan();
     }
 
-    ArrayList temp = new ArrayList();
+    ArrayList<OPT_OptimizationPlanElement> temp =
+      new ArrayList<OPT_OptimizationPlanElement>();
     for (int i = 0; i < masterPlan.length; i++) {
       if (masterPlan[i].shouldPerform(options)) {
         temp.add(masterPlan[i]);
@@ -119,7 +120,8 @@ public class OPT_OptimizationPlanner {
    * that will normally execute.
    */
   private static void initializeMasterPlan() {
-    ArrayList temp = new ArrayList();
+    ArrayList<OPT_OptimizationPlanElement> temp =
+      new ArrayList<OPT_OptimizationPlanElement>();
     BC2HIR(temp);    
     HIROptimizations(temp);
     HIR2LIR(temp);
@@ -132,10 +134,10 @@ public class OPT_OptimizationPlanner {
    * Convert the ArrayList to an array of elements.
    * TODO: this is a bad name (finalize), isn't it?
    */
-  private static OPT_OptimizationPlanElement[] finalize(ArrayList planElementList) {
+  private static OPT_OptimizationPlanElement[] finalize(ArrayList<OPT_OptimizationPlanElement> planElementList) {
     OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[planElementList.size()];
-	 planElementList.toArray(p);
-	 return p;
+    planElementList.toArray(p);
+    return p;
   }
 
   /**
@@ -144,7 +146,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void BC2HIR(ArrayList p) {
+  private static void BC2HIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "Convert Bytecodes to HIR", new Object[] {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
@@ -177,7 +179,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIROptimizations(ArrayList p) {
+  private static void HIROptimizations(ArrayList<OPT_OptimizationPlanElement> p) {
     // Various large-scale CFG transformations.
     // Do these very early in the pipe so that all HIR opts can benefit.
     composeComponents(p, "CFG Transformations", new Object[] {
@@ -249,7 +251,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinHIR(ArrayList p) {
+  private static void SSAinHIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents
       (p, "SSA", new Object[] { 
        // Use the LST to estimate basic block frequency from branch probabilities
@@ -331,7 +333,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinLIR(ArrayList p) {
+  private static void SSAinLIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "SSA", new Object[] {
                       // Use the LST to estimate basic block frequency from branch probabilities
                       new OPT_OptimizationPlanCompositeElement
@@ -391,7 +393,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIR2LIR(ArrayList p) {
+  private static void HIR2LIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "Convert HIR to LIR", new Object[] {
                       // Optional printing of final HIR
                       new OPT_IRPrinter("Final HIR") {
@@ -428,7 +430,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIROptimizations(ArrayList p) {
+  private static void LIROptimizations(ArrayList<OPT_OptimizationPlanElement> p) {
     // SSA meta-phase
     SSAinLIR(p);
     // Perform local copy propagation for a factored basic block.
@@ -461,14 +463,16 @@ public class OPT_OptimizationPlanner {
   }
 
   // Helper functions for constructing the masterPlan.
-  protected static void addComponent(ArrayList p, OPT_CompilerPhase e) {
+  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p,
+                                     OPT_CompilerPhase e) {
     addComponent(p, new OPT_OptimizationPlanAtomicElement(e));
   }
 
   /**
    * Add an optimization plan element to a vector.
    */
-  protected static void addComponent(ArrayList p, OPT_OptimizationPlanElement e) {
+  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p,
+                                     OPT_OptimizationPlanElement e) {
     p.add(e);
   }
 
@@ -478,7 +482,8 @@ public class OPT_OptimizationPlanner {
    * @param name the name for this composition
    * @param es   the array of composed elements
    */
-  protected static void composeComponents(ArrayList p, String name, Object[] es) {
+  protected static void composeComponents(ArrayList<OPT_OptimizationPlanElement> p,
+                                          String name, Object[] es) {
     p.add(OPT_OptimizationPlanCompositeElement.compose(name, es));
   }
 }

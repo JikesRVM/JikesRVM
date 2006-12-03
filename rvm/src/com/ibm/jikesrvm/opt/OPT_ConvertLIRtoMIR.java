@@ -13,6 +13,9 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.VM_TIBLayoutConstants.*;
+import static com.ibm.jikesrvm.VM_SizeConstants.*;
 
 /**
  * Convert an IR object from LIR to MIR via BURS
@@ -64,8 +67,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   /**
    * Stage 1: Reduce the LIR operator set to a core set of operators.
    */
-  private static final class ReduceOperators extends OPT_CompilerPhase
-    implements VM_Constants, OPT_Operators, OPT_Constants {
+  private static final class ReduceOperators extends OPT_CompilerPhase {
 
     public final String getName () {
       return "Reduce Operators";

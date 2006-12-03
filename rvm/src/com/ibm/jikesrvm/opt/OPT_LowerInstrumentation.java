@@ -9,10 +9,9 @@
 // $Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.adaptive.*;
-
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -24,8 +23,7 @@ import java.util.ArrayList;
  *
  *  @author Matthew Arnold
  */
-class OPT_LowerInstrumentation  extends OPT_CompilerPhase
-  implements OPT_Operators, VM_Constants, OPT_Constants {
+class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
 
    static final boolean DEBUG = false;
 	 
@@ -77,7 +75,8 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     }
     */
 
-    ArrayList instrumentedInstructions = new ArrayList();
+    ArrayList<OPT_Instruction> instrumentedInstructions =
+      new ArrayList<OPT_Instruction>();
     
     // Go through all instructions and find the instrumented ones.  We
     // put them in instrumentedInstructions and expand them later
@@ -99,7 +98,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     
     // Now go through the instructions and "lower" them by calling
     // the counter manager to convert them into real instructions
-    Iterator itr = instrumentedInstructions.iterator();
+    Iterator<OPT_Instruction> itr = instrumentedInstructions.iterator();
     while (itr.hasNext()) {
       OPT_Instruction i = (OPT_Instruction) itr.next();
       

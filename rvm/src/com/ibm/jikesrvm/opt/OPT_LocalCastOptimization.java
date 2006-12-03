@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Perform simple peephole optimizations to reduce the overhead of
@@ -30,8 +31,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Mauricio Serrano
  * @author Julian Dolby
  */
-public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
-  implements OPT_Operators {
+public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
 
   public String getName() {
     return "Local Cast Optimizations";

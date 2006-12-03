@@ -8,13 +8,14 @@
  */
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.BOUNDS_CHECK;
 
 /**
  * General utilities to summarize an IR
  *
  * @author Stephen Fink
  */
-public final class OPT_IRSummary implements OPT_Operators {
+public final class OPT_IRSummary {
 
   /** 
    * Does this IR have a bounds check expression?

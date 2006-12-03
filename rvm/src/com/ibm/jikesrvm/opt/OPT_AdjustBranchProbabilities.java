@@ -18,8 +18,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Dave Grove
  */
-class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase
-  implements OPT_Operators {
+class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
 
   public final String getName() {
     return "Adjust Branch Probabilities";

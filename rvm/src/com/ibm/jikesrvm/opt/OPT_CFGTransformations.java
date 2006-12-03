@@ -12,6 +12,7 @@ import com.ibm.jikesrvm.*;
 
 import  java.util.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  *  This Phase supports
@@ -22,8 +23,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Martin Trapp
  */
-class OPT_CFGTransformations extends OPT_CompilerPhase
-  implements OPT_Operators {
+class OPT_CFGTransformations extends OPT_CompilerPhase {
 
   private static boolean DEBUG = false;
    

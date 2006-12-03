@@ -11,6 +11,8 @@ package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_DepGraphConstants.*;
 
 /**
  * Dependence Graph for a single basic block in the program.
@@ -42,9 +44,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Mauricio Serrano
  * @author Harini Srinivasan
  */
-final class OPT_DepGraph extends OPT_SpaceEffGraph 
-  implements OPT_Operators, 
-             OPT_DepGraphConstants {
+final class OPT_DepGraph extends OPT_SpaceEffGraph {
 
   /**
    * Set of variables that are live on entry to at least one catch block that
@@ -54,17 +54,17 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * every PEI and using each individual set to create the necessary
    * dependences) is quadratic, and probably doesn't help very much anyways.
    */
-  private OPT_LiveSet handlerLiveSet;
+  private final OPT_LiveSet handlerLiveSet;
 
   /**
    * The basic block we are processing
    */
-  private OPT_BasicBlock currentBlock;
+  private final OPT_BasicBlock currentBlock;
 
   /**
    * The ir we are processing
    */
-  private OPT_IR ir;
+  private final OPT_IR ir;
 
   /**
    * Constructor (computes the dependence graph!).
@@ -78,7 +78,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
                OPT_BasicBlock currentBlock) {
     this.currentBlock = currentBlock;
     this.ir = ir;
-
+    handlerLiveSet = new OPT_LiveSet();
     computeHandlerLiveSet();
     createNodes(start, end);
     computeForwardDependences(start, end);
@@ -93,7 +93,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
   private void computeHandlerLiveSet() {
     if (ir.getHandlerLivenessComputed() && 
         currentBlock.hasExceptionHandlers()) {
-      handlerLiveSet = new OPT_LiveSet();
       OPT_BasicBlockEnumeration e = currentBlock.getExceptionalOut();
       while (e.hasMoreElements()) {
         OPT_ExceptionHandlerBasicBlock handlerBlock =

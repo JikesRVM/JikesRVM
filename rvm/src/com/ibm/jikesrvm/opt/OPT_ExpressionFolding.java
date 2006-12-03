@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,7 +22,7 @@ import org.vmmagic.unboxed.Address;
  *
  * @author Stephen Fink
  */
-class OPT_ExpressionFolding implements OPT_Operators {
+class OPT_ExpressionFolding {
   private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
 
   /** 
@@ -45,7 +46,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
   final public static void perform(OPT_IR ir) {
     
     // Create a set of potential computations to fold.
-    HashSet candidates = new HashSet(20);
+    HashSet<OPT_Register> candidates = new HashSet<OPT_Register>(20);
 
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -64,7 +65,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
     boolean didSomething = true;
     while (didSomething) {
       didSomething = false;
-      for (Iterator i = candidates.iterator(); i.hasNext(); ) {
+      for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext(); ) {
         OPT_Register r = (OPT_Register)i.next();
         OPT_Instruction s = r.getFirstDef();
         OPT_Operand val1 = Binary.getVal1(s);
@@ -102,8 +103,8 @@ class OPT_ExpressionFolding implements OPT_Operators {
    * Prune the candidate set; restrict candidates to only allow
    * transformations that result in dead code to be eliminated
    */
-  private static void pruneCandidates(HashSet candidates) {
-    for (Iterator i = candidates.iterator(); i.hasNext(); ) {
+  private static void pruneCandidates(HashSet<OPT_Register> candidates) {
+    for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext(); ) {
       OPT_Register r = (OPT_Register)i.next();
       OPT_Instruction s = r.getFirstDef();
       OPT_Operand val1 = Binary.getVal1(s);

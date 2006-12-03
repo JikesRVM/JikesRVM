@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.VM_NormalMethod;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Replace calls to synchronized methods to calls specialized to be
@@ -19,7 +20,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Stephen Fink
  */
-public class OPT_UnsyncReplacer implements OPT_Operators {
+public class OPT_UnsyncReplacer {
   private static boolean DEBUG = false;
 
   /** 

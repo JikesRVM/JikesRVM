@@ -11,13 +11,14 @@ package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Change SPLIT operations inserting for live range splitting into Moves.
  *
  * @author Stephen Fink
  */
-final class OPT_MutateSplits extends OPT_CompilerPhase implements OPT_Operators{
+final class OPT_MutateSplits extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

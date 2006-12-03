@@ -14,6 +14,8 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 
 /**
  * This compiler phase translates out of SSA form.  
@@ -26,7 +28,7 @@ import java.lang.reflect.Constructor;
  * @author Julian Dolby
  * @author Martin Trapp
  */
-class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Constants {
+class OPT_LeaveSSA extends OPT_CompilerPhase {
 
   /**
    *  verbose debugging flag 
@@ -46,6 +48,12 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   private boolean splitSomeBlock = false;
+
+  private final HashSet<OPT_Instruction> globalRenameTable =
+    new HashSet<OPT_Instruction>();
+
+  private final HashSet<OPT_Register> globalRenamePhis =
+    new HashSet<OPT_Register>();
 
   /**
    * Should we perform this phase?
@@ -103,17 +111,18 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * This class provides an abstraction over stacks of names
    * for registers.
    */
-  static class VariableStacks extends HashMap {
-
+  static class VariableStacks extends HashMap<OPT_Register,Stack<OPT_Operand>> {
+    /** Support for map serialization */
+    static final long serialVersionUID = -5664504465082745314L;
     /**
      * Get the name at the top of the stack for a particular register 
      * @param s the register in question
      * @return  the name at the top of the stack for the register
      */
     OPT_Operand peek(OPT_Register s) {
-      Stack stack = (Stack)get(s);
+      Stack<OPT_Operand> stack = get(s);
       if (stack == null || stack.isEmpty()) return  null; 
-      else return  (OPT_Operand)stack.peek();
+      else return  stack.peek();
     }
 
     /**
@@ -122,7 +131,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
      * @return  the name at the top of the stack for the register
      */
     OPT_Operand pop(OPT_Register s) {
-      Stack stack = (Stack)get(s);
+      Stack<OPT_Operand> stack = get(s);
       if (stack == null)
         throw new OPT_OptimizingCompilerException("Failure in translating out of SSA form: trying to pop operand from non-existant stack"); 
       else 
@@ -135,9 +144,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
      * @param name the name to push on the stack
      */
     void push(OPT_Register s, OPT_Operand name) {
-      Stack stack = (Stack)get(s);
+      Stack<OPT_Operand> stack = get(s);
       if (stack == null) {
-        stack = new Stack();
+        stack = new Stack<OPT_Operand>();
         put(s, stack);
       }
       stack.push(name);
@@ -152,15 +161,15 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     /**
      * The right-hand side of the copy instruction
      */
-    OPT_Operand source;
+    final OPT_Operand source;
     /**
      * The left-hand side of the copy instruction
      */
-    OPT_RegisterOperand destination;
+    final OPT_RegisterOperand destination;
     /**
      *  The phi instruction which generated this copy instruction
      */
-    OPT_Instruction phi;
+    final OPT_Instruction phi;
 
     /**
      * Create a pending copy operation for an operand of a phi instruction
@@ -229,9 +238,6 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     }
   }
 
-  private Set globalRenameTable = new HashSet();
-  private Set globalRenamePhis = new HashSet();
-
   private boolean usedBelowCopy(OPT_BasicBlock bb, OPT_Register r) {
     OPT_InstructionEnumeration ie = bb.reverseRealInstrEnumerator();
     while (ie.hasMoreElements() ) {
@@ -264,7 +270,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     
     // compute out liveness from information in LiveAnalysis
     OPT_LiveSet out = new OPT_LiveSet();
-    for (Enumeration outBlocks = bb.getOut(); outBlocks.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> outBlocks = bb.getOut();
+         outBlocks.hasMoreElements(); ) {
       OPT_BasicBlock ob = (OPT_BasicBlock)outBlocks.nextElement();
       OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(ob);
       out.add(le.in());
@@ -274,19 +281,22 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     // left-hand side of subsequent phi nodes.  This is important, since
     // we be careful to order copies if the same register appears as the 
     // source and dest of copies in the same basic block.
-    HashSet usedByAnother = new HashSet(4);
+    HashSet<OPT_Register> usedByAnother = new HashSet<OPT_Register>(4);
 
     // for each basic block successor b of bb, if we make a block on the
     // critical edge bb->b, then store this critical block.
-    HashMap criticalBlocks = new HashMap(4);
+    HashMap<OPT_BasicBlock,OPT_BasicBlock> criticalBlocks =
+      new HashMap<OPT_BasicBlock,OPT_BasicBlock>(4);
     
     // For each critical basic block b in which we are inserting copies: return the 
     // mapping of registers to names implied by the copies that have
     // already been inserted into b.
-    HashMap currentNames = new HashMap(4);
+    HashMap<OPT_BasicBlock,HashMap<OPT_Register,OPT_Register>> currentNames =
+      new HashMap<OPT_BasicBlock,HashMap<OPT_Register,OPT_Register>>(4);
     
     // Additionally store the current names for the current basic block bb.
-    HashMap bbNames = new HashMap(4);
+    HashMap<OPT_Register,OPT_Register> bbNames =
+      new HashMap<OPT_Register,OPT_Register>(4);
     
     // copySet is a linked-list of copies we need to insert in this block.
     OPT_LinkedListObjectElement copySet = null;
@@ -400,11 +410,13 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
               }
               splitSomeBlock = true;
               criticalBlocks.put(c.phi.getBasicBlock(),criticalBlock);
-              HashMap newNames = new HashMap(4);
+              HashMap<OPT_Register,OPT_Register> newNames =
+                new HashMap<OPT_Register,OPT_Register>(4);
               currentNames.put(criticalBlock,newNames);
             }
             OPT_Register sr = c.source.asRegister().register;
-            HashMap criticalBlockNames = (HashMap)currentNames.get(criticalBlock);
+            HashMap<OPT_Register,OPT_Register> criticalBlockNames =
+              currentNames.get(criticalBlock);
             OPT_Register nameForSR = (OPT_Register)criticalBlockNames.get(sr);
             if (nameForSR == null) {
               nameForSR = (OPT_Register)bbNames.get(sr);
@@ -444,7 +456,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
               }
               splitSomeBlock = true;
               criticalBlocks.put(c.phi.getBasicBlock(),criticalBlock);
-              HashMap newNames = new HashMap(4);
+              HashMap<OPT_Register,OPT_Register> newNames =
+                new HashMap<OPT_Register,OPT_Register>(4);
               currentNames.put(criticalBlock,newNames);
             }
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);

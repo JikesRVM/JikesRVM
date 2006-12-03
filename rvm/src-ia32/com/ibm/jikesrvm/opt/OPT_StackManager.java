@@ -15,6 +15,9 @@ import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.VM_StackframeLayoutConstants.*;
 
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
@@ -27,9 +30,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Mauricio J. Serrano
  * @author Julian Dolby
  */
-public final class OPT_StackManager extends OPT_GenericStackManager
-  implements OPT_Operators {
-
+public final class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
    * A frame offset for 108 bytes of stack space to store the 

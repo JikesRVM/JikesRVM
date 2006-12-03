@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 
 /**
  * A basic block that marks the start of an exception handler.

@@ -67,9 +67,9 @@ class OPT_GraphUtilities {
   /**
    * Sort the nodes in a graph by decreasing DFS finish time
    */
-  public static SortedSet sortByDecreasingFinishTime(OPT_Graph net, OPT_DFS dfs) {
+  public static TreeSet<OPT_GraphNode> sortByDecreasingFinishTime(OPT_Graph net, OPT_DFS dfs) {
     FinishTimeComparator f = new FinishTimeComparator(dfs);
-    TreeSet result = new TreeSet(f);
+    TreeSet<OPT_GraphNode> result = new TreeSet<OPT_GraphNode>(f);
     for(Enumeration e = net.enumerateNodes(); e.hasMoreElements();) {
       OPT_GraphNode v =(OPT_GraphNode)e.nextElement();
       result.add(v);
@@ -77,8 +77,8 @@ class OPT_GraphUtilities {
     return  result;
   }
 
-  static class FinishTimeComparator implements Comparator {
-      private OPT_DFS dfs;
+  static class FinishTimeComparator implements Comparator<Object> {
+      private final OPT_DFS dfs;
 
       FinishTimeComparator(OPT_DFS dfs) {
         this.dfs = dfs;
@@ -111,7 +111,7 @@ class OPT_GraphUtilities {
   public static boolean isTopologicalOrder(Enumeration sorted, boolean forward) {
     while (sorted.hasMoreElements()) {
       OPT_GraphNode cur = (OPT_GraphNode)sorted.nextElement();
-      HashSet s = new HashSet();
+      HashSet<OPT_GraphNode> s = new HashSet<OPT_GraphNode>();
       if (!s.add(cur))
         return  false;
       Enumeration e = cur.outNodes();

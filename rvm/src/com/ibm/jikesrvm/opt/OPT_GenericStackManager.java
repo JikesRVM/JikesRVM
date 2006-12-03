@@ -14,6 +14,11 @@ import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
+import static com.ibm.jikesrvm.VM_SizeConstants.*;
+import static com.ibm.jikesrvm.VM_Constants.*;
+
 /**
  * Class to manage the allocation of the "compiler-independent" portion of 
  * the stackframe.
@@ -24,8 +29,7 @@ import java.util.Iterator;
  * @author Stephen Fink
  * @author Michael Hind
  */
-public abstract class OPT_GenericStackManager extends OPT_IRTools 
-implements OPT_Operators, OPT_PhysicalRegisterConstants {
+public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * Size of a word, in bytes
@@ -46,21 +50,22 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * For each physical register, holds a ScratchRegister which records
    * the current scratch assignment for the physical register.
    */
-  protected ArrayList scratchInUse = new ArrayList(20);
+  protected final ArrayList<ScratchRegister> scratchInUse =
+    new ArrayList<ScratchRegister>(20);
 
   /**
    * An array which holds the spill location number used to stash nonvolatile
    * registers. 
    */
-  protected int[] nonVolatileGPRLocation = new int[NUM_GPRS];
-  protected int[] nonVolatileFPRLocation = new int[NUM_FPRS];
+  protected final int[] nonVolatileGPRLocation = new int[NUM_GPRS];
+  protected final int[] nonVolatileFPRLocation = new int[NUM_FPRS];
 
   /**
    * An array which holds the spill location number used to stash volatile
    * registers in the SaveVolatile protocol.
    */
-  protected int[] saveVolatileGPRLocation = new int[NUM_GPRS];
-  protected int[] saveVolatileFPRLocation = new int[NUM_FPRS];
+  protected final int[] saveVolatileGPRLocation = new int[NUM_GPRS];
+  protected final int[] saveVolatileFPRLocation = new int[NUM_FPRS];
 
 
   protected static final boolean debug = false;
@@ -263,8 +268,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * Return the set of scratch registers which are currently reserved
    * for use in instruction s.
    */
-  private ArrayList getReservedScratchRegisters(OPT_Instruction s) {
-    ArrayList result = new ArrayList(3);
+  private ArrayList<OPT_Register> getReservedScratchRegisters(OPT_Instruction s) {
+    ArrayList<OPT_Register> result = new ArrayList<OPT_Register>(3);
 
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
@@ -514,7 +519,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
                                                            OPT_Instruction s){
-    ArrayList reservedScratch = getReservedScratchRegisters(s);
+    ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
@@ -543,7 +548,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
                                                            OPT_Instruction s){
-    ArrayList reservedScratch = getReservedScratchRegisters(s);
+    ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
@@ -744,7 +749,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstFPRNotUsedIn(OPT_Register r, 
                                             OPT_Instruction s, 
-                                            ArrayList reserved) {
+                                            ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
@@ -770,7 +775,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r, 
                                                 OPT_Instruction s, 
-                                                ArrayList reserved) {
+                                                ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
@@ -794,7 +799,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstGPRNotUsedIn(OPT_Register r, 
                                             OPT_Instruction s, 
-                                            ArrayList reserved) {
+                                            ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -829,7 +834,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r,
                                                 OPT_Instruction s, 
-                                                ArrayList reserved) {
+                                                ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -1469,7 +1474,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     /**
      * The physical register used as scratch.
      */
-    OPT_Register scratch;
+    final OPT_Register scratch;
 
     /**
      * The current contents of scratch

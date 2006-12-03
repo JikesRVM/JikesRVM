@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
 
 /**
@@ -21,8 +22,7 @@ import java.lang.reflect.Constructor;
  * This pass inserts PI nodes (Effectively copies)
  * on branch edges, to introduce new names for analysis
  */
-public final class OPT_PiNodes extends OPT_CompilerPhase
-    implements OPT_Operators, OPT_Constants {
+public final class OPT_PiNodes extends OPT_CompilerPhase {
    
   /**
    * Should we insert PI nodes for array references after bounds-checks

@@ -12,6 +12,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import java.util.*;
 
 /**
@@ -75,7 +77,7 @@ import java.util.*;
  * @author Stephen Fink
  * @modified Julian Dolby
  */
-class OPT_SSA implements OPT_Operators, OPT_Constants {
+class OPT_SSA {
 
   /**
    * Add a move instruction at the end of a basic block, renaming

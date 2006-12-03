@@ -14,7 +14,7 @@ import com.ibm.jikesrvm.classloader.*;
 
 import  java.util.*;
 import com.ibm.jikesrvm.opt.ir.*;
-
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 /**
  * Simple flow-insensitive escape analysis
  *
@@ -24,8 +24,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Stephen Fink
  *
  */
-class OPT_SimpleEscape extends OPT_CompilerPhase
-    implements OPT_Operators {
+class OPT_SimpleEscape extends OPT_CompilerPhase {
   private final static boolean DEBUG = false;
 
   /**
@@ -146,7 +145,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * perform escape analysis on a method, but do <em> not </em> generate
    * code.
    */
-  private static OPT_OptimizationPlanElement escapePlan = initEscapePlan();
+  private static final OPT_OptimizationPlanElement escapePlan = initEscapePlan();
 
   /** 
    * Check all appearances of a register, to see if any object pointed
@@ -608,8 +607,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    *
    * <p> TODO: Move this utility elsewhere
    */
-  private static Iterator iterateReturnValues (OPT_IR ir) {
-    ArrayList returnValues = new ArrayList();
+  private static Iterator<OPT_Operand> iterateReturnValues (OPT_IR ir) {
+    ArrayList<OPT_Operand> returnValues = new ArrayList<OPT_Operand>();
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
@@ -634,6 +633,3 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     boolean methodLocal;
   }
 }
-
-
-

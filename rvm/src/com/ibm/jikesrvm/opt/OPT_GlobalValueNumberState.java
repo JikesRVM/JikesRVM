@@ -43,7 +43,7 @@ public final class OPT_GlobalValueNumberState {
   /**
    * ArrayList of OPT_GVCongruenceClass, indexed by value number.
    */
-  private final ArrayList B;
+  private final ArrayList<OPT_GVCongruenceClass> B;
   /**
    * The value graph.
    */
@@ -51,7 +51,7 @@ public final class OPT_GlobalValueNumberState {
   /**
    * Stack used for a work list.
    */
-  private final Stack workList;
+  private final Stack<OPT_GVCongruenceClass> workList;
 
   /**
    * Construct a structure to hold global value number results for an IR.
@@ -59,8 +59,8 @@ public final class OPT_GlobalValueNumberState {
    * @param ir governing IR
    */
   OPT_GlobalValueNumberState (OPT_IR ir) {
-    B = new ArrayList();
-    workList = new Stack();
+    B = new ArrayList<OPT_GVCongruenceClass>();
+    workList = new Stack<OPT_GVCongruenceClass>();
     valueGraph = new OPT_ValueGraph(ir);
     globalValueNumber();
   }
@@ -297,7 +297,8 @@ public final class OPT_GlobalValueNumberState {
    */
   private void initialize () {
     // store a map from label -> congruenceClass
-    HashMap labelMap = new HashMap(10);
+    HashMap<Object,OPT_GVCongruenceClass> labelMap =
+      new HashMap<Object,OPT_GVCongruenceClass>(10);
     for (Enumeration e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       Object label = v.getLabel();
@@ -318,7 +319,7 @@ public final class OPT_GlobalValueNumberState {
    * @return the congruence class for the label.
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
-                                                             HashMap labelMap) {
+                                                             HashMap<Object,OPT_GVCongruenceClass> labelMap) {
     OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);
@@ -374,10 +375,12 @@ public final class OPT_GlobalValueNumberState {
     // as a representative for this class
     Iterator i = partition.iterator();
     OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
-    ArrayList newClasses = new ArrayList();
+    ArrayList<OPT_GVCongruenceClass> newClasses =
+      new ArrayList<OPT_GVCongruenceClass>();
     // now check each other node in c, to see if it matches the
     // representative
-    ArrayList toRemove = new ArrayList();
+    ArrayList<OPT_ValueGraphVertex> toRemove =
+      new ArrayList<OPT_ValueGraphVertex>();
     for (; i.hasNext();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)i.next();
       if (!checkCongruence(first, v)) {

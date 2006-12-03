@@ -13,7 +13,8 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
-
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import org.vmmagic.pragma.*;
 
 /**
@@ -67,8 +68,7 @@ import org.vmmagic.pragma.*;
  * @author Martin Trapp
  */
 
-public class OPT_BasicBlock extends OPT_SortedGraphNode 
-    implements OPT_Operators, OPT_Constants {
+public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   /** Bitfield used in flag encoding */
   static final int CAN_THROW_EXCEPTIONS = 0x01;
@@ -1760,7 +1760,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
    *
    * @return an enumeration of the out nodes
    */
-  public final /*OPT_BasicBlockEnumeration*/ OutEdgeEnum getOut () {
+  public final OutEdgeEnum getOut () {
     return new OutEdgeEnum(this);
   }
 
@@ -1769,7 +1769,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
    *
    * @return an enumeration of the out nodes
    */
-  public final Enumeration getOutNodes() {
+  public final OutEdgeEnum getOutNodes() {
     return new OutEdgeEnum(this);
   }
 
@@ -1908,7 +1908,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   static abstract class BBEnum implements OPT_BasicBlockEnumeration {
     protected OPT_BasicBlock current;  
     public final boolean hasMoreElements() { return current != null; }
-    public final Object nextElement() { return next(); }
+    public final OPT_BasicBlock nextElement() { return next(); }
     public final OPT_BasicBlock next() {
       if (current == null) fail();
       OPT_BasicBlock value = current;
@@ -1939,7 +1939,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     }
     public int totalCount() { return numBlocks; }
     public boolean hasMoreElements() { return current < numBlocks; }
-    public Object nextElement() { return next(); }
+    public OPT_BasicBlock nextElement() { return next(); }
     public OPT_BasicBlock next() {
       if (current >=  numBlocks) fail();
       return blocks[current++];
@@ -1954,7 +1954,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     private OPT_SpaceEffGraphEdge _edge;
     public InEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n.firstInEdge(); }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement()      { return next();        }
+    public OPT_BasicBlock nextElement() { return next();        }
     public OPT_BasicBlock next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.getNextIn();
@@ -1967,7 +1967,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     private OPT_SpaceEffGraphEdge _edge;
     public OutEdgeEnum(OPT_SpaceEffGraphNode n) { _edge = n.firstOutEdge(); }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement()      { return next();        }
+    public OPT_BasicBlock nextElement() { return next();        }
     public OPT_BasicBlock next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.getNextOut();

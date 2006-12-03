@@ -164,7 +164,7 @@ public class VM_Statics implements VM_Constants {
    * @return the offset in the JTOC of the literal
    */
   public static final int findOrCreateIntSizeLiteral(int literal) {
-    Integer literalAsInt = new Integer(literal);
+    Integer literalAsInt = Integer.valueOf(literal);
     Integer offsetAsInt;
     synchronized(intSizeLiterals) {
        offsetAsInt = (Integer)intSizeLiterals.get(literalAsInt);
@@ -173,7 +173,7 @@ public class VM_Statics implements VM_Constants {
       return offsetAsInt.intValue();
     } else {
       Offset newOff = allocateNumericSlot(BYTES_IN_INT);
-      Integer newOffAsInt = new Integer(newOff.toInt());
+      Integer newOffAsInt = Integer.valueOf(newOff.toInt());
       synchronized(intSizeLiterals) {
         intSizeLiterals.put(literalAsInt, newOffAsInt);
       }
@@ -189,7 +189,7 @@ public class VM_Statics implements VM_Constants {
    * @return the offset in the JTOC of the literal
    */
   public static final int findOrCreateLongSizeLiteral(long literal) {
-    Long literalAsLong = new Long(literal);
+    Long literalAsLong = Long.valueOf(literal);
     Integer offsetAsInt;
     synchronized(longSizeLiterals) {
        offsetAsInt = (Integer)longSizeLiterals.get(literalAsLong);
@@ -198,7 +198,7 @@ public class VM_Statics implements VM_Constants {
       return offsetAsInt.intValue();
     } else {
       Offset newOff = allocateNumericSlot(BYTES_IN_LONG);
-      Integer newOffAsInt = new Integer(newOff.toInt());
+      Integer newOffAsInt = Integer.valueOf(newOff.toInt());
       synchronized(longSizeLiterals) {
         longSizeLiterals.put(literalAsLong, newOffAsInt);
       }
@@ -228,7 +228,7 @@ public class VM_Statics implements VM_Constants {
         stringValue = stringValue.intern();
       }
       Offset newOff = allocateReferenceSlot();
-      Integer newOffAsInt = new Integer(newOff.toInt());
+      Integer newOffAsInt = Integer.valueOf(newOff.toInt());
       synchronized(stringLiterals) {
         stringLiterals.put(literal, newOffAsInt);
         synchronized(objectLiterals) {
@@ -273,7 +273,7 @@ public class VM_Statics implements VM_Constants {
       return offAsInt.intValue();
     } else {
       Offset newOff = allocateReferenceSlot();
-      Integer newOffAsInt = new Integer(newOff.toInt());
+      Integer newOffAsInt = Integer.valueOf(newOff.toInt());
       synchronized(objectLiterals) {
         objectLiterals.put(literalAsClass, newOffAsInt);
         setSlotContents(newOff, literalAsClass);
@@ -297,7 +297,7 @@ public class VM_Statics implements VM_Constants {
       return offAsInt.intValue();
     } else {
       Offset newOff = allocateReferenceSlot();
-      Integer newOffAsInt = new Integer(newOff.toInt());
+      Integer newOffAsInt = Integer.valueOf(newOff.toInt());
       synchronized(objectLiterals) {
         objectLiterals.put(literal, newOffAsInt);
       }
@@ -416,7 +416,7 @@ public class VM_Statics implements VM_Constants {
       return false;
     } else {
       int ival = getSlotContentsAsInt(slotAsOffset(slot));
-      Integer ivalAsInt = new Integer(ival);
+      Integer ivalAsInt = Integer.valueOf(ival);
       Integer offsetAsInt;
       synchronized(intSizeLiterals) {
          offsetAsInt = (Integer)intSizeLiterals.get(ivalAsInt);
@@ -439,7 +439,7 @@ public class VM_Statics implements VM_Constants {
       return false;
     } else {
       long lval = getSlotContentsAsLong(slotAsOffset(slot));
-      Long lvalAsLong = new Long(lval);
+      Long lvalAsLong = Long.valueOf(lval);
       Integer offsetAsInt;
       synchronized(longSizeLiterals) {
          offsetAsInt = (Integer)longSizeLiterals.get(lvalAsLong);

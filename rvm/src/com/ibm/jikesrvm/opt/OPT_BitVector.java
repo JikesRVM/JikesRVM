@@ -15,16 +15,19 @@ package com.ibm.jikesrvm.opt;
  * implements a bit vector
  *
  * @author John Whaley
- * @modified by Stephen Fink
+ * @modified Stephen Fink
+ * @modified Ian Rogers
  */
 public final class OPT_BitVector implements Cloneable, java.io.Serializable {
-
+  /** Support for serialization */
+  static final long serialVersionUID = 6961578653974090041L;
+  
   private final static int LOG_BITS_PER_UNIT = 5;
   private final static int BITS_PER_UNIT = 32;
   private final static int MASK = 0xffffffff;
   private final static int LOW_MASK = 0x1f;
-  private int bits[];
-  private int nbits; 
+  private final int bits[];
+  private final int nbits; 
 
   /**
    * Convert bitIndex to a subscript into the bits[] array.
@@ -50,7 +53,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
   public OPT_BitVector(OPT_BitVector s) {
     bits = new int[s.bits.length];
     this.nbits = s.nbits;
-    copyBits(s);
+    System.arraycopy(s.bits, 0, this.bits, 0, s.bits.length);
   }
   
   /**
@@ -189,10 +192,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
    * @param set the bit set to copy the bits from
    */
   public void copyBits(OPT_BitVector set) {
-    int setLength = set.bits.length;
-    for (int i = setLength; i-- > 0 ;) {
-      bits[i] = set.bits[i];
-    }
+    System.arraycopy(set.bits, 0, this.bits, 0, set.bits.length);
   }
   
   /**
@@ -260,16 +260,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
    * Clones the OPT_BitVector.
    */
   public Object clone() {
-    OPT_BitVector result = null;
-    try {
-      result = (OPT_BitVector) super.clone();
-    } catch (CloneNotSupportedException e) {
-      // this shouldn't happen, since we are Cloneable
-      throw new InternalError();
-    }
-    result.bits = new int[bits.length];
-    System.arraycopy(bits, 0, result.bits, 0, result.bits.length);
-    return result;
+    return new OPT_BitVector(this);
   }
 
   /**

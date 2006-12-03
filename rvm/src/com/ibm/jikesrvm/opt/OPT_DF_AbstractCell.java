@@ -26,8 +26,8 @@ abstract class OPT_DF_AbstractCell
    * Default Constructor 
    */
   OPT_DF_AbstractCell () {
-    uses = new HashSet(1);
-    defs = new HashSet(1);
+    uses = new HashSet<OPT_DF_Equation>(1);
+    defs = new HashSet<OPT_DF_Equation>(1);
   }
 
   /** 
@@ -35,8 +35,8 @@ abstract class OPT_DF_AbstractCell
    * @param capacity the initial capacity of the "uses" set
    */
   OPT_DF_AbstractCell (int capacity) {
-    uses = new HashSet(capacity);
-    defs = new HashSet(capacity);
+    uses = new HashSet<OPT_DF_Equation>(capacity);
+    defs = new HashSet<OPT_DF_Equation>(capacity);
   }
 
   /** 
@@ -45,7 +45,7 @@ abstract class OPT_DF_AbstractCell
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
-  public Iterator getUses () {
+  public Iterator<OPT_DF_Equation> getUses () {
     return  uses.iterator();
   }
 
@@ -55,7 +55,7 @@ abstract class OPT_DF_AbstractCell
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
-  public Iterator getDefs () {
+  public Iterator<OPT_DF_Equation> getDefs () {
     return  defs.iterator();
   }
 
@@ -86,11 +86,11 @@ abstract class OPT_DF_AbstractCell
   /**
    * Set of OPT_DF_Equations which use this lattice cell.
    */
-  private final HashSet uses; 
+  private final HashSet<OPT_DF_Equation> uses; 
   /**
    * Set of OPT_DF_Equations which define this lattice cell.
    */
-  private final HashSet defs; 
+  private final HashSet<OPT_DF_Equation> defs; 
 
   public OPT_GraphNodeEnumeration inNodes() {
       return new OPT_GraphNodeEnumeration() {

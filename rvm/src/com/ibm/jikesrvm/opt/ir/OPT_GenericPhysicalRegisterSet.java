@@ -63,50 +63,50 @@ abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMapping {
   /**
    * Enumerate all the physical registers in this set.
    */
-  public abstract Enumeration enumerateAll();
+  public abstract Enumeration<OPT_Register> enumerateAll();
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  public abstract Enumeration enumerateGPRs(); 
+  public abstract Enumeration<OPT_Register> enumerateGPRs(); 
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  public abstract Enumeration enumerateVolatileGPRs(); 
+  public abstract Enumeration<OPT_Register> enumerateVolatileGPRs(); 
 
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  public abstract Enumeration enumerateNonvolatileGPRs();
+  public abstract Enumeration<OPT_Register> enumerateNonvolatileGPRs();
 
   /**
    * Enumerate all the volatile FPRs in this set.
    */
-  public abstract Enumeration enumerateVolatileFPRs();
+  public abstract Enumeration<OPT_Register> enumerateVolatileFPRs();
 
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  public abstract Enumeration enumerateNonvolatileFPRs();
+  public abstract Enumeration<OPT_Register> enumerateNonvolatileFPRs();
 
   /**
    * Enumerate all the volatile physical registers
    */
-  public abstract Enumeration enumerateVolatiles(); 
+  public abstract Enumeration<OPT_Register> enumerateVolatiles(); 
 
   /**
    * Enumerate all the nonvolatile GPRs in this set, backwards
    */
-  public Enumeration enumerateNonvolatileGPRsBackwards() {
-    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  public Enumeration<OPT_Register> enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatileGPRs());
   }
 
   /**
    * Enumerate all the nonvolatile FPRs in this set, backwards.
    */
-  public Enumeration enumerateNonvolatileFPRsBackwards() {
-    return new OPT_ReverseEnumerator(enumerateNonvolatileFPRs());
+  public Enumeration<OPT_Register> enumerateNonvolatileFPRsBackwards() {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatileFPRs());
   }
 
   /**

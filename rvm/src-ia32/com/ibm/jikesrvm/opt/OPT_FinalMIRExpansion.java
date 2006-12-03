@@ -15,6 +15,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Final acts of MIR expansion for the IA32 architecture.

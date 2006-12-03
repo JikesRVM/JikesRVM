@@ -25,19 +25,22 @@ final class OPT_ScratchMap {
   /**
    * For each register, the set of intervals describing the register.
    */
-  private HashMap map = new HashMap();
+  private final HashMap<OPT_Register,ArrayList<Interval>> map =
+    new HashMap<OPT_Register,ArrayList<Interval>>();
 
   /**
    * For each register, a pending (incomplete) interval under
    * construction.
    */
-  private HashMap pending = new HashMap();
+  private final HashMap<OPT_Register,Interval> pending =
+    new HashMap<OPT_Register,Interval>();
 
   /**
    * For each GC Point s, a set of symbolic registers that are cached in
    * dirty scratch registers before s.
    */
-  private HashMap dirtyMap = new HashMap();
+  private final HashMap<OPT_Instruction,HashSet<OPT_Register>> dirtyMap =
+    new HashMap<OPT_Instruction,HashSet<OPT_Register>>();
 
   /**
    * Begin a new interval of scratch-ness for a symbolic register.
@@ -56,7 +59,7 @@ final class OPT_ScratchMap {
 
     SymbolicInterval i = new SymbolicInterval(r,scratch);
     i.begin = begin;
-    ArrayList v = findOrCreateIntervalSet(r);
+    ArrayList<Interval> v = findOrCreateIntervalSet(r);
     v.add(i);
     pending.put(r,i);
   }
@@ -91,7 +94,7 @@ final class OPT_ScratchMap {
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
-    ArrayList v = findOrCreateIntervalSet(r);
+    ArrayList<Interval> v = findOrCreateIntervalSet(r);
     v.add(p);
     pending.put(r,p);
   }
@@ -115,10 +118,10 @@ final class OPT_ScratchMap {
   /**
    * Find or create the set of intervals corresponding to a register r.
    */
-  private ArrayList findOrCreateIntervalSet(OPT_Register r) {
-    ArrayList v = (ArrayList)map.get(r);
+  private ArrayList<Interval> findOrCreateIntervalSet(OPT_Register r) {
+    ArrayList<Interval> v = map.get(r);
     if (v == null) {
-      v = new ArrayList();
+      v = new ArrayList<Interval>();
       map.put(r,v);
     }
     return v;
@@ -129,9 +132,9 @@ final class OPT_ScratchMap {
    * instruction n, return true; else, return false;
    */
   boolean isScratch(OPT_Register r, int n) {
-    ArrayList v = (ArrayList)map.get(r);
+    ArrayList<Interval> v = map.get(r);
     if (v == null) return false;
-    for (Iterator e = v.iterator(); e.hasNext(); ) {
+    for (Iterator<Interval> e = v.iterator(); e.hasNext(); ) {
       PhysicalInterval i = (PhysicalInterval)e.next();
       if (i.contains(n)) return true;
     }
@@ -144,10 +147,10 @@ final class OPT_ScratchMap {
    * return null.
    */
   OPT_Register getScratch(OPT_Register r, int n) {
-    ArrayList v = (ArrayList)map.get(r);
+    ArrayList<Interval> v = map.get(r);
     if (v == null) return null;
-    for (Iterator e = v.iterator(); e.hasNext(); ) {
-      SymbolicInterval i = (SymbolicInterval)e.next();
+    for (Iterator<Interval> e = v.iterator(); e.hasNext(); ) {
+      Interval i = e.next();
       if (i.contains(n)) return i.scratch;
     }
     return null;
@@ -165,9 +168,9 @@ final class OPT_ScratchMap {
    * a dirty scratch register.
    */
   public void markDirty(OPT_Instruction s, OPT_Register symb) {
-    HashSet set = (HashSet)dirtyMap.get(s);
+    HashSet<OPT_Register> set = dirtyMap.get(s);
     if (set == null) {
-      set = new HashSet(3);
+      set = new HashSet<OPT_Register>(3);
       dirtyMap.put(s,set);
     }
     set.add(symb);
@@ -201,19 +204,9 @@ final class OPT_ScratchMap {
   }
 
   /**
-   * An object that represents an interval where a symbolic register
-   * resides in a scratch register.
-   * Note that this interval must not span a basic block.
+   * Super class of physical and symbolic intervals
    */
-  static class SymbolicInterval {
-    /**
-     * The symbolic register
-     */
-    OPT_Register symbolic;
-    /**
-     * The physical scratch register.
-     */ 
-    OPT_Register scratch;
+  private static abstract class Interval {
     /**
      * The instruction before which the scratch range begins.
      */
@@ -222,10 +215,38 @@ final class OPT_ScratchMap {
      * The instruction before which the scratch range ends.
      */
     OPT_Instruction end;
+    /**
+     * The physical scratch register or register evicted.
+     */ 
+    final OPT_Register scratch;
+    /**
+     * Initialize scratch register
+     */
+    Interval(OPT_Register scratch) {
+      this.scratch = scratch;
+    }
+    /**
+     * Does this interval contain the instruction numbered n?
+     */
+    final boolean contains(int n) {
+      return (begin.scratch <= n && end.scratch > n);
+    }
+  }
+
+  /**
+   * An object that represents an interval where a symbolic register
+   * resides in a scratch register.
+   * Note that this interval must not span a basic block.
+   */
+  static final class SymbolicInterval extends Interval {
+    /**
+     * The symbolic register
+     */
+    final OPT_Register symbolic;
 
     SymbolicInterval(OPT_Register symbolic, OPT_Register scratch) {
+      super(scratch);
       this.symbolic = symbolic;
-      this.scratch = scratch;
     }
 
     /**
@@ -236,13 +257,6 @@ final class OPT_ScratchMap {
       return "SI: " + symbolic + " " + scratch + " [" +
               begin.scratch + "," + end.scratch + "]";
     }
-
-    /**
-     * Does this interval contain the instruction numbered n?
-     */
-    boolean contains(int n) {
-      return (begin.scratch <= n && end.scratch > n);
-    }
   }
 
   /**
@@ -250,22 +264,9 @@ final class OPT_ScratchMap {
    * contents are evicted so that the physical register can be used as a 
    * scratch.  Note that this interval must not span a basic block.
    */
-  static class PhysicalInterval {
-    /**
-     * The physical register evicted.
-     */ 
-    OPT_Register scratch;
-    /**
-     * The instruction before which the register is vacated.
-     */
-    OPT_Instruction begin;
-    /**
-     * The instruction before which the register is restored.
-     */
-    OPT_Instruction end;
-
+  static final class PhysicalInterval extends Interval {
     PhysicalInterval(OPT_Register scratch) {
-      this.scratch=scratch;
+      super(scratch);
     }
 
     /**
@@ -275,13 +276,6 @@ final class OPT_ScratchMap {
     public String toString() {
       return "PI: " + scratch + " [" +
               begin.scratch + "," + end.scratch + "]";
-    }
-
-    /**
-     * Does this interval contain the instruction numbered n?
-     */
-    boolean contains(int n) {
-      return (begin.scratch <= n && end.scratch > n);
     }
   }
 }

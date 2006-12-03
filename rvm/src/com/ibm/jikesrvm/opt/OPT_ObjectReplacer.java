@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Class that performs scalar replacement of aggregates for non-array
@@ -21,8 +22,7 @@ import java.util.*;
  * @author Stephen Fink
  *
  */
-public class OPT_ObjectReplacer
-    implements OPT_Operators, OPT_AggregateReplacer {
+public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
   final static boolean DEBUG = false;
 
   /** 
@@ -48,7 +48,7 @@ public class OPT_ObjectReplacer
    */
   public void transform () {
     // store the object's fields in a ArrayList
-    fields = getFieldsAsArrayList(klass);
+    ArrayList<VM_Field> fields = getFieldsAsArrayList(klass);
     // create a scalar for each field. initialize the scalar to 
     // default values before the object's def
     OPT_RegisterOperand[] scalars = new OPT_RegisterOperand[fields.size()];
@@ -67,34 +67,30 @@ public class OPT_ObjectReplacer
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
          use = (OPT_RegisterOperand)use.getNext()) {
-      scalarReplace(use, scalars);
+      scalarReplace(use, scalars, fields);
     }
   }
 
   /**
    * type of the object
    */
-  private VM_Class klass;       
+  private final VM_Class klass;       
   /**
    * the IR
    */
-  private OPT_IR ir;            
+  private final OPT_IR ir;            
   /**
    * the register holding the object reference
    */
-  private OPT_Register reg;     
-  /**
-   * the fields of the object
-   */
-  private ArrayList fields;        
+  private final OPT_Register reg;     
 
   /** 
    * Returns a ArrayList<VM_Field>, holding the fields of the object
    * @param klass the type of the object
    */
-  private static ArrayList getFieldsAsArrayList (VM_Class klass) {
+  private static ArrayList<VM_Field> getFieldsAsArrayList (VM_Class klass) {
     VM_Field[] f = klass.getInstanceFields();
-    ArrayList v = new ArrayList();
+    ArrayList<VM_Field> v = new ArrayList<VM_Field>();
     for (int i = 0; i < f.length; i++) {
       v.add(f[i]);
     }
@@ -120,7 +116,8 @@ public class OPT_ObjectReplacer
    *                  the object's fields with
    */
   private void scalarReplace (OPT_RegisterOperand use, 
-                              OPT_RegisterOperand[] scalars) {
+                              OPT_RegisterOperand[] scalars,
+                              ArrayList<VM_Field> fields) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case PUTFIELD_opcode:

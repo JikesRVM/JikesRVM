@@ -13,6 +13,9 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.VM_StackframeLayoutConstants.*;
 
 /**
  * This class contains PowerPC Calling conventions.
@@ -30,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_IRTools 
-implements OPT_PhysicalRegisterConstants {
+final class OPT_CallingConvention extends OPT_IRTools {
 
   /**
    * Expand calls, returns, and add initialize code for arguments/parms.

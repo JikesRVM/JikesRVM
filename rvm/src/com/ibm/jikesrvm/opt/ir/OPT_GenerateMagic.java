@@ -12,6 +12,8 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.OPT_MagicNotImplementedException;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.VM_SizeConstants.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -27,9 +29,7 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio Serrano
  * @author Perry Cheng
  */
-class OPT_GenerateMagic implements OPT_Operators, 
-                                   VM_RegisterConstants, 
-                                   VM_SizeConstants {
+class OPT_GenerateMagic {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class.

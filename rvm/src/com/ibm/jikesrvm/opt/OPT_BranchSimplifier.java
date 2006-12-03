@@ -8,9 +8,10 @@
  */
 //$Id$
 package com.ibm.jikesrvm.opt;
-import com.ibm.jikesrvm.*;
 
+import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Simplify and canonicalize conditional branches with constant operands.
@@ -26,7 +27,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Mauricio Serrano
  * @author Martin Trapp
  */
-abstract class OPT_BranchSimplifier implements OPT_Operators {
+abstract class OPT_BranchSimplifier {
 
   /**
    * Given a basic block, attempt to simplify any conditional branch

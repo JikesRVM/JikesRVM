@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import java.util.Enumeration;
 import java.util.Iterator;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Utility to help coalesce registers.
@@ -20,7 +21,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Stephen Fink
  */
-class OPT_Coalesce implements OPT_Operators {
+class OPT_Coalesce {
 
   /**
    * Attempt to coalesce register r2 into register r1.  If this is legal,

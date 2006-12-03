@@ -12,6 +12,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import java.lang.reflect.Constructor;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 
 /*
  * Simple flow-insensitive optimizations.
@@ -26,10 +28,9 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @modified Julian Dolby
  */
-public final class OPT_Simple extends OPT_CompilerPhase
-  implements OPT_Operators, OPT_Constants {
+public final class OPT_Simple extends OPT_CompilerPhase {
 
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
+  private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
 
   /**
    * At what optimization level should this phase be run?
@@ -124,8 +125,8 @@ public final class OPT_Simple extends OPT_CompilerPhase
    * branches?
    */
   public OPT_Simple (int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    super(new Object[]{new Integer(level), new Boolean(typeProp),
-                       new Boolean(foldChecks), new Boolean(foldBranches)});
+    super(new Object[]{Integer.valueOf(level), Boolean.valueOf(typeProp),
+                       Boolean.valueOf(foldChecks), Boolean.valueOf(foldBranches)});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;

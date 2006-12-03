@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * IR level independent driver for 
@@ -21,15 +22,12 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Mauricio Serrano
  */
 public abstract class OPT_BranchOptimizationDriver 
-  extends OPT_CompilerPhase
-  implements OPT_Operators {
+  extends OPT_CompilerPhase {
 
   /**
    * Optimization level at which phase should be performed.
    */
-  private int _level;
-
-  protected OPT_BranchOptimizationDriver() {}
+  private final int _level;
 
   /** 
    * @param level the minimum optimization level at which the branch 

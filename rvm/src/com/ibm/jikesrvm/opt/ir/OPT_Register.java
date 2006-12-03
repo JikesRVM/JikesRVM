@@ -28,7 +28,7 @@ public final class OPT_Register {
   /**
    * Index number relative to register pool.
    */
-  public int number;
+  public final int number;
 
   /**
    * Encoding of register properties & scratch bits
@@ -187,18 +187,6 @@ public final class OPT_Register {
   public int getNumber() {
     int start = OPT_PhysicalRegisterSet.getSize();
     return number - start;
-  }
-
-  /**
-   * TODO: This method is dangerous, and should be avoided and deprecated.
-   */
-  void cloneTo(OPT_Register reg, OPT_IR ir) {
-    int newNumber = reg.number;
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (newNumber < OPT_PhysicalRegisterSet.getSize()) { 
-      number = newNumber;
-      flags  = phys.get(number).flags;
-    }
   }
 
   /**

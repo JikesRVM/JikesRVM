@@ -13,7 +13,7 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import com.ibm.jikesrvm.util.VM_HashMap;
-
+import static com.ibm.jikesrvm.VM_SizeConstants.*;
 /**
  * A class to represent the reference in a class file to some 
  * type (class, primitive or array).
@@ -36,7 +36,7 @@ import com.ibm.jikesrvm.util.VM_HashMap;
  * @author Ian Rogers
  * @modified Steven Augart
  */
-public final class VM_TypeReference implements VM_SizeConstants {
+public final class VM_TypeReference {
   /**
    * The initiating class loader
    */

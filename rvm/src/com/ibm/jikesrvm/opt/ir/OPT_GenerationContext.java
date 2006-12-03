@@ -195,7 +195,7 @@ public final class OPT_GenerationContext
 
     // Create register pool, initialize arguments, resultReg.
     temps = new OPT_RegisterPool(meth);
-    _ncGuards = new java.util.HashMap();
+    _ncGuards = new HashMap<OPT_Register, OPT_RegisterOperand>();
     initLocalPool();
     VM_TypeReference[] params = meth.getParameterTypes();
     int numParams = params.length;
@@ -550,7 +550,7 @@ public final class OPT_GenerationContext
 
   // For each register, we always use the same register as a validation operand.
   // This helps us avoid needlessly losing information at CFG join points.
-  private java.util.HashMap _ncGuards;
+  private HashMap<OPT_Register, OPT_RegisterOperand> _ncGuards;
 
   /**
    * Make a register operand to use as a null check guard for the 
@@ -776,7 +776,7 @@ public final class OPT_GenerationContext
    */
   private void resync_ncGuards ()
   {
-    HashSet regPool = new HashSet();
+    HashSet<OPT_Register> regPool = new HashSet<OPT_Register>();
     
     for (OPT_Register r = temps.getFirstSymbolicRegister();
          r != null;  r = r.next) regPool.add (r);

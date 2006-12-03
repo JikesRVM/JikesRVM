@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.lang.reflect.Constructor;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Transform tail recursive calls into loops.
@@ -27,11 +28,10 @@ import java.lang.reflect.Constructor;
  *
  * @author Dave Grove
  */
-final class OPT_TailRecursionElimination extends OPT_CompilerPhase 
-  implements OPT_Operators {
+final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
+  private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
   
   /**
    * Constructor

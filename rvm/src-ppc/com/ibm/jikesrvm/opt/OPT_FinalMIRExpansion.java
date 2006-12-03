@@ -14,6 +14,9 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
 import org.vmmagic.unboxed.Offset;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
+import static com.ibm.jikesrvm.classloader.VM_BytecodeConstants.*;
+import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
 
 /**
  * Final acts of MIR expansion for the PowerPC architecture.
@@ -26,8 +29,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Igor Pechtchanski
  */
-abstract class OPT_FinalMIRExpansion extends OPT_IRTools
-  implements VM_BytecodeConstants {
+abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   /**
    * @param ir the IR to expand

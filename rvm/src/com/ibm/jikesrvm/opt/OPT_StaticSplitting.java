@@ -8,9 +8,10 @@
  */
 //$Id$
 package com.ibm.jikesrvm.opt;
-import com.ibm.jikesrvm.*;
 
+import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Static splitting based on very simple hints left by
@@ -35,8 +36,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-class OPT_StaticSplitting extends OPT_CompilerPhase
-  implements OPT_Operators {
+class OPT_StaticSplitting extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
   private static final int MAX_COST = 10; // upper bound on instructions duplicated

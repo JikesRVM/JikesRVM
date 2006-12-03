@@ -13,6 +13,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.LinkedList;
 
 /**
@@ -21,8 +22,7 @@ import java.util.LinkedList;
  * 
  * @author Feng Qian
  */ 
-public class OSR_OsrPointConstructor extends OPT_CompilerPhase 
-  implements OPT_Operators {
+public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   
   public final boolean shouldPerform(OPT_Options options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
@@ -43,14 +43,14 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
   }
 
   /**
-	* Need to run branch optimizations after
-	*/
-  private OPT_BranchOptimizations branchOpts;
+   * Need to run branch optimizations after
+   */
+  private final OPT_BranchOptimizations branchOpts;
   /**
-	* Constructor
-	*/
+   * Constructor
+   */
   OSR_OsrPointConstructor() {
-	 branchOpts = new OPT_BranchOptimizations(-1,false,false);
+    branchOpts = new OPT_BranchOptimizations(-1,false,false);
   }
 
   /**
@@ -58,7 +58,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
    */
   public void perform(OPT_IR ir) {
     // 1. collecting OsrPoint instructions
-    LinkedList osrs = collectOsrPoints(ir);
+    LinkedList<OPT_Instruction> osrs = collectOsrPoints(ir);
 
     //    new OPT_IRPrinter("before renovating osrs").perform(ir);
 
@@ -84,12 +84,12 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       verifyNoOsrBarriers(ir);
     }
 */
-		  branchOpts.perform(ir);
+        branchOpts.perform(ir);
   }
 
-  /* Iterates instructions, build a list of OsrPoint instructions. */
-  private LinkedList collectOsrPoints(OPT_IR ir) {
-    LinkedList osrs = new LinkedList();
+  /** Iterates instructions, build a list of OsrPoint instructions. */
+  private LinkedList<OPT_Instruction> collectOsrPoints(OPT_IR ir) {
+    LinkedList<OPT_Instruction> osrs = new LinkedList<OPT_Instruction>();
 
     OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
@@ -107,11 +107,11 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
    * inlining. rebuild OsrPoint instruction to hold all necessary
    * information to recover from inlined activation.
    */
-  private void renovateOsrPoints(LinkedList osrs, OPT_IR ir) {
+  private void renovateOsrPoints(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
 
     for (int osrIdx=0, osrSize=osrs.size(); osrIdx<osrSize; osrIdx++) {
       OPT_Instruction osr = (OPT_Instruction)osrs.get(osrIdx);      
-      LinkedList barriers = new LinkedList();
+      LinkedList<OPT_Instruction> barriers = new LinkedList<OPT_Instruction>();
 
       // Step 1: collect barriers put before inlined method
       //         in the order of from inner to outer
@@ -219,9 +219,9 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
           if (op.isRegister()) {
             op = op.asRegister().copyU2U();
           }
-			 else {
+          else {
             op = op.copy();
-			 }
+          }
 
           OsrPoint.setElement(osr, opIndex, op);
           opIndex ++;
@@ -253,7 +253,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     } // end of for loop
   }
  
-  /* The OsrBarrier instruction is not in IR, so the bc index was not
+  /**
+   * The OsrBarrier instruction is not in IR, so the bc index was not
    * adjusted in OSR_AdjustBCIndex
    */
   private void adjustBCIndex(OPT_Instruction barrier) {
@@ -264,7 +265,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
   }
 
 
-  /* remove OsrBarrier instructions. */
+  /** remove OsrBarrier instructions. */
   private void removeOsrBarriers(OPT_IR ir) {
     OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
@@ -292,7 +293,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     VM.sysWriteln(" SANE");
   }
 
-  /* verify barrier is clean by checking the number of valid operands */
+  /** verify barrier is clean by checking the number of valid operands */
   private boolean isBarrierClean(OPT_Instruction barrier) {
     OPT_OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(barrier);
     int totalOperands = countNonVoidTypes(typeInfo.localTypeCodes);
@@ -311,10 +312,10 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     return count;
   }
 
-  /* 
+  /** 
    * Split each OsrPoint, and connect it to the exit point.
    */
-  private void fixupCFGForOsr(LinkedList osrs, OPT_IR ir) {
+  private void fixupCFGForOsr(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
     
     for (int i=0, n=osrs.size(); i<n; i++) {
       OPT_Instruction osr = (OPT_Instruction)osrs.get(i);

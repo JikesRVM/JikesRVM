@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import java.util.HashMap;
 
 /**
  * This class holds the results of a flow-insensitive escape analysis
@@ -76,29 +77,32 @@ class OPT_FI_EscapeSummary {
    * A mapping that holds the analysis result for thread-locality for each
    * OPT_Register.
    */
-  private java.util.HashMap hash = new java.util.HashMap();   
+  private final HashMap<OPT_Register,Object> hash =
+    new HashMap<OPT_Register,Object>();
+
   /**
    * A mapping that holds the analysis result for method-locality for each
    * OPT_Register.
    */
-  private java.util.HashMap hash2 = new java.util.HashMap();  
+  private final HashMap<OPT_Register,Object> hash2 =
+    new HashMap<OPT_Register,Object>();  
 
   /**
    * Static object used to represent analysis result
    */
-  static Object THREAD_LOCAL = new Object();
+  static final Object THREAD_LOCAL = new Object();
   /**
    * Static object used to represent analysis result
    */
-  static Object MAY_ESCAPE_THREAD = new Object();
+  static final Object MAY_ESCAPE_THREAD = new Object();
   /**
    * Static object used to represent analysis result
    */
-  static Object METHOD_LOCAL = new Object();
+  static final Object METHOD_LOCAL = new Object();
   /**
    * Static object used to represent analysis result
    */
-  static Object MAY_ESCAPE_METHOD = new Object();
+  static final Object MAY_ESCAPE_METHOD = new Object();
 }
 
 

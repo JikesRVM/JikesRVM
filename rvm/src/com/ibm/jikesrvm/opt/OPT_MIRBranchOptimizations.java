@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * Perform simple peephole optimizations for MIR branches.
@@ -21,8 +22,6 @@ import com.ibm.jikesrvm.opt.ir.*;
 public final class OPT_MIRBranchOptimizations 
   extends OPT_BranchOptimizationDriver {
 
-
-  private OPT_MIRBranchOptimizations() { }
 
   /** 
    * @param level the minimum optimization level at which the branch 

@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
+import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
  * This class implements index equivalence via global value numbering 
@@ -20,7 +21,7 @@ import java.util.Enumeration;
  * @author Vivek Sarkar
  * @author Stephen Fink
  */
-class OPT_UniformlyGeneratedGVN implements OPT_Operators {
+class OPT_UniformlyGeneratedGVN {
   static final boolean DEBUG = false;
 
   /** 

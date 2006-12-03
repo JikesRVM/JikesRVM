@@ -24,7 +24,7 @@ import java.util.*;
  * @author Dave Grove
  * @author Stephen Fink
  */
-public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operators {
+public class OPT_LocalCopyProp extends OPT_CompilerPhase {
 
   public final boolean shouldPerform (OPT_Options options) {
     return options.LOCAL_COPY_PROP;
@@ -47,7 +47,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
   * @return this
   */
   public OPT_CompilerPhase newExecution(OPT_IR ir) {
-	 return this;
+    return this;
   }
 
   /**
@@ -57,7 +57,8 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
    */
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
-    HashMap info = new HashMap();
+    HashMap<OPT_Register,OPT_Operand> info =
+      new HashMap<OPT_Register,OPT_Operand>();
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
          bb != null; 
          bb = bb.nextBasicBlockInCodeOrder()) {
@@ -82,12 +83,13 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
               OPT_Operand use = e.next();
               if (use instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand rUse = (OPT_RegisterOperand)use;
-                OPT_Operand value = (OPT_Operand)info.get(rUse.register);
+                OPT_Operand value = info.get(rUse.register);
                 if (value != null) {
                   didSomething = true;
                   value = value.copy();
                   if (value instanceof OPT_RegisterOperand) {
-                    ((OPT_RegisterOperand)value).type = rUse.type; // preserve program point specific typing!
+                    // preserve program point specific typing!
+                    ((OPT_RegisterOperand)value).copyType(rUse);
                   }
                   s.replaceOperand(use, value);
                 }
@@ -102,9 +104,12 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
           // I'm being lazy for now in the name of avoiding
           // premature optimization.
           if (killPhysicals) {
-            HashSet toRemove = new HashSet();
-            for (Iterator i = info.entrySet().iterator(); i.hasNext(); ) {
-              Map.Entry entry = (Map.Entry)i.next();
+            HashSet<OPT_Register> toRemove =
+              new HashSet<OPT_Register>();
+            for (Iterator<Map.Entry<OPT_Register,OPT_Operand>> i =
+                   info.entrySet().iterator();
+                 i.hasNext(); ) {
+              Map.Entry<OPT_Register,OPT_Operand> entry = i.next();
               OPT_Register eR = ((OPT_RegisterOperand)entry.getValue()).
                 asRegister().register;
               if (killPhysicals && eR.isPhysical()) {
@@ -114,7 +119,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
               }
             }
             // Now perform the removals.
-            for (Iterator i = toRemove.iterator(); i.hasNext();) {
+            for (Iterator<OPT_Register> i = toRemove.iterator(); i.hasNext();) {
               info.remove(i.next());
             }
           }
@@ -128,13 +133,13 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
               // TODO: use a better data structure for efficiency.
               // I'm being lazy for now in the name of avoiding
               // premature optimization.
-              HashSet toRemove = new HashSet();
-              for (Iterator i = info.entrySet().iterator();
+              HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
+              for (Iterator<Map.Entry<OPT_Register,OPT_Operand>> i =
+                     info.entrySet().iterator();
                    i.hasNext(); ) {
-                Map.Entry entry = (Map.Entry)i.next();
+                Map.Entry<OPT_Register,OPT_Operand> entry = i.next();
                 OPT_Register eR =
-                  ((OPT_RegisterOperand)entry.getValue()).
-                  asRegister().register;
+                  ((OPT_RegisterOperand)entry.getValue()).register;
                 if (eR == r) {
                   // delay the removal to avoid ConcurrentModification
                   // with iterator.
@@ -142,7 +147,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                 }
               }
               // Now perform the removals.
-              for (Iterator i = toRemove.iterator(); i.hasNext();) {
+              for (Iterator<OPT_Register> i = toRemove.iterator(); i.hasNext();) {
                 info.remove(i.next());
               }
             }
