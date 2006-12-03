@@ -30,22 +30,26 @@ import org.vmmagic.pragma.*;
 
   //-#if RVM_FOR_32_ADDR
   private int value;
-  //-#elif RVM_FOR_64_ADDR
+  //-#else
   private long value;
   //-#endif
 
-  //-#if RVM_FOR_32_ADDR
   Extent(int offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    //-#if RVM_FOR_32_ADDR
     value = offset;
+    //-#else
+    if (VM.VerifyAssertions) VM._assert(false);
+    //-#endif
   }
-  //-#elif RVM_FOR_64_ADDR
   Extent(long offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    //-#if RVM_FOR_32_ADDR
+    if (VM.VerifyAssertions) VM._assert(false);
+    //-#else
     value = offset;
+    //-#endif
   }
-  //-#endif
-
 
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -67,20 +71,19 @@ import org.vmmagic.pragma.*;
 
   public static Extent fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Extent(address);
-    //-#elif RVM_FOR_64_ADDR
-    long val = ((long)address) & 0x00000000ffffffffL;
-    return new Extent(val);
-    //-#endif
+    if (VM.BuildFor32Addr)
+      return new Extent(address);
+    else {
+      long val = ((long)address) & 0x00000000ffffffffL;
+      return new Extent(val);
+    }
   }
 
-  //-#if RVM_FOR_64_ADDR
   public static Extent fromLong (long offset) throws UninterruptibleNoWarnPragma {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(offset);
   }
-  //-#endif
 
   public static Extent zero () throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);

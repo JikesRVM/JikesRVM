@@ -763,19 +763,17 @@ import com.ibm.jikesrvm.quick.*;
   }
 
   public static void writeDec(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    write(value.toLong()); 
-    //-#else
-    write(value.toInt()); 
-    //-#endif
+    if (VM.BuildFor32Addr)
+      write(value.toInt()); 
+    else
+      write(value.toLong()); 
   }
 
   public static void writeHex(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    if (VM.BuildFor32Addr)
+      writeHex(value.toInt()); 
+    else
+      writeHex(value.toLong()); 
   }
 
   public static void writeHex(Address value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {

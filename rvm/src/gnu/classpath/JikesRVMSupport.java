@@ -10,6 +10,8 @@ package gnu.classpath;
 
 import org.vmmagic.unboxed.Address;
 
+import com.ibm.jikesrvm.VM;
+
 /**
  * Library support interface of Jikes RVM
  *
@@ -17,18 +19,16 @@ import org.vmmagic.unboxed.Address;
  */
 public class JikesRVMSupport {
   public static Address getAddressFromPointer(Pointer pointer) {
-    //-#if RVM_FOR_32_ADDR
-    return Address.fromIntSignExtend(((Pointer32)pointer).data);
-    //-#elif RVM_FOR_64_ADDR
-    return Address.fromLong(((Pointer64)pointer).data);
-    //-#endif
+    if (VM.BuildFor32Addr)
+      return Address.fromIntSignExtend(((Pointer32)pointer).data);
+    else
+      return Address.fromLong(((Pointer64)pointer).data);
   }
 
   public static Pointer getPointerFromAddress(Address address) {
-    //-#if RVM_FOR_32_ADDR
-    return new Pointer32(address.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Pointer64(address.toLong());
-    //-#endif
+    if (VM.BuildFor32Addr) 
+      return new Pointer32(address.toInt());
+    else
+      return new Pointer64(address.toLong());
   }
 }

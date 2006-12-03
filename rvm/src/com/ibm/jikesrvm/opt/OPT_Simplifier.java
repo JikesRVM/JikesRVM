@@ -2131,13 +2131,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          //-#if RVM_FOR_64_ADDR
-          // x - c = x + -c
-          // prefer adds, since some architectures have addi but not subi
-          Binary.mutate(s, LONG_ADD, Binary.getClearResult(s), 
-                        Binary.getClearVal1(s), LC(-val2));
-          return DefUseEffect.REDUCED;
-          //-#endif
+          if (VM.BuildFor64Addr) {
+            // x - c = x + -c
+            // prefer adds, since some architectures have addi but not subi
+            Binary.mutate(s, LONG_ADD, Binary.getClearResult(s), 
+                Binary.getClearVal1(s), LC(-val2));
+            return DefUseEffect.REDUCED;
+          }
         }
       }
     }

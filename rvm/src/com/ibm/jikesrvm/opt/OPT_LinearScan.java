@@ -1880,12 +1880,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         setInterval(reg, null); 
         OPT_RegisterAllocatorState.setSpill(reg,0);
         // clear the 'long' type if it's persisted to here.
-//-#if RVM_FOR_32_ADDR
-        if (reg.isLong()) {
+        if (VM.BuildFor32Addr && reg.isLong()) {
           reg.clearType();
           reg.setInteger();
         }
-//-#endif
       }
     }
 
@@ -2723,13 +2721,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                             OSR_Constants.ACONST,
                             ((OPT_AddressConstantOperand)op).value.toWord()
                             );
-            //-#if RVM_FOR_64_ADDR
-            } else if (op.isLongConstant()) {
+            } else if (VM.BuildFor64Addr && op.isLongConstant()) {
               setTupleValue(tuple,
                             OSR_Constants.LCONST,
                             Word.fromLong(((OPT_LongConstantOperand)op).value)
                             );
-            //-#endif
             } else {
               throw new OPT_OptimizingCompilerException("OPT_LinearScan",
                         "Unexpected operand type at ", op.toString());

@@ -1854,24 +1854,22 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           break;
         }
         case PSEUDO_LoadWordConst: {
-          //-#if RVM_FOR_32_ADDR
-          int value = bcodes.readIntConst();
+          if (VM.BuildFor32Addr) {
+            int value = bcodes.readIntConst();
 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
-          emit_ldc(offset, VM_Class.CP_INT);
-          //-#endif
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
-          //-#if RVM_FOR_64_ADDR
-          long value = bcodes.readLongConst();
+            Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
+            emit_ldc(offset, VM_Class.CP_INT);
+          } else {
+            long value = bcodes.readLongConst();
 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
-          emit_ldc2(offset, VM_Class.CP_LONG);
-          emit_l2i(); //dirty hack
-          //-#endif
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
+
+            Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
+            emit_ldc2(offset, VM_Class.CP_LONG);
+            emit_l2i(); //dirty hack
+          }
           break;
         }
         case PSEUDO_LoadFloatConst: {

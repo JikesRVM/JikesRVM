@@ -110,11 +110,7 @@ class DebuggerThread extends VM_Thread {
          
     case 'p': // print object 
       if (tokens.length == 2) {
-        //-#if RVM_FOR_64_ADDR
-        Address addr = Address.fromLong(Long.parseLong(tokens[1], 16));
-        //-#else
-        Address addr = Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
-        //-#endif
+        Address addr = (VM.BuildFor64Addr) ? Address.fromLong(Long.parseLong(tokens[1], 16)) : Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
         VM.sysWrite("Object at addr 0x");
         VM.sysWriteHex(addr);
         VM.sysWrite(": ");

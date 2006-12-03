@@ -189,12 +189,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   Word getWord() {
-    //-#if RVM_FOR_32_ADDR
-    return Word.fromIntSignExtend((int)value);
-    //-#endif
-    //-#if RVM_FOR_64_ADDR
-    return Word.fromLong(value);
-    //-#endif
+    return (VM.BuildFor32Addr) ? Word.fromIntSignExtend((int)value) : Word.fromLong(value);
   }
 
   /* for numerical */

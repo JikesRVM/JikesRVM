@@ -2362,13 +2362,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           break;
         }
         case PSEUDO_LoadWordConst: {
-          Address a;
-          //-#if RVM_FOR_32_ADDR
-          a = Address.fromIntSignExtend(bcodes.readIntConst());
-          //-#endif
-          //-#if RVM_FOR_64_ADDR
-          a = Address.fromLong(bcodes.readLongConst());
-          //-#endif
+          Address a = (VM.BuildFor32Addr) ? Address.fromIntSignExtend(bcodes.readIntConst()) : Address.fromLong(bcodes.readLongConst());
 
           push(new OPT_AddressConstantOperand(a));
           

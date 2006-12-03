@@ -39,7 +39,7 @@ import org.vmmagic.pragma.*;
 
   //-#if RVM_FOR_32_ADDR
   private int value;
-  //-#elif RVM_FOR_64_ADDR
+  //-#else
   private long value;
   //-#endif
 
@@ -48,23 +48,28 @@ import org.vmmagic.pragma.*;
    * Constructors
    */
 
-  //-#if RVM_FOR_32_ADDR
   /**
    * Create an {@link Address} instance from an integer.
    */
   Address(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    //-#if RVM_FOR_32_ADDR
     value = address;
-  }
-  //-#elif RVM_FOR_64_ADDR
-  /**
+    //-#else
+    if (VM.VerifyAssertions) VM._assert(false);
+    //-#endif
+ }
+   /**
    * Create an {@link Address} instance from a long.
    */
   Address(long address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    //-#if RVM_FOR_32_ADDR
+    if (VM.VerifyAssertions) VM._assert(false);
+    //-#else
     value = address;
+    //-#endif
   }
-  //-#endif
 
 
   /****************************************************************************
@@ -147,15 +152,14 @@ import org.vmmagic.pragma.*;
   public static Address fromIntZeroExtend(int address) 
     throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(address);
-    //-#elif RVM_FOR_64_ADDR
-    long val = ((long)address) & 0x00000000ffffffffL;
-    return new Address(val);
-    //-#endif
+    if (VM.BuildFor32Addr)
+      return new Address(address);
+    else {
+      long val = ((long)address) & 0x00000000ffffffffL;
+      return new Address(val);
+    }
   }
 
-  //-#if RVM_FOR_64_ADDR
   /**
    * Fabricate an {@link Address} instance from a long.
    *
@@ -165,11 +169,11 @@ import org.vmmagic.pragma.*;
    */
   public static Address fromLong(long address)
     throws UninterruptibleNoWarnPragma {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr); 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return new Address(address);
-  }
-  //-#endif
-
+ }
+ 
   /**
    * Fabricate an {@link Address} instance from an integer
    *

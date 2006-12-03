@@ -510,11 +510,10 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static Object getSlotContentsAsObject(Offset offset) throws UninterruptiblePragma {
     if(VM.runningVM) {
-      //-#if RVM_FOR_64_ADDR
-      return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
-      //-#else
-      return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
-      //-#endif
+      if (VM.BuildFor32Addr)
+        return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
+      else
+        return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
     } else {
       return objectSlots[offsetAsSlot(offset)];
     }
@@ -574,11 +573,10 @@ public class VM_Statics implements VM_Constants {
     if (VM.runningVM) {
       VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
     } else {
-      //-#if RVM_FOR_64_ADDR
-      setSlotContents(offset, word.toLong());
-      //-#else
-      setSlotContents(offset, word.toInt());
-      //-#endif
+      if (VM.BuildFor32Addr)
+        setSlotContents(offset, word.toInt());
+      else
+        setSlotContents(offset, word.toLong());
     }
   }
 

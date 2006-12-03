@@ -66,21 +66,23 @@ import org.vmmagic.unboxed.*;
         Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos+startDiff);
         Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos+startDiff);
 
+        if (VM.BuildFor64Addr) {
+          switch(startDiff) {
+          case 7:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-7),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-7)));
+          case 6:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
+          case 5:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-5),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-5)));
+          case 4:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
+          }
+        }
         switch(startDiff) {
-        //-#if RVM_FOR_64_ADDR
-        case 7:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-7),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-7)));
-        case 6:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
-        case 5:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-5),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-5)));
-        case 4:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
-        //-#endif
         case 3:
           VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-3),
                                    VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-3)));
@@ -99,21 +101,23 @@ import org.vmmagic.unboxed.*;
           dstPtr = dstPtr.plus(BYTES_IN_ADDRESS);
         }
 
+        if (VM.BuildFor64Addr) {
+          switch(endDiff) {
+          case 7:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(6),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(6)));
+          case 6:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(5),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(5)));
+          case 5:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
+          case 4:
+            VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(3),
+                                     VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(3)));
+          }       
+        }
         switch(endDiff) {
-        //-#if RVM_FOR_64_ADDR
-        case 7:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(6),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(6)));
-        case 6:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(5),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(5)));
-        case 5:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
-        case 4:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(3),
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(3)));
-        //-#endif
         case 3:
           VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(2),
                                    VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(2)));
@@ -168,15 +172,17 @@ import org.vmmagic.unboxed.*;
         Address srcPtr = VM_Magic.objectAsAddress(src).plus((srcPos<<LOG_BYTES_IN_SHORT)+startDiff);
         Address dstPtr = VM_Magic.objectAsAddress(dst).plus((dstPos<<LOG_BYTES_IN_SHORT)+startDiff);
 
+        if (VM.BuildFor64Addr) {
+          switch(startDiff) {
+          case 6:
+            VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
+                                     VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
+          case 4:
+            VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
+                                     VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
+          }
+        }
         switch(startDiff) {
-        //-#if RVM_FOR_64_ADDR
-        case 6:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
-        case 4:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
-        //-#endif
         case 2:
           VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-2),
                                    VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-2)));
@@ -189,15 +195,17 @@ import org.vmmagic.unboxed.*;
           dstPtr = dstPtr.plus(BYTES_IN_ADDRESS);
         }
 
+        if (VM.BuildFor64Addr) {
+          switch(endDiff) {
+          case 6:
+            VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
+                                     VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
+          case 4:
+            VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(2),
+                                     VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(2)));
+          }
+        }
         switch(endDiff) {
-        //-#if RVM_FOR_64_ADDR
-        case 6:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
-        case 4:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(2),
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(2)));
-        //-#endif
         case 2:
           VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
                                    VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));

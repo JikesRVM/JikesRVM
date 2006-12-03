@@ -11,6 +11,8 @@ package com.ibm.jikesrvm.opt;
 
 import org.vmmagic.unboxed.*;
 
+import com.ibm.jikesrvm.VM;
+
 /**
  * OPT_Bits.java
  *
@@ -111,22 +113,14 @@ public class OPT_Bits {
    * Does an offset literal val fit in bits bits?
    */
   public static boolean fits (Offset val, int bits) {
-  //-#if RVM_FOR_64_ADDR
-    return fits(val.toLong(), bits);
-  //-#elif RVM_FOR_32_ADDR
-    return fits(val.toInt(), bits);
-  //-#endif
+    return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
 
   /**
    * Does an address literal val fit in bits bits?
    */
   public static boolean fits (Address val, int bits) {
-  //-#if RVM_FOR_64_ADDR
-    return fits(val.toLong(), bits);
-  //-#elif RVM_FOR_32_ADDR
-    return fits(val.toInt(), bits);
-  //-#endif
+    return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
 
 

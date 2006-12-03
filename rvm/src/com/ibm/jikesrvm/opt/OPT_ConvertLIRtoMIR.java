@@ -142,9 +142,9 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           }
           break;
 
-        //-#if RVM_FOR_32_ADDR
         case LONG_DIV_opcode:
           {
+            if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
             OPT_Operand val2 = GuardedBinary.getClearVal2(s); 
             if (VM.BuildForPowerPC) {
@@ -164,6 +164,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
         case LONG_REM_opcode:
           {
+            if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
             OPT_Operand val2 = GuardedBinary.getClearVal2(s); 
             if (VM.BuildForPowerPC) {
@@ -180,7 +181,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             OPT_CallingConvention.expandSysCall(s, ir);
           }
           break;
-        //-#endif
 
           //-#if RVM_FOR_POWERPC
         case FLOAT_REM_opcode: case DOUBLE_REM_opcode:

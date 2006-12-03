@@ -153,10 +153,8 @@ class OPT_ExpressionFolding implements OPT_Operators {
       return op.asAddressConstant().value; 
     if (op instanceof OPT_IntConstantOperand)
       return Address.fromIntSignExtend(op.asIntConstant().value);
-    //-#if RVM_FOR_64_ADDR 
-    if (op instanceof OPT_LongConstantOperand)
+    if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand)
       return Address.fromLong(op.asLongConstant().value);
-    //-#endif
     throw new OPT_OptimizingCompilerException("Cannot getWordValue from this operand " + op);
   }
 
