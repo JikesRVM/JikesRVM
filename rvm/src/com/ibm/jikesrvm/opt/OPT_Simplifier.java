@@ -790,22 +790,29 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
   private static DefUseEffect mustImplementInterface(OPT_Instruction s) {
     OPT_Operand ref = TypeCheck.getRef(s);
-    if (VM.VerifyAssertions) VM._assert(!ref.isNullConstant());       
-    VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
-    VM_TypeReference rhsType = ref.getType();                     // our type
-    byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
-    if (ans == OPT_Constants.YES) {
-      Empty.mutate(s, NOP);
-      return DefUseEffect.REDUCED;
-    } else if (ans == OPT_Constants.NO) {
-      VM_Type rType = rhsType.peekResolvedType();
-      if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
-        // only final (or precise) rhs types can be optimized since rhsType may be conservative
-        Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.MustImplement());
-        return DefUseEffect.TRAP_REDUCED;
+    if (ref.isNullConstant()) {
+      // Possible sitatution from constant propagation. This operation
+      // is really a nop as a null_check should have happened already
+      Trap.mutate(s, TRAP, null,
+                  OPT_TrapCodeOperand.NullPtr());
+      return DefUseEffect.TRAP_REDUCED;
+    } else {
+      VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
+      VM_TypeReference rhsType = ref.getType();                     // our type
+      byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
+      if (ans == OPT_Constants.YES) {
+        Empty.mutate(s, NOP);
+        return DefUseEffect.REDUCED;
+      } else if (ans == OPT_Constants.NO) {
+        VM_Type rType = rhsType.peekResolvedType();
+        if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
+          // only final (or precise) rhs types can be optimized since rhsType may be conservative
+          Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.MustImplement());
+          return DefUseEffect.TRAP_REDUCED;
+        }
       }
+      return DefUseEffect.UNCHANGED;
     }
-    return DefUseEffect.UNCHANGED;
   }
   private static DefUseEffect intCondMove(OPT_Instruction s) {
    {
