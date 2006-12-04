@@ -117,7 +117,7 @@ final class OPT_CallingConvention extends OPT_IRTools {
     s.insertBack(s2);
     //-#if RVM_WITH_POWEROPEN_ABI
     s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ip,
-                     AC(Offset.fromInt(BYTES_IN_ADDRESS)), null);
+                     AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
     s.insertBack(s2);
 	OPT_RegisterOperand iptmp = ir.regpool.makeTempAddress();
 	s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
