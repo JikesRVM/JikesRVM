@@ -360,8 +360,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     didSomething = true;
   }
 
-  private OPT_Simple _os = new OPT_Simple(false, false);
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
+  private final OPT_Simple _os = new OPT_Simple(false, false);
+  private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 
   //private final OPT_IntConstantOperand OPT_IRTools.IC(int x) { return OPT_IRTools.OPT_IRTools.IC(x); }

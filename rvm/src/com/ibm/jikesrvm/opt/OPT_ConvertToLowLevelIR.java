@@ -357,8 +357,13 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     s.replace(IfCmp.create(INT_IFCMP, null, t, IC(highLimit - lowLimit),
                            OPT_ConditionOperand.HIGHER(), 
                            defaultLabel, defaultProb));
-    float weight = defaultProb.takenProbability >= 1f ?
-      0f : 1f / (1f - defaultProb.takenProbability);
+    // Reweight branches to account for the default branch going. If
+    // the default probability was ALWAYS then when we recompute the
+    // weight to be a proportion of the total number of branches.
+    final boolean defaultIsAlways = defaultProb.takenProbability >= 1f;
+    final float weight = defaultIsAlways ?
+        1f / number
+      : 1f / (1f - defaultProb.takenProbability);
 
     /********** second Basic Block ******/
     s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number*2);
@@ -367,7 +372,10 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
       OPT_BranchOperand b = TableSwitch.getClearTarget(s, i);
       LowTableSwitch.setTarget(s2, i, b);
       OPT_BranchProfileOperand bp = TableSwitch.getClearBranchProfile(s,i);
-      bp.takenProbability *= weight;
+      if (defaultIsAlways)
+        bp.takenProbability = weight;
+      else
+        bp.takenProbability *= weight;
       LowTableSwitch.setBranchProfile(s2, i, bp);
       if (b.target == defaultLabel.target)
         containsDefault = true;

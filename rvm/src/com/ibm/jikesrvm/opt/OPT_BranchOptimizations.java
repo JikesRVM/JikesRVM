@@ -26,8 +26,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @author Martin Trapp
  * @author Ian Rogers
  */
-public final class OPT_BranchOptimizations
-  extends OPT_BranchOptimizationDriver {
+public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver {
 
   /**
    * Is branch optimizations allowed to change the code order to
@@ -53,11 +52,25 @@ public final class OPT_BranchOptimizations
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    */
   public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
-    super(level);
+    super(level, true);
     this.mayReorderCode = mayReorderCode;
     this.mayDuplicateCondBranches = mayDuplicateCondBranches;
   }
   
+  /** 
+   * @param level the minimum optimization level at which the branch 
+   *              optimizations should be performed.
+   * @param mayReorderCode are we allowed to change the code order?
+   * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
+   * @param simplify simplify prior to optimizing?
+   */
+  public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches,
+                                  boolean simplify) {
+    super(level, simplify);
+    this.mayReorderCode = mayReorderCode;
+    this.mayDuplicateCondBranches = mayDuplicateCondBranches;
+  }
+
   /**
    * This method actually does the work of attempting to
    * peephole optimize a branch instruction.

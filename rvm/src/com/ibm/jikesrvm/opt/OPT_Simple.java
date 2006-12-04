@@ -30,7 +30,7 @@ import static com.ibm.jikesrvm.opt.OPT_Constants.*;
  */
 public final class OPT_Simple extends OPT_CompilerPhase {
 
-  private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
+  private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false, false);
 
   /**
    * At what optimization level should this phase be run?

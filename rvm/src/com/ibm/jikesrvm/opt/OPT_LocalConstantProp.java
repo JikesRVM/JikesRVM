@@ -107,7 +107,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
       runBranchOpts |= OPT_BranchSimplifier.simplify(bb, ir);
     }
     if (runBranchOpts) {
-      new OPT_BranchOptimizations(0, true, false).perform(ir);
+      new OPT_BranchOptimizations(0, true, false, false).perform(ir);
     }
   }
 }

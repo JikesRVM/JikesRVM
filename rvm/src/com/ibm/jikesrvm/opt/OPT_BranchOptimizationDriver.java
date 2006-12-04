@@ -21,25 +21,41 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-public abstract class OPT_BranchOptimizationDriver 
-  extends OPT_CompilerPhase {
+public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
 
   /**
    * Optimization level at which phase should be performed.
    */
-  private final int _level;
+  private final int level;
+
+  /**
+   * Optimization level at which phase should be performed.
+   */
+  private final boolean simplify;
 
   /** 
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
+   * @param simplify perform simplification prior to optimization?
+   */
+  OPT_BranchOptimizationDriver(int level, boolean simplify) {
+    this.level = level;
+    this.simplify = simplify;
+  }
+
+  /** 
+   * @param level the minimum optimization level at which the branch 
+   * optimizations should be performed.
+   * @param simplify perform simplification prior to optimization?
    */
   OPT_BranchOptimizationDriver(int level) {
-    _level = level;
+    this.level = level;
+    this.simplify = false;
   }
 
   /** Interface */
   public final boolean shouldPerform(OPT_Options options) {
-    return  options.getOptLevel() >= _level;
+    return  options.getOptLevel() >= level;
   }
 
   public final String getName() {
@@ -54,7 +70,7 @@ public abstract class OPT_BranchOptimizationDriver
    * This phase contains no per-compilation instance fields.
    */
   public final OPT_CompilerPhase newExecution(OPT_IR ir) {
-    return  this;
+    return this;
   }
 
 
@@ -63,11 +79,14 @@ public abstract class OPT_BranchOptimizationDriver
    * 
    * @param ir the IR to optimize
    */
-  public final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {    
     perform(ir, true);
   }
 
   public final void perform(OPT_IR ir, boolean renumber) {
+    if (simplify)
+      applySimplify(ir);
+    
     maximizeBasicBlocks(ir);
     if (VM.BuildForIA32) {
       // spans-bb information is used for CMOV insertion
@@ -88,6 +107,22 @@ public abstract class OPT_BranchOptimizationDriver
     if (ir.IRStage < OPT_IR.MIR) {
       ir.pruneExceptionalOut();
     }
+  }
+
+  /**
+   * Perform branch simplifications.
+   *
+   * @param ir the IR to optimize
+   * @return was something reduced
+   */
+  private static boolean applySimplify(OPT_IR ir) {
+    boolean didSomething = false;
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+         e.hasMoreElements();) {
+      OPT_BasicBlock bb = e.next();
+      didSomething |= OPT_BranchSimplifier.simplify(bb, ir);
+    }
+    return didSomething;
   }
 
   /**
