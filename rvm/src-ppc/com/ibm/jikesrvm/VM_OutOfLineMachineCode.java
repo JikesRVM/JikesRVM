@@ -420,7 +420,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitLAddrOffset (T1, T2,  VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
 	//-#if RVM_WITH_POWEROPEN_ABI
 	/* T1 points to the function descriptor, so we'll load TOC and IP from that */
-    asm.emitLAddrOffset(JTOC, T1, Offset.fromInt(BYTES_IN_ADDRESS));          // load TOC
+    asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
 	asm.emitLAddrOffset(T1, T1, Offset.zero());
 	//-#endif
     asm.emitMTLR  (T1);

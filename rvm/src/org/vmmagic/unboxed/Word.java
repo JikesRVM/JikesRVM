@@ -37,32 +37,19 @@ import org.vmmagic.pragma.*;
   private long value;  
   //-#endif
 
-   Word (int val) { 
-     //-#if RVM_FOR_32_ADDR
+  //-#if RVM_FOR_32_ADDR
+  Word (int val) { 
      value = val; 
-     //-#else
-     if (VM.VerifyAssertions) VM._assert(false);
-     //-#endif
    }
+  //-#else
   Word (long val) { 
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(false);
-    //-#else
     value = val; 
-    //-#endif
   }
-
+  //-#endif
+  
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return (o instanceof Word) && ((Word) o).value == value;
-  }
-
-  /**
-   * @deprecated
-   */
-  public static Word fromInt(int val) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Word(val);
   }
 
   public static Word fromIntSignExtend(int val) throws UninterruptibleNoWarnPragma {
@@ -72,18 +59,22 @@ import org.vmmagic.pragma.*;
   
   public static Word fromIntZeroExtend(int val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    if (VM.BuildFor32Addr)
-      return new Word(val);
-    else {
-      long ans = ((long)val) & 0x00000000ffffffffL;
-      return new Word(ans);
-    }
+    //-#if RVM_FOR_32_ADDR
+    return new Word(val);
+    //-#else
+    long ans = ((long)val) & 0x00000000ffffffffL;
+    return new Word(ans);
+    //-#endif
   }
      
   public static Word fromLong(long val) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    //-#if RVM_FOR_32_ADDR
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+    //-#else
     return new Word(val);
+    //-#endif
   }
 
   public static Word zero() throws UninterruptibleNoWarnPragma {

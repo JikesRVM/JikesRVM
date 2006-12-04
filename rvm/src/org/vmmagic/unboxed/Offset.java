@@ -36,35 +36,21 @@ import com.ibm.jikesrvm.VM;
   private long value;
   //-#endif
 
+  //-#if RVM_FOR_32_ADDR
   Offset(int offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
-    //-#if RVM_FOR_32_ADDR
     value = offset;
-    //-#else
-    if (VM.VerifyAssertions) VM._assert(false);
-    //-#endif
   }
-
+  //-#else
   Offset(long offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(false);
-    //-#else
     value = offset;
-    //-#endif
   }
-
+  //-#endif
+  
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return (o instanceof Offset) && ((Offset) o).value == value;
-  }
-
-  /**
-   * @deprecated
-   */
-  public static Offset fromInt(int address) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Offset(address);
   }
 
   public static Offset fromIntSignExtend(int address) throws UninterruptibleNoWarnPragma {
@@ -74,18 +60,22 @@ import com.ibm.jikesrvm.VM;
 
   public static Offset fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    if (VM.BuildFor32Addr)
-      return new Offset(address);
-    else {
-      long val = ((long)address) & 0x00000000ffffffffL;
-      return new Offset(val);
-    }
+    //-#if RVM_FOR_32_ADDR
+    return new Offset(address);
+    //-#else
+    long val = ((long)address) & 0x00000000ffffffffL;
+    return new Offset(val);
+    //-#endif
   }
 
   public static Offset fromLong(long offset) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    //-#if RVM_FOR_32_ADDR
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+    //-#else
     return new Offset(offset);
+    //-#endif
   }
 
   public static Offset zero() throws UninterruptibleNoWarnPragma {

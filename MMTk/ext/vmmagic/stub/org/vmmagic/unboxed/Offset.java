@@ -16,13 +16,6 @@ package org.vmmagic.unboxed;
  */
 public final class Offset {
 
-  /**
-   * To be deprecated as soon as we find a good alternative
-   */
-  public static Offset fromInt(int address) {
-    return null;
-  }
-
   public static Offset fromIntSignExtend(int address) {
     return null;
   }

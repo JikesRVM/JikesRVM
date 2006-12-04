@@ -32,10 +32,10 @@ import org.vmmagic.unboxed.*;
   private static final int HASH_SHIFT = 3;
 
   /** Offset to the key */
-  private static final Offset KEY_OFFSET = Offset.fromInt(0);
+  private static final Offset KEY_OFFSET = Offset.zero();
 
   /** Offset to the data */
-  private static final Offset DATA_OFFSET = Offset.fromInt(BYTES_IN_WORD);
+  private static final Offset DATA_OFFSET = Offset.fromIntSignExtend(BYTES_IN_WORD);
 
   /** The size of each entry in the table */
   private Extent entrySize;

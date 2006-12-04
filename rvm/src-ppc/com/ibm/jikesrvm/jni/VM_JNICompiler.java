@@ -1226,7 +1226,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLAddrOffset(KLUDGE_TI_REG, S1, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
 	//-#if RVM_WITH_POWEROPEN_ABI
 	/* the sysVPYIP field points to the function descriptor, so we'll load the IP and TOC from that */
-    asm.emitLAddrOffset(JTOC, KLUDGE_TI_REG, Offset.fromInt(BYTES_IN_ADDRESS));          // load TOC
+    asm.emitLAddrOffset(JTOC, KLUDGE_TI_REG, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
 	asm.emitLAddrOffset(KLUDGE_TI_REG, KLUDGE_TI_REG, Offset.zero());
 	//-#endif
     asm.emitMTLR (KLUDGE_TI_REG);

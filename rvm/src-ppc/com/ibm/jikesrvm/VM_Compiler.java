@@ -4411,7 +4411,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     //-#if RVM_WITH_POWEROPEN_ABI
 	/* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
 	// Load TOC (Offset one word)
-	asm.emitLAddrOffset(JTOC, S0, Offset.fromInt(BYTES_IN_STACKSLOT));
+	asm.emitLAddrOffset(JTOC, S0, Offset.fromIntSignExtend(BYTES_IN_STACKSLOT));
 	// Load IP (offset 0)
 	asm.emitLAddrOffset(S0, S0, Offset.zero());
     //-#endif

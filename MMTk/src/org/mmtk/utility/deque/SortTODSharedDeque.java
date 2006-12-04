@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final Offset INSERTION_SORT_LIMIT = Offset.fromInt(80);
+  private static final Offset INSERTION_SORT_LIMIT = Offset.fromIntSignExtend(80);
 
   /**
    * Constructor

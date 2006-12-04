@@ -189,7 +189,7 @@ public final class VM_NativeMethod extends VM_Method {
     } else {
       //-#if RVM_WITH_POWEROPEN_ABI
       nativeIP  = symbolAddress.loadAddress();
-      nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
+      nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
       //-#else
       nativeIP = symbolAddress;
       //-#endif
@@ -205,7 +205,7 @@ public final class VM_NativeMethod extends VM_Method {
   public synchronized void registerNativeSymbol(Address symbolAddress) {
     //-#if RVM_WITH_POWEROPEN_ABI
     nativeIP  = symbolAddress.loadAddress();
-    nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
+    nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
     //-#else
     nativeIP = symbolAddress;
     //-#endif

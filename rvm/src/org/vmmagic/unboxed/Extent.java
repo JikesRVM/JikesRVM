@@ -34,34 +34,21 @@ import org.vmmagic.pragma.*;
   private long value;
   //-#endif
 
+  //-#if RVM_FOR_32_ADDR
   Extent(int offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    //-#if RVM_FOR_32_ADDR
     value = offset;
-    //-#else
-    if (VM.VerifyAssertions) VM._assert(false);
-    //-#endif
   }
+  //-#else
   Extent(long offset) {  
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(false);
-    //-#else
     value = offset;
-    //-#endif
   }
+  //-#endif
 
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (o instanceof Extent) && ((Extent) o).value == value;
-  }
-
-  /**
-   * @deprecated
-   */
-  public static Extent fromInt(int address) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Extent(address);
   }
 
   public static Extent fromIntSignExtend(int address) throws UninterruptibleNoWarnPragma {
@@ -71,18 +58,22 @@ import org.vmmagic.pragma.*;
 
   public static Extent fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    if (VM.BuildFor32Addr)
-      return new Extent(address);
-    else {
-      long val = ((long)address) & 0x00000000ffffffffL;
-      return new Extent(val);
-    }
+    //-#if RVM_FOR_32_ADDR
+    return new Extent(address);
+    //-#else
+    long val = ((long)address) & 0x00000000ffffffffL;
+    return new Extent(val);
+    //-#endif
   }
 
   public static Extent fromLong (long offset) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    //-#if RVM_FOR_32_ADDR
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+    //-#else
     return new Extent(offset);
+    //-#endif
   }
 
   public static Extent zero () throws UninterruptibleNoWarnPragma {
