@@ -146,7 +146,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
         case LONG_DIV_opcode:
           {
-            if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
             OPT_Operand val2 = GuardedBinary.getClearVal2(s); 
             if (VM.BuildForPowerPC) {
@@ -166,7 +166,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
         case LONG_REM_opcode:
           {
-            if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
             OPT_Operand val2 = GuardedBinary.getClearVal2(s); 
             if (VM.BuildForPowerPC) {
