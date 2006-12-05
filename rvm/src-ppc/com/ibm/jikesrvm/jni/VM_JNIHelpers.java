@@ -859,13 +859,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
-      //-#if RVM_FOR_64_ADDR
-      long hiword;
-      hiword = addr.loadLong();
-      //-#else
-      int hiword;
-      hiword = addr.loadInt();
-      //-#endif
+      long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long)addr.loadInt();
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword + 
       // " or " + VM.intAsHexString(hiword) + "\n");
@@ -880,7 +874,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (VM.BuildFor32Addr) {
           int loword = addr.loadInt();
           addr = addr.plus(BYTES_IN_ADDRESS);                       
-          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+          long doubleBits = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
         } else {
           argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(hiword)));
@@ -889,7 +883,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (VM.BuildFor32Addr) {
           int loword = addr.loadInt();
           addr = addr.plus(BYTES_IN_ADDRESS);
-          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+          long doubleBits = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
         } else {
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword));
@@ -898,7 +892,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (VM.BuildFor32Addr) {
           int loword = addr.loadInt();
           addr = addr.plus(BYTES_IN_ADDRESS);
-          long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+          long longValue = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapLong(longValue);
         } else {
           argObjectArray[i] = VM_Reflection.wrapLong(hiword);
@@ -947,13 +941,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     for (int i=0; i<argCount; i++) {
       Address addr = argAddress.plus(BYTES_IN_DOUBLE*i);
-      //-#if RVM_FOR_64_ADDR
-      long hiword;
-      hiword = addr.loadLong();
-      //-#else
-      int hiword;
-      hiword = addr.loadInt();
-      //-#endif
+      long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long)addr.loadInt();
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword + 
       //          " or " + VM.intAsHexString(hiword) + "\n");
@@ -965,7 +953,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       } else if (argTypes[i].isDoubleType()) {
         if (VM.BuildFor32Addr) {
           int loword = addr.plus(BYTES_IN_ADDRESS).loadInt();
-          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+          long doubleBits = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
         } else {
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword));
@@ -973,7 +961,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       } else if (argTypes[i].isLongType()) { 
         if (VM.BuildFor32Addr) {
           int loword = addr.plus(BYTES_IN_ADDRESS).loadInt();
-          long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+          long longValue = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapLong(longValue);
         } else {
           argObjectArray[i] = VM_Reflection.wrapLong(hiword);
