@@ -424,11 +424,11 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    */
   public synchronized Object getOption(int optID) throws SocketException {
     if (optID == SocketOptions.SO_TIMEOUT) {
-      return new Integer(receiveTimeout);
+      return Integer.valueOf(receiveTimeout);
     } else if (optID == SocketOptions.SO_BINDADDR) {
       return localAddress;
     } else if (optID == SocketOptions.SO_SNDBUF) {
-      return new Integer(VM_SysCall.sysNetSocketSndBuf(native_fd));
+      return Integer.valueOf(VM_SysCall.sysNetSocketSndBuf(native_fd));
     } else {
       throw new VM_UnimplementedError("JikesRVMSocketImpl.getOption: " + optID);
     }

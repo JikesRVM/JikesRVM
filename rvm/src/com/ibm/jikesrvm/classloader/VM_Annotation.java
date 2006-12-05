@@ -198,26 +198,26 @@ public final class VM_Annotation {
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = VM_Statics.getSlotContentsAsLong(offset);
-        value = new Double(Double.longBitsToDouble(longValue));
+        value = Double.valueOf(Double.longBitsToDouble(longValue));
         break;
       }
     case 'F':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = VM_Statics.getSlotContentsAsInt(offset);
-        value = new Float(Float.intBitsToFloat(intValue));
+        value = Float.valueOf(Float.intBitsToFloat(intValue));
         break;
       }
     case 'I':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = new Integer(VM_Statics.getSlotContentsAsInt(offset));
+        value = Integer.valueOf(VM_Statics.getSlotContentsAsInt(offset));
         break;
       }
     case 'J':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = new Long(VM_Statics.getSlotContentsAsLong(offset));
+        value = Long.valueOf(VM_Statics.getSlotContentsAsLong(offset));
         break;
       }
     case 'S':

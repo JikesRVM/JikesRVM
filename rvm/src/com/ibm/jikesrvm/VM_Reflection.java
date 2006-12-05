@@ -133,37 +133,37 @@ public class VM_Reflection implements VM_Constants {
 
     if (returnType.isByteType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return new Byte((byte)x);
+      return Byte.valueOf((byte)x);
     }
 
     if (returnType.isShortType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return new Short((short)x);
+      return Short.valueOf((short)x);
     }
 
     if (returnType.isCharType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return new Character((char)x);
+      return Character.valueOf((char)x);
     }
 
     if (returnType.isIntType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return new Integer(x);
+      return Integer.valueOf(x);
     }
 
     if (returnType.isLongType()) {
       long x = VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, Spills);
-      return new Long(x);
+      return Long.valueOf(x);
     }
 
     if (returnType.isFloatType()) {
       float x = VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, Spills);
-      return new Float(x);
+      return Float.valueOf(x);
     }
         
     if (returnType.isDoubleType()) {
       double x = VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, Spills);
-      return new Double(x);
+      return Double.valueOf(x);
     }
 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -173,13 +173,13 @@ public class VM_Reflection implements VM_Constants {
   // Method parameter wrappers.
   // 
   public static Object wrapBoolean(int b) throws NoInlinePragma     { return Boolean.valueOf(b==1); }
-  public static Object wrapByte(byte b) throws NoInlinePragma       { return new Byte(b);       }
-  public static Object wrapChar(char c) throws NoInlinePragma       { return new Character(c);  }
-  public static Object wrapShort(short s) throws NoInlinePragma     { return new Short(s);      }
-  public static Object wrapInt(int i) throws NoInlinePragma         { return new Integer(i);    }
-  public static Object wrapLong(long l) throws NoInlinePragma       { return new Long(l);       }
-  public static Object wrapFloat(float f) throws NoInlinePragma     { return new Float(f);      }
-  public static Object wrapDouble(double d) throws NoInlinePragma   { return new Double(d);     }
+  public static Object wrapByte(byte b) throws NoInlinePragma       { return Byte.valueOf(b);       }
+  public static Object wrapChar(char c) throws NoInlinePragma       { return Character.valueOf(c);  }
+  public static Object wrapShort(short s) throws NoInlinePragma     { return Short.valueOf(s);      }
+  public static Object wrapInt(int i) throws NoInlinePragma         { return Integer.valueOf(i);    }
+  public static Object wrapLong(long l) throws NoInlinePragma       { return Long.valueOf(l);       }
+  public static Object wrapFloat(float f) throws NoInlinePragma     { return Float.valueOf(f);      }
+  public static Object wrapDouble(double d) throws NoInlinePragma   { return Double.valueOf(d);     }
    
   // Method parameter unwrappers.
   //
