@@ -1161,7 +1161,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifeq(bTarget);
         break;
       }
@@ -1170,7 +1170,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifne(bTarget);
         break;
       }
@@ -1179,7 +1179,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_iflt(bTarget);
         break;
       }
@@ -1188,7 +1188,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifge(bTarget);
         break;
       }
@@ -1197,7 +1197,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifgt(bTarget);
         break;
       }
@@ -1206,7 +1206,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifle(bTarget);
         break;
       }
@@ -1215,7 +1215,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmpeq(bTarget);
         break;
       }
@@ -1224,7 +1224,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmpne(bTarget);
         break;
       }
@@ -1233,7 +1233,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmplt(bTarget);
         break;
       }
@@ -1242,7 +1242,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmpge(bTarget);
         break;
       }
@@ -1251,7 +1251,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmpgt(bTarget);
         break;
       }
@@ -1260,7 +1260,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_icmple(bTarget);
         break;
       }
@@ -1269,7 +1269,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_acmpeq(bTarget);
         break;
       }
@@ -1278,7 +1278,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_if_acmpne(bTarget);
         break;
       }
@@ -1287,7 +1287,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset; // bi has been bumped by 3 already
         if (shouldPrint) asm.noteBranchBytecode(biStart, "goto", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_goto(bTarget);
         break;
       }
@@ -1794,7 +1794,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifnull(bTarget);
         break;
       }
@@ -1803,7 +1803,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
-        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if (offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_ifnonnull(bTarget);
         break;
       }
@@ -1812,7 +1812,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         int offset = bcodes.getWideBranchOffset();
         int bTarget = biStart + offset;
         if (shouldPrint) asm.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
-        if(offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        if(offset <= 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
         emit_goto(bTarget);
         break;
       }
