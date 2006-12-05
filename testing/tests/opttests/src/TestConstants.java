@@ -22,8 +22,6 @@ class TestConstants
   
   public static boolean run()
   {
-    boolean retSuccess = true;
-
     System.out.print("TestConstants");
     
     aconst();

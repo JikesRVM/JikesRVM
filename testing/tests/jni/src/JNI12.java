@@ -57,7 +57,6 @@ class JNI12 {
     Object returnObj;
     // Reflected Methods
     
-    Class stringClass = String.class;
     Class myClass =JNI12.class;
     
     Method dummyM = myClass.getMethod("dummyFunc", new Class[0]);

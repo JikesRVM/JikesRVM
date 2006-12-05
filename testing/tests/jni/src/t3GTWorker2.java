@@ -41,7 +41,7 @@ class t3GTWorker2 extends Thread {
                 isReady = true;
                 while (isReady) {
     try {
-      Thread.currentThread().sleep(arg1);
+      Thread.sleep(arg1);
     }
     catch (InterruptedException e) {
                         System.out.println(" GC thread returning");

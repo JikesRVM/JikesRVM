@@ -15,7 +15,6 @@
  * @author Peter F. Sweeney
  * @date April 2, 2002
  */
-import java.util.Enumeration;
 
 public final class VM_Callbacks {
 

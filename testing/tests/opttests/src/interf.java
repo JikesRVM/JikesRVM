@@ -11,8 +11,6 @@
  * @author unascribed
  */
 
-import java.io.*;
-
 public class interf {
   static boolean run() {
     int i = test(10000);

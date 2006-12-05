@@ -42,7 +42,6 @@ class NativeException {
 
   public static void main(String args[]) {
 
-    int returnValue;
     boolean returnFlag;
     int intArray[] = new int[10];
 

@@ -44,64 +44,62 @@ class TestFieldAccess
 
   public static boolean run()
   {
-    boolean retSuccess = true;
-
     System.out.print("TestFieldAccess");
     
     TestFieldAccess b = new TestFieldAccess();
     
-    if (!b.s0) {
+    if (!TestFieldAccess.s0) {
       System.out.print("\nwant: true\n got: ");                        
-      System.out.println(b.s0);
+      System.out.println(TestFieldAccess.s0);
       testSuccess = false;
     }
     
-    if (b.s1 != -1) {
+    if (TestFieldAccess.s1 != -1) {
       System.out.print("\nwant: -1\n got: ");                          
-      System.out.println(b.s1);
+      System.out.println(TestFieldAccess.s1);
       testSuccess = false;
     }
     
-    if (b.s2 != 'A') {
+    if (TestFieldAccess.s2 != 'A') {
       System.out.print("\nwant: A\n got: ");                           
-      System.out.println(b.s2);
-      testSuccess = false;
-    }
-    
-    if (b.s3 != -3) {
-      System.out.print("\nwant: -3\n got: ");                          
-      System.out.println(b.s3);
-      testSuccess = false;
-    }
-    
-    if (b.s4 != -4) {
-      System.out.print("\nwant: -4\n got: ");                          
-      System.out.println(b.s4);
+      System.out.println(TestFieldAccess.s2);
       testSuccess = false;
     }
 
-    if (b.s5 != -5) {
+    if (TestFieldAccess.s3 != -3) {
+      System.out.print("\nwant: -3\n got: ");
+      System.out.println(TestFieldAccess.s3);
+      testSuccess = false;
+    }
+
+    if (TestFieldAccess.s4 != -4) {
+      System.out.print("\nwant: -4\n got: ");                          
+      System.out.println(TestFieldAccess.s4);
+      testSuccess = false;
+    }
+
+    if (TestFieldAccess.s5 != -5) {
       System.out.print("\nwant: -5\n got: ");                          
-      System.out.println(b.s5);
+      System.out.println(TestFieldAccess.s5);
       testSuccess = false;
     }
-    
-    if (b.s6 != -6.0) {
-      System.out.print("\nwant: -6.0\n got: ");                        
-      System.out.println(b.s6);
+
+    if (TestFieldAccess.s6 != -6.0) {
+      System.out.print("\nwant: -6.0\n got: ");
+      System.out.println(TestFieldAccess.s6);
       testSuccess = false;
     }
-    
-    if (b.s7 != -7.0D) {
+
+    if (TestFieldAccess.s7 != -7.0D) {
       System.out.print("\nwant: -7.0\n got: ");                        
-      System.out.println(b.s7);
+      System.out.println(TestFieldAccess.s7);
       testSuccess = false;
     }
     
-    String str = b.s8.toString();
+    String str = TestFieldAccess.s8.toString();
     if (!str.equals("Instance of TestFieldAccess")) {
       System.out.print("\nwant: Instance of TestFieldAccess\n got: "); 
-      System.out.println(b.s8);
+      System.out.println(TestFieldAccess.s8);
       testSuccess = false;
     }
     

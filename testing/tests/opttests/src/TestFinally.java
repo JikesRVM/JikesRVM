@@ -57,7 +57,6 @@ class TestFinally
 
    static boolean
    foo2(int a) {
-     int b;
      synchronized(lock) {
         return foo2a(a) == 1;
      }

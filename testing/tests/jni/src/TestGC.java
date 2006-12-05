@@ -31,10 +31,7 @@ class TestGC {
 
   public static void main(String args[]) {
 
-    int returnValue;
-    boolean returnFlag;
     boolean runningUnderJDK = true;
-    boolean copyingGC=false;
 
     String str1 = new String("string 1");
     String str2 = new String("string 2");
@@ -68,10 +65,8 @@ class TestGC {
         Address newAddress1 = VM_Magic.objectAsAddress(str1);
         Address newAddress2 = VM_Magic.objectAsAddress(str2);
         if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
-            copyingGC = true;
             printVerbose("Objects have been moved by GC:");
         } else {
-            copyingGC = false;
             printVerbose("Objects have NOT been moved by GC:");
         }
         printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));

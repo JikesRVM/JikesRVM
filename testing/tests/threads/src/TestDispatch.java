@@ -28,7 +28,7 @@ class TestDispatch {
          workers[i].start();
      boolean done = false;
      while (!done) {
-         Thread.currentThread().yield();
+         Thread.yield();
          done = true;
          for (int i=0; i<threadCount; i++) 
              if (!workers[i].isFinished) 

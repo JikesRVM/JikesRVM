@@ -37,7 +37,6 @@ public class TestJNIDirectBuffers {
 
     long address = getStaticNativeAddress();
     long capacity = getStaticNativeCapacity();
-    int returnVal = 0;
     ByteBuffer native_buffer = newByteBuffer(address, capacity);
     if (capacity != native_buffer.capacity()) {
       printVerbose("Wrong capacity: " + capacity + " != " + native_buffer.capacity());

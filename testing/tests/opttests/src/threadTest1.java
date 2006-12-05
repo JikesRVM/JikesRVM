@@ -7,9 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-import java.io.*;
-import java.util.*;
-import java.lang.*;
 
 /**
  * Just lots of unsynchronized read/write to static shared variables.

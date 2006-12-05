@@ -193,7 +193,7 @@ class TestConversions
   static void
   i2b()
   {
-    byte x; int  i;
+    byte x;
     x = i2b(0x0000007f);
     if (x != 127) {
       System.out.print("\nwant: 127\n got: "); 
@@ -252,7 +252,7 @@ class TestConversions
   static void
   i2s()
   {
-    short x; int  i;
+    short x;
 
     x = i2s(0x00007fff);
     if (x != 32767) {
@@ -461,7 +461,6 @@ class TestConversions
   testFloatLimits(float lo, float hi)
   {
     //    System.out.println();
-    String str = Float.toString(lo);
     if ((!Float.toString(lo).equals("-Infinity")) || 
         (!Float.toString(hi).equals("Infinity"))) {
       System.out.println("\nfloat:  " +       lo + " .. " +       hi);

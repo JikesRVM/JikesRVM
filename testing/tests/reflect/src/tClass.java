@@ -75,7 +75,7 @@ public class tClass
       System.out.println(c);
       try
          {
-         Class c_not_found = Class.forName("NotAClassSoThrowAnExceptionPlease");
+         Class.forName("NotAClassSoThrowAnExceptionPlease");
          }
       catch (ClassNotFoundException e)
          {
@@ -236,7 +236,7 @@ public class tClass
          }
 
        // ------------------------------  newInstance
-      tClass tc = new tClass("Hi!");
+      new tClass("Hi!");
       String initargs[] = {"I'm dynamic!"};
       tClass tc_dyn = (tClass)ctors[0].newInstance(initargs);
 

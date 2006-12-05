@@ -50,8 +50,8 @@ class TestVirtualCall
          }
       SystemOut.println();
       
-      TestVirtualC c = new TestVirtualC();
+      new TestVirtualC();
       SystemOut.print("\nwant: 3\n got: ");
-      SystemOut.println(c.g());
+      SystemOut.println(TestVirtualC.g());
       }
    }

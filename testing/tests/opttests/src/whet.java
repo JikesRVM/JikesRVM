@@ -21,9 +21,6 @@
  * @author unascribed
  */
 
-import java.lang.*;
-import java.io.*;
-
 public class whet {
 
 

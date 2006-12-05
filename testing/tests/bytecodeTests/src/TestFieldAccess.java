@@ -46,15 +46,15 @@ class TestFieldAccess
 
       TestFieldAccess b = new TestFieldAccess();
 
-      SystemOut.print("\nwant: true\n got: ");                        SystemOut.println(b.s0);
-      SystemOut.print("\nwant: -1\n got: ");                          SystemOut.println(b.s1);
-      SystemOut.print("\nwant: A\n got: ");                           SystemOut.println(b.s2);
-      SystemOut.print("\nwant: -3\n got: ");                          SystemOut.println(b.s3);
-      SystemOut.print("\nwant: -4\n got: ");                          SystemOut.println(b.s4);
-      SystemOut.print("\nwant: -5\n got: ");                          SystemOut.println(b.s5);
-      SystemOut.print("\nwant: -6.0\n got: ");                        SystemOut.println(b.s6);
-      SystemOut.print("\nwant: -7.0\n got: ");                        SystemOut.println(b.s7);
-      SystemOut.print("\nwant: Instance of TestFieldAccess\n got: "); SystemOut.println(b.s8);
+      SystemOut.print("\nwant: true\n got: ");                        SystemOut.println(TestFieldAccess.s0);
+      SystemOut.print("\nwant: -1\n got: ");                          SystemOut.println(TestFieldAccess.s1);
+      SystemOut.print("\nwant: A\n got: ");                           SystemOut.println(TestFieldAccess.s2);
+      SystemOut.print("\nwant: -3\n got: ");                          SystemOut.println(TestFieldAccess.s3);
+      SystemOut.print("\nwant: -4\n got: ");                          SystemOut.println(TestFieldAccess.s4);
+      SystemOut.print("\nwant: -5\n got: ");                          SystemOut.println(TestFieldAccess.s5);
+      SystemOut.print("\nwant: -6.0\n got: ");                        SystemOut.println(TestFieldAccess.s6);
+      SystemOut.print("\nwant: -7.0\n got: ");                        SystemOut.println(TestFieldAccess.s7);
+      SystemOut.print("\nwant: Instance of TestFieldAccess\n got: "); SystemOut.println(TestFieldAccess.s8);
 
       SystemOut.print("\nwant: true\n got: ");                        SystemOut.println(b.x0);
       SystemOut.print("\nwant: -1\n got: ");                          SystemOut.println(b.x1);

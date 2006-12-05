@@ -13,8 +13,6 @@
  * @author unascribed
  */
 
-import java.io.*;
-
 public class unresolved {
   static int[] num = new int[4];
   static int cnt;

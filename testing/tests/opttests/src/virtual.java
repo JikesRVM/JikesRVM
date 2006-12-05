@@ -11,8 +11,6 @@
  * @author unascribed
  */
 
-import java.io.*;
-
 public class virtual {
   static boolean run() {
     int i = iter(5);

@@ -87,9 +87,23 @@ class ReferenceTest {
   public static Reference [] allocateReferenceArray (int type, double amt, ReferenceQueue rq) { // amt in Mb
     int rounds = MBtoUnits(amt);
     Reference [] ra = new Reference[rounds];
-    for (int i=0; i<rounds; i++)  
-      ra[i] = (type == WEAK) ? (Reference) new WeakReference(allocateUnit(), rq) :
-              ((type == SOFT) ? (Reference) new SoftReference(allocateUnit(), rq) : null);
+    for (int i=0; i<rounds; i++)
+    {
+      final Reference reference;
+      if(type == WEAK)
+      {
+        reference = new WeakReference(allocateUnit(), rq);
+      }
+      else if(type == SOFT)
+      {
+        reference = new SoftReference(allocateUnit(), rq);
+      }
+      else
+      {
+        reference = null;
+      }
+      ra[i] = reference;
+    }
     return ra;
   }
 
@@ -160,7 +174,7 @@ class ReferenceTest {
 
       // ------ Finish up -----------
       System.out.println();
-      double finalHeapSize = getHeapSize();
+      getHeapSize();
       System.out.print("\nOverall: ");
       System.out.println((failCount == 0) ? "SUCCESS" : (failCount + " FAILURES"));
   }

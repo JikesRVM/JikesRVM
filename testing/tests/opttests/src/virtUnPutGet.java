@@ -11,8 +11,6 @@
  * @author unascribed
  */
 
-import java.io.*;
-
 public class virtUnPutGet {
   static boolean run() {
     int i = test(6000);

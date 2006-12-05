@@ -55,7 +55,6 @@ class MonitorTest {
   }
 
   public static void main(String args[]) {
-    int returnValue;
 
     System.loadLibrary("MonitorTest");
 

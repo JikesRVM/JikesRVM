@@ -126,7 +126,7 @@ class TestNotification {
 
     // pause to allow tasks to queue up on flag
     System.out.println("main: sleeping");
-    try { Thread.currentThread().sleep(1000); } catch (InterruptedException e) {}
+    try { Thread.sleep(1000); } catch (InterruptedException e) {}
     System.out.println("main: running");
    
     // release tasks waiting on flag, letting them terminate

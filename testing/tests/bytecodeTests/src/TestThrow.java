@@ -10,18 +10,23 @@
 /*
  * @author unascribed
  */
-import java.io.*;
+
+import java.io.FileInputStream;
+import java.io.IOException;
 
 class MyTestErrorBase extends Throwable
    {
+     private static final long serialVersionUID = 0L;
    }
    
 class MyTestError extends MyTestErrorBase
    {
+     private static final long serialVersionUID = 0L;
    }
    
 class NotMyTestError extends Throwable
    {
+     private static final long serialVersionUID = 0L;
    }
    
 class TestThrow

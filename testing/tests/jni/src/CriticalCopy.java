@@ -45,8 +45,6 @@ class CriticalCopy {
   public static void main(String args[]) {
 
     int returnValue;
-    Object returnObject;
-    boolean checkFlag = false;
 
     System.loadLibrary("CriticalCopy");
 
@@ -60,7 +58,7 @@ class CriticalCopy {
 
     returnValue = primitiveIntegerArray(intArray);
     // check that the array has new values 
-    checkFlag = true;
+    boolean checkFlag = true;
     if (verbose) 
       System.out.println("Updated copy");    
 

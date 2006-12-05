@@ -8,8 +8,6 @@
  */
 //$Id$
 
-import com.ibm.jikesrvm.*;
-
 /**
  * Driver for thread management test in
  * the face of long-running native calls;
@@ -29,8 +27,8 @@ class t3GT3 {
 
     static final boolean FORCE_GC = false;
     static int NUMBER_OF_WORKERS;
-    static Object syncher = new Object();
-    static Object syncher2 = new Object();
+    static final Object syncher = new Object();
+    static final Object syncher2 = new Object();
     static boolean sanity = false;
     
   public static native void nativeBlocking(int time);
@@ -60,8 +58,7 @@ class t3GT3 {
         long starttime;
         int arg1 = Integer.parseInt(args[1]);
         int arg2 = Integer.parseInt(args[2]);
-        t3GTWorker2 w2 = null; 
-        
+
         System.loadLibrary("t3GT3");
         
         t3GT3Worker.allocate(1,10);
@@ -103,7 +100,7 @@ class t3GT3 {
             for ( int i = 0; i < NUMBER_OF_WORKERS; i++ ) {
                 while( ! a[i].isReady) {
                     try {            
-                        Thread.currentThread().sleep(100);
+                        Thread.sleep(100);
                     } 
                     catch (InterruptedException e) {
                     }
