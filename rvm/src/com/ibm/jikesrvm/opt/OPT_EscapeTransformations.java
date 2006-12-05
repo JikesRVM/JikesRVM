@@ -145,7 +145,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
       if (Call.conforms(s)) {
         OPT_MethodOperand mo = Call.getMethod(s);
         if (!mo.isStatic()) {
-          OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
+          OPT_Operand invokee = Call.getParam(s, 0);
           if (invokee == use) {
             if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
             if (mo.getTarget().isSynchronized()) {
