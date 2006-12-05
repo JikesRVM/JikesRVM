@@ -134,7 +134,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
       // Use new counter
       counterIdx = ++ eventNumber;
       // remember it, and return it
-      stringToCounterMap.put(str,new Integer(eventNumber));
+      stringToCounterMap.put(str,Integer.valueOf(eventNumber));
     }
 
     return counterIdx;
@@ -175,12 +175,12 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
  /** 
   *  Map strings to a counter location
   */
-  protected  Hashtable stringToCounterMap = new Hashtable();
+  protected final Hashtable stringToCounterMap = new Hashtable();
 
   /**
    * A string description of this data;
    */
-  String dataName= "";
+  final String dataName;
 
   /** 
    * Used to keep track of how many counters have been used so far.
