@@ -235,11 +235,7 @@ public class PPC_Disassembler implements VM_Constants {
     /* FORM */
     INVALID_OP, /* OPCODE 00 */
     INVALID_OP, /* OPCODE 01 */
-//-#if RVM_FOR_64_ADDR
     D_FORM,     /* OPCODE 02 */
-//-#else
-    INVALID_OP, /* OPCODE 02 */
-//-#endif
     D_FORM,     /* OPCODE 03 */
     D_FORM,     /* OPCODE 04 */
     D_FORM,     /* OPCODE 05 */
@@ -295,19 +291,11 @@ public class PPC_Disassembler implements VM_Constants {
     D_FORM,     /* OPCODE 55 */
     INVALID_OP, /* OPCODE 56 */
     INVALID_OP, /* OPCODE 57 */
-//-#if RVM_FOR_64_ADDR
     DS_FORM,    /* OPCODE 58 */
-//-#else
-    INVALID_OP, /* OPCODE 58 */
-//-#endif
     A_FORM,     /* OPCODE 59 */
     INVALID_OP, /* OPCODE 60 */
     INVALID_OP, /* OPCODE 61 */
-//-#if RVM_FOR_64_ADDR
     DS_FORM,    /* OPCODE 62 */
-//-#else
-    INVALID_OP, /* OPCODE 62 */
-//-#endif
     EXTENDED    /* OPCODE 63 */
   };
   
@@ -618,19 +606,16 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(       80,     XO_FORM,        1,       "subf"),  
     new opcodeXX(       81,     XO_FORM,        1,       "subf."),  
     new opcodeXX(       1104,   XO_FORM,        1,       "subfo"),   
-    new opcodeXX(       1105,   XO_FORM,        1,       "subfo.")
+    new opcodeXX(       1105,   XO_FORM,        1,       "subfo."),
 
-//-#if RVM_FOR_32_ADDR
 // these are only valid for 32 bit architecture
-    ,new opcodeXX(      420,       X_FORM,     17,         "mtsr"),
+    new opcodeXX(      420,       X_FORM,     17,         "mtsr"),
     new opcodeXX(      484,       X_FORM,      7,         "mtsrin"),
     new opcodeXX(     1190,       X_FORM,     18,         "mfsr"),
-    new opcodeXX(     1318,       X_FORM,      4,         "mfsrin") 
-//-#endif 
+    new opcodeXX(     1318,       X_FORM,      4,         "mfsrin"),
  
-//-#if RVM_FOR_64_ADDR
 // these are the addition for the 64 bit specific instructions
-    ,new opcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
+    new opcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
     new opcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
     new opcodeXX(       42,       X_FORM,      7,         "ldx"),
     new opcodeXX(       43,       X_FORM,      7,         "ldx."),
@@ -667,7 +652,6 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(     1589,       X_FORM,      8,         "srad."),
     new opcodeXX(     1972,       X_FORM,      9,         "extsw"),
     new opcodeXX(     1973,       X_FORM,      9,         "extsw.")
-//-#endif    
   };
   
   static opcode_tab[] opcode58 = {
@@ -727,16 +711,15 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(     1166,       X_FORM,     13,         "mffs"),
     new opcodeXX(     1167,       X_FORM,     13,         "mffs."),
     new opcodeXX(     1422,     XFL_FORM,      9,         "mtfsf"),
-    new opcodeXX(     1423,     XFL_FORM,      9,         "mtfsf.")
-//-#if RVM_FOR_32_ADDR
-// these are only valid for 32 bit architecture
-    ,new opcodeXX(     1628,       X_FORM,     21,         "fctid"),
+    new opcodeXX(     1423,     XFL_FORM,      9,         "mtfsf."),
+
+  // these are only valid for 32 bit architecture
+    new opcodeXX(     1628,       X_FORM,     21,         "fctid"),
     new opcodeXX(     1629,       X_FORM,     21,         "fctid."),
     new opcodeXX(     1630,       X_FORM,     21,         "fctidz"),
     new opcodeXX(     1631,       X_FORM,     21,         "fctidz."),
     new opcodeXX(     1692,       X_FORM,     21,         "fcfid"),
     new opcodeXX(     1693,       X_FORM,     21,         "fcfid.")
-//-#endif    
   };
 
   static opcodeXX[] opcode59 = {
