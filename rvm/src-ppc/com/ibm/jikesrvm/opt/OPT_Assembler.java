@@ -194,11 +194,19 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_MULHWU_opcode:
       case PPC_FSUB_opcode:
       case PPC_FSUBS_opcode:
-//-#if RVM_FOR_64_ADDR
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_MULLD_opcode:
       case PPC64_DIVD_opcode:
-//-#endif
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
@@ -217,10 +225,18 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_LIntX_opcode:
       case PPC_LAddrARX_opcode:
       case PPC_LAddrX_opcode:
-//-#if RVM_FOR_64_ADDR
-      case PPC64_LDX_opcode:
-//-#endif
         {
+          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
+          int op2 = MIR_Load.getOffset(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
+      case PPC64_LDX_opcode:
+        {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_Load.getOffset(p).asRegister().register.number & REG_MASK;
@@ -273,9 +289,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_TW_opcode:
       case PPC_TAddr_opcode:
-//-#if RVM_FOR_64_ADDR
-      case PPC64_TD_opcode:
-//-#endif
         {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
@@ -285,23 +298,44 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+      case PPC64_TD_opcode:
+        {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
+          int op0 = MIR_Trap.getCond(p).value;
+          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Trap.getValue2(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC_TWI_opcode:
-//-#if RVM_FOR_64_ADDR
-      case PPC64_TDI_opcode:
-//-#endif
         {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
-          //-#if RVM_FOR_64_ADDR
+          int op2;
+          if (VM.BuildFor64Addr && MIR_Trap.getValue2(p).isLongConstant()) {
+            op2 = ((int)MIR_Trap.getValue2(p).asLongConstant().value) & SHORT_MASK;
+          } else {
+            op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
+          }
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
+
+      case PPC64_TDI_opcode:
+        {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
+          int op0 = MIR_Trap.getCond(p).value;
+          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
           int op2;
           if (MIR_Trap.getValue2(p).isLongConstant()) {
             op2 = ((int)MIR_Trap.getValue2(p).asLongConstant().value) & SHORT_MASK;
           } else {
             op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
           }
-          //-#else
-          int op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
-          //-#endif
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -313,11 +347,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = OPT_PowerPCTrapOperand.LOWER;
           int op1 = ((OPT_RegisterOperand)NullCheck.getRef(p)).register.number & REG_MASK;
           int op2 = 1;
-          //-#if RVM_FOR_64_ADDR
-          inst = PPC64_TDI.instTemplate;
-          //-#else
-          inst = PPC_TWI.instTemplate;
-                         //-#endif
+          inst = VM.BuildFor64Addr ? PPC64_TDI.instTemplate : PPC_TWI.instTemplate;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -353,10 +383,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_EXTSBr_opcode:
       case PPC_EXTSH_opcode:
       case PPC_EXTSHr_opcode:
-//-#if RVM_FOR_64_ADDR
-      case PPC64_EXTSW_opcode:
-      case PPC64_EXTSWr_opcode:
-//-#endif
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
@@ -365,9 +391,20 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-//-#if RVM_FOR_64_ADDR
+      case PPC64_EXTSW_opcode:
+      case PPC64_EXTSWr_opcode:
+        {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
+          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_EXTZW_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
           int op3high = 1;  //op3low = 0, so op3 == 32
@@ -375,7 +412,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
-//-#endif
 
       case PPC_ADDZE_opcode:case PPC_SUBFZE_opcode:
       case PPC_NEG_opcode:
@@ -414,12 +450,20 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_SLWr_opcode:case PPC_SRW_opcode:
       case PPC_SRWr_opcode:case PPC_SRAW_opcode:
       case PPC_SRAWr_opcode:
-//-#if RVM_FOR_64_ADDR
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_SLD_opcode:case PPC64_SLDr_opcode:
       case PPC64_SRD_opcode:case PPC64_SRDr_opcode:
       case PPC64_SRAD_opcode:case PPC64_SRADr_opcode:
-//-#endif
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
@@ -438,9 +482,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-//-#if RVM_FOR_32_ADDR
-      case PPC_SRAddrI_opcode:
-//-#endif
       case PPC_SRWI_opcode:
         /* pseudo opcode, equal to rlwinm Rx,Ry,32-n,n,31 */
       case PPC_SRWIr_opcode:
@@ -469,9 +510,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-//-#if RVM_FOR_32_ADDR
-      case PPC_SRAAddrI_opcode:
-//-#endif
       case PPC_SRAWI_opcode:
       case PPC_SRAWIr_opcode:
         {
@@ -483,10 +521,55 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-//-#if RVM_FOR_64_ADDR
+
+      case PPC_SRAddrI_opcode:
+        {
+          if (VM.BuildFor32Addr) {
+            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
+            int op2 = (32 - shift);
+            int op3 = shift;
+            machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          } else {
+            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op3 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
+            int op2 = 64 - op3;
+            int op2low = op2 & 0x1F;
+            int op2high = (op2 & 0x20) >>> 5;
+            int op3low = op3 & 0x1F;
+            int op3high = (op3 & 0x20) >>> 5;
+            machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          }
+        }          
+        break;
+
       case PPC_SRAAddrI_opcode:
+        {
+          if (VM.BuildFor32Addr) {
+            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          } else {
+            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
+            int op2low = op2 & 0x1F;
+            int op2high = (op2 & 0x20) >>> 5;
+            machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          }
+        }          
+        break;
+
       case PPC64_SRADI_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
@@ -497,9 +580,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-      case PPC_SRAddrI_opcode:
       case PPC64_SRDI_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op3 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
@@ -515,6 +598,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC64_SLDI_opcode: //shorthand via RLDICR
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
@@ -531,6 +615,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         
       case PPC64_RLDICR_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
           int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
@@ -550,6 +635,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
          
       case PPC64_RLDICL_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
           int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
@@ -566,7 +652,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
-//-#endif
 
         // Bit positions of op1 and op2 are reversed.
       case PPC_ANDIr_opcode:
@@ -786,11 +871,19 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_CMP_opcode:
       case PPC_CMPL_opcode:
-//-#if RVM_FOR_64_ADDR
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_CMP_opcode:
       case PPC64_CMPL_opcode:
-//-#endif
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
@@ -801,11 +894,19 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
       case PPC_CMPI_opcode:
       case PPC_CMPLI_opcode:
-//-#if RVM_FOR_64_ADDR
+        {
+          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_CMPI_opcode:
       case PPC64_CMPLI_opcode:
-//-#endif
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
@@ -827,11 +928,18 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_FNEG_opcode:
       case PPC_FRSP_opcode:
       case PPC_FCTIW_opcode:case PPC_FCTIWZ_opcode:
-//-#if RVM_FOR_64_ADDR
+        {
+          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
       case PPC64_FCFID_opcode:
       case PPC64_FCTIDZ_opcode:
-//-#endif
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
@@ -888,10 +996,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_LFD_opcode:
       case PPC_LFS_opcode:
       case PPC_LMW_opcode:
-     //-#if RVM_FOR_32_ADDR
-      case PPC_LAddr_opcode:
-      case PPC_LInt_opcode:
-     //-#endif
         {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
@@ -900,11 +1004,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
-     //-#if RVM_FOR_64_ADDR
+
       case PPC64_LD_opcode:
-      case PPC_LAddr_opcode:
-      case PPC_LInt_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
@@ -912,7 +1015,25 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
-     //-#endif
+
+      case PPC_LAddr_opcode:
+      case PPC_LInt_opcode:
+        {
+          if (VM.BuildFor32Addr) {
+            int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+            int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
+            int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          } else {
+            int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+            int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+            int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          }
+        }
+        break;
 
       case PPC_STW_opcode:
       case PPC_STB_opcode:
@@ -920,9 +1041,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_STFD_opcode:
       case PPC_STFS_opcode:
       case PPC_STMW_opcode:
-      //-#if RVM_FOR_32_ADDR
-      case PPC_STAddr_opcode:
-      //-#endif
         {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
@@ -932,9 +1050,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-      //-#if RVM_FOR_32_ADDR
-      case PPC_STAddrU_opcode:
-      //-#endif
       case PPC_STWU_opcode:
       case PPC_STFDU_opcode:
       case PPC_STFSU_opcode:
@@ -946,27 +1061,53 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
-      //-#if RVM_FOR_64_ADDR
+
       case PPC64_STD_opcode:
-      case PPC_STAddr_opcode:
         {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
-        break;
-      case PPC_STAddrU_opcode:
+        break;        
+
+      case PPC_STAddr_opcode:
         {
-          int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
-          int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-          int op2 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          if (VM.BuildFor32Addr) {
+            int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+            int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
+            int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          } else {
+            int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+            int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+            int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          }
         }
         break;
-      //-#endif
+
+      case PPC_STAddrU_opcode:
+        {
+          if (VM.BuildFor32Addr) {
+            int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
+            int op1 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          } else {
+            int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
+            int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
+            int op2 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+            machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          }
+        }
+        break;
 
       case PPC_MFSPR_opcode:
         {
@@ -1162,7 +1303,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       VM.sysWriteln(" offset ", rel32);
     }
      
-    // turn this into VM.VerifyAssertions later
     if (VM.VerifyAssertions) {
       VM._assert(code.get(patchOffset) == NOPtemplate);
       VM._assert(rel32 <= (MAX_DISPL << LG_INSTRUCTION_WIDTH));
