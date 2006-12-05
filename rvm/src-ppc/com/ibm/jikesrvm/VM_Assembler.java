@@ -1473,29 +1473,35 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitLVALAddr (int RT, Address addr) {
     Offset val = addr.toWord().toOffset();
-//-#if RVM_FOR_64_ADDR
-    if (!fits(val,48)){
-      val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
-      _emitADDIS(RT, maskUpper16(valHigh));
-      _emitADDI(RT, maskLower16(valHigh), RT);
-      emitSLDI(RT,RT,32);
-      _emitADDIS(RT, RT, maskUpper16(val));
-      _emitADDI(RT, maskLower16(val), RT);
-    } else if (!fits(val,32)){
-      val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
-      _emitLI(RT, maskLower16(valHigh));
-      emitSLDI(RT,RT,32);
-      _emitADDIS(RT, RT, maskUpper16(val));
-      _emitADDI(RT, maskLower16(val), RT);
-    } else 
-//-#endif         
-    if (!fits(val,16)){
-      _emitADDIS(RT, maskUpper16(val));
-      _emitADDI(RT, maskLower16(val), RT);
+    if (VM.BuildFor64Addr) {
+      if (!fits(val,48)){
+        val = val.toWord().lsh(32).rsha(32).toOffset();
+        Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
+        _emitADDIS(RT, maskUpper16(valHigh));
+        _emitADDI(RT, maskLower16(valHigh), RT);
+        emitSLDI(RT,RT,32);
+        _emitADDIS(RT, RT, maskUpper16(val));
+        _emitADDI(RT, maskLower16(val), RT);
+      } else if (!fits(val,32)){
+        val = val.toWord().lsh(32).rsha(32).toOffset();
+        Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
+        _emitLI(RT, maskLower16(valHigh));
+        emitSLDI(RT,RT,32);
+        _emitADDIS(RT, RT, maskUpper16(val));
+        _emitADDI(RT, maskLower16(val), RT);
+      } else if (!fits(val,16)){
+        _emitADDIS(RT, maskUpper16(val));
+        _emitADDI(RT, maskLower16(val), RT);
+      } else {
+        _emitLI(RT, maskLower16(val));
+      }
     } else {
-      _emitLI(RT, maskLower16(val));
+      if (!fits(val,16)){
+        _emitADDIS(RT, maskUpper16(val));
+        _emitADDI(RT, maskLower16(val), RT);
+      } else {
+        _emitLI(RT, maskLower16(val));
+      }
     }
   }
 

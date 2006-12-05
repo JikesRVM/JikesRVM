@@ -109,14 +109,10 @@ public class VM_MachineReflection implements VM_Constants {
         long l = VM_Reflection.unwrapLong(otherArgs[i]);
         if (VM.BuildFor64Addr) {
           if (gp > LAST_VOLATILE_GPR) {
-            //-#if RVM_FOR_64_ADDR
             Spills.set(--Spill, Word.fromLong(l));
-            //-#endif
           } else {
             gp++;
-            //-#if RVM_FOR_64_ADDR
             GPRs.set(--GPR, Word.fromLong(l));
-            //-#endif
           }
         } else {
           Word hi = Word.fromIntZeroExtend((int)(l>>>32));
@@ -148,9 +144,7 @@ public class VM_MachineReflection implements VM_Constants {
           double d = VM_Reflection.unwrapDouble(otherArgs[i]);
           long l = Double.doubleToLongBits(d);
           if (VM.BuildFor64Addr) {
-            //-#if RVM_FOR_64_ADDR
             Spills.set(--Spill, Word.fromLong(l));
-            //-#endif
           } else {
             Spills.set(--Spill, Word.fromIntZeroExtend((int)(l>>>32)));
             Spills.set(--Spill, Word.fromIntZeroExtend((int)l));

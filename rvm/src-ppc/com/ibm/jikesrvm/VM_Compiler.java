@@ -1729,33 +1729,38 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_lcmp() {
     popLong(T3, T2);
     popLong(T1, T0);
-    //-#if RVM_FOR_64_ADDR
-    asm.emitCMPD(T0, T2); 
-    VM_ForwardReference fr1 = asm.emitForwardBC(LT);
-    VM_ForwardReference fr2 = asm.emitForwardBC(GT);
-    //-#else
-    asm.emitCMP  (T1, T3);      // ah ? al
-    VM_ForwardReference fr1 = asm.emitForwardBC(LT);
-    VM_ForwardReference fr2 = asm.emitForwardBC(GT);
-    asm.emitCMPL (T0, T2);      // al ? bl (logical compare)
-    VM_ForwardReference fr3 = asm.emitForwardBC(LT);
-    VM_ForwardReference fr4 = asm.emitForwardBC(GT);
-    //-#endif
-    asm.emitLVAL(T0,  0);      // a == b
-    VM_ForwardReference fr5 = asm.emitForwardB();
-    fr1.resolve(asm);
-    //-#if RVM_FOR_32_ADDR
-    fr3.resolve(asm);
-    //-#endif
-    asm.emitLVAL(T0, -1);      // a <  b
-    VM_ForwardReference fr6 = asm.emitForwardB();
-    fr2.resolve(asm);
-    //-#if RVM_FOR_32_ADDR
-    fr4.resolve(asm);
-    //-#endif
+
+    VM_ForwardReference fr_end_1;
+    VM_ForwardReference fr_end_2;
+    if (VM.BuildFor64Addr) {
+      asm.emitCMPD(T0, T2); 
+      VM_ForwardReference fr1 = asm.emitForwardBC(LT);
+      VM_ForwardReference fr2 = asm.emitForwardBC(GT);
+      asm.emitLVAL(T0,  0);      // a == b
+      fr_end_1 = asm.emitForwardB();
+      fr1.resolve(asm);
+      asm.emitLVAL(T0, -1);      // a <  b
+      fr_end_2 = asm.emitForwardB();
+      fr2.resolve(asm);
+    } else {
+      asm.emitCMP  (T1, T3);      // ah ? al
+      VM_ForwardReference fr1 = asm.emitForwardBC(LT);
+      VM_ForwardReference fr2 = asm.emitForwardBC(GT);
+      asm.emitCMPL (T0, T2);      // al ? bl (logical compare)
+      VM_ForwardReference fr3 = asm.emitForwardBC(LT);
+      VM_ForwardReference fr4 = asm.emitForwardBC(GT);
+      asm.emitLVAL(T0,  0);      // a == b
+      fr_end_1 = asm.emitForwardB();
+      fr1.resolve(asm);
+      fr3.resolve(asm);
+      asm.emitLVAL(T0, -1);      // a <  b
+      fr_end_2 = asm.emitForwardB();
+      fr2.resolve(asm);
+      fr4.resolve(asm);
+    }
     asm.emitLVAL(T0,  1);      // a >  b
-    fr5.resolve(asm);
-    fr6.resolve(asm);
+    fr_end_1.resolve(asm);
+    fr_end_2.resolve(asm);
     pushInt(T0);
   }
 
@@ -3403,12 +3408,12 @@ public class VM_Compiler extends VM_BaselineCompiler
               asm.emitSTD(S0, callee_param_index - BYTES_IN_LONG, FP);
             }
           } else {
-          //-#if RVM_FOR_LINUX
-          /* NOTE: following adjustment is not stated in SVR4 ABI, but 
-           * was implemented in GCC.
-           */
-            gp += (gp + 1) & 0x01; // if gpr is even, gpr += 1
-          //-#endif
+            if (VM.BuildForLinux) {
+              /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+               * was implemented in GCC.
+               */
+              gp += (gp + 1) & 0x01; // if gpr is even, gpr += 1
+            }
             if (gp <= LAST_OS_PARAMETER_GPR){ 
               peekInt(gp++, stackIndex);   
             }   // lo register := lo mem (== hi order word)
