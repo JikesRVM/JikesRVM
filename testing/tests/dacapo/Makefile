@@ -27,7 +27,8 @@ endif
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
-TESTS = antlr bloat chart eclipse fop hsqldb jython luindex lusearch pmd xalan
+# TODO: Eclipse should be reinserted in this list once it starts passing again
+TESTS = antlr bloat chart fop hsqldb jython luindex lusearch pmd xalan
 
 Harness.class : $(JARFILE)
 	:
@@ -50,5 +51,5 @@ eclipse: %:
 	@$(MAKE) TIME_LIMIT=30 TEST_NAME="DaCapo $@" START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule
 
 
-sanity:	$(TESTS)
+sanity:	$(TESTS) eclipse
 	@$(MAKE) START_NAME="DaCapo" do-sanity-finish
