@@ -12,13 +12,11 @@ package com.ibm.jikesrvm;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.opt.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.jikesrvm.opt.*;
-//-#endif
 
 //-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.OSR_ObjectHolder;

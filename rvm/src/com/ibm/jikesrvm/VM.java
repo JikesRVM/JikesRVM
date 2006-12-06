@@ -13,9 +13,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-//-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
-//-#endif
 
 /**
  * A virtual machine.
@@ -573,8 +571,6 @@ import com.ibm.jikesrvm.quick.*;
     return new String(buf);
   }
 
-
-  //-#if RVM_WITH_QUICK_COMPILER
   /**
    * Format a 64 bit number as "0x" followed by 16 hex digits.
    * Do this without referencing Long or Character classes, 
@@ -595,8 +591,6 @@ import com.ibm.jikesrvm.quick.*;
     buf[index]   = '0';
     return new String(buf);
   }
-  //-#endif
-
 
   /**
    * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.

@@ -59,9 +59,7 @@ public final class VM_ControllerMemory implements VM_Constants {
   private static int numOpt2                            = 0;
   private static int numOpt3                            = 0;
   private static int numOpt4                            = 0;
-  //-#if RVM_WITH_QUICK_COMPILER
   private static int numQuick                           = 0;
-  //-#endif
 
   static int getNumAwoken()                    { return awoken; }
   static int getNumDidNothing()                { return didNothing; }
@@ -74,9 +72,7 @@ public final class VM_ControllerMemory implements VM_Constants {
   static int getNumOpt2()                       { return numOpt2; }
   static int getNumOpt3()                       { return numOpt3; }
   static int getNumOpt4()                       { return numOpt4; }
-  //-#if RVM_WITH_QUICK_COMPILER
   static int getNumQuick()                      { return numQuick; }
-  //-#endif
 
   static void incrementNumAwoken()              { awoken++; }
   static void incrementNumDidNothing()          { didNothing++; }
@@ -89,9 +85,7 @@ public final class VM_ControllerMemory implements VM_Constants {
   static void incrementNumOpt2()                { numOpt2++; }
   static void incrementNumOpt3()                { numOpt3++; }
   static void incrementNumOpt4()                { numOpt4++; }
-  //-#if RVM_WITH_QUICK_COMPILER
-   static void incrementNumQuick()              { numQuick++; }
- //-#endif
+  static void incrementNumQuick()              { numQuick++; }
 
   /**
    *  Inserts a controller plan keyed on the underlying method

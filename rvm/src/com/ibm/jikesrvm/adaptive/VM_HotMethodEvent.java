@@ -13,9 +13,7 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
-//-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
-//-#endif
 
 /**
  * Abstract parent class for events from organizers to the controller 

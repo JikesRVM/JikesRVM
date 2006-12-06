@@ -29,10 +29,7 @@ public final class VM_StackBrowser implements VM_Constants {
   private Address currentFramePointer;
   private Offset currentInstructionPointer;
   private VM_CompiledMethod currentCompiledMethod;
-    
-  //-#if RVM_WITH_OPT_COMPILER
   private int currentInlineEncodingIndex;
-  //-#endif
 
   public void init() throws NoInlinePragma {
     currentFramePointer = VM_Magic.getFramePointer();
@@ -122,7 +119,6 @@ public final class VM_StackBrowser implements VM_Constants {
     return getCurrentClass().getClassLoader();
   }
 
-  //-#if RVM_WITH_OPT_COMPILER
   public void setInlineEncodingIndex(int index) {
     currentInlineEncodingIndex = index;
   }
@@ -130,5 +126,4 @@ public final class VM_StackBrowser implements VM_Constants {
   public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;
   }
-  //-#endif
 }

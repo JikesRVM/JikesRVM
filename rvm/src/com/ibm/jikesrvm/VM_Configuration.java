@@ -160,6 +160,22 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
+  // Is this a quick compiler build?
+  public static final boolean BuildForQuickCompiler =
+      //-#if RVM_WITH_QUICK_COMPILER
+        true;
+      //-#else
+        false;
+      //-#endif
+ 
+  // Is this an opt compiler build?
+  public static final boolean BuildForOptCompiler =
+      //-#if RVM_WITH_OPT_COMPILER
+        true;
+      //-#else
+        false;
+      //-#endif
+              
   // Interface method invocation.
   // We have five mechanisms:
   //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber). 

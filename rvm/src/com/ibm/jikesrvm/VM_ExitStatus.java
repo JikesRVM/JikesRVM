@@ -60,9 +60,7 @@ interface VM_ExitStatus {
   public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
   /** Trouble with the Hardware Performance Monitors */
   public static int EXIT_STATUS_HPM_TROUBLE = 110;
-  //-#if RVM_WITH_QUICK_COMPILER
   public static int EXIT_STATUS_QUICK_COMPILER_FAILED = 102;
-  //-#endif
   public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
   /** same as OPT compiler */
   public static int EXIT_STATUS_JNI_COMPILER_FAILED = 101; 

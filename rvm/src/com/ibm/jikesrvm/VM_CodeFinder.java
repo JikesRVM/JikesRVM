@@ -24,7 +24,6 @@ class VM_CodeFinder {
     case VM_CompiledMethod.BASELINE:
       return (c.getMethod() == m);
 
-    //-#if RVM_WITH_OPT_COMPILER
     case VM_CompiledMethod.OPT: 
       if (c.getMethod() == m) 
         return true;
@@ -48,7 +47,6 @@ class VM_CodeFinder {
           }
         }
       }
-    //-#endif
     }
     
     return false;

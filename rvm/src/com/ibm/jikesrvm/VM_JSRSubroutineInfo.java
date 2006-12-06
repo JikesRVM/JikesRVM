@@ -23,10 +23,7 @@ public final class VM_JSRSubroutineInfo {
   public byte[] startReferenceMap;
   int localsTop;
   public byte[] endReferenceMap;
-    //-#if RVM_WITH_QUICK_COMPILER
-  public 
-    //-#endif
-    int endReferenceTop;
+  public int endReferenceTop;
 
 
   // for statistics

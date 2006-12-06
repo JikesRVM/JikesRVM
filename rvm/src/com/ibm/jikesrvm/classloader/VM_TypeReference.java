@@ -132,11 +132,9 @@ public final class VM_TypeReference {
   public static final VM_TypeReference VM_Class = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Class;");
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 
-  //-#if RVM_WITH_OPT_COMPILER
   // Synthetic types used by the opt compiler 
-  public static final VM_TypeReference NULL_TYPE = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$NULL;");
-  public static final VM_TypeReference VALIDATION_TYPE = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$VALIDATION;");
-  //-#endif
+  public static final VM_TypeReference NULL_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$NULL;") : null;
+  public static final VM_TypeReference VALIDATION_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_TypeReference$VALIDATION;") : null;
 
   /**
    * Hash value based on name, used for canonical type dictionary

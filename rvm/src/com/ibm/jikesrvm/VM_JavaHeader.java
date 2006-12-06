@@ -911,16 +911,4 @@ import com.ibm.jikesrvm.opt.ir.*;
                 null, GuardedUnary.getClearGuard(s));
   }
   //-#endif
-
-  /*
-    static public void showConstants() {
-    VM.sysWriteln("NUM_AVAILABLE_BITS = ", NUM_AVAILABLE_BITS);
-    VM.sysWriteln("AVAILABLE_BITS_OFFSET = ", AVAILABLE_BITS_OFFSET);
-    VM.sysWriteln("NUM_THIN_LOCK_BITS = ", NUM_THIN_LOCK_BITS);
-    VM.sysWriteln("THIN_LOCK_SHIFT = ", THIN_LOCK_SHIFT);
-    VM.sysWriteln("VM_MiscHeader.REQUESTED_BITS = ", VM_MiscHeader.REQUESTED_BITS);
-    VM.sysWriteln("MM_Constants.GC_HEADER_BITS  = ", MM_Interface.REQUESTED_BITS);
-  }
-  */
-
 }

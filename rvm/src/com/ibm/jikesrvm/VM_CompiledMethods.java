@@ -11,12 +11,8 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.*;
-//-#endif
-//-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
-//-#endif
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 
@@ -194,15 +190,9 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Report on the space used by compiled code and associated mapping information
    */
   public static void spaceReport() {
-    //-#if RVM_WITH_QUICK_COMPILER
     int[] codeCount = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
     int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
     int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
-    //-#else
-    int[] codeCount = new int[5];
-    int[] codeBytes = new int[5];
-    int[] mapBytes = new int[5];
-    //-#endif
 
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
     for (int i=0; i<numCompiledMethods(); i++) {
@@ -228,14 +218,12 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.OPT]);
     }
 
-    //-#if RVM_WITH_QUICK_COMPILER
     if (codeCount[VM_CompiledMethod.QUICK] > 0) {
       VM.sysWriteln("  Quick Compiler");
       VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.QUICK]);
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.QUICK]);
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.QUICK]);
     }
-    //-#endif
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {
       VM.sysWriteln("  JNI Stub Compiler (Java->C stubs for native methods)");

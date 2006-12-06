@@ -14,9 +14,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 //-#endif
-//-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
-//-#endif
 
 /**
  * Harness to select which compiler to dynamically
@@ -57,45 +55,24 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER      = 0;
   public static final byte BASELINE_COMPILER = 1;
-  //-#if RVM_WITH_QUICK_COMPILER
   public static final byte QUICK_COMPILER    = 2;
   public static final byte OPT_COMPILER      = 3;
-  //-#else
-  public static final byte OPT_COMPILER      = 2;
-  //-#endif
-
 
   // Data accumulators
-  //-#if RVM_WITH_QUICK_COMPILER
   private static final String name[]        = {"JNI\t","Base\t","Quick\t","Opt\t"};   // Output names
   private static int totalMethods[]         = {0,0,0,0};
   private static double totalCompTime[]     = {0,0,0,0}; 
   private static int totalBCLength[]        = {0,0,0,0};
   private static int totalMCLength[]        = {0,0,0,0};
-  //-#else
-  private static final String name[]        = {"JNI\t","Base\t","Opt\t"};   // Output names
-  private static int totalMethods[]         = {0,0,0};
-  private static double totalCompTime[]     = {0,0,0}; 
-  private static int totalBCLength[]        = {0,0,0};
-  private static int totalMCLength[]        = {0,0,0};
-  //-#endif
 
   // running sum of the natural logs of the rates, 
   //  used for geometric mean, the product of rates is too big for doubles
   //  so we use the principle of logs to help us 
   // We compute  e ** ((log a + log b + ... + log n) / n )
-  //-#if RVM_WITH_QUICK_COMPILER
   private static double totalLogOfRates[]   = {0,0,0,0};
-  //-#else
-  private static double totalLogOfRates[]   = {0,0,0};
-  //-#endif
 
   // We can't record values until Math.log is loaded, so we miss the first few
-  private static int totalLogValueMethods[] = {0,0,
-                                               //-#if RVM_WITH_QUICK_COMPILER
-                                               0,
-                                               //-#endif
-                                               0};
+  private static int totalLogValueMethods[] = {0,0,0,0};
 
   //-#if RVM_WITH_QUICK_COMPILER
   // is the quick compiler usable?
@@ -590,12 +567,12 @@ public class VM_RuntimeCompiler implements VM_Constants,
   }
   //-#endif
 
-  //-#if RVM_WITH_QUICK_COMPILER
   /**
    * Process command line argument destined for the quick compiler
    */
   public static void processQuickCommandLineArg(String prefix, String arg) {
-    if (quickCompilerEnabled) {
+    //-#if RVM_WITH_QUICK_COMPILER
+   if (quickCompilerEnabled) {
       VM_QuickCompiler.processCommandLineArg(prefix, arg);
     }
       else {
@@ -607,8 +584,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
       earlyQuickArgs[earlyQuickArgs.length-2] = prefix;
       earlyQuickArgs[earlyQuickArgs.length-1] = arg;
     }
+   //-#endif
   }
 
+  //-#if RVM_WITH_QUICK_COMPILER
   /**
    * attempt to compile the passed method with the QUICK_Compiler.
    * Don't handle VM_QuickCompilerExceptions 
@@ -691,7 +670,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
   //-#endif
   
-  //-#if RVM_WITH_QUICK_COMPILER || RVM_WITH_OPT_COMPILER
   /**
    * This method uses the default compiler (baseline) to compile a method
    * It is typically called when a more aggressive compilation fails.
@@ -701,7 +679,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
     // call the inherited method "baselineCompile"
     return baselineCompile(method);
   }
-  //-#endif
   
   public static void boot() {
     if (VM.MeasureCompilation) {

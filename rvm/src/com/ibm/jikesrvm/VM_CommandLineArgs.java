@@ -12,9 +12,7 @@ package com.ibm.jikesrvm;
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_Controller;
 //-#endif
-//-#if RVM_WITH_QUICK_COMPILER
 import com.ibm.jikesrvm.quick.*;
-//-#endif
 
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -564,22 +562,22 @@ public class VM_CommandLineArgs {
         // Access quick compiler
         // ----------------------------------------------------
       case QUICK_HELP_ARG:
-        //-#if RVM_WITH_QUICK_COMPILER
-        VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:","help");
-        //-#else
-        VM.sysWriteln("vm: You are not using a system that includes the quick compiler.");
-        VM.sysWriteln(" Illegal command line argument prefix '-X:quick'");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForQuickCompiler) {
+          VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:","help");
+        } else {
+          VM.sysWriteln("vm: You are not using a system that includes the quick compiler.");
+          VM.sysWriteln(" Illegal command line argument prefix '-X:quick'");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
       case QUICK_ARG: // "-X:quick:arg"; pass 'arg' as an quickion
-        //-#if RVM_WITH_QUICK_COMPILER
-        VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:", arg);
-        //-#else
-        VM.sysWriteln("vm: You are not using a system that includes the quick compiler.");
-        VM.sysWriteln(" Illegal command line argument prefix '-X:quick'");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForQuickCompiler) {
+          VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:", arg);
+        } else {
+          VM.sysWriteln("vm: You are not using a system that includes the quick compiler.");
+          VM.sysWriteln(" Illegal command line argument prefix '-X:quick'");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
 
         // -------------------------------------------------------------------
