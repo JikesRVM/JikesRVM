@@ -209,7 +209,7 @@ sub updatebestperf {
 #
 sub getbestperf {
   my ($day, $bestperf) = @_;
-  open(IN, "tar xzf archive/$DAYS[$day].$platform.tar.gz results/best.txt --to-stdout|");
+  open(IN, "tar xzf ../archive/$DAYS[$day].$platform.tar.gz results/best.txt --to-stdout|");
   my ($bm, $score);
   while (<IN>) {
     if (($bm, $score) = /(\S+)\s+([0-9.]+)/) {
@@ -546,7 +546,7 @@ sub getdata {
   getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source,$javadocerrors);
   for ($day = 0; $day < 7; $day++) {
     if ($day != $today) {
-      $source = "tar xzf archive/$DAYS[$day].$platform.tar.gz results/report.html --to-stdout|";
+      $source = "tar xzf ../archive/$DAYS[$day].$platform.tar.gz results/report.html --to-stdout|";
       getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
     }
   }
