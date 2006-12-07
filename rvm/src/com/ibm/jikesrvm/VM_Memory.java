@@ -467,7 +467,6 @@ import org.vmmagic.unboxed.*;
   ////////////////////////
 
   // constants for protection and mapping calls
-  //-#if RVM_FOR_OSX    
   public static final int PROT_NONE  = 0;
   public static final int PROT_READ  = 1;
   public static final int PROT_WRITE = 2;
@@ -476,47 +475,12 @@ import org.vmmagic.unboxed.*;
   public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
-  public static final int MAP_FIXED     = 0x0010;
-  public static final int MAP_ANONYMOUS = 0x1000;
+  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : 256;
+  public static final int MAP_ANONYMOUS = (VM.BuildForLinux) ? 32 : (VM.BuildForOsx) ? 0x1000 :  16;
 
-  public static final int MS_ASYNC      = 1;
-  public static final int MS_INVALIDATE = 2;
-  public static final int MS_SYNC       = 0;
-  //-#endif
-  //-#if RVM_FOR_LINUX
-  public static final int PROT_NONE  = 0;
-  public static final int PROT_READ  = 1;
-  public static final int PROT_WRITE = 2;
-  public static final int PROT_EXEC  = 4;
-
-  public static final int MAP_FILE      =  0;
-  public static final int MAP_SHARED    =  1;
-  public static final int MAP_PRIVATE   =  2;
-  public static final int MAP_FIXED     = 16;
-  public static final int MAP_ANONYMOUS = 32;
-
-  public static final int MS_ASYNC      = 1;
-  public static final int MS_INVALIDATE = 2;
-  public static final int MS_SYNC       = 4;
-  //-#endif
-  //-#if RVM_FOR_AIX
-  public static final int PROT_NONE  = 0;
-  public static final int PROT_READ  = 1;
-  public static final int PROT_WRITE = 2;
-  public static final int PROT_EXEC  = 4;
-
-  public static final int MAP_FILE      =  0;
-  public static final int MAP_SHARED    =  1;
-  public static final int MAP_PRIVATE   =  2;
-  public static final int MAP_FIXED     = 256;
-  public static final int MAP_ANONYMOUS = 16;
-
-  public static final int MS_ASYNC      = 16;
-  public static final int MS_INVALIDATE = 32;
-  public static final int MS_SYNC       = 64;
-  //-#endif
-
-
+  public static final int MS_ASYNC      = (VM.BuildForLinux) ?  1 : (VM.BuildForOsx) ?      1 :  16;
+  public static final int MS_INVALIDATE = (VM.BuildForLinux) ?  2 : (VM.BuildForOsx) ?      2 :  32;
+  public static final int MS_SYNC       = (VM.BuildForLinux) ?  4 : (VM.BuildForOsx) ?      0 :  64;
 
   public static boolean isPageMultiple(int val) {
     int pagesizeMask = getPagesize() - 1;
@@ -685,49 +649,25 @@ import org.vmmagic.unboxed.*;
     return VM_SysCall.sysMAdvise(address, size, advice) == 0;
   }
 
-
-  //-#if RVM_FOR_AIX
-  public static final int SHMGET_IPC_CREAT = 1 * 512; // 0001000 Creates the data structure if it does not already exist. 
-  public static final int SHMGET_IPC_EXCL = 2 * 512;  // 0002000 Causes the shmget subroutine to be unsuccessful 
-  //         if the IPC_CREAT flag is also set, and the data structure already exists. 
-  public static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-  public static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-  public static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-  public static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-  public static final int SHMGET_IROTH = 4;      // 0000004 others can read
-  public static final int SHMGET_IWOTH = 2;      // 0000002 others can write
-
-  public static final int SHMAT_MAP = 4 * 512;     // 004000 Maps a file onto the address space instead of a shared memory segment. 
-  //        The SharedMemoryID parameter must specify an open file descriptor.
-  public static final int SHMAT_LBA = 268435456;   // 0x10000000 Specifies the low boundary address multiple of a segment. 
-  public static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-  public static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-  //        to the next lower segment boundary, if necessary. 
-  public static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
-  // There are other SHMCTL that are not included for now.
-  //-#endif
-
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
   public static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
   public static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
 
-  public static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-  public static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-  public static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-  public static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-  public static final int SHMGET_IROTH = 4;      // 0000004 others can read
-  public static final int SHMGET_IWOTH = 2;      // 0000002 others can write
+  public static final int SHMGET_IRUSR      = 4 * 64;   // 0000400 self can read
+  public static final int SHMGET_IWUSR      = 2 * 64;   // 0000200 self can write
+  public static final int SHMGET_IRGRP      = 4 * 8;    // 0000040 group can read
+  public static final int SHMGET_IWGRP      = 2 * 8;    // 0000020 group can write
+  public static final int SHMGET_IROTH      = 4;        // 0000004 others can read
+  public static final int SHMGET_IWOTH      = 2;        // 0000002 others can write
 
-  public static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-  public static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-  public static final int SHMAT_REMAP = 4 * 4096;    // 040000 take-over region on attach
-  // public static final int SHMAT_MAP  - can't find this in linux's shm.h
+  public static final int SHMAT_RDONLY      = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
+  public static final int SHMAT_RND         = 2 * 4096; // 020000 Rounds the address given by the SharedMemoryAddress parameter 
+  public static final int SHMAT_REMAP       = 4 * 4096; // 040000 take-over region on attach
+  public static final int SHMAT_MAP         = (VM.BuildForAix) ? 4 * 512 : -1;   // can't find this in linux's shm.h
+  public static final int SHMAT_LBA         = (VM.BuildForAix) ? 268435456 : -1; // 0x10000000 Specifies the low boundary address multiple of a segment. 
 
-  public static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
-
+  public static final int SHMCTL_IPC_RMID   = 0;        // Removes the shared memory identifier specified by the shmid.
   // There are other SHMCTL that are not included for now.
-  //-#endif
 
 
   /**

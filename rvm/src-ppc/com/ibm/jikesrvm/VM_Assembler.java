@@ -2774,5 +2774,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
     return s;
   }
-
+  
+  /************************************************************************
+   * Stub/s added for IA32 compatability
+   */
+  public static void patchCode(VM_CodeArray code, int indexa, int indexb) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
 }

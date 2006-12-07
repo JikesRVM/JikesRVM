@@ -1341,13 +1341,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
     boolean removeYieldpoints = isSingleBlock && ! preventYieldPointRemoval;
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // In adaptive systems if we require a frame, we don't remove 
     //  any yield poits
-    if (frameRequired) {
+    if (VM.BuildForAdaptiveSystem && frameRequired) {
       removeYieldpoints = false;
     }
-    //-#endif
 
     if (removeYieldpoints) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder();

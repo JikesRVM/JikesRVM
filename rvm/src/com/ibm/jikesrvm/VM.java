@@ -262,9 +262,8 @@ import com.ibm.jikesrvm.quick.*;
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
     runClassInitializer("gnu.java.locale.Calendar");
     runClassInitializer("java.util.Date");
-    //-#if RVM_WITH_ALL_CLASSES
-    runClassInitializer("java.util.jar.Attributes$Name");
-    //-#endif
+    if (VM.BuildWithAllClasses)
+      runClassInitializer("java.util.jar.Attributes$Name");
 
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
@@ -300,11 +299,7 @@ import com.ibm.jikesrvm.quick.*;
     System.loadLibrary("javaio");
     runClassInitializer("java.lang.Math");
     runClassInitializer("gnu.java.nio.VMChannel");
-    //-#if RVM_WITH_CLASSPATH_0_92
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
-    //-#else
-    runClassInitializer("gnu.java.nio.FileChannelImpl");
-    //-#endif
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
      
@@ -391,7 +386,7 @@ import com.ibm.jikesrvm.quick.*;
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_CompilerAdvice.postBoot();
     //-#endif
-
+      
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.

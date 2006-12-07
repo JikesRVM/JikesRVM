@@ -9,7 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.*;
                                       boolean isScalar) 
     throws UninterruptiblePragma {
     /* Only perform initialization when it is required */
-    if (MM_Interface.GENERATE_GC_TRACE) {
+    if (MM_Constants.GENERATE_GC_TRACE) {
       Address ref = VM_Magic.objectAsAddress(obj); 
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
@@ -102,7 +102,7 @@ import org.vmmagic.unboxed.*;
                                       Object[] tib, int size, boolean isScalar)
     throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
-    if (MM_Interface.GENERATE_GC_TRACE) {
+    if (MM_Constants.GENERATE_GC_TRACE) {
       bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false);
       bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false);
       bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false);
@@ -113,47 +113,47 @@ import org.vmmagic.unboxed.*;
   }
 
   public static void updateDeathTime(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       VM_Magic.objectAsAddress(object).store(time, OBJECT_DEATH_OFFSET);
   }
 
   public static void setDeathTime(Object object, Word time_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       VM_Magic.objectAsAddress(object).store(time_, OBJECT_DEATH_OFFSET);
   }
 
   public static void setLink(Object object, ObjectReference link) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       VM_Magic.objectAsAddress(object).store(link, OBJECT_LINK_OFFSET);
   }
 
   public static void updateTime(Word time_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
     time = time_;
   }
 
   public static Word getOID(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       return VM_Magic.objectAsAddress(object).plus(OBJECT_OID_OFFSET).loadWord();
     else
       return Word.zero();
   }
 
   public static Word getDeathTime(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       return VM_Magic.objectAsAddress(object).plus(OBJECT_DEATH_OFFSET).loadWord();
     else
       return Word.zero();
   }
 
   public static ObjectReference getLink(Object ref) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(ref,
                                                                OBJECT_LINK_OFFSET));
     else
@@ -161,24 +161,24 @@ import org.vmmagic.unboxed.*;
   }
 
   public static Address getBootImageLink() {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       return prevAddress.toAddress();
     else
       return Address.zero();
   }
 
   public static Word getOID() {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       return oid;
     else
       return Word.zero();
   }
 
   public static void setOID(Word oid_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.GENERATE_GC_TRACE);
-    if (MM_Interface.GENERATE_GC_TRACE)
+    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (MM_Constants.GENERATE_GC_TRACE)
       oid = oid_;
   }
 
@@ -194,7 +194,7 @@ import org.vmmagic.unboxed.*;
    */
   public static void dumpHeader(Object ref) {
     // by default nothing to do, unless the misc header is required
-    if (MM_Interface.GENERATE_GC_TRACE) {
+    if (MM_Constants.GENERATE_GC_TRACE) {
       VM.sysWrite(" OID=", getOID(VM_Magic.objectAsAddress(ref)));
       VM.sysWrite(" LINK=", getLink(ref));
       VM.sysWrite(" DEATH=", getDeathTime(ref));

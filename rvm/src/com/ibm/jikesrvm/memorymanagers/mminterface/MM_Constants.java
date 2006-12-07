@@ -26,5 +26,6 @@ public class MM_Constants implements VM_SizeConstants {
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
   public static final int GC_HEADER_BITS = Selected.Constraints.get().gcHeaderBits();
   public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;  
+  public static final boolean GENERATE_GC_TRACE = Selected.Constraints.get().generateGCTrace();
 }
 

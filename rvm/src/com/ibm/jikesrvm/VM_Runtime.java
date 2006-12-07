@@ -985,7 +985,6 @@ public class VM_Runtime implements VM_Constants {
     }
   }
 
-  //-#if RVM_WITH_MACH_O_ABI
   /**
    * The current frame is expected to be one of the JNI functions 
    * called from C, 
@@ -994,26 +993,24 @@ public class VM_Runtime implements VM_Constants {
    * references. 
    */
   public static Address unwindNativeStackFrameForGC(Address currfp) throws UninterruptiblePragma {
-    // Unlike on AIX, there are two glue frames. The frame the
-    // VM_JNICompiler refers to as "glue frame 1" will contain saved
-    // volatile GPRs, so we must return that frame pointer and let a
-    // JNIGCMapIterator have a chance to examine it.
-    Address ip, callee_fp;
-    Address fp = VM_Magic.getCallerFramePointer(currfp);
+    if (VM.BuildForMachOABI) {
+      // Unlike on AIX, there are two glue frames. The frame the
+      // VM_JNICompiler refers to as "glue frame 1" will contain saved
+      // volatile GPRs, so we must return that frame pointer and let a
+      // JNIGCMapIterator have a chance to examine it.
+      Address ip, callee_fp;
+      Address fp = VM_Magic.getCallerFramePointer(currfp);
 
-    do {
-      callee_fp = fp;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
-    } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+      do {
+        callee_fp = fp;
+        ip = VM_Magic.getReturnAddress(fp);
+        fp = VM_Magic.getCallerFramePointer(fp);
+      } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
-    return callee_fp;
+      return callee_fp;
+    } else
+      return unwindNativeStackFrame(currfp);
   }
-  //-#else
-  public static Address unwindNativeStackFrameForGC(Address currfp) throws UninterruptiblePragma {
-    return unwindNativeStackFrame(currfp);
-  }
-  //-#endif
   
   /**
    * Unwind stack frame for an <invisible method>.

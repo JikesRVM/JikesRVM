@@ -830,16 +830,14 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   // fields for synchronizing code patching
   ////////////////////////////////////////////////
 
-  //-#if RVM_FOR_POWERPC
   /**
    * how may processors to be synchronized for code patching, the last
    * one (0) will notify the blocked thread.
    */
-  public static int toSyncProcessors;
+  public static int toSyncProcessors;  // Used only if RVM_FOR_POWERPC is true
 
   /**
    * synchronize object 
    */
-  public static Object syncObj = null;
-  //-#endif
+  public static Object syncObj = null; // Used only if RVM_FOR_POWERPC is true
 }

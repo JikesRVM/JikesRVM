@@ -565,6 +565,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
       }
     }
   }
+  //-#else
+  public static void processOptCommandLineArg(String prefix, String arg) {}
   //-#endif
 
   /**

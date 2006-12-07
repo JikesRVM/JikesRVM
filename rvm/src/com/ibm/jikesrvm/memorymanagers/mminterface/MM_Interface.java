@@ -94,6 +94,12 @@ import org.vmmagic.pragma.*;
     = Selected.Constraints.get().movesObjects();
 
   /**
+   * <code>true</code> if the memory manager needs GCspy functionality
+   */
+  public static final boolean WITH_GCSPY 
+    = Selected.Constraints.get().withGCspy();
+
+  /**
    * <code>true</code> if the memory manager moves type information
    * blocks (TIBs).
    */
@@ -105,13 +111,6 @@ import org.vmmagic.pragma.*;
   */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   
-  /**
-   * <code>true</code> if the memory manager will generate a garbage
-   * collection trace of the run.
-   */
-  public static final boolean GENERATE_GC_TRACE 
-    = Selected.Constraints.get().generateGCTrace(); 
-
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
    

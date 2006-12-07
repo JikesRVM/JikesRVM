@@ -91,13 +91,11 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
-    //-#if !RVM_WITH_ADAPTIVE_SYSTEM
-    if (options.PRELOAD_CLASS != null) {
+    if (!VM.BuildForAdaptiveSystem && options.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    //-#endif
     fullyBootedVM = true;
   }
 

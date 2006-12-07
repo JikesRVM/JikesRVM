@@ -48,7 +48,7 @@ implements VM_Constants {
     // (so lintel compiler can us JTOC for scratch)
     if (VM.runningVM) this.jtoc = VM_Magic.getJTOC();
     //-#endif
-
+    
     this.id = id;
     this.transferMutex     = new VM_ProcessorLock();
     this.transferQueue     = new VM_GlobalThreadQueue(this.transferMutex);
@@ -145,16 +145,18 @@ implements VM_Constants {
     yieldToGCRequested = true;
   }
 
-  //-#if RVM_FOR_POWERPC
   /**
    * Request the thread executing on the processor to take the next executed yieldpoint
    * and issue memory synchronization instructions
    */
   public void requestPostCodePatchSync() {
+    //-#if RVM_FOR_POWERPC
     takeYieldpoint = 1;
     codePatchSyncRequested = true;
+    //-#else
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    //-#endif
   }
-  //-#endif
   
   /**
    * Get processor that's being used to run the current java thread.

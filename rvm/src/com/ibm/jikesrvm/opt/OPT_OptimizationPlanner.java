@@ -234,15 +234,15 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalCSE(true));
     // Flow-insensitive field analysis
     addComponent(p, new OPT_FieldAnalysis());
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // Insert counter on each method prologue
-    // Insert yieldpoint counters
-    addComponent(p,new OPT_InsertYieldpointCounters());
-    // Insert counter on each HIR instruction
-    addComponent(p,new OPT_InsertInstructionCounters());
-    // Insert method invocation counters
-    addComponent(p,new OPT_InsertMethodInvocationCounter());
-    //-#endif
+    if (VM.BuildForAdaptiveSystem) {
+      // Insert counter on each method prologue
+      // Insert yieldpoint counters
+      addComponent(p,new OPT_InsertYieldpointCounters());
+      // Insert counter on each HIR instruction
+      addComponent(p,new OPT_InsertInstructionCounters());
+      // Insert method invocation counters
+      addComponent(p,new OPT_InsertMethodInvocationCounter());
+    }
   }
 
   /** 
@@ -453,13 +453,13 @@ public class OPT_OptimizationPlanner {
     // Perform peephole branch optimizations
     addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // Arnold & Ryder instrumentation sampling framework
-    addComponent(p, new OPT_InstrumentationSamplingFramework());
+    if (VM.BuildForAdaptiveSystem) {
+      // Arnold & Ryder instrumentation sampling framework
+      addComponent(p, new OPT_InstrumentationSamplingFramework());
 
-    // Convert high level place holder instructions into actual instrumenation
-    addComponent(p, new OPT_LowerInstrumentation());
-    //-#endif
+      // Convert high level place holder instructions into actual instrumenation
+      addComponent(p, new OPT_LowerInstrumentation());
+    }
   }
 
   // Helper functions for constructing the masterPlan.

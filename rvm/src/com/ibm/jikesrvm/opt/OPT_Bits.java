@@ -23,7 +23,6 @@ import com.ibm.jikesrvm.VM;
  */
 public class OPT_Bits {
 
-  //-#if RVM_FOR_POWERPC
   /**
    * Return the lower 16 bits to
    * be used in a PPC immediate field
@@ -56,7 +55,6 @@ public class OPT_Bits {
   public static int PPCMaskUpper16(Offset value) {
     return PPCMaskUpper16(value.toInt());
   }
-  //-#endif
 
   /**
    * Return the lower 8 bits (as an int) of an int

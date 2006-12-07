@@ -95,6 +95,15 @@ public abstract class VM_Configuration {
         //-#else
           false;
         //-#endif
+          
+          
+  public static final boolean BuildWithAllClasses =
+        //-#if RVM_WITH_ALL_CLASSES
+          true;
+        //-#else
+          false;
+        //-#endif
+
 
   /**
    * Can a dereference of a null pointer result in an access
@@ -238,5 +247,11 @@ public abstract class VM_Configuration {
     false;
     //-#endif
 
+  public final static boolean defaultToSingleVirtualProcessor =
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    true;
+    //-#else
+    false;
+    //-#endif
 
 }

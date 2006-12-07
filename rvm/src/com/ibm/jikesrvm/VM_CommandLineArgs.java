@@ -539,13 +539,13 @@ public class VM_CommandLineArgs {
         // (both irc and recomp compilers)
         // ----------------------------------------------------
       case OPT_HELP_ARG:
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:","help");
-        //-#else
-        VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
-        VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem)
+          VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:","help");
+        else {
+          VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
+          VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
         //-#if RVM_WITH_ADAPTIVE_SYSTEM

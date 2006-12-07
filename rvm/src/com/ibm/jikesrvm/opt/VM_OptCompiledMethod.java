@@ -347,41 +347,47 @@ import org.vmmagic.unboxed.Offset;
    * Return the number of non-volatile GPRs used by this method.
    */
   public int getNumberOfNonvolatileGPRs() {
-    //-#if RVM_FOR_POWERPC
-    return VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
-    //-#elif RVM_FOR_IA32
-    return VM_RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
-    //-#endif
+    if (VM.BuildForPowerPC)
+      return VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+    else if (VM.BuildForIA32)
+      return VM_RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
+    else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
+    return -1;
   }
   /**
    * Return the number of non-volatile FPRs used by this method.
    */
   public int getNumberOfNonvolatileFPRs() {
-    //-#if RVM_FOR_POWERPC
-    return VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
-    //-#elif RVM_FOR_IA32
-    return VM_RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
-    //-#endif
+    if (VM.BuildForPowerPC)
+      return VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+    else if (VM.BuildForIA32)
+      return VM_RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
+    else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
+    return -1;
   }
   /**
    * Set the number of non-volatile GPRs used by this method.
    */
   public void setNumberOfNonvolatileGPRs(short n) {
-    //-#if RVM_FOR_POWERPC
-    setFirstNonVolatileGPR(VM_RegisterConstants.NUM_GPRS - n);
-    //-#elif RVM_FOR_IA32
-    setFirstNonVolatileGPR(VM_RegisterConstants.NUM_NONVOLATILE_GPRS - n);
-    //-#endif
+    if (VM.BuildForPowerPC)
+      setFirstNonVolatileGPR(VM_RegisterConstants.NUM_GPRS - n);
+    else if (VM.BuildForIA32)
+      setFirstNonVolatileGPR(VM_RegisterConstants.NUM_NONVOLATILE_GPRS - n);
+    else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
   }
   /**
    * Set the number of non-volatile FPRs used by this method.
    */
   public void setNumberOfNonvolatileFPRs(short n) {
-    //-#if RVM_FOR_POWERPC
-    setFirstNonVolatileFPR(VM_RegisterConstants.NUM_FPRS - n);
-    //-#elif RVM_FOR_IA32
-    setFirstNonVolatileFPR(VM_RegisterConstants.NUM_NONVOLATILE_FPRS - n);
-    //-#endif
+    if (VM.BuildForPowerPC)
+      setFirstNonVolatileFPR(VM_RegisterConstants.NUM_FPRS - n);
+    else if (VM.BuildForIA32)
+      setFirstNonVolatileFPR(VM_RegisterConstants.NUM_NONVOLATILE_FPRS - n);
+    else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -444,13 +450,12 @@ import org.vmmagic.unboxed.Offset;
           int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
           // A patch map is the offset of the last byte of the patch point
           // and the new branch immediate to lay down if the code is ever patched.
-          //-#if RVM_FOR_IA32
+          if (VM.BuildForIA32) {
           patchMap[idx++] = patchPoint-1;
           patchMap[idx++] = newTarget - patchPoint;
-          //-#endif
+          } else if (VM.BuildForPowerPC) {
           
           // otherwise, it must be RVM_FOR_POWERPC
-          //-#if RVM_FOR_POWERPC
           /* since currently we use only one NOP scheme, the offset 
            * is adjusted for one word
            */ 
@@ -458,7 +463,8 @@ import org.vmmagic.unboxed.Offset;
             (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
           patchMap[idx++] = (newTarget - patchPoint 
                             + (1<<VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
-          //-#endif
+          } else if (VM.VerifyAssertions)
+            VM._assert(VM.NOT_REACHED);
         }
       }
     }
@@ -471,16 +477,15 @@ import org.vmmagic.unboxed.Offset;
     if (patchMap != null) {
       for (int idx=0; idx<patchMap.length; idx += 2) {
         VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
-        //-#if RVM_FOR_IA32  
-        VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
-        //-#endif
-        //
-        //-#if RVM_FOR_POWERPC
-        OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
-        //-#endif
+        if (VM.BuildForIA32)
+          VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        else if (VM.BuildForPowerPC)
+          OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        else if (VM.VerifyAssertions)
+          VM._assert(VM.NOT_REACHED);
       }
 
-      //-#if RVM_FOR_POWERPC
+      if (VM.BuildForPowerPC) {
       /* we need synchronization on PPC to handle the weak memory model.
        * before the class loading finish, other processor should get 
        * synchronized.
@@ -522,7 +527,7 @@ import org.vmmagic.unboxed.Offset;
       if (DEBUG_CODE_PATCH) {
         VM.sysWrite("all processors get synchronized!\n");
       }
-      //-#endif
+      }
 
     }
   }
