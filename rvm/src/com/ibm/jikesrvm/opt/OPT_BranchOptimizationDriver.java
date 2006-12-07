@@ -46,7 +46,6 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
   /** 
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
-   * @param simplify perform simplification prior to optimization?
    */
   OPT_BranchOptimizationDriver(int level) {
     this.level = level;
