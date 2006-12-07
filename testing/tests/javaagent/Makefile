@@ -17,18 +17,18 @@ BENCH_HOME=./src
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 TIME_LIMIT=300
+EXPECTED=Tests.expected
+START_NAME=TestAgent
 AGENT=$(WORKING)/cp/Agent1.jar
 BENCH_JDK_ARGS=-javaagent:$(AGENT)="Option1"
 BENCH_RVM_ARGS=$(BENCH_JDK_ARGS)
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
-TESTS=TestAgent
+sanity:	$(AGENT)
+	$(MAKE) TEST_NAME=javaagent sanity-diff
 
-sanity:		$(TESTS)
-	$(MAKE) do-sanity-finish
-
-$(WORKING)/cp/Agent1.jar: Agent1.class
+$(AGENT): Agent1.class
 	$(JAR) cfm $@ $(BENCH_SOURCE_PATH)/MANIFEST.MF -C $(WORKING)/cp Agent1.class
 
 $(TESTS): $(AGENT)

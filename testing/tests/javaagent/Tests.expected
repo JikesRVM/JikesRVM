@@ -1,0 +1,8 @@
+Running premain with args: Option1
+Adding class transformer
+Array size ok: true
+Object size ok: true
+Found ourself in the initiated class list: true
+Found ourself in the all classes list: true
+Transforming class: TestAgent
+TestAgent executed.
