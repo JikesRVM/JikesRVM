@@ -16,10 +16,10 @@ default:		$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operator.java \
 			$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java \
 			$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW
 
-GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate 
+GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 ifeq ($(RVM_FOR_IA32),1)
-  ARCH_OPS = $(ARCH_IR_DIR)/OperatorList.dat 
+  ARCH_OPS = $(ARCH_IR_DIR)/OperatorList.dat
 endif
 ifeq ($(RVM_FOR_POWERPC),1)
   ifeq ($(RVM_FOR_64_ADDR),1)
@@ -69,7 +69,7 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operators.java: OPT_Operators.templ
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operators.java \
 	ARCH_IF_LIST=$(ARCH_IFS) \
         ARCH_OP_LIST=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat \
-	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java:	OPT_OperatorNames.template OperatorList.dat $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat
@@ -84,35 +84,6 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW: InstructionForm
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCH_IF_LIST=$(ARCH_IFS) \
-	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW
-
-## TODO FIX these three rules!!
-uncheckedInstructionFormat:	
-	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW \
-	ARCH_IR_DIR=$(ARCH_IR_DIR) \
-	ARCH_IF_LIST=$(ARCH_IFS)
-	VERIFY_INSTRUCTION_FORMATS="" ARCHITECTURE=$(ARCHITECTURE) \
-	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW
-
-warnInstructionFormat:	
-	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW \
-	ARCH_IR_DIR=$(ARCH_IR_DIR) \
-	ARCH_IF_LIST=$(ARCH_IFS)\
-	VERIFY_INSTRUCTION_FORMATS="warn" ARCHITECTURE=$(ARCHITECTURE) \
-	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW
-
-fatalInstructionFormat:	
-	$(GENERATE) InstructionFormats.template \
-	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW \
-	ARCH_IR_DIR=$(ARCH_IR_DIR) \
-	ARCH_IF_LIST=$(ARCH_IFS) \
-	VERIFY_INSTRUCTION_FORMATS="fatal" ARCHITECTURE=$(ARCHITECTURE) \
-	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW
-
