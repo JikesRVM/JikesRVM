@@ -188,7 +188,6 @@ sub printfailures {
 sub updatebestperf {
   my ($today, $allperf, $bestperf) = @_;
   getbestperf(($today - 1) % 7, $bestperf);
-  open(OUT, ">results/best.txt");
   my $key;
   foreach $key (sort keys %{$allperf}) {
     my ($day,$bm) = split(/:/, $key);
@@ -196,8 +195,11 @@ sub updatebestperf {
       if (${$bestperf}{$bm} < ${$allperf}{"$today:$bm"}) {
         ${$bestperf}{$bm} = ${$allperf}{"$today:$bm"};
       }
-      print OUT "$bm ".${$bestperf}{$bm}."\n";
     }
+  }
+  open(OUT, ">results/best.txt");
+  foreach $bm (sort keys %{$bestperf}) {
+    print OUT "$bm ".${$bestperf}{$bm}."\n";
   }
   close(OUT);
 }
