@@ -299,7 +299,12 @@ import com.ibm.jikesrvm.quick.*;
     System.loadLibrary("javaio");
     runClassInitializer("java.lang.Math");
     runClassInitializer("gnu.java.nio.VMChannel");
-    runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
+    if (VM.BuildForClasspath_0_92) {
+      runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
+    } else {
+      runClassInitializer("gnu.java.nio.FileChannelImpl");
+    }
+      
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
      

@@ -254,4 +254,23 @@ public abstract class VM_Configuration {
     false;
     //-#endif
 
+  /*
+   * We often need to slightly tweak the VM boot sequence and/or
+   * the library/VM interface depending on the version of GNU classpath
+   * we are building against.
+   * We always have at least two versions we are supporting (CVS Head and
+   * the most recent release).  Sometimes we also support some back-level
+   * releases of GNU classpath.
+   * For each supported released version, define a static final boolean.
+   * We don't define a boolean for CVS head because we prefer to define CVS head
+   * as the ! of all other variables.  This makes it easier to find an eliminate
+   * old code when we move up to the next version.
+   */
+  
+  public final static boolean BuildForClasspath_0_92 =
+    //-#if RVM_WITH_CLASSPATH_0_92
+    true;
+    //-#else
+    false;
+   //-#endif
 }
