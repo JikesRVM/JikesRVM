@@ -62,9 +62,14 @@ SPECjvm98_HOME=$(BENCHMARK_ROOT)/SPECjvm98
 ipsixql_HOME=$(BENCHMARK_ROOT)/ipsixql-1_0_2
 
 #
-# Java Grande Forum Benchmarks v2.0
+# Java Grande Forum Serial Benchmarks v2.0
 #
 JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
+
+#
+# Java Grande Forum Multithreaded Benchmarks v1.0
+#
+JGF_THREADS_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/threadv1.0
 
 #
 # Soot v2.2.3

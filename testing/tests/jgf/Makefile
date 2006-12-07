@@ -19,12 +19,31 @@ include		$(JAL_ROOT)/testing/harness/Local.rules
 
 HEAPSIZE=100
 
+ifeq ($(MODE),PERFORMANCE)
+
+SIZE=1
+DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
+EXTRA_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
+START_NAME=Driver
+START_ARGS=2 JGF_SerialBenchmark main ${SIZE}
+TIME_LIMIT=7200
+
+else
+
+SIZE=0
+START_NAME=JGF_SerialBenchmark
+START_ARGS=${SIZE}
+TIME_LIMIT=3600
+
+endif
+
+BENCH_SOURCE_PATH=$(JAL_ROOT)/testing/tests/jgf/src:$(BENCH_HOME):$(BENCH_HOME)/section1:$(BENCH_HOME)/section2:$(BENCH_HOME)/section3:${EXTRA_SOURCE_PATH}
+
 ALL_CLASSES	= jgfutil/JGFInstrumentor \
                   jgfutil/JGFSection1 \
                   jgfutil/JGFSection2 \
                   jgfutil/JGFSection3 \
                   jgfutil/JGFTimer \
-                  JGFAll \
                   JGFArithBench \
                   JGFAssignBench \
                   JGFCastBench \
@@ -33,30 +52,60 @@ ALL_CLASSES	= jgfutil/JGFInstrumentor \
                   JGFLoopBench \
                   JGFMathBench \
                   JGFMethodBench \
-                  JGFSerialBench
-
-ifeq ($(MODE),PERFORMANCE)
-
-DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
-BENCH_SOURCE_PATH=$(BENCH_HOME):$(DRIVER_SOURCE_PATH):$(BENCH_HOME)/section1
-START_NAME=Driver
-START_ARGS=2 JGFAll main
-TIME_LIMIT=7200
+                  JGFSerialBench \
+                  crypt/IDEATest \
+                  crypt/JGFCryptBench \
+                  fft/FFT \
+                  fft/JGFFFTBench \
+                  heapsort/JGFHeapSortBench \
+                  heapsort/NumericSortTest \
+                  lufact/JGFLUFactBench \
+                  lufact/Linpack \
+                  series/JGFSeriesBench \
+                  series/SeriesTest \
+                  sor/JGFSORBench \
+                  sor/SOR \
+                  sparsematmult/JGFSparseMatmultBench \
+                  sparsematmult/SparseMatmult \
+                  euler/JGFEulerBench \
+                  euler/Tunnel \
+                  moldyn/JGFMolDynBench \
+                  moldyn/md \
+                  montecarlo/AppDemo \
+                  montecarlo/CallAppDemo \
+                  montecarlo/DemoException \
+                  montecarlo/JGFMonteCarloBench \
+                  montecarlo/MonteCarloPath \
+                  montecarlo/PathId \
+                  montecarlo/PriceStock \
+                  montecarlo/RatePath \
+                  montecarlo/ReturnPath \
+                  montecarlo/ToInitAllTasks \
+                  montecarlo/ToResult \
+                  montecarlo/ToTask \
+                  montecarlo/Universal \
+                  montecarlo/Utilities \
+                  raytracer/Interval \
+                  raytracer/Isect \
+                  raytracer/JGFRayTracerBench \
+                  raytracer/Light \
+                  raytracer/Primitive \
+                  raytracer/Ray \
+                  raytracer/RayTracer \
+                  raytracer/Scene \
+                  raytracer/Sphere \
+                  raytracer/Surface \
+                  raytracer/Vec \
+                  raytracer/View \
+                  search/ConnectFourConstants \
+                  search/Game \
+                  search/JGFSearchBench \
+                  search/SearchGame \
+                  search/TransGame \
+                  JGF_SerialBenchmark
 
 sanity: 	$(foreach NAME, $(ALL_CLASSES), $(NAME).class)
 	$(MAKE) sanity-check-rule
-
-else
-
-BENCH_SOURCE_PATH=$(BENCH_HOME):$(BENCH_HOME)/section1
-START_NAME=JGFAll
-START_ARGS=
-TIME_LIMIT=3600
-
-sanity: 	$(foreach NAME, $(ALL_CLASSES), $(NAME).class)
-	$(MAKE) sanity-check-rule
-
-endif
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
