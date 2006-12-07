@@ -16,7 +16,7 @@ import org.mmtk.plan.TraceStep;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.Constants;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
@@ -193,7 +193,7 @@ import org.vmmagic.pragma.*;
    * @param trace The trace object to use to report root locations.
    */
   public final void computeAllRoots(TraceLocal trace) {
-    boolean processCodeLocations = MM_Interface.MOVES_OBJECTS;
+    boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
      /* scan statics */
     ScanStatics.scanStatics(trace);
  
