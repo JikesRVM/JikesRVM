@@ -360,14 +360,14 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitLAddr (S1, 0, FP);
     asm.emitMFLR  (T0);
-    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // save return address of JNI method in mini frame (1)
-    asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
-    //-#endif
-    //-#if RVM_WITH_POWEROPEN_ABI
-    // save return address in stack frame
-    asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
-    //-#endif
+    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      // save return address of JNI method in mini frame (1)
+      asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
+      // save return address in stack frame
+      asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
+    }
 
     //
     // Load required JNI function ptr into first parameter reg (GPR3/T0)
@@ -402,10 +402,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     int label1 = asm.getMachineCodeIndex();
     asm.emitLAddr (S0, 0, FP);                            // get previous frame
-    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // mini frame (2) FP -> mini frame (1) FP -> java caller
-    asm.emitLAddr (S0, 0, S0);
-    //-#endif
+    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      // mini frame (2) FP -> mini frame (1) FP -> java caller
+      asm.emitLAddr (S0, 0, S0);
+    }
     asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
     asm.emitLAddrOffset (JTOC, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
     asm.emitLAddrOffset (PROCESSOR_REGISTER, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset()); // load PR
@@ -418,11 +418,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitLAddrOffset (T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
     asm.emitLAddrOffset (T1, T2,  VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
-	//-#if RVM_WITH_POWEROPEN_ABI
-	/* T1 points to the function descriptor, so we'll load TOC and IP from that */
-    asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
-	asm.emitLAddrOffset(T1, T1, Offset.zero());
-	//-#endif
+    if (VM.BuildForPowerOpenABI) {
+      /* T1 points to the function descriptor, so we'll load TOC and IP from that */
+      asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
+      asm.emitLAddrOffset(T1, T1, Offset.zero());
+    }
     asm.emitMTLR  (T1);
     asm.emitBCLRL ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     (label1);                                    // retest the attempt to change status to IN_JAVAE
@@ -438,12 +438,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // return to caller
     //
     asm.emitLAddr  (S0, 0 , FP);                                // get previous frame
-    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S0);
-    //-#endif
-    //-#if RVM_WITH_POWEROPEN_ABI
-    asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S0); // get return address from stack frame
-    //-#endif
+    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S0);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
+      asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S0); // get return address from stack frame
+    }
     asm.emitMTLR  (S0);
     asm.emitBCLR   ();
 

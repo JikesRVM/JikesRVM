@@ -128,16 +128,13 @@ public interface VM_StackframeLayoutConstants  {
   public final static int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   static final int STACKFRAME_HEADER_SIZE             = 3*BYTES_IN_STACKSLOT; // size of frame header, in bytes
-  //-#if RVM_WITH_POWEROPEN_ABI
-  static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  2*BYTES_IN_STACKSLOT; // spot for this frame's callee to put return address
-  static final int STACKFRAME_METHOD_ID_OFFSET        =  BYTES_IN_STACKSLOT; // spot for this frame's method id
-  static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
-  //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-  // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID
-  static final int STACKFRAME_METHOD_ID_OFFSET        =  2*BYTES_IN_STACKSLOT; 
-  static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  BYTES_IN_STACKSLOT;
-  static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
-  //-#endif
+
+  // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
+  static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI ? 2*BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
+  static final int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI ? BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT;
+  
+  static final int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
+      
   static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
   static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 

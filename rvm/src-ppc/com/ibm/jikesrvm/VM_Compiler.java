@@ -4414,13 +4414,13 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
-    //-#if RVM_WITH_POWEROPEN_ABI
-	/* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
-	// Load TOC (Offset one word)
-	asm.emitLAddrOffset(JTOC, S0, Offset.fromIntSignExtend(BYTES_IN_STACKSLOT));
-	// Load IP (offset 0)
-	asm.emitLAddrOffset(S0, S0, Offset.zero());
-    //-#endif
+    if (VM.BuildForPowerOpenABI) {
+      /* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
+      // Load TOC (Offset one word)
+      asm.emitLAddrOffset(JTOC, S0, Offset.fromIntSignExtend(BYTES_IN_STACKSLOT));
+      // Load IP (offset 0)
+      asm.emitLAddrOffset(S0, S0, Offset.zero());
+    }
     // call it
     asm.emitMTCTR(S0);
     asm.emitBCCTRL(); 
