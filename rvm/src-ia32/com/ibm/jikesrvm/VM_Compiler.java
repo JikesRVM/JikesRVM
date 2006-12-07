@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.jni.VM_JNICompiler;
 
@@ -468,7 +469,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    if (MM_Interface.NEEDS_WRITE_BARRIER) 
+    if (MM_Constants.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
     else {
       asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the object value
@@ -1894,7 +1895,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
       emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
@@ -1926,7 +1927,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
-    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {

@@ -10,6 +10,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 // Used for Javadoc:
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread; 
@@ -1335,7 +1336,7 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
          if (threadSlot > VM_Scheduler.threadHighWatermark) {
            VM_Scheduler.threadHighWatermark = threadSlot;
          }
-         if (MM_Interface.NEEDS_WRITE_BARRIER)
+         if (MM_Constants.NEEDS_WRITE_BARRIER)
            MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                                threadSlot, this);
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
@@ -1366,7 +1367,7 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
      *  barrier. Generational collectors may not care about a null
      *  store, but a reference counting collector sure does.
      */
-    if (MM_Interface.NEEDS_WRITE_BARRIER)
+    if (MM_Constants.NEEDS_WRITE_BARRIER)
       MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                           threadSlot, null);
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads, 

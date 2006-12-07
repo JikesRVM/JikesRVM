@@ -103,7 +103,7 @@ import com.ibm.jikesrvm.VM_Thread;
       Space.printVMMap();
       return false;
     }
-    if (MM_Interface.MOVES_OBJECTS) {
+    if (MM_Constants.MOVES_OBJECTS) {
         /*
       TODO: Work out how to check if forwarded
       if (Plan.isForwardedOrBeingForwarded(ref)) {

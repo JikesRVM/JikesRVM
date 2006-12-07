@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import java.io.DataInputStream;
 import java.io.IOException;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
@@ -282,12 +283,12 @@ public final class VM_Field extends VM_Member {
    */
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MM_Interface.NEEDS_PUTSTATIC_WRITE_BARRIER)
+      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER)
         MM_Interface.putstaticWriteBarrier(getOffset(), ref);
       else
         VM_Statics.setSlotContents(getOffset(), ref);
     } else {
-      if (MM_Interface.NEEDS_WRITE_BARRIER)
+      if (MM_Constants.NEEDS_WRITE_BARRIER)
         MM_Interface.putfieldWriteBarrier(obj, getOffset(), ref, getId());
       else
         VM_Magic.setObjectAtOffset(obj, getOffset(), ref);

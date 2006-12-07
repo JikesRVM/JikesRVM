@@ -66,45 +66,6 @@ import org.vmmagic.pragma.*;
    * Class variables
    */
 
-  /**
-   * <code>true</code> if a write barrier is required.  Specifically,
-   * if the memory manger requires that the virtual machine calls
-   * putfieldWriteBarrier, arrayStoreWriteBarrier or modifyCheck when
-   * the corresponding writes are done.
-   * AJG: Is this correct?
-   */
-  public static final boolean NEEDS_WRITE_BARRIER 
-    = Selected.Constraints.get().needsWriteBarrier();
-
-  /**
-   * <code>true</code> if a write barrier for putstatic operations is
-   * required.  Specifically, if the memory manger requires that the
-   * virtual machine calls putstaticWriteBarrier, when a putstatic
-   * operation is needed.
-   * AJG: Is this correct?
-   */
-  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER
-    = Selected.Constraints.get().needsStaticWriteBarrier();
-
-  /**
-   * <code>true</code> if the memory manager moves objects. For
-   * example, a copying collector will move objects.
-   */
-  public static final boolean MOVES_OBJECTS 
-    = Selected.Constraints.get().movesObjects();
-
-  /**
-   * <code>true</code> if the memory manager needs GCspy functionality
-   */
-  public static final boolean WITH_GCSPY 
-    = Selected.Constraints.get().withGCspy();
-
-  /**
-   * <code>true</code> if the memory manager moves type information
-   * blocks (TIBs).
-   */
-  public static final boolean MOVES_TIBS = false;
-
  /**
   * <code>true</code> if checking of allocated memory to ensure it is
   * zeroed is desired.

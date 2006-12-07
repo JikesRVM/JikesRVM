@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.quick;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.jni.VM_JNICompiler;
 import com.ibm.jikesrvm.classloader.*;
@@ -5451,7 +5452,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // sri0 -- value
     // sri1 -- index
     // sri2 -- array
-    if (MM_Interface.NEEDS_WRITE_BARRIER) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER) {
       VM_QuickBarriers.compileArrayStoreBarrier(asm, sri2, sri1, sri0,S1);
     } else {
       int offsetRegister = astoreSetup(LOG_BYTES_IN_ADDRESS, sri1, sri2, S0);
@@ -7542,7 +7543,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         
     assignRegisters(2, VOID_TYPE);
 
-    if (MM_Interface.NEEDS_WRITE_BARRIER &&
+    if (MM_Constants.NEEDS_WRITE_BARRIER &&
         !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_QuickBarriers.compilePutfieldBarrier(asm, offsetReg, sri1, sri0,
                                               fieldRef.getId(), S1); 
@@ -7583,7 +7584,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // sri1 -- object
 
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (MM_Interface.NEEDS_WRITE_BARRIER &&
+    if (MM_Constants.NEEDS_WRITE_BARRIER &&
         !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_QuickBarriers.compilePutfieldBarrierImm(asm, fieldOffset,
                                                  sri1, sri0,

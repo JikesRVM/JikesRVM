@@ -12,7 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import static com.ibm.jikesrvm.VM_Constants.*;
@@ -1125,7 +1125,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
   static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, 
                              OPT_TypeOperand type) {
     VM_Type t = type.getVMType();
-    if (VM.BuildForIA32 && !MM_Interface.MOVES_TIBS &&
+    if (VM.BuildForIA32 && !MM_Constants.MOVES_TIBS &&
         VM.runningVM && t != null && t.isResolved()) {
       Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
       return new OPT_AddressConstantOperand(addr);

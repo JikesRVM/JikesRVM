@@ -16,16 +16,31 @@ import com.ibm.jikesrvm.VM_SizeConstants;
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM
  * package space so that they can be accessed by the VM in an
- * MM-neutral way.
+ * MM-neutral way.  It is separate from MM_Interface to break
+ * cyclic class-loading dependencies.
  * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */  
 public class MM_Constants implements VM_SizeConstants {
+  /** True if the selected plan needs support for linearly scanning the heap */
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
+  /** Number of bits in the GC header required by the selected plan */
   public static final int GC_HEADER_BITS = Selected.Constraints.get().gcHeaderBits();
-  public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;  
+  /** Number of additional bytes required in the header by the selected plan */
+  public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
+  /** True if the selected plan requires write barriers on putfield, arraystore or modifycheck */
+  public static final boolean NEEDS_WRITE_BARRIER = Selected.Constraints.get().needsWriteBarrier();
+  /** True if the selected plan requires write barriers on putstatic */
+  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Selected.Constraints.get().needsStaticWriteBarrier();
+  /** True if the selected plan needs support for generating a GC trace */
   public static final boolean GENERATE_GC_TRACE = Selected.Constraints.get().generateGCTrace();
+  /** True if the selected plan may move objects */
+  public static final boolean MOVES_OBJECTS = Selected.Constraints.get().movesObjects();
+  /** True of the selected plan needs GCspy functionality */
+  public static final boolean WITH_GCSPY = Selected.Constraints.get().withGCspy();
+  /** True if the selected plan moves tib objects */
+  public static final boolean MOVES_TIBS = false;
 }
 

@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.opt.OPT_Constants.*;
@@ -265,7 +266,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
       break;
 
       case REF_ASTORE_opcode: {
-        if (MM_Interface.NEEDS_WRITE_BARRIER) {
+        if (MM_Constants.NEEDS_WRITE_BARRIER) {
           VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
           OPT_Instruction wb =
             Call.create3(CALL, null, OPT_IRTools.AC(target.getOffset()),
@@ -284,7 +285,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
       break;
 
       case PUTFIELD_opcode: {
-        if (MM_Interface.NEEDS_WRITE_BARRIER) {
+        if (MM_Constants.NEEDS_WRITE_BARRIER) {
           OPT_LocationOperand loc = PutField.getLocation(inst);
           VM_FieldReference field = loc.getFieldRef();
           if (!field.getFieldContentsType().isPrimitiveType()) {

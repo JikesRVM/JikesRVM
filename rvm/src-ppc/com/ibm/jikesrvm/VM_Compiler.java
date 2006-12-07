@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.jni.*;
@@ -889,7 +890,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitBCCTRL();   // checkstore(arrayref, value)
     popAddr(T2);        // T2 is value to store
     genBoundsCheck();
-    if (MM_Interface.NEEDS_WRITE_BARRIER) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(this);
     } else {
       asm.emitSLWI (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
@@ -2392,7 +2393,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(this, fieldRef.getId()); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);  
       discardSlots(2);
@@ -2427,7 +2428,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
     }
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word

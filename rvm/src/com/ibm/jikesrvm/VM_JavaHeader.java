@@ -11,7 +11,6 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -206,7 +205,7 @@ import com.ibm.jikesrvm.opt.ir.*;
    */
   public static int bytesUsed(Object obj, VM_Class type) {
     int size = type.getInstanceSize();
-    if (MM_Interface.MOVES_OBJECTS) {
+    if (MM_Constants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -236,7 +235,7 @@ import com.ibm.jikesrvm.opt.ir.*;
    */
   public static int bytesUsed(Object obj, VM_Array type, int numElements) {
     int size = type.getInstanceSize(numElements);
-    if (MM_Interface.MOVES_OBJECTS) {
+    if (MM_Constants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -253,7 +252,7 @@ import com.ibm.jikesrvm.opt.ir.*;
    */
   public static Address objectStartRef(ObjectReference obj)
     throws InlinePragma {
-    if (MM_Interface.MOVES_OBJECTS) {
+    if (MM_Constants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
         Word hashState = obj.toAddress().loadWord(STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -487,7 +486,7 @@ import com.ibm.jikesrvm.opt.ir.*;
    */
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
-      if (MM_Interface.MOVES_OBJECTS) {
+      if (MM_Constants.MOVES_OBJECTS) {
         Word hashState = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED
