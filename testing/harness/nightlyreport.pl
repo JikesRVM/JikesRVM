@@ -31,6 +31,7 @@ my $BLACK = "#000000";
 my $normalfont = "font-weight:normal;";
 my $boldfont = "font-weight:bold;";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
+my $basesfcodeurl = "http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk";
 my $regressionhost = $host;
 
 # key variables
@@ -41,6 +42,7 @@ my @stackid = ();
 my @stacks = ();
 my @cmd = ();
 my %perf = ();
+my %imagesize = ();
 my %jvm98details = ();
 my @javadocerrs = ();
 my @optdetails = ();
@@ -56,6 +58,7 @@ my $passed = 0;
 getsanity($root, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed);
 getperf($root, \%perf, \%jvm98details);
 getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sanityconfig, \$perfconfig);
+getimagesize($root, \%imagesize);
 
 # produce the html summary
 #
@@ -65,7 +68,7 @@ my $webtarget = "steveb\@littleblue.anu.edu.au:public_html/jikesrvm/$host/".getd
 #open($html, ">$root/results/".getdatestr($svnstamp).".html");
 open($html, ">$outputfile");
 printhtmlhdr($html);
-gensummary($html, \%perf, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
+gensummary($html, \%perf, \%imagesize, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
 genbuildfailures($html, \@sanity, \@error, \@stackid);
 gentestfailures($html, \@sanity, \@error, \@stackid);
 genperfdetails($html, \%perf, \%jvm98details);
@@ -84,7 +87,7 @@ exit(0);
 # generate html for the report summary
 #
 sub gensummary {
-  my ($html, $perf, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig) = @_;
+  my ($html, $perf, $imagesize, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig) = @_;
   print $html "<h2>Summary</h2>\n";
   print $html "<table columns=\"2\">\n";#
   print $html "<tr><td align=\"right\">Regression tests:<td><b>";
@@ -98,6 +101,11 @@ sub gensummary {
   print $html "<tr><td align=\"right\">jbb2000 score:<td><b>".${$perf}{"jbb2000"}."</b></tr>\n";
   print $html "<tr><td align=\"right\">jvm98 best:<td><b>".${$perf}{"jvm98-bottomline"}."</b></tr>\n";
   print $html "<tr><td align=\"right\">jvm98 first:<td><b>".${$perf}{"jvm98-firstrun"}."</b></tr>\n";
+  my $csz = sprintf("%.2fMB", ${$imagesize}{"code"}/1024);
+  my $dsz = sprintf("%.2fMB", ${$imagesize}{"data"}/1024);
+  my $rsz = sprintf("%.2fMB", ${$imagesize}{"rmap"}/1024);
+  my $tsz = sprintf("%.2fMB", (${$imagesize}{"code"}+${$imagesize}{"data"}+${$imagesize}{"rmap"})/1024);
+  print $html "<tr><td align=\"right\">Image size:<td><b>$tsz</b> (code: $csz, data: $dsz, rmap: $rsz)</tr>\n";
   
   my $svnurl = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=$svnrevision";
   print $html "<tr><td align=\"right\">Revision:<td><b><a href=\"$svnurl\">$svnrevision</a></b></tr>\n";
@@ -105,7 +113,8 @@ sub gensummary {
   print $html "<tr><td align=\"right\">Sanity config:<td>$sanityconfig</tr>\n";
   print $html "<tr><td align=\"right\">Performance config:<td>$perfconfig</tr>\n";
   print $html "</table>\n";
-  print $html "<h3>Details</h3>\n";
+  print $html "<hr>\n";
+  print $html "<h2>Details</h2>\n";
   print $html "<ul>\n";
   print $html "\t<li><a href=\"#buildfailures\">Build Failures</a></li>\n";
   print $html "\t<li><a href=\"#testfailures\">Regression Failures</a></li>\n";
@@ -120,7 +129,6 @@ sub gensummary {
   print $html "\t</ul>\n";
   print $html "\t<li><a href=\"#testsuccesses\">Regression Successes</a></li>\n";
   print $html "</ul>\n";
-  print $html "<hr>\n";
 }
 
 #
@@ -361,6 +369,7 @@ sub genstacks {
 #
 sub getdatestr {
   my ($svnstamp) = @_;
+  $svnstamp =~ s/\s\s/ /g;
   ($day, $mon, $mday, $time, $tz, $year) = split(/ /, $svnstamp);
   for ($m = 0; $m < @shortmonths && $shortmonths[$m] ne $mon; $m++) {}
   my $today = sprintf("%04d%02d%02d", $year, $m+1, $mday);
@@ -543,10 +552,11 @@ sub scanerrorlog {
     } elsif ($linesleft > 0) {
       if ((($inerror == 1) && /^\s+at .+[:]\d+[)]\s*$/) ||
           (($inerror == 2) && /^\s+L.+ at line \d+$/)) {
-	    if ((/sysFail/ || /Assert; fail/) && $error eq "-- Stack --") {
-	      $error = "Assertion failure";
-	    }
-        $stack .= $_;
+	if ((/sysFail/ || /Assert; fail/) && $error eq "-- Stack --") {
+	   $error = "Assertion failure";
+	}
+#	$stack .= $stacklet."\n";
+	$stack .= markupstackline($_); #$stacklet."\n";
         $linesleft--;
       } elsif ($inerror == 3) {
         $stack .= $_;
@@ -572,6 +582,37 @@ sub scanerrorlog {
     }
   }
   return "$error";
+}
+
+#
+# mark up a line from a stack trace with a link to the svn code
+#
+sub markupstackline {
+  my ($stacklet) = @_;
+  $stacklet =~ /^(.+)$/;
+  my ($class, $line);
+  if (/^\s+at/) {
+    ($class, $line) = /^\s+at\s(\S+)[.][^.]+\(\S+[:](\d+)\)/;
+    $class =~ s/[.]/\//g;
+  } elsif (/^\s+L.+ at/) {
+    ($class, $line) = /^\s+L(\S+)[;]\s.+ at line (\d+)/;
+  }
+  my $url;
+  if ($class =~ /com.ibm.jikesrvm/) {
+    $url = "$basesfcodeurl/rvm/src/$class.java?view=markup#l_$line";
+  } elsif ($class =~ /org.mmtk/) {
+    $url = "$basesfcodeurl/MMTk/src/$class.java?view=markup#l_$line";
+  }
+  if ($url) {
+    if (/^\s+at/) {
+      my ($base) = $stacklet =~ /(.+[:])\d+\)\s*$/;
+      $stacklet = "$base<a href=\"$url\">$line</a>)\n";
+    } elsif (/^\s+L.+ at/) {
+      my ($base) = $stacklet =~ /(.+ at line )\d+\s*$/;
+      $stacklet = "$base <a href=\"$url\">$line</a>\n";
+    }
+  }
+  return "$stacklet";
 }
 
 #
@@ -608,6 +649,20 @@ sub getdetails {
   }
   close(IN);
 }
+
+#
+# scan the MSG file for javadoc errors and opt compiler reports
+#
+sub getimagesize {
+  my ($basedir, $imagesize) = @_;
+  open(DU, "du -k $basedir/images/production/RVM.*.image|");
+  while (<DU>) {
+    my ($sz, $image) = /(\d+)\s+.+RVM[.](.+)[.]image/;
+    ${$imagesize}{$image} = $sz;
+  }
+  close(DU);
+}
+
 
 #
 # create the document header incl style
