@@ -490,39 +490,50 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     // Repackage the arguments into an array of objects based on the signature of this method
     Object[] argObjectArray;
-    
-    switch (argtype) {
-      //-#if RVM_WITH_SVR4_ABI
-    case SVR4_DOTARG:
-      // argAddress is the glue frame pointer
-      argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
-      break;
-      //-#endif
-    case JVALUE_ARG:
-      argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
-      break;
-      //-#if RVM_WITH_SVR4_ABI 
-    case SVR4_VARARG:
-      argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
-      break;
-      //-#endif
-      //-#if RVM_WITH_MACH_O_ABI
-    case SVR4_DOTARG:
-    case SVR4_VARARG:
-      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-      break;
-    case OSX_DOTARG:
-      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-      break;
-      //-#endif
-    case AIX_VARARG:
-      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-      break;
-    default:
-      argObjectArray = null;
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
 
+    if (argtype == JVALUE_ARG) {
+      argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
+    } else {
+      // TODO: The MachO and SVR4 arms of this if/then/else seem overly complicated
+      //       but I'm hesitant to simplify/restructure without being able to fully test them.
+      //       So, for now, I simply cleaned up preprocessor directives without changing the set
+      //       of argtypes tested on each platform.
+      //       But, this can't actually be the way this code should be written...
+      if (VM.BuildForPowerOpenABI) {
+        if (VM.VerifyAssertions) VM._assert(argtype == AIX_VARARG);
+        argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+      } else if (VM.BuildForSVR4ABI) {
+        switch (argtype) {
+        case SVR4_DOTARG:
+          // argAddress is the glue frame pointer
+          argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
+          break;
+        case SVR4_VARARG:
+          argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
+          break;
+        case AIX_VARARG:
+          // TODO: Is this branch actually reachable code???
+          argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+          break;
+        default:
+          argObjectArray = null;
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        }
+      } else if (VM.BuildForMachOABI) {
+        switch (argtype) {
+        case SVR4_DOTARG:
+        case SVR4_VARARG:
+        case OSX_DOTARG:
+        case AIX_VARARG:
+          argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+          break;
+        default:
+          argObjectArray = null;
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        }
+      }
+    }
+    
     // now invoke the method
     Object returnObj = VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
     
