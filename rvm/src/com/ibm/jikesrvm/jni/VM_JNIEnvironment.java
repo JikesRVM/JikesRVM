@@ -22,11 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public class VM_JNIEnvironment implements VM_SizeConstants
-                                          //-#if RVM_FOR_POWERPC
-                                          ,VM_JNIConstants
-                                          //-#endif
-{
+public class VM_JNIEnvironment implements VM_SizeConstants {
 
   /**
    * initial size for JNI refs, later grow as needed
@@ -48,23 +44,19 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    */
   private static VM_CodeArray[] JNIFunctions;
 
-  //-#if RVM_WITH_POWEROPEN_ABI
   /**
-   * On some platforms we need a linkage triple instead of just
+   * For the PowerOpenABI we need a linkage triple instead of just
    * a function pointer.  
    * This is an array of such triples that matches JNIFunctions.
    */
   private static AddressArray[] LinkageTriplets;
-  //-#endif
 
-  //-#if RVM_FOR_POWERPC
   /**
    * Stash the JTOC somewhere we can find it later
    * when we are making a C => Java transition.
    * We mainly need this for OSX/Linux but it is also nice to have on AIX.
    */
-  private final Address savedJTOC = VM_Magic.getTocPointer();
-  //-#endif
+  private final Address savedJTOC = VM.BuildForPowerPC ? VM_Magic.getTocPointer() : Address.zero();
    
   /**
    * This is the pointer to the shared JNIFunction table.
@@ -74,12 +66,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    * by handing the native code an interior pointer to 
    * this object that points directly to this field.
    */ 
-  private final Address externalJNIFunctions = 
-  //-#if RVM_WITH_POWEROPEN_ABI
-    VM_Magic.objectAsAddress(LinkageTriplets);
-  //-#else
-    VM_Magic.objectAsAddress(JNIFunctions);
-  //-#endif
+  private final Address externalJNIFunctions = VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
 
   /**
    * For saving processor register on entry to native, 
@@ -321,14 +308,13 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    */
   public static void initFunctionTable(VM_CodeArray[] functions) {
     JNIFunctions = functions;
-
-    //-#if RVM_WITH_POWEROPEN_ABI
-    // Allocate the linkage triplets in the bootimage too (so they won't move)
-    LinkageTriplets = new AddressArray[functions.length];
-    for (int i=0; i<functions.length; i++) {
-      LinkageTriplets[i] = AddressArray.create(3);
+    if (VM.BuildForPowerOpenABI) {
+      // Allocate the linkage triplets in the bootimage too (so they won't move)
+      LinkageTriplets = new AddressArray[functions.length];
+      for (int i=0; i<functions.length; i++) {
+        LinkageTriplets[i] = AddressArray.create(3);
+      }
     }
-    //-#endif
   }
 
   /**
@@ -336,13 +322,13 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    * we are on a platform that needs linkage triplets.
    */
   public static void boot() {
-    //-#if RVM_WITH_POWEROPEN_ABI
-    // fill in the TOC and IP entries for each linkage triplet
-    for (int i=0; i<JNIFunctions.length; i++) {
-      AddressArray triplet = LinkageTriplets[i];
-      triplet.set(TOC, VM_Magic.getTocPointer());
-      triplet.set(IP, VM_Magic.objectAsAddress(JNIFunctions[i]));
+    if (VM.BuildForPowerOpenABI) {
+      // fill in the TOC and IP entries for each linkage triplet
+      for (int i=0; i<JNIFunctions.length; i++) {
+        AddressArray triplet = LinkageTriplets[i];
+        triplet.set(1, VM_Magic.getTocPointer());
+        triplet.set(0, VM_Magic.objectAsAddress(JNIFunctions[i]));
+      }
     }
-    //-#endif
   }
 }

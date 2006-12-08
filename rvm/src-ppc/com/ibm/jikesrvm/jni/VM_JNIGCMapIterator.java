@@ -90,20 +90,20 @@ import org.vmmagic.pragma.*;
                             Offset instructionOffset, 
                             Address framePtr) { 
     this.framePtr = framePtr;
-    // processore reg (R16) was saved in reg save area at offset -72 
+    // processor reg (R16) was saved in reg save area at offset -72 
     // from callers frameptr, and after GC will be used to set 
     // processor reg upon return to java.  it must be reported
     // so it will be relocated, if necessary
     //
     Address callers_fp = this.framePtr.loadAddress();
-    //-#if RVM_WITH_POWEROPEN_ABI
-    jniSavedReturnAddr       = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
-    //-#endif
-    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // ScanThread calls getReturnAddressLocation() to get this stack frame
-    // it is already processed
-    jniSavedReturnAddr       = Address.zero();
-    //-#endif
+    if (VM.BuildForPowerOpenABI) {
+      jniSavedReturnAddr       = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI || VM.BuildForMachOABI);
+      // ScanThread calls getReturnAddressLocation() to get this stack frame
+      // it is already processed
+      jniSavedReturnAddr       = Address.zero();
+    }
 
     // set the GC flag in the Java to C frame to indicate GC occurred
     // this forces saved non volatile regs to be restored from save area

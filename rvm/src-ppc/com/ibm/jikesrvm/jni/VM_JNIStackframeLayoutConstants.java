@@ -27,17 +27,11 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   //  Java to native function transition
   // VM_JNICompiler.compile(VM_NativeMethod)
   /////////////////////////////////////////////////////////////
-  
-  //-#if RVM_WITH_POWEROPEN_ABI
-  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
-  //-#elif RVM_WITH_SVR4_ABI
-  // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
-  //-#elif RVM_WITH_MACH_O_ABI
-  // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
-  //-#endif
 
+  static final int NATIVE_FRAME_HEADER_SIZE =
+    VM.BuildForPowerOpenABI ? 6*BYTES_IN_ADDRESS /* fp + cr + lr + res + res + toc */  :
+    (VM.BuildForSVR4ABI ? 2*BYTES_IN_ADDRESS /* fp + lr */ : /* BuildForMachOABI */ 6*BYTES_IN_ADDRESS /* fp + cp + lr + ??? */);
+  
   // number of volatile registers that may carry parameters to the
   // native code
   // GPR4-10 = 7 words  (does not include R3)
@@ -54,21 +48,18 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
     ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
   public static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_ENV_OFFSET + BYTES_IN_ADDRESS;
 
-  //-#if RVM_WITH_POWEROPEN_ABI
-  public static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
-  public static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + BYTES_IN_ADDRESS;          // 108
-  public static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
-  //-#endif
+  public static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  =
+    VM.BuildForPowerOpenABI ? (JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE) : -1;  /* UNUSED */
+  public static final int JNI_GC_FLAG_OFFSET =
+    VM.BuildForPowerOpenABI ? (JNI_PROLOG_RETURN_ADDRESS_OFFSET + BYTES_IN_ADDRESS) : (JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE);
 
-  //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-  // LINUX saves prologue address in lr slot of glue frame (1), see the picture
-  // in VM_JNICompiler
-  public static final int JNI_GC_FLAG_OFFSET                = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
-  public static final int JNI_MINI_FRAME_POINTER_OFFSET     = 
-    VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
+  // SRV4 and MachO save prologue address in lr slot of glue frame (1), see the picture in VM_JNICompiler
+  public static final int JNI_MINI_FRAME_POINTER_OFFSET = 
+    VM.BuildForPowerOpenABI ? -1 /* UNUSED */ : VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
+  
+  public static final int JNI_SAVE_AREA_SIZE =
+    VM.BuildForPowerOpenABI ? JNI_GC_FLAG_OFFSET : JNI_MINI_FRAME_POINTER_OFFSET;
 
-  public static final int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
-  //-#endif
   
   /////////////////////////////////////////////////////////
   // Native code to JNI Function (Java) glue frame
