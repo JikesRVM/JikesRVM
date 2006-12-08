@@ -414,27 +414,29 @@ public final class OSR_OptExecStateExtractor
         break;
       }
       case WORD: {
-        //-#if RVM_FOR_32_ADDR
-        int word = getIntBitsFrom(vtype,
-                               value,
-                               stack,
-                               fpOffset,
-                               registers);
-        //-#endif
-        //-#if RVM_FOR_64_ADDR
-        long word = getLongBitsFrom(vtype,
-                                lpart_one,
-                                value,
-                                stack,
-                                fpOffset,
-                                registers);
-        lpart_one = 0;
-        //-#endif
-
-        state.add(new OSR_VariableElement(kind,
-                                          num,
-                                          tcode,
-                                          word));
+        if (VM.BuildFor32Addr) {
+          int word = getIntBitsFrom(vtype,
+                                    value,
+                                    stack,
+                                    fpOffset,
+                                    registers);
+          state.add(new OSR_VariableElement(kind,
+                                            num,
+                                            tcode,
+                                            word));
+        } else {
+          long word = getLongBitsFrom(vtype,
+                                      lpart_one,
+                                      value,
+                                      stack,
+                                      fpOffset,
+                                      registers);
+          lpart_one = 0;
+          state.add(new OSR_VariableElement(kind,
+                                            num,
+                                            tcode,
+                                            word));
+        }
         break;
       }
       default:
