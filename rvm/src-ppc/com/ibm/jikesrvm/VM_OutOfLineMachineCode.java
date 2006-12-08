@@ -366,7 +366,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
       // save return address in stack frame
+      //-#if RVM_WITH_POWEROPEN_ABI
       asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
+      //-#endif
     }
 
     //
@@ -442,7 +444,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
       asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S0);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
+      //-#if RVM_WITH_POWEROPEN_ABI
       asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S0); // get return address from stack frame
+      //-#endif
     }
     asm.emitMTLR  (S0);
     asm.emitBCLR   ();
