@@ -21,7 +21,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @author Stephen Fink
  */
 public class OPT_UnsyncReplacer {
-  private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /** 
    * Generate an instance of this class for a particular

@@ -25,7 +25,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  */
 class OPT_CFGTransformations extends OPT_CompilerPhase {
 
-  private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
    
   /**
    * Return this instance of this phase. This phase contains no

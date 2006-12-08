@@ -200,11 +200,11 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   /**
    * Flag to optionally print verbose debugging messages
    */
-  private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
   /**
    * Flag to verify computed IR
    */
-  private static boolean VERIFY = false;
+  private static final boolean VERIFY = false;
 
   // -oO Debug routines Oo-
   /**
