@@ -13,6 +13,10 @@ on October 14, 2001,
 
 ** Other Notes
 
+*** The Quick compiler has been deleted.  It is now available as a
+    patch on the research tracker, or via older releases (2.3.4
+    through 2.4.6).
+
 *Jikes RVM 2.4.6 Release Notes (released October 19, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.6 is 0.92.

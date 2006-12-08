@@ -20,8 +20,7 @@ import org.vmmagic.unboxed.Offset;
  * Framework compiler - platform independent code.
  * This compiler provides the structure for a very simple compiler --
  * one that generates code as each bytecode in the class file is
- * seen. It is the common base class of the base compiler and the
- * quick compiler.
+ * seen. It is the common base class of the base compiler.
  *
  * @author Chris Hoffmann
  * @author Maria Butrico
@@ -187,8 +186,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
     // isn't fully initialized early in booting, so don't do it!
     if (compilerName.equals("baseline")) {
       VM.sysWrite("-methodBaseline ");
-    } else if (compilerName.equals("quick")) {
-      VM.sysWrite("-methodQuick ");
     } else if (VM.VerifyAssertions) {
       VM._assert(false, "Unknown compiler");
     }

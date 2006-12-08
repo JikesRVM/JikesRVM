@@ -16,7 +16,6 @@ import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_BaselineCompiledMethod;
 import com.ibm.jikesrvm.VM_Scheduler;
 import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.quick.*;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -146,17 +145,6 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
           caller = stackFrameCaller;
         }
         break;
-//-#if RVM_WITH_QUICK_COMPILER
-        case VM_CompiledMethod.QUICK:
-        {
-          VM_QuickCompiledMethod quickCompiledMethod = 
-            (VM_QuickCompiledMethod)compiledMethod;
-          // note: the following call expects the offset in INSTRUCTIONS!
-          bytecodeIndex = quickCompiledMethod.findBytecodeIndexForInstruction(MCOffset);
-          caller = stackFrameCaller;
-        }
-        break;
-//-#endif
       case VM_CompiledMethod.OPT:
         {
           VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod)compiledMethod;

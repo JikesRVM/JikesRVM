@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import com.ibm.jikesrvm.quick.*;
 
 /**
  * A virtual machine.
@@ -148,14 +147,6 @@ import com.ibm.jikesrvm.quick.*;
     // 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
-
-    //-#if RVM_WITH_QUICK_COMPILER
-    // Reset the options for the quick compiler to avoid carrying 
-    // them over from bootimage writing time.
-    // 
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing quick compiler options to defaults");
-    VM_QuickCompiler.initOptions();
-    //-#endif
 
     // Fetch arguments from program command line.
     //
@@ -332,10 +323,6 @@ import com.ibm.jikesrvm.quick.*;
     VM.fullyBooted = true;
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
-
-    //-#if RVM_WITH_QUICK_COMPILER
-    VM_QuickCompiler.fullyBootedVM();
-    //-#endif
 
     // Initialize compiler that compiles dynamically loaded classes.
     //

@@ -25,8 +25,6 @@ public abstract class VM_BootImageCompiler {
   private static VM_BootImageCompiler compiler = 
     //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
     new VM_BaselineBootImageCompiler();
-    //-#elif RVM_WITH_QUICK_BOOTIMAGE_COMPILER
-    new VM_QuickBootImageCompiler();
     //-#elif RVM_WITH_OPT_BOOTIMAGE_COMPILER
     new VM_OptimizingBootImageCompiler();
     //-#endif

@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
-import com.ibm.jikesrvm.quick.*;
 
 /**
  * Abstract parent class for events from organizers to the controller 
@@ -43,10 +42,6 @@ abstract class VM_HotMethodEvent {
   public final int getPrevCompilerConstant() {
     if (isOptCompiled()) {
       return VM_CompilerDNA.getCompilerConstant(getOptCompiledLevel());
-//-#if RVM_WITH_QUICK_COMPILER
-    } else if (cm instanceof VM_QuickCompiledMethod) {
-      return VM_CompilerDNA.QUICK;
-//-#endif
     } else {
       return VM_CompilerDNA.BASELINE;
     }

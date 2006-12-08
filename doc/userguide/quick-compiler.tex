@@ -1,5 +1,8 @@
-Release 2.3.4 marks the first public appearance of the ``Quick''
-compiler for the PowerPC architecture targets.  
+From release 2.3.4 to 2.4.6, Jikes RVM included the ``Quick''
+compiler for the PowerPC architecture targets.  The Quick compiler
+may be supported again in the future, but for now is available only
+by using one of these older releases, or by using a patch on
+the research tracker.
 
 \xname{quick_compiler_goals}
 \subsection{Goals}
@@ -47,7 +50,10 @@ going to the quick compiler for initial compilation.
 \xname{quick_compiler_status}
 \subsection{Status}
 
-As of this writing, the quick compiler is not part of the default
+As of this writing, the quick compiler is no longer part of the Jikes
+RVM distribtion, but can be accessed in older versions of Jikes RVM
+(2.3.4 through 2.4.6) or via the research tracker.  In the last
+release in which it was included, it was not part of the default
 configurations (\textbf{prototype}, \textbf{prototype-opt},
 \textbf{development}, and \textbf{production}).  It's been fairly
 stable, but part of the gctest regression continues to fail, for

@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
   // Remember the location array for registers. This array needs to be updated
   // with the location of any saved registers.
   // This information is not used by this iterator but must be updated for the
-  // other types of iterators (ones for the quick and opt compiler built frames)
+  // other types of iterators (ones for the opt compiler built frames)
   // The locations are kept as addresses within the stack.
   //
   

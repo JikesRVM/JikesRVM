@@ -12,7 +12,6 @@ package com.ibm.jikesrvm;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.quick.*;
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 
@@ -41,10 +40,6 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     } else if (compilerType == VM_CompiledMethod.OPT) {
       //-#if RVM_WITH_OPT_COMPILER
       cm = new VM_OptCompiledMethod(id, m);
-      //-#endif
-      //-#if RVM_WITH_QUICK_COMPILER
-    } else if (compilerType == VM_CompiledMethod.QUICK) {
-      cm = new VM_QuickCompiledMethod(id, m);
       //-#endif
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
@@ -216,13 +211,6 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.OPT]);
-    }
-
-    if (codeCount[VM_CompiledMethod.QUICK] > 0) {
-      VM.sysWriteln("  Quick Compiler");
-      VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.QUICK]);
-      VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.QUICK]);
-      VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.QUICK]);
     }
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {

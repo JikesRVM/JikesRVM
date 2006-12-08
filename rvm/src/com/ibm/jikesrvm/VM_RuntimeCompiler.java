@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 //-#endif
-import com.ibm.jikesrvm.quick.*;
 
 /**
  * Harness to select which compiler to dynamically
@@ -55,37 +54,23 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER      = 0;
   public static final byte BASELINE_COMPILER = 1;
-  public static final byte QUICK_COMPILER    = 2;
-  public static final byte OPT_COMPILER      = 3;
+  public static final byte OPT_COMPILER      = 2;
 
   // Data accumulators
-  private static final String name[]        = {"JNI\t","Base\t","Quick\t","Opt\t"};   // Output names
-  private static int totalMethods[]         = {0,0,0,0};
-  private static double totalCompTime[]     = {0,0,0,0}; 
-  private static int totalBCLength[]        = {0,0,0,0};
-  private static int totalMCLength[]        = {0,0,0,0};
+  private static final String name[]        = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int totalMethods[]         = {0,0,0};
+  private static double totalCompTime[]     = {0,0,0}; 
+  private static int totalBCLength[]        = {0,0,0};
+  private static int totalMCLength[]        = {0,0,0};
 
   // running sum of the natural logs of the rates, 
   //  used for geometric mean, the product of rates is too big for doubles
   //  so we use the principle of logs to help us 
   // We compute  e ** ((log a + log b + ... + log n) / n )
-  private static double totalLogOfRates[]   = {0,0,0,0};
+  private static double totalLogOfRates[]   = {0,0,0};
 
   // We can't record values until Math.log is loaded, so we miss the first few
-  private static int totalLogValueMethods[] = {0,0,0,0};
-
-  //-#if RVM_WITH_QUICK_COMPILER
-  // is the quick compiler usable?
-  protected static boolean quickCompilerEnabled;  
-  
-  // is quick compiler currently in use?
-  // This flag is used to detect/avoid recursive quick compilation.
-  // NOTE: This code can be quite subtle, so please be absolutely sure
-  // you know what you're doing before modifying it!!!
-  protected static boolean quickCompilationInProgress; 
-  
-  private static String[] earlyQuickArgs = new String[0];
-  //-#endif
+  private static int totalLogValueMethods[] = {0,0,0};
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   public static OPT_InlineOracle offlineInlineOracle;
@@ -262,9 +247,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
     }
 
     VM_BaselineCompiler.generateBaselineCompilerSubsystemReport(explain);
-    //-#if RVM_WITH_QUICK_COMPILER
-    VM_QuickCompiler.generateQuickCompilerSubsystemReport(explain);
-    //-#endif
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM 
     // Get the opt's report
@@ -570,109 +552,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
   //-#endif
 
   /**
-   * Process command line argument destined for the quick compiler
-   */
-  public static void processQuickCommandLineArg(String prefix, String arg) {
-    //-#if RVM_WITH_QUICK_COMPILER
-   if (quickCompilerEnabled) {
-      VM_QuickCompiler.processCommandLineArg(prefix, arg);
-    }
-      else {
-      String[] tmp = new String[earlyQuickArgs.length+2];
-      for (int i=0; i<earlyQuickArgs.length; i++) {
-        tmp[i] = earlyQuickArgs[i];
-      }
-      earlyQuickArgs = tmp;
-      earlyQuickArgs[earlyQuickArgs.length-2] = prefix;
-      earlyQuickArgs[earlyQuickArgs.length-1] = arg;
-    }
-   //-#endif
-  }
-
-  //-#if RVM_WITH_QUICK_COMPILER
-  /**
-   * attempt to compile the passed method with the QUICK_Compiler.
-   * Don't handle VM_QuickCompilerExceptions 
-   *   (leave it up to caller to decide what to do)
-   * Precondition: compilationInProgress "lock" has been acquired
-   * @param method the method to compile
-   * @param plan the plan to use for compiling the method
-   */
-  private static VM_CompiledMethod quickCompile(VM_NormalMethod method) 
-    throws VM_QuickCompilerException {
-    if (VM.VerifyAssertions) {
-      VM._assert(quickCompilationInProgress, "Failed to acquire quickcompilationInProgress \"lock\"");
-    }
-    
-    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.QUICK);
-    long start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
-    }
-    
-    VM_CompiledMethod cm = VM_QuickCompiler.compile(method);
-
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
-      double compileTime = VM_Time.cyclesToMillis(end - start);
-      cm.setCompilationTime(compileTime);
-      record(QUICK_COMPILER, method, cm);
-    }
-    
-    return cm;
-  }
-  
-
-  // These methods are safe to invoke from VM_RuntimeCompiler.compile
-
-  /**
-   * This method tries to compile the passed method with the QUICK_Compiler, 
-   * if this fails we will use the quicker compiler (baseline for now)
-   * The following is carefully crafted to avoid (infinte) recursive quick
-   * compilation for all combinations of bootimages & lazy/eager compilation.
-   * Be absolutely sure you know what you're doing before changing it !!!
-   * @param method the method to compile
-   */
-  public static synchronized VM_CompiledMethod quickCompileWithFallBack(VM_NormalMethod method) {
-    if (quickCompilationInProgress) {
-      return fallback(method);
-    } else {
-      try {
-        quickCompilationInProgress = true;
-        return quickCompileWithFallBackInternal(method);
-      } finally {
-        quickCompilationInProgress = false;
-      }
-    }
-  }
-
-
-  /**
-   * This real method that performs the quick compilation.  
-   * @param method the method to compile
-   * @param plan the compilation plan to use
-   */
-  private static VM_CompiledMethod quickCompileWithFallBackInternal(VM_NormalMethod method) {
-    try {
-      return quickCompile(method);
-    } catch (VM_QuickCompilerException e) {
-      String msg = "VM_RuntimeCompiler: can't quick compile \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
-      if (e.isFatal ) {
-        e.printStackTrace();
-        VM.sysFail(msg);
-      } else {
-        boolean printMsg = false;
-        if (printMsg) VM.sysWrite(msg);
-      }
-      return fallback(method);
-    } 
-  }
-
-
-
-  //-#endif
-  
-  /**
    * This method uses the default compiler (baseline) to compile a method
    * It is typically called when a more aggressive compilation fails.
    * This method is safe to invoke from VM_RuntimeCompiler.compile
@@ -705,33 +584,15 @@ public class VM_RuntimeCompiler implements VM_Constants,
       processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i+1]);
     }
     //-#endif
-    //-#if RVM_WITH_QUICK_COMPILER
-    // when we reach here the QUICK compiler is enabled.
-    quickCompilerEnabled = true;
-    
-    for (int i=0; i<earlyQuickArgs.length; i+=2) {
-      processQuickCommandLineArg(earlyQuickArgs[i],earlyQuickArgs[i+1]);
-    }
-    VM_QuickCompiler.initOptions();
-    //-#endif
   }
   
   public static void processCommandLineArg(String prefix, String arg) {
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
       processOptCommandLineArg(prefix, arg);
-    } else if (VM_Controller.options !=null  && VM_Controller.options.quickIRC()) {
-      //-#if RVM_WITH_QUICK_COMPILER
-      VM_QuickCompiler.processCommandLineArg(prefix, arg);
-      //-#else
-      String msg = "Cannot use quick compiler as initial compiler in adaptive system as quick compiler has not been built into JikesRVM.\n";
-      VM.sysFail(msg);
-      //-#endif
     } else {
       VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     }
-    //-#elif RVM_WITH_QUICK_RUNTIME_COMPILER
-    processQuickCommandLineArg(prefix, arg);
     //-#else
     VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     //-#endif
@@ -743,11 +604,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @return its compiled method.
    */
   public static VM_CompiledMethod compile(VM_NormalMethod method) {
-    //-#if RVM_WITH_QUICK_RUNTIME_COMPILER
-    VM_CompiledMethod cm;
-    cm = quickCompileWithFallBack(method);
-    return cm;
-    //-#elif RVM_WITH_ADAPTIVE_SYSTEM
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_CompiledMethod cm;
     if (!VM_Controller.enabled) {
       // System still early in boot process; compile with baseline compiler
@@ -795,28 +652,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
           }
           cm = optCompileWithFallBack(method, compPlan);
         }
-        //-#if RVM_WITH_QUICK_COMPILER
-        } else if (VM_Controller.options.optIRC()) {
-        if (VM_Controller.options.BACKGROUND_RECOMPILATION) {
-          // must be an inital compilation: compile with baseline compiler
-          cm = baselineCompile(method);
-          VM_ControllerMemory.incrementNumBase();
-        } else {
-          // check to see if there is a compilation plan for this method.
-          VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
-          if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
-            // initial compilation or some other funny state: compile with baseline compiler
-            cm = baselineCompile(method);
-            VM_ControllerMemory.incrementNumBase();
-          } else {
-            cm = plan.doRecompile();
-            if (cm == null) {
-              // opt compilation aborted for some reason.
-              cm = baselineCompile(method);
-            }
-          }           
-        }
-        //-#endif
       } else {
         if ((VM_Controller.options.BACKGROUND_RECOMPILATION
              && (!VM_Controller.options.ENABLE_REPLAY_COMPILE)

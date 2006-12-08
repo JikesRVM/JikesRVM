@@ -31,13 +31,11 @@ import java.util.*;
  */
 public class VM_CompilerDNA implements VM_Constants {
 
-  private static final String[] compilerNames = {"Baseline", "Quick", 
-                                                 "Opt0", "Opt1", "Opt2"};
+  private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   final static int BASELINE = 0;
-  final static int QUICK = 1;
-  final static int OPT0 = 2;
-  final static int OPT1 = 3;
-  final static int OPT2 = 4;
+  final static int OPT0 = 1;
+  final static int OPT1 = 2;
+  final static int OPT2 = 3;
 
 
   /**
@@ -53,12 +51,10 @@ public class VM_CompilerDNA implements VM_Constants {
   //-#if RVM_FOR_POWERPC
   private static final double[] compilationRates = {
     359.17,             // base
-    300,                // quick
     10.44, 4.69, 1.56}; // opt 0...2
   //-#elif RVM_FOR_IA32
   private static final double[] compilationRates = {
     696.58,             // base
-    0,                  // quick (none)
     18.19, 8.90, 3.90}; // opt 0...2
   //-#endif
 
@@ -70,12 +66,10 @@ public class VM_CompilerDNA implements VM_Constants {
   //-#if RVM_FOR_POWERPC
   private static final double[] speedupRates = {
     1.00,               // base 
-    1.32,               // quick
     4.73, 6.65, 7.39};  // opt 0...2
   //-#elif RVM_FOR_IA32
   private static final double[] speedupRates = {
     1.00,               // base
-    0.00,               // quick (none)
     4.56, 7.13, 7.35};  // opt 0...2
   //-#endif
 
@@ -180,8 +174,6 @@ public class VM_CompilerDNA implements VM_Constants {
       for (int nextCompiler = prevCompiler+1; 
            nextCompiler < numCompilers; 
            nextCompiler++) {
-        if (!(!VM.BuildForQuickCompiler && (prevCompiler == QUICK || nextCompiler == QUICK))) {
-          /* leave values at 1.0 if we're not using the compiler */
           benefitRatio[prevCompiler][nextCompiler] = 
             speedupRates[nextCompiler] / speedupRates[prevCompiler];
 
@@ -189,7 +181,6 @@ public class VM_CompilerDNA implements VM_Constants {
           //  we invert the division.
           compileTimeRatio[prevCompiler][nextCompiler] = 
             compilationRates[prevCompiler] / compilationRates[nextCompiler];  
-        }
         if (VM.LogAOSEvents) {
           VM_AOSLogging.reportBenefitRatio(
                            prevCompiler, nextCompiler,
@@ -288,7 +279,6 @@ public class VM_CompilerDNA implements VM_Constants {
   public static int getOptLevel(int compiler) {
     switch (compiler) {
       case BASELINE: return -1;
-      case QUICK: return -1;
       case OPT0: return 0;
       case OPT1: return 1;
       case OPT2: return 2;

@@ -878,7 +878,6 @@ declare -i RVM_FOR_64_ADDR=0
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
 #
 declare -i RVM_WITH_OPT_COMPILER=0
-declare -i RVM_WITH_QUICK_COMPILER=0
 declare -i RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
@@ -896,7 +895,6 @@ declare -i RVM_WITH_GCTRACE=0
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
 declare -i RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
-declare -i RVM_WITH_QUICK_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 
 # Here are the choices for additional components that are under development and/or are excluded from default build.
@@ -909,7 +907,6 @@ declare -i RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not j
 declare -i RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
-declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 ## Classpath versions that might work with Jikes RVM.
 ## See $RVM_ROOT/config/classpath-version for the gory details.
@@ -1088,14 +1085,6 @@ if [[ -f "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" ]]; then
     . "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" "${CONFIGURATION_FILE_SOURCE}"
 else
     croak_usage "Unknown configuration ${CONFIGURATION_NAME}"
-fi
-
-if (( RVM_WITH_QUICK_COMPILER )) && (( ! RVM_FOR_POWERPC )) ; then
-	    echo >&2 "\
-    $ME: Quick compiler configurations are only valid when the target is a PowerPC."
-	    trap '' EXIT
-	    exit 2
-
 fi
 
 # Now we can rationalize the preprocessor constants, since we have set them
@@ -1326,13 +1315,6 @@ EOF
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cleanFileList <<- EOF
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/adaptive
-EOF
-    fi
-
-    if (( RVM_WITH_QUICK_COMPILER )); then
-	cleanFileList <<- EOF
-	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/quick
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/quick
 EOF
     fi
 
@@ -3015,22 +2997,6 @@ com/ibm/jikesrvm/opt/OPT_MethodSummary
 EOF
 	fi
 
-    fi
-
-    if (( RVM_WITH_QUICK_COMPILER )); then
-	# data structures that need to carry over from boot image writing
-	# and/or classes that quick wants to be in the bootimage to 
-	# generate decent code (avoid dynamic linking, get them quick compiled)
-	if (( RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
-	cat <<- EOF
-java/util/Enumeration
-java/util/Dictionary
-java/util/TreeMap
-java/util/TreeSet
-java/util/Stack
-com/ibm/jikesrvm/VM_QuickCompilerException
-EOF
-        fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
