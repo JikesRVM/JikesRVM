@@ -53,7 +53,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
 
   // 2 is used by Linux for thread context, on AIX it's the toc and on OS X it's a scratch.
   static final int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? PROCESSOR_REGISTER + 1 : 2;
-  static final int KLUDGE_TI_REG = PROCESSOR_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 1 : 2);
+  static final int KLUDGE_TI_REG = PROCESSOR_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 2 : 1);
 
   static final int LAST_RVM_RESERVED_NV_GPR   = KLUDGE_TI_REG; // will become PR when KLUDGE_TI dies.
   static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1;
