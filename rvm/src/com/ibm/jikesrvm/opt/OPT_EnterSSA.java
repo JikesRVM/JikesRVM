@@ -45,7 +45,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * flag to optionally print verbose debugging messages
    */
-  static boolean DEBUG = false;
+  static final boolean DEBUG = false;
 
   /**
    * The govering IR
