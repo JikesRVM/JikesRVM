@@ -33,12 +33,14 @@ public final class VM_NativeMethod extends VM_Method {
    */
   private Address nativeIP;                               
 
-  //-#if RVM_WITH_POWEROPEN_ABI
   /**
-   * the TOC of the native procedure
+   * the TOC of the native procedure.
+   * Only used if VM.BuildForPowerOpenABI.
+   * TODO: Consider making a PowerOpen subclass of VM_NativeMethod
+   *       and pushing this field down to it.  For now, just bloat up
+   *       all native methods by 1 slot.
    */
   private Address nativeTOC;                              
-  //-#endif
   
   /**
    * Construct native method information
@@ -102,12 +104,12 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * get the native TOC for this method
    */
-  public Address getNativeTOC() { 
-    //-#if RVM_WITH_POWEROPEN_ABI
-    return nativeTOC;
-    //-#else
-    return Address.zero();
-    //-#endif
+  public Address getNativeTOC() {
+    if (VM.BuildForPowerOpenABI) {
+      return nativeTOC;
+    } else {
+      return Address.zero();
+    }
   }
 
   /**
@@ -187,12 +189,12 @@ public final class VM_NativeMethod extends VM_Method {
       // native procedure not found in library
       return false;
     } else {
-      //-#if RVM_WITH_POWEROPEN_ABI
-      nativeIP  = symbolAddress.loadAddress();
-      nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
-      //-#else
-      nativeIP = symbolAddress;
-      //-#endif
+      if (VM.BuildForPowerOpenABI) {
+        nativeIP  = symbolAddress.loadAddress();
+        nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
+      } else {
+        nativeIP = symbolAddress;
+      }
       return true;
     }
   }
@@ -203,12 +205,12 @@ public final class VM_NativeMethod extends VM_Method {
    * @param symbolAddress address of native function that implements the method
    */
   public synchronized void registerNativeSymbol(Address symbolAddress) {
-    //-#if RVM_WITH_POWEROPEN_ABI
-    nativeIP  = symbolAddress.loadAddress();
-    nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
-    //-#else
-    nativeIP = symbolAddress;
-    //-#endif
+    if (VM.BuildForPowerOpenABI) {
+      nativeIP  = symbolAddress.loadAddress();
+      nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
+    } else {
+      nativeIP = symbolAddress;
+    }
     replaceCompiledMethod(null);
   }
 
@@ -216,12 +218,12 @@ public final class VM_NativeMethod extends VM_Method {
    * Unregisters a native method
    */
   public synchronized void unregisterNativeSymbol() {
-    //-#if RVM_WITH_POWEROPEN_ABI
-    nativeIP  = Address.zero();
-    nativeTOC = Address.zero();
-    //-#else
-    nativeIP  = Address.zero();
-    //-#endif
+    if (VM.BuildForPowerOpenABI) {
+      nativeIP  = Address.zero();
+      nativeTOC = Address.zero();
+    } else {
+      nativeIP  = Address.zero();
+    }
     replaceCompiledMethod(null);
   }
 }

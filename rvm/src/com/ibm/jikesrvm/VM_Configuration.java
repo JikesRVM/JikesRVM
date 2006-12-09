@@ -74,28 +74,10 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  public static final boolean BuildForPowerOpenABI =
-        //-#if RVM_WITH_POWEROPEN_ABI
-          true;
-        //-#else
-          false;
-        //-#endif
-  
-  public static final boolean BuildForSVR4ABI =
-        //-#if RVM_WITH_SVR4_ABI
-          true;
-        //-#else
-          false;
-        //-#endif
-  
-  /** Used for OS/X (Darwin) */
-  public static final boolean BuildForMachOABI =
-        //-#if RVM_WITH_MACH_O_ABI
-          true;
-        //-#else
-          false;
-        //-#endif
-          
+  /* ABI selection.  Exactly one of these variables will be true in each build. */
+  public static final boolean BuildForMachOABI = BuildForOsx;
+  public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
+  public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
           
   public static final boolean BuildWithAllClasses =
         //-#if RVM_WITH_ALL_CLASSES

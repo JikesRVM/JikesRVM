@@ -344,10 +344,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2*BYTES_IN_STACKSLOT;
-    } else if (VM.BuildForSVR4ABI) {
-      spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;
     } else {
-        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
+      spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;
     }
     
 

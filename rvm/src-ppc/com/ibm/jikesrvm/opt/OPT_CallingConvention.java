@@ -89,23 +89,23 @@ final class OPT_CallingConvention extends OPT_IRTools {
     }
     /* compute the parameter space */
     int numberParams = Call.getNumberOfParams(s);
-    //-#if RVM_FOR_32_ADDR
-    int parameterWords = 0;
-    for (int i = 0; i < numberParams; i++) {
-      parameterWords++;
-      OPT_Operand op = Call.getParam(s, i);
-      if (op instanceof OPT_RegisterOperand) {
-        OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
-        if (reg.type.isLongType() || reg.type.isDoubleType())
-          parameterWords++;
-      } else if ((op instanceof OPT_LongConstantOperand) || 
-                 (op instanceof OPT_DoubleConstantOperand))
+    int parameterWords;
+    if (VM.BuildFor32Addr) {
+      parameterWords = 0;
+      for (int i = 0; i < numberParams; i++) {
         parameterWords++;
+        OPT_Operand op = Call.getParam(s, i);
+        if (op instanceof OPT_RegisterOperand) {
+          OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
+          if (reg.type.isLongType() || reg.type.isDoubleType())
+            parameterWords++;
+        } else if ((op instanceof OPT_LongConstantOperand) || 
+                   (op instanceof OPT_DoubleConstantOperand))
+          parameterWords++;
+      }
+    } else {
+      parameterWords = numberParams;
     }
-    //-#endif
-    //-#if RVM_FOR_64_ADDR
-    int parameterWords = numberParams;
-    //-#endif
     // see PowerPC Compiler Writer's Guide, pp. 162
     ir.stackManager.allocateParameterSpace((6 + parameterWords)*BYTES_IN_ADDRESS);
     // IMPORTANT WARNING: as the callee C routine may destroy the cmid field
@@ -115,15 +115,15 @@ final class OPT_CallingConvention extends OPT_IRTools {
                                       ir.regpool.makeFPOp(), 
                                       AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
     s.insertBack(s2);
-    //-#if RVM_WITH_POWEROPEN_ABI
-    s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ip,
-                     AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
-    s.insertBack(s2);
-	OPT_RegisterOperand iptmp = ir.regpool.makeTempAddress();
-	s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
-	s.insertBack(s2);
-	ip = iptmp;
-    //-#endif
+    if (VM.BuildForPowerOpenABI) {
+      s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ip,
+                       AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
+      s.insertBack(s2);
+      OPT_RegisterOperand iptmp = ir.regpool.makeTempAddress();
+      s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
+      s.insertBack(s2);
+      ip = iptmp;
+    }
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
     s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
                      AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
@@ -213,14 +213,14 @@ final class OPT_CallingConvention extends OPT_IRTools {
                                              (symParam, t),
                                              A(param)));
           } else {                  // spilled parameter
-            //-#if RVM_FOR_64_ADDR
-            if (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())
+            if (VM.BuildFor64Addr && (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())) {
               start.insertBack(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
-                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_INT )));
-            else //a reference or numeric long
-            //-#endif
+                                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_INT )));
+            } else {
+              // same size as addr (ie, either we're in 32 bit mode or we're in 64 bit mode and it's a reference or long)
               start.insertBack(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
-                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+                                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+            }
             spilledArgumentCounter--;
           }
         }
@@ -288,20 +288,20 @@ final class OPT_CallingConvention extends OPT_IRTools {
           MIR_Call.setParam(s, opNum, null);
         }
       } else {                    // IntType (or half of long) or reference
-        //-#if RVM_FOR_LINUX
-        /* NOTE: following adjustment is not stated in SVR4 ABI, but 
-         * was implemented in GCC.
-         */
-        if (isSysCall && Reg.type.isLongType()) {
-          if (firstLongHalf)
-            firstLongHalf = false;
-          else {
-            int true_index = FIRST_INT_PARAM + int_index;
-            int_index += (true_index + 1) & 0x01; // if gpr is even, gpr += 1
-            firstLongHalf = true;
+        if (VM.BuildForSVR4ABI) {
+          /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+           * was implemented in GCC.
+           */
+          if (isSysCall && Reg.type.isLongType()) {
+            if (firstLongHalf) {
+              firstLongHalf = false;
+            } else {
+              int true_index = FIRST_INT_PARAM + int_index;
+              int_index += (true_index + 1) & 0x01; // if gpr is even, gpr += 1
+              firstLongHalf = true;
+            }
           }
         }
-        //-#endif
         if (int_index < NUMBER_INT_PARAM) {             // register copy
           OPT_Register real = phys.get(FIRST_INT_PARAM + (int_index++));
           OPT_RegisterOperand Real = new OPT_RegisterOperand(real, Reg.type);
@@ -313,17 +313,17 @@ final class OPT_CallingConvention extends OPT_IRTools {
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
           callSpillLoc += BYTES_IN_ADDRESS;
-          //-#if RVM_FOR_64_ADDR
-          if (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
-              Reg.type.isCharType() || Reg.type.isBooleanType()){
-                  p.insertBack(MIR_Store.create(PPC_STW,
-                                                new OPT_RegisterOperand(reg, Reg.type),
-                                                A(FP), IC(callSpillLoc - BYTES_IN_INT)));
-          } else //a reference or numeric long
-          //-#endif
-                  p.insertBack(MIR_Store.create(PPC_STAddr,
-                                                new OPT_RegisterOperand(reg, Reg.type),
-                                                A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
+          if (VM.BuildFor64Addr && (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
+                                    Reg.type.isCharType() || Reg.type.isBooleanType())) {
+            p.insertBack(MIR_Store.create(PPC_STW,
+                                          new OPT_RegisterOperand(reg, Reg.type),
+                                          A(FP), IC(callSpillLoc - BYTES_IN_INT)));
+          } else {
+            // same size as addr (ie, either we're in 32 bit mode or we're in 64 bit mode and it's a reference or long)
+            p.insertBack(MIR_Store.create(PPC_STAddr,
+                                          new OPT_RegisterOperand(reg, Reg.type),
+                                          A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
+          }
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
@@ -337,7 +337,7 @@ final class OPT_CallingConvention extends OPT_IRTools {
     OPT_RegisterOperand callResult = null;
     OPT_Instruction lastCallSeqInstr = s;
     if (MIR_Call.hasResult2(s)) {
-      //-#if RVM_FOR_32_ADDR
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       OPT_RegisterOperand result2 = MIR_Call.getClearResult2(s);
       OPT_RegisterOperand physical = new OPT_RegisterOperand(phys.get
                                                              (FIRST_INT_RETURN 
@@ -347,10 +347,6 @@ final class OPT_CallingConvention extends OPT_IRTools {
       lastCallSeqInstr.insertFront(tmp);
       lastCallSeqInstr = tmp;
       MIR_Call.setResult2(s, null);
-      //-#endif
-      //-#if RVM_FOR_64_ADDR
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      //-#endif
     }
     if (MIR_Call.hasResult(s)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(s);
@@ -395,15 +391,11 @@ final class OPT_CallingConvention extends OPT_IRTools {
       MIR_Return.setVal(s, phys1.copyD2U());
     }
     if (MIR_Return.hasVal2(s)) {
-      //-#if RVM_FOR_32_ADDR
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       OPT_RegisterOperand symb2 = MIR_Return.getClearVal2(s);
       OPT_RegisterOperand phys2 = I(phys.get(FIRST_INT_RETURN + 1));
       s.insertBack(MIR_Move.create(PPC_MOVE, phys2, symb2));
       MIR_Return.setVal2(s, phys2.copyD2U());
-      //-#endif
-      //-#if RVM_FOR_64_ADDR
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      //-#endif
     }
   }
 }
