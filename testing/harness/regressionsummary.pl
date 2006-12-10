@@ -13,6 +13,9 @@
 #
 
 my $reportrecipient = shift(@ARGV);
+my $platform = shift(@ARGV);
+
+#"Linux.x86_64.32";
 
 # constants etc
 my @DAYS = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
@@ -26,6 +29,7 @@ my $NORMALFONT = "font-weight:normal;";
 my $BOLDFONT = "font-weight:bold;";
 my $MIMEBOUNDARY = "======".time()."======";
 my $SVNURL = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=";
+my $SENDMAIL = "/usr/sbin/sendmail";
 my $html = 1;
 my $short = 1;
 
@@ -35,11 +39,11 @@ my $regressionhost = "rvmx86lnx64";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 #my $reportrecipient = "Steve.Blackburn\@anu.edu.au";
 #my $reportrecipient = "Steve.Blackburn\@anu.edu.au, groved\@us.ibm.com, hindm\@us.ibm.com";
-my $platform = "Linux.x86_64.32";
+
 
 # initialize things
-open($out, ">summary.eml");
-#open($out, "|sendmail -t");
+#open($out, ">summary.eml");
+open($out, "|$SENDMAIL -t");
 my $today = 1;
 my %allsanity = ();
 my %allperf = ();
@@ -209,7 +213,7 @@ sub updatebestperf {
 #
 sub getbestperf {
   my ($day, $bestperf) = @_;
-  open(IN, "tar xzf ../archive/$DAYS[$day].$platform.tar.gz results/best.txt --to-stdout|");
+  open(IN, "tar Oxzf ../archive/$DAYS[$day].$platform.tar.gz results/best.txt |");
   my ($bm, $score);
   while (<IN>) {
     if (($bm, $score) = /(\S+)\s+([0-9.]+)/) {
@@ -546,7 +550,7 @@ sub getdata {
   getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source,$javadocerrors);
   for ($day = 0; $day < 7; $day++) {
     if ($day != $today) {
-      $source = "tar xzf ../archive/$DAYS[$day].$platform.tar.gz results/report.html --to-stdout|";
+      $source = "tar Oxzf ../archive/$DAYS[$day].$platform.tar.gz results/report.html |";
       getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
     }
   }
