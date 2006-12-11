@@ -17,6 +17,11 @@ on October 14, 2001,
     patch on the research tracker, or via older releases (2.3.4
     through 2.4.6).
 
+*** The HPM (Hardware Performance Monitor) code has been deleted.
+    It is now available on the research tracker (item 1613215),
+    by svn diff -r11162:11161, or in releases through 2.4.6.
+
+
 *Jikes RVM 2.4.6 Release Notes (released October 19, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.6 is 0.92.
