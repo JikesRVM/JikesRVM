@@ -37,8 +37,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
  * A java thread's execution context.
  *  
  * @author Derek Lieber
- * @modified Peter F. Sweeney (2003) added support for accessing HPM counter values
- * @modified Matthias Hauswirth (August, 2003) collect mid's with HPM counter values
  */
 @Uninterruptible public class VM_Thread implements VM_Constants {
 
@@ -68,39 +66,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   
   /* Set by exception handler. */
   public boolean dyingWithUncaughtException = false;
-
-  //-#if RVM_WITH_HPM
-  // Keep counter values for each Java thread.
-  public HPM_counters hpm_counters = null;
-  // when thread is scheduled, record real time
-  public long startOfWallTime = -1;
-  // globally unique thread id, needed because thread slots can be reused.
-  static private int GLOBAL_TID_INITIAL_VALUE = -1;
-  private int global_tid = GLOBAL_TID_INITIAL_VALUE;
-  public final int getGlobalIndex() { return global_tid; }
-  // globally unique thread id counter.  Increment ever time a thread is created.
-  static private int global_hpm_tid = 1;
-  // globally unique thread id counter.  Increment ever time a thread is created.
-  static private final Object global_hpm_tid_LOCK = new Object();
-  // generate a globally unique thread id (only called from constructors)
-  private final void assignGlobalTID() throws LogicallyUninterruptiblePragma
-  {
-    synchronized (global_hpm_tid_LOCK) {
-      global_tid = global_hpm_tid;
-      global_hpm_tid++;
-    }
-    if (global_tid < VM_Scheduler.MAX_THREADS) {
-      VM_Scheduler.hpm_threads[global_tid] = this;
-    } else {
-      // loose information!
-    }
-    if(VM_HardwarePerformanceMonitors.verbose>=2) {
-      VM.sysWrite(" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
-      VM.sysWriteln(global_tid);
-    }
-  }
-
-  //-#endif
 
   /**
    * zero-arg constructor for backwards compatibility.
@@ -429,9 +394,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
         }
       }
 
-      //-#if RVM_WITH_HPM
-      VM_HardwarePerformanceMonitors.takeHPMTimerSample(threadSwitch);
-      //-#endif
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
       VM_RuntimeMeasurements.takeTimerSample(whereFrom);
       //-#endif
@@ -545,74 +507,10 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     morph(true);
   }
 
-  //BEGIN HRM
-  //-#if RVM_WITH_HPM
-  /**
-   * Capture the CMIDs of 
-   * a) this method's caller, and the caller's caller, or
-   * b) this method's caller's caller, and the caller's caller's caller (if startWithCallersCaller is true)
-   * Sets the callee_CMID and caller_CMID of the processor's hpm.
-   *
-   * @param startWithCallersCaller walk to next activation record if true
-   * @throws  do not inline
-   */ 
-  public static final void captureCallChainCMIDs (final boolean startWithCallersCaller) 
-    throws NoInlinePragma 
-  {
-    final Address myFp = VM_Magic.getFramePointer();
-    final Address callerFp = VM_Magic.getCallerFramePointer(myFp);
-    // choose frame pointer of first frame to get cmid from
-    Address startFp;
-    if (startWithCallersCaller) {
-      startFp = VM_Magic.getCallerFramePointer(callerFp);
-    } else {
-      startFp = callerFp;
-    }
-    // get cmid1
-    final Address fp1 = startFp;
-    final int callee_CMID = VM_Magic.getCompiledMethodID(fp1);
-    if (fp1.EQ(STACKFRAME_SENTINEL_FP)) {
-      VM.sysFail("***VM_Thread.captureCallChainCMIDs() fp1 == STACKFRAME_SENTINEL_FP***");
-    }
-    if (callee_CMID == INVISIBLE_METHOD_ID) {
-      if (VM_HardwarePerformanceMonitors.verbose>=4) {
-        VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() callee_CMID == INVISIBLE_METHOD_ID***");
-        //      VM_Scheduler.dumpStack(); 
-      }
-    }
-
-    // get cmid2
-    final Address fp2 = VM_Magic.getCallerFramePointer(startFp);
-    final int caller_CMID = VM_Magic.getCompiledMethodID(fp2);
-    if (fp2.EQ(STACKFRAME_SENTINEL_FP)) {
-      VM.sysFail("***VM_Thread.captureCallChainCMIDs() fp2 == STACKFRAME_SENTINEL_FP***");
-    }
-    if (caller_CMID==INVISIBLE_METHOD_ID) {
-      VM.sysFail("***VM_Thread.captureCallChainCMIDs() caller_CMID == INVISIBLE_METHOD_ID***");
-    }
-    // save CMIDs in VM_Processor's HPM object
-    VM_Processor.getCurrentProcessor().hpm.callee_CMID = callee_CMID;
-    VM_Processor.getCurrentProcessor().hpm.caller_CMID = caller_CMID;
-    VM_Processor.getCurrentProcessor().hpm.cmidAvailable = true;
-  }
-  //-#endif
-  //END HRM
-
   /**
    * Suspend execution of current thread, in favor of some other thread.
    */ 
   public static void yield () throws NoInlinePragma {
-    //BEGIN HRM
-    //-#if RVM_WITH_HPM
-    captureCallChainCMIDs(false);
-    // sample HPM counter values at every yield
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.thread_group) {
-      VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif
-    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
@@ -625,17 +523,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * not guarded with a lock)
   */
   public static void yield (VM_AbstractThreadQueue q)  throws NoInlinePragma {
-    //BEGIN HRM
-    //-#if RVM_WITH_HPM
-    captureCallChainCMIDs(false);
-    // sample HPM counter values at every yield
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.thread_group) {
-      VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif
-    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -648,17 +535,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param l lock guarding that queue (currently locked)
    */ 
   public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) throws NoInlinePragma  {
-    //BEGIN HRM
-    //-#if RVM_WITH_HPM
-    captureCallChainCMIDs(false);
-    // sample HPM counter values at every yield
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.thread_group) {
-      VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif
-    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -678,17 +554,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param l2 the {@link VM_ProcessorLock} guarding <code>q2</code> (currently locked)
    */ 
   static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) throws NoInlinePragma {
-    //BEGIN HRM
-    //-#if RVM_WITH_HPM
-    captureCallChainCMIDs(false);
-    // sample HPM counter values at every yield
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.thread_group) {
-      VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif
-    //END HRM
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
@@ -756,11 +621,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    */ 
   private static void startoff () throws InterruptiblePragma {
     VM_Thread currentThread = getCurrentThread();
-    //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.verbose>=5) {
-      VM.sysWriteln("***VM_Thread.startoff() run thread "+currentThread.getIndex()+"***!");
-    }
-    //-#endif 
     if (trace) VM.sysWriteln("VM_Thread.startoff(): about to call ", 
                              currentThread.toString(), ".run()");
     
@@ -822,20 +682,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
       VM.enableGC();
 
     }
-
-    //-#if RVM_WITH_HPM
-    // sample HPM counter values at every interrupt or a thread switch.
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.thread_group) {
-      captureCallChainCMIDs(false);
-      VM_Thread myThread = getCurrentThread();
-      if (VM_HardwarePerformanceMonitors.verbose>=5) {
-        VM.sysWriteln("***VM_Thread.startoff() terminate thread "+myThread.getIndex()+"***!");
-      }
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif 
-
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_RuntimeMeasurements.monitorThreadExit();
@@ -1284,19 +1130,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
 
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
-
-    //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.booted()) {
-      if (hpm_counters == null) hpm_counters = new HPM_counters();
-      String name = getClass().toString();
-      assignGlobalTID();
-      if (VM_HardwarePerformanceMonitors.trace) {
-        VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, name);
-      }
-      // stash away name for future use
-      VM_HardwarePerformanceMonitors.putThreadName(name, global_tid);
-    }
-    //-#endif
 
     VM_Scheduler.threadCreationMutex.unlock();
 

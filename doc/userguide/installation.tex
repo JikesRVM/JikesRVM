@@ -834,16 +834,6 @@ preemption.
   all VM classes in the bootimage, not just those needed for startup.  
   The \Mlitch{Fast} and \Mlitch{Full} configurations set this flag.
 
-\item[\IndexTexttt{RVM\_HPM\_DIR}]  Used for PowerPC Hardware%
-  \index{HPM: Hardware Performance Monitors}
-  Performance Monitor (HPM) support.  Specifies where the HPM
-  libraries are located; they're needed at link time.
-
-\item[\IndexTexttt{RVM\_WITH\_HPM}]%
-  \index{HPM: Hardware Performance Monitors}
-  A conditional compilation directive.  When set to 1, include the HPM
-  (Hardware Performance Monitor) support code.  PowerPC only.
-
 \item[\IndexTexttt{RVM\_WITHOUT\_ASSERTIONS}]
  When set to 1, exclude runtime assertion checks.  The
  \Mlitch{Fast} configurations set this option.

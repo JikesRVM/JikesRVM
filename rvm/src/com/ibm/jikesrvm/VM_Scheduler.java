@@ -31,7 +31,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
  *
  * @author Bowen Alpern
  * @author Derek Lieber
- * PFS added calls to set HPM settings and start counting.
  */
 @Uninterruptible public class VM_Scheduler implements VM_Constants {
 
@@ -73,12 +72,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   //
   /** list of threads that have been created (slot 0 always empty) */
   public static final VM_Thread[]    threads = new VM_Thread[MAX_THREADS];
-
-  //-#if RVM_WITH_HPM
-  // Hack, don't to any GC of thread slots!
-  // never forget about a thread for reporting.
-  public static final VM_Thread[]    hpm_threads = new VM_Thread[MAX_THREADS];
-  //-#endif
 
   /** place to start searching threads[] for next free slot */
   static int                  threadAllocationIndex;
@@ -134,39 +127,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   // ~RC vars
 
   private static int NUM_EXTRA_PROCS = 0; // How many extra procs (not counting primordial) ?
-
-  //-#if RVM_WITH_HPM  
-  /**
-   * This call sets the processor affinity of the thread that is
-   * passed as the first parameter to a virtual processor that 
-   * is computed from the second parameter.
-   * ASSUMPTION: virtual processors are initialized before this is called.
-   * Kludge for IVME'03.  Binds SPECjbb warehouses to virtual processors.
-   * Called from JBBmain.java.
-   *
-   * @param t      thread as an object to fool jikes at compile time.
-   * @param value  valued used to determine which virtual processor to bind thread to.
-   *               Use mod of value to compute processor id.
-   *               Assume value > 0.
-   */
-  static public void setProcessorAffinity(Object t, int value) 
-  {
-    if (VM.VerifyAssertions) VM._assert(value >= 0);
-    int pid = 0;
-    if (0 < value && value <= VM_Scheduler.numProcessors) {
-      pid = value;
-    } else {
-      pid = (value % VM_Scheduler.numProcessors) + 1;
-    }
-    //    if(VM_HardwarePerformanceMonitors.verbose>=3) {
-      VM.sysWriteln("VM_Thread.setProcessorAffinity(",value,") assigned pid ",pid);
-      //    }
-    VM_Thread thread = (VM_Thread)t;
-    if (pid <= VM_Scheduler.numProcessors && pid > 0) {
-      thread.processorAffinity = VM_Scheduler.processors[pid];
-    }
-  }
-  //-#endif
 
   /**
    * Initialize boot image.
@@ -226,12 +186,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
         p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
         //-#endif
       }
-      //-#if RVM_WITH_HPM
-      // boot virtual processor's HPM producer
-      if (VM_HardwarePerformanceMonitors.booted()) {
-        processors[i].hpm.boot();    
-      }
-      //-#endif
     }
 
     // Create one one idle thread per processor.

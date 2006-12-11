@@ -255,29 +255,6 @@ public class VM_SysCallMagic {
   public static void sysWaitForVirtualProcessorInitialization(Address functionAddress) {} 
   public static void sysWaitForMultithreadingStart(Address functionAddress) {} 
 
-  //-#if RVM_WITH_HPM
-  // sysCall entry points to HPM
-  public static int sysHPMinit(Address functionAddress) { return 0; }
-  public static int sysHPMsetEvent(Address functionAddress, int e1, int e2, int e3, int e4) { return 0; }
-  public static int sysHPMsetEventX(Address functionAddress, int e5, int e6, int e7, int e8) {return 0; } 
-  public static int sysHPMsetMode(Address functionAddress, int mode) { return 0; }
-  public static int sysHPMgetNumberOfCounters(Address functionAddress) { return 0; }
-  public static int sysHPMgetNumberOfEvents(Address functionAddress)   { return 0; }
-  public static int sysHPMisBigEndian(Address functionAddress)         { return 0; }
-  public static int sysHPMtest(Address functionAddress) { return 0; }
-  public static int sysHPMsetProgramMyThread(Address functionAddress) { return 0; }
-  public static int sysHPMstartMyThread(Address functionAddress) { return 0; }
-  public static int sysHPMstopMyThread(Address functionAddress) { return 0; }
-  public static int sysHPMresetMyThread(Address functionAddress) { return 0; }
-  public static long sysHPMgetCounterMyThread(Address functionAddress, int counter) { return 0; }
-  public static int sysHPMsetProgramMyGroup(Address functionAddress) { return 0; }
-  public static int sysHPMstartMyGroup(Address functionAddress) { return 0; }
-  public static int sysHPMstopMyGroup(Address functionAddress) { return 0; }
-  public static int sysHPMresetMyGroup(Address functionAddress) { return 0; }
-  public static long sysHPMgetCounterMyGroup(Address functionAddress, int counter) { return 0; }
-  public static int sysHPMprintMyGroup(Address functionAddress) { return 0; }
-  //-#endif
-
   //-#if RVM_WITH_GCSPY
   // sysCall entry points to GCSpy
   public static Address gcspyDriverAddStream (Address functionAddress, Address driver, int it) { return null; }

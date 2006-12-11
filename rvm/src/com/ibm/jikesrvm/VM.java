@@ -259,18 +259,6 @@ import org.vmmagic.unboxed.*;
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
-    // set up HPM
-    //-#if RVM_WITH_HPM
-    if (BuildForHPM) {
-      if (VM_HardwarePerformanceMonitors.enabled()) {
-        // assume only one Java thread is executing!
-        if(VM_HardwarePerformanceMonitors.verbose>=2)
-          VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
-        VM_HardwarePerformanceMonitors.boot();
-      }
-    }
-    //-#endif
-
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
@@ -299,11 +287,6 @@ import org.vmmagic.unboxed.*;
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
      
-    //-#if RVM_WITH_HPM
-    runClassInitializer("com.ibm.jikesrvm.Java2HPM");
-    VM_HardwarePerformanceMonitors.setUpHPMinfo();
-    //-#endif
-
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.jikesrvm.VM_Process");
@@ -393,17 +376,6 @@ import org.vmmagic.unboxed.*;
     // Create one debugger thread.
     VM_Thread t = new DebuggerThread();
     t.start(VM_Scheduler.debuggerQueue);
-
-    //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.enabled()) {
-      // IS THIS NEEDED?
-      if (!VM_HardwarePerformanceMonitors.thread_group) {
-        if(VM_HardwarePerformanceMonitors.verbose>=2)
-          VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
-        VM_SysCall.sysHPMresetMyThread();
-      }
-    }
-    //-#endif
 
     // End of boot thread.
     //

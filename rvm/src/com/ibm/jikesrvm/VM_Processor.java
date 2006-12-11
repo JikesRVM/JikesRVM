@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.*;
  *
  * @author Bowen Alpern 
  * @author Derek Lieber
- * @modified Peter F. Sweeney (added HPM support)
  */
 @Uninterruptible public final class VM_Processor extends MM_ProcessorContext
 implements VM_Constants {
@@ -60,10 +59,6 @@ implements VM_Constants {
     this.lastLockIndex     = -1;
     this.isInSelect        = false;
     this.vpStatus = IN_JAVA;
-
-    //-#if RVM_WITH_HPM
-    hpm = new VM_HardwarePerformanceMonitor(id);
-    //-#endif
   }
 
 
@@ -208,11 +203,6 @@ implements VM_Constants {
     previousThread.endQuantum(now);
     newThread.startQuantum(now);
     
-    //-#if RVM_WITH_HPM
-    // set start time of thread
-    newThread.startOfWallTime = VM_Magic.getTimeBase();
-    //-#endif
-
     threadId       = newThread.getLockingId();
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
@@ -558,11 +548,6 @@ implements VM_Constants {
    * on SMP's.
    */
   public int processor_cbs_counter;
-
-  //-#if RVM_WITH_HPM
-  // Keep HPM information for each Virtual Processor.
-  public  VM_HardwarePerformanceMonitor hpm;
-  //-#endif
 
   // How many times timer interrupt has occurred since last thread switch
   public int interruptQuantumCounter = 0;

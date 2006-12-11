@@ -58,8 +58,6 @@ interface VM_ExitStatus {
   final public static int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 
     EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
   public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
-  /** Trouble with the Hardware Performance Monitors */
-  public static int EXIT_STATUS_HPM_TROUBLE = 110;
   public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
   /** same as OPT compiler */
   public static int EXIT_STATUS_JNI_COMPILER_FAILED = 101; 

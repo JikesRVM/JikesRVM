@@ -415,67 +415,6 @@ import org.vmmagic.pragma.*;
      VM_SysCallMagic.sysWaitForMultithreadingStart(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
   } 
 
-  //-#if RVM_WITH_HPM
-  // sysCall entry points to HPM
-  public static int sysHPMinit() {
-     return VM_SysCallMagic.sysHPMinit(VM_BootRecord.the_boot_record.sysHPMinitIP);
-  }
-  public static int sysHPMsetEvent(int e1, int e2, int e3, int e4) {
-     return VM_SysCallMagic.sysHPMsetEvent(VM_BootRecord.the_boot_record.sysHPMsetEventIP, e1, e2, e3, e4);
-  }
-  public static int sysHPMsetEventX(int e5, int e6, int e7, int e8) {
-     return VM_SysCallMagic.sysHPMsetEventX(VM_BootRecord.the_boot_record.sysHPMsetEventXIP, e5, e6, e7, e8);
-  } 
-  public static int sysHPMsetMode(int mode) {
-     return VM_SysCallMagic.sysHPMsetMode(VM_BootRecord.the_boot_record.sysHPMsetModeIP, mode);
-  }
-  public static int sysHPMgetNumberOfCounters() {
-     return VM_SysCallMagic.sysHPMgetNumberOfCounters(VM_BootRecord.the_boot_record.sysHPMgetNumberOfCountersIP);
-  }
-  public static int sysHPMgetNumberOfEvents() {
-     return VM_SysCallMagic.sysHPMgetNumberOfEvents(VM_BootRecord.the_boot_record.sysHPMgetNumberOfEventsIP);
-  }
-  public static int sysHPMisBigEndian() {
-     return VM_SysCallMagic.sysHPMisBigEndian(VM_BootRecord.the_boot_record.sysHPMisBigEndianIP);
-  }
-  public static int sysHPMtest() {
-     return VM_SysCallMagic.sysHPMtest(VM_BootRecord.the_boot_record.sysHPMtestIP);
-  }
-  public static int sysHPMsetProgramMyThread() {
-     return VM_SysCallMagic.sysHPMsetProgramMyThread(VM_BootRecord.the_boot_record.sysHPMsetProgramMyThreadIP);
-  }
-  public static int sysHPMstartMyThread() {
-     return VM_SysCallMagic.sysHPMstartMyThread(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
-  }
-  public static int sysHPMstopMyThread() {
-     return VM_SysCallMagic.sysHPMstopMyThread(VM_BootRecord.the_boot_record.sysHPMstopMyThreadIP);
-  }
-  public static int sysHPMresetMyThread() {
-     return VM_SysCallMagic.sysHPMresetMyThread(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-  }
-  public static long sysHPMgetCounterMyThread(int counter) {
-     return VM_SysCallMagic.sysHPMgetCounterMyThread(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP, counter);
-  }
-  public static int sysHPMsetProgramMyGroup() {
-     return VM_SysCallMagic.sysHPMsetProgramMyGroup(VM_BootRecord.the_boot_record.sysHPMsetProgramMyGroupIP);
-  }
-  public static int sysHPMstartMyGroup() {
-     return VM_SysCallMagic.sysHPMstartMyGroup(VM_BootRecord.the_boot_record.sysHPMstartMyGroupIP);
-  }
-  public static int sysHPMstopMyGroup() {
-     return VM_SysCallMagic.sysHPMstopMyGroup(VM_BootRecord.the_boot_record.sysHPMstopMyGroupIP);
-  }
-  public static int sysHPMresetMyGroup() {
-     return VM_SysCallMagic.sysHPMresetMyGroup(VM_BootRecord.the_boot_record.sysHPMresetMyGroupIP);
-  }
-  public static long sysHPMgetCounterMyGroup(int counter) {
-     return VM_SysCallMagic.sysHPMgetCounterMyGroup(VM_BootRecord.the_boot_record.sysHPMgetCounterMyGroupIP, counter);
-  }
-  public static int sysHPMprintMyGroup() {
-     return VM_SysCallMagic.sysHPMprintMyGroup(VM_BootRecord.the_boot_record.sysHPMprintMyGroupIP);
-  }
-  //-#endif
-
   //-#if RVM_WITH_GCSPY
   // sysCall entry points to GCSpy
   public static final boolean WITH_GCSPY = true;

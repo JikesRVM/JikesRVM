@@ -645,8 +645,7 @@ function load_config_file () {
 #---------------------------------------------------------------------------#
 
 ## You can also set the optimization and debugging levels
-## for the compiler.  We had a bunch of code in here that had hardwired
-## stuff like -O for HPM and -O2 for everything else.
+## for the compiler.
 ##
 ## Override this in the config file if you want to.
 ## For the fastest builds (quick turnaround when hacking on the C source code),
@@ -880,9 +879,6 @@ declare -i RVM_FOR_64_ADDR=0
 declare -i RVM_WITH_OPT_COMPILER=0
 declare -i RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
-
-# Include support for hardware performance monitors (HPM)
-declare -i RVM_WITH_HPM=0
 
 ## Memory Allocators and Garbage Collector options (MMTk)
 declare RVM_WITH_MMTK_PLAN=""
@@ -2975,15 +2971,6 @@ EOF
 
     fi
 
-    if (( RVM_WITH_HPM )) ; then
-	cat << EOF
-com/ibm/jikesrvm/HPM_counters
-com/ibm/jikesrvm/HPM_info
-com/ibm/jikesrvm/Java2HPM
-com/ibm/jikesrvm/VM_HardwarePerformanceMonitor
-com/ibm/jikesrvm/VM_HardwarePerformanceMonitors
-EOF
-    fi
     cat <<- EOF
 EOF_PRIMORDIAL_CLASSES_STR_1
 
@@ -3308,10 +3295,6 @@ function emitBooterLinker () {
 	# Taken:    InterfaceDeclarations.h in RVM.scratch directory
 	# Returned: booter in build directory
 	
-	## Suppress a warning message from the AIX linker, when building
-	## the HPM library.  Don't suppress, if tracing is set.
-	declare -i hush_hpm_linking_aix_duplicate_symbols=1
-
 	# Allow the build directory to be different between
 	# the host/boot image
 	# writing system and the target system.
@@ -3603,54 +3586,6 @@ EOF
     fi	
 
     cat <<- EOF
-	ALL_HPM_LIBS=""
-EOF
-    if (( RVM_WITH_HPM )); then
-	cat <<- EOF
-		echo >&2 -n "(build libhpm\${shlib_suffix} library) "
-		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
-		    -o $SCRATCH_DIRECTORY_STR/hpm.o \
-		    $ROOT_DIRECTORY_STR/tools/HPM/$ARCH_DIR/hpm.c
-EOF
-	if (( RVM_FOR_POWERPC )); then
-	    cat <<- EOF
-		SYS_HPM_LIBS="-L${RVM_HPM_DIR} -lpmapi"
-EOF
-	elif (( RVM_FOR_IA32 )); then
-	    cat <<- EOF
-		SYS_HPM_LIBS="-L${RVM_HPM_DIR} -lpapi"
-EOF
-	fi
-	cat <<- EOF
-		chdir $SCRATCH_DIRECTORY_STR
-		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm\${shlib_suffix} hpm.o \${SYS_HPM_LIBS}
-
-		echo >&2 -n "(building libJava2HPM\${shlib_suffix} JNI library) "
-		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
-		    -I$ROOT_DIRECTORY_STR/include \
-		    -I$ROOT_DIRECTORY_STR/tools/HPM/$ARCH_DIR \
-		    -I$ROOT_DIRECTORY_STR/tools/bootImageRunner \
-    		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o \
-		    $ROOT_DIRECTORY_STR/tools/HPM/Java2HPM.C
-
-		ALL_HPM_LIBS="\${SYS_HPM_LIBS} -L$BUILD_DIRECTORY_STR -lhpm"
-		chdir $SCRATCH_DIRECTORY_STR
-
-		function last_hpm_link () {
-		    \$LDSHARED -o $BUILD_DIRECTORY_STR/libJava2HPM\${shlib_suffix} Java2HPM.o \$ALL_HPM_LIBS
-		}
-		if (( hush_hpm_linking_aix_duplicate_symbols )) && ! tracing
-		then
-		    last_hpm_link 2>&1 | ${FGREP} -v 0711-345 | ${FGREP} -v 0711-224 || :
-		else
-		    last_hpm_link
-		fi
-		
-EOF
-    fi	# RVM_WITH_HPM
-
-
-    cat <<- EOF
 	OBJECTS='RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o '
 
 	## Processor-specific part of the build.
@@ -3727,7 +3662,7 @@ EOF
     cat <<- EOF
 	chdir $SCRATCH_DIRECTORY_STR
 	\$BOOTER_CXX -o $BOOTER_STR \${OBJECTS} \
-	    \$GCSPY_LIBS \${CCLIBS} \$ALL_HPM_LIBS	\
+	    \$GCSPY_LIBS \${CCLIBS} \
 	    -lpthread
 	EOF
 
@@ -3737,7 +3672,7 @@ EOF
 	## Get the no-pthreads versions of the .o files.
 	mv noPthreads/*.o .
 	\$BOOTER_CXX -o $BOOTER_NO_PTHREADS_STR \${OBJECTS} \
-	    \$GCSPY_LIBS \${CCLIBS} \$ALL_HPM_LIBS
+	    \$GCSPY_LIBS \${CCLIBS}
 	EOF
     fi
 

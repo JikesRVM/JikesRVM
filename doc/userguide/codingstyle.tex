@@ -34,9 +34,9 @@ status codes (you can add the rest if you need them) are exported by
 the program GenerateInterfaceDeclarations.java into the generated
 include file \texttt{InterfaceDeclarations.h}.
 
-This convention does not apply to tools, such as the HPM tracefile
-reader, or the boot image writer.  Those tools are independent
-programs themselves, and do not run arbitrary Java code.  For them,
+This convention does not apply to tools, such as the boot image writer
+or GenerateFromTemplate.  Those tools are independent programs
+themselves, and do not run arbitrary Java code.  For them,
 System.exit(1) is appropriate.  Also, the Java preprocessor has its
 own exit convention, for which see the code.
 

@@ -351,29 +351,6 @@ public class VM_BootRecord {
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;
 
-  //-#if RVM_WITH_HPM
-  // sysCall entry points to HPM
-  public Address sysHPMinitIP;
-  public Address sysHPMsetEventIP;
-  public Address sysHPMsetEventXIP;
-  public Address sysHPMsetModeIP;
-  public Address sysHPMgetNumberOfCountersIP;
-  public Address sysHPMgetNumberOfEventsIP;
-  public Address sysHPMisBigEndianIP;
-  public Address sysHPMtestIP;
-  public Address sysHPMsetProgramMyThreadIP;
-  public Address sysHPMstartMyThreadIP;
-  public Address sysHPMstopMyThreadIP;
-  public Address sysHPMresetMyThreadIP;
-  public Address sysHPMgetCounterMyThreadIP;
-  public Address sysHPMsetProgramMyGroupIP;
-  public Address sysHPMstartMyGroupIP;
-  public Address sysHPMstopMyGroupIP;
-  public Address sysHPMresetMyGroupIP;
-  public Address sysHPMgetCounterMyGroupIP;
-  public Address sysHPMprintMyGroupIP;
-  //-#endif
-
    //-#if RVM_WITH_GCSPY
    // GCspy entry points
    public Address gcspyDriverAddStreamIP;

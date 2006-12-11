@@ -76,8 +76,6 @@ public class VM_CommandLineArgs {
   public static final int VERIFY_ARG           = 22;
   public static final int GC_HELP_ARG          = 23;
   public static final int GC_ARG               = 24;
-  public static final int HPM_HELP_ARG         = 25;
-  public static final int HPM_ARG              = 26;
   public static final int BOOTSTRAP_CLASSES_ARG = 27;
   public static final int CPUAFFINITY_ARG      = 28;
   public static final int PROCESSORS_ARG       = 29;
@@ -133,9 +131,6 @@ public class VM_CommandLineArgs {
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
-    new Prefix("-X:hpm:help$",          HPM_HELP_ARG),
-    new Prefix("-X:hpm$",               HPM_HELP_ARG),
-    new Prefix("-X:hpm:",               HPM_ARG),
     new Prefix("-X:vm:help$",           VM_HELP_ARG),
     new Prefix("-X:vm$",                VM_HELP_ARG),
     new Prefix("-X:vm:",                VM_ARG),
@@ -563,24 +558,6 @@ public class VM_CommandLineArgs {
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         break;
-        
-        //-#if RVM_WITH_HPM
-        // -------------------------------------------------------------------
-        // HPM (Hardware Performance Monitor) arguments
-        // -------------------------------------------------------------------
-      case HPM_ARG: // "-X:hpm:<option>"
-        VM_HardwarePerformanceMonitors.processArg(arg);
-        break;
-      case HPM_HELP_ARG:
-        VM_HardwarePerformanceMonitors.printHelp();
-        break;
-        //-#else
-      case HPM_ARG: // "-X:hpm:<option>"
-      case HPM_HELP_ARG:
-        VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        break;
-        //-#endif
       }
     }
   }
