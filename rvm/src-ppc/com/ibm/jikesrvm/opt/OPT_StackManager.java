@@ -274,8 +274,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager {
     // 1. save the nonvolatile GPRs
     int n = nNonvolatileGPRS - 1;
     OPT_Register FP = phys.getFP();
-    //-#if RVM_FOR_32_ADDR
-    if (n > MULTIPLE_CUTOFF) {
+    if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use a stm
       OPT_Register nv = null;
       for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -288,11 +287,9 @@ public final class OPT_StackManager extends OPT_GenericStackManager {
       range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Store.create(PPC_STMW, range, A(FP), IC(offset)));
-    } else
-    //-#endif
-    {
+    } else {
       // use a sequence of load instructions
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileGPROffset(n);
@@ -331,8 +328,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager {
     // 1. restore the nonvolatile GPRs
     int n = nNonvolatileGPRS - 1;
     OPT_Register FP = phys.getFP();
-    //-#if RVM_FOR_32_ADDR
-    if (n > MULTIPLE_CUTOFF) {
+    if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use an lm
       OPT_Register nv = null;
       for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -345,9 +341,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager {
       range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Load.create(PPC_LMW, range, A(FP), IC(offset)));
-    } else
-    //-#endif
-    {
+    } else {
       for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();

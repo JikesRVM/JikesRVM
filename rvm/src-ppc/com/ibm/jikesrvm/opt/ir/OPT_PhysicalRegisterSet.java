@@ -113,12 +113,11 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     
     // 2. Set the 'integer' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
-      //-#if RVM_FOR_32_ADDR
-      reg[i].setInteger();
-      //-#endif
-      //-#if RVM_FOR_64_ADDR
-      reg[i].setLong();
-      //-#endif
+      if (VM.BuildFor32Addr) {
+        reg[i].setInteger();
+      } else {
+        reg[i].setLong();
+      }
     }
     
     // 3. Set the 'double' attribute on each FPR
