@@ -127,7 +127,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
         throw new OPT_OptimizingCompilerException("two scaled registers in address");
       }
     }
-    AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement);
+    AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement.toInt());
   }
   protected final OPT_MemoryOperand consumeAddress(byte size, 
                                          OPT_LocationOperand loc,

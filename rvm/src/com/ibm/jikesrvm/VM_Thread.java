@@ -1109,9 +1109,9 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp = sp.minus(BYTES_IN_ADDRESS);                                 // allow for one local
-    contextRegisters.gprs.set(ESP, sp);
+    contextRegisters.gprs.set(ESP, sp.toWord());
     contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
-                              VM_Magic.objectAsAddress(VM_Magic.getJTOC()));
+                              VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 
@@ -1124,7 +1124,7 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     fp.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
     fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
         
-    contextRegisters.gprs.set(FRAME_POINTER, fp);
+    contextRegisters.gprs.set(FRAME_POINTER, fp.toWord());
     contextRegisters.ip  = ip;
     //-#endif
 

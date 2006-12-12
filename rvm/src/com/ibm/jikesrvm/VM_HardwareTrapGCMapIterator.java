@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
     //
     Address registerLocation = VM_Magic.objectAsAddress(thread.hardwareExceptionRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
-      registerLocations.set(i, registerLocation);
+      registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }
     return Address.zero();
