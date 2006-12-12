@@ -2189,65 +2189,7 @@ EOF
 EOF
 
 	cat <<- EOF
-build_mmtk() {
-  MMTK_SOURCE=\$1
-  MMTK_BUILD=\$2
-  MMTK_JAR=\$3
-
-  run rm -rf \$MMTK_BUILD
-  run mkdir \$MMTK_BUILD
-  (
-    chdir \$MMTK_BUILD
-
-    copy_source() {
-      SOURCE_TREE=\$1
-      COMPONENT=\$2
-      TARGET=\$MMTK_BUILD/\$COMPONENT
-      run mkdir \$TARGET
-
-      ( chdir \$SOURCE_TREE
-        \${FIND} . -name .svn -prune -o -type d -not -name . -print | 
-          while read dir
-          do
-            run mkdir \$TARGET/\$dir
-          done
-        \${FIND} . -name .svn -prune -o -type f -name "*.java" -print |
-          while read file
-          do
-            run cp \$file \$TARGET/\$file
-          done
-      )
-    }
-
-    #
-    # Copy MMTk's various sources to the MMTk build tree
-    #
-    copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
-    copy_source \$MMTK_SOURCE/src mmtk
-
-    ${ROOT_DIRECTORY_STR}/bin/ecj -1.5 -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
-
-    #
-    # Build mmtk.jar
-    #
-    chdir mmtk
-    \${FIND} .  \\( -name "*.class" -o -name "*.java" \\) | \$XARGS \${JAR} cf \$MMTK_JAR
-
-    #
-    # Remove .class files - required for when we determine the build image classes.
-    #
-    \${FIND} . -name "*.class" | \$XARGS rm
-
-  )
-  status=\$?
-  if [ \$status != 0 ]
-  then exit \$status
-  fi
-}
-	EOF
-
-	cat <<- EOF
-        mmtk_build="build_mmtk ${ROOT_DIRECTORY_STR}/MMTk \$PWD/../MMTk.classes \$PWD/mmtk.jar"
+        mmtk_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/MMTk/build.xml -q -Dtarget-src.jar=\"\$PWD/mmtk-src.jar\" src-jar clean"
 	EOF
 
     cat <<- EOF
@@ -2268,7 +2210,7 @@ build_mmtk() {
 	        exit \$status
 	    fi
 
-    ecj_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:../MMTk.classes/mmtk -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+    ecj_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:mmtk-src.jar -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
     
     open_paren 'compiling classes'
     if tracing jbuild || tracing make || tracing; then
@@ -2436,7 +2378,7 @@ EOF
 # 	generator_prefix="\$(dirname \$generator_source_file)"
 
 	chdir $SCRATCH_DIRECTORY_STR
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
 
 	eval run $ROOT_DIRECTORY_STR/bin/ecj -1.5 -g \
 	  -classpath \$cp \
@@ -2585,7 +2527,6 @@ EOF
     # ${FIND}'s action defaults to -print if none is explicitly specified.
     if (( RVM_WITH_ALL_CLASSES )); then
         echo "    \${FIND} . -name '*.class'"
-	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@@' |sed 's@.class\$@@'"
     else
 	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -2595,7 +2536,6 @@ EOF
 	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
         fi
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
-	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
 	echo "    \$FIND ./org/vmmagic -name '*.class'"
@@ -2988,7 +2928,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    $JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	# Nuke leading "./" from the strings "find" prints out.
 	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
-	    $JAR_STR tf mmtk.jar | grep '.class\$' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	    > $PRIMORDIAL_CLASSES_STR # Create it clean
 #	DEBUGGING -- lets us test for junk in the RVM.primordials file:
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
@@ -3189,7 +3128,7 @@ EOF
 	#
 	chdir $SCRATCH_DIRECTORY_STR
 
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
 	run $ROOT_DIRECTORY_STR/bin/ecj -1.5 \
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
@@ -3208,7 +3147,7 @@ EOF
 	## later, but it does no harm to include it for earlier versions.
 	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
-		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar \
+		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE_CODE=$BOOTIMAGE_CODE_STR \
 		RVM_BOOTIMAGE_DATA=$BOOTIMAGE_DATA_STR \
@@ -3783,7 +3722,7 @@ function emitToolCompiler () {
 	        break # must be a regular argument or a flag we do not handle.
 	    fi
 	done
-	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
+	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	
 	run exec $ROOT_DIRECTORY_STR/bin/ecj -1.5 -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"

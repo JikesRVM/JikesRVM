@@ -9,7 +9,10 @@
 <project name="MMTk" default="jar" basedir=".">
 	<description>MMTk</description>
 	
+	<property name="target-src.jar" location="mmtk-src.jar"/>
+
 	<property name="src" location="src"/>
+	<property name="src.jikes" location="ext/vm/jikesrvm"/>
 	<property name="src.vmmagic.stub" location="ext/vmmagic/stub"/>
 	<property name="doc" location="doc"/>
 	<property name="extsrc" location="ext"/>
@@ -60,5 +63,16 @@
 	<target name="jar" depends="compile,sources" description="generate the jar file" >
 		<!-- Put everything in ${build} into the mmtk-${DSTAMP}.jar file -->
 		<jar jarfile="mmtk-${DSTAMP}.jar" basedir="${build}" index="true" />
+	</target>
+
+	<!-- ================================= 
+         target: src-jar       
+         ================================= -->
+	<target name="src-jar" depends="sources" description="generate a source jar file" >
+		<!-- Put everything in ${src} into the ${srcjar.name} jar file -->
+		<jar jarfile="${target-src.jar}" index="true">
+		    <fileset dir="${src}"/>			
+		    <fileset dir="${src.jikes}"/>			
+	    </jar>
 	</target>
 </project>
