@@ -69,7 +69,7 @@ import org.vmmagic.unboxed.*;
         // move to the beginning of the save area for nonvolatiles
         Address location = nonVolArea;
         for (int i = first; i <= LAST_GCMAP_REG; i++) {
-          registerLocations.set(i, location);
+          registerLocations.set(i, location.toWord());
           location = location.plus(BYTES_IN_ADDRESS);
         }
       }
@@ -81,13 +81,13 @@ import org.vmmagic.unboxed.*;
         
         // Walk the saved volatiles, updating registerLocations array
         for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
-          registerLocations.set(i, location);
+          registerLocations.set(i, location.toWord());
           location = location.plus(BYTES_IN_ADDRESS);
         }
         
         // Walk the saved scratch, updating registerLocations array
         for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
-          registerLocations.set(i, location);
+          registerLocations.set(i, location.toWord());
           location = location.plus(BYTES_IN_ADDRESS);
         }
       }

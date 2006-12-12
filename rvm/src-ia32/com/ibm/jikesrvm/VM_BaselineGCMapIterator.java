@@ -205,10 +205,10 @@ import org.vmmagic.unboxed.*;
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET));
-        registerLocations.set(T0, framePtr.plus(T0_SAVE_OFFSET));
-        registerLocations.set(T1, framePtr.plus(T1_SAVE_OFFSET));
-        registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET));
+        registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET).toWord());
+        registerLocations.set(T0, framePtr.plus(T0_SAVE_OFFSET).toWord());
+        registerLocations.set(T1, framePtr.plus(T1_SAVE_OFFSET).toWord());
+        registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
         
         bridgeRegistersLocationUpdated = true;
       }
@@ -277,8 +277,8 @@ import org.vmmagic.unboxed.*;
     } else {
       // point registerLocations[] to our callers stackframe
       //
-      registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET));
-      registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET));
+      registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET).toWord());
+      registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
     }
     
     return Address.zero();

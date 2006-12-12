@@ -59,7 +59,7 @@ import org.vmmagic.pragma.*;
   // 
   public final void unwindStackFrame() {
     ip = invalidIP; // if there was a valid value in ip, it ain't valid anymore
-    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(getInnermostFramePointer()));
+    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(getInnermostFramePointer()).toWord());
   }
 
   // set ip & fp. used to control the stack frame at which a scan of
@@ -68,7 +68,7 @@ import org.vmmagic.pragma.*;
   //
   public final void setInnermost( Address newip, Address newfp ) {
     ip = newip;
-    gprs.set(FRAME_POINTER, newfp);
+    gprs.set(FRAME_POINTER, newfp.toWord());
   }
 
   // set ip and fp values to those of the caller. used just prior to entering
@@ -78,7 +78,7 @@ import org.vmmagic.pragma.*;
   public final void setInnermost() {
     Address fp = VM_Magic.getFramePointer();
     ip = VM_Magic.getReturnAddress(fp);
-    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(fp));
+    gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(fp).toWord());
   }
 
   public final Address getIPLocation() {

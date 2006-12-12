@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = NONVOLATILE_GPRS[i];
-          registerLocations.set(registerIndex, location);
+          registerLocations.set(registerIndex, location.toWord());
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -99,7 +99,7 @@ import org.vmmagic.unboxed.*;
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = VOLATILE_GPRS[i];
-          registerLocations.set(registerIndex, location);
+          registerLocations.set(registerIndex, location.toWord());
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);

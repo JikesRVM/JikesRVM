@@ -189,7 +189,7 @@ import org.vmmagic.unboxed.*;
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
           location = location.minus(BYTES_IN_ADDRESS);
-          registerLocations.set(i, location);
+          registerLocations.set(i, location.toWord());
         }
 
         bridgeRegistersLocationUpdated = true;

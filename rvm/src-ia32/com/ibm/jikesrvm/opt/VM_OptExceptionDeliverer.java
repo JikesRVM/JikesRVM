@@ -44,7 +44,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // reset sp to "empty params" state (ie same as it was after prologue)
     Address sp = fp.minus(optMethod.getFrameFixedSize());
-    registers.gprs.set(STACK_POINTER, sp);
+    registers.gprs.set(STACK_POINTER, sp.toWord());
 
     // store exception object for later retrieval by catch block
     int offset = optMethod.getUnsignedExceptionOffset();

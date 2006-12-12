@@ -42,7 +42,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     //
     sp = sp.minus(BYTES_IN_ADDRESS);
     sp.store(VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs.set(SP, sp);
+    registers.gprs.set(SP, sp.toWord());
 
     // set address at which to resume executing frame
     registers.ip = catchBlockInstructionAddress;

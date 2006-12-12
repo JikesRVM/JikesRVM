@@ -140,7 +140,7 @@ import org.vmmagic.pragma.*;
     Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
 
     for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
-      registerLocations.set(i, registerLocation);
+      registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.minus(BYTES_IN_ADDRESS);
     }
 
