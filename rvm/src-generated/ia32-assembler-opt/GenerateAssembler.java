@@ -481,7 +481,8 @@ public class GenerateAssembler {
      * format required, GenerateAssembler will throw a BadEmitMethod
      * exception and abort.
      */
-    static class BadEmitMethod extends RuntimeException {
+    static class BadEmitMethod extends RuntimeException {	
+	static final long serialVersionUID = 0; // Keep Eclipse quiet
 
         /**
          *  Create a BadEmitMethod exception indicating that 

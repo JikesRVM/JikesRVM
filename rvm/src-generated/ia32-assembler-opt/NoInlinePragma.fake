@@ -13,4 +13,5 @@ package org.vmmagic.pragma;
  * @author Dave Grove
  */
 public class NoInlinePragma extends RuntimeException {
+  static final long serialVersionUID = 0; // Keep Eclipse quiet
 }
