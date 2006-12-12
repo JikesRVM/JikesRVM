@@ -145,7 +145,13 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         //////////
       case REF_STORE_opcode:
         s.operator = VM.BuildFor32Addr?INT_STORE : LONG_STORE;
-        // fallthrough!
+        // On PowerPC, the value being stored must be in a register
+        Store.setValue(s, asRegPolymorphic(Store.getClearValue(s), s, ir));
+        // Supported addressing modes are quite limited.
+        Store.setAddress(s, asRegAddress(Store.getClearAddress(s), s, ir));
+        Store.setOffset(s, asImmediateOrRegOffset(Store.getClearOffset(s), s, ir, true));
+        break;
+
       case BYTE_STORE_opcode:case SHORT_STORE_opcode:case INT_STORE_opcode:
       case LONG_STORE_opcode:
         // On PowerPC, the value being stored must be in a register
@@ -163,7 +169,11 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 
       case REF_LOAD_opcode:
         s.operator = VM.BuildFor32Addr?INT_LOAD : LONG_LOAD;
-        // fallthrough!
+        // Supported addressing modes are quite limited.
+        Load.setAddress(s, asRegAddress(Load.getClearAddress(s), s, ir));
+        Load.setOffset(s, asImmediateOrRegOffset(Load.getClearOffset(s), s, ir, true));
+        break;
+
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_LOAD_opcode:case USHORT_LOAD_opcode:case INT_LOAD_opcode:
       case LONG_LOAD_opcode:case FLOAT_LOAD_opcode:case DOUBLE_LOAD_opcode:
@@ -191,8 +201,10 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 
       //-#if RVM_FOR_64_ADDR
       case LONG_MOVE_opcode:
-        // fallthrough!
+        s.operator = REF_MOVE;
+        break;
       //-#endif
+
       case INT_MOVE_opcode:
         s.operator = REF_MOVE;
         break;
@@ -203,11 +215,18 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         
       case REF_IFCMP_opcode:
         s.operator = VM.BuildFor32Addr? INT_IFCMP : LONG_IFCMP;
-        // fallthrough!
+        // val1 can't be a constant, val2 must be small enough.
+        IfCmp.setVal1(s, asRegPolymorphic(IfCmp.getClearVal1(s), s, ir));
+        IfCmp.setVal2(s, asImmediateOrRegPolymorphic(IfCmp.getClearVal2(s), s, ir, true));
+
       //-#if RVM_FOR_64_ADDR
       case LONG_IFCMP_opcode:
-        // fallthrough!
+        // val1 can't be a constant, val2 must be small enough.
+        IfCmp.setVal1(s, asRegPolymorphic(IfCmp.getClearVal1(s), s, ir));
+        IfCmp.setVal2(s, asImmediateOrRegPolymorphic(IfCmp.getClearVal2(s), s, ir, true));
+        break;
       //-#endif
+
       case INT_IFCMP_opcode:
         // val1 can't be a constant, val2 must be small enough.
         IfCmp.setVal1(s, asRegPolymorphic(IfCmp.getClearVal1(s), s, ir));
@@ -231,22 +250,36 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         //////////
       //-#if RVM_FOR_64_ADDR
       case LONG_ADD_opcode:
-        // fallthrough!
+        s.operator = REF_ADD;
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
+        break;
       //-#endif
+
       case INT_ADD_opcode:
         s.operator = REF_ADD;
-        // fallthrough!
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
+        break;
+
       case REF_ADD_opcode:
         Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
         break;
       
       //-#if RVM_FOR_64_ADDR
       case LONG_SUB_opcode:
-        // fallthrough!
+        s.operator = REF_SUB;
+        Binary.setVal1(s, asImmediateOrRegPolymorphic(Binary.getClearVal1(s), s, ir, true));
+        // val2 isn't be constant (if it were, OPT_Simplifier would have
+        // converted this into an ADD of -Val2).
+        break;
       //-#endif
+
       case INT_SUB_opcode:
         s.operator = REF_SUB;
-        // fallthrough!
+        Binary.setVal1(s, asImmediateOrRegPolymorphic(Binary.getClearVal1(s), s, ir, true));
+        // val2 isn't be constant (if it were, OPT_Simplifier would have
+        // converted this into an ADD of -Val2).
+        break;
+
       case REF_SUB_opcode:
         Binary.setVal1(s, asImmediateOrRegPolymorphic(Binary.getClearVal1(s), s, ir, true));
         // val2 isn't be constant (if it were, OPT_Simplifier would have
@@ -279,60 +312,85 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 
       //-#if RVM_FOR_64_ADDR
       case LONG_NEG_opcode:
-        // fallthrough!
+        s.operator = REF_NEG;
+        break;
       //-#endif
+
       case INT_NEG_opcode:
         s.operator = REF_NEG;
         break;
 
       //-#if RVM_FOR_64_ADDR
       case LONG_NOT_opcode:
-        // fallthrough!
+        s.operator = REF_NOT;
+        break;
       //-#endif
+
       case INT_NOT_opcode:
        s.operator = REF_NOT;
        break;
       
       //-#if RVM_FOR_64_ADDR
       case LONG_AND_opcode:
-        // fallthrough!
+        s.operator = REF_AND;
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
       //-#endif
+
       case INT_AND_opcode:
         s.operator = REF_AND;
-        // fallthrough!
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
+
       case REF_AND_opcode:
         Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
-      break;
+        break;
       
       //-#if RVM_FOR_64_ADDR
       case LONG_OR_opcode:
-        // fallthrough!
+        s.operator = REF_OR;
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
       //-#endif
+
       case INT_OR_opcode:
         s.operator = REF_OR;
-        // fallthrough!
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
+
       case REF_OR_opcode:
         Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
-      break;
+        break;
       
       //-#if RVM_FOR_64_ADDR
       case LONG_XOR_opcode:
-        // fallthrough!
+        s.operator = REF_XOR;
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
       //-#endif
+
       case INT_XOR_opcode:
         s.operator = REF_XOR;
-        // fallthrough!
+        Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
+        break;
+
       case REF_XOR_opcode:
         Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
-      break;
+        break;
 
       case REF_SHL_opcode:
         s.operator = (VM.BuildFor32Addr? INT_SHL : LONG_SHL);
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
+
       //-#if RVM_FOR_64_ADDR
       case LONG_SHL_opcode:
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
       //-#endif
+
       case INT_SHL_opcode:
         // Val2 could be a constant, but Val1 apparently can't be.
         Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
@@ -340,11 +398,17 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 
       case REF_SHR_opcode:
         s.operator = (VM.BuildFor32Addr? INT_SHR : LONG_SHR);
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
+
       //-#if RVM_FOR_64_ADDR
       case LONG_SHR_opcode:
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
       //-#endif
+
       case INT_SHR_opcode:
         // Val2 could be a constant, but Val1 apparently can't be.
         Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
@@ -352,11 +416,17 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
 
       case REF_USHR_opcode:
         s.operator = (VM.BuildFor32Addr? INT_USHR : LONG_USHR);
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
+
       //-#if RVM_FOR_64_ADDR
       case LONG_USHR_opcode:
-        // fallthrough!
+        // Val2 could be a constant, but Val1 apparently can't be.
+        Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
+        break;
       //-#endif
+
       case INT_USHR_opcode:
         // Val2 could be a constant, but Val1 apparently can't be.
         Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
@@ -377,11 +447,13 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
                 case INT_2ADDRSigExt_opcode:
         s.operator = (VM.BuildFor32Addr? REF_MOVE : INT_2LONG);
         break;
+
       //-#if RVM_FOR_32_ADDR
       case INT_2ADDRZerExt_opcode:
         s.operator = REF_MOVE;
         break;
       //-#endif
+
       //-#if RVM_FOR_64_ADDR
       case LONG_2ADDR_opcode: 
         s.operator = REF_MOVE;
