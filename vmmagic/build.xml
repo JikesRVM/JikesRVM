@@ -1,21 +1,17 @@
 <!--
- * Ant build file for MMTk
+ * Ant build file for vmmagic
  *       
  * - jar         compiles from source and creates the jar file. 
  *   $Date: 2006/07/08 01:51:44 $
  *   $Id: build.xml,v 1.19 2006/07/08 01:51:44 steveb Exp $
 -->
 
-<project name="MMTk" default="jar" basedir=".">
-	<description>MMTk</description>
-	
-	<property name="target.jar" location="mmtk.jar"/>
-	<property name="target-src.jar" location="mmtk-src.jar"/>
-	<property name="vmmagic.jar" location="../vmmagic/vmmagic.jar"/>
+<project name="vmmagic" default="jar" basedir=".">
+	<description>vmmagic</description>
 
+	<property name="target.jar" location="vmmagic.jar"/>
+	
 	<property name="src" location="src"/>
-	<property name="src.jikes" location="ext/vm/jikesrvm"/>
-	<property name="doc" location="doc"/>
 	<property name="build" location="build"/>
 
 	<!-- ================================= 
@@ -36,13 +32,9 @@
 	<!-- ================================= 
          target: compile all sources
          ================================= -->
-	<target name="compile" depends="init" description="compile the MMTk sources" >
+	<target name="compile" depends="init" description="compile the vmmagic sources" >
 		<!-- Compile the java code from ${src} into ${build} -->
-		<javac srcdir="${src}" destdir="${build}">
-			<classpath>
-				<pathelement location="${vmmagic.jar}"/>
-		    </classpath>
-		</javac>
+		<javac srcdir="${src}" destdir="${build}"/>
 	</target>
 
 	<!-- ================================= 
@@ -51,14 +43,13 @@
 	<target name="sources" depends="init" description="copy the sources" >
 		<copy todir="${build}">
 			<fileset dir="." includes="src/**"/>
-			<fileset dir="." includes="doc/**"/>
 			<fileset file="LICENSE"/>
 			<fileset file="build.xml"/>
 		</copy>
 	</target>
-
+	
 	<!-- ================================= 
-         target: jar              
+         target: jar            
          ================================= -->
 	<target name="jar" description="generate the jar file" >
 		<antcall target="jar.basic">
@@ -72,9 +63,9 @@
 	<target name="jar.release" description="generate a date-stamped jar file" >
 		<!-- Create the time stamp -->
 		<tstamp/>
-		<!-- Put everything in ${build} into the mmtk-${DSTAMP}.jar file -->
+		<!-- Put everything in ${build} into the vmmagic-${DSTAMP}.jar file -->
 		<antcall target="jar.basic">
-			<param name="jar.name" value="mmtk-${DSTAMP}.jar"/>
+			<param name="jar.name" value="vmmagic-${DSTAMP}.jar"/>
 		</antcall>
 	</target>
 	
@@ -84,16 +75,5 @@
 	<target name="jar.basic" depends="compile,sources" description="generate a jar file" >
 		<!-- Put everything in ${build} into the ${jar.name} jar file -->
 		<jar jarfile="${jar.name}" basedir="${build}" index="true" />
-	</target>
-
-	<!-- ================================= 
-         target: src-jar       
-         ================================= -->
-	<target name="src-jar" depends="sources" description="generate a source jar file" >
-		<!-- Put everything in ${src} into the ${srcjar.name} jar file -->
-		<jar jarfile="${target-src.jar}" index="true">
-		    <fileset dir="${src}"/>			
-		    <fileset dir="${src.jikes}"/>			
-	    </jar>
 	</target>
 </project>

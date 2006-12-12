@@ -26,27 +26,16 @@ import org.vmmagic.pragma.*;
  * @modified Daniel Frampton
  * @see Address
  */
-@Uninterruptible public final class Word {
-
-  // Do not try to create a static field containing special values.
-  //   Suboptimal code will be generated.
-
-  //-#if RVM_FOR_32_ADDR
-  private int value;  
-  //-#else
-  private long value;  
-  //-#endif
-
-  //-#if RVM_FOR_32_ADDR
-  Word (int val) { 
-     value = val; 
-   }
-  //-#else
-  Word (long val) { 
-    value = val; 
+@Uninterruptible public final class Word extends ArchitecturalWord {
+  Word(int value) {
+    super(value, false);
   }
-  //-#endif
-  
+  Word(int value, boolean zeroExtend) {
+    super(value, zeroExtend);
+  }
+  Word(long value) {
+    super(value);
+  }
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return (o instanceof Word) && ((Word) o).value == value;
@@ -59,22 +48,12 @@ import org.vmmagic.pragma.*;
   
   public static Word fromIntZeroExtend(int val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Word(val);
-    //-#else
-    long ans = ((long)val) & 0x00000000ffffffffL;
-    return new Word(ans);
-    //-#endif
+    return new Word(val, true);
   }
      
   public static Word fromLong(long val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-    //-#else
     return new Word(val);
-    //-#endif
   }
 
   public static Word zero() throws UninterruptibleNoWarnPragma {

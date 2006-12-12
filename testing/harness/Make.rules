@@ -48,6 +48,7 @@ vpath %.class		$(BENCH_CLASS_CP)
 ALL_PATH = $(BENCH_SOURCE_PATH) \
 	   $(BENCH_CLASS_PATH) \
 	   $(JAL_BUILD)/RVM.classes/jksvm.jar \
+	   $(JAL_BUILD)/RVM.classes/vmmagic.jar \
 	   $(JAL_BUILD)/RVM.classes/rvmrt.jar
 
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)

@@ -106,14 +106,11 @@ public final class Address {
   /**
    * Fabricate an <code>Address</code> instance from an integer
    * 
-   * @deprecated To support 32 & 64 bits, the user should be explicit
-   * about sign extension
-   * 
    * @param address the integer from which to create an <code>Address</code>
    *          instance
    * @return An address instance
    */
-  public static Address fromInt(int address) {
+  public static Address fromLong(long address) {
     return null;
   }
 

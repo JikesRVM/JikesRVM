@@ -23,28 +23,16 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng
  * @see Address Word Offset
  */
-@Uninterruptible public final class Extent {
-
-  // Do not try to create a static field containing special offset values.
-  //   Suboptimal code will be generated.
-
-  //-#if RVM_FOR_32_ADDR
-  private int value;
-  //-#else
-  private long value;
-  //-#endif
-
-  //-#if RVM_FOR_32_ADDR
-  Extent(int offset) {  
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    value = offset;
+@Uninterruptible public final class Extent extends ArchitecturalWord {
+  Extent(int value) {
+    super(value, false);
   }
-  //-#else
-  Extent(long offset) {  
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    value = offset;
+  Extent(int value, boolean zeroExtend) {
+    super(value, zeroExtend);
   }
-  //-#endif
+  Extent(long value) {
+    super(value);
+  }
 
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -58,22 +46,12 @@ import org.vmmagic.pragma.*;
 
   public static Extent fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Extent(address);
-    //-#else
-    long val = ((long)address) & 0x00000000ffffffffL;
-    return new Extent(val);
-    //-#endif
+    return new Extent(address, true);
   }
 
   public static Extent fromLong (long offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-    //-#else
     return new Extent(offset);
-    //-#endif
   }
 
   public static Extent zero () throws UninterruptibleNoWarnPragma {

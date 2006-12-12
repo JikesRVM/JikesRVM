@@ -17,6 +17,7 @@ import com.ibm.jikesrvm.classloader.*;
  * @author Stephen Fink
  */
 public class NoInlinePragma extends PragmaException {
+  static final long serialVersionUID = 0; // Keep Eclipse quiet
   private static final VM_TypeReference me = getTypeRef("Lorg/vmmagic/pragma/NoInlinePragma;");
 
   public static boolean declaredBy(VM_Method method) {

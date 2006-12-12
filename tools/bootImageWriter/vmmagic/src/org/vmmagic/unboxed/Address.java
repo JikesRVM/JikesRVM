@@ -32,39 +32,17 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-@Uninterruptible public final class Address implements VM_SizeConstants {
+@Uninterruptible public final class Address extends ArchitecturalWord implements VM_SizeConstants {
 
-  // Do not try to create a static field containing special address values.
-  // Suboptimal code will be generated.
-
-  //-#if RVM_FOR_32_ADDR
-  private int value;
-  //-#else
-  private long value;
-  //-#endif
-
-  /****************************************************************************
-   *
-   * Constructors
-   */
-
-  //-#if RVM_FOR_32_ADDR
-  /**
-   * Create an {@link Address} instance from an integer.
-   */
-  Address(int address) {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    value = address;
+  Address(int value) {
+    super(value, false);
   }
-  //-#else
-   /**
-   * Create an {@link Address} instance from a long.
-   */
-  Address(long address) {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    value = address;
+  Address(int value, boolean zeroExtend) {
+    super(value, zeroExtend);
   }
-  //-#endif
+  Address(long value) {
+    super(value);
+  }
 
   /****************************************************************************
    *
@@ -146,12 +124,7 @@ import org.vmmagic.pragma.*;
   public static Address fromIntZeroExtend(int address) 
     throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(address);
-    //-#else
-    long val = ((long)address) & 0x00000000ffffffffL;
-    return new Address(val);
-    //-#endif
+    return new Address(address, true);
   }
 
   /**
@@ -164,12 +137,7 @@ import org.vmmagic.pragma.*;
   public static Address fromLong(long address)
     throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-    //-#else
     return new Address(address);
-    //-#endif
  }
  
   /**

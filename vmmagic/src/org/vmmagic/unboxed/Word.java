@@ -25,6 +25,10 @@ public final class Word {
     return null;
   }
 
+  public static Word fromLong(long val) {
+    return null;
+  }
+  
   public static Word zero() {
     return null;
   }

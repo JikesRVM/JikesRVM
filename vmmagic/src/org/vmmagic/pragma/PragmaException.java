@@ -9,6 +9,7 @@
 //$Id$
 package org.vmmagic.pragma;
 
+import com.ibm.jikesrvm.classloader.VM_Method;;
 /**
  * Commenting required.
  * 
@@ -16,4 +17,7 @@ package org.vmmagic.pragma;
  */
 public class PragmaException extends RuntimeException {
   static final long serialVersionUID = 0; // Keep Eclipse quiet
+  public static boolean declaredBy(VM_Method method) {
+    return true;
+  }
 }

@@ -2187,19 +2187,48 @@ EOF
 	fi
 
 EOF
-
+        # We "needlessly" build the mmtk.jar.  In fact by including this
+        # as an ant target we ensure that mmtk sources remain self contained.
+        # Otherwise mmtk is only compiled in the context of the rvm sources.  The
+        # reasons for using the sources rather than a regular jar are prozaic.  
+        # The way the build system deterimes classes for inclusion in the boot
+        # is currently dependant on having the sources at hand and compiling from
+        # select entrypoints (rather than compiling all). Only those classes which
+        # are reached by the compiler are included in the image.
 	cat <<- EOF
-        mmtk_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/MMTk/build.xml -q -Dtarget-src.jar=\"\$PWD/mmtk-src.jar\" src-jar clean"
+	mmtk_src_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/MMTk/build.xml -q -Dtarget-src.jar=\"\$PWD/mmtk-src.jar\" -Dtarget.jar=\"\$PWD/mmtk.jar\" clean src-jar jar clean"
+	vmmagic_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/vmmagic/build.xml -q -Dtarget.jar=\"\$PWD/vmmagic.jar\" clean jar clean"
+	EOF
+	if (( RVM_FOR_64_ADDR )); then 
+	    vmmagic_arch_width="-Dbuild.64bit=true"
+	else
+	    vmmagic_arch_width=""
+	fi
+	cat <<- EOF
+	bootimage_vmmagic_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/tools/bootImageWriter/vmmagic/build.xml -q -Drvm.path=\"\$PWD\" $vmmagic_arch_width -Dtarget.jar=\"\$PWD/vmmagic-host.jar\" clean jar clean"
 	EOF
 
     cat <<- EOF
-    open_paren 'compiling mmtk'
+    open_paren 'creating mmtk source jar'
 	    if tracing jbuild || tracing make || tracing; then
 	        cleanline
-	        echo "  "\${mmtk_build}
+	        echo "  "\${mmtk_src_build}
 	    fi
-	    if \${mmtk_build}; then
-	        close_paren 'mmtk compiled'
+	    if \${mmtk_src_build}; then
+	        close_paren 'mmtk-src.jar built'
+	    else
+	        status=\$?
+	        close_paren 'creation of mmtk-src.jar FAILED'
+	        exit \$status
+	    fi
+
+    open_paren 'compiling generic vmmagic'
+	    if tracing jbuild || tracing make || tracing; then
+	        cleanline
+	        echo "  "\${vmmagic_build}
+	    fi
+	    if \${vmmagic_build}; then
+	        close_paren 'vmmagic compiled'
 	    else
 	        status=\$?
 	        close_paren 'compilation FAILED'
@@ -2210,7 +2239,7 @@ EOF
 	        exit \$status
 	    fi
 
-    ecj_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:mmtk-src.jar -bootclasspath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+    ecj_invocation="$ROOT_DIRECTORY_STR/bin/ecj -1.5 -sourcepath .:mmtk-src.jar -bootclasspath .:rvmrt.jar:vmmagic.jar -d . \$TOP_LEVEL_SOURCES"
     
     open_paren 'compiling classes'
     if tracing jbuild || tracing make || tracing; then
@@ -2258,6 +2287,23 @@ EOF
         \$FIND java -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
         \$FIND gnu -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
     close_paren 'rvmrt.jar augmented'
+
+    open_paren 'compiling boot image writer vmmagic'
+	    if tracing jbuild || tracing make || tracing; then
+	        cleanline
+	        echo "  "\${bootimage_vmmagic_build}
+	    fi
+	    if \${bootimage_vmmagic_build}; then
+	        close_paren 'vmmagic compiled'
+	    else
+	        status=\$?
+	        close_paren 'compilation FAILED'
+		## Now that we invoke ecj with a longer list of TOP_LEVEL_SOURCES,
+		## this message has grown Much Too Long.
+	        echo >&2 "\$ME: The Java compiler exited with status \${status}"
+	        echo >&2 "     Run \$ME -trace if you need more information"
+	        exit \$status
+	    fi
 
     if tracing jbuild; then
         echo -n "(nothing needed to be compiled) "
@@ -2378,7 +2424,7 @@ EOF
 # 	generator_prefix="\$(dirname \$generator_source_file)"
 
 	chdir $SCRATCH_DIRECTORY_STR
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/vmmagic-host.jar
 
 	eval run $ROOT_DIRECTORY_STR/bin/ecj -1.5 -g \
 	  -classpath \$cp \
@@ -2527,6 +2573,7 @@ EOF
     # ${FIND}'s action defaults to -print if none is explicitly specified.
     if (( RVM_WITH_ALL_CLASSES )); then
         echo "    \${FIND} . -name '*.class'"
+        echo "    \$JAR tf ./vmmagic.jar| grep '.class'"
     else
 	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -2538,7 +2585,7 @@ EOF
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
-	echo "    \$FIND ./org/vmmagic -name '*.class'"
+        echo "    \$JAR tf ./vmmagic.jar| grep '.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
     echo ") > ${PRIMORDIAL_CLASSES_STR}.want-these"
@@ -2928,6 +2975,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    $JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	# Nuke leading "./" from the strings "find" prints out.
 	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
+	    \$JAR tf ./vmmagic.jar| grep '.class' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	    > $PRIMORDIAL_CLASSES_STR # Create it clean
 #	DEBUGGING -- lets us test for junk in the RVM.primordials file:
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
@@ -3128,7 +3176,7 @@ EOF
 	#
 	chdir $SCRATCH_DIRECTORY_STR
 
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/vmmagic-host.jar
 	run $ROOT_DIRECTORY_STR/bin/ecj -1.5 \
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
@@ -3147,7 +3195,7 @@ EOF
 	## later, but it does no harm to include it for earlier versions.
 	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
-		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
+		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/vmmagic-host.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE_CODE=$BOOTIMAGE_CODE_STR \
 		RVM_BOOTIMAGE_DATA=$BOOTIMAGE_DATA_STR \

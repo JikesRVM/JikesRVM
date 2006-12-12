@@ -25,29 +25,16 @@ import com.ibm.jikesrvm.VM;
  * @author Perry Cheng
  * @see Address Word
  */
-@Uninterruptible public final class Offset {
-
-  // Do not try to create a static field containing special offset values.
-  //   Suboptimal code will be generated.
-
-  //-#if RVM_FOR_32_ADDR
-  private int value;
-  //-#else
-  private long value;
-  //-#endif
-
-  //-#if RVM_FOR_32_ADDR
-  Offset(int offset) {  
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
-    value = offset;
+@Uninterruptible public final class Offset extends ArchitecturalWord {
+  Offset(int value) {
+    super(value, false);
   }
-  //-#else
-  Offset(long offset) {  
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
-    value = offset;
+  Offset(int value, boolean zeroExtend) {
+    super(value, zeroExtend);
   }
-  //-#endif
-  
+  Offset(long value) {
+    super(value);
+  }
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return (o instanceof Offset) && ((Offset) o).value == value;
@@ -60,22 +47,12 @@ import com.ibm.jikesrvm.VM;
 
   public static Offset fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Offset(address);
-    //-#else
-    long val = ((long)address) & 0x00000000ffffffffL;
-    return new Offset(val);
-    //-#endif
+    return new Offset(address, true);
   }
 
   public static Offset fromLong(long offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-    //-#else
     return new Offset(offset);
-    //-#endif
   }
 
   public static Offset zero() throws UninterruptibleNoWarnPragma {

@@ -22,11 +22,16 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  * 
  * @author Daniel Frampton
  */
-@Uninterruptible public final class ObjectReference implements VM_SizeConstants {
+@Uninterruptible public final class ObjectReference extends ArchitecturalWord implements VM_SizeConstants {
+  ObjectReference(int value) {
+    super(value, true);
+  }
+  ObjectReference(long value) {
+    super(value);
+  }
   
   /**
-   * Convert from an object to a reference.  Note: this is a JikesRVM
-   * specific extension to vmmagic.
+   * Convert from an object to a reference.
    * @param obj The object 
    * @return The corresponding reference
    */
@@ -38,15 +43,6 @@ import com.ibm.jikesrvm.VM_SizeConstants;
    * Return a null reference
    */
   public static final ObjectReference nullReference() throws InlinePragma {
-    return null;
-  }
-
-  /**
-   * Convert from an reference to an object. Note: this is a JikesRVM
-   * specific extension to vmmagic.
-   * @return The object 
-   */
-  public Object toObject() {
     return null;
   }
 

@@ -22,8 +22,7 @@ package org.vmmagic.unboxed;
 public final class ObjectReference {
 
   /**
-   * Convert from an object to a reference.  Note: this is a JikesRVM
-   * specific extension to vmmagic.
+   * Convert from an object to a reference.
    * @param obj The object 
    * @return The corresponding reference
    */
