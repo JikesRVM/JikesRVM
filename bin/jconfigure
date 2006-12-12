@@ -1249,11 +1249,6 @@ function emitSourceToPreprocessList () {
         # For 'Dummy' files which are in default package
 	$RVM_ROOT/rvm/src/
 
-	#VMMagic
-	$RVM_ROOT/rvm/src/org/vmmagic
-	$RVM_ROOT/rvm/src/org/vmmagic/pragma
-	$RVM_ROOT/rvm/src/org/vmmagic/unboxed
-
 	# Core VM that is included in all configurations
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/classloader
@@ -2196,7 +2191,7 @@ EOF
         # select entrypoints (rather than compiling all). Only those classes which
         # are reached by the compiler are included in the image.
 	cat <<- EOF
-	mmtk_src_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/MMTk/build.xml -q -Dtarget-src.jar=\"\$PWD/mmtk-src.jar\" -Dtarget.jar=\"\$PWD/mmtk.jar\" clean src-jar jar clean"
+	mmtk_src_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/MMTk/build.xml -q -Dtarget-src.jar=\"\$PWD/mmtk-src.jar\" -Dtarget.jar=\"\$PWD/mmtk.jar\" clean src-jar clean"
 	vmmagic_build="run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/vmmagic/build.xml -q -Dtarget.jar=\"\$PWD/vmmagic.jar\" clean jar clean"
 	EOF
 	if (( RVM_FOR_64_ADDR )); then 
