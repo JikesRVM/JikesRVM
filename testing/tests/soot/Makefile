@@ -31,10 +31,9 @@ else
   TIME_LIMIT=600
 endif
 
+START_ARGS=-O --app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar:$(RVM_BUILD)/RVM.classes/vmmagic.jar${EXTRA_CLASSPATH} ${CLASS} -f J
+
 include		$(JAL_ROOT)/testing/harness/Make.rules
-
-START_ARGS=-O --app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar${EXTRA_CLASSPATH} ${CLASS} -f J
-
 
 
 
