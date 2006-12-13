@@ -308,9 +308,7 @@ public class VM_BootRecord {
   public Address sysDoubleToIntIP;
   public Address sysFloatToLongIP;
   public Address sysDoubleToLongIP;
-  //-#if RVM_FOR_POWERPC
   public Address sysDoubleRemainderIP;
-  //-#endif
   public Address sysPrimitiveParseFloatIP;
   public Address sysPrimitiveParseIntIP;
   public Address sysParseMemorySizeIP;

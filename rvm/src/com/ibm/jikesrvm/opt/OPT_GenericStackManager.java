@@ -1095,11 +1095,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         }
 
         // deal with sys calls that may bash non-volatiles
-        //-#if RVM_FOR_IA32
         if (isSysCall(s)) {
           OPT_CallingConvention.saveNonvolatilesAroundSysCall(s,ir);
         }
-        //-#endif
       }
     }
   }

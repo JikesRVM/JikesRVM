@@ -246,9 +246,7 @@ class OPT_LICM extends OPT_CompilerPhase {
     case INT_2DOUBLE_opcode:
     case INT_2ADDRSigExt_opcode:
     case INT_2ADDRZerExt_opcode:
-  //-#if RVM_FOR_64_ADDR
     case LONG_2ADDR_opcode:
-  //-#endif
     case ADDR_2INT_opcode:
     case ADDR_2LONG_opcode:
     case LONG_2INT_opcode:

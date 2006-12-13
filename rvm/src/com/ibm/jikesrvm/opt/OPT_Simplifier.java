@@ -404,11 +404,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     case INT_2ADDRZerExt_opcode:
       result = int2AddrZerExt(s);
       break;
-      //-#if RVM_FOR_64_ADDR
     case LONG_2ADDR_opcode:
       result = long2Addr(s);
       break;
-      //-#endif
     case INT_2SHORT_opcode:
       result = int2Short(s);
       break;
@@ -2656,9 +2654,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
 
 
-  //-#if RVM_FOR_64_ADDR
   private static DefUseEffect long2Addr(OPT_Instruction s) {
-    if (CF_ADDR) {
+    if (VM.BuildFor64Addr && CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -2669,7 +2666,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     }
     return DefUseEffect.UNCHANGED;
   }
-  //-#endif
+
   private static DefUseEffect int2Short(OPT_Instruction s) {
     if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);

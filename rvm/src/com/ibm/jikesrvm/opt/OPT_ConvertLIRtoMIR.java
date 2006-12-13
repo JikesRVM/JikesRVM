@@ -184,22 +184,22 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           }
           break;
 
-          //-#if RVM_FOR_POWERPC
         case FLOAT_REM_opcode: case DOUBLE_REM_opcode:
           {
-            // NOTE: must move constants out of sysCall before we expand it.
-            //       otherwise we'll have the wrong value in the JTOC register when
-            //       we try to load the constant from the JTOC!
-            OPT_Operand val1 = ensureRegister(Binary.getClearVal1(s), s, ir);
-            OPT_Operand val2 = ensureRegister(Binary.getClearVal2(s), s, ir);
-            Call.mutate2(s, SYSCALL, 
-                         Binary.getClearResult(s), null, 
-                         OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField), 
-                         val1, val2);
-            OPT_CallingConvention.expandSysCall(s, ir);
+            if (VM.BuildForPowerPC) {
+              // NOTE: must move constants out of sysCall before we expand it.
+              //       otherwise we'll have the wrong value in the JTOC register when
+              //       we try to load the constant from the JTOC!
+              OPT_Operand val1 = ensureRegister(Binary.getClearVal1(s), s, ir);
+              OPT_Operand val2 = ensureRegister(Binary.getClearVal2(s), s, ir);
+              Call.mutate2(s, SYSCALL, 
+                           Binary.getClearResult(s), null, 
+                           OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField), 
+                           val1, val2);
+              OPT_CallingConvention.expandSysCall(s, ir);
+            }
           }
           break;
-          //-#endif
 
         case LONG_2FLOAT_opcode:
           { 

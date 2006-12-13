@@ -15,10 +15,8 @@ import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_Controller;
 import com.ibm.jikesrvm.adaptive.VM_AOSDatabase;
-//-#endif
 
 /**
  * This class contains the high level logic for executing an inlining decision.
@@ -172,7 +170,6 @@ public class OPT_Inliner {
       call.bcIndex = callSite.bcIndex;
       call.position = callSite.position;
 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
       if (COUNT_FAILED_GUARDS && 
           VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
@@ -188,7 +185,6 @@ public class OPT_Inliner {
           VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
         testFailed.appendInstruction(counterInst);
       }
-      //-#endif
         
       //-#if RVM_WITH_OSR
       if (inlDec.OSRTestFailed()) {

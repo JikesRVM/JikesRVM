@@ -1697,7 +1697,7 @@ sysDoubleToLong(double a)
     return (long long)a;
 }
 
-#ifdef RVM_FOR_POWERPC
+// sysDoubleRemainder is only used on PPC
 #include <math.h>
 extern "C" double
 sysDoubleRemainder(double a, double b)
@@ -1726,7 +1726,6 @@ sysDoubleRemainder(double a, double b)
     }
     return tmp;
 }
-#endif
 
 /* Used to parse command line arguments that are
    doubles and floats early in booting before it

@@ -398,4 +398,16 @@ final class OPT_CallingConvention extends OPT_IRTools {
       MIR_Return.setVal2(s, phys2.copyD2U());
     }
   }
+
+  /**
+   * Save and restore all nonvolatile registers around a syscall.
+   * On PPC, our register conventions are compatablile with the
+   * natvie ABI, so there is nothing to do.
+   *
+   * @param call the sys call
+   */
+  static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
+  }
+
+  
 }
