@@ -37,6 +37,5 @@ class Dummy {
   static WordArray               x;
   static OffsetArray             y;
   static ExtentArray             z;
-  static org.vmmagic.pragma.Unpreemptible aa; // temp
 }
 	// Test of a TAB character.
