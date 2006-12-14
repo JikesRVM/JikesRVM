@@ -89,7 +89,7 @@
 	<!-- ================================= 
          target: src-jar       
          ================================= -->
-	<target name="src-jar" depends="sources" description="generate a source jar file" >
+	<target name="src-jar" description="generate a source jar file" >
 		<!-- Put everything in ${src} into the ${srcjar.name} jar file -->
 		<jar jarfile="${target-src.jar}" index="true">
 		    <fileset dir="${src}"/>			
