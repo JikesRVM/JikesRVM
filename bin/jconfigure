@@ -1902,6 +1902,9 @@ EOF
 
 	# Build the command line options
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options all_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+
+	# VM_Configuration.java
+	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/vm-configuration GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
     
 EOF
 
