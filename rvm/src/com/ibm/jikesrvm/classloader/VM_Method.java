@@ -465,6 +465,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (isObjectInitializerHelper()) return true;
+    if (isAnnotationPresent(Interruptible.class)) return true;
+    if (isAnnotationPresent(Preemptible.class)) return true;
+    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
+    if (isAnnotationPresent(Uninterruptible.class)) return false;
+    if (isAnnotationPresent(Unpreemptible.class)) return false;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return true;
       if (PreemptiblePragma.declaredBy(this)) return true;
@@ -476,7 +481,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     for (int i = 0; i < interfaces.length; i++) {
       if (interfaces[i].isUnpreemptibleType()) return false;
     }
-    if(getDeclaringClass().isUninterruptible()) return false;
+    if (getDeclaringClass().isUnpreemptible()) return false;
+    if (getDeclaringClass().isUninterruptible()) return false;
     return true;
   }
 
@@ -486,6 +492,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isUnpreemptible() {
     if (isClassInitializer() || isObjectInitializer()) return false;
     if (isObjectInitializerHelper()) return false;
+    if (isAnnotationPresent(Interruptible.class)) return false;
+    if (isAnnotationPresent(Preemptible.class)) return false;
+    if (isAnnotationPresent(Uninterruptible.class)) return false;
+    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
+    if (isAnnotationPresent(Unpreemptible.class)) return true;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
@@ -497,6 +508,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     for (int i = 0; i < interfaces.length; i++) {
       if (interfaces[i].isUnpreemptibleType()) return true;
     }
+    if (getDeclaringClass().isUnpreemptible()) return true;
     return false;
   }
 
@@ -506,6 +518,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isUninterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return false;
     if (isObjectInitializerHelper()) return false;
+    if (isAnnotationPresent(Interruptible.class)) return false;
+    if (isAnnotationPresent(Preemptible.class)) return false;
+    if (isAnnotationPresent(Unpreemptible.class)) return false;
+    if (isAnnotationPresent(Uninterruptible.class)) return true;
+    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return true;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
@@ -513,7 +530,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
-    if(getDeclaringClass().isUninterruptible()) return true;
+    if (getDeclaringClass().isUninterruptible()) return true;
     return false;
   }
 
@@ -522,6 +539,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * ie., it throws the <CODE>InlinePragma</CODE> exception?
    */
   public final boolean hasInlinePragma() {
+	if (isAnnotationPresent(Inline.class)) return true;
     return InlinePragma.declaredBy(this);
   }
     
@@ -531,6 +549,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * the <CODE>NoOptCompilePragma</CODE> exception?
    */
   public final boolean hasNoInlinePragma() {
+    if (isAnnotationPresent(NoInline.class) || isAnnotationPresent(NoOptCompile.class)) return true;
     return NoInlinePragma.declaredBy(this) || NoOptCompilePragma.declaredBy(this);
   }
     
@@ -539,6 +558,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * ie., it throws the <CODE>NoOptCompilePragma</CODE> exception?
    */
   public final boolean hasNoOptCompilePragma() {
+    if (isAnnotationPresent(NoOptCompile.class)) return true;
     return NoOptCompilePragma.declaredBy(this);
   }
     

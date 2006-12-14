@@ -124,7 +124,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     MagicType           = VM_TypeReference.Magic.resolve().asClass();
     UnpreemptibleType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")
+                                    VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/OldUnpreemptible;")
                                     ).resolve().asClass();
     SynchronizedObjectType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),

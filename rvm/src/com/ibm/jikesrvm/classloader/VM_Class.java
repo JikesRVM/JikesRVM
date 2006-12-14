@@ -688,22 +688,81 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Does this class, its parents or one of its interfaces have an
-   * Uninterruptible pragma annotation?
+   * Interruptible pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * Interruptible pragma annotation.
+   * @see Uninterruptible
    */
-  public final boolean isUninterruptible() {
-    if(isAnnotationPresent(Uninterruptible.class)) return true;
-    /*
-    else if ((superClass != null) && (superClass.isUninterruptible())) return true;
-    else {
-      VM_Class[] interfaces = getDeclaredInterfaces();
-      for (int i = 0, n = interfaces.length; i < n; ++i) {
-        if (interfaces[i].isUninterruptible()) return true;
-      }
-    }
-    */
-    return false;
+  public final boolean isInterruptible() {
+    return isAnnotationPresent(Interruptible.class);
   }
 
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * LogicallyUninterruptible pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * LogicallyUninterruptible pragma annotation.
+   * @see Uninterruptible
+   */
+  public final boolean isLogicallyUninterruptible() {
+    return isAnnotationPresent(LogicallyUninterruptible.class);
+  }
+  
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * NoOptCompile pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * NoOptCompile pragma annotation.
+   * @see Uninterruptible
+   */
+  public final boolean isNoOptCompile() {
+    return isAnnotationPresent(NoOptCompile.class);
+  }
+  
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * Preemptable pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * Preemptable pragma annotation.
+   * @see Uninterruptible
+   */
+  public final boolean isPreemptible() {
+    return isAnnotationPresent(Preemptible.class);
+  }
+  
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * UninterruptibleNoWarn pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * UninterruptibleNoWarn pragma annotation.
+   * @see UninterruptibleNoWarn
+   */
+  public final boolean isUninterruptibleNoWarn() {
+    return isAnnotationPresent(UninterruptibleNoWarn.class);
+  }
+  
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * Uninterruptible pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * Uninterruptible pragma annotation.
+   * @see Uninterruptible
+   */
+  public final boolean isUninterruptible() {
+    return isAnnotationPresent(Uninterruptible.class);
+  }
+
+  /**
+   * Does this class, its parents or one of its interfaces have an
+   * Unpreemptable pragma annotation?
+   * @return true if this class, its parents or one of its interfaces has an
+   * Unpreemptable pragma annotation.
+   * @see Uninterruptible
+   */
+  public final boolean isUnpreemptible() {
+    return isAnnotationPresent(Unpreemptible.class);
+  }  
+  
   /**
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
