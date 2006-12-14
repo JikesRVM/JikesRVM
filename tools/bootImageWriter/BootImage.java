@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @version 03 Jan 2000
  */
-public class BootImage extends BootImageWriterMessages
+public class BootImage extends BootImageWriterMessages 
   implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {
 
   /**
@@ -81,8 +81,6 @@ public class BootImage extends BootImageWriterMessages
    * that are not part of bootimage
    */
   private int numNulledReferences;
-
-  private int markedReferences;
 
   /**
    * @param ltlEndian write words low-byte first?

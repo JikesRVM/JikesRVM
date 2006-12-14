@@ -13,7 +13,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Stack;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Arrays;
 
@@ -99,14 +98,15 @@ public class BootImageWriter extends BootImageWriterMessages
    * where key is a String like "java.lang.Object" or "[Ljava.lang.Object;"
    * and value is the corresponding VM_Type.
    */
-  private static final Hashtable bootImageTypes = new Hashtable(5000);
+  private static final Hashtable<String,VM_Type> bootImageTypes = 
+    new Hashtable<String,VM_Type>(5000);
 
   /**
    * For all the scalar types to be placed into bootimage, keep
    * key/value pairs where key is a Key(jdkType) and value is
    * a FieldInfo. 
    */
-  private static HashMap bootImageTypeFields;
+  private static HashMap<Key,FieldInfo> bootImageTypeFields;
 
   /**
    * Class to collecting together field information
@@ -242,7 +242,7 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * A wrapper around the calling context to aid in tracing.
    */
-  private static class TraceContext extends Stack {
+  private static class TraceContext extends Stack<String> {
     private static final long serialVersionUID = -9048590130621822408L;
     /**
      * Report a field that is part of our library's (GNU Classpath's)
@@ -304,7 +304,7 @@ public class BootImageWriter extends BootImageWriterMessages
      */
     public void push(String type, String fullName) {
       StringBuffer sb = new StringBuffer("(");
-                                         sb.append(type).append(")");
+      sb.append(type).append(")");
       sb.append(fullName);
       push(sb.toString());
     }
@@ -335,6 +335,7 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static TraceContext traceContext = new TraceContext();
 
+  @SuppressWarnings("unused")
   private static Object sillyhack;
 
 
@@ -351,7 +352,7 @@ public class BootImageWriter extends BootImageWriterMessages
     String   bootImageDataName     = null;
     String   bootImageRMapName     = null;
     String   bootImageMapName      = null;
-    Vector   bootImageTypeNames    = null;
+    Vector<String>   bootImageTypeNames    = null;
     String   bootImageTypeNamesFile = null;
     String[] bootImageCompilerArgs = {};
 
@@ -361,7 +362,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // now, we ensure that forName does not cause security violations by
     // trying to load into java.util later.
     // 
-    java.util.HashMap x = new java.util.HashMap();
+    java.util.HashMap<Object,Class<?>> x = new java.util.HashMap<Object,Class<?>>();
     x.put(x, x.getClass());
     sillyhack = x;
 
@@ -493,7 +494,7 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     if (verbose >= 2)
-      traversed = new Hashtable(500);
+      traversed = new Hashtable<Object,Integer>(500);
 
     //
     // Check command line directives for correctness.
@@ -666,11 +667,12 @@ public class BootImageWriter extends BootImageWriterMessages
         jtocCount = i; // for diagnostic
 
         Offset jtocOff = VM_Statics.slotAsOffset(i);
+        int objCookie;
         //-#if RVM_FOR_32_ADDR
-        int objCookie = VM_Statics.getSlotContentsAsInt(jtocOff);
+        objCookie = VM_Statics.getSlotContentsAsInt(jtocOff);
         //-#endif
         //-#if RVM_FOR_64_ADDR
-        int objCookie = (int) VM_Statics.getSlotContentsAsLong(jtocOff);
+        objCookie = (int) VM_Statics.getSlotContentsAsLong(jtocOff);
         //-#endif
         // if (verbose >= 3)
         // say("       jtoc[", String.valueOf(i), "] = ", String.valueOf(objCookie));
@@ -824,9 +826,9 @@ public class BootImageWriter extends BootImageWriterMessages
    * @author Perry Cheng
    * @modified Ian Rogers
    */
-  private static class TypeComparator implements Comparator {
+  private static class TypeComparator<T> implements Comparator<T> {
     
-    public int compare (Object a, Object b) {
+    public int compare (T a, T b) {
       if (a == null) return 1;
       if (b == null) return -1;
       if ((a instanceof VM_Type) && (b instanceof VM_Type)) {
@@ -848,7 +850,8 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * Demographic data on all types
    */
-  private static final HashMap demographicData = new HashMap();
+  private static final HashMap<VM_Type,DemographicInformation> demographicData = 
+    new HashMap<VM_Type,DemographicInformation>();
 
   /**
    * Log an allocation in the boot image
@@ -857,7 +860,7 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static void logAllocation(VM_Type type, int size) {
     if(demographics) {
-      DemographicInformation info = (DemographicInformation)demographicData.get(type);
+      DemographicInformation info = demographicData.get(type);
       if(info != null) {
         info.count++;
         info.size += size;
@@ -879,10 +882,9 @@ public class BootImageWriter extends BootImageWriterMessages
     VM_Type[] tempTypes = new VM_Type[types.length - FIRST_TYPE_DICTIONARY_INDEX];
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) 
       tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = types[i];
-    Arrays.sort(tempTypes, new TypeComparator());
+    Arrays.sort(tempTypes, new TypeComparator<VM_Type>());
     int totalCount = 0, totalBytes = 0;
-    for (int i = 0; i < tempTypes.length; i++) {
-      VM_Type type = tempTypes[i];
+    for (VM_Type type : tempTypes) {
       if (type == null) continue;
       DemographicInformation info = (DemographicInformation)demographicData.get(type);
       if (info == null) continue;      
@@ -908,8 +910,7 @@ public class BootImageWriter extends BootImageWriterMessages
     VM.sysWriteField(15, totalCount);
     VM.sysWriteField(15, totalBytes);
     VM.sysWriteln();
-    for (int i = 0; i < tempTypes.length; i++) {
-      VM_Type type = tempTypes[i];
+    for (VM_Type type : tempTypes) {
       if (type == null) continue;
       DemographicInformation info = (DemographicInformation)demographicData.get(type);
       if (info == null) continue;      
@@ -927,8 +928,8 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param fileName the name of the file containing type names
    * @return list type names
    */
-  public static Vector readTypeNames(String fileName) throws IOException {
-    Vector typeNames = new Vector(500);
+  public static Vector<String> readTypeNames(String fileName) throws IOException {
+    Vector<String> typeNames = new Vector<String>(500);
     //    DataInputStream ds = new DataInputStream(new FileInputStream(fileName));
     LineNumberReader in = new LineNumberReader(new FileReader(fileName));
 
@@ -966,7 +967,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param typeNames names of rvm classes whose static fields will contain
    *                  the objects comprising the virtual machine bootimage
    */
-  public static void createBootImageObjects(Vector typeNames,
+  public static void createBootImageObjects(Vector<String> typeNames,
                                             String bootImageTypeNamesFile) 
     throws IllegalAccessException, ClassNotFoundException {    
       VM_Callbacks.notifyBootImage(typeNames.elements());
@@ -979,11 +980,10 @@ public class BootImageWriter extends BootImageWriterMessages
       if (verbose >= 1) say("loading");
       if (profile) startTime = System.currentTimeMillis();
       
-      for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
+      for (String typeName : typeNames) {
         //
         // get type name
         //
-        String typeName = (String) e.nextElement();
         if (verbose >= 4)
           say("typeName:", typeName);
         
@@ -1044,8 +1044,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("resolving");
-      for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-        VM_Type type = (VM_Type) e.nextElement();
+      for (VM_Type type : bootImageTypes.values()) {
         if (verbose >= 2) say("resolving " + type);
         // The resolution is supposed to be cached already.
         type.resolve();
@@ -1084,8 +1083,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (verbose >= 1) say("instantiating");
       if (numThreads == 1) {
         int count = 0;
-        for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-            VM_Type type = (VM_Type) e.nextElement();
+        for (VM_Type type : bootImageTypes.values()) {
             count++;
             long start2 = System.currentTimeMillis();
             if (verbose >= 1) say(startTime +": "+ count + " instantiating " + type);
@@ -1133,11 +1131,10 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (verbose >= 1) say("field info gathering");
       if (profile) startTime = System.currentTimeMillis();
-      bootImageTypeFields = new HashMap(bootImageTypes.size());
+      bootImageTypeFields = new HashMap<Key,FieldInfo>(bootImageTypes.size());
 
       // First retrieve the jdk Field table for each class of interest
-      for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-        VM_Type rvmType = (VM_Type) e.nextElement();
+      for (VM_Type rvmType : bootImageTypes.values()) {
         FieldInfo fieldInfo;
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static or instance fields
@@ -1170,8 +1167,7 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       }
       // Now build the one-to-one instance and static field maps
-      for (Iterator iter = bootImageTypeFields.values().iterator(); iter.hasNext();) {
-        FieldInfo fieldInfo = (FieldInfo)iter.next();
+      for (FieldInfo fieldInfo : bootImageTypeFields.values()) {
         VM_Type rvmType = fieldInfo.rvmType;
         if (rvmType == null) {
           if (verbose >= 1) say("bootImageTypeField entry has no rvmType:"+fieldInfo.jdkType);
@@ -1209,7 +1205,7 @@ public class BootImageWriter extends BootImageWriterMessages
           // This is the only way to correctly handle private fields.
           jdkType = getJdkType(rvmFields[j].getDeclaringClass());
           if (jdkType == null) continue;
-          FieldInfo jdkFieldInfo = (FieldInfo)bootImageTypeFields.get(new Key(jdkType));
+          FieldInfo jdkFieldInfo = bootImageTypeFields.get(new Key(jdkType));
           if (jdkFieldInfo == null) continue;
           Field[] jdkFields = jdkFieldInfo.jdkFields;
           for (int k = 0; k <jdkFields.length; k++) {
@@ -1268,8 +1264,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (verbose >= 1) say("populating jtoc with static fields");
       if (profile) startTime = System.currentTimeMillis();
-      for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-        VM_Type rvmType = (VM_Type) e.nextElement();
+      for (VM_Type rvmType : bootImageTypes.values()) {
         if (verbose >= 1) say("  jtoc for ", rvmType.toString());
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
@@ -2241,8 +2236,8 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   private static final int OBJECT_HEADER_SIZE = 8;
-  private static Hashtable traversed = null;
-  private static final Integer VISITED = Integer.valueOf(0);
+  private static Hashtable<Object,Integer> traversed = null;
+  private static final Integer VISITED = new Integer(0);
 
   /**
    * Traverse an object (and, recursively, any of its fields or elements that
@@ -2408,11 +2403,11 @@ public class BootImageWriter extends BootImageWriterMessages
   private static void enableObjectAddressRemapper() {
     VM_Magic.setObjectAddressRemapper(
        new VM_ObjectAddressRemapper() {
-         public Address objectAsAddress(Object jdkObject) {
+         public <T> Address objectAsAddress(T jdkObject) {
            return BootImageMap.findOrCreateEntry(jdkObject).objectId;
          }
          
-         public Object addressAsObject(Address address) {
+         public <T> T addressAsObject(Address address) {
            VM.sysWriteln("anonymous VM_ObjectAddressMapper: called addressAsObject");
            VM._assert(VM.NOT_REACHED);
            return null;

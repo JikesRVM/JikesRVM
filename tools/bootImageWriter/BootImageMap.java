@@ -27,12 +27,12 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * Key->Entry map
    */
-  private static final Hashtable keyToEntry;
+  private static final Hashtable<Key,Entry> keyToEntry;
 
   /**
    * objectId->Entry map
    */
-  private static final ArrayList objectIdToEntry;
+  private static final ArrayList<Entry> objectIdToEntry;
 
   /**
    * Entry used to represent null object
@@ -55,8 +55,8 @@ public class BootImageMap extends BootImageWriterMessages
    * Prepare for use.
    */
   static {
-    keyToEntry      =  new Hashtable(5000);
-    objectIdToEntry =  new ArrayList(5000);
+    keyToEntry      =  new Hashtable<Key,Entry>(5000);
+    objectIdToEntry =  new ArrayList<Entry>(5000);
     idGenerator = 0;
     // predefine "null" object
     nullEntry = new Entry(newId(), null, Address.zero());
