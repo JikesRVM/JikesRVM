@@ -37,12 +37,10 @@ public final class OPT_InlineSequence {
    */
   public int bcIndex;
 
-  //-#if RVM_WITH_OSR
   /**
    * We need more detailed information of call site than bcIndex.
    */
   OPT_Instruction callSite;
-  //-#endif
 
   /**
    * @return contents of {@link #method}
@@ -94,7 +92,6 @@ public final class OPT_InlineSequence {
     this.bcIndex = bcIndex;
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Constructs a new inline sequence operand.
    *
@@ -114,7 +111,6 @@ public final class OPT_InlineSequence {
   public OPT_Instruction getCallSite() {
     return this.callSite;
   }
-  //-#endif
 
   /**
    * Returns the string representation of this inline sequence.

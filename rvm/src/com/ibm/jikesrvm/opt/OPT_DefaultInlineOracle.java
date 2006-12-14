@@ -315,14 +315,12 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
             OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target, 
                                                                  chooseGuard(caller, target, staticCallee, state, true), 
                                                                  "Guarded inline of single static target");
-            //-#if RVM_WITH_OSR
             if (opts.OSR_GUARDED_INLINING && 
                 OPT_Compiler.getAppStarted() &&
                 VM_Controller.options.ENABLE_RECOMPILATION) {
               // note that we will OSR the failed case.
               d.setOSRTestFailed();
             }
-            //-#endif
             if (verbose) VM.sysWriteln("\tDecide: "+d);
             return d;
           } else {

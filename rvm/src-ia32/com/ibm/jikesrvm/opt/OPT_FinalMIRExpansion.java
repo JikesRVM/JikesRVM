@@ -249,12 +249,10 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
                          OPT_IA32ConditionOperand.GT());
         break;
 
-      //-#if RVM_WITH_OSR
       case YIELDPOINT_OSR_opcode:
         // must yield, does not check threadSwitch request
         expandUnconditionalYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromOsrOptMethod);
         break;
-      //-#endif
 
       }
     }
@@ -394,7 +392,6 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
                                                       OPT_BranchProfileOperand.never()));
   }
 
-  //-#if RVM_WITH_OSR
   /* generate yieldpoint without checking threadSwith request
    */
   private static void expandUnconditionalYieldpoint(OPT_Instruction s,
@@ -430,5 +427,4 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // make a jump to yield block
     thisBlock.appendInstruction(MIR_Branch.create(IA32_JMP, yieldpoint.makeJumpTarget()));
   }
-  //-#endif
 }

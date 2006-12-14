@@ -12,9 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.ArrayList;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are
@@ -151,10 +149,8 @@ public class OPT_OptimizationPlanner {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
 
-                      //-#if RVM_WITH_OSR
                       new OSR_AdjustBCIndexes(),
                       new OSR_OsrPointConstructor(),
-                      //-#endif
 
                       // Always do initial wave of peephole branch optimizations
                       new OPT_BranchOptimizations(0, true, false),  

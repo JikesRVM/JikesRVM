@@ -213,7 +213,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
             conditionalBranchCount++;
           }
           break;
-        //-#if RVM_WITH_OSR
         case YIELDPOINT_OSR_opcode:
           {
             // unconditionally branch to yield point.
@@ -228,7 +227,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
           }
           instructionCount++;
           break;
-        //-#endif
 
       default:
         if (p.operator().isConditionalBranch())
@@ -284,15 +282,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         return ir.MIRInfo.epilogueYieldpointBlock;
       else 
         meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
-    }
-    //-#if RVM_WITH_OSR
-    else if (whereFrom == VM_Thread.OSROPT) {
+    } else if (whereFrom == VM_Thread.OSROPT) {
       if (ir.MIRInfo.osrYieldpointBlock != null)
         return ir.MIRInfo.osrYieldpointBlock;
       else
         meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
     }
-    //-#endif 
 
     // Not found.  create new basic block holding the requested yieldpoint
     // method
@@ -319,10 +314,8 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
       ir.MIRInfo.backedgeYieldpointBlock = result;
     else if (whereFrom == VM_Thread.EPILOGUE) 
       ir.MIRInfo.epilogueYieldpointBlock = result;
-    //-#if RVM_WITH_OSR
     else if (whereFrom == VM_Thread.OSROPT)
       ir.MIRInfo.osrYieldpointBlock = result;
-    //-#endif 
 
     return result;
   }

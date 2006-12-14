@@ -14,9 +14,7 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import org.vmmagic.unboxed.*;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 import java.lang.reflect.Constructor;
 
 /**
@@ -39,9 +37,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps1()),
           new OPT_OptimizationPlanAtomicElement(new SpillCode()),
           new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps2()),
-          //-#if RVM_WITH_OSR
-              new OPT_OptimizationPlanAtomicElement(new UpdateOSRMaps()),
-          //-#endif
+          new OPT_OptimizationPlanAtomicElement(new UpdateOSRMaps()),
           });
   }
 
@@ -2622,7 +2618,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Update GC maps after register allocation but before inserting spill
    * code.
@@ -2804,5 +2799,4 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       tuple.value     = value;
     } // end of setTupleValue
   } // end of inner class
-  //-#endif RVM_WITH_OSR
 }

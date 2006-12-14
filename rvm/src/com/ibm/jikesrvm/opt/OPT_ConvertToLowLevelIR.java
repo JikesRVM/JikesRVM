@@ -694,14 +694,13 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
       }
     }
 
-    //-#if RVM_WITH_OSR
+    // Used mainly (only?) by OSR
     if (methOp.hasDesignatedTarget()) {
       Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD,
                                               VM_TypeReference.CodeArray,
                                               methOp.jtocOffset));
       return v;
     }
-    //-#endif
     
     if (methOp.isStatic()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));

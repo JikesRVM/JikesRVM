@@ -91,11 +91,9 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * callback when application is about to start.
    */
   public void notifyStartup() {
-  //-#if RVM_WITH_OSR
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OPT_Compiler got notified of app ready to begin");
     }
-  //-#endif
     setAppStarted();
   }
 

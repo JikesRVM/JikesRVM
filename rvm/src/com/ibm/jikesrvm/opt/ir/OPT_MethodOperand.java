@@ -69,10 +69,8 @@ public final class OPT_MethodOperand extends OPT_Operand {
    */
   protected byte type = -1;
 
-  //-#if RVM_WITH_OSR
   private boolean designatedOffset = false;
   public Offset jtocOffset;
-  //-#endif
 
   /**
    * @param ref VM_MemberReference of method to call
@@ -94,7 +92,6 @@ public final class OPT_MethodOperand extends OPT_Operand {
     }
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Returns a method operand representing a compiled method with designated
    * JTOC offset. (used by OPT_ConvertToLowLevelIR)
@@ -114,7 +111,6 @@ public final class OPT_MethodOperand extends OPT_Operand {
   public boolean hasDesignatedTarget() {
     return this.designatedOffset;
   }
-  //-#endif
 
   /**
    * create a method operand for an INVOKE_SPECIAL bytecode

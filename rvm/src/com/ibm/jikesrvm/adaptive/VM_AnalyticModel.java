@@ -99,11 +99,9 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     
     VM_ControllerPlan plan = VM_ControllerMemory.findMatchingPlan(cmpMethod);
 
-    //-#if RVM_WITH_OSR
-    // for a outdated hot method from baseline, we consider OSR, and execute plan
-    // in the routine, no more action here
+    // for a outdated hot method from baseline, we consider OSR,
+    // and execute plan in the routine, no more action here
     if (considerOSRRecompilation(cmpMethod, hme, plan)) return null;
-    //-#endif
 
     if (!considerForRecompilation(hme, plan)) return null;
 
@@ -171,7 +169,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     return plan;
   }
 
-  //-#if RVM_WITH_OSR
   /* check if a compiled method is outdated, then decide if it needs OSR from BASE to OPT
    */
   boolean considerOSRRecompilation(VM_CompiledMethod cmpMethod, 
@@ -262,7 +259,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       return null;
     }
   }
-  //-#endif
 
   /**
    * This function defines how the analytic model handles a

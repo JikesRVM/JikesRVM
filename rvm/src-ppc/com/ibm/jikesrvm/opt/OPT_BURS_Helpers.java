@@ -2221,7 +2221,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   /* special case handling OSR instructions */
   void OSR(OPT_BURS burs, OPT_Instruction s) {
-//-#if RVM_WITH_OSR
     if (VM.VerifyAssertions) VM._assert(OsrPoint.conforms(s));
 
     // 1. how many params
@@ -2274,6 +2273,5 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
 
     if (VM.VerifyAssertions) VM._assert(pidx == (numparam+numlong));
-//-#endif
   }
 }

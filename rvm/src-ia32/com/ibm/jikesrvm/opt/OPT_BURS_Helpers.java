@@ -1907,7 +1907,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * expand long type variables to two intergers
    */
   void OSR(OPT_BURS burs, OPT_Instruction s) {
-//-#if RVM_WITH_OSR
    if (VM.VerifyAssertions) VM._assert(OsrPoint.conforms(s));
 
     // 1. how many params
@@ -1989,6 +1988,5 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
       VM.sysWriteln("  position "+s.bcIndex+"@"+s.position.method);
     }
         */
-  //-#endif
   }
 }

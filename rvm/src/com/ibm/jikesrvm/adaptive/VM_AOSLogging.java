@@ -765,7 +765,6 @@ public class VM_AOSLogging {
   // OSR-related code
   ////////////////////////////////////////////////////////////////
 
-  //-#if RVM_WITH_OSR
   /**
    * This method logs the successful completion of an adaptively 
    * selected recompilation
@@ -838,7 +837,6 @@ public class VM_AOSLogging {
       }
     }
   }
-  //-#endif
   public static void debug(String s) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized(log) {
@@ -847,7 +845,6 @@ public class VM_AOSLogging {
     }
   }
 
-  //-#if RVM_WITH_OSR
   public static void onstackreplacementStarted(OPT_CompilationPlan plan) {
     synchronized(log) {
       log.println(getTime() +" OSR starts " +
@@ -868,5 +865,4 @@ public class VM_AOSLogging {
          "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
     }
   }
-  //-#endif
 }

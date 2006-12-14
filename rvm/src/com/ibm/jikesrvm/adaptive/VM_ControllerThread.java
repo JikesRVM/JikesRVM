@@ -90,10 +90,8 @@ public class VM_ControllerThread extends VM_Thread {
       } else if (VM_Controller.options.counters()) {
         VM_InvocationCounts.init();
       }
-      //-#if RVM_WITH_OSR
       VM_Controller.osrOrganizer = new OSR_OrganizerThread();
       VM_Controller.osrOrganizer.start();
-      //-#endif
       createCompilationThread();
       // We're running an AOS bootimage with a non-adaptive primary strategy. 
       // We already set up any requested profiling infrastructure, so nothing
@@ -251,13 +249,11 @@ public class VM_ControllerThread extends VM_Thread {
       }
     }    
 
-    //-#if RVM_WITH_OSR
     if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE) 
         &&(!VM_Controller.options.ENABLE_PRECOMPILE)) { 
       VM_Controller.osrOrganizer = new OSR_OrganizerThread();
       VM_Controller.osrOrganizer.start();
     }
-    //-#endif
   }
 
 

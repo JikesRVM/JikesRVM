@@ -74,12 +74,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public static VM_CompilationThread compilationThread = null;
 
-  //-#if RVM_WITH_OSR
   /**
    * Thread collecting osr request and pass it to controllerThread
    */
   public static OSR_OrganizerThread osrOrganizer = null;
-  //-#endif
 
   /**
    * Threads that will organize profile data as directed by the controller

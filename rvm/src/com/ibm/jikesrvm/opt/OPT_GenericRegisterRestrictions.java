@@ -132,7 +132,6 @@ abstract class OPT_GenericRegisterRestrictions {
         }
       }
 
-      //-#if RVM_WITH_OSR
       // Before OSR points, we need to save all FPRs, 
       // On OptExecStateExtractor, all GPRs have to be recovered, 
       // but not FPRS.
@@ -147,7 +146,6 @@ abstract class OPT_GenericRegisterRestrictions {
           }
         }       
       }
-      //-#endif
     }
 
     // 3. architecture-specific restrictions

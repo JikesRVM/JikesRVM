@@ -14,10 +14,8 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
 import static com.ibm.jikesrvm.osr.OSR_Constants.*;
-//-#endif
 
 import java.util.Stack;
 import java.util.Enumeration;
@@ -76,9 +74,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    */
   private OPT_GCIRMap map;
 
-  //-#if RVM_WITH_OSR
   private OSR_VariableMap osrMap;
-  //-#endif
 
   /**
    * For each register, the set of live interval elements describing the
@@ -196,9 +192,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       //  map, which is called VM_OptReferenceMap.
       map = new OPT_GCIRMap();
 
-      //-#if RVM_WITH_OSR
       osrMap = new OSR_VariableMap();
-      //-#endif
     }
 
     // allocate the "currentSet" which is used to cache the current results
@@ -267,9 +261,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // This will be null if createGCMaps is false
     if (createGCMaps) {
       ir.MIRInfo.gcIRMap = map;
-      //-#if RVM_WITH_OSR
       ir.MIRInfo.osrVarMap = osrMap;
-      //-#endif
     }
 
     // inform the IR that handler liveness is now available
@@ -822,19 +814,16 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         // "in the middle", i.e., during the execution, after the y has been 
         // fetched, but before the x has been defined.
                 
-                //-#if RVM_WITH_OSR
-                // Above observation is not true for an OSR instruction. The current
-                // design of the OSR instruction requires the compiler build a GC map
-                // for variables used by the instruction.
-                // Otherwise, the compiler generates an empty gc map for the instruction.
-                // This results run away references if GC happens when a thread is being OSRed.
-                //
-                // TODO: better design of yieldpoint_osr instruction.
-                // -- Feng July 15, 2003
-                if (createGCMaps && !OsrPoint.conforms(inst) && inst.isGCPoint()) {               
-                //-#else
-        if (createGCMaps && inst.isGCPoint()) {
-                //-#endif
+        // Above observation is not true for an OSR instruction. The current
+        // design of the OSR instruction requires the compiler build a GC map
+        // for variables used by the instruction.
+        // Otherwise, the compiler generates an empty gc map for the
+        // instruction. This results run away references if GC happens
+        // when a thread is being OSRed.
+        //
+        // TODO: better design of yieldpoint_osr instruction.
+        // -- Feng July 15, 2003
+        if (createGCMaps && !OsrPoint.conforms(inst) && inst.isGCPoint()) {
           // make deep copy (and translate to regList) because we reuse
           // local above.
           // NOTE: this translation does some screening, see OPT_GCIRMap.java
@@ -868,18 +857,15 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
           }     // if operand is a Register
         }     // uses
 
-        //-#if RVM_WITH_OSR
         if (createGCMaps && OsrPoint.conforms(inst)) {
-          
-                  // delayed gc map generation for Osr instruction, 
-                  // see comments before processing uses -- Feng, July 15, 2003
-                  OPT_LinkedList regList = map.createDU(local);
+          // delayed gc map generation for Osr instruction, 
+          // see comments before processing uses -- Feng, July 15, 2003
+          OPT_LinkedList regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
 
-              // collect osr info using live set
+          // collect osr info using live set
           collectOsrInfo(inst, local);
         }
-        //-#endif
       }     // end instruction loop
 
       // The register allocator prefers that any registers that are live
@@ -1214,7 +1200,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     private OPT_LinkedList list;
   }
 
-  //-#if RVM_WITH_OSR
   /* collect osr info according to live information */
   private void collectOsrInfo(OPT_Instruction inst, OPT_LiveSet lives) {
     // create an entry to the OSRIRMap, order: callee => caller
@@ -1297,7 +1282,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // put the method variables for this OSR in the osrMap, encoding later.
     osrMap.insertFirst(inst, mvarList);
   }
-  //-#endif RVM_WITH_OSR
 }
 
 

@@ -11,9 +11,7 @@ package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Thread;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
-//-#endif
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)
@@ -52,15 +50,11 @@ class VM_CompilationThread extends VM_Thread {
     // Repeat...
     while (true) {
       Object plan = VM_Controller.compilationQueue.deleteMin();
-      //-#if RVM_WITH_OSR
       if (plan instanceof VM_ControllerPlan) {
         ((VM_ControllerPlan)plan).doRecompile();
       } else if (plan instanceof OSR_OnStackReplacementPlan) {
         ((OSR_OnStackReplacementPlan)plan).execute();
       }
-      //-#else
-      ((VM_ControllerPlan)plan).doRecompile();
-      //-#endif
     }
   }
 

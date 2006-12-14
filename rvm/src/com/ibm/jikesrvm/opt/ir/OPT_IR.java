@@ -1302,9 +1302,7 @@ public final class OPT_IR {
        operand.isStackLocation() ||
        operand.isMemory() ||
        (operand instanceof OPT_TrapCodeOperand) ||
-       //-#if RVM_WITH_OSR
        (operand instanceof OPT_InlinedOsrTypeInfoOperand) ||
-       //-#endif
        //-#if RVM_FOR_IA32
        (operand instanceof OPT_IA32ConditionOperand) ||
        (operand instanceof OPT_BURSManagedFPROperand)

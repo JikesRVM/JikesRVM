@@ -84,13 +84,14 @@ import org.vmmagic.unboxed.*;
     // VM_Thread.yieldpoint(VM_Thread.NATIVE_EPILOGUE);
   }
 
-  //-#if RVM_WITH_OSR
+  /**
+   * OSR invalidation being initiated.
+   */
   public static void OPT_yieldpointFromOsrOpt() 
     throws UninterruptiblePragma {
     VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
     VM_Thread.yieldpoint(VM_Thread.OSROPT);
   }
-  //-#endif 
 
   /**
    * Wrapper to save/restore volatile registers when a class needs to be

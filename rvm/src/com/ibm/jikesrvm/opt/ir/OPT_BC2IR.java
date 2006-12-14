@@ -15,11 +15,9 @@ import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
 import com.ibm.jikesrvm.adaptive.*;
 import java.util.ArrayList;
-//-#endif
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -64,10 +62,8 @@ import org.vmmagic.unboxed.*;
 public final class OPT_BC2IR implements OPT_IRGenOptions, 
                                         OPT_Operators, 
                                         VM_BytecodeConstants, 
-                                        OPT_Constants 
-//-#if RVM_WITH_OSR
-                   , OSR_Constants
-//-#endif
+                                        OPT_Constants,
+                                        OSR_Constants
 {
   /**
    * Dummy slot.
@@ -121,14 +117,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private int instrIndex;
 
-  //-#if RVM_WITH_OSR
+  // OSR field
   private boolean osrGuardedInline = false;
 
-  /* adjustment of bcIndex of instructions because of
+  /*
+   * OSR field: TODO rework this mechanism!
+   * adjustment of bcIndex of instructions because of
    * specialized bytecode.
    */
   private int bciAdjustment;
-  //-#endif
 
   /**
    * Last instruction generated (for ELIM_COPY_LOCALS)
@@ -221,17 +218,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       
     }
 
-    //-#if RVM_WITH_OSR
     if (context.method.isForOsrSpecialization())
       bcodes = context.method.getOsrSynthesizedBytecodes();
     else
-      //-#endif
       bcodes = context.method.getBytecodes();
 
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
 
-    //-#if RVM_WITH_OSR
     if (context.method.isForOsrSpecialization()) {
       this.bciAdjustment = context.method.getOsrPrologueLength();
     } else {
@@ -241,10 +235,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     this.osrGuardedInline = VM.runningVM &&
       context.options.OSR_GUARDED_INLINING &&
       !context.method.isForOsrSpecialization() &&
-          OPT_Compiler.getAppStarted() &&
-          (VM_Controller.options != null) &&
-           VM_Controller.options.ENABLE_RECOMPILATION;
-    //-#endif
+      OPT_Compiler.getAppStarted() &&
+      (VM_Controller.options != null) &&
+      VM_Controller.options.ENABLE_RECOMPILATION;
   }
 
   private void finish(OPT_GenerationContext context) {
@@ -355,9 +348,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       OPT_Instruction s = null;
 
-      //-#if RVM_WITH_OSR
       lastOsrBarrier = null;
-      //-#endif
 
       switch (code) {
       case JBC_nop:
@@ -1341,11 +1332,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           bcodes.skipTableSwitchOffsets(number);
           
           // Set branch probabilities
-//-#if RVM_WITH_OSR
           VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
-//-#else
-          VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
-//-#endif
           if (sp == null) {
             float approxProb = 1.0f/(float)(number+1); // number targets + default
             TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1394,11 +1381,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           bcodes.skipLookupSwitchPairs(numpairs);
 
           // Set branch probabilities
-//-#if RVM_WITH_OSR
           VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
-//-#else
-          VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
-//-#endif
           if (sp == null) {
             float approxProb = 1.0f/(float)(numpairs+1); // num targets + default
             LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1645,14 +1628,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (generated) break; // all done.
           }
 
-          //-#if RVM_WITH_OSR
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
            */
           if (this.osrGuardedInline)  {
             lastOsrBarrier = _createOsrBarrier();
           }
-          //-#endif
           
           if (ref.isMiranda()) {
             // An invokevirtual that is really an invokeinterface.
@@ -1775,13 +1756,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           VM_MethodReference ref = bcodes.getMethodReference();
           VM_Method target = ref.resolveInvokeSpecial();
 
-          //-#if RVM_WITH_OSR
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
            */
           if (this.osrGuardedInline) 
             lastOsrBarrier = _createOsrBarrier();
-          //-#endif
 
           s = _callHelper(ref, OPT_MethodOperand.SPECIAL(ref, target));
 
@@ -1831,13 +1810,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           VM_Method target = ref.peekResolvedMethod();
           
-          //-#if RVM_WITH_OSR
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
            */
           if (this.osrGuardedInline) 
             lastOsrBarrier = _createOsrBarrier();
-          //-#endif
 
           s = _callHelper(ref, OPT_MethodOperand.STATIC(ref, target));
           
@@ -1868,13 +1845,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           VM_Method resolvedMethod = null;
           resolvedMethod = ref.peekInterfaceMethod();
 
-          //-#if RVM_WITH_OSR
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
            */
           if (this.osrGuardedInline) 
             lastOsrBarrier = _createOsrBarrier();
-          //-#endif
 
           s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, resolvedMethod));
           OPT_Operand receiver = Call.getParam(s, 0);
@@ -2335,7 +2310,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         s = _jsrHelper(bcodes.getWideBranchOffset());
         break;
 
-      //-#if RVM_WITH_OSR
       case JBC_impdep1: {
         int pseudo_opcode = bcodes.nextPseudoInstruction();
         switch (pseudo_opcode) {
@@ -2487,7 +2461,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
         break;
       }
-     //-#endif
         
       default:
         OPT_OptimizingCompilerException.UNREACHABLE();
@@ -2528,9 +2501,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     } 
   }
 
-  //-#if RVM_WITH_OSR
+  // OSR: TODO: What are these doing here???
   int param1, param2;
-  //-#endif
 
   private OPT_Instruction _unaryHelper(OPT_Operator operator, 
                                        OPT_Operand val, 
@@ -3747,11 +3719,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return IfCmp.create(INT_IFCMP, guard, op0, 
                           new OPT_IntConstantOperand(0), 
                           cond, generateTarget(offset),
-//-#if RVM_WITH_OSR
-    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else                          
-                          gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif 
+                          gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
         }
     OPT_RegisterOperand val = (OPT_RegisterOperand)op0;
     OPT_BranchOperand branch = null;
@@ -3831,11 +3799,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           return IfCmp.create(INT_IFCMP, guard, val, 
                               new OPT_IntConstantOperand(0), 
                               cond, branch,
-//-#if RVM_WITH_OSR
         gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                              gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
         }
       case INSTANCEOF_NOTNULL_opcode:
         {
@@ -3905,11 +3869,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           return IfCmp.create(INT_IFCMP, guard, val, 
                               new OPT_IntConstantOperand(0), 
                               cond, branch,
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else                                  
-                              gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
         }
       case DOUBLE_CMPG_opcode:case DOUBLE_CMPL_opcode:
       case FLOAT_CMPG_opcode:case FLOAT_CMPL_opcode:case LONG_CMP_opcode:
@@ -3957,11 +3917,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_RegisterOperand guard = gc.temps.makeTempValidation();
           return IfCmp.create(operator, guard, val1, val2, cond, 
                               branch,
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                              gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
         }
       default:
         // Fall through and Insert INT_IFCMP
@@ -3973,11 +3929,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return IfCmp.create(INT_IFCMP, guard, val, 
                         new OPT_IntConstantOperand(0), 
                         cond, branch,
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                        gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
   }
 
   // helper function for if_icmp?? bytecodes
@@ -4015,11 +3967,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, op0, op1, cond, 
                         generateTarget(offset),
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                        gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
   }
 
   // helper function for ifnull/ifnonnull bytecodes
@@ -4097,11 +4045,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, ref, 
                         new OPT_NullConstantOperand(), cond, branch,
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                        gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
   }
   
   // helper function for if_acmp?? bytecodes
@@ -4134,11 +4078,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, op0, op1, 
                         cond, generateTarget(offset),
-//-#if RVM_WITH_OSR
     gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
-//-#else
-                        gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-//-#endif
   }
 
   //// REPLACE LOCALS ON STACK.
@@ -4358,14 +4298,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return d;
   }
 
-  //-#if RVM_WITH_OSR
   /* osr barrier needs type information of locals and stacks,
    * it has to be created before a _callHelper.
    * only when the call site is going to be inlined, the instruction
    * is inserted before the call site.
    */
   private OPT_Instruction lastOsrBarrier = null;
-  //-#endif
 
   /**
    * Attempt to inline a method. This may fail.
@@ -4380,7 +4318,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return false;
     }
 
-    //-#if RVM_WITH_OSR
     // Insert OsrBarrier point before the callsite which is going to be
     // inlined, attach the OsrBarrier instruction to callsite's scratch
     // object, then the callee can find this barrier
@@ -4390,7 +4327,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
       callSite.scratchObject = lastOsrBarrier;
     }
-    //-#endif
 
     // Execute the inline decision.
     // NOTE: It is tempting to wrap the call to OPT_Inliner.execute in 
@@ -4488,7 +4424,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return true;
   }
 
-  //-#if RVM_WITH_OSR
   /* create an OSR Barrier instruction at the current position.
    */
   private OPT_Instruction _createOsrBarrier() {
@@ -4693,7 +4628,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     inst.scratchObject = barrier;
     return inst;
   }
-  //-#endif RVM_WITH_OSR
 
 
   //// LOCAL STATE.
@@ -5974,11 +5908,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return stack[top - depth - 1];
     }
 
-    //-#if RVM_WITH_OSR
     OPT_Operand peekAt(int pos) {
       return stack[pos];
     }
-    //-#endif
 
     void pop2() {
       pop();

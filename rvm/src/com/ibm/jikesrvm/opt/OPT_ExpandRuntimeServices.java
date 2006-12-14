@@ -342,10 +342,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     boolean savedExceptionOption = ir.options.NO_CALLEE_EXCEPTIONS;
     ir.options.INLINE = true;
     ir.options.NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
-    //-#if RVM_WITH_OSR
     boolean savedOsrGI = ir.options.OSR_GUARDED_INLINING;
     ir.options.OSR_GUARDED_INLINING=false;
-    //-#endif
     try {
       OPT_InlineDecision inlDec = 
         OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), 
@@ -354,9 +352,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     } finally {
       ir.options.INLINE = savedInliningOption;
       ir.options.NO_CALLEE_EXCEPTIONS = savedExceptionOption;
-      //-#if RVM_WITH_OSR
       ir.options.OSR_GUARDED_INLINING = savedOsrGI;
-      //-#endif
     }
     didSomething = true;
   }

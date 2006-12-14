@@ -11,9 +11,7 @@ package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.VM_CodeArray;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 
 /**
  * Wrapper class around IR info that is valid on the MIR
@@ -39,9 +37,7 @@ public final class OPT_MIRInfo {
    */
   public OPT_GCIRMap  gcIRMap;
 
-  //-#if RVM_WITH_OSR
   public OSR_VariableMap osrVarMap;
-  //-#endif
   /**
    * The frame size of the current method
    */
@@ -71,9 +67,11 @@ public final class OPT_MIRInfo {
    */
   public OPT_BasicBlock backedgeYieldpointBlock = null;
 
-//-#if RVM_WITH_OSR
+  /**
+   * A basic block holding the call to yieldpointFromOsrOpt for an
+   * OSR invalidation.
+   */
   public OPT_BasicBlock osrYieldpointBlock = null;
-//-#endif
 
   /**
    * Information needed for linear scan. 

@@ -238,7 +238,6 @@ public final class VM_ControllerMemory implements VM_Constants {
     return false;
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Return true iff there is a plan to transition from Base to Opt for a
    * given CMID.
@@ -254,7 +253,6 @@ public final class VM_ControllerMemory implements VM_Constants {
     if (m == null) return false;
     return planWithStatus(m,VM_ControllerPlan.OSR_BASE_2_OPT);
   }
-  //-#endif
 
   /**
    * Return true if there is a completed plan with the given opt level for 

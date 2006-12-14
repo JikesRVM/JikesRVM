@@ -13,9 +13,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -218,7 +216,6 @@ import org.vmmagic.unboxed.Offset;
   private static final VM_OptExceptionDeliverer exceptionDeliverer = 
     new VM_OptExceptionDeliverer();
 
-//-#if RVM_WITH_OSR
   private OSR_EncodedOSRMap _osrMap;
 
   public void createFinalOSRMap(OPT_IR ir) throws InterruptiblePragma {
@@ -228,7 +225,6 @@ import org.vmmagic.unboxed.Offset;
   public OSR_EncodedOSRMap getOSRMap() {
     return this._osrMap;
   }
-//-#endif
 
   //////////////////////////////////////
   // Information the opt compiler needs to persistently associate 

@@ -1075,19 +1075,14 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                   // replace the register in the target instruction.
                   replaceRegisterWithScratch(s,r,scratch.scratch);
                 } else {
-                  //-#if RVM_WITH_OSR
                   if (s.operator != YIELDPOINT_OSR) {
-                  //-#endif
-                  
-                  //-#if RVM_FOR_IA32
-                  // No need to use a scratch register here.
-                  replaceOperandWithSpillLocation(s,op.asRegister());
-                  //-#else
-                  VM._assert(NOT_REACHED);
-                  //-#endif
-                  //-#if RVM_WITH_OSR
+                    if (VM.BuildForIA32) {
+                      // No need to use a scratch register here.
+                      replaceOperandWithSpillLocation(s,op.asRegister());
+                    } else {
+                      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+                    }
                   }
-                  //-#endif
                 }
               }
             }

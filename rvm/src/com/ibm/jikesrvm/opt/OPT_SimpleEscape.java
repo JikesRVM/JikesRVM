@@ -376,11 +376,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
-//-#if RVM_WITH_OSR
       case YIELDPOINT_OSR_opcode:
         // on stack replacement really a part of the current method, but
         // we do not know exactly, so be conservative
-//-#endif
         return  true;
       default:
         throw  new OPT_OptimizingCompilerException("OPT_SimpleEscape: Unexpected " 
@@ -517,9 +515,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
-//-#if RVM_WITH_OSR
       case YIELDPOINT_OSR_opcode:
-//-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
