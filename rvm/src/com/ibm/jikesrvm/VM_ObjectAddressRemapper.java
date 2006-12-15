@@ -35,5 +35,5 @@ public interface VM_ObjectAddressRemapper {
    * @param address value obtained from "objectAsAddress"
    * @return corresponding object
    */
-   public <T> T addressAsObject(Address address);
+   public Object addressAsObject(Address address);
 }

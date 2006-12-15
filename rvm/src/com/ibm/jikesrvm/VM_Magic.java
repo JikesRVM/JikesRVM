@@ -442,7 +442,7 @@ public class VM_Magic {
    * @param address object reference as bits
    * @return object reference
    */
-  public static <T> T addressAsObject(Address address) {
+  public static Object addressAsObject(Address address) {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
 
     if (objectAddressRemapper == null)

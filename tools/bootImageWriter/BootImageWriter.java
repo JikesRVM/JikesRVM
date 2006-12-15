@@ -2407,7 +2407,7 @@ public class BootImageWriter extends BootImageWriterMessages
            return BootImageMap.findOrCreateEntry(jdkObject).objectId;
          }
          
-         public <T> T addressAsObject(Address address) {
+         public Object addressAsObject(Address address) {
            VM.sysWriteln("anonymous VM_ObjectAddressMapper: called addressAsObject");
            VM._assert(VM.NOT_REACHED);
            return null;

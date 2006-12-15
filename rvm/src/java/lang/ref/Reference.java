@@ -82,7 +82,7 @@ public abstract class Reference<T> {
     if (tmp.isZero())
         return null;
 
-    return VM_Magic.addressAsObject(tmp);
+    return (T)VM_Magic.addressAsObject(tmp);
   }
 
   public void clear() {
