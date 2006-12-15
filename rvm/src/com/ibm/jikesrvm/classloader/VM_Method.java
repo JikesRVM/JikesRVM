@@ -454,13 +454,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * <li> If it is a <clinit> or <init> method then it is interruptible.
    * <li> If is the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods then it is interruptible.
-   * <li> If it throws the <CODE>Interruptible</CODE> exception it is interruptible.
-   * <li> If it throws the <CODE>PreemptiblePragma</CODE> exception it is interruptible.
-   * <li> If it throws the <CODE>UninterruptiblePragma</CODE> exception it is not interruptible.
-   * <li> If it throws the <CODE>UninterruptibleNoWarnPragma</CODE> exception it is not interruptible.
-   * <li> If it throws the <CODE>UnpreemptiblePragma</CODE> exception it is not interruptible.
-   * <li> If its declaring class directly implements the <CODE>Uninterruptible</CODE>
-   *      or <CODE>Unpreemptible</CODE> interface it is not interruptible.
+   * <li> If it is annotated with <CODE>Interruptible</CODE> it is interruptible.
+   * <li> If it is annotated with <CODE>Preemptible</CODE> it is interruptible.
+   * <li> If it is annotated with <CODE>Uninterruptible</CODE> it is not interruptible.
+   * <li> If it is annotated with <CODE>UninterruptibleNoWarn</CODE> it is not interruptible.
+   * <li> If it is annotated with <CODE>Unpreemptible</CODE> it is not interruptible.
+   * <li> If its declaring class is annotated with <CODE>Uninterruptible</CODE>
+   *      or <CODE>Unpreemptible</CODE> it is not interruptible.
    * </ul>
    */
   public final boolean isInterruptible() {
@@ -475,12 +475,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       if (PreemptiblePragma.declaredBy(this)) return true;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
-      if (UnpreemptiblePragma.declaredBy(this)) return false;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
-    for (int i = 0; i < interfaces.length; i++) {
-      if (interfaces[i].isUnpreemptibleType()) return false;
-    }
     if (getDeclaringClass().isUnpreemptible()) return false;
     if (getDeclaringClass().isUninterruptible()) return false;
     return true;
@@ -499,14 +495,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(Unpreemptible.class)) return true;
     if (exceptionTypes != null) {
       if (PreemptiblePragma.declaredBy(this)) return false;
-      if (UnpreemptiblePragma.declaredBy(this)) return true;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
-    for (int i = 0; i < interfaces.length; i++) {
-      if (interfaces[i].isUnpreemptibleType()) return true;
-    }
     if (getDeclaringClass().isUnpreemptible()) return true;
     return false;
   }
@@ -524,7 +516,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(UninterruptibleNoWarn.class)) return true;
     if (exceptionTypes != null) {
       if (PreemptiblePragma.declaredBy(this)) return false;
-      if (UnpreemptiblePragma.declaredBy(this)) return false;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
