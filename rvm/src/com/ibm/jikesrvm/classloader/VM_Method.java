@@ -472,7 +472,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(Uninterruptible.class)) return false;
     if (isAnnotationPresent(Unpreemptible.class)) return false;
     if (exceptionTypes != null) {
-      if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
@@ -493,7 +492,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
     if (isAnnotationPresent(Unpreemptible.class)) return true;
     if (exceptionTypes != null) {
-      if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
@@ -513,7 +511,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(Uninterruptible.class)) return true;
     if (isAnnotationPresent(UninterruptibleNoWarn.class)) return true;
     if (exceptionTypes != null) {
-      if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
     if (getDeclaringClass().isUninterruptible()) return true;
