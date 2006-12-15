@@ -536,11 +536,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
 
   /**
    * Has this method been marked as mandatory to inline?
-   * ie., it throws the <CODE>InlinePragma</CODE> exception?
+   * ie., it has the <CODE>Inline</CODE> annotation?
    */
   public final boolean hasInlinePragma() {
-	if (isAnnotationPresent(Inline.class)) return true;
-    return InlinePragma.declaredBy(this);
+    return isAnnotationPresent(Inline.class);
   }
     
   /**
