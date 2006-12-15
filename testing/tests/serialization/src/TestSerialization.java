@@ -15,7 +15,11 @@ import java.io.Serializable;
  */
 class TestSerialization implements Serializable
 {
-  private static final class Obj implements Serializable { public Obj() { } }
+  private static final class Obj implements Serializable
+  {
+    private static final long serialVersionUID = 42L;
+    public Obj() {} 
+  }
   private boolean z;    // Z
   private byte b;       // B
   private short h;      // S
