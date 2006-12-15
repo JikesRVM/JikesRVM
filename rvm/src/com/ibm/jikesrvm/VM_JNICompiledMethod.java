@@ -33,7 +33,8 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     super(id,m);    
   }
 
-  public final int getCompilerType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final int getCompilerType() { 
     return JNI; 
   }
 
@@ -41,13 +42,15 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return "JNI compiler";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_ExceptionDeliverer getExceptionDeliverer() { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
       
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }

@@ -112,7 +112,8 @@ public abstract class VM_RuntimeMeasurements {
    *   VM_Thread.yieldpoint
    *   takeAOSTimerSample
    */
-  public static void takeTimerSample(int whereFrom) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void takeTimerSample(int whereFrom) { 
     // We use threadswitches as a rough approximation of time. 
     // Every threadswitch is a clock tick.
     // TODO: kill controller clock in favor of VM_Processor.reportedTimerTicks
@@ -221,7 +222,8 @@ public abstract class VM_RuntimeMeasurements {
    *   VM_Thread.yieldpoint
    *   takeCBSMethodSample
    */
-  public static void takeCBSMethodSample(int whereFrom) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void takeCBSMethodSample(int whereFrom) { 
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
@@ -269,7 +271,8 @@ public abstract class VM_RuntimeMeasurements {
    *   VM_Thread.yieldpoint
    *   takeCBSCallSample
    */
-  public static void takeCBSCallSample(int whereFrom) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void takeCBSCallSample(int whereFrom) { 
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1

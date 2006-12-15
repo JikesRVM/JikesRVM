@@ -66,7 +66,8 @@ public class VM_Compiler extends VM_BaselineCompiler
   //----------------//
   
   // position of spill area within method's stackframe.
-  public static int getMaxSpillOffset (VM_NormalMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getMaxSpillOffset (VM_NormalMethod m) { 
     int params = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum parameter area
     int spill  = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
     if (spill < 0) spill = 0;
@@ -74,24 +75,28 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
   
   // position of operand stack within method's stackframe.
-  public static int getEmptyStackOffset (VM_NormalMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getEmptyStackOffset (VM_NormalMethod m) { 
     int stack = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum stack size
     return getMaxSpillOffset(m) + stack + BYTES_IN_STACKSLOT; // last local
   }
   
   // position of locals within method's stackframe.
-  public static int getFirstLocalOffset (VM_NormalMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getFirstLocalOffset (VM_NormalMethod m) { 
     return getStartLocalOffset(m) - BYTES_IN_STACKSLOT;
   }
   
   // start position of locals within method's stackframe.
-  public static int getStartLocalOffset (VM_NormalMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getStartLocalOffset (VM_NormalMethod m) { 
     int locals = m.getLocalWords()<<LOG_BYTES_IN_STACKSLOT;       // input param words + pure locals
     return getEmptyStackOffset(m) + locals; // bottom-most local
   }
   
   // size of method's stackframe.
-  public static int getFrameSize (VM_NormalMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getFrameSize (VM_NormalMethod m) { 
     int size = getStartLocalOffset(m);
     if (m.getDeclaringClass().isDynamicBridge()) {
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
@@ -103,7 +108,8 @@ public class VM_Compiler extends VM_BaselineCompiler
     return size;
   }
 
-  public static int getFrameSize (VM_NativeMethod m) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getFrameSize (VM_NativeMethod m) { 
     // space for:
     //   -NATIVE header (AIX 6 words, LINUX 2 words)
     //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words

@@ -60,15 +60,18 @@ public class JikesRVMSupport {
    * String stuff
    * */
 
-  public static char[] getBackingCharArray(String str) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static char[] getBackingCharArray(String str) { 
     return str.value;
   }
 
-  public static int getStringLength(String str) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getStringLength(String str) { 
     return str.count;
   }
 
-  public static int getStringOffset(String str) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getStringOffset(String str) { 
     return str.offset;
   }
 

@@ -263,14 +263,16 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Canonical type reference for this type.
    */
-  public final VM_TypeReference getTypeRef() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getTypeRef() { 
     return typeRef;
   }
 
   /**
    * Get the numeric identifier for this type
    */
-  public final int getId() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getId() { 
     return id;
   }
 
@@ -290,14 +292,16 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
-  public final Offset getTibOffset() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final Offset getTibOffset() { 
     return Offset.fromIntSignExtend(tibOffset);
   }
 
   /**
    * Get the class loader for this type
    */
-  public final ClassLoader getClassLoader() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final ClassLoader getClassLoader() { 
     return typeRef.getClassLoader();
   }
 
@@ -307,7 +311,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * For an array, something like "[I" or "[Ljava/lang/String;".
    * For a primitive, something like "I".
    */ 
-  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Atom getDescriptor() { 
     return typeRef.getName();
   }
 
@@ -324,101 +329,121 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
    */ 
-  public abstract int getTypeDepth () throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract int getTypeDepth (); 
 
   /**
    * Reference Count GC: Is a reference of this type contained in
    * another object inherently acyclic (without cycles) ?
    */ 
-  public abstract boolean isAcyclicReference() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isAcyclicReference(); 
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for classes
    */ 
-  public abstract int getDimensionality() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract int getDimensionality(); 
 
   /**
    * @return this cast to a VM_Class
    */
-  public final VM_Class asClass() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Class asClass() { 
     return (VM_Class)this;
   }
   /**
    * @return this cast to a VM_Array
    */
-  public final VM_Array asArray() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Array asArray() { 
     return (VM_Array)this;
   }
   /**
    * @return this cast to a VM_Primitive
    */
-  public final VM_Primitive asPrimitive() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Primitive asPrimitive() { 
     return (VM_Primitive)this;
   }
 
   // Convenience methods.
   //
   /** @return is this type void? */
-  public final boolean isVoidType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isVoidType() { 
     return this == VoidType;
   }
   /** @return is this type the primitive boolean? */
-  public final boolean isBooleanType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isBooleanType() { 
     return this == BooleanType;
   }
   /** @return is this type the primitive byte? */
-  public final boolean isByteType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isByteType() { 
     return this == ByteType;
   }
   /** @return is this type the primitive short? */
-  public final boolean isShortType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isShortType() { 
     return this == ShortType;
   }
   /** @return is this type the primitive int? */
-  public final boolean isIntType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isIntType() { 
     return this == IntType;
   }
   /** @return is this type the primitive long? */
-  public final boolean isLongType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isLongType() { 
     return this == LongType;
   }
   /** @return is this type the primitive float? */
-  public final boolean isFloatType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isFloatType() { 
     return this == FloatType;
   }
   /** @return is this type the primitive double? */
-  public final boolean isDoubleType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isDoubleType() { 
     return this == DoubleType;
   }
   /** @return is this type the primitive char? */
-  public final boolean isCharType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isCharType() { 
     return this == CharType;
   }
   /**
    * @return is this type the primitive int like? ie is it held as an
    * int on the JVM stack
    */
-  public final boolean isIntLikeType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isIntLikeType() { 
     return isBooleanType() || isByteType() ||
       isShortType() || isIntType() || isCharType();
   }
   /** @return is this type the class Object? */
-  public final boolean isJavaLangObjectType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isJavaLangObjectType() { 
     return this == JavaLangObjectType;
   }
   /** @return is this type the class Throwable? */
-  public final boolean isJavaLangThrowableType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isJavaLangThrowableType() { 
     return this == JavaLangThrowableType;
   }
   /** @return is this type the class String? */
-  public final boolean isJavaLangStringType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isJavaLangStringType() { 
     return this == JavaLangStringType;
   }
   /**
    * @return is this type an internal Jikes RVM type the size of a
    * word?
    */
-  public final boolean isWordType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isWordType() { 
     return (this == WordType) || (this == AddressType) ||
       (this == ObjectReferenceType) || (this == ExtentType) ||
       (this == OffsetType);
@@ -427,24 +452,28 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * @return is this type an internal Jikes RVM type representing a
    * word sized array?
    */
-  final boolean isWordArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  final boolean isWordArrayType() { 
     return (this == WordArrayType) || (this == AddressArrayType) ||
       (this == ObjectReferenceArrayType) || (this == ExtentArrayType) || 
       (this == OffsetArrayType);
   }
   /** @return is this type the Jikes RVM internal code type? */
-  final boolean isCodeType() throws UninterruptiblePragma {
+  @Uninterruptible
+  final boolean isCodeType() { 
     return this == CodeType;
   }
   /** @return is this type the Jikes RVM internal code array type? */
-  final boolean isCodeArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  final boolean isCodeArrayType() { 
     return this == CodeArrayType;
   }
   /**
    * @return is this type a Jikes RVM magic type that the compilers
    * will compile differently?
    */
-  public final boolean isMagicType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isMagicType() { 
     return isWordType() || isWordArrayType() ||
       this == MagicType || this == CodeArrayType;
   }
@@ -452,35 +481,40 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * @return is this type the Jikes RVM internal unpreemptible pragma
    * type?
    */
-  public final boolean isUnpreemptibleType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isUnpreemptibleType() { 
     return this == UnpreemptibleType;
   }
   /**
    * @return is this type the Jikes RVM internal synchronized object
    * pragma type?
    */
-  public final boolean isSynchronizedObjectType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isSynchronizedObjectType() { 
     return this == SynchronizedObjectType;
   }
   /**
    * @return is this type the Jikes RVM internal dynamic bridge pragma
    * type?
    */
-  public final boolean isDynamicBridgeType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isDynamicBridgeType() { 
     return this == DynamicBridgeType;
   }
   /**
    * @return is this type the Jikes RVM internal save volatile pragma
    * type?
    */
-  public final boolean isSaveVolatileType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isSaveVolatileType() { 
     return this == SaveVolatileType;
   }
   /**
    * @return is this type the Jikes RVM internal native bridge pragma
    * type?
    */
-  public final boolean isNativeBridgeType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isNativeBridgeType() { 
     return this == NativeBridgeType;
   }
 
@@ -501,14 +535,16 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * get superclass id vector (@see VM_DynamicTypeCheck)
    */ 
-  public final short[] getSuperclassIds () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final short[] getSuperclassIds () { 
     return VM_Magic.objectAsShortArray(getTypeInformationBlock()[VM.TIB_SUPERCLASS_IDS_INDEX]);
   }
 
   /**
    * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
-  public final int[] getDoesImplement () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int[] getDoesImplement () { 
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 
@@ -533,20 +569,23 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * How many types have been created?
    * Only intended to be used by the bootimage writer!
    */
-  public static final int numTypes() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static final int numTypes() { 
     return nextId-1; 
   }
   /**
    * Get all the created types.
    * Only intended to be used by the bootimage writer!
    */
-  public static final VM_Type[] getTypes() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static final VM_Type[] getTypes() { 
     return types; 
   }
   /**
    * Get the type for the given id
    */
-  public static final VM_Type getType(int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static final VM_Type getType(int id) { 
     return types[id];
   }
 
@@ -648,7 +687,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * code to access fields/methods symbolically, via dynamic linking stubs).
    * Primitives are always treated as "resolved".
    */ 
-  public abstract boolean isResolved() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isResolved(); 
 
   /**
    * Instantiation status.
@@ -657,7 +697,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * and its type information block has been placed in the jtoc.
    * Primitives are always treated as "instantiated".
    */ 
-  public abstract boolean isInstantiated() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isInstantiated(); 
    
   /**
    * Initialization status.
@@ -667,7 +708,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * "initialized" immediately upon "instantiation".
    * Primitives are always treated as "initialized".
    */ 
-  public abstract boolean isInitialized() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isInitialized(); 
 
   /**
    * Only intended to be used by the BootImageWriter
@@ -677,33 +719,39 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Is this class part of the virtual machine's boot image?
    */ 
-  public abstract boolean isInBootImage() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isInBootImage(); 
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public abstract Offset getThinLockOffset() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract Offset getThinLockOffset(); 
 
   public abstract void setThinLockOffset(Offset offset);
   
   /**
    * @return whether or not this is an instance of VM_Class?
    */
-  public abstract boolean isClassType() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isClassType(); 
 
   /**
    * @return whether or not this is an instance of VM_Array?
    */
-  public abstract boolean isArrayType() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isArrayType(); 
   /**
    * @return whether or not this is a primitive type
    */
-  public abstract boolean isPrimitiveType() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isPrimitiveType(); 
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
-  public abstract boolean isReferenceType() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean isReferenceType(); 
    
   /**
    * Space required when this type is stored on the stack 
@@ -716,7 +764,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * <li> all other primitive types require 1 word
    * </ul>
    */ 
-  public abstract int getStackWords() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract int getStackWords(); 
 
   /**
    * Cause resolution to take place.
@@ -740,7 +789,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Does this type override java.lang.Object.finalize()?
    */
-  public abstract boolean hasFinalizer() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract boolean hasFinalizer(); 
 
   /**
    * Static fields of this class/array type.
@@ -767,7 +817,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Runtime type information for this class/array type.
    */ 
-  public abstract Object[] getTypeInformationBlock() throws UninterruptiblePragma;  
+  @Uninterruptible
+  public abstract Object[] getTypeInformationBlock(); 
   /**
    * Does this slot in the TIB hold a TIB entry?
    */
@@ -787,5 +838,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * @return the type information the memory manager previously
    * recorded about this type
    */
-  public abstract Object getMMType() throws UninterruptiblePragma;
+  @Uninterruptible
+  public abstract Object getMMType(); 
 }

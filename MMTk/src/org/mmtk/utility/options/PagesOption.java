@@ -12,8 +12,8 @@ package org.mmtk.utility.options;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Conversions;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
-import org.vmmagic.unboxed.Extent;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * A memory option that stores values as a whole number of pages.
@@ -46,7 +46,8 @@ public class PagesOption extends Option {
    * 
    * @return The option value.
    */
-  public int getPages() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getPages() { 
     return this.value;
   }
 
@@ -55,7 +56,8 @@ public class PagesOption extends Option {
    * 
    * @return The option value.
    */
-  public Extent getBytes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Extent getBytes() { 
     return Conversions.pagesToBytes(this.value);
   }
 
@@ -64,7 +66,8 @@ public class PagesOption extends Option {
    * 
    * @return The default value.
    */
-  public Extent getDefaultBytes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Extent getDefaultBytes() { 
     return Conversions.pagesToBytes(this.defaultValue);
   }
 
@@ -73,7 +76,8 @@ public class PagesOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultPages() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultPages() { 
     return this.defaultValue;
   }
 

@@ -111,7 +111,8 @@ public class VM_BootRecord {
     }
   }
 
-  public void setHeapRange(int id, Address start, Address end) throws UninterruptiblePragma {
+  @Uninterruptible
+  public void setHeapRange(int id, Address start, Address end) { 
     if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2); 
     heapRanges.set(2 * id, start);
     heapRanges.set(2 * id + 1, end);

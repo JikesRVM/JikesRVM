@@ -56,7 +56,8 @@ import org.vmmagic.pragma.*;
     VM.sysFail(message); 
   }
 
-  public final void exit(int rc) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void exit(int rc) { 
     VM.sysExit(rc);
   }
 

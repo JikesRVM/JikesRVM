@@ -152,7 +152,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * get number of superclasses to Object 
    * @return 0
    */ 
-  public int getTypeDepth () throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getTypeDepth () { 
     return 0;
   }
 
@@ -161,7 +162,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * another object inherently acyclic (without cycles) ?
    * @return true
    */ 
-  public boolean isAcyclicReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isAcyclicReference() { 
     return true;
   }
 
@@ -170,7 +172,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * classes
    * @return -1;
    */ 
-  public int getDimensionality() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDimensionality() { 
     return -1;
   }
 
@@ -178,7 +181,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Resolution status.
    * @return true
    */ 
-  public boolean isResolved() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isResolved() { 
     return true;
   }
 
@@ -186,7 +190,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Instantiation status.
    * @return true
    */ 
-  public boolean isInstantiated() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isInstantiated() { 
     return true;
   }
    
@@ -194,7 +199,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Initialization status.
    * @return true
    */ 
-  public boolean isInitialized() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isInitialized() { 
     return true;
   }
 
@@ -206,7 +212,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Is this class part of the virtual machine's boot image?
    */ 
-  public boolean isInBootImage() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isInBootImage() { 
     return true;
   }
 
@@ -216,7 +223,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * words.
    * @return -1
    */
-  public Offset getThinLockOffset() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Offset getThinLockOffset() { 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return Offset.fromIntSignExtend(-1);
   }
@@ -232,7 +240,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Class?
    * @return false
    */
-  public boolean isClassType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isClassType() { 
     return false;
   }
 
@@ -240,7 +249,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Array?
    * @return false
    */
-  public boolean isArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isArrayType() { 
     return false;
   }
 
@@ -248,21 +258,24 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * Whether or not this is a primitive type
    * @return true
    */
-  public boolean isPrimitiveType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isPrimitiveType() { 
     return true;
   }
 
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
-  public boolean isReferenceType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isReferenceType() { 
     return false;
   }
    
   /**
    * Stack space requirement.
    */ 
-  public int getStackWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getStackWords() { 
     return stackWords;
   }
 
@@ -284,7 +297,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Does this type override java.lang.Object.finalize()?
    */
-  public boolean hasFinalizer() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean hasFinalizer() { 
     return false;
   }
 
@@ -332,7 +346,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Runtime type information for this class/array type.
    */ 
-  public Object[] getTypeInformationBlock() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Object[] getTypeInformationBlock() { 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
@@ -367,7 +382,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * recorded about this type. This method should never be called for
    * a primitive type.
    */
-  public Object getMMType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Object getMMType() { 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }

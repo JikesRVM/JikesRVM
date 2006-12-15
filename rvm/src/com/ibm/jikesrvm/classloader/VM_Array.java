@@ -125,7 +125,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return the type information the memory manager previously
    * recorded about this type
    */
-  public Object getMMType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Object getMMType() { 
     return mmType;
   }
 
@@ -139,28 +140,32 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /** 
    * @return java Expression stack space requirement. 
   */
-  public final int getStackWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getStackWords() { 
     return 1;
   }
       
   /** 
    * @return element type.
    */
-  public final VM_Type getElementType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Type getElementType() { 
     return elementType;
   }
 
   /**
    * @return innermost element type
    */
-  public final VM_Type getInnermostElementType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Type getInnermostElementType() { 
     return innermostElementType;
   }
       
   /**
    * @return alignment for instances of this array type
    */
-  public final int getAlignment() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getAlignment() { 
     return alignment;
   }
 
@@ -168,7 +173,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
    */
-  public final int getLogElementSize() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getLogElementSize() { 
     return logElementSize;
   }
 
@@ -202,14 +208,16 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return size in bytes
    */
   @Inline
-  public final int getInstanceSize(int numelts) throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final int getInstanceSize(int numelts) { 
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean hasFinalizer() { 
     return false;
   }
 
@@ -244,7 +252,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /**
    * Runtime type information for this array type.
    */
-  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final Object[] getTypeInformationBlock() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -273,7 +282,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * get number of superclasses to Object 
    * @return 1
    */ 
-  public int getTypeDepth () throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getTypeDepth () { 
     return 1;
   }
 
@@ -282,7 +292,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * another object inherently acyclic (without cycles) ?
    * @return true
    */ 
-  public boolean isAcyclicReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isAcyclicReference() { 
     return acyclic;
   }
 
@@ -290,28 +301,32 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes
    */ 
-  public int getDimensionality() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDimensionality() { 
     return dimension;
   }
 
   /**
    * Resolution status.
    */ 
-  public boolean isResolved() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isResolved() { 
     return state >= CLASS_RESOLVED;
   }
 
   /**
    * Instantiation status.
    */ 
-  public final boolean isInstantiated() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isInstantiated() { 
     return state >= CLASS_INSTANTIATED; 
   }
 
   /**
    * Initialization status.
    */ 
-  public final boolean isInitialized() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isInitialized() { 
     return state == CLASS_INITIALIZED; 
   } 
 
@@ -325,7 +340,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /**
    * Is this class part of the virtual machine's boot image?
    */ 
-  public final boolean isInBootImage() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isInBootImage() { 
     return inBootImage;
   }
 
@@ -333,7 +349,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final Offset getThinLockOffset() { 
     return thinLockOffset; 
   }
 
@@ -349,7 +366,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Class?
    * @return false
    */
-  public boolean isClassType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isClassType() { 
     return false;
   }
 
@@ -357,7 +375,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Array?
    * @return true
    */
-  public boolean isArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isArrayType() { 
     return true;
   }
 
@@ -365,14 +384,16 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Whether or not this is a primitive type
    * @return false
    */
-  public boolean isPrimitiveType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isPrimitiveType() { 
     return false;
   }
 
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
-  public boolean isReferenceType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isReferenceType() { 
     return true;
   }
    

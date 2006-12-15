@@ -87,8 +87,8 @@ import org.vmmagic.unboxed.*;
   /**
    * OSR invalidation being initiated.
    */
-  public static void OPT_yieldpointFromOsrOpt() 
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void OPT_yieldpointFromOsrOpt() { 
     VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
     VM_Thread.yieldpoint(VM_Thread.OSROPT);
   }

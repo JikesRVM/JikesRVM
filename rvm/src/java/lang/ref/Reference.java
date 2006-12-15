@@ -93,7 +93,8 @@ public abstract class Reference<T> {
     return nextOnQueue != null;
   }
 
-  public boolean wasEverEnqueued() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean wasEverEnqueued() { 
     return wasEnqueued;
   }
 
@@ -105,7 +106,8 @@ public abstract class Reference<T> {
    * not a 'real' problem...
    */
   @LogicallyUninterruptible
-  public boolean enqueue() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public boolean enqueue() { 
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

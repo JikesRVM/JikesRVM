@@ -197,8 +197,8 @@ import org.vmmagic.pragma.*;
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  public final void triggerAsyncCollection()
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void triggerAsyncCollection() { 
     checkForExhaustion(RESOURCE_GC_TRIGGER, true);
     Plan.collectionInitiated();
     if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
@@ -213,7 +213,8 @@ import org.vmmagic.pragma.*;
    *
    * @return True if GC is not in progress.
    */
- public final boolean noThreadsInGC() throws UninterruptiblePragma {
+ @Uninterruptible
+ public final boolean noThreadsInGC() { 
    return VM_CollectorThread.noThreadsInGC(); 
  }
 
@@ -313,7 +314,8 @@ import org.vmmagic.pragma.*;
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  public final int rendezvous(int where) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int rendezvous(int where) { 
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
@@ -328,8 +330,8 @@ import org.vmmagic.pragma.*;
    * idle).  Should be called at the end of GC after moveToFinalizable
    * has been called, and before mutators are allowed to run.
    */
-  public static final void scheduleFinalizerThread ()
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static final void scheduleFinalizerThread () { 
 
     int finalizedCount = Finalizer.countToBeFinalized();
     boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();

@@ -286,21 +286,24 @@ public final class VM_TypeReference {
    * @param id the type references id
    * @return the type reference
    */
-  public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_TypeReference getTypeRef(int id) { 
     return types[id];
   }
 
   /**
    * @return the classloader component of this type reference
    */
-  public final ClassLoader getClassLoader() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final ClassLoader getClassLoader() { 
     return classloader;
   }
       
   /**
    * @return the type name component of this type reference
    */
-  public final VM_Atom getName() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Atom getName() { 
     return name;
   }
 
@@ -383,7 +386,8 @@ public final class VM_TypeReference {
   /**
    * Does 'this' refer to a class?
    */ 
-  public final boolean isClassType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isClassType() { 
     return name.isClassDescriptor() &&
       !(isWordArrayType() || isWordType() || isCodeArrayType() || isCodeType());
   }
@@ -391,49 +395,56 @@ public final class VM_TypeReference {
   /**
    * Does 'this' refer to an array?
    */ 
-  public final boolean isArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isArrayType() { 
     return name.isArrayDescriptor() || isWordArrayType() || isCodeArrayType();
   }
 
   /**
    * Does 'this' refer to a primitive type
    */
-  public final boolean isPrimitiveType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isPrimitiveType() { 
     return !(isArrayType() || isClassType());
   }
 
   /**
    * Does 'this' refer to a reference type
    */
-  public final boolean isReferenceType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isReferenceType() { 
     return !isPrimitiveType();
   }
 
   /**
    * Does 'this' refer to Word, Address, Offset or Extent
    */
-  public final boolean isWordType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isWordType() { 
     return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
    * Does 'this' refer to VM_Code
    */
-  public final boolean isCodeType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isCodeType() { 
     return this == Code;
   }
 
   /**
    * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
-  final boolean isWordArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  final boolean isWordArrayType() { 
     return this == WordArray || this == OffsetArray || this == AddressArray || this == ObjectReferenceArray || this == ExtentArray;
   }
 
   /**
    * Does 'this' refer to VM_CodeArray
    */
-  public final boolean isCodeArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isCodeArrayType() { 
     return this == CodeArray;
   }
 
@@ -450,7 +461,8 @@ public final class VM_TypeReference {
   /**
    * How many java stack/local words do value of this type take?
    */
-  public final int getStackWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getStackWords() { 
     if (this == Long || this == Double) return 2;
     if (this == Void) return 0;
     return 1;
@@ -459,7 +471,8 @@ public final class VM_TypeReference {
   /**
    * How many bytes of memory words do value of this type take?
    */
-  public final int getSize() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getSize() { 
     if (isReferenceType() || isWordType()) return BYTES_IN_ADDRESS; 
     if (this == Long || this == Double) return BYTES_IN_LONG;
     if (this == Void) return 0;
@@ -470,69 +483,80 @@ public final class VM_TypeReference {
   /**
    * @return the id to use for this type
    */
-  public final int getId() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getId() { 
     return id;
   }
 
   /**
    * Is this the type reference for the void primitive type?
    */
-  public final boolean isVoidType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isVoidType() { 
     return this == Void;
   }
   /**
    * Is this the type reference for the boolean primitive type?
    */
-  public final boolean isBooleanType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isBooleanType() { 
     return this == Boolean;
   }
   /**
    * Is this the type reference for the byte primitive type?
    */
-  public final boolean isByteType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isByteType() { 
     return this == Byte;
   }
   /**
    * Is this the type reference for the short primitive type?
    */
-  public final boolean isShortType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isShortType() { 
     return this == Short;
   }
   /**
    * Is this the type reference for the char primitive type?
    */
-  public final boolean isCharType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isCharType() { 
     return this == Char;
   }
   /**
    * Is this the type reference for the int primitive type?
    */
-  public final boolean isIntType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isIntType() { 
     return this == Int;
   }
   /**
    * Is this the type reference for the long primitive type?
    */
-  public final boolean isLongType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isLongType() { 
     return this == Long;
   }
   /**
    * Is this the type reference for the float primitive type?
    */
-  public final boolean isFloatType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isFloatType() { 
     return this == Float;
   }
   /**
    * Is this the type reference for the double primitive type?
    */
-  public final boolean isDoubleType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isDoubleType() { 
     return this == Double;
   }
   /**
    * Is <code>this</code> the type reference for an 
    * int-like (1, 8, 16, or 32 bit integral) primitive type? 
    */
-  public final boolean isIntLikeType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isIntLikeType() { 
     return isBooleanType() || isByteType() || isCharType() 
       || isShortType() || isIntType();
   } 
@@ -566,14 +590,16 @@ public final class VM_TypeReference {
   /**
    * Has the type reference already been resolved into a type?
    */
-  public final boolean isResolved() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isResolved() { 
     return resolvedType != null;
   }
 
   /**
    * @return the current value of resolvedType -- null if not yet resolved.
    */
-  public final VM_Type peekResolvedType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Type peekResolvedType() { 
     return resolvedType;
   }
 

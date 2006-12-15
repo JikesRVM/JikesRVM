@@ -135,7 +135,8 @@ public class VM_CollectorThread extends VM_Thread {
   static boolean gcThreadRunning;
 
   /** @return the thread scanner instance associated with this instance */
-  public final ScanThread getThreadScanner() throws UninterruptiblePragma { return threadScanner; }
+  @Uninterruptible
+  public final ScanThread getThreadScanner() { return threadScanner; } 
 
 
   /***********************************************************************
@@ -233,8 +234,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @param handshake VM_Handshake for the requested collection
    */
-  public static void asyncCollect(VM_Handshake handshake) 
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void asyncCollect(VM_Handshake handshake) { 
     handshake.requestAndContinue();
   }
 
@@ -243,7 +244,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return A string describing this thread.
    */
-  public String toString() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String toString() { 
     return myName;
   }
 
@@ -252,7 +254,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return The number of collector threads participating in a collection
    */
-  public static int numCollectors() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int numCollectors() { 
     return(participantCount[0]);
   }
   
@@ -263,7 +266,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return The GC ordinal
    */
-  public final int getGCOrdinal() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getGCOrdinal() { 
     return gcOrdinal;
   }
 
@@ -274,7 +278,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @param ord The new GC ordinal for this thread
    */
-  public final void setGCOrdinal(int ord) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void setGCOrdinal(int ord) { 
     gcOrdinal = ord;
   }
 
@@ -288,7 +293,8 @@ public class VM_CollectorThread extends VM_Thread {
    */
    @LogicallyUninterruptible // due to call to snipObsoleteCompiledMethods
    @NoOptCompile // refs stored in registers by opt compiler will not be relocated by GC
-   public void run() throws UninterruptiblePragma { 
+   @Uninterruptible
+   public void run() { 
 
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
@@ -394,16 +400,19 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return <code>true</code> if no threads are still in GC.
    */
-  public static boolean noThreadsInGC() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean noThreadsInGC() { 
     return !gcThreadRunning;
   }
 
-  public int rendezvous(int where) throws UninterruptiblePragma {
+  @Uninterruptible
+  public int rendezvous(int where) { 
     return gcBarrier.rendezvous(where);
   }
   
   /*
-  public static void printThreadWaitTimes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void printThreadWaitTimes() {
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );

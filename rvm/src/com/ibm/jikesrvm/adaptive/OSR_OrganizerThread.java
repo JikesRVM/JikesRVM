@@ -107,7 +107,8 @@ public class OSR_OrganizerThread extends VM_Thread {
    * Activates organizer thread if it is sleeping in the queue.
    * Only one thread can access queue at one time
    */
-  public void activate() throws UninterruptiblePragma {
+  @Uninterruptible
+  public void activate() { 
     boolean gainedLock = VM_Synchronization.testAndSet(this,
          VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {

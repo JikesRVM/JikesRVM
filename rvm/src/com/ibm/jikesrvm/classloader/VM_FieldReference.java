@@ -44,7 +44,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * @return the type of the field's value
    */
-  public final VM_TypeReference getFieldContentsType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getFieldContentsType() { 
     return fieldContentsType;
   }
   
@@ -58,7 +59,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * Get size of the field's value, in bytes.
    */ 
-  public final int getSize() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getSize() { 
     return fieldContentsType.getSize();
   }
 

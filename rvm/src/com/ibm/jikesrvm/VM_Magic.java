@@ -162,7 +162,8 @@ public class VM_Magic {
    * Get return address for a frame
    * @param fp its frame pointer
    */
-  public static Address getReturnAddress(Address fp) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static Address getReturnAddress(Address fp) { 
     return getReturnAddressLocation(fp).loadAddress();
   }
 
@@ -170,7 +171,8 @@ public class VM_Magic {
    * Get return address for a frame
    * @param fp its frame pointer
    */
-  public static void setReturnAddress(Address fp, Address v) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void setReturnAddress(Address fp, Address v) { 
     getReturnAddressLocation(fp).store(v);
   }
 

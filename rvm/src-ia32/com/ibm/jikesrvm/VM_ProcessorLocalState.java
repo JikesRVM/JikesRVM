@@ -38,7 +38,8 @@ extends OPT_IRTools
    * The C bootstrap program has placed a pointer to the initial
    * VM_Processor in ESI.  
    */
-  static void boot() throws UninterruptiblePragma {
+  @Uninterruptible
+  static void boot() { 
     // do nothing - everything is already set up.
   }
 
@@ -46,14 +47,16 @@ extends OPT_IRTools
   /**
    * Return the current VM_Processor object
    */
-  public static VM_Processor getCurrentProcessor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_Processor getCurrentProcessor() { 
     return VM_Magic.getESIAsProcessor();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  public static void setCurrentProcessor(VM_Processor p) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void setCurrentProcessor(VM_Processor p) { 
     VM_Magic.setESIAsProcessor(p);
   }
 

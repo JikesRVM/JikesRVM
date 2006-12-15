@@ -198,14 +198,16 @@ public final class VM_NormalMethod
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
-  public final int getLocalWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getLocalWords() { 
     return localWords;
   }
 
   /**
    * Space required by this method for its operand stack, in words.
    */
-  public final int getOperandWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getOperandWords() { 
     return operandWords;
   }
 
@@ -222,7 +224,8 @@ public final class VM_NormalMethod
    * @param dynamicLink the dynamicLink object to initialize
    * @param bcIndex the bcIndex of the invoke instruction
    */
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) { 
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
@@ -243,7 +246,8 @@ public final class VM_NormalMethod
    * Exceptions caught by this method.
    * @return info (null --> method doesn't catch any exceptions)
    */
-  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_ExceptionHandlerMap getExceptionHandlerMap() { 
     return exceptionHandlerMap;
   }
 
@@ -251,7 +255,8 @@ public final class VM_NormalMethod
    * Return the line number information for the argument bytecode index.
    * @return The line number, a positive integer.  Zero means unable to find.
    */
-  public final int getLineNumberForBCIndex(int bci) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getLineNumberForBCIndex(int bci) { 
     if (lineNumberMap == null) return 0;
     int idx;
     for (idx = 0; idx<lineNumberMap.length; idx++) {

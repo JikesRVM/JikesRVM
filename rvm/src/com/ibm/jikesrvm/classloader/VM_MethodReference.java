@@ -53,14 +53,16 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * @return return type of the method
    */
-  public final VM_TypeReference getReturnType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getReturnType() { 
     return returnType;
   }
 
   /**
    * @return parameter types of the method
    */
-  public final VM_TypeReference[] getParameterTypes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference[] getParameterTypes() { 
     return parameterTypes;
   }
 
@@ -68,7 +70,8 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Space required by method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final int getParameterWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getParameterWords() { 
     int pw = 0;
     for (int i = 0; i<parameterTypes.length; i++)
            pw += parameterTypes[i].getStackWords();
@@ -111,7 +114,8 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Get the member this reference has been resolved to, if 
    * it has already been resolved. Does NOT force resolution.
    */
-  public final VM_Method getResolvedMember() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Method getResolvedMember() { 
     return resolvedMember;
   }
 

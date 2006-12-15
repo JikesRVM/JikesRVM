@@ -27,11 +27,11 @@ public class OSR_OnStackReplacementTrigger {
    * Trigger an OSR from a running thread.
    */
   @NoInline
+  @Uninterruptible
   public static void trigger(int ypTakenInCMID,
                              Offset tsFromFPoff,
                              Offset ypTakenFPoff,
-                             int whereFrom) 
-  throws UninterruptiblePragma { 
+                             int whereFrom) { 
 
 
     VM_Thread thread = VM_Thread.getCurrentThread();    

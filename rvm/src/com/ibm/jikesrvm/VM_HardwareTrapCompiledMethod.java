@@ -28,7 +28,8 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     super(id,m);    
   }
 
-  public final int getCompilerType() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final int getCompilerType() { 
     return TRAP; 
   }
 
@@ -36,7 +37,8 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return "<hardware trap>";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_ExceptionDeliverer getExceptionDeliverer() { 
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -49,7 +51,8 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return -1;
   }
    
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object

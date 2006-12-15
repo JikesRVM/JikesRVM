@@ -67,8 +67,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   /** iterator for JNI Java -> C  stackframes */
   private final VM_JNIGCMapIterator jniIterator;
   
-  
-  public VM_GCMapIteratorGroup() throws UninterruptiblePragma {
+  public VM_GCMapIteratorGroup() { 
     registerLocations         = WordArray.create(VM_Constants.NUM_GPRS);
     
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
@@ -92,8 +91,8 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * <p>
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
-  public void newStackWalk(VM_Thread thread, Address registerLocation) 
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public void newStackWalk(VM_Thread thread, Address registerLocation) { 
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
@@ -113,7 +112,8 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    *
    * @return VM_GCMapIterator to use
    */
-  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) throws UninterruptiblePragma {
+  @Uninterruptible
+  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) { 
     switch (compiledMethod.getCompilerType()) {
     case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
     case VM_CompiledMethod.BASELINE: return baselineIterator;
@@ -131,7 +131,8 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    *
    * @return jniIterator
    */
-  public VM_GCMapIterator getJniIterator() throws UninterruptiblePragma {
+  @Uninterruptible
+  public VM_GCMapIterator getJniIterator() { 
     if (VM.VerifyAssertions) VM._assert(jniIterator!=null);
     return jniIterator;  
   }

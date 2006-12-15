@@ -43,8 +43,8 @@ public final class ScanStatics implements Constants {
    * JTOC.
    */
   @Inline
-  public static void scanStatics(TraceLocal trace) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void scanStatics(TraceLocal trace) { 
     // The address of the statics table
     // equivalent to VM_Statics.getSlots()
     final Address slots = VM_Magic.getJTOC();

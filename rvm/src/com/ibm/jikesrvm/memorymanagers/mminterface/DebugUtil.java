@@ -52,8 +52,8 @@ import com.ibm.jikesrvm.VM_Thread;
    * 
    * @param typeAddress the address to check
    */
-  public static boolean validType(ObjectReference typeAddress)
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean validType(ObjectReference typeAddress) { 
      if (!Space.isMappedObject(typeAddress))
       return false;  // type address is outside of heap
 
@@ -68,7 +68,8 @@ import com.ibm.jikesrvm.VM_Thread;
    * Dump all threads & their stacks starting at the frame identified
    * by the threads saved contextRegisters (ip & fp fields).
    */
-  public static void dumpAllThreadStacks() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void dumpAllThreadStacks() { 
       Address ip, fp;
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks",
@@ -88,13 +89,13 @@ import com.ibm.jikesrvm.VM_Thread;
   /**
    * Check if a ref, its tib pointer & type pointer are all in the heap
    */
-  public static boolean validObject(Object ref)
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean validObject(Object ref) { 
       return validRef(ObjectReference.fromObject(ref));
   }
 
-  public static boolean validRef(ObjectReference ref)
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean validRef(ObjectReference ref) { 
 
     if (ref.isNull()) return true;
     if (!Space.isMappedObject(ref)) {
@@ -145,12 +146,13 @@ import com.ibm.jikesrvm.VM_Thread;
     return true;
   }  // validRef
 
-  public static boolean mappedVMRef(ObjectReference ref)
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean mappedVMRef(ObjectReference ref) { 
     return Space.isMappedObject(ref) && Mmapper.objectIsMapped(ref);
   }
 
-  public static void dumpRef(ObjectReference ref) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void dumpRef(ObjectReference ref) { 
     VM.sysWrite("REF=");
     if (ref.isNull()) {
       VM.sysWrite("NULL\n");

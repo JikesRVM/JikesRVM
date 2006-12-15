@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * Base class for boolean options.
@@ -44,7 +44,8 @@ public class BooleanOption extends Option {
    * 
    * @return The option value.
    */
-  public boolean getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean getValue() { 
     return this.value;
   }
 
@@ -53,7 +54,8 @@ public class BooleanOption extends Option {
    * 
    * @return The default value.
    */
-  public boolean getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean getDefaultValue() { 
     return this.defaultValue;
   }
 

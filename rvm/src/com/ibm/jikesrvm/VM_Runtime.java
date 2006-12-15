@@ -117,7 +117,8 @@ public class VM_Runtime implements VM_Constants {
    * @param id type id corresponding to target class.
    * @return true iff is object instance of target type?
    */
-  static boolean instanceOfResolvedClass(Object object, int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  static boolean instanceOfResolvedClass(Object object, int id) { 
     if (object == null)
       return false; // null is not an instance of any type
     
@@ -136,7 +137,8 @@ public class VM_Runtime implements VM_Constants {
    * @return <code>true</code> iff  <code>object</code> is instance of the
    *         target type
    */
-  static boolean instanceOfFinal(Object object, Offset targetTibOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  static boolean instanceOfFinal(Object object, Offset targetTibOffset) { 
     if (object == null)
       return false; // null is not an instance of any type
 
@@ -179,7 +181,8 @@ public class VM_Runtime implements VM_Constants {
    * @param object object to be tested
    * @param id of type corresponding to target class
    */ 
-  static void checkcastResolvedClass(Object object, int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  static void checkcastResolvedClass(Object object, int id) { 
     if (object == null) return; // null can be cast to any type
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
@@ -193,7 +196,8 @@ public class VM_Runtime implements VM_Constants {
   /**
    * quick version for final classes, array of final class or array of primitives
    */
-  static void checkcastFinal(Object object, Offset targetTibOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  static void checkcastFinal(Object object, Offset targetTibOffset) { 
     if (object == null) return; // null can be cast to any type
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
@@ -206,8 +210,8 @@ public class VM_Runtime implements VM_Constants {
   }
 
   @LogicallyUninterruptible
-  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) { 
     throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 
@@ -965,7 +969,8 @@ public class VM_Runtime implements VM_Constants {
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
-  public static Address unwindNativeStackFrame(Address currfp) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static Address unwindNativeStackFrame(Address currfp) { 
     Address ip, callee_fp;
     Address fp = VM_Magic.getCallerFramePointer(currfp);
 
@@ -1002,7 +1007,8 @@ public class VM_Runtime implements VM_Constants {
    * Skip over all frames below which do not contain any object
    * references. 
    */
-  public static Address unwindNativeStackFrameForGC(Address currfp) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static Address unwindNativeStackFrameForGC(Address currfp) { 
     if (VM.BuildForMachOABI) {
       // Unlike on AIX, there are two glue frames. The frame the
       // VM_JNICompiler refers to as "glue frame 1" will contain saved

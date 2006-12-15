@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option that has a simple single precision floating point value.
@@ -44,7 +44,8 @@ public class FloatOption extends Option {
    * 
    * @return The option value.
    */
-  public float getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public float getValue() { 
     return this.value;
   }
 
@@ -53,7 +54,8 @@ public class FloatOption extends Option {
    * 
    * @return The default value.
    */
-  public float getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public float getDefaultValue() { 
     return this.defaultValue;
   }
 

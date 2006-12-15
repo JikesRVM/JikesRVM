@@ -230,7 +230,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Stack space requirement.
    */
-  public final int getStackWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getStackWords() { 
     return 1;
   }
 
@@ -246,35 +247,40 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * An "interface" description rather than a "class" description?
    */ 
-  public final boolean isInterface() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isInterface() { 
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
 
   /**
    * Usable from other packages?
    */ 
-  public final boolean isPublic() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isPublic() { 
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
   /**
    * Non-subclassable?
    */ 
-  public final boolean isFinal() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isFinal() { 
     return (modifiers & ACC_FINAL) != 0; 
   }
 
   /**
    * Non-instantiable?
    */ 
-  public final boolean isAbstract() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isAbstract() { 
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
 
   /**
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
-  public final boolean isSpecial() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isSpecial() { 
     return (modifiers & ACC_SUPER) != 0; 
   }
 
@@ -351,14 +357,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Superclass of this class (null means "no superclass", 
    * ie. class is "java/lang/Object").
    */
-  public final VM_Class getSuperClass() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Class getSuperClass() { 
     return superClass;
   }
 
   /**
    * Currently loaded classes that "extend" this class.
    */ 
-  public final VM_Class[] getSubClasses() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Class[] getSubClasses() { 
     return subClasses;
   }
 
@@ -366,21 +374,24 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Interfaces implemented directly by this class 
    * (ie. not including superclasses).
    */
-  public final VM_Class[] getDeclaredInterfaces() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Class[] getDeclaredInterfaces() { 
     return declaredInterfaces;
   }
 
   /**
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
-  public final VM_Field[] getDeclaredFields() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Field[] getDeclaredFields() { 
     return declaredFields;
   }
 
   /**
    * Methods defined directly by this class (ie. not including superclasses).
    */
-  public final VM_Method[] getDeclaredMethods() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Method[] getDeclaredMethods() { 
     return declaredMethods;
   }
 
@@ -411,7 +422,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */ 
-  public final VM_Method getClassInitializerMethod() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Method getClassInitializerMethod() { 
     return classInitializerMethod;
   }
 
@@ -476,35 +488,43 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // Items are fetched by specifying their "constant pool index".
   //
 
-  private static int packCPEntry(byte type, int value) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int packCPEntry(byte type, int value) { 
     return (((int)type) << 29) | (value & 0x1fffffff);
   }
 
-  private static byte unpackCPType(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static byte unpackCPType(int cpValue) { 
     return (byte)(cpValue >>> 29);
   }
 
-  private static int unpackSignedCPValue(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int unpackSignedCPValue(int cpValue) { 
     return (cpValue << 3) >> 3;
   }
 
-  private static int unpackUnsignedCPValue(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int unpackUnsignedCPValue(int cpValue) { 
     return cpValue & 0x1fffffff;
   }
 
-  private static boolean packedCPTypeIsClassType(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static boolean packedCPTypeIsClassType(int cpValue) { 
     return (cpValue & (7 << 29)) ==  (CP_CLASS << 29); 
   }
 
-  private static int packTempCPEntry(int index1, int index2) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int packTempCPEntry(int index1, int index2) { 
     return (index1 << 16) | (index2 & 0xffff);
   }
 
-  private static int unpackTempCPIndex1(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int unpackTempCPIndex1(int cpValue) { 
     return cpValue >>> 16;
   }
 
-  private static int unpackTempCPIndex2(int cpValue) throws UninterruptiblePragma {
+  @Uninterruptible
+  private static int unpackTempCPIndex2(int cpValue) { 
     return cpValue & 0xffff;
   }
 
@@ -584,7 +604,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  public final VM_TypeReference getTypeRef(int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getTypeRef(int constantPoolIndex) { 
     return getTypeRef(constantPool, constantPoolIndex);
   }
 
@@ -592,7 +613,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  static VM_TypeReference getTypeRef(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  static VM_TypeReference getTypeRef(int constantPool[], int constantPoolIndex) { 
     if (constantPoolIndex != 0) {
       int cpValue = constantPool[constantPoolIndex];
       if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_CLASS);
@@ -605,14 +627,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Get contents of a "methodRef" constant pool entry.
    */
-  public final VM_MethodReference getMethodRef(int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_MethodReference getMethodRef(int constantPoolIndex) { 
     return getMethodRef(constantPool, constantPoolIndex);
   }
 
   /**
    * Get contents of a "methodRef" constant pool entry.
    */
-  static VM_MethodReference getMethodRef(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  static VM_MethodReference getMethodRef(int constantPool[], int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
     return  (VM_MethodReference)
@@ -622,7 +646,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Get contents of a "fieldRef" constant pool entry.
    */
-  public final VM_FieldReference getFieldRef(int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_FieldReference getFieldRef(int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
     return  (VM_FieldReference)
@@ -632,7 +657,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Get contents of a "utf" constant pool entry.
    */
-  final VM_Atom getUtf(int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  final VM_Atom getUtf(int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
     return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
@@ -641,7 +667,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Get contents of a "utf" from a constant pool entry.
    */
-  static VM_Atom getUtf(int constantPool[], int constantPoolIndex) throws UninterruptiblePragma {
+  @Uninterruptible
+  static VM_Atom getUtf(int constantPool[], int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
     return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
@@ -651,7 +678,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Does this object implement the VM_SynchronizedObject interface?
    * @see VM_SynchronizedObject
    */ 
-  final boolean isSynchronizedObject() throws UninterruptiblePragma {
+  @Uninterruptible
+  final boolean isSynchronizedObject() { 
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSynchronizedObjectType()) return true;
@@ -663,7 +691,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * register save/restore logic?
    * @see VM_DynamicBridge
    */
-  public final boolean isDynamicBridge () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isDynamicBridge () { 
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isDynamicBridgeType()) return true;
@@ -675,7 +704,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
-  public final boolean isBridgeFromNative() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isBridgeFromNative() { 
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
     // If this class is not loaded yet, we can assume that it
@@ -767,7 +797,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */
-  public final boolean isSaveVolatile() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isSaveVolatile() { 
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;
@@ -787,7 +818,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return the type information the memory manager previously
    * recorded about this type
    */
-  public Object getMMType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Object getMMType() { 
     return mmType;
   }
 
@@ -798,7 +830,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean hasFinalizer() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return (finalizeMethod != null);
   }
@@ -807,7 +840,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get finalize method that overrides java.lang.Object.finalize(), 
    * if one exists
    */
-  public final VM_Method getFinalizer() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Method getFinalizer() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return finalizeMethod;
   }
@@ -891,7 +925,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Total size, in bytes, of an instance of this class 
    * (including object header).
    */
-  public final int getInstanceSize() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getInstanceSize() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceSize;
   }
@@ -900,7 +935,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Total size, in bytes, of an instance of this class (including
    * object header). Doesn't perform any verification.
    */
-  public final int getInstanceSizeInternal() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getInstanceSizeInternal() { 
     return instanceSize;
   }
 
@@ -908,7 +944,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Add a field to the object; only meant to be called from VM_ObjectModel et al.
    * must be called when lock on class object is already held (ie from resolve).
    */
-  public final void increaseInstanceSize(int numBytes) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void increaseInstanceSize(int numBytes) { 
     instanceSize += numBytes;
   }
 
@@ -916,7 +953,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Offsets of reference-containing instance fields of this class type.
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
-  public final int[] getReferenceOffsets() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int[] getReferenceOffsets() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
@@ -942,7 +980,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * @return alignment for instances of this class type
    */
-  public final int getAlignment() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getAlignment() { 
     return alignment;
   }
 
@@ -992,7 +1031,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Runtime type information for this class type.
    */
-  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final Object[] getTypeInformationBlock() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -1774,7 +1814,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // final (otherwise the reference could be to a subsequently loaded
   // cyclic subclass).
   //
-  public final boolean isAcyclicReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isAcyclicReference() { 
     return acyclic && isFinal();
   }
 
@@ -2290,7 +2331,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * classes
    * @return 0
    */ 
-  public int getDimensionality() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDimensionality() { 
     return 0;
   }
 
@@ -2298,21 +2340,24 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Resolution status.
    */ 
-  public boolean isResolved() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isResolved() { 
     return state >= CLASS_RESOLVED;
   }
 
   /**
    * Instantiation status.
    */ 
-  public final boolean isInstantiated() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isInstantiated() { 
     return state >= CLASS_INSTANTIATED; 
   }
 
   /**
    * Initialization status.
    */ 
-  public final boolean isInitialized() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isInitialized() { 
     return state == CLASS_INITIALIZED; 
   } 
 
@@ -2326,7 +2371,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Is this class part of the virtual machine's boot image?
    */ 
-  public final boolean isInBootImage() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isInBootImage() { 
     return inBootImage;
   }
 
@@ -2334,7 +2380,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final Offset getThinLockOffset() { 
     return thinLockOffset; 
   }
 
@@ -2349,7 +2396,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * get number of superclasses to Object 
    */ 
-  public int getTypeDepth () throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getTypeDepth () { 
     return depth;
   }
 
@@ -2357,7 +2405,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Class?
    * @return false
    */
-  public boolean isClassType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isClassType() { 
     return true;
   }
 
@@ -2365,7 +2414,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Whether or not this is an instance of VM_Array?
    * @return true
    */
-  public boolean isArrayType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isArrayType() { 
     return false;
   }
 
@@ -2373,14 +2423,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Whether or not this is a primitive type
    * @return false
    */
-  public boolean isPrimitiveType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isPrimitiveType() { 
     return false;
   }
 
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
-  public boolean isReferenceType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean isReferenceType() { 
     return true;
   }
 }

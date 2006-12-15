@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * A time option that stores values at a microsecond granularity.
@@ -44,7 +44,8 @@ public class MicrosecondsOption extends Option {
    * 
    * @return The option value.
    */
-  public int getMicroseconds() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getMicroseconds() { 
     return this.value;
   }
 
@@ -53,7 +54,8 @@ public class MicrosecondsOption extends Option {
    * 
    * @return The option value.
    */
-  public int getMilliseconds() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getMilliseconds() { 
     return this.value / 1000;
   }
 
@@ -62,7 +64,8 @@ public class MicrosecondsOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultMicroseconds() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultMicroseconds() { 
     return this.defaultValue;
   }
 
@@ -71,7 +74,8 @@ public class MicrosecondsOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultMilliseconds() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultMilliseconds() { 
     return this.defaultValue / 1000;
   }
 

@@ -114,7 +114,8 @@ public final class VM_Field extends VM_Member {
   /**
    * Get type of this field's value.
    */ 
-  public final VM_TypeReference getType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getType() { 
     return memRef.asFieldReference().getFieldContentsType();
   }
   
@@ -135,28 +136,32 @@ public final class VM_Field extends VM_Member {
   /**
    * Shared among all instances of this class?
    */ 
-  public final boolean isStatic() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isStatic() { 
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * May only be assigned once?
    */ 
-  public final boolean isFinal() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isFinal() { 
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Value not to be cached in a register?
    */ 
-  public final boolean isVolatile() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isVolatile() { 
     return (modifiers & ACC_VOLATILE) != 0;
   }
 
   /**
    * Value not to be written/read by persistent object manager?
    */ 
-  public final boolean isTransient() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isTransient() { 
     return (modifiers & ACC_TRANSIENT) != 0;
   }
 
@@ -179,7 +184,8 @@ public final class VM_Field extends VM_Member {
    * "static final constant" field's value.
    * @return constant pool index (0 --> field is not a "static final constant")
    */ 
-  final int getConstantValueIndex() throws UninterruptiblePragma {
+  @Uninterruptible
+  final int getConstantValueIndex() { 
     return constantValueIndex;
   }
 

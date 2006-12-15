@@ -329,28 +329,32 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Is this method a class initializer?
    */
-  public final boolean isClassInitializer() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isClassInitializer() { 
     return getName() == VM_ClassLoader.StandardClassInitializerMethodName;  
   }
 
   /**
    * Is this method an object initializer?
    */
-  public final boolean isObjectInitializer() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isObjectInitializer() { 
     return getName() == VM_ClassLoader.StandardObjectInitializerMethodName; 
   }
 
   /**
    * Is this method a compiler-generated object initializer helper?
    */
-  public final boolean isObjectInitializerHelper() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final boolean isObjectInitializerHelper() { 
     return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName; 
   }
 
   /**
    * Type of this method's return value.
    */
-  public final VM_TypeReference getReturnType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getReturnType() { 
     return memRef.asMethodReference().getReturnType();
   }
 
@@ -358,7 +362,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Type of this method's parameters.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final VM_TypeReference[] getParameterTypes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference[] getParameterTypes() { 
     return memRef.asMethodReference().getParameterTypes();
   }
 
@@ -366,7 +371,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Space required by this method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final int getParameterWords() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getParameterWords() { 
     return memRef.asMethodReference().getParameterWords();
   }
 
@@ -393,35 +399,40 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Declared as statically dispatched?
    */
-  public final boolean isStatic() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isStatic() { 
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * Declared as non-overridable by subclasses?
    */
-  public final boolean isFinal() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isFinal() { 
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Guarded by monitorenter/monitorexit?
    */
-  public final boolean isSynchronized() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isSynchronized() { 
     return (modifiers & ACC_SYNCHRONIZED) != 0;
   }
 
   /**
    * Not implemented in java?
    */
-  public final boolean isNative() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isNative() { 
     return (modifiers & ACC_NATIVE) != 0;
   }
 
   /**
    * Implemented in subclass?
    */
-  public final boolean isAbstract() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isAbstract() { 
     return (modifiers & ACC_ABSTRACT) != 0;
   }
 
@@ -437,7 +448,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  public final VM_TypeReference[] getExceptionTypes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference[] getExceptionTypes() { 
     return exceptionTypes;
   }
 

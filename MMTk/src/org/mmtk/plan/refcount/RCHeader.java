@@ -111,8 +111,8 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if <code>object</code> needs to be logged.
    */
   @Inline
-  public static boolean logRequired(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean logRequired(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
@@ -134,8 +134,8 @@ import org.vmmagic.pragma.*;
    * <code>object</code>was won.
    */
   @Inline
-  public static boolean attemptToLog(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean attemptToLog(ObjectReference object) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -159,8 +159,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose state is to be changed.
    */
   @Inline
-  public static void makeLogged(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void makeLogged(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(value.and(LOGGING_MASK).NE(LOGGED));
@@ -173,8 +173,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose state is to be changed.
    */
   @Inline
-  public static void makeUnlogged(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void makeUnlogged(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(value.and(LOGGING_MASK).EQ(LOGGED));
@@ -214,8 +214,8 @@ import org.vmmagic.pragma.*;
    * @return True if the object is alive
    */
   @Inline
-  public static boolean isLiveRC(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isLiveRC(ObjectReference object) { 
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
   
@@ -226,8 +226,8 @@ import org.vmmagic.pragma.*;
    * @return The reference ocunt
    */
   @Inline
-  public static int getRC(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static int getRC(ObjectReference object) { 
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >> INCREMENT_SHIFT;
   }
   
@@ -250,15 +250,15 @@ import org.vmmagic.pragma.*;
    * @return True if the object is finalizable
    */
   @Inline
-  public static boolean isFinalizable(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isFinalizable(ObjectReference object) { 
     setFinalizer(object);
     return object.toAddress().loadInt(RC_HEADER_OFFSET) < HARD_THRESHOLD;
   }
 
   @NoInline
-  public static void incRCOOL(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void incRCOOL(ObjectReference object) { 
     incRC(object);
   }
 
@@ -274,8 +274,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose RC is to be incremented.
    */
   @Inline
-  public static void incRC(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void incRC(ObjectReference object) { 
     int oldValue, newValue;
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RCBase.isRCObject(object));
@@ -306,8 +306,8 @@ import org.vmmagic.pragma.*;
    * object was already in the purple buffer.
    */
   @Inline
-  public static int decRC(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static int decRC(ObjectReference object) { 
     int oldValue, newValue;
     int rtn;
     if (VM.VERIFY_ASSERTIONS) {
@@ -334,8 +334,8 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public static boolean isBuffered(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isBuffered(ObjectReference object) { 
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
 
@@ -356,8 +356,8 @@ import org.vmmagic.pragma.*;
    * <code>false</code> if the bit was already set.
    */
   @Inline
-  public static boolean setRoot(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean setRoot(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -375,8 +375,8 @@ import org.vmmagic.pragma.*;
    * to be cleared.
    */
   @Inline
-  public static void unsetRoot(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void unsetRoot(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -391,8 +391,8 @@ import org.vmmagic.pragma.*;
    * to be set.
    */
   @Inline
-  static void setFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  static void setFinalizer(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -407,8 +407,8 @@ import org.vmmagic.pragma.*;
    * to be cleared.
    */
   @Inline
-  public static void clearFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void clearFinalizer(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -427,8 +427,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose RC is to be decremented.
    */
   @Inline
-  public static void unsyncDecRC(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void unsyncDecRC(ObjectReference object) { 
     int oldValue, newValue;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue - INCREMENT;
@@ -441,8 +441,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose RC is to be incremented.
    */
   @Inline
-  public static void unsyncIncRC(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void unsyncIncRC(ObjectReference object) { 
     int oldValue, newValue;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue + INCREMENT;
@@ -450,8 +450,8 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public static void print(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void print(ObjectReference object) { 
     if (object.isNull()) return;
     Log.write(' ');
     Log.write(object.toAddress().loadInt(RC_HEADER_OFFSET)>>INCREMENT_SHIFT); 
@@ -471,79 +471,79 @@ import org.vmmagic.pragma.*;
       Log.write('u');
   }
   @Inline
-  public static void clearBufferedBit(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void clearBufferedBit(ObjectReference object) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = oldValue & ~BUFFERED_MASK;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
   @Inline
-  public static boolean isBlack(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isBlack(ObjectReference object) { 
     return getLoRCColor(object) == BLACK;
   }
   @Inline
-  public static boolean isWhite(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isWhite(ObjectReference object) { 
     return getLoRCColor(object) == WHITE;
   }
   @Inline
-  public static boolean isGreen(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isGreen(ObjectReference object) { 
     return getHiRCColor(object) == GREEN;
   }
   @Inline
-  public static boolean isPurple(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isPurple(ObjectReference object) { 
     return getHiRCColor(object) == PURPLE;
   }
   @Inline
-  public static boolean isPurpleNotGrey(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isPurpleNotGrey(ObjectReference object) { 
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & (PURPLE | GREY)) == PURPLE;
   }
   @Inline
-  public static boolean isGrey(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isGrey(ObjectReference object) { 
     return getLoRCColor(object) == GREY;
   }
   @Inline
-  private static int getLoRCColor(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  private static int getLoRCColor(ObjectReference object) { 
     return LO_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
   @Inline
-  private static int getHiRCColor(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  private static int getHiRCColor(ObjectReference object) { 
     return HI_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
   @Inline
-  public static void makeBlack(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void makeBlack(ObjectReference object) { 
     changeRCLoColor(object, BLACK);
   }
   @Inline
-  public static void makeWhite(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void makeWhite(ObjectReference object) { 
     changeRCLoColor(object, WHITE);
   }
   @Inline
-  public static void makeGrey(ObjectReference object) 
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static void makeGrey(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
   @Inline
-  private static void changeRCLoColor(ObjectReference object, int color)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  private static void changeRCLoColor(ObjectReference object, int color) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = (oldValue & ~LO_COLOR_MASK) | color;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
   @Inline
-  public static boolean testAndMark(ObjectReference object, Word markState) 
-  throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean testAndMark(ObjectReference object, Word markState) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     if ((oldValue & MARKED) == markState.toInt()) return false;
     int newValue = oldValue ^ MARKED;
@@ -551,8 +551,8 @@ import org.vmmagic.pragma.*;
     return true;
   }
   @Inline
-  public static boolean isMarked(ObjectReference object, Word markState) 
-  throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean isMarked(ObjectReference object, Word markState) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     return (oldValue & MARKED) == markState.toInt();
   }

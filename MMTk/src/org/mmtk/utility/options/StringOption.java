@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option that has a simple string value.
@@ -44,7 +44,8 @@ public class StringOption extends Option {
    * 
    * @return The option value.
    */
-  public String getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getValue() { 
     return this.value;
   }
 
@@ -53,7 +54,8 @@ public class StringOption extends Option {
    * 
    * @return The default value.
    */
-  public String getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getDefaultValue() { 
     return this.defaultValue;
   }
 

@@ -78,7 +78,8 @@ abstract class VM_Organizer extends VM_Thread {
    * listener uses its own protocol to ensure that exactly 1 
    * thread will attempt to activate the organizer.
    */
-  private void passivate() throws UninterruptiblePragma {
+  @Uninterruptible
+  private void passivate() { 
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());
       listener.activate();
@@ -89,7 +90,8 @@ abstract class VM_Organizer extends VM_Thread {
   /**
    * Called to activate the organizer thread (ie schedule it for execution).
    */
-  void activate() throws UninterruptiblePragma {
+  @Uninterruptible
+  void activate() { 
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(listener.isActive());
       listener.passivate();

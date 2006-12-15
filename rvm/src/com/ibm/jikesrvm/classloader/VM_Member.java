@@ -84,21 +84,24 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * Class that declared this field or method. Not available before
    * the class is loaded.
    */ 
-  public final VM_Class getDeclaringClass() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Class getDeclaringClass() { 
     return declaringClass.peekResolvedType().asClass();
   }
 
   /**
    * Canonical member reference for this member.
    */ 
-  public final VM_MemberReference getMemberRef() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_MemberReference getMemberRef() { 
     return memRef;
   }
 
   /**
    * Name of this member.
    */ 
-  public final VM_Atom getName() throws UninterruptiblePragma { 
+  @Uninterruptible
+  public final VM_Atom getName() { 
     return memRef.getName();
   }
 
@@ -106,7 +109,8 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * Descriptor for this member.
    * something like "I" for a field or "(I)V" for a method.
    */ 
-  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Atom getDescriptor() { 
     return memRef.getDescriptor();
   }
 
@@ -122,7 +126,8 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * The id is the id of the canonical VM_MemberReference for this member
    * and thus may be used to find the member by first finding the member reference.
    */
-  public final int getId() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getId() { 
     return memRef.getId();
   }
 
@@ -181,7 +186,8 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
    */ 
-  public final Offset getOffset() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final Offset getOffset() { 
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     return Offset.fromIntSignExtend(offset);
   }

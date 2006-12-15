@@ -138,7 +138,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @param id the id of an Atom
    * @return the VM_Atom whose id was given
    */
-  public static VM_Atom getAtom(int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_Atom getAtom(int id) { 
     return atoms[id];
   }
 
@@ -182,7 +183,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /** Get at a string-like representation without doing any heap allocation.
    * Hideous but necessary.  We will use it in the PrintContainer class. */
-  public final byte[] toByteArray() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final byte[] toByteArray() { 
     return val;
   }
 
@@ -262,7 +264,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Note: Sun has reserved all member names starting with '<' for future use.
    *       At present, only <init> and <clinit> are used.
    */ 
-  public final boolean isReservedMemberName() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isReservedMemberName() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '<';
   }
@@ -270,7 +273,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Is "this" atom a class descriptor?
    */ 
-  public final boolean isClassDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isClassDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == 'L';
   }
@@ -278,7 +282,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Is "this" atom an array descriptor?
    */ 
-  public final boolean isArrayDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isArrayDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '[';
   }
@@ -286,7 +291,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Is "this" atom a method descriptor?
    */ 
-  public final boolean isMethodDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isMethodDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '(';
   }
@@ -425,7 +431,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Return the underlying set of bytes for the VM_Atom.  This can be used
    * to perform comparisons without requiring the allocation of a string.
    */ 
-  public final byte[] getBytes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final byte[] getBytes() { 
     return val;
   }
 
@@ -491,9 +498,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Implementation note: This is supposed to be uninterruptible, since another
    * allegedly uninterruptible method (VM_Array.getLogElementSize()) calls it.
    */ 
-  public final byte parseForArrayElementTypeCode() 
-    throws UninterruptiblePragma
-  {
+  @Uninterruptible
+  public final byte parseForArrayElementTypeCode() { 
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
       VM._assert(val[0] == '[', "An array descriptor must start with '['");
@@ -625,13 +631,15 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   // debugging //
   //-----------//
    
-  public final void sysWrite() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void sysWrite() { 
     for (int i = 0, n = val.length; i < n; ++i) {
       VM.sysWrite((char)val[i]);
     }
   }
 
-  public final int length() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int length() { 
     return val.length;
   }
 

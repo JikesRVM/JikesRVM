@@ -150,7 +150,8 @@ public abstract class VM_MemberReference {
   }
   //END HRM
 
-  public static VM_MemberReference getMemberRef(int id) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_MemberReference getMemberRef(int id) { 
     return members[id];
   }
 
@@ -168,56 +169,64 @@ public abstract class VM_MemberReference {
   /**
    * @return the type reference component of this member reference
    */
-  public final VM_TypeReference getType() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_TypeReference getType() { 
     return type;
   }
 
   /**
    * @return the member name component of this member reference
    */
-  public final VM_Atom getName() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Atom getName() { 
     return name;
   }
 
   /**
    * @return the descriptor component of this member reference
    */
-  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_Atom getDescriptor() { 
     return descriptor;
   }
 
   /**
    * @return the dynamic linking id to use for this member.
    */
-  public final int getId() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getId() { 
     return id;
   }
 
   /**
    * Is this member reference to a field?
    */
-  public final boolean isFieldReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isFieldReference() { 
     return this instanceof VM_FieldReference;
   }
 
   /**
    * Is this member reference to a method?
    */
-  public final boolean isMethodReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final boolean isMethodReference() { 
     return this instanceof VM_MethodReference;
   }
 
   /**
    * @return this cast to a VM_FieldReference
    */
-  public final VM_FieldReference asFieldReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_FieldReference asFieldReference() { 
     return (VM_FieldReference)this;
   }
 
   /**
    * @return this cast to a VM_MethodReference
    */
-  public final VM_MethodReference asMethodReference() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_MethodReference asMethodReference() { 
     return (VM_MethodReference)this;
   }
 

@@ -77,7 +77,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
   //-#endif
 
-  public final int getCompilerType () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int getCompilerType () { 
     return BASELINE;
   }
 
@@ -85,7 +86,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return "baseline compiler";
   }
 
-  public final VM_ExceptionDeliverer getExceptionDeliverer () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final VM_ExceptionDeliverer getExceptionDeliverer () { 
     return exceptionDeliverer;
   }
 
@@ -97,7 +99,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  public final void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) { 
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionOffset);
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
@@ -105,7 +108,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * @return The line number, a positive integer.  Zero means unable to find.
    */
-  public final int findLineNumberForInstruction (Offset instructionOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int findLineNumberForInstruction (Offset instructionOffset) { 
     int bci = findBytecodeIndexForInstruction(instructionOffset);
     if (bci == -1) return 0;
     return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
@@ -125,7 +129,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * @return the bytecode index for the machine instruction, -1 if
    *            not available or not found.
    */
-  public final int findBytecodeIndexForInstruction (Offset instructionOffset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public final int findBytecodeIndexForInstruction (Offset instructionOffset) { 
     Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
     int candidateIndex = -1;
     int bcIndex = 0;
@@ -226,7 +231,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     bitField1 |= HAS_COUNTERS;
   }
 
-  boolean hasCounterArray() throws UninterruptiblePragma {
+  @Uninterruptible
+  boolean hasCounterArray() { 
     return (bitField1 & HAS_COUNTERS) != 0;
   }
 

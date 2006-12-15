@@ -77,9 +77,9 @@ import org.vmmagic.unboxed.*;
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
+  @Uninterruptible
   public static void initializeHeader(Object obj, Object[] tib, int size, 
-                                      boolean isScalar) 
-    throws UninterruptiblePragma {
+                                      boolean isScalar) { 
     /* Only perform initialization when it is required */
     if (MM_Constants.GENERATE_GC_TRACE) {
       Address ref = VM_Magic.objectAsAddress(obj); 

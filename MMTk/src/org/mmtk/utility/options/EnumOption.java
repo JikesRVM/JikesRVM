@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option that is a selection of several strings. The mapping
@@ -67,7 +67,8 @@ public class EnumOption extends Option {
    * 
    * @return The option value.
    */
-  public int getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getValue() { 
     return this.value;
   }
 
@@ -76,7 +77,8 @@ public class EnumOption extends Option {
    * 
    * @return The option value.
    */
-  public String getValueString() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getValueString() { 
     return this.values[this.value];
   }
 
@@ -85,7 +87,8 @@ public class EnumOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultValue() { 
     return this.defaultValue;
   }
 
@@ -94,7 +97,8 @@ public class EnumOption extends Option {
    * 
    * @return The default value.
    */
-  public String getDefaultValueString() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getDefaultValueString() { 
     return this.values[this.defaultValue];
   }
 

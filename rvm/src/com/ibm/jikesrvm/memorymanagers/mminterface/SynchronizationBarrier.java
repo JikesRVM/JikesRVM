@@ -48,7 +48,7 @@ public final class SynchronizationBarrier {
   /**
    * Constructor
    */
-  public SynchronizationBarrier () throws UninterruptiblePragma {
+  public SynchronizationBarrier () { 
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
@@ -57,7 +57,8 @@ public final class SynchronizationBarrier {
   /**
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
-  public int rendezvous (int where) throws UninterruptiblePragma {
+  @Uninterruptible
+  public int rendezvous (int where) { 
 
     int myOrder = barrier.arrive(where);
 
@@ -75,7 +76,8 @@ public final class SynchronizationBarrier {
    * Other arriving collector threads just wait until all have either arrived or
    * been declared non-participating.
    */
-  public void startupRendezvous () throws UninterruptiblePragma {
+  @Uninterruptible
+  public void startupRendezvous () { 
 
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -122,7 +124,8 @@ public final class SynchronizationBarrier {
    * reset the rendezvous counters for all VPs to 0.
    * Also sets numRealProcessors to number of real CPUs.
    */
-  public void resetRendezvous () throws UninterruptiblePragma {
+  @Uninterruptible
+  public void resetRendezvous () { 
 
     if (!VM.singleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
@@ -142,7 +145,8 @@ public final class SynchronizationBarrier {
    *
    * @param x amount to spin in some unknown units
    */
-  private int waitABit ( int x ) throws UninterruptiblePragma {
+  @Uninterruptible
+  private int waitABit ( int x ) { 
     int sum = 0;
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
@@ -162,7 +166,8 @@ public final class SynchronizationBarrier {
    *
    * @param id  processor id of processor to be removed.
    */
-  private void removeProcessor( int id ) throws UninterruptiblePragma {
+  @Uninterruptible
+  private void removeProcessor( int id ) { 
 
     VM_Processor vp = VM_Scheduler.processors[id];
 

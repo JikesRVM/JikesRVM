@@ -272,8 +272,8 @@ import org.vmmagic.pragma.*;
    *
    * @return The number of collections that have occured.
    */
-  public static int getCollectionCount()
-    throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getCollectionCount() { 
     return VM_CollectorThread.collectionCount;
   }
   
@@ -329,7 +329,8 @@ import org.vmmagic.pragma.*;
    *
    * @param ref the address to log information about
    */
-  public static void dumpRef(ObjectReference ref) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void dumpRef(ObjectReference ref) { 
     DebugUtil.dumpRef(ref);
   }
 
@@ -340,8 +341,8 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if the reference is valid
    */
   @Inline
-  public static boolean validRef(ObjectReference ref)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean validRef(ObjectReference ref) { 
     return DebugUtil.validRef(ref);
   }
 
@@ -352,8 +353,8 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if the address refers to an in use area
    */
   @Inline
-  public static boolean addressInVM(Address address)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean addressInVM(Address address) { 
     return Space.isMappedAddress(address);
   }
 
@@ -369,8 +370,8 @@ import org.vmmagic.pragma.*;
    * in-use area
    */
   @Inline
-  public static boolean objectInVM(ObjectReference object)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean objectInVM(ObjectReference object) { 
     return Space.isMappedObject(object);
   }
 
@@ -513,9 +514,9 @@ import org.vmmagic.pragma.*;
    * @return the initialized Object
    */
   @Inline
+  @Uninterruptible
   public static Object allocateScalar(int size, Object [] tib, int allocator,
-                                      int align, int offset, int site)
-    throws UninterruptiblePragma { 
+                                      int align, int offset, int site) { 
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
 				       align, allocator);
@@ -542,11 +543,11 @@ import org.vmmagic.pragma.*;
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   @Inline
+  @Uninterruptible
   public static Object allocateArray(int numElements, int logElementSize, 
                                      int headerSize, Object [] tib,
                                      int allocator,
-                                     int align, int offset, int site) 
-    throws UninterruptiblePragma { 
+                                     int align, int offset, int site) { 
     Selected.Mutator mutator = Selected.Mutator.get();
 
     int elemBytes = numElements << logElementSize;
@@ -577,10 +578,10 @@ import org.vmmagic.pragma.*;
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   @Inline
+  @Uninterruptible
   private static Address allocateSpace(Selected.Mutator mutator,
 				       int bytes, int align, int offset,
-				       int allocator, int site)
-    throws UninterruptiblePragma { 
+				       int allocator, int site) { 
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -608,10 +609,10 @@ import org.vmmagic.pragma.*;
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   @Inline
+  @Uninterruptible
   public static Address allocateSpace(Selected.Collector collector,
 				      int bytes, int align, int offset,
-                                       int allocator, ObjectReference from)
-    throws UninterruptiblePragma { 
+                                       int allocator, ObjectReference from) { 
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -642,9 +643,9 @@ import org.vmmagic.pragma.*;
    * constraints.
    */
   @Inline
+  @Uninterruptible
   public static Offset alignAllocation(Offset initialOffset, int align,
-                                          int offset)
-    throws UninterruptiblePragma { 
+                                          int offset) { 
     Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
                                        MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
@@ -893,8 +894,8 @@ import org.vmmagic.pragma.*;
    * allocation scheme/area for a TIB, <code>true</code> otherwise
    */
   @Inline
-  public static boolean mightBeTIB(ObjectReference obj)
-    throws UninterruptiblePragma { 
+  @Uninterruptible
+  public static boolean mightBeTIB(ObjectReference obj) { 
     return !obj.isNull() && Space.isMappedObject(obj) && Space.isImmortal(obj)
        && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
   }
@@ -904,7 +905,8 @@ import org.vmmagic.pragma.*;
    *
    * @return True if GC is in progress.
    */
-  public static boolean gcInProgress() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean gcInProgress() { 
     return Plan.gcInProgress();
   }
 

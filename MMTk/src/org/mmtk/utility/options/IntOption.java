@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option with a simple integer value.
@@ -44,7 +44,8 @@ public class IntOption extends Option {
    * 
    * @return The option value.
    */
-  public int getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getValue() { 
     return this.value;
   }
 
@@ -53,7 +54,8 @@ public class IntOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultValue() { 
     return this.defaultValue;
   }
 

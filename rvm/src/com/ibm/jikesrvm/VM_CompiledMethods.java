@@ -66,7 +66,8 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Fetch a previously compiled method.
   //
-  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) { 
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
@@ -81,13 +82,15 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Get number of methods compiled so far.
   //
-  public static int numCompiledMethods() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int numCompiledMethods() { 
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  public static VM_CompiledMethod[] getCompiledMethods() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_CompiledMethod[] getCompiledMethods() { 
     return compiledMethods;
   }
 
@@ -117,7 +120,8 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * 
    * @return method (<code>null</code> --> not found)
    */
-  public static VM_CompiledMethod findMethodForInstruction(Address ip) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static VM_CompiledMethod findMethodForInstruction(Address ip) { 
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())

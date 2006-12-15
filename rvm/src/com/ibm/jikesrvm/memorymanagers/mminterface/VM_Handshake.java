@@ -87,11 +87,13 @@ public class VM_Handshake {
    * caller continues until it yields to the GC.  It may thus make
    * this call at an otherwise unsafe point.
    */
-  public void requestAndContinue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public void requestAndContinue() { 
     request();
   }
 
-  public void reset() throws UninterruptiblePragma {
+  @Uninterruptible
+  public void reset() { 
     gcTrigger = Collection.UNKNOWN_GC_TRIGGER;
     requestFlag = false;
     completionFlag = false;
@@ -122,7 +124,8 @@ public class VM_Handshake {
    * for the collection. They reside in the thread dispatch queues of their
    * processors, until the collector threads re-enable thread switching.
    */
-  private void initiateCollection() throws UninterruptiblePragma {
+  @Uninterruptible
+  private void initiateCollection() { 
 
     /* check that scheduler initialization is complete */
     if (!VM_Scheduler.allProcessorsInitialized) {
@@ -174,7 +177,8 @@ public class VM_Handshake {
    *
    * @return The number of GC threads.
    */
-  private int waitForPrecedingGC() throws UninterruptiblePragma {
+  @Uninterruptible
+  private int waitForPrecedingGC() { 
     /*
      * Get the number of GC threads.  Include NativeDaemonProcessor
      * collector thread in the count.  If it exists, check for null to
@@ -209,7 +213,8 @@ public class VM_Handshake {
     return maxCollectorThreads;
   }
 
-  private void complete() throws UninterruptiblePragma {
+  @Uninterruptible
+  private void complete() { 
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
         VM_Scheduler.processors[i].unblockIfBlockedInC();
     }
@@ -223,7 +228,8 @@ public class VM_Handshake {
    *
    * @return true if the completion flag is not already set.
    */
-  private boolean request() throws UninterruptiblePragma {
+  @Uninterruptible
+  private boolean request() { 
     lock.acquire();
     if (completionFlag) {
       if (verbose >= 1)
@@ -255,7 +261,8 @@ public class VM_Handshake {
    *
    * @see VM_CollectorThread
    */
-  void notifyCompletion() throws UninterruptiblePragma {
+  @Uninterruptible
+  void notifyCompletion() { 
     lock.acquire();
     if (verbose >= 1)
       VM.sysWriteln("GC Message: VM_Handshake.notifyCompletion");

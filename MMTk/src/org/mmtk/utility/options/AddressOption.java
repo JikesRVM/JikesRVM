@@ -11,8 +11,8 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
-import org.vmmagic.unboxed.Address;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * An option with a simple integer value.
@@ -45,7 +45,8 @@ public class AddressOption extends Option {
    * 
    * @return The option value.
    */
-  public Address getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Address getValue() { 
     return this.value;
   }
 
@@ -54,7 +55,8 @@ public class AddressOption extends Option {
    * 
    * @return The default value.
    */
-  public Address getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Address getDefaultValue() { 
     return this.defaultValue;
   }
 

@@ -166,23 +166,28 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /*
    * accessor methods
    */
-  public final boolean hasNativeStackFrame() throws UninterruptiblePragma  {
+  @Uninterruptible
+  public final boolean hasNativeStackFrame() { 
     return alwaysHasNativeFrame || JNIRefsTop != 0;
   }
 
-  public final Address topJavaFP() throws UninterruptiblePragma  {
+  @Uninterruptible
+  public final Address topJavaFP() { 
     return JNITopJavaFP;
   }
 
-  public final AddressArray refsArray() throws UninterruptiblePragma {
+  @Uninterruptible
+  public final AddressArray refsArray() { 
     return JNIRefs;
   }
 
-  public final int refsTop() throws UninterruptiblePragma  {
+  @Uninterruptible
+  public final int refsTop() { 
     return JNIRefsTop;
   }
    
-  public final int savedRefsFP() throws UninterruptiblePragma  {
+  @Uninterruptible
+  public final int savedRefsFP() { 
     return JNIRefsSavedFP;
   }
 
@@ -262,7 +267,8 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * Dump the JNIRefs stack to the sysWrite stream
    */
-  public final void dumpJniRefsStack () throws UninterruptiblePragma {
+  @Uninterruptible
+  public final void dumpJniRefsStack () { 
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
     VM.sysWrite("* JNIRefs = ");

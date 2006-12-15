@@ -131,14 +131,16 @@ public class VM_Statics implements VM_Constants {
   /**
    * Conversion from JTOC slot index to JTOC offset.
    */
-  public static final Offset slotAsOffset(int slot) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static final Offset slotAsOffset(int slot) { 
     return Offset.fromIntSignExtend((slot - middleOfTable) << LOG_BYTES_IN_INT);
   }
 
   /**
    * Conversion from JTOC offset to JTOC slot index.
    */
-  public static final int offsetAsSlot(Offset offset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static final int offsetAsSlot(Offset offset) { 
     if (VM.VerifyAssertions) VM._assert((offset.toInt() & 3) == 0);
     return middleOfTable + (offset.toInt() >> LOG_BYTES_IN_INT);
   }
@@ -379,21 +381,24 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch number of numeric jtoc slots currently allocated.
    */ 
-  public static int getNumberOfNumericSlots() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getNumberOfNumericSlots() { 
     return middleOfTable - nextNumericSlot;
   }
 
   /**
    * Fetch number of reference jtoc slots currently allocated.
    */ 
-  public static int getNumberOfReferenceSlots() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getNumberOfReferenceSlots() { 
     return nextReferenceSlot - middleOfTable;
   }
 
   /**
    * Fetch total number of slots comprising the jtoc.
    */ 
-  public static int getTotalNumberOfSlots() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getTotalNumberOfSlots() { 
     return slots.length;
   }
 
@@ -402,7 +407,8 @@ public class VM_Statics implements VM_Constants {
    * @param  slot obtained from offsetAsSlot()
    * @return true --> slot contains a reference
    */ 
-  public static boolean isReference(int slot) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean isReference(int slot) { 
     return slot > middleOfTable;
   }
 
@@ -455,28 +461,32 @@ public class VM_Statics implements VM_Constants {
   /**
    * Get size occupied by a reference
    */
-  public static int getReferenceSlotSize () throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getReferenceSlotSize () { 
       return VM.BuildFor64Addr ? 2 : 1;
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
    */ 
-  public static Address getSlots() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static Address getSlots() { 
     return VM_Magic.objectAsAddress(slots).plus(middleOfTable << LOG_BYTES_IN_INT);
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
    */ 
-  public static int [] getSlotsAsIntArray() throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int [] getSlotsAsIntArray() { 
     return slots;
   }
 
   /**
    * Fetch contents of a slot, as an integer
    */ 
-  public static int getSlotContentsAsInt(Offset offset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static int getSlotContentsAsInt(Offset offset) { 
     if (VM.runningVM) {
       return VM_Magic.getIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
@@ -488,7 +498,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot-pair, as a long integer.
    */ 
-  public static long getSlotContentsAsLong(Offset offset) throws UninterruptiblePragma {  
+  @Uninterruptible
+  public static long getSlotContentsAsLong(Offset offset) { 
     if (VM.runningVM) {
       return VM_Magic.getLongAtOffset(slots, offset.plus(middleOfTable  << LOG_BYTES_IN_INT));
     } else {
@@ -508,7 +519,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot, as an object.
    */ 
-  public static Object getSlotContentsAsObject(Offset offset) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static Object getSlotContentsAsObject(Offset offset) { 
     if(VM.runningVM) {
       if (VM.BuildFor32Addr)
         return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
@@ -522,7 +534,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as an integer.
    */
-  public static void setSlotContents(Offset offset, int value) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, int value) { 
     if (VM.runningVM) {
       VM_Magic.setIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
@@ -533,7 +546,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as a long integer.
    */
-  public static void setSlotContents(Offset offset, long value) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, long value) { 
     if (VM.runningVM) {
       VM_Magic.setLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
@@ -570,7 +584,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as a Word.
    */ 
-  public static void setSlotContents(Offset offset, Word word) throws UninterruptiblePragma {
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, Word word) { 
     if (VM.runningVM) {
       VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
     } else {

@@ -214,8 +214,8 @@ import org.vmmagic.pragma.*;
    * @param addr The address in question.
    * @return true if the given address has been mmapped
    */
-  public static boolean addressIsMapped(Address addr)
-      throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean addressIsMapped(Address addr) { 
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
@@ -226,8 +226,8 @@ import org.vmmagic.pragma.*;
    * @param object The object in question.
    * @return true if the given object has been mmapped
    */
-  public static boolean objectIsMapped(ObjectReference object)
-      throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean objectIsMapped(ObjectReference object) { 
     return addressIsMapped(VM.objectModel.refToAddress(object));
   }
   
