@@ -542,12 +542,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     
   /**
    * Has this method been marked as forbidden to inline?
-   * ie., it throws the <CODE>NoInlinePragma</CODE> or
+   * ie., it marked with the <CODE>NoInline</CODE> annotation or
    * the <CODE>NoOptCompilePragma</CODE> exception?
    */
   public final boolean hasNoInlinePragma() {
     if (isAnnotationPresent(NoInline.class) || isAnnotationPresent(NoOptCompile.class)) return true;
-    return NoInlinePragma.declaredBy(this) || NoOptCompilePragma.declaredBy(this);
+    return NoOptCompilePragma.declaredBy(this);
   }
     
   /**

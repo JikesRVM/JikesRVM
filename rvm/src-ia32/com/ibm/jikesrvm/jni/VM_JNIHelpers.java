@@ -70,9 +70,9 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
+  @NoInline
   static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
-    throws Exception, 
-           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
+    throws Exception, NoOptCompilePragma { // expect a certain stack frame structure
     Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
   }
@@ -87,11 +87,11 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
+  @NoInline
   static Object invokeWithDotDotVarArg(Object obj, int methodID, 
                                               VM_TypeReference expectReturnType, 
                                               boolean skip4Args)
-    throws Exception,
-           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
+    throws Exception, NoOptCompilePragma { // expect a certain stack frame structure
 
     Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
@@ -245,11 +245,11 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
+  @NoInline
   static Object packageAndInvoke(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args, 
                                         boolean isVarArg) 
-    throws Exception,
-           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
+    throws Exception, NoOptCompilePragma { // expect a certain stack frame structure
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
