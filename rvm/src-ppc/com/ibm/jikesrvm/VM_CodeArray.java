@@ -22,12 +22,14 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
   private int [] data;
 
   // only intended to be called from VM_CodeArray.factory
-  static VM_CodeArray create (int size) throws InterruptiblePragma {
+  @Interruptible
+  static VM_CodeArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new VM_CodeArray(size);
   }
 
-  private VM_CodeArray (int size) throws InterruptiblePragma {
+  @Interruptible
+  private VM_CodeArray (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new int[size];
   }

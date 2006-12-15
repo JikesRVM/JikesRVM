@@ -49,12 +49,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   public ImmortalSpaceDriver( 
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) throws InterruptiblePragma {
+                     boolean mainSpace) { 
     
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 

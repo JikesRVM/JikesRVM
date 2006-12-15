@@ -22,12 +22,14 @@ import com.ibm.jikesrvm.VM;
 
   private Word[] data;
 
-  static public WordArray create (int size) throws InterruptiblePragma {
+  @Interruptible
+  static public WordArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new WordArray(size);
   }
 
-  private WordArray (int size) throws InterruptiblePragma {
+  @Interruptible
+  private WordArray (int size) { 
     data = new Word[size];
     Word zero = Word.zero();
     for (int i=0; i<size; i++) {

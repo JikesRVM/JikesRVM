@@ -69,7 +69,8 @@ public class VM_Handshake {
    * collector thread, which will disable further thread switching on
    * the processor until it has completed the collection.
    */
-  public void requestAndAwaitCompletion(int why) throws InterruptiblePragma {
+  @Interruptible
+  public void requestAndAwaitCompletion(int why) { 
     if (request()) {
       gcTrigger = why;
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");

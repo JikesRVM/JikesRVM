@@ -42,8 +42,8 @@ import org.vmmagic.pragma.*;
    * @param port The number of the port on which to communicate
    * @param verbose Whether the server is to run verbosely
    */
-  public void init (String name, int port, boolean verbose) 
-  	 throws InterruptiblePragma {
+  @Interruptible
+  public void init (String name, int port, boolean verbose) { 
     if (VM_SysCall.WITH_GCSPY) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(!initialised, "Tried to re-init server interpreter");

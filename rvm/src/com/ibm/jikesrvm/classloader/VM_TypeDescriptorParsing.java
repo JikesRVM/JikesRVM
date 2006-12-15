@@ -109,9 +109,8 @@ public abstract class VM_TypeDescriptorParsing
    * That's the way the example in <i>The Java Class Libraries</i> for
    * <code>Character.isJavaIdentifier<i>*</i>()</code> is written.  Or is the
    * <code>String.charAt()</code> method inexpensive?</small> */
-  public static boolean isJavaClassName(String s) 
-    throws InterruptiblePragma 
-  {
+  @Interruptible
+  public static boolean isJavaClassName(String s) { 
     boolean identStart = true;  // pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);
@@ -240,10 +239,9 @@ public abstract class VM_TypeDescriptorParsing
     }
   }
 
+  @Interruptible
   public static void validateAsTypeDescriptor(VM_Atom a) 
-    throws IllegalArgumentException,
-           InterruptiblePragma
-  {
+    throws IllegalArgumentException { 
     try {
       // Atoms are always utf-8.
       a.toUnicodeString();
@@ -258,10 +256,9 @@ public abstract class VM_TypeDescriptorParsing
   /** Validate that the String @param s is a valid type descriptor. 
       @throws IllegalArgumentException if it isn't.
   */
+  @Interruptible
   public static void validateAsTypeDescriptor(String s) 
-    throws IllegalArgumentException,
-           InterruptiblePragma
-  {
+    throws IllegalArgumentException { 
     char val[] = s.toCharArray();
     
     int i = 0;

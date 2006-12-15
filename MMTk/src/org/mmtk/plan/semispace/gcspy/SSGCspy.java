@@ -122,8 +122,8 @@ import org.vmmagic.pragma.*;
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  public final void startGCspyServer(int port, boolean wait)
-      throws InterruptiblePragma {
+  @Interruptible
+  public final void startGCspyServer(int port, boolean wait) { 
     GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/); 
     if (DEBUG) Log.writeln("SSGCspy: ServerInterpreter initialised");
     
@@ -167,8 +167,8 @@ import org.vmmagic.pragma.*;
    * @param space The space
    * @return A new GCspy driver for this space
    */
-  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) 
-      throws InterruptiblePragma {
+  @Interruptible
+  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) { 
     // TODO What if tileSize is too small (i.e. too many tiles for GCspy buffer)
     // TODO stop the GCspy spaces in the visualiser from fluctuating in size
     // so much as we resize them.
@@ -183,8 +183,8 @@ import org.vmmagic.pragma.*;
    * @param space The space
    * @return A new GCspy driver for this space
    */
-  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) 
-      throws InterruptiblePragma {
+  @Interruptible
+  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) { 
     return new TreadmillDriver(GCspy.server, name, space, 
             Options.gcspyTileSize.getValue(), LOS_SIZE_THRESHOLD, false);
   }

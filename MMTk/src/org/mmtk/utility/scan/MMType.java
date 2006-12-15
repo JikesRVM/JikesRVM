@@ -58,9 +58,9 @@ import org.vmmagic.pragma.*;
    * @param offsets An array of integer offsets for the fields of this
    * type (if any).
    */
+  @Interruptible
   public MMType(boolean isDelegated, boolean isReferenceArray,
-      boolean isAcyclic, int allocator, int[] offsets)
-      throws InterruptiblePragma {
+      boolean isAcyclic, int allocator, int[] offsets) { 
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;

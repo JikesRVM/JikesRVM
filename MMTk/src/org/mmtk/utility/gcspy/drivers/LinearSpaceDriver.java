@@ -77,12 +77,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   public LinearSpaceDriver( 
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) throws InterruptiblePragma {
+                     boolean mainSpace) { 
     
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
@@ -120,7 +121,8 @@ import org.vmmagic.pragma.*;
   /**
    * Private creator methods to create the Streams.
    */ 
-  private IntStream createScalarUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createScalarUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,                                     
                      "Scalar Used Space stream",            // stream name 
@@ -137,7 +139,8 @@ import org.vmmagic.pragma.*;
 		             true );			                    // summary enabled 
   }
 
-  private IntStream createArrayUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createArrayUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,                                     
                      "Array Used Space stream", 
@@ -154,7 +157,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
 
-  private ShortStream createScalarObjectsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createScalarObjectsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Scalar Objects stream",
@@ -172,7 +176,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
   
-  private ShortStream createArrayPrimitiveStream()  throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createArrayPrimitiveStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Array Primitive stream",
@@ -190,7 +195,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
 
-  private ShortStream createArrayObjectsStream()  throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createArrayObjectsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Array Objects stream",
@@ -208,7 +214,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
 
-  private ShortStream createRootsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRootsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Roots stream",
@@ -226,7 +233,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
   
-  private ShortStream createRefFromImmortalStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRefFromImmortalStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "References from immortal stream",

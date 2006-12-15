@@ -83,8 +83,8 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public static boolean process(String arg) throws NoOptCompilePragma,
-	                                           InterruptiblePragma {
+  @Interruptible
+  public static boolean process(String arg) throws NoOptCompilePragma {
 
     // First handle the "option commands"
     if (arg.equals("help")) {

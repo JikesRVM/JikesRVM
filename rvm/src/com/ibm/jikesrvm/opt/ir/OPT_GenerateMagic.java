@@ -906,8 +906,8 @@ class OPT_GenerateMagic {
    * @return <code>true</code> if <code>a</code> is a prefix of
    * <code>b</code>
    */
-  private static boolean isPrefix(VM_Atom prefix, byte [] b)
-    throws InterruptiblePragma {
+  @Interruptible
+  private static boolean isPrefix(VM_Atom prefix, byte [] b) { 
     byte[] a = prefix.toByteArray();
     int aLen = a.length;
     if (aLen > b.length)

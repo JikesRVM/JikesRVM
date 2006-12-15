@@ -94,6 +94,7 @@ import org.vmmagic.unboxed.Address;
    * @param colour The default colour for tiles of this stream
    * @param summary Is a summary enabled?
    */
+  @Interruptible
   protected Stream(
       AbstractDriver driver, 
       int dataType, 
@@ -108,7 +109,7 @@ import org.vmmagic.unboxed.Address;
       int paintStyle, 
       int indexMaxStream, 
       Color colour, 
-      boolean summary) throws InterruptiblePragma {
+      boolean summary) { 
 
     serverSpace = driver.getServerSpace();
     summaryEnabled = summary;
@@ -153,7 +154,8 @@ import org.vmmagic.unboxed.Address;
    * Setup the summary array.
    * @param presentation the presentation style
    */
-  private void setupSummary(int presentation) throws InterruptiblePragma {
+  @Interruptible
+  private void setupSummary(int presentation) { 
     switch (presentation) {
       case StreamConstants.PRESENTATION_PLAIN:
       case StreamConstants.PRESENTATION_PLUS:

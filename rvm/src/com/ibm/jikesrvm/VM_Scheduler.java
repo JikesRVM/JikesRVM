@@ -131,7 +131,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   /**
    * Initialize boot image.
    */
-  static void init() throws InterruptiblePragma {
+  @Interruptible
+  static void init() { 
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
@@ -151,9 +152,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   }
 
   /** This is run from VM.boot() */
-  static void giveBootVM_ThreadAJavaLangThread() 
-    throws InterruptiblePragma
-  {
+  @Interruptible
+  static void giveBootVM_ThreadAJavaLangThread() { 
     VM_Thread vt = threads[PRIMORDIAL_THREAD_INDEX];
     
     vt.setJavaLangThread(java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread"));
@@ -162,7 +162,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   /**
    * Begin multi-threaded vm operation.
    */
-  static void boot () throws InterruptiblePragma {
+  @Interruptible
+  static void boot () { 
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)

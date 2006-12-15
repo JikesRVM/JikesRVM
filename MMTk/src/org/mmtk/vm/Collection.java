@@ -84,7 +84,8 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public abstract void triggerCollection(int why) throws InterruptiblePragma;
+  @Interruptible
+  public abstract void triggerCollection(int why); 
 
   /**
    * Triggers a collection without allowing for a thread switch. This is needed

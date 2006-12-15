@@ -60,8 +60,9 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Find "catch" block for a machine instruction of this method.
    */ 
+  @Interruptible
   public final int findCatchBlockForInstruction(Offset instructionOffset, 
-                                                VM_Type exceptionType) throws InterruptiblePragma {
+                                                VM_Type exceptionType) { 
     if (eTable == null) {
       return -1;
     } else {
@@ -98,7 +99,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, Offset instr) throws InterruptiblePragma {
+  @Interruptible
+  public final void set(VM_StackBrowser browser, Offset instr) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -124,7 +126,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  public final boolean up(VM_StackBrowser browser) throws InterruptiblePragma {
+  @Interruptible
+  public final boolean up(VM_StackBrowser browser) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -157,8 +160,8 @@ import org.vmmagic.unboxed.Offset;
    *                            start of method
    * @param out    The PrintStream to print the stack trace to.
    */
-  public final void printStackTrace(Offset instructionOffset, PrintLN out) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public final void printStackTrace(Offset instructionOffset, PrintLN out) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -202,7 +205,8 @@ import org.vmmagic.unboxed.Offset;
     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_ExceptionTable;"));
 
-  public final int size() throws InterruptiblePragma {
+  @Interruptible
+  public final int size() { 
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
@@ -218,7 +222,8 @@ import org.vmmagic.unboxed.Offset;
 
   private OSR_EncodedOSRMap _osrMap;
 
-  public void createFinalOSRMap(OPT_IR ir) throws InterruptiblePragma {
+  @Interruptible
+  public void createFinalOSRMap(OPT_IR ir) { 
     this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
   }
 
@@ -389,7 +394,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Print the eTable
    */
-  public final void printExceptionTable() throws InterruptiblePragma {
+  @Interruptible
+  public final void printExceptionTable() { 
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
@@ -406,7 +412,8 @@ import org.vmmagic.unboxed.Offset;
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
-  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws InterruptiblePragma {
+  @Interruptible
+  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) { 
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
   }
 
@@ -414,7 +421,8 @@ import org.vmmagic.unboxed.Offset;
    * Create the final exception table from the IR for the method.
    * @param ir the ir 
    */
-  public final void createFinalExceptionTable (OPT_IR ir) throws InterruptiblePragma {
+  @Interruptible
+  public final void createFinalExceptionTable (OPT_IR ir) { 
     if (ir.hasReachableExceptionHandlers()) {
       eTable = VM_OptExceptionTable.encode(ir);
     }
@@ -424,7 +432,8 @@ import org.vmmagic.unboxed.Offset;
    * Create the code patching maps from the IR for the method
    * @param ir the ir 
    */
-  public final void createCodePatchMaps(OPT_IR ir) throws InterruptiblePragma {
+  @Interruptible
+  public final void createCodePatchMaps(OPT_IR ir) { 
     // (1) count the patch points
     int patchPoints = 0;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -469,7 +478,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Apply the code patches to the INSTRUCTION array of cm
    */
-  public final void applyCodePatches(VM_CompiledMethod cm) throws InterruptiblePragma {
+  @Interruptible
+  public final void applyCodePatches(VM_CompiledMethod cm) { 
     if (patchMap != null) {
       for (int idx=0; idx<patchMap.length; idx += 2) {
         VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));

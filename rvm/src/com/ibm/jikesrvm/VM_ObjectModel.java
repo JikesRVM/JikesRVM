@@ -133,7 +133,8 @@ import org.vmmagic.pragma.*;
    * TODO: If we allocate a 4-byte and then an 8-byte field on a 32 bit architecture
    *       we can possibly waste 4 bytes.  
    */
-  public static void layoutInstanceFields(VM_Class klass) throws InterruptiblePragma {
+  @Interruptible
+  public static void layoutInstanceFields(VM_Class klass) { 
     Offset fieldOffset = VM_JavaHeader.objectEndOffset(klass);
     int doubleAlign = Math.abs(VM_JavaHeader.objectStartOffset(klass) % BYTES_IN_DOUBLE);
     VM_Field fields[] = klass.getDeclaredFields();
@@ -220,9 +221,9 @@ import org.vmmagic.pragma.*;
   /**
    * Set the TIB for an object.
    */
+  @Interruptible
   public static void setTIB(BootImageInterface bootImage, Address refAddress,
-                            Address tibAddr, VM_Type type)
-    throws InterruptiblePragma {
+                            Address tibAddr, VM_Type type) { 
     VM_JavaHeader.setTIB(bootImage, refAddress, tibAddr, type);
   }
 
@@ -613,7 +614,8 @@ import org.vmmagic.pragma.*;
   /**
    * Compute the header size of an object 
    */
-  public static int computeHeaderSize(Object ref) throws InterruptiblePragma {
+  @Interruptible
+  public static int computeHeaderSize(Object ref) { 
     return computeHeaderSize(getObjectType(ref));
   }
 
@@ -756,8 +758,9 @@ import org.vmmagic.pragma.*;
    * @param klass the VM_Class object of the instance to create.
    * @return the offset of object in bootimage (in bytes)
    */
+  @Interruptible
   public static Address allocateScalar(BootImageInterface bootImage,
-                                       VM_Class klass) throws InterruptiblePragma {
+                                       VM_Class klass) { 
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
@@ -772,8 +775,9 @@ import org.vmmagic.pragma.*;
   /**
    * Fill an alignment gap with the alignment value 
    */
+  @Interruptible
   public static void fillAlignmentGap(BootImageInterface bootImage,
-                                      Address address, Extent size) throws InterruptiblePragma {
+                                      Address address, Extent size) { 
     while(size.GT(Extent.zero())) {
       bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
       address = address.plus(BYTES_IN_INT);
@@ -810,9 +814,10 @@ import org.vmmagic.pragma.*;
    * @param numElements number of elements
    * @return Address of object in bootimage (in bytes)
    */
+  @Interruptible
   public static Address allocateArray(BootImageInterface bootImage, 
                                       VM_Array array,
-                                      int numElements) throws InterruptiblePragma {
+                                      int numElements) { 
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -836,9 +841,10 @@ import org.vmmagic.pragma.*;
    * @param numElements number of elements
    * @return Address of object in bootimage
    */
+  @Interruptible
   public static Address allocateCode(BootImageInterface bootImage, 
                                      VM_Array array,
-                                     int numElements) throws InterruptiblePragma {
+                                     int numElements) { 
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -889,13 +895,14 @@ import org.vmmagic.pragma.*;
    * @param dest the number of the destination register
    * @param object the number of the register holding the object reference
    */
+  @Interruptible
   public static void baselineEmitLoadTIB(VM_Assembler asm, 
                                          //-#if RVM_FOR_POWERPC
                                          int dest, int object
                                          //-#elif RVM_FOR_IA32
                                          byte dest, byte object
                                          //-#endif
-                                         ) throws InterruptiblePragma {
+                                         ) { 
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 
@@ -907,7 +914,8 @@ import org.vmmagic.pragma.*;
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws InterruptiblePragma {
+  @Interruptible
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) { 
     VM_JavaHeader.lowerGET_OBJ_TIB(s, ir);
   }
   //-#endif

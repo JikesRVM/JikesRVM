@@ -47,7 +47,8 @@ import org.vmmagic.pragma.*;
   /**
    * Add a VP to tail of queue.
    */ 
-  synchronized void enqueue (VM_Processor p) throws InterruptiblePragma {
+  @Interruptible
+  synchronized void enqueue (VM_Processor p) { 
     if (VM.VerifyAssertions) VM._assert(p.next == null); // not currently on any other queue
     if (head == null)
       head = p;
@@ -60,7 +61,8 @@ import org.vmmagic.pragma.*;
    * Remove VP from head of queue.
    * @return the thread (null --> queue is empty)
    */ 
-  synchronized VM_Processor dequeue () throws InterruptiblePragma {
+  @Interruptible
+  synchronized VM_Processor dequeue () { 
     VM_Processor p = head;
     if (p == null)
        return null;

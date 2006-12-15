@@ -170,7 +170,8 @@ import org.vmmagic.unboxed.*;
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
   }
 
   /**
@@ -182,7 +183,8 @@ import org.vmmagic.unboxed.*;
    * gracefully on the default minimum heap size until the point that
    * boot is called.
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
@@ -192,7 +194,8 @@ import org.vmmagic.unboxed.*;
    * The fullyBooted method is called by the runtime just before normal
    * execution commences.
    */
-  public void fullyBooted() throws InterruptiblePragma {
+  @Interruptible
+  public void fullyBooted() { 
     initialized = true;
     exceptionReserve = (int) (getTotalPages() *
                               (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
@@ -266,8 +269,8 @@ import org.vmmagic.unboxed.*;
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
-  public void replacePhase(int oldPhase, int newPhase)
-    throws InterruptiblePragma {
+  @Interruptible
+  public void replacePhase(int oldPhase, int newPhase) { 
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
@@ -278,8 +281,8 @@ import org.vmmagic.unboxed.*;
    * @param marker The phase to insert after
    * @param newPhase The phase to replace with
    */
-  public void insertPhaseAfter(int marker, int newPhase) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public void insertPhaseAfter(int marker, int newPhase) { 
     int newComplexPhase = (new ComplexPhase("auto-gen",
                                             null, 
                                             new int[] {marker,newPhase})
@@ -485,7 +488,8 @@ import org.vmmagic.unboxed.*;
    * instrumentation, etc.  By default we do a full heap GC,
    * and then start stats collection.
    */
-  public static void harnessBegin() throws InterruptiblePragma {
+  @Interruptible
+  public static void harnessBegin() { 
     // Save old values.
     boolean oldFullHeap = Options.fullHeapSystemGC.getValue();
     boolean oldIgnore = Options.ignoreSystemGC.getValue();
@@ -673,7 +677,8 @@ import org.vmmagic.unboxed.*;
    * @param port The port to listen on,
    * @param wait Should we wait for a client to connect? 
    */
-  public void startGCspyServer(int port, boolean wait) throws InterruptiblePragma {
+  @Interruptible
+  public void startGCspyServer(int port, boolean wait) { 
     VM.assertions.fail("startGCspyServer called on non GCspy plan");
   }
 

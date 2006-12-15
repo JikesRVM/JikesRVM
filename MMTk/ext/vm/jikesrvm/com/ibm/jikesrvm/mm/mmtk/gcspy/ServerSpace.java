@@ -43,6 +43,7 @@ import org.vmmagic.pragma.*;
    * @param unused A label for unused blocks
    * @param mainSpace Whether this space is the main space
    */
+  @Interruptible
   public ServerSpace (
               org.mmtk.vm.gcspy.ServerInterpreter serverInterpreter,
               String serverName, 
@@ -51,7 +52,7 @@ import org.vmmagic.pragma.*;
               String blockInfo,
               int tileNum,
               String unused, 
-              boolean mainSpace) throws InterruptiblePragma {
+              boolean mainSpace) { 
     if (VM_SysCall.WITH_GCSPY) {
       spaceId = serverInterpreter.addSpace(this);
       driver = VM_SysCall.gcspyMainServerAddDriver(serverInterpreter.getServerAddress());

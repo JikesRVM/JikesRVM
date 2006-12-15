@@ -82,9 +82,9 @@ import org.vmmagic.unboxed.*;
    * death time propagation
    * @param trace_ The dequeue used to store and then output the trace
    */
+  @Interruptible
   public static final void init(SortTODSharedDeque worklist_,
-                                SortTODSharedDeque trace_)
-    throws InterruptiblePragma {
+                                SortTODSharedDeque trace_) { 
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;

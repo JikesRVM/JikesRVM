@@ -97,8 +97,8 @@ import org.vmmagic.unboxed.*;
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.
    */
-  public static void OPT_resolve() throws NoClassDefFoundError,
-                                          InterruptiblePragma {
+  @Interruptible
+  public static void OPT_resolve() throws NoClassDefFoundError { 
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve

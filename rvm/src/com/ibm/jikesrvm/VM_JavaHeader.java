@@ -181,8 +181,9 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Set the TIB for an object.
    */
+  @Interruptible
   public static void setTIB(BootImageInterface bootImage, Address refOffset, 
-                            Address tibAddr, VM_Type type) throws InterruptiblePragma {
+                            Address tibAddr, VM_Type type) { 
     bootImage.setAddressWord(refOffset.plus(TIB_OFFSET), tibAddr.toWord(), false);
   }
 
@@ -622,8 +623,9 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Non-atomic write of word containing available bits
    */
+  @Interruptible
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-                                            Address ref, Word val) throws InterruptiblePragma {
+                                            Address ref, Word val) { 
     bootImage.setAddressWord(ref.plus(STATUS_OFFSET), val, false);
   }
 
@@ -824,10 +826,10 @@ import com.ibm.jikesrvm.opt.ir.*;
    * @param tib  The TIB of the instance being created
    * @param size The number of bytes allocated by the GC system for this object.
    */
+  @Interruptible
   public static Address initializeScalarHeader(BootImageInterface bootImage,
                                                Address ptr, Object[] tib,
-                                               int size)
-    throws InterruptiblePragma {
+                                               int size) { 
     Address ref = ptr.plus(OBJECT_REF_OFFSET);
     return ref;
   }
@@ -854,9 +856,10 @@ import com.ibm.jikesrvm.opt.ir.*;
    * @param size the number of bytes allocated by the GC system for this object.
    * @return Document ME TODO XXX
    */
+  @Interruptible
   public static Address initializeArrayHeader(BootImageInterface bootImage,
                                               Address ptr, 
-                                              Object[] tib, int size) throws InterruptiblePragma {
+                                              Object[] tib, int size) { 
     Address ref = ptr.plus(OBJECT_REF_OFFSET);
     // (TIB set by BootImageWriter; array length set by VM_ObjectModel)
     return ref;
@@ -883,13 +886,15 @@ import com.ibm.jikesrvm.opt.ir.*;
    * @param object the number of the register holding the object reference
    */
   //-#if RVM_FOR_POWERPC
+  @Interruptible
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
-                                         int object) throws InterruptiblePragma {
+                                         int object) { 
     asm.emitLAddrOffset(dest, object, TIB_OFFSET);
   }
   //-#elif RVM_FOR_IA32
+  @Interruptible
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
-                                         byte object) throws InterruptiblePragma {
+                                         byte object) { 
     asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
   }
   //-#endif
@@ -902,7 +907,8 @@ import com.ibm.jikesrvm.opt.ir.*;
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws InterruptiblePragma {
+  @Interruptible
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) { 
     // TODO: valid location operand.
     OPT_Operand address = GuardedUnary.getClearVal(s);
     Load.mutate(s, REF_LOAD, GuardedUnary.getClearResult(s), 

@@ -66,13 +66,14 @@ import org.vmmagic.pragma.*;
    * @param threshold the size threshold of the LOS
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   public TreadmillDriver(
                          ServerInterpreter server,
                          String spaceName,
                          LargeObjectSpace lospace,
                          int blockSize,
                          int threshold,
-                         boolean mainSpace) throws InterruptiblePragma {
+                         boolean mainSpace) { 
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, mainSpace);
     
@@ -109,7 +110,8 @@ import org.vmmagic.pragma.*;
   } 
   
   // private creator methods for the streams 
-  private IntStream createUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,
                      "Used Space stream",                    // stream name 
@@ -126,7 +128,8 @@ import org.vmmagic.pragma.*;
 		             true);                                  // summary enabled
   }
 
-  private ShortStream createObjectsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createObjectsStream() { 
     return VM.newGCspyShortStream(
                      this,
                      "Objects stream",
@@ -143,7 +146,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
   
-  private ShortStream createRootsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRootsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Roots stream",
@@ -161,7 +165,8 @@ import org.vmmagic.pragma.*;
 		             true);
   }
   
-  private ShortStream createRefFromImmortalStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRefFromImmortalStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "References from Immortal stream",

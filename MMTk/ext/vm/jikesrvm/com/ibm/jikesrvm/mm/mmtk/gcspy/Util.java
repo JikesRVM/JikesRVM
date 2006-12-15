@@ -190,8 +190,8 @@ import org.vmmagic.pragma.*;
    * @param numElements number of elements in new array
    * @return the new array
    */
-  public Object createDataArray(Object templ, int numElements) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public Object createDataArray(Object templ, int numElements) { 
     if (VM_SysCall.WITH_GCSPY) {
       VM_Array array = VM_Magic.getObjectType(templ).asArray();
       return VM_Runtime.resolvedNewArray(numElements, 

@@ -109,8 +109,9 @@ import java.lang.ref.PhantomReference;
    * 
    * @param ref the reference to add
    */
+  @Interruptible
   private void addCandidate(Reference ref)
-    throws NoInlinePragma, InterruptiblePragma {
+    throws NoInlinePragma { 
     if (TRACE) {
         Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
         ObjectReference referent = getReferent(referenceAsAddress);
@@ -294,8 +295,8 @@ import java.lang.ref.PhantomReference;
    * Add a reference to the list of soft references.
    * @param ref the SoftReference to add
    */
-  public static void addSoftCandidate(SoftReference ref)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void addSoftCandidate(SoftReference ref) { 
     softReferenceProcessor.addCandidate(ref);
   }
 
@@ -303,8 +304,8 @@ import java.lang.ref.PhantomReference;
    * Add a reference to the list of weak references.
    * @param ref the WeakReference to add
    */
-  public static void addWeakCandidate(WeakReference ref)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void addWeakCandidate(WeakReference ref) { 
     weakReferenceProcessor.addCandidate(ref);
   }
   
@@ -312,8 +313,8 @@ import java.lang.ref.PhantomReference;
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
    */
-  public static void addPhantomCandidate(PhantomReference ref)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void addPhantomCandidate(PhantomReference ref) { 
     phantomReferenceProcessor.addCandidate(ref);
   }
   

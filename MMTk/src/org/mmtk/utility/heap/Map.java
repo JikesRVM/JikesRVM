@@ -66,8 +66,9 @@ import org.vmmagic.unboxed.*;
    * @param descriptor The descriptor for this space
    * @param space The space to be associated with this region
    */
+  @Interruptible
   public static void insert(Address start, Extent extent, int descriptor,
-      Space space) throws InterruptiblePragma {
+      Space space) { 
     Extent e = Extent.zero();
     while (e.LT(extent)) {
       int index = hashAddress(start.plus(e));

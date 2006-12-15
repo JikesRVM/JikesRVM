@@ -515,7 +515,8 @@ import org.vmmagic.unboxed.*;
    * are mapped. Demand zero map all of them if they are not already
    * mapped.
    */
-  public static void eagerlyMmapMMTkSpaces() throws InterruptiblePragma {
+  @Interruptible
+  public static void eagerlyMmapMMTkSpaces() { 
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       if (space != VM.memory.getVMSpace()) {

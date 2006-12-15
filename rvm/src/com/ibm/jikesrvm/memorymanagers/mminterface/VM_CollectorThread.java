@@ -135,8 +135,7 @@ public class VM_CollectorThread extends VM_Thread {
   static boolean gcThreadRunning;
 
   /** @return the thread scanner instance associated with this instance */
-  public final ScanThread getThreadScanner() throws UninterruptiblePragma 
-  { return threadScanner; }
+  public final ScanThread getThreadScanner() throws UninterruptiblePragma { return threadScanner; }
 
 
   /***********************************************************************
@@ -162,9 +161,7 @@ public class VM_CollectorThread extends VM_Thread {
    * associated.
    */
   VM_CollectorThread(byte[] stack, boolean isActive, 
-                     VM_Processor processorAffinity)
-    throws InterruptiblePragma 
-  {
+                     VM_Processor processorAffinity) {
     super(stack, null, myName);
     makeDaemon(true); // this is redundant, but harmless
     this.isActive          = isActive;
@@ -178,7 +175,8 @@ public class VM_CollectorThread extends VM_Thread {
   /**
    * Initialize for boot image.
    */
-  public static void  init() throws InterruptiblePragma {
+  @Interruptible
+  public static void  init() { 
     gcBarrier = new SynchronizationBarrier();
     collectorThreads = new VM_CollectorThread[1 + VM_Scheduler.MAX_PROCESSORS];
   }
@@ -192,8 +190,8 @@ public class VM_CollectorThread extends VM_Thread {
    * @param processorAffinity processor to run on
    * @return a new collector thread
    */
-  public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) { 
     byte[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
     return new VM_CollectorThread(stack, true, processorAffinity);
   }
@@ -209,9 +207,9 @@ public class VM_CollectorThread extends VM_Thread {
    * @param processorAffinity processor to run on
    * @return a new non-particpating collector thread
    */
+  @Interruptible
   static VM_CollectorThread createPassiveCollectorThread(byte[] stack,
-                                                         VM_Processor processorAffinity) 
-    throws InterruptiblePragma {
+                                                         VM_Processor processorAffinity) { 
     return new VM_CollectorThread(stack, false, processorAffinity);
   }
 

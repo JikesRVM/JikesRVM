@@ -81,7 +81,8 @@ import org.vmmagic.pragma.Uninterruptible;
    * @param collector The <code>CollectorContext</code> to register.
    * @return The <code>CollectorContext</code>'s unique identifier
    */
-  public abstract int registerCollector(CollectorContext collector) throws InterruptiblePragma;
+  @Interruptible
+  public abstract int registerCollector(CollectorContext collector); 
 
   /**
    * Register a new <code>MutatorContext</code> instance.
@@ -89,5 +90,6 @@ import org.vmmagic.pragma.Uninterruptible;
    * @param mutator The <code>MutatorContext</code> to register.
    * @return The <code>MutatorContext</code>'s unique identifier
    */
-  public abstract int registerMutator(MutatorContext mutator) throws InterruptiblePragma;
+  @Interruptible
+  public abstract int registerMutator(MutatorContext mutator); 
 }

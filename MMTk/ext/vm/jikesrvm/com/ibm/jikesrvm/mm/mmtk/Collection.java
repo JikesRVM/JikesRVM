@@ -104,7 +104,8 @@ import org.vmmagic.pragma.*;
    *
    * This is called from MM_Interface.
    */
-  public static final void init() throws InterruptiblePragma {
+  @Interruptible
+  public static final void init() { 
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
@@ -119,11 +120,13 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  public final void triggerCollection(int why) throws InterruptiblePragma {
+  @Interruptible
+  public final void triggerCollection(int why) { 
     triggerCollectionStatic(why);
   }
   
-  public static final void triggerCollectionStatic(int why) throws InterruptiblePragma {
+  @Interruptible
+  public static final void triggerCollectionStatic(int why) { 
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 

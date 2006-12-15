@@ -72,7 +72,8 @@ import org.vmmagic.pragma.*;
    * @return The space managed by the virtual machine.  In this case,
    * the boot image space is returned.
    */
-  public final ImmortalSpace getVMSpace() throws InterruptiblePragma {
+  @Interruptible
+  public final ImmortalSpace getVMSpace() { 
     if (bootSpace == null)
       bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, 
                                     BOOT_SEGMENT_MB, false);

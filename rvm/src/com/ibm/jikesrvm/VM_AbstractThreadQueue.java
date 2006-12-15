@@ -39,5 +39,6 @@ import org.vmmagic.pragma.*;
   // For debugging.
   //
   abstract boolean contains(VM_Thread t);
-  abstract void    dump() throws InterruptiblePragma;
+  @Interruptible
+  abstract void    dump(); 
 }

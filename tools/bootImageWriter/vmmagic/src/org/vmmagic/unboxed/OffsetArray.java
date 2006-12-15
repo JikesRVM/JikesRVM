@@ -22,12 +22,14 @@ import com.ibm.jikesrvm.VM;
 
   private Offset[] data;
 
-  static public OffsetArray create (int size) throws InterruptiblePragma {
+  @Interruptible
+  static public OffsetArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new OffsetArray(size);
   }
 
-  private OffsetArray (int size) throws InterruptiblePragma {
+  @Interruptible
+  private OffsetArray (int size) { 
     data = new Offset[size];
     Offset zero = Offset.zero();
     for (int i=0; i<size; i++) {

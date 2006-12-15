@@ -93,11 +93,12 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size.
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   public AbstractDriver(ServerInterpreter server,
                         String name, 
 			            Space mmtkSpace, 
 			            int blockSize, 
-			            boolean mainSpace) throws InterruptiblePragma {
+			            boolean mainSpace) { 
     this.server = server;
     this.name = name;
     this.mmtkSpace = mmtkSpace;
@@ -116,8 +117,8 @@ import org.vmmagic.pragma.*;
    * a space contains only one.
    * @param mmtkSpace The MMTk space
    */
-  protected Subspace createSubspace (Space mmtkSpace)
-  	throws InterruptiblePragma {
+  @Interruptible
+  protected Subspace createSubspace (Space mmtkSpace) { 
     Address start = mmtkSpace.getStart();
     return new Subspace(start, start, 0, blockSize, 0);
   }
@@ -129,10 +130,11 @@ import org.vmmagic.pragma.*;
    * @param maxTileNum the maximum number of tiles in this space.
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   protected ServerSpace createServerSpace(ServerInterpreter server,
                   String spaceName,
 			      int maxTileNum,
-			      boolean mainSpace) throws InterruptiblePragma {
+			      boolean mainSpace) { 
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
                      blockSize + " bytes\n":
@@ -177,7 +179,8 @@ import org.vmmagic.pragma.*;
    * @param stream The stream
    * @exception IndexOutOfBoundsException if more than MAX_STREAMS are added
    */
-  public void addStream(Stream stream) throws InterruptiblePragma {
+  @Interruptible
+  public void addStream(Stream stream) { 
     int id = 0;
     while (id < MAX_STREAMS) {
       if (streams[id] == null) {

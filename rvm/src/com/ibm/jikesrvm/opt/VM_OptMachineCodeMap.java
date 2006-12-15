@@ -146,7 +146,8 @@ import java.util.ArrayList;
    * @return an arraylist of VM_CallSite objects representing all non-inlined
    *         callsites in the method. Returns null if there are no such callsites.
    */
-  public ArrayList<VM_CallSite> getNonInlinedCallSites() throws InterruptiblePragma {
+  @Interruptible
+  public ArrayList<VM_CallSite> getNonInlinedCallSites() { 
     ArrayList<VM_CallSite> ans = null;
     if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
@@ -274,7 +275,8 @@ import java.util.ArrayList;
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
    */
-  private void generateMCInformation(OPT_GCIRMap irMap) throws InterruptiblePragma {
+  @Interruptible
+  private void generateMCInformation(OPT_GCIRMap irMap) { 
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -556,7 +558,8 @@ import java.util.ArrayList;
   //  Debugging
   ////////////////////////////////////////////
 
-  public void dumpMCInformation() throws InterruptiblePragma {
+  @Interruptible
+  public void dumpMCInformation() { 
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       if (MCInformation == null) return;
@@ -571,7 +574,8 @@ import java.util.ArrayList;
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  private final void printMCInformationEntry(int entry) throws InterruptiblePragma {
+  @Interruptible
+  private final void printMCInformationEntry(int entry) { 
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";
@@ -615,8 +619,9 @@ import java.util.ArrayList;
    * @param mapSize
    * @param machineCodeSize
    */
+  @Interruptible
   private void recordStats(VM_Method method, int mapSize, 
-                           int machineCodeSize) throws InterruptiblePragma {
+                           int machineCodeSize) { 
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double)mapSize/machineCodeSize;
       VM.sysWrite(method);

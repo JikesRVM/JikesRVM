@@ -385,7 +385,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
-  static void init() throws InterruptiblePragma {
+  @Interruptible
+  static void init() { 
     VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
       VM._assert((VM_Scheduler.locks.length-1<=VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt())
@@ -583,7 +584,8 @@ import org.vmmagic.unboxed.*;
     //             Statistics                   //
     //////////////////////////////////////////////
 
-  public static void boot () throws InterruptiblePragma {
+  @Interruptible
+  public static void boot () { 
     VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
     VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
   }

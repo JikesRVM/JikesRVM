@@ -150,7 +150,8 @@ import org.vmmagic.pragma.*;
    * @param collector The CollectorContext to register
    * @return The CollectorContext's unique identifier
    */
-  public final int registerCollector(CollectorContext collector) throws InterruptiblePragma {
+  @Interruptible
+  public final int registerCollector(CollectorContext collector) { 
     collectors[collectorCount] = (Selected.Collector) collector;
     return collectorCount++;
   }
@@ -163,7 +164,8 @@ import org.vmmagic.pragma.*;
    * @param mutator The MutatorContext to register
    * @return The MutatorContext's unique identifier
    */
-  public final int registerMutator(MutatorContext mutator) throws InterruptiblePragma {
+  @Interruptible
+  public final int registerMutator(MutatorContext mutator) { 
     mutators[mutatorCount] = (Selected.Mutator) mutator;
     return mutatorCount++;
   } 

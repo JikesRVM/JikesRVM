@@ -99,9 +99,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
       for a thread too soon.   The warning is for code that does not expect to
       be called early in the boot process.  Use peekJavaLangThread if you
       expect you might get null. */
-  public Thread getJavaLangThread() 
-    throws InterruptiblePragma
-  {
+  @Interruptible
+  public Thread getJavaLangThread() { 
     if (thread != null)
       return thread;
 
@@ -118,9 +117,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
       This is used by code that expects it might be called early in the boot
       process.  Use getJavaLangThread if your caller is not necessarily
       prepared to get null. */
-  public Thread peekJavaLangThread() 
-    throws InterruptiblePragma
-  {
+  @Interruptible
+  public Thread peekJavaLangThread() { 
     if (VM.safeToAllocateJavaThread)
       return getJavaLangThread();
     else
@@ -138,7 +136,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     return jniEnv;
   }
 
-  public final void initializeJNIEnv() throws InterruptiblePragma {
+  @Interruptible
+  public final void initializeJNIEnv() { 
     jniEnv = VM_JNIEnvironment.allocateEnvironment();
   }
 
@@ -154,7 +153,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
 
   private String myName;
   
-  public String toString() throws InterruptiblePragma {
+  @Interruptible
+  public String toString() { 
     return myName == null ? "VM_Thread-" + getIndex() : myName;
   }
 
@@ -162,7 +162,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * Method to be executed when this thread starts running.
    * Subclass should override with something more interesting.
   */
-  public void run () throws InterruptiblePragma {
+  @Interruptible
+  public void run () { 
     thread.run();
   }
 
@@ -170,7 +171,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * Method to be executed when this thread termnates.
    * Subclass should override with something more interesting.
    */ 
-  public void exit () throws InterruptiblePragma {
+  @Interruptible
+  public void exit () { 
     /* Early in the boot process, we are running the Boot Thread, which does
      * not have an associated java.lang.Thread, so "thread" will be null.  In
      * this case, if there is trouble during initialization, we still want to
@@ -195,7 +197,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * Resume execution of a thread that has been suspended.
    * Call only if caller has appropriate security clearance.
    */ 
-  public void resume () throws InterruptiblePragma {
+  @Interruptible
+  public void resume () { 
     suspendLock.lock();
     suspendPending = false;
     if (suspended) { // this thread is not on any queue
@@ -619,7 +622,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   /**
    * Begin execution of current thread by calling its "run" method.
    */ 
-  private static void startoff () throws InterruptiblePragma {
+  @Interruptible
+  private static void startoff () { 
     VM_Thread currentThread = getCurrentThread();
     if (trace) VM.sysWriteln("VM_Thread.startoff(): about to call ", 
                              currentThread.toString(), ".run()");
@@ -650,7 +654,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * Start execution of 'this' by putting it on the appropriate queue
    * of an unspecified virutal processor.
    */
-  public synchronized void start() throws InterruptiblePragma {
+  @Interruptible
+  public synchronized void start() { 
     registerThread();
     schedule();
   }
@@ -670,7 +675,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * references to it and
    * resuming execution in some other (ready) thread.
    */ 
-  static void terminate () throws InterruptiblePragma {
+  @Interruptible
+  static void terminate () { 
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
 
@@ -801,10 +807,9 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param exceptionRegisters register state at which stack overflow trap 
    * was encountered (null --> normal method call, not a trap)
    */ 
+  @Interruptible
   public static void resizeCurrentStack(int newSize, 
-                                        VM_Registers exceptionRegisters) 
-    throws InterruptiblePragma 
-  {
+                                        VM_Registers exceptionRegisters) { 
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
@@ -1822,12 +1827,14 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   }
 
   /** Returns the value of {@link #isDaemon}. */
-  public boolean isDaemonThread() throws InterruptiblePragma {
+  @Interruptible
+  public boolean isDaemonThread() { 
     return isDaemon;
   }
 
   /** Returns the value of {@link #isAlive}. */
-  public boolean isAlive() throws InterruptiblePragma {
+  @Interruptible
+  public boolean isAlive() { 
     return isAlive;
   }
 

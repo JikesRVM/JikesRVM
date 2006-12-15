@@ -28,7 +28,8 @@ import org.vmmagic.unboxed.Offset;
 
   private static Object[][] refs; 
 
-  public static void boot() throws InterruptiblePragma {
+  @Interruptible
+  public static void boot() { 
     refs = new Object[POOLSIZE][];
     
     // exercise the method to avoid lazy compilation in the future
@@ -45,7 +46,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * The VM scope descriptor extractor can hand in an object here
    */
-  public final static int handinRefs(Object[] objs) throws InterruptiblePragma {    
+  @Interruptible
+  public final static int handinRefs(Object[] objs) { 
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {

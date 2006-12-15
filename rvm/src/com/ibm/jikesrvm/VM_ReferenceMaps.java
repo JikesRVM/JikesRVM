@@ -362,7 +362,8 @@ import org.vmmagic.unboxed.*;
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_ReferenceMaps;"));
-  int size() throws InterruptiblePragma {
+  @Interruptible
+  int size() { 
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
     if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
@@ -373,7 +374,8 @@ import org.vmmagic.unboxed.*;
   /**
    * start setting up the reference maps for this method.
    */
-  public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) throws InterruptiblePragma {
+  @Interruptible
+  public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) { 
     //  normal map information
     mapCount      = 0;
     MCSites       = new int[gcPointCount];
@@ -428,7 +430,8 @@ import org.vmmagic.unboxed.*;
    *      a boolean to indicate that this map is a replacement for a currently
    *        existing map.
    */ 
-  public void recordStkMap(int byteindex, byte[] byteMap, int BBLastPtr, boolean replacemap) throws InterruptiblePragma {
+  @Interruptible
+  public void recordStkMap(int byteindex, byte[] byteMap, int BBLastPtr, boolean replacemap) { 
 
     int mapNum = 0;
 
@@ -552,8 +555,9 @@ import org.vmmagic.unboxed.*;
    * @param replacemap        False if this is the first time this map point has been
    *                          recorded.
    */
+  @Interruptible
   public void recordJSRSubroutineMap(int byteindex, byte[] currReferenceMap, int BBLastPtr, 
-                                     int returnAddrIndex, boolean replacemap) throws InterruptiblePragma {
+                                     int returnAddrIndex, boolean replacemap) { 
     int mapNum = 0;
     int unusualMapIndex = 0;
     int returnOffset;
@@ -691,7 +695,8 @@ import org.vmmagic.unboxed.*;
    * @param jsrSiteMap   unusualMap to be added to array
    *
    */
-  private int addUnusualMap(VM_UnusualMaps jsrSiteMap) throws InterruptiblePragma {
+  @Interruptible
+  private int addUnusualMap(VM_UnusualMaps jsrSiteMap) { 
     if (jsrInfo.unusualMaps == null) {
       // start up code
       jsrInfo.unusualMaps = new VM_UnusualMaps[5];
@@ -908,7 +913,8 @@ import org.vmmagic.unboxed.*;
   /**
    * get Next free word in referencemaps for gc call sites
    */ 
-  private int getNextMapElement() throws InterruptiblePragma {
+  @Interruptible
+  private int getNextMapElement() { 
     if (jsrInfo.unusualReferenceMaps == null) {
       // start up code
       jsrInfo.unusualReferenceMaps = new byte[ ((6 * 3) + 1) * bytesPerMap() ];  // 3 maps per unusual map
@@ -1097,7 +1103,8 @@ import org.vmmagic.unboxed.*;
    *   However, we leave the retAddrMap alone.
    * it returns the index of the map in the reference map
    */
-  int scanByteArray(byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit) throws InterruptiblePragma {
+  @Interruptible
+  int scanByteArray(byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit) { 
     skipOneBit = false;
 
     if (BBLastPtr == -1) return -1;     // no map for this jsr
@@ -1497,7 +1504,8 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  public int showReferenceMapStatistics(VM_Method method) throws InterruptiblePragma {
+  @Interruptible
+  public int showReferenceMapStatistics(VM_Method method) { 
     int offset = 0;
     int totalCount  = 0;
     int count;

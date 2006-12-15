@@ -171,7 +171,8 @@ import org.vmmagic.pragma.*;
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
@@ -255,8 +256,8 @@ import org.vmmagic.pragma.*;
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
-  public void replacePhase(int oldPhase, int newPhase)
-    throws InterruptiblePragma {
+  @Interruptible
+  public void replacePhase(int oldPhase, int newPhase) { 
     collection.replacePhase(oldPhase, newPhase);
   }
 

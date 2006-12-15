@@ -80,7 +80,8 @@ import org.vmmagic.pragma.*;
   /**
    * Called to complete the encoding and return the final int[]
    */
-  public int[] finish() throws InterruptiblePragma {
+  @Interruptible
+  public int[] finish() { 
     if ((gcMapInformation != null) && 
         (lastGCMapEntry < gcMapInformation.length - 1)) {
       resizeMapInformation(lastGCMapEntry + 1);
@@ -94,7 +95,8 @@ import org.vmmagic.pragma.*;
    * @param irMapElem  The IR Map element to create a GCMap for
    * @return the GCMap index.
    */
-  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) throws InterruptiblePragma {
+  @Interruptible
+  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) { 
     // the index into the GC maps we will use for this instruction.
     int mapIndex = NO_MAP_ENTRY;
 
@@ -248,7 +250,8 @@ import org.vmmagic.pragma.*;
    * @param entry  the entry where the map begins
    * @param gcMap the encoded GCmaps
    */
-  public static void dumpMap(int entry, int[] gcMap) throws InterruptiblePragma {
+  @Interruptible
+  public static void dumpMap(int entry, int[] gcMap) { 
     VM.sysWrite("Regs [");
     // Inspect the register bit map for the entry passed and print
     // those bit map entries that are true
@@ -276,7 +279,8 @@ import org.vmmagic.pragma.*;
    * Returns the next GC map entry for use
    * @return the entry in the map table that can be used
    */
-  private int getNextMapEntry() throws InterruptiblePragma {
+  @Interruptible
+  private int getNextMapEntry() { 
     // make sure we have enough room
     int oldLength = gcMapInformation.length - 1;
     if (lastGCMapEntry >= oldLength) {
@@ -290,7 +294,8 @@ import org.vmmagic.pragma.*;
    * Resize the map array
    * @param newSize the new size for the map array
    */
-  private void resizeMapInformation(int newSize) throws InterruptiblePragma {
+  @Interruptible
+  private void resizeMapInformation(int newSize) { 
     int[] newMapInformation = new int[newSize];
     for (int i = 0; i <= lastGCMapEntry; i++) {
       newMapInformation[i] = gcMapInformation[i];
@@ -307,7 +312,8 @@ import org.vmmagic.pragma.*;
    * @param  bitMap    map entry
    * @return The index of that entry.
    */
-  private final int setRegisterBitMap(int bitMap) throws InterruptiblePragma {
+  @Interruptible
+  private final int setRegisterBitMap(int bitMap) { 
     // Set the appropriate bit, but make sure we preserve the NEXT bit!
     int entry = getNextMapEntry();
     gcMapInformation[entry] = bitMap | NEXT_BIT;
@@ -319,7 +325,8 @@ import org.vmmagic.pragma.*;
    *  of spills and then add them to the map, otherwise, nothing to do
    * @param spillArray an array of spills
    */
-  private final void addAllSpills(int spillArray[]) throws InterruptiblePragma {
+  @Interruptible
+  private final void addAllSpills(int spillArray[]) { 
     // 1) sort the spills to increase the odds of reusing the GC map
     java.util.Arrays.sort(spillArray);
 
@@ -333,7 +340,8 @@ import org.vmmagic.pragma.*;
    * Adds the passed spill value to the current map
    * @param spill the spill location
    */
-  private final void addSpillLocation(int spill) throws InterruptiblePragma {
+  @Interruptible
+  private final void addSpillLocation(int spill) { 
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
       VM._assert(false, "Unexpected spill passed:" + spill);
@@ -348,7 +356,8 @@ import org.vmmagic.pragma.*;
    * @param firstIndex the index of the beginning of the map
    * @return the index of the beginning of the map (may be different)
    */
-  private final int endCurrentMap(int firstIndex) throws InterruptiblePragma {
+  @Interruptible
+  private final int endCurrentMap(int firstIndex) { 
     int lastEntry = lastGCMapEntry;
 
     // adjust the last entry so that the NEXT bit is not set.

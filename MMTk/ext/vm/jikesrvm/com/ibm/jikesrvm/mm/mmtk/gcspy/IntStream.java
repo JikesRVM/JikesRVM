@@ -51,6 +51,7 @@ import org.vmmagic.unboxed.Address;
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    */
+  @Interruptible
   public IntStream(
          AbstractDriver driver,
          String name,
@@ -64,7 +65,7 @@ import org.vmmagic.unboxed.Address;
          int paintStyle,
          int indexMaxStream,
          Color colour,
-         boolean summary) throws InterruptiblePragma {
+         boolean summary) { 
    
     super(driver, name, 
           minValue, maxValue, zeroValue, defaultValue,

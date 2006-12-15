@@ -123,7 +123,8 @@ import org.vmmagic.pragma.*;
    * The postBoot method is called by the runtime immediately after
    * command-line arguments are available. 
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     Options.noFinalizer.setValue(true);
   }
 

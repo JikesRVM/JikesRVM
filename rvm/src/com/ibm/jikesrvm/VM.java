@@ -36,10 +36,9 @@ import org.vmmagic.unboxed.*;
    * @param classPath class path to be used by VM_ClassLoader
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
+  @Interruptible
   public static void initForBootImageWriter(String classPath, 
-                                            String[] bootCompilerArgs) 
-    throws InterruptiblePragma 
-  {
+                                            String[] bootCompilerArgs) { 
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
@@ -49,9 +48,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Prepare vm classes for use by tools.
    */
-  public static void initForTool() 
-    throws InterruptiblePragma 
-  {
+  @Interruptible
+  public static void initForTool() { 
     initForTool(System.getProperty("java.class.path"));
   }
 
@@ -59,9 +57,8 @@ import org.vmmagic.unboxed.*;
    * Prepare vm classes for use by tools.
    * @param classpath class path to be used by VM_ClassLoader
    */
-  public static void initForTool(String classpath) 
-    throws InterruptiblePragma 
-  {
+  @Interruptible
+  public static void initForTool(String classpath) { 
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     if (VM.VerifyAssertions) VM._assert(!VM.writingBootImage);
     runningTool = true;
@@ -117,7 +114,8 @@ import org.vmmagic.unboxed.*;
    * doesn't have to be uninterruptible and this is the cleanest
    * way to make that distinction.
    */
-  private static void finishBooting() throws InterruptiblePragma {
+  @Interruptible
+  private static void finishBooting() { 
     
     // get pthread_id from OS and store into vm_processor field
     // 
@@ -387,7 +385,8 @@ import org.vmmagic.unboxed.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  private static void pleaseSpecifyAClass() throws InterruptiblePragma {
+  @Interruptible
+  private static void pleaseSpecifyAClass() { 
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
     VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -399,7 +398,8 @@ import org.vmmagic.unboxed.*;
    * Called by the compilers when compiling a static synchronized method
    * or a class literal during bootimage writing.
    */
-  public static void deferClassObjectCreation(VM_Class c) throws InterruptiblePragma {
+  @Interruptible
+  public static void deferClassObjectCreation(VM_Class c) { 
     for (int i=0; i<classObjects.length; i++) {
       if (classObjects[i] == c) return; // already recorded
     }
@@ -419,7 +419,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param className
    */
-  static void runClassInitializer(String className) throws InterruptiblePragma {
+  @Interruptible
+  static void runClassInitializer(String className) { 
     if (verboseBoot >= 2) {
       sysWrite("running class intializer for ");
       sysWriteln(className);
@@ -517,7 +518,8 @@ import org.vmmagic.unboxed.*;
    * @param number
    * @return a String with the hex representation of the integer
    */
-  public static String intAsHexString(int number) throws InterruptiblePragma {
+  @Interruptible
+  public static String intAsHexString(int number) { 
     char[] buf   = new char[10];
     int    index = 10;
     while (--index > 1) {
@@ -538,7 +540,8 @@ import org.vmmagic.unboxed.*;
    * @param number
    * @return a String with the hex representation of the long
    */
-  public static String longAsHexString(long number) throws InterruptiblePragma {
+  @Interruptible
+  public static String longAsHexString(long number) { 
     char[] buf   = new char[18];
     int    index = 18;
     while (--index > 1) {
@@ -559,7 +562,8 @@ import org.vmmagic.unboxed.*;
    * @param addr  The 32/64 bit number to format.
    * @return a String with the hex representation of an Address
    */
-  public static String addressAsHexString(Address addr) throws InterruptiblePragma {
+  @Interruptible
+  public static String addressAsHexString(Address addr) { 
     int len = 2 + (BITS_IN_ADDRESS>>2);
     char[] buf   = new char[len];
     while (--len > 1) {
@@ -1219,9 +1223,8 @@ import org.vmmagic.unboxed.*;
    * @param bootCompilerArgs command line arguments to pass along to the 
    *                         boot compiler's init routine.
    */
-  private static void init(String bootstrapClasspath, String[] bootCompilerArgs) 
-    throws InterruptiblePragma
-  {
+  @Interruptible
+  private static void init(String bootstrapClasspath, String[] bootCompilerArgs) { 
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
 
     // create dummy boot record
@@ -1271,8 +1274,8 @@ import org.vmmagic.unboxed.*;
    * they are never called while gc is disabled.
    */
   @Inline
-  public static void disableGC()
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static void disableGC() { 
     disableGC(false);           // Recursion is not allowed in this context.
   }
   
@@ -1283,8 +1286,8 @@ import org.vmmagic.unboxed.*;
    * enableGC().
    */
   @Inline
-  public static void disableGC(boolean recursiveOK) 
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static void disableGC(boolean recursiveOK) { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled

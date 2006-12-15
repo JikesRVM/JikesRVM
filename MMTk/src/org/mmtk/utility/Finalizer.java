@@ -59,10 +59,11 @@ import org.vmmagic.unboxed.*;
 
   // Add item.
   //
+  @Interruptible
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
   public static final void addCandidate(ObjectReference item)
-    throws NoInlinePragma, InterruptiblePragma {
+    throws NoInlinePragma { 
  
     /* The following is tricky due to its littering of deadlock potential and
      * thread (logical and physical) race conditions, hence the unusual comment

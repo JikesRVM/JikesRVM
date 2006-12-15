@@ -224,7 +224,8 @@ import org.vmmagic.pragma.*;
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  void dumpWaitDescription(VM_Thread thread) throws InterruptiblePragma {
+  @Interruptible
+  void dumpWaitDescription(VM_Thread thread) { 
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -242,7 +243,8 @@ import org.vmmagic.pragma.*;
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  String getWaitDescription(VM_Thread thread) throws InterruptiblePragma {
+  @Interruptible
+  String getWaitDescription(VM_Thread thread) { 
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

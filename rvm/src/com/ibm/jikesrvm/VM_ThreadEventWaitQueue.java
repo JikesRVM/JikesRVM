@@ -59,14 +59,16 @@ import org.vmmagic.pragma.*;
   /**
    * Dump state for debugging.
    */
-  void dump() throws InterruptiblePragma {
+  @Interruptible
+  void dump() { 
     dump(" ");
   }
  
   /**
    * Dump state for debugging.
    */
-  void dump(String prefix) throws InterruptiblePragma {
+  @Interruptible
+  void dump(String prefix) { 
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
       VM.sysWrite(t.getIndex());
@@ -79,13 +81,15 @@ import org.vmmagic.pragma.*;
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
-  abstract void dumpWaitDescription(VM_Thread thread) throws InterruptiblePragma;
+  @Interruptible
+  abstract void dumpWaitDescription(VM_Thread thread); 
 
   /**
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  abstract String getWaitDescription(VM_Thread thread) throws InterruptiblePragma;
+  @Interruptible
+  abstract String getWaitDescription(VM_Thread thread); 
 
   /**
    * Check to see if any threads are ready to run, either because

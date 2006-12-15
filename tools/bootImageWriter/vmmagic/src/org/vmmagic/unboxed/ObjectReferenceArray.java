@@ -22,13 +22,14 @@ import com.ibm.jikesrvm.VM;
 
   private ObjectReference[] data;
 
-  static public ObjectReferenceArray create (int size) 
-    throws InterruptiblePragma {
+  @Interruptible
+  static public ObjectReferenceArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new ObjectReferenceArray(size);
   }
 
-  private ObjectReferenceArray(int size) throws InterruptiblePragma {
+  @Interruptible
+  private ObjectReferenceArray(int size) { 
     data = new ObjectReference[size];
     for (int i=0; i<size; i++) {
       data[i] = ObjectReference.nullReference();

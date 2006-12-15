@@ -53,7 +53,8 @@ import org.vmmagic.pragma.*;
    * 
    * @return The space managed by the virtual machine.
    */
-  public abstract ImmortalSpace getVMSpace() throws InterruptiblePragma;
+  @Interruptible
+  public abstract ImmortalSpace getVMSpace(); 
   
   /** Global preparation for a collection. */
   public abstract void globalPrepareVMSpace();

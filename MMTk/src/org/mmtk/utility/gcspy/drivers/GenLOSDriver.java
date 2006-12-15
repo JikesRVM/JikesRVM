@@ -52,13 +52,13 @@ import org.vmmagic.pragma.*;
    * @param threshold the size threshold of the LOS
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   public GenLOSDriver(ServerInterpreter server,
                       String spaceName,
                       LargeObjectSpace lospace,
                       int blockSize,
                       int threshold,
-                      boolean mainSpace) 
-      throws InterruptiblePragma {
+                      boolean mainSpace) { 
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, threshold, mainSpace);
     // create remset stream
@@ -76,7 +76,8 @@ import org.vmmagic.pragma.*;
   } 
   
   // private creator methods for the streams 
-  private ShortStream createRemsetStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRemsetStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Remembered set stream",

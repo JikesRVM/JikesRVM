@@ -68,7 +68,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param ctr The counter to be added.
    */
-  static void newCounter(Counter ctr) throws InterruptiblePragma {
+  @Interruptible
+  static void newCounter(Counter ctr) { 
     if (counters < (MAX_COUNTERS - 1)) {
       counter[counters++] = ctr;
     } else {

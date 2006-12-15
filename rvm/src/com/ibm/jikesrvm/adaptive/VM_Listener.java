@@ -36,7 +36,8 @@ import org.vmmagic.pragma.*;
   /**
    * Entry point to dump what has been collected.
    */
-  abstract public void report() throws InterruptiblePragma;
+  @Interruptible
+  abstract public void report(); 
 
   /**
    * Is the listener currently active (interested in getting "update" calls)

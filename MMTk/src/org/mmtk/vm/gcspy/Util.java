@@ -164,7 +164,7 @@ import org.vmmagic.pragma.*;
    * @param numElements number of elements in new array
    * @return the new array
    */
-  public abstract Object createDataArray(Object templ, int numElements)
-      throws InterruptiblePragma;
+  @Interruptible
+  public abstract Object createDataArray(Object templ, int numElements); 
 }
 

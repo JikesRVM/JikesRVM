@@ -93,7 +93,8 @@ import org.vmmagic.pragma.*;
    *
    * This is the entry point for all build-time activity in the collector.
    */
-  public static void init() throws InterruptiblePragma {
+  @Interruptible
+  public static void init() { 
     VM_CollectorThread.init();
     com.ibm.jikesrvm.mm.mmtk.Collection.init();
   }
@@ -105,8 +106,8 @@ import org.vmmagic.pragma.*;
    * @param theBootRecord the boot record. Contains information about
    * the heap size.
    */
-  public static void boot(VM_BootRecord theBootRecord)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void boot(VM_BootRecord theBootRecord) { 
     Mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
@@ -121,14 +122,16 @@ import org.vmmagic.pragma.*;
    * options (this is called as soon as options have been parsed,
    * which is necessarily after the basic allocator boot).
    */
-  public static void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public static void postBoot() { 
     Selected.Plan.get().postBoot();
   }
 
   /**
    * Notify the MM that the host VM is now fully booted.
    */
-  public static void fullyBootedVM() throws InterruptiblePragma {
+  @Interruptible
+  public static void fullyBootedVM() { 
     Selected.Plan.get().fullyBooted();
     Lock.fullyBooted();
     Barrier.fullyBooted();
@@ -137,8 +140,8 @@ import org.vmmagic.pragma.*;
   /** 
    *  Process GC parameters.
    */
-  public static void processCommandLineArg(String arg)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void processCommandLineArg(String arg) { 
       if (!Options.process(arg)) {
         VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
         VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -310,7 +313,8 @@ import org.vmmagic.pragma.*;
   /**
    * External call to force a garbage collection.
    */
-  public static void gc() throws InterruptiblePragma {
+  @Interruptible
+  public static void gc() { 
     if (!org.mmtk.utility.options.Options.ignoreSystemGC.getValue())
       Collection.triggerCollectionStatic(Collection.EXTERNAL_GC_TRIGGER);
   }
@@ -399,7 +403,8 @@ import org.vmmagic.pragma.*;
    * @param type the type of the object to be allocated
    * @return the identifier of the appropriate allocator
    */
-  public static int pickAllocator(VM_Type type) throws InterruptiblePragma {
+  @Interruptible
+  public static int pickAllocator(VM_Type type) { 
     return pickAllocator(type, null);
   }
 
@@ -414,8 +419,8 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if <code>a</code> is a prefix of
    * <code>b</code>
    */
-  private static boolean isPrefix(String a, byte [] b)
-    throws InterruptiblePragma {
+  @Interruptible
+  private static boolean isPrefix(String a, byte [] b) { 
     int aLen = a.length();
     if (aLen > b.length)
       return false;
@@ -434,8 +439,8 @@ import org.vmmagic.pragma.*;
    * @param method the method requesting the allocation
    * @return the identifier of the appropriate allocator
    */
-  public static int pickAllocator(VM_Type type, VM_Method method)
-    throws InterruptiblePragma {
+  @Interruptible
+  public static int pickAllocator(VM_Type type, VM_Method method) { 
 
     if (method != null) {
      // We should strive to be allocation-free here.
@@ -464,8 +469,8 @@ import org.vmmagic.pragma.*;
    * @return The allocator to use for allocating instances of type
    * <code>type</code>.
    */
-  private static int pickAllocatorForType(VM_Type type)
-    throws InterruptiblePragma {
+  @Interruptible
+  private static int pickAllocatorForType(VM_Type type) { 
     int allocator = Plan.ALLOC_DEFAULT;
     if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType())
       allocator = Plan.ALLOC_NON_REFERENCE;
@@ -675,8 +680,8 @@ import org.vmmagic.pragma.*;
    * @return The stack
    */ 
   @Inline
-  public static byte[] newStack(int bytes, boolean immortal)
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static byte[] newStack(int bytes, boolean immortal) { 
     if (!VM.runningVM) {
       return new byte[bytes];
     } else {
@@ -700,8 +705,8 @@ import org.vmmagic.pragma.*;
    * @param size The size of the array
    */
   @Inline
-  public static int[] newReferenceOffsetArray(int size)
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static int[] newReferenceOffsetArray(int size) { 
     if (!VM.runningVM) {
       return new int[size];
     }
@@ -726,8 +731,8 @@ import org.vmmagic.pragma.*;
    * @return the new TIB
    */
   @Inline
-  public static Object[] newTIB (int n)
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static Object[] newTIB (int n) { 
 
     if (!VM.runningVM) 
       return new Object[n];
@@ -748,8 +753,8 @@ import org.vmmagic.pragma.*;
    * @return The contiguous object array
    */ 
   @Inline
-  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n)
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) { 
     return new VM_CompiledMethod[n];
   }
 
@@ -764,7 +769,8 @@ import org.vmmagic.pragma.*;
    *
    * @param object the object to be added to the finalizer's list
    */
-  public static void addFinalizer(Object object) throws InterruptiblePragma {
+  @Interruptible
+  public static void addFinalizer(Object object) { 
     Finalizer.addCandidate(ObjectReference.fromObject(object));
   }
 
@@ -774,7 +780,8 @@ import org.vmmagic.pragma.*;
    *
    * @return the object needing to be finialized
    */
-  public static Object getFinalizedObject() throws InterruptiblePragma {
+  @Interruptible
+  public static Object getFinalizedObject() { 
     return Finalizer.get();
   }
 
@@ -789,8 +796,8 @@ import org.vmmagic.pragma.*;
    *
    * @param obj the soft reference to be added to the list
    */
-   public static void addSoftReference(SoftReference obj)
-     throws InterruptiblePragma {
+   @Interruptible
+   public static void addSoftReference(SoftReference obj) { 
      ReferenceGlue.addSoftCandidate(obj);
    }
  
@@ -799,8 +806,8 @@ import org.vmmagic.pragma.*;
    *
    * @param obj the weak reference to be added to the list
    */
-   public static void addWeakReference(WeakReference obj)
-     throws InterruptiblePragma {
+   @Interruptible
+   public static void addWeakReference(WeakReference obj) { 
      ReferenceGlue.addWeakCandidate(obj);
    }
  
@@ -809,8 +816,8 @@ import org.vmmagic.pragma.*;
    *
    * @param obj the phantom reference to be added to the list
    */
-   public static void addPhantomReference(PhantomReference obj)
-     throws InterruptiblePragma {
+   @Interruptible
+   public static void addPhantomReference(PhantomReference obj) { 
      ReferenceGlue.addPhantomCandidate(obj);
    }
 
@@ -859,8 +866,8 @@ import org.vmmagic.pragma.*;
    *
    * @param vmType The newly resolved type
    */
-  public static void notifyClassResolved(VM_Type vmType) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public static void notifyClassResolved(VM_Type vmType) { 
     MMType type;
     if (vmType.isArrayType()) {
       type = new MMType(false,
@@ -904,7 +911,8 @@ import org.vmmagic.pragma.*;
   /**
    * Start the GCspy server
    */
-  public static void startGCspyServer() throws InterruptiblePragma {
+  @Interruptible
+  public static void startGCspyServer() { 
     GCspy.startGCspyServer();
   }
 
@@ -918,9 +926,9 @@ import org.vmmagic.pragma.*;
    * the core JMTk code doesn't need to know about the 
    * BootImageInterface type.
    */
+  @Interruptible
   public static void initializeHeader(BootImageInterface bootImage, Address ref,
-                                      Object[] tib, int size, boolean isScalar)
-    throws InterruptiblePragma {
+                                      Object[] tib, int size, boolean isScalar) { 
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
     Word status = Selected.Plan.get().setBootTimeGCBits(ref, 
       ObjectReference.fromObject(tib), size, Word.zero());
@@ -953,8 +961,8 @@ import org.vmmagic.pragma.*;
    * @return The contiguous int array
    */ 
   @Inline
-  public static int[] newContiguousIntArray(int n)
-    throws InterruptiblePragma { 
+  @Interruptible
+  public static int[] newContiguousIntArray(int n) { 
     return new int[n];
   }
 

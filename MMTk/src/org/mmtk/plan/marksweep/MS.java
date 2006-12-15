@@ -80,7 +80,8 @@ import org.vmmagic.pragma.*;
   /**
    * Boot-time initialization
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
     super.boot();
     msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }

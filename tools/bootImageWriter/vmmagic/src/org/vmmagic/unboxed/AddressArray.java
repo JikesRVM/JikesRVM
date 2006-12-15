@@ -24,12 +24,14 @@ import com.ibm.jikesrvm.VM;
 
   private Address[] data;
 
-  static public AddressArray create (int size) throws InterruptiblePragma {
+  @Interruptible
+  static public AddressArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new AddressArray(size);
   }
 
-  private AddressArray (int size) throws InterruptiblePragma {
+  @Interruptible
+  private AddressArray (int size) { 
     data = new Address[size];
     Address zero = Address.zero();
     for (int i=0; i<size; i++) {

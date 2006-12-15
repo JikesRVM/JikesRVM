@@ -45,7 +45,8 @@ import org.vmmagic.pragma.*;
    * Initialization
    */
 
-  public static void createOptions() throws InterruptiblePragma {
+  @Interruptible
+  public static void createOptions() { 
     Options.gcspyPort = new GCspyPort();
     Options.gcspyWait = new GCspyWait();
     Options.gcspyTileSize = new GCspyTileSize();
@@ -82,7 +83,8 @@ import org.vmmagic.pragma.*;
    * Start the GCspy server.
    * WARNING: allocates memory indirectly
    */
-  public static void startGCspyServer() throws InterruptiblePragma {
+  @Interruptible
+  public static void startGCspyServer() { 
     int port = getGCspyPort();
     Log.write("GCspy.startGCspyServer, port="); Log.write(port);
     Log.write(", wait=");

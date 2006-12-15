@@ -47,7 +47,8 @@ import org.vmmagic.pragma.*;
     return  encoding[entryOffset];
   }
 
-  public static int[] getEncoding(OPT_CallSiteTree tree) throws InterruptiblePragma {
+  @Interruptible
+  public static int[] getEncoding(OPT_CallSiteTree tree) { 
     int size = 0;
     if (tree.isEmpty())
       return  null; 
@@ -66,8 +67,9 @@ import org.vmmagic.pragma.*;
     }
   }
 
+  @Interruptible
   static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
-                         int[] encoding) throws InterruptiblePragma {
+                         int[] encoding) { 
     int i = offset;
     if (parent != -1)
       encoding[i++] = parent - offset;

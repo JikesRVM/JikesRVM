@@ -22,12 +22,14 @@ import com.ibm.jikesrvm.VM;
   
   private Extent[] data;
 
-  static public ExtentArray create (int size) throws InterruptiblePragma {
+  @Interruptible
+  static public ExtentArray create (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new ExtentArray(size);
   }
 
-  private ExtentArray (int size) throws InterruptiblePragma {
+  @Interruptible
+  private ExtentArray (int size) { 
     data = new Extent[size];
     Extent zero = Extent.zero();
     for (int i=0; i<size; i++) {

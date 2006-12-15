@@ -30,7 +30,8 @@ import org.vmmagic.pragma.*;
   /**
    * Register the exit monitor at boot time.
    */
-  public static void boot() throws InterruptiblePragma {
+  @Interruptible
+  public static void boot() { 
     VM_Callbacks.addExitMonitor(new Monitor());
   }
 

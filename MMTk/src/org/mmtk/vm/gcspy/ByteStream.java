@@ -59,6 +59,7 @@ import org.vmmagic.pragma.*;
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    */
+  @Interruptible
   public ByteStream(
          AbstractDriver driver,
          String name,
@@ -72,7 +73,7 @@ import org.vmmagic.pragma.*;
          int paintStyle,
          int indexMaxStream,
          Color colour,
-         boolean summary) throws InterruptiblePragma {
+         boolean summary) { 
      
     super(driver, StreamConstants.BYTE_TYPE, name, 
           minValue, maxValue, zeroValue, defaultValue,
