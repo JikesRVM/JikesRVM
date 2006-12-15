@@ -248,7 +248,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param trace The trace object to use for forwarding.
    */
-  public final static void forward(TraceLocal trace) throws InlinePragma {
+  @Inline
+  public final static void forward(TraceLocal trace) { 
     int cursor = 0;
 
     while (cursor < candidateEnd) {

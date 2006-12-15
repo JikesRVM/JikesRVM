@@ -52,8 +52,9 @@ import org.vmmagic.pragma.*;
    *
    * @param object The object to be scanned.
    */
+  @Inline
   public final void scanObject(TraceStep trace, ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
@@ -65,8 +66,9 @@ import org.vmmagic.pragma.*;
    *
    * @param object The object to be scanned.
    */
+  @Inline
   public final void precopyChildren(TraceLocal trace, ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
@@ -169,8 +171,9 @@ import org.vmmagic.pragma.*;
    * @param trace The trace object to use to report precopy objects.
    * @param object The object to be scanned.
    */
+  @Inline
   private static void precopyChildren(TraceLocal trace, Object object) 
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     Scan.precopyChildren(trace,ObjectReference.fromObject(object));
   }
 

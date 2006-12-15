@@ -157,8 +157,8 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final Address alloc(int bytes, int align, int offset, boolean inGC)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
     Address cell = allocFast(bytes, align, offset, inGC);
@@ -185,8 +185,9 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
+  @Inline
   public final Address allocFast(int bytes, int align, int offset,
-                                 boolean inGC) throws InlinePragma {
+                                 boolean inGC) { 
     int alignedBytes = getMaximumAlignedSize(bytes, align);
     int sizeClass = getSizeClass(alignedBytes);
     Address cell = freeList.get(sizeClass);
@@ -282,8 +283,8 @@ import org.vmmagic.unboxed.*;
    * allocated block of pre-zeroed cells, or return zero if there were
    *         insufficient resources to allocate a new block.
    */
-  private final Address expandSizeClass(int sizeClass) 
-    throws InlinePragma {
+  @Inline
+  private final Address expandSizeClass(int sizeClass) { 
     Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
     if (block.isZero())
       return Address.zero();
@@ -320,8 +321,8 @@ import org.vmmagic.unboxed.*;
    * @return The next cell in a free list chain (null if this is the
    * last).
    */
-  protected final Address getNextCell(Address cell)
-    throws InlinePragma {
+  @Inline
+  protected final Address getNextCell(Address cell) { 
     return cell.loadAddress();
   }
 
@@ -331,8 +332,8 @@ import org.vmmagic.unboxed.*;
    * @param cell The cell whose link is to be set
    * @param next The next cell in the chain.
    */
-  private final void setNextCell(Address cell, Address next)
-      throws InlinePragma {
+  @Inline
+  private final void setNextCell(Address cell, Address next) { 
     cell.store(next);
   }
 
@@ -351,9 +352,9 @@ import org.vmmagic.unboxed.*;
    * @param sizeClass The size class of the cell and block
    * @param nextFree The next cell in the free list
    */
+  @Inline
   public final void free(Address cell, Address block, int sizeClass,
-                         Address nextFree)
-    throws InlinePragma {
+                         Address nextFree) { 
     Memory.zeroSmall(cell, Extent.fromIntZeroExtend(cellSize[sizeClass]));
     setNextCell(cell, nextFree);
   }
@@ -370,8 +371,8 @@ import org.vmmagic.unboxed.*;
    * @param block The block to be added
    * @param sizeClass The size class to which the block is being added
    */
-  private final void installNewBlock(Address block, int sizeClass)
-      throws InlinePragma {
+  @Inline
+  private final void installNewBlock(Address block, int sizeClass) { 
     BlockAllocator.setAllClientSizeClass(block, blockSizeClass[sizeClass], (byte) sizeClass);
     BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
     currentBlock.set(sizeClass, block);
@@ -387,8 +388,8 @@ import org.vmmagic.unboxed.*;
    * @param block The block to be freed
    * @param sizeClass The size class with which the block was associated.
    */
-  protected final void freeBlock(Address block, int sizeClass)
-      throws InlinePragma {
+  @Inline
+  protected final void freeBlock(Address block, int sizeClass) { 
     Address next = BlockAllocator.getNextBlock(block);
     Address prev = BlockAllocator.getPrevBlock(block);
     BlockAllocator.unlinkBlock(block);
@@ -432,8 +433,8 @@ import org.vmmagic.unboxed.*;
    *         the request will not be satisfied by the freelist, but must be
    *         dealt with explicitly as a large object.
    */
-  protected static final int getSizeClass(int bytes)
-    throws InlinePragma {
+  @Inline
+  protected static final int getSizeClass(int bytes) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((bytes > 0) && (bytes <= MAX_CELL_SIZE));
 
     int sz1 = bytes - 1;
@@ -480,8 +481,8 @@ import org.vmmagic.unboxed.*;
    * @return The size of a basic cell (i.e. not including any cell
    * header).
    */
-  protected static final int getBaseCellSize(int sc) 
-    throws InlinePragma {
+  @Inline
+  protected static final int getBaseCellSize(int sc) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
     if (BYTES_IN_ADDRESS == 32) { // 32-bit
@@ -590,8 +591,8 @@ import org.vmmagic.unboxed.*;
    * @param block The block whose free list is to be found
    * @return The free list for this block
    */
-  protected final Address getFreeList(Address block) 
-    throws InlinePragma {
+  @Inline
+  protected final Address getFreeList(Address block) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     return BlockAllocator.getFreeListMeta(block);
   }
@@ -604,8 +605,8 @@ import org.vmmagic.unboxed.*;
    * @param cell The head of the free list (i.e. the first cell in the
    * free list).
    */
-  protected final void setFreeList(Address block, Address cell)
-      throws InlinePragma {
+  @Inline
+  protected final void setFreeList(Address block, Address cell) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     BlockAllocator.setFreeListMeta(block, cell);
   }
@@ -748,8 +749,9 @@ import org.vmmagic.unboxed.*;
    * @param bucket The index of the bucket to be added to the front of
    * this free block list.
    */
+  @Inline
   private final Address addToFreeBlockList(int sizeClass, Address head,
-      int bucket) throws InlinePragma {
+      int bucket) { 
     Address tail = blockBucketTail.get(bucket);
     if (!tail.isZero()) {
       if (head.isZero())
@@ -773,8 +775,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose live bit is to be set.
    * @return True if the bit was changed to true.
    */
-  public static final boolean liveObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static final boolean liveObject(ObjectReference object) { 
     return liveAddress(VM.objectModel.objectStartRef(object), true);
   }
   
@@ -783,8 +785,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object whose blocks liveness is to be set.
    */
-  public static final void liveBlock(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static final void liveBlock(ObjectReference object) { 
     BlockAllocator.markBlockMeta(object);
   }
 
@@ -795,8 +797,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object whose live bit is to be set.
    */
-  public static final boolean unsyncLiveObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static final boolean unsyncLiveObject(ObjectReference object) { 
     return liveAddress(VM.objectModel.refToAddress(object), false);
   }
 
@@ -806,8 +808,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address whose live bit is to be set.
    * @param atomic True if we want to perform this operation atomically
    */
-  protected static final boolean liveAddress(Address address, boolean atomic)
-      throws InlinePragma {
+  @Inline
+  protected static final boolean liveAddress(Address address, boolean atomic) { 
     Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
@@ -828,8 +830,8 @@ import org.vmmagic.unboxed.*;
    *
    * @param object The object whose live bit is to be set.
    */
-  public static final boolean isLiveObject(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public static final boolean isLiveObject(ObjectReference object) { 
     return isLiveAddress(VM.objectModel.refToAddress(object));
   }
 
@@ -839,8 +841,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address whose live bit is to be set.
    * @return true if this operation changed the state of the live bit.
    */
-  protected static final boolean isLiveAddress(Address address)
-    throws InlinePragma {
+  @Inline
+  protected static final boolean isLiveAddress(Address address) { 
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
     Word value = liveWord.loadWord();
@@ -852,8 +854,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object whose live bit is to be cleared.
    */
-  protected static final void deadObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  protected static final void deadObject(ObjectReference object) { 
     deadAddress(VM.objectModel.refToAddress(object));
   }
 
@@ -862,8 +864,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param address The address whose live bit is to be cleared.
    */
-  protected static final void deadAddress(Address address)
-    throws InlinePragma {
+  @Inline
+  protected static final void deadAddress(Address address) { 
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, false);
     liveWord.store(liveWord.loadWord().and(mask));
@@ -908,8 +910,9 @@ import org.vmmagic.unboxed.*;
    * non-zero words, otherwise return 1 if any live word exists, zero
    * otherwise.
    */
+  @Inline
   private static final int getLiveness(Address block, Extent blockSize,
-      boolean count) throws InlinePragma {
+      boolean count) { 
     int liveWords = 0;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(alignToLiveStride(block).EQ(block));
     Address cursor = getLiveWordAddress(block);
@@ -950,9 +953,9 @@ import org.vmmagic.unboxed.*;
    * @param markState The current marking state
    * @return The head of the new free list
    */
+  @Inline
   protected final Address makeFreeListFromLiveBits(Address block, 
-                                                   int sizeClass, Word markState)
-      throws InlinePragma {
+                                                   int sizeClass, Word markState) { 
     if (maintainSideBitmap()) {
       Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
       Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
@@ -1037,8 +1040,8 @@ import org.vmmagic.unboxed.*;
    * false if we want the mask for <i>clearing</i> the bit.
    * @return The appropriate bit mask for object for the live table for.
    */
-  protected static final Word getMask(Address address, boolean set)
-      throws InlinePragma {
+  @Inline
+  protected static final Word getMask(Address address, boolean set) { 
     int shift = address.toWord().rshl(OBJECT_LIVE_SHIFT).and(WORD_SHIFT_MASK).toInt();
     Word rtn = Word.one().lsh(shift);
     return (set) ? rtn : rtn.not();
@@ -1051,8 +1054,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address whose live word address is to be returned
    * @return The address of the live word for this object
    */
-  protected static final Address getLiveWordAddress(Address address)
-      throws InlinePragma {
+  @Inline
+  protected static final Address getLiveWordAddress(Address address) { 
     Address rtn = EmbeddedMetaData.getMetaDataBase(address);
     return rtn.plus(META_DATA_OFFSET).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_LIVE_COVERAGE, LOG_BYTES_IN_WORD));
   }

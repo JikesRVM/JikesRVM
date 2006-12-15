@@ -42,7 +42,8 @@ import com.ibm.jikesrvm.VM_SizeConstants;
   /**
    * Return a null reference
    */
-  public static final ObjectReference nullReference() throws InlinePragma {
+  @Inline
+  public static final ObjectReference nullReference() { 
     return null;
   }
 

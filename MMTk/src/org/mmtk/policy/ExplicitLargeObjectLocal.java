@@ -84,7 +84,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc (Address cell) throws InlinePragma { 
+  @Inline
+  protected final void postAlloc (Address cell) { 
     cells.add(DoublyLinkedList.payloadToNode(cell));
   };
 
@@ -109,8 +110,8 @@ import org.vmmagic.unboxed.*;
    * @param space The space the object is allocated in.
    * @param object The object to be freed.
    */
-  public static final void free(LargeObjectSpace space, ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public static final void free(LargeObjectSpace space, ObjectReference object) { 
     Address cell = getSuperPage(VM.objectModel.refToAddress(object));
     ((ExplicitLargeObjectLocal)DoublyLinkedList.getOwner(cell)).cells.remove(cell);
     space.release(cell);
@@ -121,7 +122,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param scanner The scan object to delegate scanning to.
    */
-  public void linearScan(LinearScan scanner) throws InlinePragma {
+  @Inline
+  public void linearScan(LinearScan scanner) { 
     Address cell = cells.getHead();
     while (!cell.isZero()) {
       ObjectReference current = VM.objectModel.getObjectFromStartAddress(cell.plus(superPageHeaderSize())); 
@@ -143,7 +145,8 @@ import org.vmmagic.unboxed.*;
    * @return The size of the per-superpage header required by this
    * system.
    */
-  protected final int superPageHeaderSize() throws InlinePragma { 
+  @Inline
+  protected final int superPageHeaderSize() { 
     return DoublyLinkedList.headerSize(); 
   }
 
@@ -154,5 +157,6 @@ import org.vmmagic.unboxed.*;
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
-  protected final int cellHeaderSize() throws InlinePragma { return 0; }
+  @Inline
+  protected final int cellHeaderSize() { return 0; } 
 }

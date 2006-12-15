@@ -378,8 +378,8 @@ import org.vmmagic.pragma.*;
    * Map from the object ref to the lowest address of the storage
    * associated with the object
    */
-  public static Address objectStartRef(ObjectReference obj) 
-    throws InlinePragma {
+  @Inline
+  public static Address objectStartRef(ObjectReference obj) { 
     return VM_JavaHeader.objectStartRef(obj);
   }
 
@@ -601,7 +601,8 @@ import org.vmmagic.pragma.*;
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeHeaderSize(VM_Type type) throws InlinePragma {
+  @Inline
+  public static int computeHeaderSize(VM_Type type) { 
     if (type.isArrayType()) {
       return computeArrayHeaderSize(type.asArray());
     } else {
@@ -619,7 +620,8 @@ import org.vmmagic.pragma.*;
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeScalarHeaderSize(VM_Class type) throws InlinePragma {
+  @Inline
+  public static int computeScalarHeaderSize(VM_Class type) { 
     return VM_JavaHeader.computeScalarHeaderSize(type);
   }
 
@@ -737,8 +739,8 @@ import org.vmmagic.pragma.*;
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeScalar(Address ptr, Object[] tib, int size)
-    throws InlinePragma {
+  @Inline
+  public static Object initializeScalar(Address ptr, Object[] tib, int size) { 
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
     setTIB(ref, tib);
@@ -789,7 +791,8 @@ import org.vmmagic.pragma.*;
    * @param numElems number of elements in the array
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) throws InlinePragma {
+  @Inline
+  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) { 
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);
     setTIB(ref, tib);

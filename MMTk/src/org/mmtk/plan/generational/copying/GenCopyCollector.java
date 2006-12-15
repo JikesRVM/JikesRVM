@@ -86,9 +86,9 @@ import org.vmmagic.pragma.*;
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
@@ -108,8 +108,9 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator to allocate from
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     CopySpace.clearGCBits(object);
     if (GenCopy.IGNORE_REMSETS)
       CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());

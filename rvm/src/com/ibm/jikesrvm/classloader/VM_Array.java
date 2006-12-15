@@ -201,8 +201,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param numelts number of array elements in the instance
    * @return size in bytes
    */
-  public final int getInstanceSize(int numelts) throws UninterruptiblePragma,
-                                                       InlinePragma {
+  @Inline
+  public final int getInstanceSize(int numelts) throws UninterruptiblePragma { 
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 

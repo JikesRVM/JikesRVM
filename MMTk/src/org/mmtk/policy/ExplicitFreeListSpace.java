@@ -168,7 +168,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public final void release(Address start) { 
     ((FreeListPageResource) pr).releasePages(start);
   }
 
@@ -190,9 +191,9 @@ import org.vmmagic.unboxed.*;
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Inline
   public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object)
-    throws InlinePragma {
+                                           ObjectReference object) { 
     return object;
   }
 
@@ -201,8 +202,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-  public boolean isLive(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     return true;
   }
 }

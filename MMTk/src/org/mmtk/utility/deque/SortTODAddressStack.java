@@ -57,7 +57,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(Address addr) throws InlinePragma {
+  @Inline
+  public final void push(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -70,7 +71,8 @@ import org.vmmagic.pragma.*;
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public final Address pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     } else {
@@ -84,7 +86,8 @@ import org.vmmagic.pragma.*;
    * @return True if there are no more entries on the local & shared stack,
    *         false otherwise.
    */
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 }

@@ -67,8 +67,8 @@ import org.vmmagic.unboxed.*;
    * @param root is this object a root
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object, boolean root)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object, boolean root) { 
     if (root && RC.isRCObject(object)) {
       collector().reportRoot(object);
     }
@@ -84,8 +84,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     return object;
   }
   
@@ -108,7 +108,8 @@ import org.vmmagic.unboxed.*;
   /**
    * @return The current RC collector instace.
    */
-  private static final RCCollector collector() throws InlinePragma {
+  @Inline
+  private static final RCCollector collector() { 
     return (RCCollector)VM.activePlan.collector();
   }
   

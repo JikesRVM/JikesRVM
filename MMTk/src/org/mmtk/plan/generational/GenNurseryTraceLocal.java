@@ -84,8 +84,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
         return Gen.nurserySpace.traceObject(this, object);
@@ -98,7 +98,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Process any remembered set entries.
    */
-  protected void processRememberedSets() throws InlinePragma {
+  @Inline
+  protected void processRememberedSets() { 
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
@@ -119,7 +120,8 @@ import org.vmmagic.unboxed.*;
   /**
    * @return The allocator to use when copying objects during this trace.
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return Gen.ALLOC_MATURE_MINORGC;
   }
 

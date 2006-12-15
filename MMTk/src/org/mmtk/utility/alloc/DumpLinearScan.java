@@ -29,7 +29,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object The object to scan
    */
-  public void scan(ObjectReference object) throws InlinePragma {
+  @Inline
+  public void scan(ObjectReference object) { 
     Log.write("[");
     Log.write(object.toAddress());
     Log.write("], SIZE = ");

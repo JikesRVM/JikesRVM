@@ -98,7 +98,8 @@ import org.vmmagic.unboxed.*;
     return node.loadObjectReference(LIST_OFFSET).toObject();
   }
 
-  static public final int headerSize() throws InlinePragma {
+  @Inline
+  static public final int headerSize() { 
     return HEADER_SIZE.toInt();
   }
 
@@ -106,20 +107,24 @@ import org.vmmagic.unboxed.*;
     return node.toWord().rshl(log_granularity).lsh(log_granularity).EQ(node.toWord());
   }
 
-  static public final Address nodeToPayload(Address node) throws InlinePragma {
+  @Inline
+  static public final Address nodeToPayload(Address node) { 
     return node.plus(HEADER_SIZE);
   }
 
-  static public final Address payloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  static public final Address payloadToNode(Address payload) { 
     return payload.minus(HEADER_SIZE);
   }
 
-  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  static public final Address midPayloadToNode(Address payload) { 
     // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
     return payload.toWord().and(nodeMask).toAddress();
   }
 
-  public final void add(Address node) throws InlinePragma {
+  @Inline
+  public final void add(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
@@ -131,7 +136,8 @@ import org.vmmagic.unboxed.*;
     if (lock != null) lock.release();
   }
 
-  public final void remove(Address node) throws InlinePragma {
+  @Inline
+  public final void remove(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
@@ -150,22 +156,26 @@ import org.vmmagic.unboxed.*;
     if (lock != null) lock.release();
   }
 
-  public final Address getHead() throws InlinePragma {
+  @Inline
+  public final Address getHead() { 
     return head;
   }
 
-  public final Address getNext(Address node) throws InlinePragma {
+  @Inline
+  public final Address getNext(Address node) { 
     return node.loadAddress(NEXT_OFFSET);
   }
 
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public final Address pop() { 
     Address first = head;
     if (!first.isZero())
       remove(first);
     return first;
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return head.isZero();
   }
 

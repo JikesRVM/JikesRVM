@@ -35,8 +35,9 @@ import org.vmmagic.pragma.*;
    * @param trace The trace to use when scanning.
    * @param object The object to be scanned.
    */
+  @Inline
   public static void scanObject(TraceStep trace,
-                                ObjectReference object) throws InlinePragma {
+                                ObjectReference object) { 
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
@@ -54,8 +55,8 @@ import org.vmmagic.pragma.*;
    * @param trace The trace to use when precopying.
    * @param object The object to be scanned.
    */
-  public static void precopyChildren(TraceLocal trace, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static void precopyChildren(TraceLocal trace, ObjectReference object) { 
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);

@@ -52,7 +52,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
-  public static void zero(Address start, Extent bytes) throws InlinePragma {
+  @Inline
+  public static void zero(Address start, Extent bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -69,7 +70,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the region to be zeroed (must be page aligned)
    * @param bytes The number of bytes to be zeroed (must be page aligned)
    */
-  public static void zeroPages(Address start, int bytes) throws InlinePragma {
+  @Inline
+  public static void zeroPages(Address start, int bytes) { 
     VM.memory.zeroPages(start, bytes);
   }
 
@@ -79,8 +81,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
-  public static void zeroSmall(Address start, Extent bytes) 
-    throws InlinePragma {
+  @Inline
+  public static void zeroSmall(Address start, Extent bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -97,8 +99,8 @@ import org.vmmagic.pragma.*;
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    * @param value The value to which the integers in the region should be set
    */
-  public static void set(Address start, int bytes, int value)
-      throws InlinePragma {
+  @Inline
+  public static void set(Address start, int bytes, int value) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -121,8 +123,8 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the region to be checked, in bytes
    * @return True if the region is zeroed
    */
-  public static boolean IsZeroed(Address start, int bytes)
-    throws InlinePragma {
+  @Inline
+  public static boolean IsZeroed(Address start, int bytes) { 
     return isSet(start, bytes, false, 0);
   }
 
@@ -151,8 +153,8 @@ import org.vmmagic.pragma.*;
    * @param value The value to which this region should be set
    * @return True if the region has been correctly set
    */
-  public static boolean isSet(Address start, int bytes, int value)
-      throws InlinePragma {
+  @Inline
+  public static boolean isSet(Address start, int bytes, int value) { 
     return isSet(start, bytes, true, value);
   }
 

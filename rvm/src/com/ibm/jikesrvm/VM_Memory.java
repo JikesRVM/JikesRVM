@@ -48,7 +48,8 @@ import org.vmmagic.unboxed.*;
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws InlinePragma {
+  @Inline
+  public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) { 
     if (USE_NATIVE && len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos), 
               VM_Magic.objectAsAddress(src).plus(srcPos), 
@@ -174,7 +175,8 @@ import org.vmmagic.unboxed.*;
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws InlinePragma {
+  @Inline
+  public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) { 
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
       memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos<<LOG_BYTES_IN_SHORT), 
               VM_Magic.objectAsAddress(src).plus(srcPos<<LOG_BYTES_IN_SHORT),
@@ -262,7 +264,8 @@ import org.vmmagic.unboxed.*;
    * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws InlinePragma {
+  @Inline
+  public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) { 
     Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx<<LOG_BYTES_IN_INT);
     Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx<<LOG_BYTES_IN_INT);
     int copyBytes = len<<LOG_BYTES_IN_INT;
@@ -296,7 +299,8 @@ import org.vmmagic.unboxed.*;
    * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws InlinePragma {
+  @Inline
+  public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) { 
     Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx<<LOG_BYTES_IN_DOUBLE);
     Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx<<LOG_BYTES_IN_DOUBLE);
     int copyBytes = len<<LOG_BYTES_IN_DOUBLE;
@@ -332,7 +336,8 @@ import org.vmmagic.unboxed.*;
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  public static void aligned32Copy(Address dst, Address src, Offset numBytes) throws InlinePragma {
+  @Inline
+  public static void aligned32Copy(Address dst, Address src, Offset numBytes) { 
     if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
       memcopy(dst, src, numBytes.toWord().toExtent());
     } else {
@@ -363,7 +368,8 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  public static void aligned32Copy(Address dst, Address src, int numBytes) throws InlinePragma {
+  @Inline
+  public static void aligned32Copy(Address dst, Address src, int numBytes) { 
     aligned32Copy(dst, src, Offset.fromIntSignExtend(numBytes));
   }
 
@@ -375,7 +381,8 @@ import org.vmmagic.unboxed.*;
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  public static void alignedWordCopy(Address dst, Address src, int numBytes) throws InlinePragma {
+  @Inline
+  public static void alignedWordCopy(Address dst, Address src, int numBytes) { 
     if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {
@@ -390,7 +397,8 @@ import org.vmmagic.unboxed.*;
    * @param src     The source addr
    * @param numBytes The number of bytes to copy
    */
-  private static void internalAlignedWordCopy(Address dst, Address src, int numBytes) throws InlinePragma {
+  @Inline
+  private static void internalAlignedWordCopy(Address dst, Address src, int numBytes) { 
     Address end = src.plus(numBytes);
     while (src.LT(end)) {
       dst.store(src.loadWord());
@@ -843,29 +851,35 @@ import org.vmmagic.unboxed.*;
   /**
   * @deprecated use alignUp(..) instead
   */
-  public static Address align (Address address, int alignment) throws InlinePragma {
+  @Inline
+  public static Address align (Address address, int alignment) { 
         return alignUp(address, alignment); }
      
   /**
   * @deprecated use alignUp(..) instead
   */
-  public static int align (int address, int alignment) throws InlinePragma {
+  @Inline
+  public static int align (int address, int alignment) { 
         return alignUp(address, alignment); }
   
-  public static Address alignUp (Address address, int alignment) throws InlinePragma {
+  @Inline
+  public static Address alignUp (Address address, int alignment) { 
     return address.plus(alignment-1).toWord().and(Word.fromIntSignExtend(~(alignment - 1))).toAddress();
   }
 
-  public static Address alignDown (Address address, int alignment) throws InlinePragma {
+  @Inline
+  public static Address alignDown (Address address, int alignment) { 
     return address.toWord().and(Word.fromIntSignExtend(~(alignment - 1))).toAddress();
   }
 
   // These versions are here to accomodate the boot image writer
-  public static int alignUp (int address, int alignment) throws InlinePragma {
+  @Inline
+  public static int alignUp (int address, int alignment) { 
     return ((address + alignment - 1) & ~(alignment - 1));
   }
   
-  public static int alignDown (int address, int alignment) throws InlinePragma {
+  @Inline
+  public static int alignDown (int address, int alignment) { 
     return (address & ~(alignment - 1));
   }
 }

@@ -137,9 +137,9 @@ import org.vmmagic.unboxed.*;
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
+  @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status)
-    throws InlinePragma {
+                                int size, Word status) { 
     if (WITH_COALESCING_RC) {
       status = status.or(SCAN_BOOT_IMAGE ? RCHeader.LOGGED : RCHeader.UNLOGGED); 
     }
@@ -157,7 +157,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
    
     if (phaseId == PREPARE) {
       rcTrace.prepare();
@@ -224,7 +225,8 @@ import org.vmmagic.unboxed.*;
   }
   
   /** @return The active cycle detector instance */
-  public final CD cycleDetector() throws InlinePragma {
+  @Inline
+  public final CD cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;

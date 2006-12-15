@@ -104,7 +104,8 @@ implements VM_Constants {
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
-  public boolean threadSwitchingEnabled() throws InlinePragma {
+  @Inline
+  public boolean threadSwitchingEnabled() { 
     return threadSwitchingEnabledCount == 1;
   }
 
@@ -127,7 +128,8 @@ implements VM_Constants {
   /**
    * Disable thread switching in this processor.
    */ 
-  public void disableThreadSwitching() throws InlinePragma {
+  @Inline
+  public void disableThreadSwitching() { 
     --threadSwitchingEnabledCount;
   }
 
@@ -156,14 +158,16 @@ implements VM_Constants {
   /**
    * Get processor that's being used to run the current java thread.
    */
-  public static VM_Processor getCurrentProcessor() throws InlinePragma {
+  @Inline
+  public static VM_Processor getCurrentProcessor() { 
     return VM_ProcessorLocalState.getCurrentProcessor();
   }
 
   /**
    * Get id of processor that's being used to run the current java thread.
    */ 
-  public static int getCurrentProcessorId() throws InlinePragma {
+  @Inline
+  public static int getCurrentProcessorId() { 
     return getCurrentProcessor().id;
   }
 
@@ -212,7 +216,8 @@ implements VM_Constants {
    * Find a thread that can be run by this processor and remove it 
    * from its queue.
    */ 
-  private VM_Thread getRunnableThread() throws InlinePragma {
+  @Inline
+  private VM_Thread getRunnableThread() { 
 
     for (int i=transferQueue.length(); 0<i; i--) {
       transferMutex.lock();

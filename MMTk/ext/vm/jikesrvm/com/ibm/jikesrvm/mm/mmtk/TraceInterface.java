@@ -233,54 +233,63 @@ import org.vmmagic.pragma.*;
    * Wrapper methods
    */
 
-  public final void updateDeathTime(Object obj) throws InlinePragma {
+  @Inline
+  public final void updateDeathTime(Object obj) { 
     VM_MiscHeader.updateDeathTime(obj);
   }
 
-  public final void setDeathTime(ObjectReference ref, Word time_) 
-    throws InlinePragma {
+  @Inline
+  public final void setDeathTime(ObjectReference ref, Word time_) { 
     VM_MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
-  public final void setLink(ObjectReference ref, ObjectReference link) 
-    throws InlinePragma {
+  @Inline
+  public final void setLink(ObjectReference ref, ObjectReference link) { 
     VM_MiscHeader.setLink(ref.toObject(), link);
   }
 
-  public final void updateTime(Word time_) throws InlinePragma {
+  @Inline
+  public final void updateTime(Word time_) { 
     VM_MiscHeader.updateTime(time_);
   }
 
-  public final Word getOID(ObjectReference ref) throws InlinePragma {
+  @Inline
+  public final Word getOID(ObjectReference ref) { 
     return VM_MiscHeader.getOID(ref.toObject());
   }
 
-  public final Word getDeathTime(ObjectReference ref) throws InlinePragma {
+  @Inline
+  public final Word getDeathTime(ObjectReference ref) { 
     return VM_MiscHeader.getDeathTime(ref.toObject());
   }
 
-  public final ObjectReference getLink(ObjectReference ref)
-    throws InlinePragma {
+  @Inline
+  public final ObjectReference getLink(ObjectReference ref) { 
     return VM_MiscHeader.getLink(ref.toObject());
   }
 
-  public final Address getBootImageLink() throws InlinePragma {
+  @Inline
+  public final Address getBootImageLink() { 
     return VM_MiscHeader.getBootImageLink();
   }
 
-  public final Word getOID() throws InlinePragma {
+  @Inline
+  public final Word getOID() { 
     return VM_MiscHeader.getOID();
   }
 
-  public final void setOID(Word oid) throws InlinePragma {
+  @Inline
+  public final void setOID(Word oid) { 
     VM_MiscHeader.setOID(oid);
   }
 
-  public final int getHeaderSize() throws InlinePragma {
+  @Inline
+  public final int getHeaderSize() { 
     return VM_MiscHeader.getHeaderSize();
   }
 
-  public final int getHeaderEndOffset() throws InlinePragma {
+  @Inline
+  public final int getHeaderEndOffset() { 
     return VM_ObjectModel.getHeaderEndOffset();
   }
 }

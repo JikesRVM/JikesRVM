@@ -41,22 +41,26 @@ import org.vmmagic.pragma.*;
   private static SynchronizedCounter mutatorCounter = new SynchronizedCounter();
 
   /** @return The active Plan instance. */
-  public final Plan global() throws InlinePragma {
+  @Inline
+  public final Plan global() { 
     return Selected.Plan.get();
   } 
   
   /** @return The active PlanConstraints instance. */
-  public final PlanConstraints constraints() throws InlinePragma {
+  @Inline
+  public final PlanConstraints constraints() { 
     return Selected.Constraints.get();
   } 
   
   /** @return The active CollectorContext instance. */
-  public final CollectorContext collector() throws InlinePragma {
+  @Inline
+  public final CollectorContext collector() { 
     return Selected.Collector.get();
   }
   
   /** @return The active MutatorContext instance. */
-  public final MutatorContext mutator() throws InlinePragma {
+  @Inline
+  public final MutatorContext mutator() { 
     return Selected.Mutator.get();
   }
 
@@ -71,7 +75,8 @@ import org.vmmagic.pragma.*;
    * @param id The identifier of the CollectorContext to return
    * @return The specified CollectorContext
    */ 
-  public final CollectorContext collector(int id) throws InlinePragma {
+  @Inline
+  public final CollectorContext collector(int id) { 
     return collectors[id];
   }
   
@@ -81,7 +86,8 @@ import org.vmmagic.pragma.*;
    * @param id The identifier of the MutatorContext to return
    * @return The specified MutatorContext
    */ 
-  public final MutatorContext mutator(int id) throws InlinePragma {
+  @Inline
+  public final MutatorContext mutator(int id) { 
     return mutators[id];
   }
 
@@ -91,7 +97,8 @@ import org.vmmagic.pragma.*;
    * @param id The identifier of the Selected.Collector to return
    * @return The specified Selected.Collector
    */ 
-  public final Selected.Collector selectedCollector(int id) throws InlinePragma {
+  @Inline
+  public final Selected.Collector selectedCollector(int id) { 
     return collectors[id];
   }
   /**
@@ -100,13 +107,15 @@ import org.vmmagic.pragma.*;
    * @param id The identifier of the Selected.Mutator to return
    * @return The specified Selected.Mutator
    */
-  public final Selected.Mutator selectedMutator(int id) throws InlinePragma {
+  @Inline
+  public final Selected.Mutator selectedMutator(int id) { 
     return mutators[id];
   }
 
   
   /** @return The number of registered CollectorContext instances. */
-  public final int collectorCount() throws InlinePragma {
+  @Inline
+  public final int collectorCount() { 
     return collectorCount;
   }
    

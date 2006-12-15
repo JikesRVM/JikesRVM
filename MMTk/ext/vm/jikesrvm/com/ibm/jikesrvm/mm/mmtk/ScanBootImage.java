@@ -58,8 +58,9 @@ public class ScanBootImage implements Constants {
    * 
    * @param trace The trace object to which the roots should be added
    */
+  @Inline
   public static void scanBootImage(TraceLocal trace) 
-  throws UninterruptiblePragma, InlinePragma {
+  throws UninterruptiblePragma { 
     /* establish sentinals in map & image */
     Address mapStart = VM_BootRecord.the_boot_record.bootImageRMapStart;
     Address mapEnd = VM_BootRecord.the_boot_record.bootImageRMapEnd;
@@ -105,9 +106,10 @@ public class ScanBootImage implements Constants {
    * @param trace The <code>TraceLocal</code> into which roots should
    * be enqueued.
    */
+  @Inline
   private static void processChunk(Address chunkStart, Address imageStart,
       Address mapStart, Address mapEnd, TraceLocal trace) 
-  throws UninterruptiblePragma, InlinePragma {
+  throws UninterruptiblePragma { 
     int value;
     Offset offset = Offset.zero();
     Address cursor = chunkStart;
@@ -293,8 +295,9 @@ public class ScanBootImage implements Constants {
    * @param cursor A pointer to the first byte of encoded data
    * @return The encoded value as an <code>Offset</code>
    */
+  @Inline
   private static Offset decodeWord(Address cursor)
-  throws UninterruptiblePragma, InlinePragma {
+  throws UninterruptiblePragma { 
     int value;
     value  = ((int) cursor.loadByte())                                    & 0x000000fc;
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
@@ -312,8 +315,9 @@ public class ScanBootImage implements Constants {
    * commence decoding
    * @return The encoded value as an integer
    */
+  @Inline
   private static int decodeWord(byte[] code, int index)
-  throws UninterruptiblePragma, InlinePragma {
+  throws UninterruptiblePragma { 
     int value;
     value  = ((int) code[index])                     & 0x000000fc;
     value |= ((int) code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;

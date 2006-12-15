@@ -281,8 +281,8 @@ import org.vmmagic.pragma.*;
    * @param code The code object into which this interior pointer points
    * @param ipLoc The location of the pointer into this code object
    */
-  private void codeLocationsPush(ObjectReference code, Address ipLoc)
-    throws InlinePragma {
+  @Inline
+  private void codeLocationsPush(ObjectReference code, Address ipLoc) { 
     if (VALIDATE_REFS) {
       Address ip = ipLoc.loadAddress();
       Offset offset = ip.diff(code.toAddress());

@@ -52,8 +52,8 @@ import org.vmmagic.pragma.*;
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
       VM.collection.prepareMutator(this);

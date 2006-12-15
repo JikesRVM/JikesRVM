@@ -120,7 +120,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public final void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId) { 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       markTrace.prepare();

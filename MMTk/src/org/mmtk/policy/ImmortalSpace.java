@@ -155,7 +155,8 @@ import org.vmmagic.pragma.*;
   }
 
   /** @return the current mark state */
-  public final Word getMarkState() throws InlinePragma { return markState; }
+  @Inline
+  public final Word getMarkState() { return markState; } 
 
   /****************************************************************************
    * 
@@ -178,8 +179,8 @@ import org.vmmagic.pragma.*;
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  private static boolean testAndMark(ObjectReference object, Word value) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -199,9 +200,9 @@ import org.vmmagic.pragma.*;
    * @param trace The trace being conducted.
    * @param object The object to be traced.
    */
+  @Inline
   public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) 
-    throws InlinePragma {
+                                           ObjectReference object) { 
     if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
@@ -224,12 +225,14 @@ import org.vmmagic.pragma.*;
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public final void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
-  public final boolean isLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final boolean isLive(ObjectReference object) { 
     return true;
   }
 

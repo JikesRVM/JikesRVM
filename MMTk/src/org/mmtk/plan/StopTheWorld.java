@@ -197,7 +197,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId The unique of the phase to perform. 
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
         Stats.startGC();

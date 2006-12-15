@@ -140,9 +140,9 @@ import org.vmmagic.unboxed.*;
    * @param allocator The allocator statically assigned to this allocation.
    * @return The allocator dyncamically assigned to this allocation.
    */
+  @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
-      int align, int allocator)
-  throws InlinePragma {
+      int align, int allocator) { 
     return allocator;
   }
 
@@ -180,5 +180,6 @@ import org.vmmagic.unboxed.*;
   }
 
   /** @return the unique identifier for this collector context. */
-  public int getId() throws InlinePragma { return id; }
+  @Inline
+  public int getId() { return id; } 
 }

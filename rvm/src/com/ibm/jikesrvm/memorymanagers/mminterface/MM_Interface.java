@@ -158,9 +158,9 @@ import org.vmmagic.pragma.*;
    * @param value the new value for the field
    * @param locationMetadata an int that encodes the source location being modified
    */
+  @Inline
   public static void putfieldWriteBarrier(Object ref, Offset offset, Object value,
-                                          int locationMetadata)
-    throws InlinePragma {
+                                          int locationMetadata) { 
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
                                     src.toAddress().plus(offset),
@@ -176,8 +176,8 @@ import org.vmmagic.pragma.*;
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
    */
-  public static void putstaticWriteBarrier(Offset offset, Object value)
-    throws InlinePragma { 
+  @Inline
+  public static void putstaticWriteBarrier(Offset offset, Object value) { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
 //     Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
@@ -197,9 +197,9 @@ import org.vmmagic.pragma.*;
    * example a[index].
    * @param value the object that is the target of the new reference.
    */
+  @Inline
   public static void arrayStoreWriteBarrier(Object ref, int index,
-                                            Object value)
-    throws InlinePragma {
+                                            Object value) { 
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
     Selected.Mutator.get().writeBarrier(array,
@@ -226,10 +226,10 @@ import org.vmmagic.pragma.*;
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Inline
   public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset,
                                               Object tgt, Offset tgtOffset,
-                                              int bytes) 
-    throws InlinePragma {
+                                              int bytes) { 
     return Selected.Mutator.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,
                                            ObjectReference.fromObject(tgt),
@@ -335,8 +335,9 @@ import org.vmmagic.pragma.*;
    * @param ref the address to be checked
    * @return <code>true</code> if the reference is valid
    */
+  @Inline
   public static boolean validRef(ObjectReference ref)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     return DebugUtil.validRef(ref);
   }
 
@@ -346,8 +347,9 @@ import org.vmmagic.pragma.*;
    * @param address the address to be checked
    * @return <code>true</code> if the address refers to an in use area
    */
+  @Inline
   public static boolean addressInVM(Address address)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     return Space.isMappedAddress(address);
   }
 
@@ -362,8 +364,9 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if the object refered to is in an
    * in-use area
    */
+  @Inline
   public static boolean objectInVM(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     return Space.isMappedObject(object);
   }
 
@@ -504,9 +507,10 @@ import org.vmmagic.pragma.*;
    * @param site allocation site.
    * @return the initialized Object
    */
+  @Inline
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset, int site)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
 				       align, allocator);
@@ -532,11 +536,12 @@ import org.vmmagic.pragma.*;
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
+  @Inline
   public static Object allocateArray(int numElements, int logElementSize, 
                                      int headerSize, Object [] tib,
                                      int allocator,
                                      int align, int offset, int site) 
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     Selected.Mutator mutator = Selected.Mutator.get();
 
     int elemBytes = numElements << logElementSize;
@@ -566,10 +571,11 @@ import org.vmmagic.pragma.*;
    * @param site Allocation site.
    * @return The first byte of a suitably sized and aligned region of memory.
    */
+  @Inline
   private static Address allocateSpace(Selected.Mutator mutator,
 				       int bytes, int align, int offset,
 				       int allocator, int site)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -596,10 +602,11 @@ import org.vmmagic.pragma.*;
    * @param from The source object from which this is to be copied
    * @return The first byte of a suitably sized and aligned region of memory.
    */
+  @Inline
   public static Address allocateSpace(Selected.Collector collector,
 				      int bytes, int align, int offset,
                                        int allocator, ObjectReference from)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -629,9 +636,10 @@ import org.vmmagic.pragma.*;
    * that the return value is aligned according to the above
    * constraints.
    */
+  @Inline
   public static Offset alignAllocation(Offset initialOffset, int align,
                                           int offset)
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
                                        MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
@@ -666,8 +674,9 @@ import org.vmmagic.pragma.*;
    * @param immortal  Is the stack immortal and non-moving?
    * @return The stack
    */ 
+  @Inline
   public static byte[] newStack(int bytes, boolean immortal)
-    throws InlinePragma, InterruptiblePragma {
+    throws InterruptiblePragma { 
     if (!VM.runningVM) {
       return new byte[bytes];
     } else {
@@ -690,8 +699,9 @@ import org.vmmagic.pragma.*;
    * 
    * @param size The size of the array
    */
+  @Inline
   public static int[] newReferenceOffsetArray(int size)
-    throws InlinePragma, InterruptiblePragma {
+    throws InterruptiblePragma { 
     if (!VM.runningVM) {
       return new int[size];
     }
@@ -715,8 +725,9 @@ import org.vmmagic.pragma.*;
    * @param n the number of slots in the TIB to be allocated
    * @return the new TIB
    */
+  @Inline
   public static Object[] newTIB (int n)
-    throws InlinePragma, InterruptiblePragma {
+    throws InterruptiblePragma { 
 
     if (!VM.runningVM) 
       return new Object[n];
@@ -736,8 +747,9 @@ import org.vmmagic.pragma.*;
    * @param n The number of objects
    * @return The contiguous object array
    */ 
+  @Inline
   public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n)
-    throws InlinePragma, InterruptiblePragma {
+    throws InterruptiblePragma { 
     return new VM_CompiledMethod[n];
   }
 
@@ -873,8 +885,9 @@ import org.vmmagic.pragma.*;
    * @return <code>false</code> if the object is in the wrong
    * allocation scheme/area for a TIB, <code>true</code> otherwise
    */
+  @Inline
   public static boolean mightBeTIB(ObjectReference obj)
-    throws InlinePragma, UninterruptiblePragma {
+    throws UninterruptiblePragma { 
     return !obj.isNull() && Space.isMappedObject(obj) && Space.isImmortal(obj)
        && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
   }
@@ -939,8 +952,9 @@ import org.vmmagic.pragma.*;
    * @param n The number of ints
    * @return The contiguous int array
    */ 
+  @Inline
   public static int[] newContiguousIntArray(int n)
-    throws InlinePragma, InterruptiblePragma {
+    throws InterruptiblePragma { 
     return new int[n];
   }
 

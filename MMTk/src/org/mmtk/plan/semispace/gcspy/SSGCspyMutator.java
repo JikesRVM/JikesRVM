@@ -76,8 +76,8 @@ import org.vmmagic.unboxed.ObjectReference;
    * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == SSGCspy.ALLOC_GCSPY)
       return gcspy.alloc(bytes, align, offset, false);
     else
@@ -92,8 +92,9 @@ import org.vmmagic.unboxed.ObjectReference;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
-                        int bytes, int allocator) throws InlinePragma {
+                        int bytes, int allocator) { 
     if (allocator == SSGCspy.ALLOC_GCSPY)
       SSGCspy.gcspySpace.initializeHeader(object);
     else
@@ -121,8 +122,8 @@ import org.vmmagic.unboxed.ObjectReference;
    * <li>all large objects allocated by the mutator
    * </ul>
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }
     
     // TODO do we need to worry any longer about primary??

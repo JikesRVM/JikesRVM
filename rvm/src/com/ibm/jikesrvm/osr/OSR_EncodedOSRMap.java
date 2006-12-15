@@ -45,8 +45,8 @@ public class OSR_EncodedOSRMap
 
   private static final boolean DEBUG = false;
   
-  public static final boolean registerIsSet(int map, int regnum) 
-    throws InlinePragma {
+  @Inline
+  public static final boolean registerIsSet(int map, int regnum) { 
 
     int bitpos = getRegBitPosition(regnum);
     return (map & (NEXT_BIT >>> bitpos)) > 0;
@@ -64,8 +64,8 @@ public class OSR_EncodedOSRMap
   /*
    * get register bit position
    */
-  private static final int getRegBitPosition(int regnum) 
-    throws InlinePragma {
+  @Inline
+  private static final int getRegBitPosition(int regnum) { 
 
     return regnum - FIRST_GCMAP_REG + 1;
   }

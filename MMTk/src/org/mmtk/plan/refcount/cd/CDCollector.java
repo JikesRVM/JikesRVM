@@ -54,7 +54,8 @@ import org.vmmagic.unboxed.ObjectReference;
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
    */
-  public boolean collectionPhase(int phaseId, boolean primary) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId, boolean primary) { 
     return false;
   }
   
@@ -73,7 +74,8 @@ import org.vmmagic.unboxed.ObjectReference;
    */
 
   /** @return The active cycle detector global instance */
-  public static final CDCollector current() throws InlinePragma {
+  @Inline
+  public static final CDCollector current() { 
     return ((RCBaseCollector)VM.activePlan.collector()).cycleDetector();
   }
 }

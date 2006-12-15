@@ -49,8 +49,8 @@ import org.vmmagic.unboxed.*;
    * @param root Is this object a root?
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object, boolean root)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object, boolean root) { 
     sanityChecker.processObject(this, object, root);
     return object;
   }

@@ -81,9 +81,9 @@ import org.vmmagic.unboxed.*;
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
@@ -98,9 +98,9 @@ import org.vmmagic.unboxed.*;
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     CopyMS.msSpace.postCopy(object, true);
   }
 
@@ -115,8 +115,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == CopyMS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();
@@ -151,7 +151,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return the active global plan as an <code>MS</code> instance. */
-  private static final CopyMS global() throws InlinePragma {
+  @Inline
+  private static final CopyMS global() { 
     return (CopyMS) VM.activePlan.global();
   }
 

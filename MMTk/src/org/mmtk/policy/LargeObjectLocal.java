@@ -81,8 +81,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc (Address cell) 
-    throws InlinePragma {
+  @Inline
+  protected final void postAlloc (Address cell) { 
     treadmill.addToTreadmill(Treadmill.payloadToNode(cell));
   };
 
@@ -144,8 +144,8 @@ import org.vmmagic.unboxed.*;
    * @return The size of the per-superpage header required by this
    * system.
    */
-  protected final int superPageHeaderSize()
-    throws InlinePragma {
+  @Inline
+  protected final int superPageHeaderSize() { 
     return Treadmill.headerSize();
   }
 
@@ -156,8 +156,8 @@ import org.vmmagic.unboxed.*;
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
-  protected final int cellHeaderSize()
-    throws InlinePragma {
+  @Inline
+  protected final int cellHeaderSize() { 
     return 0;
   }
 

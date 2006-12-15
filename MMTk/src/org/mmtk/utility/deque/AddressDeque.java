@@ -50,7 +50,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the address to be inserted into the address queue
    */
-  public final void insert(Address addr) throws InlinePragma {
+  @Inline
+  public final void insert(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
@@ -72,7 +73,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(Address addr) throws InlinePragma {
+  @Inline
+  public final void push(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -96,7 +98,8 @@ import org.vmmagic.pragma.*;
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public final Address pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     }
@@ -105,11 +108,13 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 
-  public final boolean isNonEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isNonEmpty() { 
     return checkDequeue(1);
   }
 

@@ -65,8 +65,8 @@ import org.vmmagic.pragma.*;
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == StopTheWorld.INITIATE) {
       VM.collection.prepareCollector(this);
       return;
@@ -168,7 +168,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as a <code>StopTheWorld</code> instance. */
-  private static final StopTheWorld global() throws InlinePragma {
+  @Inline
+  private static final StopTheWorld global() { 
     return (StopTheWorld) VM.activePlan.global();
   }
 

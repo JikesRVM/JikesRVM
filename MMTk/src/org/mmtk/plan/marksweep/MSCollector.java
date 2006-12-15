@@ -77,8 +77,8 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();
@@ -111,7 +111,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final MS global() throws InlinePragma {
+  @Inline
+  private static final MS global() { 
     return (MS) VM.activePlan.global();
   }
 

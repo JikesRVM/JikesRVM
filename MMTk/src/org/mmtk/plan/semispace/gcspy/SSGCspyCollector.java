@@ -91,8 +91,8 @@ import org.vmmagic.pragma.*;
    * <li>all large objects allocated by the mutator
    * </ul>
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
     
     //TODO do we need to worry any longer about primary??
@@ -273,7 +273,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as an <code>SSGCspy</code> instance. */
-  private static final SSGCspy global() throws InlinePragma {
+  @Inline
+  private static final SSGCspy global() { 
     return (SSGCspy) VM.activePlan.global();
   }
 

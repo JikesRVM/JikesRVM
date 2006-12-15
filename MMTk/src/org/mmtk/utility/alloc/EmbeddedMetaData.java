@@ -49,8 +49,8 @@ import org.vmmagic.pragma.*;
    * @return The address of the start of the meta data for the meta
    * region in which the address is located.
    */
-  public static final Address getMetaDataBase(Address address)
-      throws InlinePragma {
+  @Inline
+  public static final Address getMetaDataBase(Address address) { 
     return address.toWord().and(REGION_MASK.not()).toAddress();
   }
 

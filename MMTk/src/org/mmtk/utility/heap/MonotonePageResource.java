@@ -103,7 +103,8 @@ import org.vmmagic.unboxed.*;
    * @return The start of the first page if successful, zero on
    * failure.
    */
-  protected final Address allocPages(int requestPages) throws InlinePragma {
+  @Inline
+  protected final Address allocPages(int requestPages) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(contiguous);
     int pages = requestPages;
@@ -188,7 +189,8 @@ import org.vmmagic.unboxed.*;
    * Reset this page resource, freeing all pages and resetting
    * reserved and committed pages appropriately.
    */
-  public final void reset() throws InlinePragma {
+  @Inline
+  public final void reset() { 
     lock();
     reserved = 0;
     committed = 0;
@@ -225,7 +227,8 @@ import org.vmmagic.unboxed.*;
    * Release all pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
-  private final void releasePages() throws InlinePragma {
+  @Inline
+  private final void releasePages() { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     Extent bytes = cursor.diff(start).toWord().toExtent();
     releasePages(start, bytes);
@@ -236,8 +239,8 @@ import org.vmmagic.unboxed.*;
    * Release a range of pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
-  private final void releasePages(Address first, Extent bytes)
-      throws InlinePragma {
+  @Inline
+  private final void releasePages(Address first, Extent bytes) { 
     int pages = Conversions.bytesToPages(bytes);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));

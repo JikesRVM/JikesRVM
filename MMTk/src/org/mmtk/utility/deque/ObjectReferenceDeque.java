@@ -52,7 +52,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object the object to be inserted into the object queue
    */
-  public final void insert(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void insert(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkTailInsert(1);
     uncheckedTailInsert(object.toAddress());
@@ -63,7 +64,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkHeadInsert(1);
     uncheckedHeadInsert(object.toAddress());
@@ -87,7 +89,8 @@ import org.vmmagic.pragma.*;
    * @return The next object in the object queue, or zero if the
    * queue is empty
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue().toObjectReference();
     } else {
@@ -95,11 +98,13 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 
-  public final boolean isNonEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isNonEmpty() { 
     return checkDequeue(1);
   }
 

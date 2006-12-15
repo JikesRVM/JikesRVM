@@ -137,7 +137,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase to process
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -169,7 +170,8 @@ import org.vmmagic.pragma.*;
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-  public int getPagesUsed() throws InlinePragma {
+  @Inline
+  public int getPagesUsed() { 
     return toSpace().reservedPages() + super.getPagesUsed();
   }
 
@@ -191,7 +193,8 @@ import org.vmmagic.pragma.*;
   /**
    * @return The mature space we are currently allocating into
    */
-  public Space activeMatureSpace() throws InlinePragma {
+  @Inline
+  public Space activeMatureSpace() { 
     return toSpace();
   }
 }

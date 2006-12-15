@@ -57,7 +57,8 @@ import org.vmmagic.pragma.*;
     return completionFlag == 1;
   }
 
-  final int getArity() throws InlinePragma { return arity; }
+  @Inline
+  final int getArity() { return arity; } 
 
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
@@ -94,7 +95,8 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  final Address dequeue(int arity) throws InlinePragma {
+  @Inline
+  final Address dequeue(int arity) { 
     return dequeue(arity, false);
   }
 
@@ -103,7 +105,8 @@ import org.vmmagic.pragma.*;
     return dequeue(false, fromTail);
   }
 
-  final Address dequeueAndWait(int arity) throws InlinePragma {
+  @Inline
+  final Address dequeueAndWait(int arity) { 
     return dequeueAndWait(arity, false);
   }
 
@@ -130,7 +133,8 @@ import org.vmmagic.pragma.*;
     setNumConsumers(numConsumers + 1);
   }
 
-  final Address alloc() throws InlinePragma {
+  @Inline
+  final Address alloc() { 
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (rtn.isZero()) {
       Space.printUsageMB();
@@ -140,12 +144,14 @@ import org.vmmagic.pragma.*;
     return rtn;
   }
 
-  final void free(Address buf) throws InlinePragma {
+  @Inline
+  final void free(Address buf) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rps.release(buf);
   }
 
-  public final int enqueuedPages() throws InlinePragma {
+  @Inline
+  public final int enqueuedPages() { 
     return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
@@ -278,23 +284,28 @@ import org.vmmagic.pragma.*;
 
   // need to use this to avoid generating a putfield and so causing write barrier recursion
   //
-  private final void setCompletionFlag(int flag) throws InlinePragma {
+  @Inline
+  private final void setCompletionFlag(int flag) { 
     completionFlag = flag;
   }
 
-  private final void setNumConsumers(int newNumConsumers) throws InlinePragma {
+  @Inline
+  private final void setNumConsumers(int newNumConsumers) { 
     numConsumers = newNumConsumers;
   }
 
-  private final void setNumConsumersWaiting(int newNCW) throws InlinePragma {
+  @Inline
+  private final void setNumConsumersWaiting(int newNCW) { 
     numConsumersWaiting = newNCW;
   }
 
-  private final void setHead(Address newHead) throws InlinePragma {
+  @Inline
+  private final void setHead(Address newHead) { 
     head = newHead;
   }
 
-  private final void setTail(Address newTail) throws InlinePragma {
+  @Inline
+  private final void setTail(Address newTail) { 
     tail = newTail;
   }
 }

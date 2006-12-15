@@ -50,8 +50,8 @@ import org.vmmagic.pragma.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public final ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public final ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenMS.MS, object)) {

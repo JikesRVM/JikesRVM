@@ -32,14 +32,16 @@ import org.vmmagic.pragma.*;
   /**
    * Return the current VM_Processor object
    */
-  public static VM_Processor getCurrentProcessor() throws InlinePragma {
+  @Inline
+  public static VM_Processor getCurrentProcessor() { 
     return VM_Magic.getProcessorRegister();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  public static void setCurrentProcessor(VM_Processor p) throws InlinePragma {
+  @Inline
+  public static void setCurrentProcessor(VM_Processor p) { 
     VM_Magic.setProcessorRegister(p);
   }
 }

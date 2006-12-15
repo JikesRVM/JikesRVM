@@ -95,14 +95,16 @@ import org.vmmagic.pragma.*;
   /**
    * @return The to space for the current collection.
    */
-  public static final CopySpace toSpace() throws InlinePragma {
+  @Inline
+  public static final CopySpace toSpace() { 
     return hi ? copySpace1 : copySpace0;
   }
 
   /**
    * @return The from space for the current collection.
    */
-  public static final CopySpace fromSpace() throws InlinePragma {
+  @Inline
+  public static final CopySpace fromSpace() { 
     return hi ? copySpace0 : copySpace1;
   }
 
@@ -117,7 +119,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions

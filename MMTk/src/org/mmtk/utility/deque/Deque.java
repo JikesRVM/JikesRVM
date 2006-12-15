@@ -35,25 +35,32 @@ import org.vmmagic.pragma.*;
    * protected int enqueued;
    */
 
-  protected final Offset bufferOffset(Address buf) throws InlinePragma {
+  @Inline
+  protected final Offset bufferOffset(Address buf) { 
     return buf.toWord().and(BUFFER_MASK).toOffset();
   }
-  protected final Address bufferStart(Address buf) throws InlinePragma {
+  @Inline
+  protected final Address bufferStart(Address buf) { 
     return buf.toWord().and(BUFFER_MASK.not()).toAddress();
   }
-  protected final Address bufferEnd(Address buf) throws InlinePragma {
+  @Inline
+  protected final Address bufferEnd(Address buf) { 
     return bufferStart(buf).plus(USABLE_BUFFER_BYTES);
   }
-  protected final Address bufferFirst(Address buf) throws InlinePragma {
+  @Inline
+  protected final Address bufferFirst(Address buf) { 
     return bufferStart(buf);
   }
-  protected final Address bufferLast(Address buf, int arity) throws InlinePragma {
+  @Inline
+  protected final Address bufferLast(Address buf, int arity) { 
     return bufferStart(buf).plus(bufferLastOffset(arity));
   }
-  protected final Address bufferLast(Address buf) throws InlinePragma {
+  @Inline
+  protected final Address bufferLast(Address buf) { 
     return bufferLast(buf, 1);
   }
-  protected final Offset bufferLastOffset(int arity) throws InlinePragma {
+  @Inline
+  protected final Offset bufferLastOffset(int arity) { 
     return Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS
         - (USABLE_BUFFER_BYTES % (arity << LOG_BYTES_IN_ADDRESS)));
   }

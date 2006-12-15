@@ -48,7 +48,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object to process.
    */
-  protected void process(ObjectReference object) throws InlinePragma {
+  @Inline
+  protected void process(ObjectReference object) { 
     if (RCBase.isRCObject(object)) {
       push(object);
     }

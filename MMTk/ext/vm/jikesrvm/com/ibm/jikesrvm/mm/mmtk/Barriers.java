@@ -38,10 +38,10 @@ import org.vmmagic.pragma.*;
    * @param locationMetadata An index of the FieldReference (metaDataB)
    * @param mode The context in which the write is occuring
    */
+  @Inline
   public final void performWriteInBarrier(ObjectReference ref, Address slot, 
                                            ObjectReference target, Offset offset, 
-                                           int locationMetadata, int mode) 
-    throws InlinePragma {
+                                           int locationMetadata, int mode) { 
     Object obj = ref.toObject();
     VM_Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);  
   }
@@ -58,11 +58,11 @@ import org.vmmagic.pragma.*;
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
+  @Inline
   public final ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode)
-    throws InlinePragma {                                
+                                           int locationMetadata, int mode) { 
     Object obj = ref.toObject();
     Object newObject = target.toObject();
     Object oldObject;

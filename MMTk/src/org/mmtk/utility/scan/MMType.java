@@ -82,7 +82,8 @@ import org.vmmagic.pragma.*;
    * into an array
    * @return The address of the relevant slot within the object
    */
-  public Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+  @Inline
+  public Address getSlot(ObjectReference object, int reference) { 
     Address addr = object.toAddress();
     if (isReferenceArray)
       return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
@@ -98,7 +99,8 @@ import org.vmmagic.pragma.*;
    * @param object The object in question
    * @return The number of references in the object
    */
-  public int getReferences(ObjectReference object) throws InlinePragma {
+  @Inline
+  public int getReferences(ObjectReference object) { 
     if (isReferenceArray)
       return VM.objectModel.getArrayLength(object);
     else
@@ -115,7 +117,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param size The number of bytes allocated
    */
-  void profileAlloc(int size) throws InlinePragma {
+  @Inline
+  void profileAlloc(int size) { 
     if (PROFILING_STATISTICS) {
       allocCount++;
       allocBytes += size;
@@ -127,7 +130,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param size The number of bytes copied. 
    */
-  public void profileCopy(int size) throws InlinePragma {
+  @Inline
+  public void profileCopy(int size) { 
     if (PROFILING_STATISTICS) {
       copyCount++;
       copyBytes += size;
@@ -139,7 +143,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param size The number of bytes scanned. 
    */
-  void profileScan(int size) throws InlinePragma {
+  @Inline
+  void profileScan(int size) { 
     if (PROFILING_STATISTICS) {
       scanCount++;
       scanBytes += size;

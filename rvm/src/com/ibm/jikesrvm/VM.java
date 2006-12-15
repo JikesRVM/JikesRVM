@@ -1270,9 +1270,9 @@ import org.vmmagic.unboxed.*;
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
+  @Inline
   public static void disableGC()
-    throws InlinePragma, InterruptiblePragma  
-  {
+    throws InterruptiblePragma { 
     disableGC(false);           // Recursion is not allowed in this context.
   }
   
@@ -1282,9 +1282,9 @@ import org.vmmagic.unboxed.*;
    * Release*Critical functions.  Should be matched with a subsequent call to
    * enableGC().
    */
+  @Inline
   public static void disableGC(boolean recursiveOK) 
-    throws InlinePragma, InterruptiblePragma  
-  {
+    throws InterruptiblePragma { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled
@@ -1332,7 +1332,8 @@ import org.vmmagic.unboxed.*;
   /**
    * enable GC; entry point when recursion is not OK.
    */
-  public static void enableGC() throws InlinePragma { 
+  @Inline
+  public static void enableGC() { 
     enableGC(false);            // recursion not OK.
   }
 
@@ -1343,9 +1344,8 @@ import org.vmmagic.unboxed.*;
    * we need it for the JNI Get*Critical and Release*Critical functions.
    * Should be matched with a preceding call to {@link #disableGC}.
    */
-  public static void enableGC(boolean recursiveOK) 
-    throws InlinePragma 
-  { 
+  @Inline
+  public static void enableGC(boolean recursiveOK) { 
     VM_Thread myThread = VM_Thread.getCurrentThread();
     if (VM.VerifyAssertions) {
       VM._assert(myThread.disableGCDepth >= 1);

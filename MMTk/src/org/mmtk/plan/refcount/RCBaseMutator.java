@@ -106,8 +106,8 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     switch(allocator) {
       case RCBase.ALLOC_RC:
         return rc.alloc(bytes, align, offset, false);
@@ -128,8 +128,9 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     switch(allocator) {
     case RCBase.ALLOC_RC:
       ExplicitFreeListLocal.unsyncLiveObject(ref);
@@ -188,8 +189,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == RCBase.PREPARE_MUTATOR) {
       rc.prepare();
@@ -231,12 +232,14 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return The active global plan as an <code>RC</code> instance. */
-  private static final RCBase global() throws InlinePragma {
+  @Inline
+  private static final RCBase global() { 
     return (RCBase) VM.activePlan.global();
   }
   
   /** @return The active cycle detector instance */
-  public final CDMutator cycleDetector() throws InlinePragma {
+  @Inline
+  public final CDMutator cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;

@@ -133,7 +133,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as a <code>Gen</code> instance. */
-  private static final Gen global() throws InlinePragma {
+  @Inline
+  private static final Gen global() { 
     return (Gen) VM.activePlan.global();
   }
 

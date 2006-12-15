@@ -63,9 +63,9 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
 
@@ -100,9 +100,10 @@ import org.vmmagic.pragma.*;
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Offset metaDataA, 
-      int metaDataB, int mode) throws InlinePragma {
+      int metaDataB, int mode) { 
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);

@@ -61,15 +61,18 @@ import org.vmmagic.pragma.*;
     nursery = new DoublyLinkedList(granularity, shared, this);
   }
 
-  public final void addToTreadmill(Address node) throws InlinePragma {
+  @Inline
+  public final void addToTreadmill(Address node) { 
     nursery.add(node);
   }
 
-  public final Address pop(boolean fromNursery) throws InlinePragma {
+  @Inline
+  public final Address pop(boolean fromNursery) { 
     return (fromNursery) ? nursery.pop() : fromSpace.pop();
   }
 
-  public final void copy(Address node, boolean isInNursery) throws InlinePragma {
+  @Inline
+  public final void copy(Address node, boolean isInNursery) { 
     if (isInNursery) 
       nursery.remove(node);
     else
@@ -77,15 +80,18 @@ import org.vmmagic.pragma.*;
     toSpace.add(node);
   }
 
-  public final boolean toSpaceEmpty() throws InlinePragma {
+  @Inline
+  public final boolean toSpaceEmpty() { 
     return toSpace.isEmpty();
   }
   
-  public final boolean fromSpaceEmpty() throws InlinePragma {
+  @Inline
+  public final boolean fromSpaceEmpty() { 
     return fromSpace.isEmpty();
   }
   
-  public final boolean nurseryEmpty() throws InlinePragma {
+  @Inline
+  public final boolean nurseryEmpty() { 
     return nursery.isEmpty();
   }
   
@@ -104,19 +110,23 @@ import org.vmmagic.pragma.*;
     return (Treadmill) DoublyLinkedList.getOwner(node);
   }
 
-  static public final int headerSize() throws InlinePragma {
+  @Inline
+  static public final int headerSize() { 
     return DoublyLinkedList.headerSize();
   }
 
-  static public final Address nodeToPayload(Address payload) throws InlinePragma {
+  @Inline
+  static public final Address nodeToPayload(Address payload) { 
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
-  static public final Address payloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  static public final Address payloadToNode(Address payload) { 
     return DoublyLinkedList.payloadToNode(payload);
   }
 
-  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  static public final Address midPayloadToNode(Address payload) { 
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 

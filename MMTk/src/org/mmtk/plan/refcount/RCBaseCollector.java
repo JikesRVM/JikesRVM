@@ -103,8 +103,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == RCBase.PREPARE) {
       if (RCBase.WITH_COALESCING_RC) {
         processModBuffer();
@@ -214,7 +214,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final RCBase global() throws InlinePragma {
+  @Inline
+  private static final RCBase global() { 
     return (RCBase) VM.activePlan.global();
   }
   
@@ -227,7 +228,8 @@ import org.vmmagic.unboxed.*;
   protected abstract TraceStep getModifiedProcessor();
   
   /** @return The active cycle detector instance */
-  public final CDCollector cycleDetector() throws InlinePragma {
+  @Inline
+  public final CDCollector cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;

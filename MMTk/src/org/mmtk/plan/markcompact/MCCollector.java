@@ -91,9 +91,9 @@ import org.vmmagic.unboxed.*;
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
     return immortal.alloc(bytes, align, offset, true);
@@ -106,9 +106,9 @@ import org.vmmagic.unboxed.*;
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     MC.immortalSpace.initializeHeader(object);
   }
 
@@ -123,8 +123,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MC.PREPARE) {
       currentTrace = TRACE_MARK;
       super.collectionPhase(phaseId, primary);
@@ -190,7 +190,8 @@ import org.vmmagic.unboxed.*;
   }
 
   /** @return The active global plan as an <code>MC</code> instance. */
-  private static final MC global() throws InlinePragma {
+  @Inline
+  private static final MC global() { 
     return (MC) VM.activePlan.global();
   }
 }

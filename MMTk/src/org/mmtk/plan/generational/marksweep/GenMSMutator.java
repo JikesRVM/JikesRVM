@@ -87,8 +87,8 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == GenMS.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
@@ -104,8 +104,9 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == GenMS.ALLOC_MATURE) {
       GenMS.msSpace.initializeHeader(ref, true);
     } else {
@@ -181,7 +182,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
-  private static final GenMS global() throws InlinePragma {
+  @Inline
+  private static final GenMS global() { 
     return (GenMS) VM.activePlan.global();
   }
 }

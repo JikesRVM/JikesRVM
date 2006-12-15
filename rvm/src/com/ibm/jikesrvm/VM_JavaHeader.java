@@ -250,8 +250,8 @@ import com.ibm.jikesrvm.opt.ir.*;
    * Map from the object ref to the lowest address of the storage
    * associated with the object
    */
-  public static Address objectStartRef(ObjectReference obj)
-    throws InlinePragma {
+  @Inline
+  public static Address objectStartRef(ObjectReference obj) { 
     if (MM_Constants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
         Word hashState = obj.toAddress().loadWord(STATUS_OFFSET).and(HASH_STATE_MASK);
@@ -333,21 +333,21 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Get the reference of an array when copied to the specified region. 
    */
-  public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Array type)
-    throws InlinePragma {
+  @Inline
+  public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Array type) { 
     return getReferenceWhenCopiedTo(obj, to);
   }
 
   /**
    * Get the reference of a scalar when copied to the specified region. 
    */
-  public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Class type)
-    throws InlinePragma {
+  @Inline
+  public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Class type) { 
     return getReferenceWhenCopiedTo(obj, to);
   }
 
-  private static Object getReferenceWhenCopiedTo(Object obj, Address to) 
-    throws InlinePragma {
+  @Inline
+  private static Object getReferenceWhenCopiedTo(Object obj, Address to) { 
     if (ADDRESS_BASED_HASHING) {
       // Read the hash state (used below)
       Word statusWord = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET);
@@ -362,10 +362,10 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Copy a scalar to the given raw storage address
    */
+  @Inline
   public static Object moveObject(Address toAddress, Object fromObj, 
                                   int numBytes, boolean noGCHeader,
-                                  VM_Class type)
-    throws InlinePragma {
+                                  VM_Class type) { 
 
     // We copy arrays and scalars the same way
     return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
@@ -374,10 +374,10 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Copy an array to the given location.
    */
+  @Inline
   public static Object moveObject(Object fromObj, Object toObj,
                                   int numBytes, boolean noGCHeader, 
-                                  VM_Class type)
-    throws InlinePragma {
+                                  VM_Class type) { 
 
     // We copy arrays and scalars the same way
     return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
@@ -386,10 +386,10 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Copy an array to the given raw storage address
    */
+  @Inline
   public static Object moveObject(Address toAddress, Object fromObj,
                                   int numBytes, boolean noGCHeader, 
-                                  VM_Array type)
-    throws InlinePragma {
+                                  VM_Array type) { 
 
     // We copy arrays and scalars the same way
     return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
@@ -398,10 +398,10 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Copy an array to the given location.
    */
+  @Inline
   public static Object moveObject(Object fromObj, Object toObj,
                                   int numBytes, boolean noGCHeader, 
-                                  VM_Array type)
-    throws InlinePragma {
+                                  VM_Array type) { 
 
     // We copy arrays and scalars the same way
     return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
@@ -410,10 +410,10 @@ import com.ibm.jikesrvm.opt.ir.*;
   /**
    * Copy an object to the given raw storage address
    */
+  @Inline
   public static Object moveObject(Address toAddress, Object fromObj, 
                                   Object toObj, int numBytes, 
-                                  boolean noGCHeader)
-    throws InlinePragma {
+                                  boolean noGCHeader) { 
 
     // Default values
     int copyBytes = numBytes;

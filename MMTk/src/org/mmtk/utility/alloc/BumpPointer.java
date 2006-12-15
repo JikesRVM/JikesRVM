@@ -144,8 +144,8 @@ import org.vmmagic.pragma.*;
    * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, boolean inGC)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
     Address start = alignAllocationNoFill(cursor, align, offset);
     Address end = start.plus(bytes);
     if (end.GT(internalLimit))
@@ -285,8 +285,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the region to be allocated into
    * @param bytes The size of the pending allocation (if any).
    */  
-  protected final void updateLimit(Address newLimit, Address start, int bytes)
-      throws InlinePragma {
+  @Inline
+  protected final void updateLimit(Address newLimit, Address start, int bytes) { 
     limit = newLimit;
     internalLimit = start.plus(STEP_SIZE);
     if (internalLimit.GT(limit))
@@ -332,8 +332,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to chunk-alignment)
    */
-  private final void updateMetaData(Address start, Extent size, int bytes)
-    throws InlinePragma {
+  @Inline
+  private final void updateMetaData(Address start, Extent size, int bytes) { 
     if (initialRegion.isZero()) {
       /* this is the first allocation */
       initialRegion = start;
@@ -397,7 +397,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param scanner The scan object to delegate scanning to.
    */
-  public final void linearScan(LinearScan scanner) throws InlinePragma {
+  @Inline
+  public final void linearScan(LinearScan scanner) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowScanning);
     /* Has this allocator ever allocated anything? */
     if (initialRegion.isZero()) return;
@@ -416,8 +417,8 @@ import org.vmmagic.pragma.*;
    * @param scanner The scan object to delegate to.
    * @param start The start of this region
    */
-  private final void scanRegion(LinearScan scanner, Address start)
-      throws InlinePragma {
+  @Inline
+  private final void scanRegion(LinearScan scanner, Address start) { 
     /* Get the end of this region */
     Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 

@@ -74,10 +74,10 @@ import org.vmmagic.pragma.*;
    * @param knownAlignment The statically known minimum alignment.
    * @return The aligned up address.
    */
+  @Inline
   final public static Address alignAllocation(Address region, int alignment,
                                              int offset, int knownAlignment, 
-                                             boolean fillAlignmentGap)
-      throws InlinePragma {
+                                             boolean fillAlignmentGap) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
       VM.assertions._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
@@ -124,8 +124,8 @@ import org.vmmagic.pragma.*;
    * @param start The start of the region.
    * @param end A pointer past the end of the region.
    */
-  final public static void fillAlignmentGap(Address start, Address end)
-      throws InlinePragma {
+  @Inline
+  final public static void fillAlignmentGap(Address start, Address end) { 
     if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
       // At most a single hole
       if (!end.diff(start).isZero()) {
@@ -150,9 +150,9 @@ import org.vmmagic.pragma.*;
    * @param offset The offset from the alignment 
    * @return The aligned up address.
    */
+  @Inline
   final public static Address alignAllocation(Address region, int alignment,
-                                             int offset) 
-    throws InlinePragma {
+                                             int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
   }
 
@@ -167,9 +167,9 @@ import org.vmmagic.pragma.*;
    * @param offset The offset from the alignment 
    * @return The aligned up address.
    */
+  @Inline
   final public static Address alignAllocationNoFill(Address region, int alignment, 
-                                             int offset) 
-    throws InlinePragma {
+                                             int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
 
@@ -180,8 +180,8 @@ import org.vmmagic.pragma.*;
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    */
-  final public static int getMaximumAlignedSize(int size, int alignment)
-      throws InlinePragma {
+  @Inline
+  final public static int getMaximumAlignedSize(int size, int alignment) { 
     return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
 
@@ -195,9 +195,9 @@ import org.vmmagic.pragma.*;
    * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
    * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
    */
+  @Inline
   final public static int getMaximumAlignedSize(int size, int alignment,
-                                                int knownAlignment) 
-    throws InlinePragma {
+                                                int knownAlignment) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
     
@@ -248,8 +248,9 @@ import org.vmmagic.pragma.*;
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
+  @Inline
   final public Address allocSlowInline(int bytes, int alignment, int offset,
-      boolean inGC) throws InlinePragma {
+      boolean inGC) { 
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < MAX_RETRY; i++) {

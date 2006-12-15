@@ -45,7 +45,8 @@ import org.vmmagic.unboxed.*;
    * @param objLoc The location containing the object reference to be
    * traced.
    */
-  public void traceObjectLocation(Address objLoc) throws InlinePragma {
+  @Inline
+  public void traceObjectLocation(Address objLoc) { 
     ObjectReference object = objLoc.loadObjectReference();
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {

@@ -221,9 +221,9 @@ import org.vmmagic.unboxed.ObjectReference;
       processGreyObject(object, cycleBufferA);
     }
   }
+  @Inline
   private final boolean processGreyObject(ObjectReference object,
-                                          ObjectReferenceDeque tgt)
-    throws InlinePragma {
+                                          ObjectReferenceDeque tgt) { 
    // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
     if (RCHeader.isPurpleNotGrey(object)) {
@@ -242,8 +242,8 @@ import org.vmmagic.unboxed.ObjectReference;
     return true;
   }
   
-  private final void markGrey(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  private final void markGrey(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -256,8 +256,8 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   
-  public final void enumerateGrey(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public final void enumerateGrey(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       if (VM.VERIFY_ASSERTIONS) {
         // TODO VM.assertions._assert(RCHeader.isLiveRC(object));
@@ -278,8 +278,8 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
 
-  private final void scan(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private final void scan(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -295,14 +295,14 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   
-  public final void enumerateScan(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public final void enumerateScan(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object))
       workQueue.push(object);
   }
   
-  private final void scanBlack(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private final void scanBlack(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(blackQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -313,8 +313,8 @@ import org.vmmagic.unboxed.ObjectReference;
       object = blackQueue.pop();
     }
   }
-  public final void enumerateScanBlack(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public final void enumerateScanBlack(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       RCHeader.unsyncIncRC(object);
       if (!RCHeader.isBlack(object))
@@ -332,8 +332,8 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   
-  private final void collectWhite(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private final void collectWhite(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (RCHeader.isWhite(object) && !RCHeader.isBuffered(object)) {
@@ -345,8 +345,8 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   
-  public final void enumerateCollect(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public final void enumerateCollect(ObjectReference object) { 
     if (RCBase.isRCObject(object)) {
       if (RCHeader.isGreen(object)) {
         ((RCBaseCollector)VM.activePlan.collector()).decBuffer.push(object);
@@ -370,7 +370,8 @@ import org.vmmagic.unboxed.ObjectReference;
   }
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final TrialDeletion global() throws InlinePragma {
+  @Inline
+  private static final TrialDeletion global() { 
     return (TrialDeletion)((RCBase)VM.activePlan.global()).cycleDetector();
   }
 }

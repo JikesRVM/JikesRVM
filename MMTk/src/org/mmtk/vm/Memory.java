@@ -138,14 +138,16 @@ import org.vmmagic.pragma.*;
    * on all processors.  Ensures that all memory writes before this
    * point are visible to all processors.
    */
-  public abstract void sync() throws InlinePragma;
+  @Inline
+  public abstract void sync(); 
   
   /**
    * Wait for all preceeding instructions to complete and discard any 
    * prefetched instructions on this processor.  Also prevents the 
    * compiler from performing code motion across this point.
    */
-  public abstract void isync() throws InlinePragma;
+  @Inline
+  public abstract void isync(); 
  
   /*
    * NOTE: The following methods must be implemented by subclasses of this

@@ -114,7 +114,8 @@ import org.vmmagic.unboxed.*;
    * @param pages The number of pages requested
    * @return True if the page budget could satisfy the request.
    */
-  public final boolean reservePages(int pages) throws InlinePragma {
+  @Inline
+  public final boolean reservePages(int pages) { 
     lock();
     reserved = committed + adjustForMetaData(pages);
     boolean satisfied = reserved <= pageBudget;
@@ -156,7 +157,8 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first of <code>pages</code> pages, or
    * zero on failure.
    */
-  public final Address getNewPages(int pages) throws InlinePragma {
+  @Inline
+  public final Address getNewPages(int pages) { 
     Address rtn = allocPages(pages);
     if (!rtn.isZero()) commitPages(pages, rtn);
     return rtn;

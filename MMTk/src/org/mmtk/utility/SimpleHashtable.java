@@ -105,7 +105,8 @@ import org.vmmagic.unboxed.*;
    * @param create Create a new entry if not found.
    * @return A pointer to the reference or null.
    */
-  public final Address getEntry(Word key, boolean create) throws InlinePragma {
+  @Inline
+  public final Address getEntry(Word key, boolean create) { 
     int startIndex = computeHash(key);
     int index = startIndex;
     Word curAddress;
@@ -136,7 +137,8 @@ import org.vmmagic.unboxed.*;
    * @param key The key.
    * @return The index.
    */
-  private final int computeHash(Word key) throws InlinePragma {
+  @Inline
+  private final int computeHash(Word key) { 
     return key.rshl(HASH_SHIFT).and(mask).toInt();
   }
 
@@ -146,7 +148,8 @@ import org.vmmagic.unboxed.*;
    * @param index The index of the entry.
    * @return An address to the entry.
    */
-  private final Address getEntry(int index) throws InlinePragma {
+  @Inline
+  private final Address getEntry(int index) { 
     return base.plus(Extent.fromIntZeroExtend(index * entrySize.toInt()));
   }
 

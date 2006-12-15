@@ -117,7 +117,8 @@ import org.vmmagic.unboxed.*;
    * @param descriptor
    * @return True if this descriptor describes a contigious space
    */
-  public static boolean isContiguous(int descriptor) throws InlinePragma {
+  @Inline
+  public static boolean isContiguous(int descriptor) { 
     return ((descriptor & VM_TYPE_CONTIGUOUS) == VM_TYPE_CONTIGUOUS);
   }
 
@@ -129,7 +130,8 @@ import org.vmmagic.unboxed.*;
    * @return True if this descriptor describes a contigious space that
    * is at the top of the virtual address space
    */
-  public static boolean isContiguousHi(int descriptor) throws InlinePragma {
+  @Inline
+  public static boolean isContiguousHi(int descriptor) { 
     return ((descriptor & VM_TYPE_MASK) == VM_TYPE_CONTIGUOUS_HI);
   }
 
@@ -139,7 +141,8 @@ import org.vmmagic.unboxed.*;
    * @param descriptor
    * @return The start of this region of memory encoded in this descriptor
    */
-  public static Address getStart(int descriptor) throws InlinePragma {
+  @Inline
+  public static Address getStart(int descriptor) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     Word mantissa = Word.fromIntSignExtend(descriptor >>> VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK) >>> VM_EXPONENT_SHIFT;
@@ -154,7 +157,8 @@ import org.vmmagic.unboxed.*;
    * @return The size of the region of memory encoded in this
    * descriptor, in chunks
    */
-  public static int getChunks(int descriptor) throws InlinePragma {
+  @Inline
+  public static int getChunks(int descriptor) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     return (descriptor & VM_SIZE_MASK) >>> VM_SIZE_SHIFT;
   }

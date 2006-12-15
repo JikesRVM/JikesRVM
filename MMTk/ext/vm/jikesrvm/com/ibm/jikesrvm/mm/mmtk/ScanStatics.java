@@ -42,8 +42,9 @@ public final class ScanStatics implements Constants {
    * all GC threads in parallel, with each doing a portion of the
    * JTOC.
    */
+  @Inline
   public static void scanStatics(TraceLocal trace) 
-    throws UninterruptiblePragma, InlinePragma {
+    throws UninterruptiblePragma { 
     // The address of the statics table
     // equivalent to VM_Statics.getSlots()
     final Address slots = VM_Magic.getJTOC();

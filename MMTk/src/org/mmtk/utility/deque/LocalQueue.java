@@ -76,7 +76,8 @@ import org.vmmagic.unboxed.*;
    * @param arity The arity of the values stored in this queue: the
    * buffer must contain enough space for this many words.
    */
-  protected final boolean checkDequeue(int arity) throws InlinePragma {
+  @Inline
+  protected final boolean checkDequeue(int arity) { 
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
@@ -92,8 +93,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The first entry on the queue.
    */
-  protected final Address uncheckedDequeue() 
-    throws InlinePragma{
+  @Inline
+  protected final Address uncheckedDequeue(){ 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();

@@ -65,8 +65,8 @@ import org.vmmagic.unboxed.*;
    * @param root True if this is a root reference.
    * @return True if this is the first ref to that object.
    */
-  public static boolean incRC(Address entry, boolean root) 
-  throws InlinePragma {
+  @Inline
+  public static boolean incRC(Address entry, boolean root) { 
     Address data = SimpleHashtable.getPayloadAddress(entry);
     int old = data.loadInt();
     data.store(old + (root ? ROOT_RC_INC : NORMAL_RC_INC));

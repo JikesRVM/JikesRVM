@@ -199,8 +199,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase
    */
-  public void collectionPhase(int phaseId)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
     
     if (phaseId == SSGCspy.PREPARE) {

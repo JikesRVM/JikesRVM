@@ -101,7 +101,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as a <code>NoGC</code> instance. */
-  private static final NoGC global() throws InlinePragma {
+  @Inline
+  private static final NoGC global() { 
     return (NoGC) VM.activePlan.global();
   }
 

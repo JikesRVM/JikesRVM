@@ -235,9 +235,9 @@ import org.vmmagic.unboxed.*;
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
+  @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status)
-    throws InlinePragma {
+                                int size, Word status) { 
     return status; // nothing to do (no bytes of GC header)
   }
 
@@ -313,8 +313,8 @@ import org.vmmagic.unboxed.*;
   /**
    * @return True is a stress test GC is required
    */
-  public final boolean stressTestGCRequired()
-    throws InlinePragma {
+  @Inline
+  public final boolean stressTestGCRequired() { 
     long pages = Space.cumulativeCommittedPages();
     if (initialized &&
         ((pages ^ lastStressPages) > Options.stressFactor.getPages())) {

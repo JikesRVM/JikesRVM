@@ -108,7 +108,8 @@ import org.vmmagic.pragma.*;
    * @return The start of the first page if successful, zero on
    * failure.
    */
-  protected final Address allocPages(int pages) throws InlinePragma {
+  @Inline
+  protected final Address allocPages(int pages) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     int pageOffset = freeList.alloc(pages);
@@ -141,8 +142,8 @@ import org.vmmagic.pragma.*;
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void releasePages(Address first)
-    throws InlinePragma {
+  @Inline
+  public final void releasePages(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 
@@ -206,7 +207,8 @@ import org.vmmagic.pragma.*;
    */
   public final int adjustForMetaData(int pages, Address begin) { return pages; }
   
-  final int pages(Address first) throws InlinePragma {
+  @Inline
+  final int pages(Address first) { 
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }
 
@@ -221,8 +223,8 @@ import org.vmmagic.pragma.*;
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
-  public final Extent getSize(Address first)
-    throws InlinePragma {
+  @Inline
+  public final Extent getSize(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 

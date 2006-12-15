@@ -56,7 +56,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param loc The location containing the object reference to process.
    */
-  public final void traceObjectLocation(Address loc) throws InlinePragma {
+  @Inline
+  public final void traceObjectLocation(Address loc) { 
     ObjectReference object = loc.loadObjectReference();
     process(object);
   }
@@ -73,7 +74,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object to process the children of.
    */
-  public final void processChildren(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void processChildren(ObjectReference object) { 
     Scan.scanObject(this, object);
   }
   
@@ -82,7 +84,8 @@ import org.vmmagic.unboxed.*;
    *  
    * @param object The object to push.
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     values.push(object);
   }
 
@@ -91,7 +94,8 @@ import org.vmmagic.unboxed.*;
    *  
    * @param object The object to push.
    */
-  public final void pushOOL(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void pushOOL(ObjectReference object) { 
     values.pushOOL(object);
   }
   
@@ -100,7 +104,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The object retrieved.
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     return values.pop();
   }
   

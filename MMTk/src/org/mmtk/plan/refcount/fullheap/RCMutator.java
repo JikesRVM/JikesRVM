@@ -69,8 +69,8 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
@@ -88,8 +88,9 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
@@ -120,10 +121,10 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode)
-  throws InlinePragma {
+                                 int metaDataB, int mode) { 
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -150,10 +151,10 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
+  @Inline
   private final void writeBarrierInternal(ObjectReference src, Address slot,
                                           ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode)
-  throws InlinePragma {
+                                          int metaDataB, int mode) { 
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -226,9 +227,9 @@ import org.vmmagic.unboxed.*;
    * left to the caller (this depends on which style of barrier is
    * being used).
    */
+  @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                                    ObjectReference dst, Offset dstOffset, int bytes)
-  throws InlinePragma {
+                                    ObjectReference dst, Offset dstOffset, int bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }

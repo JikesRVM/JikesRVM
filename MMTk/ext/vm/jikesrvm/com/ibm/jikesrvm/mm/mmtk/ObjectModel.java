@@ -55,8 +55,8 @@ import org.vmmagic.pragma.*;
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public ObjectReference copy(ObjectReference from, int allocator)
-    throws InlinePragma {
+  @Inline
+  public ObjectReference copy(ObjectReference from, int allocator) { 
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     
@@ -66,9 +66,9 @@ import org.vmmagic.pragma.*;
       return copyArray(from, tib, type.asArray(), allocator);
   }
 
+  @Inline
   private ObjectReference copyScalar(ObjectReference from, Object[] tib,
-                                       VM_Class type, int allocator)
-    throws InlinePragma {
+                                       VM_Class type, int allocator) { 
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
@@ -84,9 +84,9 @@ import org.vmmagic.pragma.*;
     return to;
   }
 
+  @Inline
   private ObjectReference copyArray(ObjectReference from, Object[] tib,
-                                      VM_Array type, int allocator)
-    throws InlinePragma {
+                                      VM_Array type, int allocator) { 
     int elements = VM_Magic.getArrayLength(from);
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
     int align = VM_ObjectModel.getAlignment(type, from);
@@ -137,8 +137,8 @@ import org.vmmagic.pragma.*;
    * @param region The start (or an address less than) the region that was reserved for this object.
    * @return Address The address past the end of the copied object
    */
-  public Address copyTo(ObjectReference from, ObjectReference to, Address region)
-    throws InlinePragma {
+  @Inline
+  public Address copyTo(ObjectReference from, ObjectReference to, Address region) { 
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     int bytes;
@@ -265,8 +265,8 @@ import org.vmmagic.pragma.*;
     return descriptor.toByteArray();
   }
 
-  public int getArrayLength(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public int getArrayLength(ObjectReference object) { 
     return VM_Magic.getArrayLength(object.toObject());
   }
   /**
@@ -361,8 +361,8 @@ import org.vmmagic.pragma.*;
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
-  public Address objectStartRef(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public Address objectStartRef(ObjectReference object) { 
     return VM_ObjectModel.objectStartRef(object);
   }
 
@@ -384,8 +384,8 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public boolean isAcyclic(ObjectReference typeRef) 
-    throws InlinePragma {
+  @Inline
+  public boolean isAcyclic(ObjectReference typeRef) { 
     Object type;
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     if (true) {  // necessary to avoid an odd compiler bug
@@ -402,8 +402,8 @@ import org.vmmagic.pragma.*;
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
-  public MMType getObjectType(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public MMType getObjectType(ObjectReference object) { 
     Object obj = object.toObject();
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {

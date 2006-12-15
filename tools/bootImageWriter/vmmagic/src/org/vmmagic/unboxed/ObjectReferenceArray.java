@@ -35,22 +35,26 @@ import com.ibm.jikesrvm.VM;
     }
   }
 
-  public ObjectReference get(int index) throws InlinePragma {
+  @Inline
+  public ObjectReference get(int index) { 
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
-  public void set(int index, ObjectReference v) throws InlinePragma {
+  @Inline
+  public void set(int index, ObjectReference v) { 
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     data[index] = v;
   }
 
-  public int length() throws InlinePragma {
+  @Inline
+  public int length() { 
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data.length;
   }
 
-  public Object getBacking() throws InlinePragma {
+  @Inline
+  public Object getBacking() { 
     if (!VM.writingImage)
         VM.sysFail("ObjectReferenceArray.getBacking called when not writing boot image");
     return data;

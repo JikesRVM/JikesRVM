@@ -209,9 +209,9 @@ import org.vmmagic.pragma.*;
    * @param markState The markState ot compare against
    * @return True if the cell should be reclaimed
    */
+  @Inline
   protected final boolean reclaimCellForObject(ObjectReference object, 
-                                               Word markState) 
-    throws InlinePragma {
+                                               Word markState) { 
     return !MarkSweepSpace.testMarkState(object, markState);
   }
 
@@ -274,8 +274,8 @@ import org.vmmagic.pragma.*;
    * @param block The block whose marked cells are to be counted
    * @return the number of cells marked as live on this block.
    */
-  private final int markedCells(Address block, int sizeClass)
-      throws InlinePragma {
+  @Inline
+  private final int markedCells(Address block, int sizeClass) { 
     Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
     Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
     Address nextCellCursor = cellCursor.plus(cellBytes);

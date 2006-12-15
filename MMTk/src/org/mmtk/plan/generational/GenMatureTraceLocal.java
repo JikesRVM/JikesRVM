@@ -64,7 +64,8 @@ import org.vmmagic.pragma.*;
    * @param object The object.
    * @return True if the object is live.
    */
-  public boolean isLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
@@ -101,8 +102,8 @@ import org.vmmagic.pragma.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
@@ -118,7 +119,8 @@ import org.vmmagic.pragma.*;
    * 
    * @return The allocator for copied objects
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return Gen.ALLOC_MATURE_MAJORGC;
   }
 

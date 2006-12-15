@@ -75,8 +75,8 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site.
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
-  throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == GenRC.ALLOC_NURSERY) {
       return nursery.alloc(bytes, align, offset, false);
     }
@@ -92,9 +92,9 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator != GenRC.ALLOC_NURSERY) {
       super.postAlloc(ref,typeRef,bytes,allocator);
     }
@@ -145,8 +145,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == GenRC.PREPARE_MUTATOR) {
       nursery.rebind(GenRC.nurserySpace);
@@ -176,10 +176,10 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode)
-  throws InlinePragma {
+                                 int metaDataB, int mode) { 
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
@@ -206,10 +206,10 @@ import org.vmmagic.unboxed.*;
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
                                     ObjectReference dst, Offset dstOffset,
-                                    int bytes)
-  throws InlinePragma {
+                                    int bytes) { 
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(dst))
       writeBarrierSlow(dst);

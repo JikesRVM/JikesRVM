@@ -752,7 +752,8 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's uses.
    */
-  public final OPT_OperandEnumeration getUses() throws InlinePragma {
+  @Inline
+  public final OPT_OperandEnumeration getUses() { 
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = 
       operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs()-1;

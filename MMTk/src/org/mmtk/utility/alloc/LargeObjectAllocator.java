@@ -122,8 +122,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param cell The address of the first byte of the cell to be freed
    */
-  public final void free(Address cell)
-    throws InlinePragma {
+  @Inline
+  public final void free(Address cell) { 
     space.release(getSuperPage(cell));
   }
 
@@ -146,8 +146,8 @@ import org.vmmagic.pragma.*;
    * @return The address of the first word of the superpage containing
    *         <code>cell</code>.
    */
-  public static final Address getSuperPage(Address cell)
-    throws InlinePragma {
+  @Inline
+  public static final Address getSuperPage(Address cell) { 
     return cell.toWord().and(PAGE_MASK).toAddress();
   }
 

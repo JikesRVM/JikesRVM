@@ -58,7 +58,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     Address addr = object.toAddress();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
@@ -72,7 +73,8 @@ import org.vmmagic.pragma.*;
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue().toObjectReference();
     } else {
@@ -86,7 +88,8 @@ import org.vmmagic.pragma.*;
    * @return True if there are no more entries on the local & shared stack,
    *         false otherwise.
    */
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 }

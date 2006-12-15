@@ -67,8 +67,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(NoGC.DEF, object))
       return NoGC.defSpace.traceObject(this, object);

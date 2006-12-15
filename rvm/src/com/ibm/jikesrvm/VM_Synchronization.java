@@ -22,7 +22,8 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public class VM_Synchronization {
 
-  public static final boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) throws InlinePragma {
+  @Inline
+  public static final boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) { 
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -31,7 +32,8 @@ import org.vmmagic.unboxed.*;
     return true;
   }
 
-  public static final boolean testAndSet(Object base, Offset offset, int newValue) throws InlinePragma {
+  @Inline
+  public static final boolean testAndSet(Object base, Offset offset, int newValue) { 
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -40,7 +42,8 @@ import org.vmmagic.unboxed.*;
     return true;
   }
 
-  public static final int fetchAndStore(Object base, Offset offset, int newValue) throws InlinePragma {
+  @Inline
+  public static final int fetchAndStore(Object base, Offset offset, int newValue) { 
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -48,7 +51,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final Address fetchAndStoreAddress(Object base, Offset offset, Address newValue) throws InlinePragma {
+  @Inline
+  public static final Address fetchAndStoreAddress(Object base, Offset offset, Address newValue) { 
     Address oldValue;
     do {
       oldValue = VM_Magic.prepareAddress(base, offset);
@@ -56,7 +60,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final int fetchAndAdd(Object base, Offset offset, int increment) throws InlinePragma {
+  @Inline
+  public static final int fetchAndAdd(Object base, Offset offset, int increment) { 
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -64,7 +69,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final int fetchAndDecrement(Object base, Offset offset, int decrement) throws InlinePragma {
+  @Inline
+  public static final int fetchAndDecrement(Object base, Offset offset, int decrement) { 
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
@@ -72,7 +78,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final Address fetchAndAddAddress(Address addr, int increment) throws InlinePragma {
+  @Inline
+  public static final Address fetchAndAddAddress(Address addr, int increment) { 
     Address oldValue;
     do {
       oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
@@ -80,7 +87,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final Address fetchAndAddAddressWithBound(Address addr, int increment, Address bound) throws InlinePragma {
+  @Inline
+  public static final Address fetchAndAddAddressWithBound(Address addr, int increment, Address bound) { 
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
@@ -91,7 +99,8 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
-  public static final Address fetchAndSubAddressWithBound(Address addr, int decrement, Address bound) throws InlinePragma {
+  @Inline
+  public static final Address fetchAndSubAddressWithBound(Address addr, int decrement, Address bound) { 
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
@@ -102,8 +111,9 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
+  @Inline
   public static final Address fetchAndAddAddressWithBound(Object base, Offset offset, 
-                                                             int increment, Address bound) throws InlinePragma {
+                                                             int increment, Address bound) { 
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
@@ -114,8 +124,9 @@ import org.vmmagic.unboxed.*;
     return oldValue;
   }
 
+  @Inline
   public static final Address fetchAndSubAddressWithBound(Object base, Offset offset, 
-                                                             int decrement, Address bound) throws InlinePragma {
+                                                             int decrement, Address bound) { 
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {

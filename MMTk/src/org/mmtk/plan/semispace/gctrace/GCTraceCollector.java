@@ -114,7 +114,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as a <code>GCTrace</code> instance. */
-  private static final GCTrace global() throws InlinePragma {
+  @Inline
+  private static final GCTrace global() { 
     return (GCTrace) VM.activePlan.global();
   }
 

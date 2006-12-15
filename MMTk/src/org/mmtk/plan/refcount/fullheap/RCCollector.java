@@ -75,7 +75,8 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as an <code>RC</code> instance. */
-  private static final RC global() throws InlinePragma {
+  @Inline
+  private static final RC global() { 
     return (RC) VM.activePlan.global();
   }
 

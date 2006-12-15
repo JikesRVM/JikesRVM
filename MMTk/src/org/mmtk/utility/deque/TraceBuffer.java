@@ -86,7 +86,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param i The data to be pushed onto the tracing queue
    */
-  public final void push(Word i) throws InlinePragma {
+  @Inline
+  public final void push(Word i) { 
     checkTailInsert(1);
     uncheckedTailInsert(i.toAddress());
   }

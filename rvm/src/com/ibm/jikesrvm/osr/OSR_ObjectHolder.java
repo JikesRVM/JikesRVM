@@ -65,8 +65,8 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Get the object handed in before, only called by specialized code.
    */ 
-  public final static Object getRefAt(int h, int i) 
-    throws InlinePragma {
+  @Inline
+  public final static Object getRefAt(int h, int i) { 
         
         if (VM.TraceOnStackReplacement) {
           VM.sysWriteln("OSR_ObjectHolder getRefAt");
@@ -79,8 +79,8 @@ import org.vmmagic.unboxed.Offset;
    * Clean objects. This method is called by specialized bytecode prologue
    * Uses magic because it must be uninterruptible
    */
-  public final static void cleanRefs(int i) 
-    throws InlinePragma {
+  @Inline
+  public final static void cleanRefs(int i) { 
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }

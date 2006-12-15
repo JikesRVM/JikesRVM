@@ -95,12 +95,13 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public final ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public final ObjectReference traceObject(ObjectReference object) { 
     return traceObject(object, false);
   }
 
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return GenRC.ALLOC_RC;
   }
 
@@ -131,7 +132,8 @@ import org.vmmagic.unboxed.*;
   /**
    * @return The current RC collector instace.
    */
-  private static final GenRCCollector collector() throws InlinePragma {
+  @Inline
+  private static final GenRCCollector collector() { 
     return (GenRCCollector)VM.activePlan.collector();
   }
 }

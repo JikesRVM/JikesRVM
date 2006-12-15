@@ -74,7 +74,8 @@ import org.vmmagic.pragma.*;
    * @param arity The arity of the values stored in this deque: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkHeadInsert(int arity) throws InlinePragma {
+  @Inline
+  protected final void checkHeadInsert(int arity) { 
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
         head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
@@ -89,8 +90,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param value the value to be inserted.
    */
-  protected final void uncheckedHeadInsert(Address value) 
-    throws InlinePragma {
+  @Inline
+  protected final void uncheckedHeadInsert(Address value) { 
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.plus(BYTES_IN_ADDRESS);
@@ -123,7 +124,8 @@ import org.vmmagic.pragma.*;
    * 
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndInsertHead(int arity) throws InlinePragma {
+  @Inline
+  private final void closeAndInsertHead(int arity) { 
     queue.enqueue(head, arity, false);
   }
 

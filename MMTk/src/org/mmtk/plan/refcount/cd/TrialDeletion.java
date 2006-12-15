@@ -111,7 +111,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public boolean collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId) { 
     
     if (phaseId == CD_PREPARE_FILTER) {
       if (shouldFilterPurple()) {

@@ -85,8 +85,8 @@ import org.vmmagic.pragma.*;
    * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == GenCopy.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
@@ -101,9 +101,9 @@ import org.vmmagic.pragma.*;
    * @param allocator The allocator to allocate from
    * @param bytes The size of the space allocated (in bytes)
    */
+  @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) 
-  throws InlinePragma {
+      int bytes, int allocator) { 
     // nothing to be done
     if (allocator == GenCopy.ALLOC_MATURE) return;
     super.postAlloc(object, typeRef, bytes, allocator);

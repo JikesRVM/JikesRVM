@@ -11,7 +11,8 @@ public class Selected {
   {
     private static final Plan plan = new Plan(); 
     
-    public static Plan get() throws InlinePragma { return plan; }
+    @Inline
+    public static Plan get() { return plan; } 
   }
 
   @Uninterruptible
@@ -20,7 +21,8 @@ public class Selected {
   {
     private static final Constraints constraints = new Constraints();
     
-    public static Constraints get() throws InlinePragma { return constraints; }
+    @Inline
+    public static Constraints get() { return constraints; } 
   }
 
   @Uninterruptible
@@ -29,15 +31,19 @@ public class Selected {
   {
     private VM_Processor processor;
     public Collector(VM_Processor parent) { processor = parent; }
-    public final VM_Processor getProcessor() throws InlinePragma { return processor; }
-    public static final Collector get() throws InlinePragma { return VM_Processor.getCurrentProcessor().collectorContext; }
+    @Inline
+    public final VM_Processor getProcessor() { return processor; } 
+    @Inline
+    public static final Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; } 
   }
 
   @Uninterruptible
   public static class Mutator extends 
 //-#value RVM_WITH_MMTK_MUTATORCONTEXT
   {
-    public final VM_Processor getProcessor() throws InlinePragma { return (VM_Processor) this; }
-    public static final Mutator get() throws InlinePragma { return VM_Processor.getCurrentProcessor(); }
+    @Inline
+    public final VM_Processor getProcessor() { return (VM_Processor) this; } 
+    @Inline
+    public static final Mutator get() { return VM_Processor.getCurrentProcessor(); } 
   } 
 }

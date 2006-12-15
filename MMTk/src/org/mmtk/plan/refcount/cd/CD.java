@@ -106,7 +106,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public boolean collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId) { 
     return false;
   }
   
@@ -165,7 +166,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return The active cycle detector global instance */
-  public static final CD current() throws InlinePragma {
+  @Inline
+  public static final CD current() { 
     return ((RCBase)VM.activePlan.global()).cycleDetector();
   }
 }

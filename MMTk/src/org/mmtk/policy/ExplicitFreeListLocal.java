@@ -124,8 +124,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object The object to be freed.
    */
-  public static final void free(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public static final void free(ObjectReference object) { 
     deadObject(object);
   }
 

@@ -37,7 +37,8 @@ import org.vmmagic.unboxed.*;
    * @param lockOffset the offset of the thin lock word in the object.
    * @see com.ibm.jikesrvm.opt.OPT_ExpandRuntimeServices
    */
-  static void inlineLock(Object o, Offset lockOffset) throws InlinePragma {
+  @Inline
+  static void inlineLock(Object o, Offset lockOffset) { 
     Word old = VM_Magic.prepareWord(o, lockOffset);
     if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) { 
       // implies that fatbit == 0 & threadid == 0
@@ -61,7 +62,8 @@ import org.vmmagic.unboxed.*;
    * @param lockOffset the offset of the thin lock word in the object.
    * @see com.ibm.jikesrvm.opt.OPT_ExpandRuntimeServices
    */
-  static void inlineUnlock(Object o, Offset lockOffset) throws InlinePragma {
+  @Inline
+  static void inlineUnlock(Object o, Offset lockOffset) { 
     Word old = VM_Magic.prepareWord(o, lockOffset);
     Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
     if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me

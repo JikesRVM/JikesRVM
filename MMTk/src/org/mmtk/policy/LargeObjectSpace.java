@@ -193,7 +193,8 @@ import org.vmmagic.unboxed.*;
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void release(Address first) throws InlinePragma {
+  @Inline
+  public final void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -217,8 +218,9 @@ import org.vmmagic.unboxed.*;
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Inline
   public final ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object) throws InlinePragma {
+      ObjectReference object) { 
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
       if (testAndMark(object, markState)) {
@@ -233,8 +235,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(ObjectReference object)
-    throws InlinePragma {
+   @Inline
+   public boolean isLive(ObjectReference object) { 
     return testMarkBit(object, markState);
   }
 
@@ -245,8 +247,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(ObjectReference object, boolean nurseryObject)
-      throws InlinePragma {
+  @Inline
+  private final void internalMarkObject(ObjectReference object, boolean nurseryObject) { 
 
     Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
@@ -265,8 +267,8 @@ import org.vmmagic.unboxed.*;
    * @param object the object ref to the storage to be initialized
    * @param isPLOSObject the object is allocated in the PLOS
    */
-  public final void initializeHeader(ObjectReference object, boolean isPLOSObject)
-      throws InlinePragma {
+  @Inline
+  public final void initializeHeader(ObjectReference object, boolean isPLOSObject) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT); 
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -279,8 +281,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  private final boolean testAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  private final boolean testAndMark(ObjectReference object, Word value) { 
     Word oldValue, markBit;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -298,8 +300,8 @@ import org.vmmagic.unboxed.*;
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  private final boolean testMarkBit(ObjectReference object, Word value)
-    throws InlinePragma {
+  @Inline
+  private final boolean testMarkBit(ObjectReference object, Word value) { 
     return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT).EQ(value);
   }
 
@@ -309,8 +311,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose status is to be tested                    
    * @return True if the object is in the logical nursery                     
    */                                                                         
-  private final boolean isInNursery(ObjectReference object)                   
-      throws InlinePragma {
+  @Inline
+  private final boolean isInNursery(ObjectReference object) { 
      return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
   }
 

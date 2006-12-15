@@ -109,8 +109,8 @@ import org.vmmagic.pragma.*;
    * cases, this should <i>NOT</i> be an interior pointer.
    * @return The possibly moved reference.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -132,8 +132,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object The object to ensure will not move.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -157,8 +157,8 @@ import org.vmmagic.pragma.*;
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
-  public ObjectReference getForwardedReference(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference getForwardedReference(ObjectReference object) { 
     if (object.isNull()) return object;
     if (SS.hi && Space.isInSpace(SS.SS0, object)) {
       return SS.copySpace0.traceObject(this, object);

@@ -340,8 +340,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if the given object is in space that moves objects.
    */
-  public static final boolean isMovable(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static final boolean isMovable(ObjectReference object) { 
     Space space = getSpaceForObject(object);
     if (space == null)
       return true;
@@ -355,8 +355,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if the given object is in a space managed by MMTk.
    */
-  public static final boolean isMappedObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static final boolean isMappedObject(ObjectReference object) { 
     return !object.isNull() && (getSpaceForObject(object) != null) && Mmapper.objectIsMapped(object);
   }
 
@@ -366,8 +366,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address in question
    * @return True if the given address is in a space managed by MMTk.
    */
-  public static final boolean isMappedAddress(Address address)
-      throws InlinePragma {
+  @Inline
+  public static final boolean isMappedAddress(Address address) { 
     return Map.getSpaceForAddress(address) != null && Mmapper.addressIsMapped(address);
   }
 
@@ -380,8 +380,8 @@ import org.vmmagic.unboxed.*;
    * @return True if the given object is in the space associated with
    * the descriptor.
    */
-  public static boolean isInSpace(int descriptor, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean isInSpace(int descriptor, ObjectReference object) { 
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
     } else {
@@ -404,8 +404,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return The space containing the object
    */
-  public static Space getSpaceForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static Space getSpaceForObject(ObjectReference object) { 
     return Map.getSpaceForObject(object);
   }
 
@@ -415,8 +415,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return The descriptor for the space containing the object
    */
-  public static int getDescriptorForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static int getDescriptorForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }

@@ -70,8 +70,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
       return SS.copySpace0.traceObject(this, object);
@@ -86,8 +86,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
       return SS.copySpace0.traceObject(this, object);
@@ -110,7 +110,8 @@ import org.vmmagic.unboxed.*;
   /**
    * @return The allocator to use when copying during the trace.
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return SS.ALLOC_SS;
   }
 }

@@ -149,7 +149,8 @@ public class VM_FileSystem {
    * Is the given fd returned from an ioWaitRead() or ioWaitWrite()
    * ready?
    */
-  private static boolean isFdReady(int fd) throws InlinePragma  {
+  @Inline
+  private static boolean isFdReady(int fd) { 
     return (fd & VM_ThreadIOConstants.FD_READY_BIT) != 0;
   }
 
@@ -165,7 +166,8 @@ public class VM_FileSystem {
    *    is ready, or false if an error occurred (and the read should
    *    be avoided)
    */
-  private static boolean blockingReadHack(int fd) throws InlinePragma {
+  @Inline
+  private static boolean blockingReadHack(int fd) { 
 	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
 	 
@@ -185,7 +187,8 @@ public class VM_FileSystem {
    *    is ready, or false if an error occurred (and the write should
    *    be avoided)
    */
-  private static boolean blockingWriteHack(int fd) throws InlinePragma {
+  @Inline
+  private static boolean blockingWriteHack(int fd) { 
 	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
 

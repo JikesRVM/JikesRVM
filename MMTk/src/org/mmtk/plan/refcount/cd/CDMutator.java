@@ -42,7 +42,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public boolean collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId) { 
     return false;
   }
   

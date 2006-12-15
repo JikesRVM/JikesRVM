@@ -107,7 +107,8 @@ import org.vmmagic.unboxed.*;
    * @param arity The arity of the values stored in this SSB: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkTailInsert(int arity) throws InlinePragma {
+  @Inline
+  protected final void checkTailInsert(int arity) { 
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
     else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
@@ -120,7 +121,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param value the value to be inserted.
    */
-  protected final void uncheckedTailInsert(Address value) throws InlinePragma {
+  @Inline
+  protected final void uncheckedTailInsert(Address value) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
@@ -158,7 +160,8 @@ import org.vmmagic.unboxed.*;
    * @param arity The arity of this buffer
    * @return The sentinel offset value for a buffer of the given arity.
    */
-  protected final Offset bufferSentinel(int arity) throws InlinePragma {
+  @Inline
+  protected final Offset bufferSentinel(int arity) { 
     return bufferLastOffset(arity).plus(BYTES_IN_ADDRESS);
   }
 

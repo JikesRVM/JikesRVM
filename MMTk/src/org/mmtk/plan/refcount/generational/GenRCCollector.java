@@ -86,8 +86,8 @@ implements Constants {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == GenRC.PREPARE) {
       super.collectionPhase(phaseId, primary);
       rc.prepare();
@@ -119,9 +119,9 @@ implements Constants {
    * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-                                 int align, int offset, int allocator)
-    throws InlinePragma {
+                                 int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
@@ -135,9 +135,9 @@ implements Constants {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-                             int bytes, int allocator)
-    throws InlinePragma {
+                             int bytes, int allocator) { 
     CopySpace.clearGCBits(object);
     RCHeader.initializeHeader(object, typeRef, false);
     RCHeader.makeUnlogged(object);
@@ -150,7 +150,8 @@ implements Constants {
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final GenRC global() throws InlinePragma {
+  @Inline
+  private static final GenRC global() { 
     return (GenRC) VM.activePlan.global();
   }
   

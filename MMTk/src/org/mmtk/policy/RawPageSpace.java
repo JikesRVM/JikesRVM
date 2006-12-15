@@ -100,7 +100,8 @@ import org.vmmagic.unboxed.*;
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void release(Address first) throws InlinePragma {
+  @Inline
+  public final void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -113,9 +114,9 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
+  @Inline
   public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) 
-    throws InlinePragma {
+                                           ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }

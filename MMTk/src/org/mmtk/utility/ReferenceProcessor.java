@@ -64,8 +64,9 @@ import org.vmmagic.pragma.*;
    * @param semantics The number representing the semantics
    * @param nursery It is safe to only collect new references 
    */
+  @Inline
   private static void traverse(int semantics, boolean nursery)
-      throws LogicallyUninterruptiblePragma, InlinePragma {
+      throws LogicallyUninterruptiblePragma { 
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");
@@ -124,8 +125,9 @@ import org.vmmagic.pragma.*;
    * be the address of a heap object, depending on the VM.
    * @param semantics the code number of the semantics
    */
+  @Inline
   public static Address processReference(Address reference,
-                                         int semantics) throws InlinePragma {
+                                         int semantics) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!reference.isZero());
 
     TraceLocal trace = VM.activePlan.collector().getCurrentTrace();

@@ -90,8 +90,8 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return The space in which the object resides
    */
-  public static Space getSpaceForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static Space getSpaceForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
@@ -102,7 +102,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address in question
    * @return The space in which the address resides
    */
-  public static Space getSpaceForAddress(Address address) throws InlinePragma {
+  @Inline
+  public static Space getSpaceForAddress(Address address) { 
     int index = hashAddress(address);
     return (Space) VM.barriers.getArrayNoBarrier(spaceMap, index);
   }
@@ -115,8 +116,8 @@ import org.vmmagic.unboxed.*;
    * @return The space descriptor for the space in which the object
    * resides
    */
-  public static int getDescriptorForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static int getDescriptorForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     int index = hashAddress(VM.objectModel.refToAddress(object));
     return VM.barriers.getArrayNoBarrier(descriptorMap, index);
@@ -128,7 +129,8 @@ import org.vmmagic.unboxed.*;
    * @param address The address to be hashed
    * @return The chunk number that this address hashes into
    */
-  private static int hashAddress(Address address) throws InlinePragma {
+  @Inline
+  private static int hashAddress(Address address) { 
     return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
   }
 }

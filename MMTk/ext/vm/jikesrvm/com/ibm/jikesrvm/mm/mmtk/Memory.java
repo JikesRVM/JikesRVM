@@ -185,11 +185,13 @@ import org.vmmagic.pragma.*;
    * Utilities from the VM class
    */
 
-  public final void sync() throws InlinePragma {
+  @Inline
+  public final void sync() { 
     VM_Magic.sync();
   }
 
-  public final void isync() throws InlinePragma {
+  @Inline
+  public final void isync() { 
     VM_Magic.isync();
   }
 }
