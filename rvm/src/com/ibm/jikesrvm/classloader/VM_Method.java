@@ -536,8 +536,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * ie., it implements the <CODE>Inline</CODE> exception?
    */
   public final boolean hasInlinePragma() {
-	if (isAnnotationPresent(Inline.class)) return true;
-    return InlinePragma.declaredBy(this);
+    return isAnnotationPresent(Inline.class);
   }
     
   /**
