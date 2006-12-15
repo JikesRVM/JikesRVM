@@ -39,32 +39,38 @@ import org.vmmagic.pragma.*;
     return (o instanceof Extent) && ((Extent) o).value == value;
   }
 
-  public static Extent fromIntSignExtend(int address) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent fromIntSignExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(address);
   }
 
-  public static Extent fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent fromIntZeroExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(address, true);
   }
 
-  public static Extent fromLong (long offset) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent fromLong (long offset) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(offset);
   }
 
-  public static Extent zero () throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent zero () { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(0);
   }
 
-  public static Extent one () throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent one () { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(1);
   }
 
-  public static Extent max() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Extent max() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);
   }
@@ -83,26 +89,31 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  public Word toWord() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word toWord() { 
     return new Word(value);
   }
 
-  public Extent plus(int byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Extent plus(int byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value + byteSize);
   }
 
-  public Extent plus(Extent byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Extent plus(Extent byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value + byteSize.value);
   }
 
-  public Extent minus(int byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Extent minus(int byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value - byteSize);
   }
 
-  public Extent minus(Extent byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Extent minus(Extent byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value - byteSize.value);
   }

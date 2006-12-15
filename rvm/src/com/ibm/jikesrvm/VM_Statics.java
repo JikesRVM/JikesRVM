@@ -551,7 +551,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as an object.
    */ 
-  public static void setSlotContents(Offset offset, Object object) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static void setSlotContents(Offset offset, Object object) { 
 	 // NB uninterruptible warnings are disabled for this method due to
 	 // the array store which could cause a fault - this can't actually
 	 // happen as the fault would only ever occur when not running the

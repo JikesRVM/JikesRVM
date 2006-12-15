@@ -40,27 +40,32 @@ import com.ibm.jikesrvm.VM;
     return (o instanceof Offset) && ((Offset) o).value == value;
   }
 
-  public static Offset fromIntSignExtend(int address) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Offset fromIntSignExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(address);
   }
 
-  public static Offset fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Offset fromIntZeroExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(address, true);
   }
 
-  public static Offset fromLong(long offset) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Offset fromLong(long offset) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(offset);
   }
 
-  public static Offset zero() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Offset zero() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(0);
   }
 
-  public static Offset max() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Offset max() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);
   }
@@ -79,27 +84,32 @@ import com.ibm.jikesrvm.VM;
     }
   }
 
-  public Word toWord() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word toWord() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value);
   }
 
-  public Offset plus(int byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset plus(int byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + byteSize);
   }
 
-  public Offset plus(Offset off2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset plus(Offset off2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + off2.value);
   }
 
-  public Offset minus(int byteSize) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset minus(int byteSize) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - byteSize);
   }
 
-  public Offset minus(Offset off2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset minus(Offset off2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - off2.value);
   }

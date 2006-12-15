@@ -2024,7 +2024,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.isAnnotationPresent(LogicallyUninterruptible.class)) return;
-      if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
+      if (method.isAnnotationPresent(UninterruptibleNoWarn.class)) return;
     }
     VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
   }
@@ -2039,7 +2039,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.isAnnotationPresent(LogicallyUninterruptible.class)) return;
-      if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
+      if (method.isAnnotationPresent(UninterruptibleNoWarn.class)) return;
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       VM.sysWriteln("WARNING "+ method + ": contains call to non-uninterruptible method "+target);

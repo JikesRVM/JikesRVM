@@ -41,27 +41,32 @@ import org.vmmagic.pragma.*;
     return (o instanceof Word) && ((Word) o).value == value;
   }
 
-  public static Word fromIntSignExtend(int val) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Word fromIntSignExtend(int val) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
   
-  public static Word fromIntZeroExtend(int val) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Word fromIntZeroExtend(int val) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val, true);
   }
      
-  public static Word fromLong(long val) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Word fromLong(long val) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
 
-  public static Word zero() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Word zero() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(0);
   }
 
-  public static Word one() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Word one() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(1);
   }
@@ -76,7 +81,8 @@ import org.vmmagic.pragma.*;
     return (int) value;
   }
 
-  public long toLong() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public long toLong() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -85,45 +91,54 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  public Address toAddress() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address toAddress() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value);
   }
 
-  public Offset toOffset() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset toOffset() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value);
   }
 
-  public Extent toExtent() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Extent toExtent() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value);
   }
 
-  public Word plus(Word w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word plus(Word w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.value);
   }
 
-  public Word plus(Offset w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word plus(Offset w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
-  public Word plus(Extent w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word plus(Extent w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
-  public Word minus(Word w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word minus(Word w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.value);
   }
-  public Word minus(Offset w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word minus(Offset w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }
-  public Word minus(Extent w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word minus(Extent w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }
@@ -171,37 +186,44 @@ import org.vmmagic.pragma.*;
     return !EQ(w2);
   }
 
-  public Word and(Word w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word and(Word w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value & w2.value);
   }
 
-  public Word or(Word w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word or(Word w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value | w2.value);
   }
 
-  public Word not() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word not() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(~value);
   }
 
-  public Word xor(Word w2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word xor(Word w2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value ^ w2.value);
   }
 
-  public Word lsh (int amt) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word lsh (int amt) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value << amt);
   }
 
-  public Word rshl (int amt) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word rshl (int amt) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value >>> amt);
   }
 
-  public Word rsha (int amt) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Word rsha (int amt) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value >> amt);
   }

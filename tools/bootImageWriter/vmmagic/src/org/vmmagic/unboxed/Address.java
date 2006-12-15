@@ -55,7 +55,8 @@ import org.vmmagic.pragma.*;
    *
    * @return An {@link Address} instance that reflects the value zero.
    */
-  public static Address zero() throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Address zero() { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(0);
   }
@@ -107,8 +108,8 @@ import org.vmmagic.pragma.*;
    * instance
    * @return An address instance
    */
-  public static Address fromIntSignExtend(int address) 
-    throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Address fromIntSignExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
   }
@@ -121,8 +122,8 @@ import org.vmmagic.pragma.*;
    * instance
    * @return An address instance
    */
-  public static Address fromIntZeroExtend(int address) 
-    throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Address fromIntZeroExtend(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address, true);
   }
@@ -134,8 +135,8 @@ import org.vmmagic.pragma.*;
    * instance
    * @return An address instance
    */
-  public static Address fromLong(long address)
-    throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Address fromLong(long address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return new Address(address);
  }
@@ -150,8 +151,8 @@ import org.vmmagic.pragma.*;
    * instance
    * @return An address instance
    */
-  public static Address fromInt(int address) 
-    throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static Address fromInt(int address) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
   }
@@ -222,7 +223,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address plus(int v) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address plus(int v) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + v);
   }
@@ -235,7 +237,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address plus(Offset offset) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address plus(Offset offset) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + offset.toWord().toAddress().value);
   }
@@ -249,7 +252,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address plus(Extent extent) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address plus(Extent extent) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + extent.toWord().toAddress().value);
   }
@@ -263,7 +267,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address minus(int v) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address minus(int v) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - v);
   }
@@ -277,7 +282,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address minus(Offset offset) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address minus(Offset offset) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - offset.toWord().toAddress().value);
   }
@@ -291,7 +297,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address minus(Extent extent) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Address minus(Extent extent) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - extent.toWord().toAddress().value);
   }
@@ -305,7 +312,8 @@ import org.vmmagic.pragma.*;
    * @return An {@link Offset} instance that reflects the result
    * of the subtraction.
    */
-  public Offset diff(Address addr2) throws UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public Offset diff(Address addr2) { 
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - addr2.value);
   }

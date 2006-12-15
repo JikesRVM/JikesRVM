@@ -77,7 +77,8 @@ import org.vmmagic.unboxed.*;
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception, UninterruptibleNoWarnPragma {
+  @UninterruptibleNoWarn
+  public static void boot() throws Exception { 
     writingBootImage = false;
     runningVM        = true;
     runningAsSubsystem = false;
@@ -492,8 +493,8 @@ import org.vmmagic.unboxed.*;
 
 
   @NoInline
-  private static void _assertionFailure(String msg1, String msg2) 
-    throws UninterruptibleNoWarnPragma { 
+  @UninterruptibleNoWarn
+  private static void _assertionFailure(String msg1, String msg2) { 
     if (msg1 == null && msg2 == null)
       msg1 = "vm internal error at:";
     if (msg2 == null) {
