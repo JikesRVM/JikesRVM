@@ -84,7 +84,8 @@ $$$$ END LOOP
    * @return true if successful, false otherwise
    */
   @Interruptible
-  public static boolean process(String arg) throws NoOptCompilePragma {
+  @NoOptCompile
+  public static boolean process(String arg) { 
 
     // First handle the "option commands"
     if (arg.equals("help")) {

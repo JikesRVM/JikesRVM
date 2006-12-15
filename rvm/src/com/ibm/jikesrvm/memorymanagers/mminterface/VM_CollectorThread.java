@@ -287,9 +287,8 @@ public class VM_CollectorThread extends VM_Thread {
    * can be configured to use.
    */
    @LogicallyUninterruptible // due to call to snipObsoleteCompiledMethods
-   public void run()
-       throws NoOptCompilePragma, // refs stored in registers by opt compiler will not be relocated by GC 
-              UninterruptiblePragma {
+   @NoOptCompile // refs stored in registers by opt compiler will not be relocated by GC
+   public void run() throws UninterruptiblePragma { 
 
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
