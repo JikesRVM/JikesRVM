@@ -30,7 +30,6 @@ import com.ibm.jikesrvm.VM;
     return new AddressArray(size);
   }
 
-  @Interruptible
   private AddressArray (int size) { 
     data = new Address[size];
     Address zero = Address.zero();

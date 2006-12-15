@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.VM;
     return new OffsetArray(size);
   }
 
-  @Interruptible
   private OffsetArray (int size) { 
     data = new Offset[size];
     Offset zero = Offset.zero();

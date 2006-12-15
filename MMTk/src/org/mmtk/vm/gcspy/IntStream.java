@@ -58,7 +58,6 @@ import org.vmmagic.pragma.*;
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    */
-  @Interruptible
   public IntStream(
          AbstractDriver driver,
          String name,

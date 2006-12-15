@@ -43,7 +43,6 @@ import org.vmmagic.pragma.*;
    * @param unused A label for unused blocks
    * @param mainSpace Whether this space is the main space
    */
-  @Interruptible
   public ServerSpace (
               org.mmtk.vm.gcspy.ServerInterpreter serverInterpreter,
               String serverName, 

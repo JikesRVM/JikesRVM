@@ -66,7 +66,6 @@ import org.vmmagic.pragma.*;
    * @param threshold the size threshold of the LOS
    * @param mainSpace Is this the main space?
    */
-  @Interruptible
   public TreadmillDriver(
                          ServerInterpreter server,
                          String spaceName,

@@ -15,8 +15,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
-import org.vmmagic.pragma.InterruptiblePragma;
-import org.vmmagic.pragma.Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * Stub to give access to plan local, constraint and global instances

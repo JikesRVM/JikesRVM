@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.VM;
     return new ExtentArray(size);
   }
 
-  @Interruptible
   private ExtentArray (int size) { 
     data = new Extent[size];
     Extent zero = Extent.zero();

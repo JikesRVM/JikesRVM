@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.VM;
     return new ObjectReferenceArray(size);
   }
 
-  @Interruptible
   private ObjectReferenceArray(int size) { 
     data = new ObjectReference[size];
     for (int i=0; i<size; i++) {

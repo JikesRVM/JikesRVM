@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
     return new VM_CodeArray(size);
   }
 
-  @Interruptible
   private VM_CodeArray (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new byte[size];

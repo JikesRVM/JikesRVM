@@ -94,7 +94,6 @@ import org.vmmagic.unboxed.Address;
    * @param colour The default colour for tiles of this stream
    * @param summary Is a summary enabled?
    */
-  @Interruptible
   protected Stream(
       AbstractDriver driver, 
       int dataType, 

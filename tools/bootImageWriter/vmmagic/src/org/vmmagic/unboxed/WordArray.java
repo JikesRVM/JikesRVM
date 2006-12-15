@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.VM;
     return new WordArray(size);
   }
 
-  @Interruptible
   private WordArray (int size) { 
     data = new Word[size];
     Word zero = Word.zero();

@@ -52,7 +52,6 @@ import org.vmmagic.unboxed.Address;
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    */
-  @Interruptible
   public ByteStream(
          AbstractDriver driver,
          String name,
