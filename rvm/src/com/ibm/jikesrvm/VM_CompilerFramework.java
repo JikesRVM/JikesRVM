@@ -2008,7 +2008,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    * @param msg description of bytecode that is violating the invariant
    * @param obj object that provides further information
    */
-  protected final void forbiddenBytecode(String msg, Object obj) throws NoInlinePragma {
+  @NoInline
+  protected final void forbiddenBytecode(String msg, Object obj) { 
     forbiddenBytecode(msg+obj);
   }
 
@@ -2018,7 +2019,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    *
    * @param msg description of bytecode that is violating the invariant
    */
-  protected final void forbiddenBytecode(String msg) throws NoInlinePragma {
+  @NoInline
+  protected final void forbiddenBytecode(String msg) { 
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.isAnnotationPresent(LogicallyUninterruptible.class)) return;

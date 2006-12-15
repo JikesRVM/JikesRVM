@@ -88,37 +88,45 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return (val == 0 || val == -1);
   }
 
-  public void noteBytecode (int i, String bcode) throws NoInlinePragma {
+  @NoInline
+  public void noteBytecode (int i, String bcode) { 
     String s1 = VM_Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
 
-  public void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
+  @NoInline
+  public void noteBytecode (int i, String bcode, int x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
-  public void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
+  @NoInline
+  public void noteBytecode (int i, String bcode, long x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
-  public void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
+  @NoInline
+  public void noteBytecode (int i, String bcode, Object o) { 
     noteBytecode(i, bcode+" "+o);
   }
 
-  public void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
+  @NoInline
+  public void noteBytecode (int i, String bcode, int x, int y) { 
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
+  @NoInline
   public void noteBranchBytecode (int i, String bcode, int off,
-                           int bt) throws NoInlinePragma {
+                           int bt) { 
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  public void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
+  @NoInline
+  public void noteTableswitchBytecode (int i, int l, int h, int d) { 
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  public void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
+  @NoInline
+  public void noteLookupswitchBytecode (int i, int n, int d) { 
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   

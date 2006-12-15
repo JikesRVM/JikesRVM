@@ -94,9 +94,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
+  @NoInline
   public static Object invokeWithDotDotVarArg(int methodID, 
                                               VM_TypeReference expectReturnType)
-    throws Exception, NoInlinePragma {
+    throws Exception { 
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);    
@@ -121,9 +122,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
+  @NoInline
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
                                               VM_TypeReference expectReturnType, boolean skip4Args)
-    throws Exception, NoInlinePragma {
+    throws Exception { 
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
@@ -230,7 +232,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, NoInlinePragma {
+  @NoInline
+  private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception { 
     if (VM.BuildForPowerOpenABI || VM.BuildForSVR4ABI) {
       int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 

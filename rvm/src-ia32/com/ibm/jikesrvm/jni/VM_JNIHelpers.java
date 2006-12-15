@@ -168,7 +168,8 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static Address getVarArgAddress(boolean skip4Args) throws NoInlinePragma {
+  @NoInline
+  private static Address getVarArgAddress(boolean skip4Args) { 
     Address fp = VM_Magic.getFramePointer();
     fp = fp.loadAddress();
     fp = fp.loadAddress();

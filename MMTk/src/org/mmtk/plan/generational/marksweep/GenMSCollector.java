@@ -121,8 +121,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);

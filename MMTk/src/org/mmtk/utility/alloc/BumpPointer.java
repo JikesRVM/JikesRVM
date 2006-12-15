@@ -167,10 +167,10 @@ import org.vmmagic.pragma.*;
   * @param offset The offset from the alignment 
   * @param inGC Is the allocation request occuring during GC.
   * @return The address of the first byte of the allocated region
-  * @throws NoInlinePragma
   */
+  @NoInline
   private final Address allocSlow(Address start, Address end, int align,
-      int offset, boolean inGC) throws NoInlinePragma {
+      int offset, boolean inGC) { 
     Address rtn = null;
     Address card = null;
     if (SUPPORT_CARD_SCANNING)

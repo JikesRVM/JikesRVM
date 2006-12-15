@@ -64,7 +64,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the address to be inserted into the address queue
    */
-  public final void insertOOL(Address addr) throws NoInlinePragma {
+  @NoInline
+  public final void insertOOL(Address addr) { 
     insert(addr);
   }
 
@@ -87,7 +88,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void pushOOL(Address addr) throws NoInlinePragma {
+  @NoInline
+  public final void pushOOL(Address addr) { 
     push(addr);
   }
 

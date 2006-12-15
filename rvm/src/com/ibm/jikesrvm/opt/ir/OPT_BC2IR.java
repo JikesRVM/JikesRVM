@@ -203,7 +203,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
 
-  private void start(OPT_GenerationContext context) throws NoInlinePragma {
+  @NoInline
+  private void start(OPT_GenerationContext context) { 
     gc = context;
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java

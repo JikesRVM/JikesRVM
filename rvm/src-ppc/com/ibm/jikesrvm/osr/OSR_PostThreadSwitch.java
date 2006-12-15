@@ -26,8 +26,8 @@ import org.vmmagic.unboxed.*;
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom<...>
    */
-  public static void postProcess(VM_Thread myThread) 
-    throws NoInlinePragma {
+  @NoInline
+  public static void postProcess(VM_Thread myThread) { 
 
     /* We need to generate thread specific code and install new code.
      * We have to make sure that no GC happens from here and before 

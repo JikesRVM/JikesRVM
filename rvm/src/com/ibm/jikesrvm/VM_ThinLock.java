@@ -83,7 +83,8 @@ import org.vmmagic.unboxed.*;
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void lock(Object o, Offset lockOffset) throws NoInlinePragma {
+  @NoInline
+  static void lock(Object o, Offset lockOffset) { 
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit;
          Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
@@ -158,7 +159,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void unlock(Object o, Offset lockOffset) throws NoInlinePragma {
+  @NoInline
+  static void unlock(Object o, Offset lockOffset) { 
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
       Word old = VM_Magic.prepareWord(o, lockOffset);

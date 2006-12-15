@@ -94,7 +94,8 @@ import org.vmmagic.pragma.*;
   /**
    * Execute a phase during a collection.
    */
-  protected final void delegatePhase() throws NoInlinePragma {
+  @NoInline
+  protected final void delegatePhase() { 
     boolean log = Options.verbose.getValue() >= 6;
     boolean logDetails = Options.verbose.getValue() >= 7;
 

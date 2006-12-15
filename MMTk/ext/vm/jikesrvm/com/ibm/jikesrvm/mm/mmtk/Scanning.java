@@ -103,8 +103,8 @@ import org.vmmagic.pragma.*;
    * 
    * TODO Experiment with specialization to remove virtual dispatch ?
    */
-  public final void preCopyGCInstances(TraceLocal trace) 
-  throws NoInlinePragma {
+  @NoInline
+  public final void preCopyGCInstances(TraceLocal trace) { 
     int chunkSize = 2;
     int threadIndex, start, end, stride;
     VM_CollectorThread ct;

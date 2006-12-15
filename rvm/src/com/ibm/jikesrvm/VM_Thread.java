@@ -325,7 +325,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * May result in threadswitch, depending on state of various control
    * flags on the processor object.
    */ 
-  public static void yieldpoint(int whereFrom) throws NoInlinePragma {
+  @NoInline
+  public static void yieldpoint(int whereFrom) { 
     boolean threadSwitch = false;
     int takeYieldpointVal = VM_Processor.getCurrentProcessor().takeYieldpoint;
 
@@ -513,7 +514,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   /**
    * Suspend execution of current thread, in favor of some other thread.
    */ 
-  public static void yield () throws NoInlinePragma {
+  @NoInline
+  public static void yield () { 
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
@@ -525,7 +527,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param q queue to put thread onto (must be processor-local, ie. 
    * not guarded with a lock)
   */
-  public static void yield (VM_AbstractThreadQueue q)  throws NoInlinePragma {
+  @NoInline
+  public static void yield (VM_AbstractThreadQueue q) { 
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -537,7 +540,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param q queue to put thread onto
    * @param l lock guarding that queue (currently locked)
    */ 
-  public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) throws NoInlinePragma  {
+  @NoInline
+  public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) { 
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -556,7 +560,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
    * @param q2 the {@link VM_ProxyWakeupQueue} upon which to wait for timeout
    * @param l2 the {@link VM_ProcessorLock} guarding <code>q2</code> (currently locked)
    */ 
-  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) throws NoInlinePragma {
+  @NoInline
+  static void yield (VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) { 
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
@@ -826,11 +831,10 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     }
   }
 
+  @NoInline
   private static void transferExecutionToNewStack(byte[] newStack, 
                                                   VM_Registers 
-                                                  exceptionRegisters) 
-    throws NoInlinePragma 
-  {
+                                                  exceptionRegisters) { 
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 

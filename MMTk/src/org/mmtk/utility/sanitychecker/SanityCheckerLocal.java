@@ -49,7 +49,8 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform local single threaded actions on this thread
    * @return True if the phase was handled.
    */
-  public final boolean collectionPhase(int phaseId, boolean primary) throws NoInlinePragma {
+  @NoInline
+  public final boolean collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();

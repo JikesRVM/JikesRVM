@@ -82,7 +82,8 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The id to proces
    * @return True if the phase was handled.
    */
-  public boolean collectionPhase(int phaseId) throws NoInlinePragma {
+  @NoInline
+  public boolean collectionPhase(int phaseId) { 
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");

@@ -45,8 +45,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(Address addr)
-    throws NoInlinePragma {
+  @NoInline
+  public final void insert(Address addr) { 
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }

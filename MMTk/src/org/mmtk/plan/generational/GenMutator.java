@@ -241,8 +241,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform a per-mutator collection phase.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == Gen.PREPARE_MUTATOR) {
       nursery.rebind(Gen.nurserySpace);

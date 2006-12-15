@@ -31,7 +31,8 @@ public final class VM_StackBrowser implements VM_Constants {
   private VM_CompiledMethod currentCompiledMethod;
   private int currentInlineEncodingIndex;
 
-  public void init() throws NoInlinePragma {
+  @NoInline
+  public void init() { 
     currentFramePointer = VM_Magic.getFramePointer();
     upOneFrame();
   }

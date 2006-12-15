@@ -110,8 +110,8 @@ import java.lang.ref.PhantomReference;
    * @param ref the reference to add
    */
   @Interruptible
-  private void addCandidate(Reference ref)
-    throws NoInlinePragma { 
+  @NoInline
+  private void addCandidate(Reference ref) { 
     if (TRACE) {
         Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
         ObjectReference referent = getReferent(referenceAsAddress);

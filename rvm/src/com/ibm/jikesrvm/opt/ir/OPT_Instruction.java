@@ -1634,7 +1634,8 @@ public final class OPT_Instruction
       return temp;
     }
     protected abstract void advance();
-    private static void fail() throws NoInlinePragma {
+    @NoInline
+    private static void fail() { 
       throw new java.util.NoSuchElementException("OperandEnumerator");
     }
   }
@@ -1836,7 +1837,8 @@ public final class OPT_Instruction
 		}
     }
   }
-  private OPT_Operand outOfLineCopy(OPT_Operand op) throws NoInlinePragma {
+  @NoInline
+  private OPT_Operand outOfLineCopy(OPT_Operand op) { 
     return op.copy();
   }
 

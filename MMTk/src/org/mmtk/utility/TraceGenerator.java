@@ -182,10 +182,10 @@ import org.vmmagic.unboxed.*;
    * <code>tgt</code> will be stored
    * @param tgt The target of the pointer store
    */
+  @NoInline
   public static void processPointerUpdate(boolean isScalar,
                                           ObjectReference src,
-                                          Address slot, ObjectReference tgt)
-      throws NoInlinePragma {
+                                          Address slot, ObjectReference tgt) { 
     // The trace can be busy only if this is a pointer update as a result of
     // the garbage collection needed by tracing. For the moment, we will
     // not report these updates.
@@ -224,9 +224,9 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the object being allocated
    */
   @LogicallyUninterruptible
+  @NoInline
   public static final void traceAlloc(boolean isImmortal, ObjectReference ref,
-      ObjectReference typeRef, int bytes)
-      throws NoInlinePragma { 
+      ObjectReference typeRef, int bytes) { 
     boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */

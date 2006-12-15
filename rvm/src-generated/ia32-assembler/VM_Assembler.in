@@ -273,7 +273,8 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       }
   }
     
-  private void growMachineCodes(int index, byte data) throws NoInlinePragma {
+  @NoInline
+  private void growMachineCodes(int index, byte data) { 
       byte [] old = machineCodes;
       machineCodes = new byte [2 * old.length ];
       System.arraycopy(old, 0, machineCodes, 0, old.length);
@@ -322,32 +323,39 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
 
-  final void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
+  @NoInline
+  final void noteBytecode (int i, String bcode, int x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
-  final void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
+  @NoInline
+  final void noteBytecode (int i, String bcode, long x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
-  final void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
+  @NoInline
+  final void noteBytecode (int i, String bcode, Object o) { 
     noteBytecode(i, bcode+" "+o);
   }
 
-  final void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
+  @NoInline
+  final void noteBytecode (int i, String bcode, int x, int y) { 
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
+  @NoInline
   final void noteBranchBytecode (int i, String bcode, int off,
-                           int bt) throws NoInlinePragma {
+                           int bt) { 
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  final void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
+  @NoInline
+  final void noteTableswitchBytecode (int i, int l, int h, int d) { 
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  final void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
+  @NoInline
+  final void noteLookupswitchBytecode (int i, int n, int d) { 
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   

@@ -27,7 +27,8 @@ import org.vmmagic.unboxed.*;
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */
-  static Object getReceiverObject() throws NoInlinePragma {
+  @NoInline
+  static Object getReceiverObject() { 
 
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);

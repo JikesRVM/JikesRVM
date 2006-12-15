@@ -12,8 +12,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.*;
 
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.NoInlinePragma;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  *  This class provides support functionality used by the generated
@@ -419,7 +419,8 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if it represents a branch target
    */
-  boolean isImmOrLabel(OPT_Operand op) throws NoInlinePragma {
+  @NoInline
+  boolean isImmOrLabel(OPT_Operand op) { 
     // TODO: Remove NoInlinePragma, work around for leave SSA bug
     return (isImm(op) || isLabel(op));
   }

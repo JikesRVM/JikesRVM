@@ -209,7 +209,8 @@ import org.vmmagic.unboxed.*;
    * little to increase the likelihood that a subsequent retry will
    * succeed.
    */
-  private static void handleMicrocontention(int n) throws NoInlinePragma {
+  @NoInline
+  private static void handleMicrocontention(int n) { 
     if (n <= 0) return;                                  // method call overhead is delay enough
     int pid    =  VM_Processor.getCurrentProcessorId();
     if (pid < 0) pid = - pid;                            // native processors have negative ids

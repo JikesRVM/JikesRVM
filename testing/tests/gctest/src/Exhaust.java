@@ -41,7 +41,8 @@ class Exhaust {
     System.exit(0);
   }
 
-  public static int doInner (int size) throws NoInlinePragma {
+  @NoInline
+  public static int doInner (int size) { 
     while (true) {
       wasAllocating = size;
       Object [] next = new Object[((int) size) / 4];
@@ -52,7 +53,8 @@ class Exhaust {
     }
   }
 
-  public static void runTest() throws NoInlinePragma {
+  @NoInline
+  public static void runTest() { 
     int size = itemSize;  
     for (int i=1; i<=rounds; i++) {
       o.println("Starting round " + i + " with size = " + size);

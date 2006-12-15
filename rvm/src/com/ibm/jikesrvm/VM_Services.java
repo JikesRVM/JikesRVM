@@ -39,6 +39,7 @@ public class VM_Services {
     return buf.toString();
   }
   
-  public static void breakStub() throws NoInlinePragma {
+  @NoInline
+  public static void breakStub() { 
   }
 }

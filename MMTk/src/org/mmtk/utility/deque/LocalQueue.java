@@ -142,7 +142,8 @@ import org.vmmagic.unboxed.*;
    * @return True if there the head buffer has been successfully
    * replenished.
    */
-  private final boolean dequeueUnderflow(int arity) throws NoInlinePragma {
+  @NoInline
+  private final boolean dequeueUnderflow(int arity) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))

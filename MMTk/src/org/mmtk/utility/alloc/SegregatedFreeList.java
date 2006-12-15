@@ -231,8 +231,9 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first word of the <code>bytes</code>
    *         contigious bytes of zerod memory.
    */
+  @NoInline
   public final Address allocSlowOnce(int bytes, int align, int offset,
-      boolean inGC) throws NoInlinePragma {
+      boolean inGC) { 
     Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero())
       return cell;

@@ -118,7 +118,8 @@ class FixedLive {
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
   //
-  public static void allocateLoop(int count) throws NoInlinePragma {
+  @NoInline
+  public static void allocateLoop(int count) { 
     for (int i=0; i<count; i++) 
       junk = new Node2I2A();
   }

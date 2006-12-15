@@ -1390,7 +1390,8 @@ public final class OPT_IR {
    * @param where    phrase identifying invoking  compilation phase
    * @param msg      error message
    */
-  private void verror(String where, String msg) throws NoInlinePragma {
+  @NoInline
+  private void verror(String where, String msg) { 
     OPT_CompilerPhase.dumpIR(this, "Verify: "+where + ": " + method);
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OPT_OptimizingCompilerException("VERIFY: "+where, msg);

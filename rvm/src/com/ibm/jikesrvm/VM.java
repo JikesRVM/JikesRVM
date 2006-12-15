@@ -491,9 +491,9 @@ import org.vmmagic.unboxed.*;
 
 
 
+  @NoInline
   private static void _assertionFailure(String msg1, String msg2) 
-    throws UninterruptibleNoWarnPragma, NoInlinePragma 
-  {
+    throws UninterruptibleNoWarnPragma { 
     if (msg1 == null && msg2 == null)
       msg1 = "vm internal error at:";
     if (msg2 == null) {
@@ -594,7 +594,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_Atom value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */
+  public static void write(VM_Atom value) {
     value.sysWrite();
   }
 
@@ -602,7 +603,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_Member value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */
+  public static void write(VM_Member value) {
     write(value.getMemberRef());
   }
 
@@ -610,7 +612,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value  what is printed
    */
-  public static void write(VM_MemberReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */
+  public static void write(VM_MemberReference value) {
     write(value.getType().getName());
     write(".");
     write(value.getName());
@@ -623,7 +626,8 @@ import org.vmmagic.unboxed.*;
    * @param value   what is printed
    */
   @LogicallyUninterruptible
-  public static void write(String value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */
+  public static void write(String value) { 
     if (value == null) {
       write("null");
     } else {
@@ -644,7 +648,8 @@ import org.vmmagic.unboxed.*;
    * @param value character array that is printed
    * @param len number of characters printed
    */
-  public static void write(char[] value, int len) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */
+  public static void write(char[] value, int len) {
     for (int i = 0, n = len; i < n; ++i) {
       if (runningVM)
         /*  Avoid triggering a potential read barrier
@@ -662,7 +667,8 @@ import org.vmmagic.unboxed.*;
    * @param value       The character to print
    */
   @LogicallyUninterruptible
-  public static void write(char value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(char value) { 
     if (runningVM)
       VM_SysCall.sysWriteChar(value);
     else
@@ -677,8 +683,8 @@ import org.vmmagic.unboxed.*;
    * @param postDecimalDigits   Number of decimal places
    */
   @LogicallyUninterruptible
-  public static void write(double value, int postDecimalDigits) 
-    throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(double value, int postDecimalDigits) { 
     if (runningVM)
       VM_SysCall.sysWriteDouble(value, postDecimalDigits);
     else
@@ -690,7 +696,8 @@ import org.vmmagic.unboxed.*;
    * @param value       what is printed
    */
   @LogicallyUninterruptible
-  public static void write(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(int value) { 
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
       VM_SysCall.sysWrite(value, mode);
@@ -704,7 +711,8 @@ import org.vmmagic.unboxed.*;
    * @param value       What is printed, as hex only
    */
   @LogicallyUninterruptible
-  public static void writeHex(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(int value) { 
     if (runningVM)
       VM_SysCall.sysWrite(value, 2 /*just hex*/);
     else {
@@ -717,7 +725,8 @@ import org.vmmagic.unboxed.*;
    * @param value       what is printed, as hex only
    */
   @LogicallyUninterruptible
-  public static void writeHex(long value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(long value) { 
     if (runningVM){
       VM_SysCall.sysWriteLong(value, 2);
     } else {
@@ -725,33 +734,39 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  public static void writeDec(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeDec(Word value) {
     if (VM.BuildFor32Addr)
       write(value.toInt()); 
     else
       write(value.toLong()); 
   }
 
-  public static void writeHex(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(Word value) {
     if (VM.BuildFor32Addr)
       writeHex(value.toInt()); 
     else
       writeHex(value.toLong()); 
   }
 
-  public static void writeHex(Address value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(Address value) {
     writeHex(value.toWord()); 
   }
 
-  public static void writeHex(ObjectReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(ObjectReference value) {
     writeHex(value.toAddress().toWord());
   }
 
-  public static void writeHex(Extent value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(Extent value) {
     writeHex(value.toWord()); 
   }
 
-  public static void writeHex(Offset value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeHex(Offset value) {
     writeHex(value.toWord()); 
   }
 
@@ -760,7 +775,8 @@ import org.vmmagic.unboxed.*;
    * @param value       what is printed, as int only
    */
   @LogicallyUninterruptible
-  public static void writeInt(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeInt(int value) { 
     if (runningVM)
       VM_SysCall.sysWrite(value, 0 /*just decimal*/);
     else {
@@ -775,7 +791,8 @@ import org.vmmagic.unboxed.*;
    *                              false - print as decimal only
    */
   @LogicallyUninterruptible
-  public static void write(int value, boolean hexToo) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(int value, boolean hexToo) { 
     if (runningVM)
       VM_SysCall.sysWrite(value, hexToo?1:0);
     else
@@ -786,7 +803,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(long value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(long value) {
     write(value, true);
   }
   
@@ -797,7 +815,8 @@ import org.vmmagic.unboxed.*;
    *                              false - print as decimal only
    */
   @LogicallyUninterruptible
-  public static void write(long value, boolean hexToo) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void write(long value, boolean hexToo) { 
     if (runningVM) 
       VM_SysCall.sysWriteLong(value, hexToo?1:0);
     else
@@ -806,7 +825,8 @@ import org.vmmagic.unboxed.*;
 
 
   @LogicallyUninterruptible
-  public static void writeField(int fieldWidth, String s) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeField(int fieldWidth, String s) { 
     write(s);
     int len = s.length();
     while (fieldWidth > len++) write(" ");
@@ -817,7 +837,8 @@ import org.vmmagic.unboxed.*;
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   @LogicallyUninterruptible
-  public static void writeField(int fieldWidth, int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeField(int fieldWidth, int value) { 
     int len = 1, temp = value;
     if (temp < 0) { len++; temp = -temp; }
     while (temp >= 10) { len++; temp /= 10; }
@@ -835,7 +856,8 @@ import org.vmmagic.unboxed.*;
    * @param fieldWidth  Minimum width to print.
    * @param s       The {@link VM_Atom} to print.       
    */
-  public static void writeField(int fieldWidth, VM_Atom s) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @NoInline /* don't waste code space inlining these --dave */ 
+  public static void writeField(int fieldWidth, VM_Atom s) {
     int len = s.length();
     while (fieldWidth > len++) write(" ");
     write(s);
@@ -876,102 +898,198 @@ import org.vmmagic.unboxed.*;
   /**
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
-  public static void sysWrite(VM_Atom a)               throws NoInlinePragma { swLock(); write(a); swUnlock(); }
-  public static void sysWriteln(VM_Atom a)             throws NoInlinePragma { swLock(); write(a); write("\n"); swUnlock(); }
-  public static void sysWrite(VM_Member m)             throws NoInlinePragma { swLock(); write(m); swUnlock(); }
-  public static void sysWrite(VM_MemberReference mr)   throws NoInlinePragma { swLock(); write(mr); swUnlock(); }
-  public static void sysWriteln ()                     throws NoInlinePragma { swLock(); write("\n"); swUnlock(); }
-  public static void sysWrite(char c)                  throws NoInlinePragma { write(c); }
-  public static void sysWriteField (int w, int v)      throws NoInlinePragma { swLock(); writeField(w, v); swUnlock(); }
-  public static void sysWriteField (int w, String s)   throws NoInlinePragma { swLock(); writeField(w, s); swUnlock(); }
-  public static void sysWriteHex(int v)                throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
-  public static void sysWriteHex(long v)               throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
-  public static void sysWriteHex(Address v)         throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
-  public static void sysWriteInt(int v)                throws NoInlinePragma { swLock(); writeInt(v); swUnlock(); }
-  public static void sysWriteLong(long v)              throws NoInlinePragma { swLock(); write(v,false); swUnlock(); }
-  public static void sysWrite   (double d, int p)      throws NoInlinePragma { swLock(); write(d, p); swUnlock(); }
-  public static void sysWrite   (double d)             throws NoInlinePragma { swLock(); write(d); swUnlock(); }
-  public static void sysWrite   (String s)             throws NoInlinePragma { swLock(); write(s); swUnlock(); }
-  public static void sysWrite   (char [] c, int l)     throws NoInlinePragma { swLock(); write(c, l); swUnlock(); }
-  public static void sysWrite   (Address a)         throws NoInlinePragma { swLock(); write(a); swUnlock(); }
-  public static void sysWriteln (Address a)         throws NoInlinePragma { swLock(); write(a); writeln(); swUnlock(); }
-  public static void sysWrite   (ObjectReference o) throws NoInlinePragma { swLock(); write(o); swUnlock(); }
-  public static void sysWriteln (ObjectReference o)         throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
-  public static void sysWrite   (Offset o)          throws NoInlinePragma { swLock(); write(o); swUnlock(); }
-  public static void sysWriteln (Offset o)          throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
-  public static void sysWrite   (Word w)            throws NoInlinePragma { swLock(); write(w); swUnlock(); }
-  public static void sysWriteln (Word w)            throws NoInlinePragma { swLock(); write(w); writeln(); swUnlock(); }
-  public static void sysWrite   (Extent e)          throws NoInlinePragma { swLock(); write(e); swUnlock(); }
-  public static void sysWriteln (Extent e)          throws NoInlinePragma { swLock(); write(e); writeln(); swUnlock(); }
-  public static void sysWrite   (boolean b)            throws NoInlinePragma { swLock(); write(b); swUnlock(); }
-  public static void sysWrite   (int i)                throws NoInlinePragma { swLock(); write(i); swUnlock(); }
-  public static void sysWriteln (int i)                throws NoInlinePragma { swLock(); write(i);   writeln(); swUnlock(); }
-  public static void sysWriteln (double d)             throws NoInlinePragma { swLock(); write(d);   writeln(); swUnlock(); }
-  public static void sysWriteln (long l)               throws NoInlinePragma { swLock(); write(l);   writeln(); swUnlock(); }
-  public static void sysWriteln (boolean b)            throws NoInlinePragma { swLock(); write(b);   writeln(); swUnlock(); }
-  public static void sysWriteln (String s)             throws NoInlinePragma { swLock(); write(s);   writeln(); swUnlock(); }
-  public static void sysWrite   (String s, int i)           throws NoInlinePragma { swLock(); write(s);   write(i); swUnlock(); }
-  public static void sysWriteln (String s, int i)           throws NoInlinePragma { swLock(); write(s);   write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, boolean b)       throws NoInlinePragma { swLock(); write(s);   write(b); swUnlock(); }
-  public static void sysWriteln (String s, boolean b)       throws NoInlinePragma { swLock(); write(s);   write(b); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, double d)        throws NoInlinePragma { swLock(); write(s);   write(d); swUnlock(); }
-  public static void sysWriteln (String s, double d)        throws NoInlinePragma { swLock(); write(s);   write(d); writeln(); swUnlock(); }
-  public static void sysWrite   (double d, String s)        throws NoInlinePragma { swLock(); write(d);   write(s); swUnlock(); }
-  public static void sysWriteln (double d, String s)        throws NoInlinePragma { swLock(); write(d);   write(s); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, long i)           throws NoInlinePragma { swLock(); write(s);   write(i); swUnlock(); }
-  public static void sysWriteln (String s, long i)           throws NoInlinePragma { swLock(); write(s);   write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (int i, String s)           throws NoInlinePragma { swLock(); write(i);   write(s); swUnlock(); }
-  public static void sysWriteln (int i, String s)           throws NoInlinePragma { swLock(); write(i);   write(s); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2)      throws NoInlinePragma { swLock(); write(s1);  write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, String s2)      throws NoInlinePragma { swLock(); write(s1);  write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); swUnlock(); }
-  public static void sysWriteln (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); writeln(); swUnlock(); }
-  public static void sysWrite (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); swUnlock(); }
-  public static void sysWriteln (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); swUnlock(); }
-  public static void sysWriteln (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); writeln(); swUnlock(); }
-  public static void sysWrite   (String s, Word w)       throws NoInlinePragma { swLock(); write(s);   write(w); swUnlock(); }
-  public static void sysWriteln (String s, Word w)       throws NoInlinePragma { swLock(); write(s);   write(w); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, Address a)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(a); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, Address a)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(a); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); writeln(); swUnlock(); }
-  public static void sysWrite   (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); swUnlock(); }
-  public static void sysWriteln (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); writeln(); swUnlock(); }
-  public static void sysWrite   (int i1, String s1, String s2) throws NoInlinePragma { swLock(); write(i1);  write(s1); write(s2); swUnlock(); }
-  public static void sysWriteln (int i1, String s1, String s2) throws NoInlinePragma { swLock(); write(i1);  write(s1); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3,String s4)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3,String s4)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3,String s4, String s5)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(s5); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3,String s4, String s5)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(s5); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); swUnlock(); }
-  public static void sysWriteln (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(  l1); swUnlock(); }
-  public static void sysWriteln (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(l1); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); swUnlock(); }
-  public static void sysWriteln (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); swUnlock(); }
-  public static void sysWriteln (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(  s3); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(s3); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(  i1); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3, int i1) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3,String s4, int i5, String s6)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(i5); write(s6); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3,String s4, int i5, String s6)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(s4); write(i5); write(s6); writeln(); swUnlock(); }
-  public static void sysWrite   (int i, String s1, double d, String s2) throws NoInlinePragma { swLock(); write(i); write(s1);  write(d); write(s2); swUnlock(); }
-  public static void sysWriteln (int i, String s1, double d, String s2) throws NoInlinePragma { swLock(); write(i); write(s1);  write(d); write(s2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); write(  s4); swUnlock(); }
-  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); write(s1);  write(a1); write(s2); write(a2); swUnlock(); }
-  public static void sysWriteln   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
-  public static void sysWrite   (String s1, Address a, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(a); write(s2); write(i); swUnlock(); }
-  public static void sysWriteln   (String s1, Address a, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(a); write(s2); write(i); writeln(); swUnlock(); }
+  @NoInline
+  public static void sysWrite(VM_Atom a) { swLock(); write(a); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln(VM_Atom a) { swLock(); write(a); write("\n"); swUnlock(); } 
+  @NoInline
+  public static void sysWrite(VM_Member m) { swLock(); write(m); swUnlock(); } 
+  @NoInline
+  public static void sysWrite(VM_MemberReference mr) { swLock(); write(mr); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln () { swLock(); write("\n"); swUnlock(); } 
+  @NoInline
+  public static void sysWrite(char c) { write(c); } 
+  @NoInline
+  public static void sysWriteField (int w, int v) { swLock(); writeField(w, v); swUnlock(); } 
+  @NoInline
+  public static void sysWriteField (int w, String s) { swLock(); writeField(w, s); swUnlock(); } 
+  @NoInline
+  public static void sysWriteHex(int v) { swLock(); writeHex(v); swUnlock(); } 
+  @NoInline
+  public static void sysWriteHex(long v) { swLock(); writeHex(v); swUnlock(); } 
+  @NoInline
+  public static void sysWriteHex(Address v) { swLock(); writeHex(v); swUnlock(); } 
+  @NoInline
+  public static void sysWriteInt(int v) { swLock(); writeInt(v); swUnlock(); } 
+  @NoInline
+  public static void sysWriteLong(long v) { swLock(); write(v,false); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (double d, int p) { swLock(); write(d, p); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (double d) { swLock(); write(d); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s) { swLock(); write(s); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (char [] c, int l) { swLock(); write(c, l); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (Address a) { swLock(); write(a); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (Address a) { swLock(); write(a); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (ObjectReference o) { swLock(); write(o); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (ObjectReference o) { swLock(); write(o); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (Offset o) { swLock(); write(o); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (Offset o) { swLock(); write(o); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (Word w) { swLock(); write(w); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (Word w) { swLock(); write(w); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (Extent e) { swLock(); write(e); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (Extent e) { swLock(); write(e); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (boolean b) { swLock(); write(b); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (int i) { swLock(); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (int i) { swLock(); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (double d) { swLock(); write(d); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (long l) { swLock(); write(l); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (boolean b) { swLock(); write(b); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s) { swLock(); write(s); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, int i) { swLock(); write(s); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, int i) { swLock(); write(s); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, boolean b) { swLock(); write(s); write(b); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, boolean b) { swLock(); write(s); write(b); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, double d) { swLock(); write(s); write(d); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, double d) { swLock(); write(s); write(d); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (double d, String s) { swLock(); write(d); write(s); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (double d, String s) { swLock(); write(d); write(s); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, long i) { swLock(); write(s); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, long i) { swLock(); write(s); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (int i, String s) { swLock(); write(i); write(s); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (int i, String s) { swLock(); write(i); write(s); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2) { swLock(); write(s1); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2) { swLock(); write(s1); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, Address a) { swLock(); write(s); write(a); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, Address a) { swLock(); write(s); write(a); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite (String s, ObjectReference r) { swLock(); write(s); write(r); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, ObjectReference r) { swLock(); write(s); write(r); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, Offset o) { swLock(); write(s); write(o); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, Offset o) { swLock(); write(s); write(o); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s, Word w) { swLock(); write(s); write(w); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s, Word w) { swLock(); write(s); write(w); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, Address a) { swLock(); write(s1); write(s2); write(a); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, Address a) { swLock(); write(s1); write(s2); write(a); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, int i) { swLock(); write(s1); write(s2); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, int i) { swLock(); write(s1); write(s2); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, int i, String s2) { swLock(); write(s1); write(i); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, int i, String s2) { swLock(); write(s1); write(i); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, Offset o, String s2) { swLock(); write(s1); write(o); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, Offset o, String s2) { swLock(); write(s1); write(o); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3) { swLock(); write(s1); write(s2); write(s3); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3) { swLock(); write(s1); write(s2); write(s3); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (int i1, String s, int i2) { swLock(); write(i1); write(s); write(i2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (int i1, String s, int i2) { swLock(); write(i1); write(s); write(i2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (int i1, String s1, String s2) { swLock(); write(i1); write(s1); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (int i1, String s1, String s2) { swLock(); write(i1); write(s1); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3,String s4) { swLock(); write(s1); write(s2); write(s3); write(s4); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3,String s4) { swLock(); write(s1); write(s2); write(s3); write(s4); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3,String s4, String s5) { swLock(); write(s1); write(s2); write(s3); write(s4); write(s5); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3,String s4, String s5) { swLock(); write(s1); write(s2); write(s3); write(s4); write(s5); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, int i1, String s2, int i2) { swLock(); write(s1); write(i1); write(s2); write(i2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, int i1, String s2, int i2) { swLock(); write(s1); write(i1); write(s2); write(i2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, int i1, String s2, long l1) { swLock(); write(s1); write(i1); write(s2); write( l1); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, int i1, String s2, long l1) { swLock(); write(s1); write(i1); write(s2); write(l1); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, Offset o, String s2, int i) { swLock(); write(s1); write(o); write(s2); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, Offset o, String s2, int i) { swLock(); write(s1); write(o); write(s2); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, double d, String s2) { swLock(); write(s1); write(d); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, double d, String s2) { swLock(); write(s1); write(d); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, int i1, String s3) { swLock(); write(s1); write(s2); write(i1); write( s3); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, int i1, String s3) { swLock(); write(s1); write(s2); write(i1); write(s3); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3, int i1) { swLock(); write(s1); write(s2); write(s3); write( i1); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3, int i1) { swLock(); write(s1); write(s2); write(s3); write(i1); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3,String s4, int i5, String s6) { swLock(); write(s1); write(s2); write(s3); write(s4); write(i5); write(s6); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3,String s4, int i5, String s6) { swLock(); write(s1); write(s2); write(s3); write(s4); write(i5); write(s6); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (int i, String s1, double d, String s2) { swLock(); write(i); write(s1); write(d); write(s2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (int i, String s1, double d, String s2) { swLock(); write(i); write(s1); write(d); write(s2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) { swLock(); write(s1); write(s2); write(s3); write(i1); write( s4); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) { swLock(); write(s1); write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, Address a1, String s2, Address a2) { swLock(); write(s1); write(a1); write(s2); write(a2); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln   (String s1, Address a1, String s2, Address a2) { swLock(); write(s1); write(a1); write(s2); write(a2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void sysWrite   (String s1, Address a, String s2, int i) { swLock(); write(s1); write(a); write(s2); write(i); swUnlock(); } 
+  @NoInline
+  public static void sysWriteln   (String s1, Address a, String s2, int i) { swLock(); write(s1); write(a); write(s2); write(i); writeln(); swUnlock(); } 
 
   private static void showProc() { 
     VM_Processor p = VM_Processor.getCurrentProcessor();
@@ -986,31 +1104,45 @@ import org.vmmagic.unboxed.*;
     write(": ");
   }
 
-  public static void ptsysWriteln (String s)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
+  @NoInline
+  public static void ptsysWriteln (String s) { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); } 
 
-  public static void ptsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(i4); write(s5); write(s6); writeln(); swUnlock(); }
+  @NoInline
+  public static void ptsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6) { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(i4); write(s5); write(s6); writeln(); swUnlock(); } 
 
-  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); writeln(); swUnlock(); }
-
-  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13, int i14)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); write(i14); writeln(); swUnlock(); }
+  @NoInline
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13) { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); writeln(); swUnlock(); } 
   
-  public static void psysWrite    (char [] c, int l)     throws NoInlinePragma { swLock(); showProc(); write(c, l); swUnlock(); }
+  @NoInline
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13, int i14) { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); write(i14); writeln(); swUnlock(); } 
+  
+  @NoInline
+  public static void psysWrite    (char [] c, int l) { swLock(); showProc(); write(c, l); swUnlock(); } 
 
-  public static void psysWriteln (Address a)         throws NoInlinePragma { swLock(); showProc(); write(a); writeln(); swUnlock(); }
-  public static void psysWriteln (String s)             throws NoInlinePragma { swLock(); showProc(); write(s); writeln(); swUnlock(); }
-  public static void psysWriteln (String s, int i)             throws NoInlinePragma { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
-  public static void psysWriteln (String s, Address a)      throws NoInlinePragma { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, Address a1, String s2, Address a2) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
-  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
+  @NoInline
+  public static void psysWriteln (Address a) { swLock(); showProc(); write(a); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln (String s) { swLock(); showProc(); write(s); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln (String s, int i) { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln (String s, Address a) { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2) { swLock(); showProc(); write(s1); write(a1); write(s2); write(a2); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3) { swLock(); showProc(); write(s1); write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) { swLock(); showProc(); write(s1); write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); } 
+  @NoInline
+  public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) { swLock(); showProc(); write(s1); write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); } 
   
 
   /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
-  public static void sysFail(String message) throws NoInlinePragma {
+  @NoInline
+  public static void sysFail(String message) { 
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
@@ -1030,9 +1162,8 @@ import org.vmmagic.unboxed.*;
    * @param message  error message describing the problem
    * @param number  an integer to append to <code>message</code>.  
    */
-  public static void sysFail(String message, int number) 
-    throws NoInlinePragma 
-  {
+  @NoInline
+  public static void sysFail(String message, int number) { 
     handlePossibleRecursiveCallToSysFail(message, number);
 
     // print a traceback and die
@@ -1057,7 +1188,8 @@ import org.vmmagic.unboxed.*;
    * @param value  value to pass to host o/s
    */
   @LogicallyUninterruptible
-  public static void sysExit(int value) throws NoInlinePragma { 
+  @NoInline
+  public static void sysExit(int value) { 
     handlePossibleRecursiveCallToSysExit();
     if (debugOOM) {
       sysWriteln("entered VM.sysExit(", value, ")");

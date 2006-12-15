@@ -85,7 +85,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
     }

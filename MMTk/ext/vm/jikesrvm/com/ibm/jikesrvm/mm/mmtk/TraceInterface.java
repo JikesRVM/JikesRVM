@@ -143,8 +143,8 @@ import org.vmmagic.pragma.*;
    *@param typeRef The type reference (tib) of the object just allocated
    *@return The frame pointer address for the method that allocated the object
    */
-  public final Address skipOwnFramesAndDump(ObjectReference typeRef)
-    throws NoInlinePragma {
+  @NoInline
+  public final Address skipOwnFramesAndDump(ObjectReference typeRef) { 
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;

@@ -504,8 +504,9 @@ public class VM_Runtime implements VM_Constants {
    * Helper function to actually throw the required exception.
    * Keep out of line to mitigate code space when quickNewArray is inlined.
    */
+  @NoInline
   private static void raiseNegativeArraySizeException()
-    throws NegativeArraySizeException, NoInlinePragma {
+    throws NegativeArraySizeException { 
     throw new NegativeArraySizeException();
   }
 
@@ -585,7 +586,8 @@ public class VM_Runtime implements VM_Constants {
    *
    * This method is public so that it can be invoked by java.lang.VMClass.
    */
-  public static void athrow(Throwable exceptionObject) throws NoInlinePragma {
+  @NoInline
+  public static void athrow(Throwable exceptionObject) { 
     VM_Registers registers = new VM_Registers();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(registers);
@@ -685,7 +687,8 @@ public class VM_Runtime implements VM_Constants {
    * (null --> deliver NullPointerException).
    * does not return (stack is unwound and execution resumes in a catch block)
    */ 
-  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) throws NoInlinePragma {
+  @NoInline
+  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) { 
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
@@ -695,7 +698,8 @@ public class VM_Runtime implements VM_Constants {
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
    */
-  static void raiseArrayIndexOutOfBoundsException(int index) throws NoInlinePragma {
+  @NoInline
+  static void raiseArrayIndexOutOfBoundsException(int index) { 
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
 
@@ -705,7 +709,8 @@ public class VM_Runtime implements VM_Constants {
    * an array access will unconditionally raise an array bounds check
    * error, but it has lost track of exactly what the index is going to be.
    */
-  static void raiseArrayIndexOutOfBoundsException() throws NoInlinePragma {
+  @NoInline
+  static void raiseArrayIndexOutOfBoundsException() { 
     throw new java.lang.ArrayIndexOutOfBoundsException();
   }
 
@@ -718,7 +723,8 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise a null pointer exception.
    */
-  public static void raiseNullPointerException() throws NoInlinePragma {
+  @NoInline
+  public static void raiseNullPointerException() { 
     throw new java.lang.NullPointerException();
   }
 
@@ -727,7 +733,8 @@ public class VM_Runtime implements VM_Constants {
    * Used in a few circumstances to reduce code space costs
    * of inlining (see java.lang.System.arraycopy()). 
    */
-  public static void raiseArrayStoreException() throws NoInlinePragma {
+  @NoInline
+  public static void raiseArrayStoreException() { 
     throw new java.lang.ArrayStoreException();
   }
 
@@ -738,7 +745,8 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise an arithmetic exception.
    */
-  static void raiseArithmeticException() throws NoInlinePragma {
+  @NoInline
+  static void raiseArithmeticException() { 
     throw new java.lang.ArithmeticException();
   }
 
@@ -746,7 +754,8 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.AbstractMethodError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseAbstractMethodError() throws NoInlinePragma {
+  @NoInline
+  static void raiseAbstractMethodError() { 
     throw new java.lang.AbstractMethodError();
   }
 
@@ -754,7 +763,8 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.IllegalAccessError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseIllegalAccessError() throws NoInlinePragma {
+  @NoInline
+  static void raiseIllegalAccessError() { 
     throw new java.lang.IllegalAccessError();
   }
 

@@ -22,7 +22,8 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class OSR_Listener {
 
-  public static boolean checkForOSRPromotion(int whereFrom) throws NoInlinePragma {
+  @NoInline
+  public static boolean checkForOSRPromotion(int whereFrom) { 
     if (VM_Thread.getCurrentThread().isIdleThread()) return false;
     if (VM_Thread.getCurrentThread().isSystemThread()) return false;
 
@@ -69,7 +70,8 @@ import org.vmmagic.pragma.*;
   }
   
 
-  public static void handleOSRFromOpt() throws NoInlinePragma {
+  @NoInline
+  public static void handleOSRFromOpt() { 
     // get this frame pointer
     Address tsFP = VM_Magic.getFramePointer();
     Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);

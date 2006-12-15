@@ -183,11 +183,11 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
+  @NoInline
   private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
                                              ObjectReference tgt,
                                              Offset metaDataA, int metaDataB,
-                                             int mode)
-  throws NoInlinePragma {
+                                             int mode) { 
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -271,8 +271,8 @@ import org.vmmagic.unboxed.*;
    *
    * @param srcObj The object being mutated
    */
-  private final void coalescingWriteBarrierSlow(ObjectReference srcObj)
-  throws NoInlinePragma {
+  @NoInline
+  private final void coalescingWriteBarrierSlow(ObjectReference srcObj) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RC.WITH_COALESCING_RC);
       VM.assertions._assert(RCBase.isRCObject(srcObj));

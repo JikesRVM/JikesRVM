@@ -525,7 +525,8 @@ import com.ibm.jikesrvm.opt.ir.*;
   }
   
   /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
-  private static int installHashCode(Object o) throws NoInlinePragma {
+  @NoInline
+  private static int installHashCode(Object o) { 
     Word hashCode;
     do {
       hashCodeGenerator = hashCodeGenerator.plus(Word.one().lsh(HASH_CODE_SHIFT));

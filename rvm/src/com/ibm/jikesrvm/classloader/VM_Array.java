@@ -524,7 +524,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -563,7 +564,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -602,7 +604,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -641,7 +644,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -680,7 +684,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -719,7 +724,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -758,7 +764,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -797,7 +804,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    
   // Outlined unlikely case of potentially overlapping subarrays
   // Motivation is to reduce code space costs of inlined array copy.
-  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) throws NoInlinePragma {
+  @NoInline
+  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) { 
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -927,7 +935,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
 
-  private static void failWithIndexOutOfBoundsException() throws NoInlinePragma {
+  @NoInline
+  private static void failWithIndexOutOfBoundsException() { 
     throw new ArrayIndexOutOfBoundsException();
   }
 }

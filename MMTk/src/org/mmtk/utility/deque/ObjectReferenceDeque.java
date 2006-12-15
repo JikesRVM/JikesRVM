@@ -78,7 +78,8 @@ import org.vmmagic.pragma.*;
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void pushOOL(ObjectReference object) throws NoInlinePragma {
+  @NoInline
+  public final void pushOOL(ObjectReference object) { 
     push(object);
   }
 

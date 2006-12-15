@@ -265,8 +265,8 @@ import org.vmmagic.pragma.*;
    * Process soft references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processSoftReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processSoftReferences(boolean nursery) { 
     traverse(SOFT_SEMANTICS, nursery);
     clearSoftReferences = false;
   }
@@ -275,8 +275,8 @@ import org.vmmagic.pragma.*;
    * Process weak references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processWeakReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processWeakReferences(boolean nursery) { 
     traverse(WEAK_SEMANTICS, nursery);
   }
 
@@ -284,8 +284,8 @@ import org.vmmagic.pragma.*;
    * Process phantom references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processPhantomReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processPhantomReferences(boolean nursery) { 
     traverse(PHANTOM_SEMANTICS, nursery);
   }
 

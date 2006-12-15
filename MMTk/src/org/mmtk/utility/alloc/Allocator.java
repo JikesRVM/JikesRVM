@@ -231,7 +231,8 @@ import org.vmmagic.pragma.*;
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  final public Address allocSlow(int bytes, int alignment, int offset, boolean inGC) throws NoInlinePragma {
+  @NoInline
+  final public Address allocSlow(int bytes, int alignment, int offset, boolean inGC) { 
     return allocSlowInline(bytes, alignment, offset, inGC);
   }
   

@@ -76,8 +76,8 @@ import org.vmmagic.pragma.*;
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  public final Address alloc(int bytes, int align, int offset, boolean inGC)
-      throws NoInlinePragma {
+  @NoInline
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
     Address cell = allocSlow(bytes, align, offset, inGC);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);

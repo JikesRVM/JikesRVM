@@ -256,8 +256,9 @@ import org.vmmagic.pragma.*;
     return object.toAddress().loadInt(RC_HEADER_OFFSET) < HARD_THRESHOLD;
   }
 
+  @NoInline
   public static void incRCOOL(ObjectReference object) 
-    throws UninterruptiblePragma, NoInlinePragma {
+    throws UninterruptiblePragma { 
     incRC(object);
   }
 

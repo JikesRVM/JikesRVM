@@ -139,8 +139,8 @@ import org.vmmagic.pragma.*;
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    */
-  public static void assertIsZeroed(Address start, int bytes)
-      throws NoInlinePragma {
+  @NoInline
+  public static void assertIsZeroed(Address start, int bytes) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isSet(start, bytes, true, 0));
   }
 
@@ -189,14 +189,14 @@ import org.vmmagic.pragma.*;
    * @param verbose If true, produce verbose output
    * @param value The value to which the memory should be set
    */
+  @NoInline
   private static boolean isSet(Address start, int bytes, boolean verbose,
       int value)
     /* Inlining this loop into the uninterruptible code can
      *  cause/encourage the GCP into moving a get_obj_tib into the
      * interruptible region where the tib is being installed via an
      * int_store
-   */
-  throws NoInlinePragma {
+   */ { 
     if (VM.VERIFY_ASSERTIONS) assertAligned(bytes);
     for (int i = 0; i < bytes; i += BYTES_IN_INT)
       if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {

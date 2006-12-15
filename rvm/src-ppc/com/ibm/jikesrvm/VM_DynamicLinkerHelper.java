@@ -27,7 +27,8 @@ import org.vmmagic.pragma.*;
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */
-  static Object getReceiverObject() throws NoInlinePragma {
+  @NoInline
+  static Object getReceiverObject() { 
     // reach into register save area and fetch "this" parameter
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);

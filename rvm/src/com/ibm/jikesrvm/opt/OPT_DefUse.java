@@ -63,7 +63,8 @@ public final class OPT_DefUse {
    *
    * @param ir the IR in question
    */
-  public static void computeDU(OPT_IR ir) throws NoInlinePragma {
+  @NoInline
+  public static void computeDU(OPT_IR ir) { 
     // Clear old register list (if any)
     clearDU(ir);
     // Create register defList and useList
@@ -478,7 +479,8 @@ public final class OPT_DefUse {
       current = current.getNext();
       return tmp;
     }
-    private static void raiseNoSuchElementException() throws NoInlinePragma {
+    @NoInline
+    private static void raiseNoSuchElementException() { 
       throw new java.util.NoSuchElementException("RegOpListWalker");
     }
   }

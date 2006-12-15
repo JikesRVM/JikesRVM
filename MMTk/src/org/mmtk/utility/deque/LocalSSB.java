@@ -192,7 +192,8 @@ import org.vmmagic.unboxed.*;
    * 
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndEnqueueTail(int arity) throws NoInlinePragma {
+  @NoInline
+  private final void closeAndEnqueueTail(int arity) { 
     Address last;
     if (!bufferOffset(tail).isZero()) {
       // prematurely closed

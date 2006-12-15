@@ -100,8 +100,8 @@ import org.vmmagic.pragma.*;
    * emergency heap space.
    */
   @LogicallyUninterruptible
-  public final void failWithOutOfMemoryError()
-    throws NoInlinePragma { 
+  @NoInline
+  public final void failWithOutOfMemoryError() { 
     failWithOutOfMemoryErrorStatic();
   }
 
@@ -111,8 +111,8 @@ import org.vmmagic.pragma.*;
    * emergency heap space.
    */
   @LogicallyUninterruptible
-  public static final void failWithOutOfMemoryErrorStatic()
-    throws NoInlinePragma { 
+  @NoInline
+  public static final void failWithOutOfMemoryErrorStatic() { 
     if (VM.doEmergencyGrowHeap)
       MM_Interface.emergencyGrowHeap(EMERGENCY_HEAP_REQ); // ask and pray
     throw new OutOfMemoryError();

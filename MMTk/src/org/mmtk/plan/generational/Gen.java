@@ -140,7 +140,8 @@ import org.vmmagic.unboxed.*;
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == INITIATE) {
       gcFullHeap = nextGCFullHeap;
       super.collectionPhase(phaseId);

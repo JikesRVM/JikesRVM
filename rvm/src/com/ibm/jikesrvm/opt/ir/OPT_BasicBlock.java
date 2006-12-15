@@ -1908,7 +1908,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
       return value;
     }      
     protected abstract OPT_BasicBlock advance();
-    protected static void fail() throws java.util.NoSuchElementException, NoInlinePragma {
+    @NoInline
+    protected static void fail() throws java.util.NoSuchElementException { 
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }
@@ -1936,7 +1937,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
       if (current >=  numBlocks) fail();
       return blocks[current++];
     }
-    protected static void fail() throws java.util.NoSuchElementException, NoInlinePragma {
+    @NoInline
+    protected static void fail() throws java.util.NoSuchElementException { 
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }

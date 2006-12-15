@@ -227,8 +227,8 @@ import org.vmmagic.unboxed.*;
    *
    * @param src The object being mutated.
    */
-  private final void writeBarrierSlow(ObjectReference src)
-  throws NoInlinePragma {
+  @NoInline
+  private final void writeBarrierSlow(ObjectReference src) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(!Space.isInSpace(GenRC.NS, src));
     }
