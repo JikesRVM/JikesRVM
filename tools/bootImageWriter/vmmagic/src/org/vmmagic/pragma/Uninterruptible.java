@@ -45,5 +45,5 @@ import java.lang.annotation.ElementType;
  * @author Ian Rogers
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Uninterruptible { }

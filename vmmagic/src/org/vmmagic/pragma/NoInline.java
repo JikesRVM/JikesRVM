@@ -20,5 +20,5 @@ import java.lang.annotation.ElementType;
  * @author Daniel Frampton
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 public @interface NoInline { }

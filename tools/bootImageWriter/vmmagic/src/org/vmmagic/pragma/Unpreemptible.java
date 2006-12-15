@@ -9,6 +9,11 @@
 //$Id$
 package org.vmmagic.pragma; 
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.ElementType;
+
 /** 
  * Methods of a class that implements this (pseudo-)interface
  * are treated specially by the  compilers:
@@ -37,4 +42,6 @@ package org.vmmagic.pragma;
  * 
  * @author Dave Grove
  */
-public interface Unpreemptible { }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Unpreemptible { }
