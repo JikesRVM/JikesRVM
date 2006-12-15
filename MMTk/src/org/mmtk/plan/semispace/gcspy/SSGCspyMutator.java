@@ -21,11 +21,8 @@ import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 
-import org.vmmagic.pragma.InlinePragma;
-import org.vmmagic.pragma.Uninterruptible;
-
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for the

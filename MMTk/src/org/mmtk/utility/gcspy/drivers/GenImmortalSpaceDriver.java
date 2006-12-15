@@ -54,7 +54,6 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  @Interruptible
   public GenImmortalSpaceDriver( 
                      ServerInterpreter server,
 		             String spaceName,

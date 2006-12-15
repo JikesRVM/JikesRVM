@@ -52,7 +52,6 @@ import org.vmmagic.pragma.*;
    * @param threshold the size threshold of the LOS
    * @param mainSpace Is this the main space?
    */
-  @Interruptible
   public GenLOSDriver(ServerInterpreter server,
                       String spaceName,
                       LargeObjectSpace lospace,
