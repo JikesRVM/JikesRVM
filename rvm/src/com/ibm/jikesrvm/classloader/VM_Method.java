@@ -541,21 +541,19 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     
   /**
    * Has this method been marked as forbidden to inline?
-   * ie., it marked with the <CODE>NoInline</CODE> annotation or
-   * the <CODE>NoOptCompilePragma</CODE> exception?
+   * ie., it is marked with the <CODE>NoInline</CODE> annotation or
+   * the <CODE>NoOptCompile</CODE> annotation?
    */
   public final boolean hasNoInlinePragma() {
-    if (isAnnotationPresent(NoInline.class) || isAnnotationPresent(NoOptCompile.class)) return true;
-    return NoOptCompilePragma.declaredBy(this);
+    return (isAnnotationPresent(NoInline.class) || isAnnotationPresent(NoOptCompile.class));
   }
     
   /**
    * Has this method been marked as no opt compile?
-   * ie., it throws the <CODE>NoOptCompilePragma</CODE> exception?
+   * ie., it is marked with the <CODE>NoOptCompile</CODE> annotation?
    */
   public final boolean hasNoOptCompilePragma() {
-    if (isAnnotationPresent(NoOptCompile.class)) return true;
-    return NoOptCompilePragma.declaredBy(this);
+    return isAnnotationPresent(NoOptCompile.class);
   }
     
   /**
