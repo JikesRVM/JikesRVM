@@ -243,9 +243,6 @@ public class VM_ControllerThread extends VM_Thread {
           new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
         VM_Controller.organizers.addElement(decayOrganizer);
         createDynamicCallGraphOrganizer();
-        // TODO: need a robust implementation of this, until we have it
-        //       the risks are larger than the benefit.
-        // VM_Controller.organizers.addElement(new VM_MissingHotCallEdgeOrganizer());
       }
     }    
 
