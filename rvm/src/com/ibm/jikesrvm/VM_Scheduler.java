@@ -528,9 +528,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
   /**
    * Dump stack of calling thread, starting at callers frame
    */
-  public static void dumpStack () 
-    throws LogicallyUninterruptiblePragma
-  {
+  @LogicallyUninterruptible
+  public static void dumpStack () { 
     if (VM.runningVM)
       dumpStack(VM_Magic.getFramePointer());
     else

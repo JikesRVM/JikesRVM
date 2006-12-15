@@ -104,8 +104,8 @@ public abstract class Reference<T> {
    * that users might find confusing. We think the problem is actually
    * not a 'real' problem...
    */
-  public boolean enqueue() throws UninterruptiblePragma, 
-                                  LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean enqueue() throws UninterruptiblePragma { 
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

@@ -162,8 +162,8 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  public final void triggerCollectionNow(int why) 
-    throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final void triggerCollectionNow(int why) { 
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
@@ -225,8 +225,8 @@ import org.vmmagic.pragma.*;
    * @param why Why the collection was triggered
    * @param async True if this collection was asynchronously triggered.
    */
-  private static final void checkForExhaustion(int why, boolean async)
-    throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  private static final void checkForExhaustion(int why, boolean async) { 
     double usage = Plan.reservedMemory().toLong()/ ((double) Plan.totalMemory().toLong());
     
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {

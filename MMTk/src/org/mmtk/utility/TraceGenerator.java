@@ -223,9 +223,10 @@ import org.vmmagic.unboxed.*;
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the object being allocated
    */
+  @LogicallyUninterruptible
   public static final void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes)
-      throws LogicallyUninterruptiblePragma, NoInlinePragma {
+      throws NoInlinePragma { 
     boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */

@@ -622,7 +622,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(String value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void write(String value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (value == null) {
       write("null");
     } else {
@@ -660,7 +661,8 @@ import org.vmmagic.unboxed.*;
     * Low level print of a <code>char</code>to console.
    * @param value       The character to print
    */
-  public static void write(char value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void write(char value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM)
       VM_SysCall.sysWriteChar(value);
     else
@@ -674,8 +676,9 @@ import org.vmmagic.unboxed.*;
    * @param value               <code>double</code> to be printed
    * @param postDecimalDigits   Number of decimal places
    */
+  @LogicallyUninterruptible
   public static void write(double value, int postDecimalDigits) 
-    throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+    throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM)
       VM_SysCall.sysWriteDouble(value, postDecimalDigits);
     else
@@ -686,7 +689,8 @@ import org.vmmagic.unboxed.*;
    * Low level print of an <code>int</code> to console.
    * @param value       what is printed
    */
-  public static void write(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void write(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
       VM_SysCall.sysWrite(value, mode);
@@ -699,7 +703,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value       What is printed, as hex only
    */
-  public static void writeHex(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void writeHex(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM)
       VM_SysCall.sysWrite(value, 2 /*just hex*/);
     else {
@@ -711,7 +716,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value       what is printed, as hex only
    */
-  public static void writeHex(long value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void writeHex(long value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM){
       VM_SysCall.sysWriteLong(value, 2);
     } else {
@@ -753,7 +759,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value       what is printed, as int only
    */
-  public static void writeInt(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void writeInt(int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM)
       VM_SysCall.sysWrite(value, 0 /*just decimal*/);
     else {
@@ -767,7 +774,8 @@ import org.vmmagic.unboxed.*;
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void write(int value, boolean hexToo) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void write(int value, boolean hexToo) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM)
       VM_SysCall.sysWrite(value, hexToo?1:0);
     else
@@ -788,7 +796,8 @@ import org.vmmagic.unboxed.*;
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void write(long value, boolean hexToo) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void write(long value, boolean hexToo) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     if (runningVM) 
       VM_SysCall.sysWriteLong(value, hexToo?1:0);
     else
@@ -796,7 +805,8 @@ import org.vmmagic.unboxed.*;
   }
 
 
-  public static void writeField(int fieldWidth, String s) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void writeField(int fieldWidth, String s) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     write(s);
     int len = s.length();
     while (fieldWidth > len++) write(" ");
@@ -806,7 +816,8 @@ import org.vmmagic.unboxed.*;
    * Low level print to console.
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  public static void writeField(int fieldWidth, int value) throws LogicallyUninterruptiblePragma, NoInlinePragma /* don't waste code space inlining these --dave */ {
+  @LogicallyUninterruptible
+  public static void writeField(int fieldWidth, int value) throws NoInlinePragma /* don't waste code space inlining these --dave */ { 
     int len = 1, temp = value;
     if (temp < 0) { len++; temp = -temp; }
     while (temp >= 10) { len++; temp /= 10; }
@@ -1045,7 +1056,8 @@ import org.vmmagic.unboxed.*;
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  public static void sysExit(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma {
+  @LogicallyUninterruptible
+  public static void sysExit(int value) throws NoInlinePragma { 
     handlePossibleRecursiveCallToSysExit();
     if (debugOOM) {
       sysWriteln("entered VM.sysExit(", value, ")");

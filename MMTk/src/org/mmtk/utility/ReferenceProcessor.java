@@ -65,8 +65,8 @@ import org.vmmagic.pragma.*;
    * @param nursery It is safe to only collect new references 
    */
   @Inline
-  private static void traverse(int semantics, boolean nursery)
-      throws LogicallyUninterruptiblePragma { 
+  @LogicallyUninterruptible
+  private static void traverse(int semantics, boolean nursery) { 
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");

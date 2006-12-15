@@ -123,8 +123,8 @@ import org.vmmagic.pragma.*;
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
-  public boolean poll(boolean mustCollect, Space space)
-  throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();

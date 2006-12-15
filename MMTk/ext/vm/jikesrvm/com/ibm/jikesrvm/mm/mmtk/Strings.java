@@ -60,9 +60,9 @@ import org.vmmagic.pragma.*;
    * destination to copy to
    * @return the number of characters copied.
    */
+  @LogicallyUninterruptible
   public final int copyStringToChars(String src, char [] dst,
-                                     int dstBegin, int dstEnd)
-    throws LogicallyUninterruptiblePragma {
+                                     int dstBegin, int dstEnd) { 
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
     int len = src.length();

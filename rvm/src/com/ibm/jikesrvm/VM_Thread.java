@@ -596,7 +596,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     }
   }
 
-  private static void postExternalInterrupt(VM_Thread myThread) throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  private static void postExternalInterrupt(VM_Thread myThread) { 
     Throwable t = myThread.externalInterrupt;
     myThread.externalInterrupt = null;
     myThread.throwInterruptWhenScheduled = false;
@@ -787,8 +788,8 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   /**
    * Get this thread's index in {@link VM_Scheduler#threads}[].
    */ 
-  public final int getIndex()  throws LogicallyUninterruptiblePragma
-  { return threadSlot; }
+  @LogicallyUninterruptible
+  public final int getIndex() { return threadSlot; } 
   
   /**
    * Get this thread's id for use in lock ownership tests.  

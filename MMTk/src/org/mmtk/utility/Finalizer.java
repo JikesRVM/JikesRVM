@@ -159,7 +159,8 @@ import org.vmmagic.unboxed.*;
    * 
    * The aastore is actually uninterruptible since the target is an array of Objects.
    */
-  private static void addLive(ObjectReference obj) throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  private static void addLive(ObjectReference obj) { 
     if (liveEnd == live.length()) {
       ObjectReferenceArray newLive = live;
       if (liveStart == 0)
@@ -182,7 +183,8 @@ import org.vmmagic.unboxed.*;
    * The aastore is actually uninterruptible since the target is an
    * array of Objects.
    */
-  public final static ObjectReference get() throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final static ObjectReference get() { 
 
     if (liveStart == liveEnd) return ObjectReference.nullReference();
 

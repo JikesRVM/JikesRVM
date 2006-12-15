@@ -111,7 +111,8 @@ import org.vmmagic.unboxed.*;
    * @param o the object synchronized on
    * @see java.lang.Object#wait()
    */
-  public static void wait (Object o) throws LogicallyUninterruptiblePragma /* only loses control at expected points -- I think -dave */{
+  @LogicallyUninterruptible /* only loses control at expected points -- I think -dave */
+  public static void wait (Object o) {
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
     t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
@@ -153,7 +154,8 @@ import org.vmmagic.unboxed.*;
    * @param millis the number of milliseconds to wait for notification
    * @see java.lang.Object#wait(long time)
    */
-  public static void wait (Object o, long millis) throws LogicallyUninterruptiblePragma /* only loses control at expected points -- I think -dave */{
+  @LogicallyUninterruptible /* only loses control at expected points -- I think -dave */
+  public static void wait (Object o, long millis) {
     VM_Thread t = VM_Thread.getCurrentThread();
     if (STATS) timedWaitOperations++;
     // Get proxy and set wakeup time
@@ -393,7 +395,8 @@ import org.vmmagic.unboxed.*;
                 || VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
   }
   
-  static void growLocks() throws LogicallyUninterruptiblePragma /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
+  @LogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ 
+  static void growLocks() {
     VM_Lock [] oldLocks = VM_Scheduler.locks;
     int newSize = 2 * oldLocks.length;
     if (newSize > MAX_LOCKS + 1)
@@ -413,7 +416,8 @@ import org.vmmagic.unboxed.*;
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () throws LogicallyUninterruptiblePragma /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
+  @LogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */
+  static VM_Lock allocate () {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
@@ -536,7 +540,8 @@ import org.vmmagic.unboxed.*;
     lockAllocationMutex.unlock();
   }
 
-  static void raiseIllegalMonitorStateException(String msg, Object o) throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  static void raiseIllegalMonitorStateException(String msg, Object o) { 
     throw new IllegalMonitorStateException(msg + o);
   }
 

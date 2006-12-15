@@ -708,7 +708,8 @@ implements VM_Constants {
   // PPC baseline compiler
   private double scratchStorage;
 
-  public void dumpProcessorState() throws LogicallyUninterruptiblePragma /* GACK --dave */ {
+  @LogicallyUninterruptible /* GACK --dave */ 
+  public void dumpProcessorState() {
     VM.sysWrite("Processor "); 
     VM.sysWriteInt(id);
     if (this == VM_Processor.getCurrentProcessor()) VM.sysWrite(" (me)");

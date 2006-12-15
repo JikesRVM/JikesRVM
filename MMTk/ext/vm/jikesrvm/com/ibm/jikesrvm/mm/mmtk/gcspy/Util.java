@@ -96,8 +96,8 @@ import org.vmmagic.pragma.*;
    * which are interruptible. We protect these calls with a
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
-  public final Address getBytes (String str) 
-    throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final Address getBytes (String str) { 
     if (VM_SysCall.WITH_GCSPY) {
       if (str == null) 
         return Address.zero();

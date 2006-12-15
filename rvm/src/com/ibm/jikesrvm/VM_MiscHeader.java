@@ -98,9 +98,9 @@ import org.vmmagic.unboxed.*;
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
+  @LogicallyUninterruptible
   public static void initializeHeader(BootImageInterface bootImage, Address ref,
-                                      Object[] tib, int size, boolean isScalar)
-    throws LogicallyUninterruptiblePragma {
+                                      Object[] tib, int size, boolean isScalar) { 
     /* Only perform initialization when it is required */
     if (MM_Constants.GENERATE_GC_TRACE) {
       bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false);

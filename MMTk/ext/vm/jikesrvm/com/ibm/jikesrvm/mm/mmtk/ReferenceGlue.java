@@ -174,8 +174,8 @@ import java.lang.ref.PhantomReference;
    * 
    * @param nursery Scan only the newly created references
    */
-  private void scanReferences(boolean nursery)
-    throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  private void scanReferences(boolean nursery) { 
     Address reference;
     Address prevReference = Address.zero();
     Address newHead = Address.zero();

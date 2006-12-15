@@ -286,9 +286,9 @@ public class VM_CollectorThread extends VM_Thread {
    * different for the different allocators/collectors that the RVM
    * can be configured to use.
    */
+   @LogicallyUninterruptible // due to call to snipObsoleteCompiledMethods
    public void run()
        throws NoOptCompilePragma, // refs stored in registers by opt compiler will not be relocated by GC 
-              LogicallyUninterruptiblePragma,  // due to call to snipObsoleteCompiledMethods
               UninterruptiblePragma {
 
     for (int count = 0; ; count++) {
