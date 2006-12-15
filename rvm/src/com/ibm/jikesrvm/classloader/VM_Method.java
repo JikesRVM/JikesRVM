@@ -385,7 +385,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * in VM_Reflection.invoke.
    * @return compiled method
    */ 
-  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() throws UnpreemptiblePragma {
+  @Unpreemptible
+  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() { 
     return currentCompiledMethod;
   }
 
