@@ -2021,7 +2021,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   protected final void forbiddenBytecode(String msg) throws NoInlinePragma {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
-      if (LogicallyUninterruptiblePragma.declaredBy(method)) return;
+      if (method.isAnnotationPresent(LogicallyUninterruptible.class)) return;
       if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
     }
     VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
@@ -2036,7 +2036,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   protected final void checkTarget(VM_Method target) {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
-      if (LogicallyUninterruptiblePragma.declaredBy(method)) return;
+      if (method.isAnnotationPresent(LogicallyUninterruptible.class)) return;
       if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
     }
     if (isUninterruptible && !target.isUninterruptible()) {

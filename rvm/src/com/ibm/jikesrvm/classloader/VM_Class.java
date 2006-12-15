@@ -1546,7 +1546,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
         if (VM.VerifyUnint) {
           if (method.isUninterruptible() && method.isSynchronized()) {
-            if (VM.ParanoidVerifyUnint || !LogicallyUninterruptiblePragma.declaredBy(method)) {
+            if (VM.ParanoidVerifyUnint || !method.isAnnotationPresent(LogicallyUninterruptible.class)) {
               VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
             }
           }
