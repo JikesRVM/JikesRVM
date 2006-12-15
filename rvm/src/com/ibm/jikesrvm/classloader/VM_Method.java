@@ -453,7 +453,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * <li> If it is a <clinit> or <init> method then it is interruptible.
    * <li> If is the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods then it is interruptible.
-   * <li> If it throws the <CODE>InterruptiblePragma</CODE> exception it is interruptible.
+   * <li> If it throws the <CODE>Interruptible</CODE> exception it is interruptible.
    * <li> If it throws the <CODE>PreemptiblePragma</CODE> exception it is interruptible.
    * <li> If it throws the <CODE>UninterruptiblePragma</CODE> exception it is not interruptible.
    * <li> If it throws the <CODE>UninterruptibleNoWarnPragma</CODE> exception it is not interruptible.
@@ -471,7 +471,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(Uninterruptible.class)) return false;
     if (isAnnotationPresent(Unpreemptible.class)) return false;
     if (exceptionTypes != null) {
-      if (InterruptiblePragma.declaredBy(this)) return true;
       if (PreemptiblePragma.declaredBy(this)) return true;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
@@ -498,7 +497,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
     if (isAnnotationPresent(Unpreemptible.class)) return true;
     if (exceptionTypes != null) {
-      if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
       if (UnpreemptiblePragma.declaredBy(this)) return true;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
@@ -524,7 +522,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (isAnnotationPresent(Uninterruptible.class)) return true;
     if (isAnnotationPresent(UninterruptibleNoWarn.class)) return true;
     if (exceptionTypes != null) {
-      if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
       if (UnpreemptiblePragma.declaredBy(this)) return false;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
