@@ -22,7 +22,9 @@ import java.io.UTFDataFormatException;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
+//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.*;
+//-#endif
 
 /**
  * Description of a java "class" type.<br/>

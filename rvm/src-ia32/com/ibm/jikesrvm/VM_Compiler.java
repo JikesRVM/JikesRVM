@@ -2429,14 +2429,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
       asm.emitADD_Reg_Imm (SP, emptyStackOffset);               // set aside room for non parameter locals
 
-      //-#if RVM_WITH_OSR
       /* defer generating code which may cause GC until 
        * locals were initialized. see emit_deferred_prologue
        */
       if (method.isForOsrSpecialization()) {
         return;
       }
-      //-#endif
 
       /*
        * generate stacklimit check
@@ -2461,7 +2459,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   }
 
-  //-#if RVM_WITH_OSR
   protected final void emit_deferred_prologue() {
 
     if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
@@ -2482,11 +2479,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     /* never do monitor enter for synced method since the specialized 
      * code starts after original monitor enter.
      */
-//    if (method.isSynchronized()) genMonitorEnter();
 
     genThreadSwitchTest(VM_Thread.PROLOGUE);
   }
-  //-#endif
   
   private final void genEpilogue (int bytesPopped) {
     if (klass.isBridgeFromNative()) {
@@ -3801,13 +3796,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Emit code to invoke a compiled method (with known jtoc offset).
    * Treat it like a resolved invoke static, but take care of
    * this object in the case.
    *
-   * I havenot thought about GCMaps for invoke_compiledmethod 
+   * I havenot thought about GCMaps for invoke_compiledmethod
+   * TODO: Figure out what the above GCMaps comment means and fix it!
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
     Offset methodOffset = cm.getOsrJTOCoffset();
@@ -3830,6 +3825,4 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final VM_ForwardReference emit_pending_goto(int bTarget) {
     return asm.generatePendingJMP(bTarget);
   }
-
-  //-#endif
 }

@@ -913,7 +913,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
-  //-#if RVM_WITH_OSR
+  // OSR SUPPORT //
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
   /* we have 5 bytes, opcode, imm */
@@ -940,7 +940,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     if (lister != null) lister.I(miStart, "JMP", 0);
     return r;
   }
-  //-#endif
+  // END OSR SUPPORT //
 
   /**
    *  Make the given unconditional branch branch to the current

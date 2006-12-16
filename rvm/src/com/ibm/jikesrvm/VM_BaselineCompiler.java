@@ -10,10 +10,7 @@
 package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.Offset;
-
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 import com.ibm.jikesrvm.classloader.*;
 
 /**
@@ -178,11 +175,11 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       gcMapCycles += end - start;
     }
 
-    //-#if RVM_WITH_OSR
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
      * recompute the stack height, but keep the operand words of the code 
-     * generation consistant with reference map 
+     * generation consistant with reference map
+     * TODO: revist this code as part of OSR redesign
      */
     // Phase 2: OSR setup
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
@@ -201,7 +198,6 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
-    //-#endif
     
     // Phase 3: Code gen
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
@@ -221,9 +217,9 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       codeGenCycles += end - start;
     }
 
-    //-#if RVM_WITH_OSR
     /* adjust machine code map, and restore original bytecode
      * for building reference map later.
+     * TODO: revist this code as part of OSR redesign
      */
     // Phase 4: OSR part 2
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
@@ -245,7 +241,6 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
-    //-#endif
         
     // Phase 5: Encode machine code maps
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();

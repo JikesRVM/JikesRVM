@@ -122,9 +122,7 @@ public class VM_Properties extends VM_Options {
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
 
-  //-#if RVM_WITH_OSR
   public static final boolean TraceOnStackReplacement   = false; 
-  //-#endif
 
   /** How much farther? */
   public static final int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;

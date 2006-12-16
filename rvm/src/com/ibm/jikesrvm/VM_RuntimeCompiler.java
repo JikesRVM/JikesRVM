@@ -427,7 +427,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
   }
 
 
-  //-#if RVM_WITH_OSR
   /* recompile the specialized method with OPT_Compiler. */ 
   public static VM_CompiledMethod recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
     if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
@@ -460,8 +459,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
       compilationInProgress = false;
     }
   }
-  //-#endif 
-
 
   /**
    * This method tries to compile the passed method with the OPT_Compiler.

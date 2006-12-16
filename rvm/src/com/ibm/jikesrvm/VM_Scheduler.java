@@ -17,10 +17,7 @@ import com.ibm.jikesrvm.opt.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
-//-#endif
 
 /**
  * Global variables used to implement virtual machine thread scheduler.
@@ -287,9 +284,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     if (! VM.singleVirtualProcessor)
       VM_SysCall.sysWaitForMultithreadingStart();
 
-    //-#if RVM_WITH_OSR
     OSR_ObjectHolder.boot();
-    //-#endif
 
     // Start collector threads on each VM_Processor.
     for (int i = 0; i < numProcessors; ++i) {

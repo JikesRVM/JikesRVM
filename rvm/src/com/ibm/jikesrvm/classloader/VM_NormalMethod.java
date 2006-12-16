@@ -104,12 +104,10 @@ public final class VM_NormalMethod
 
   /**
    * words needed for operand stack (high water mark)
+   * TODO: OSR redesign;  add subclass of NormalMethod for OSR method
+   *       and then make this field final in NormalMethod.
    */
-  //-#if RVM_WITH_OSR
   private int operandWords;        
-  //-#else
-  private final int operandWords;        
-  //-#endif
 
   /**
    * bytecodes for this method (null --> none)
@@ -128,7 +126,6 @@ public final class VM_NormalMethod
    */
   private final int[] lineNumberMap;       
 
-  //-#if RVM_WITH_OSR 
   // Extra fields for on-stack replacement
   // TODO: rework the system so we don't waste space for this on the VM_Method object
   /* bytecode array constists of prologue and original bytecodes */
@@ -138,7 +135,6 @@ public final class VM_NormalMethod
   /* prologue may change the maximum stack height, remember the
    * original stack height */
   private int savedOperandWords;
-  //-#endif
 
   /**
    * Construct a normal Java bytecode method's information
@@ -269,7 +265,6 @@ public final class VM_NormalMethod
     return lineNumberMap[--idx] >>> 16; // upper 16 bits are line number
   }
 
-  //-#if RVM_WITH_OSR 
   // Extra methods for on-stack replacement
   // VM_BaselineCompiler and OPT_BC2IR should check if a method is
   // for specialization by calling isForOsrSpecialization, the compiler
@@ -344,7 +339,6 @@ public final class VM_NormalMethod
     if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
     return new VM_BytecodeStream(this, synthesizedBytecodes);
   }              
-  //-#endif RVM_WITH_OSR
 
 
   /*

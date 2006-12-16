@@ -9,9 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-//-#if RVM_WITH_OSR
 import com.ibm.jikesrvm.osr.*;
-//-#endif
 import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -31,9 +29,7 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants
   , VM_StackframeLayoutConstants
-//-#if RVM_WITH_OSR
   , OSR_Constants
-//-#endif
 {
 
    /** 
@@ -121,15 +117,11 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
     klass = method.getDeclaringClass();
 
-    //-#if RVM_WITH_OSR
     // new synthesized bytecodes for osr
     if (method.isForOsrSpecialization()) 
       bcodes = method.getOsrSynthesizedBytecodes();
     else
       bcodes = method.getBytecodes();
-    //-#else
-    bcodes = method.getBytecodes();
-    //-#endif
     
     bytecodeMap = new int [bcodes.length()+1];
     isInterruptible = method.isInterruptible();
@@ -207,9 +199,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       biStart = bcodes.index();
       bytecodeMap[biStart] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(biStart);
-      //-#if RVM_WITH_OSR
       asm.patchLoadRetAddrConst(biStart);
-      //-#endif
       starting_bytecode();
       int code = bcodes.nextInstruction();
       switch (code) {
@@ -1414,7 +1404,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       }  
 
       case JBC_invokevirtual: {
-        //-#if RVM_WITH_OSR
         VM_ForwardReference xx = null;
         if (biStart == this.pendingIdx) {
           VM_ForwardReference x = emit_pending_goto(0);  // goto X
@@ -1425,7 +1414,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           xx = emit_pending_goto(0);                     // goto XX
           x.resolve(asm);                       //  X:
         }
-        //-#endif
 
         VM_MethodReference methodRef = bcodes.getMethodReference();
         if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual", methodRef);
@@ -1453,16 +1441,13 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 	        }
         }
 
-        //-#if RVM_WITH_OSR
         if (xx != null) {
           xx.resolve(asm);                     // XX:
         }
-        //-#endif
         break;
       }
 
       case JBC_invokespecial: {
-        //-#if RVM_WITH_OSR
         VM_ForwardReference xx = null;
         if (biStart == this.pendingIdx) {
           VM_ForwardReference x = emit_pending_goto(0);  // goto X
@@ -1473,7 +1458,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           xx = emit_pending_goto(0);                     // goto XX
           x.resolve(asm);                       //  X:
         }
-        //-#endif
         VM_MethodReference methodRef = bcodes.getMethodReference();
         if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
         VM_Method target = methodRef.resolveInvokeSpecial();
@@ -1484,17 +1468,14 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           emit_unresolved_invokespecial(methodRef);
         }     
 
-        //-#if RVM_WITH_OSR
         if (xx != null) {
           xx.resolve(asm);                     // XX:
         }
-        //-#endif
 
         break;
       }
 
       case JBC_invokestatic: {
-        //-#if RVM_WITH_OSR
         VM_ForwardReference xx = null;
         if (biStart == this.pendingIdx) {
           VM_ForwardReference x = emit_pending_goto(0);  // goto X
@@ -1505,7 +1486,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           xx = emit_pending_goto(0);                     // goto XX
           x.resolve(asm);                       //  X:
         }
-        //-#endif
 
         VM_MethodReference methodRef = bcodes.getMethodReference();
         if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
@@ -1522,17 +1502,14 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           emit_resolved_invokestatic(methodRef);
         }
 
-        //-#if RVM_WITH_OSR
         if (xx != null) {
           xx.resolve(asm);                     // XX:
         }
-        //-#endif
 
         break;
       }
 
       case JBC_invokeinterface: {
-        //-#if RVM_WITH_OSR
         VM_ForwardReference xx = null;
         if (biStart == this.pendingIdx) {
           VM_ForwardReference x = emit_pending_goto(0);  // goto X
@@ -1543,7 +1520,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           xx = emit_pending_goto(0);                     // goto XX
           x.resolve(asm);                       //  X:
         }
-        //-#endif
 
         VM_MethodReference methodRef = bcodes.getMethodReference();
         bcodes.alignInvokeInterface();
@@ -1551,11 +1527,9 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
         emit_invokeinterface(methodRef); 
 
-        //-#if RVM_WITH_OSR
         if (xx != null) {
           xx.resolve(asm);                     // XX:
         }
-        //-#endif
 
         break;
       }
@@ -1822,7 +1796,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         break;
       }
 
-      //-#if RVM_WITH_OSR
       /* CAUTION: can not use JBC_impdep1, which is 0xfffffffe ( signed ),
        * this is not consistant with OPT compiler.
        */
@@ -1961,7 +1934,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
         break;
       }
-      //-#endif
 
       default:
         VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
@@ -1974,7 +1946,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   }
   
 
-  //-#if RVM_WITH_OSR
   /* for invoke compiled method, we have to fool GC map, 
    * InvokeCompiledMethod has two parameters compiledMethodID 
    * and originalBytecodeIndex of that call site
@@ -1999,7 +1970,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   private int pendingCMID = -1;
   private int pendingIdx  = -1;
   private VM_ForwardReference pendingRef = null;
-  //-#endif
 
   /**
    * Print a warning message whan we compile a bytecode that is forbidden in
@@ -2082,9 +2052,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    */
   protected abstract void emit_threadSwitchTest(int whereFrom);
 
-  //-#if RVM_WITH_OSR
   protected abstract void emit_deferred_prologue();
-  //-#endif
 
   /**
    * Emit the code to implement the spcified magic.
@@ -2964,10 +2932,10 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    */
   protected abstract void emit_resolved_invokestatic(VM_MethodReference methodRef);
 
-  //-#if RVM_WITH_OSR
+  // OSR only
   protected abstract void emit_invoke_compiledmethod(VM_CompiledMethod cm);
+  // OSR only
   protected abstract VM_ForwardReference emit_pending_goto(int origidx);
-  //-#endif
 
   /**
    * Emit code to implement the invokeinterface bytecode
@@ -3069,9 +3037,8 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    */
   protected abstract void emit_monitorexit();
 
-  //-#if RVM_WITH_OSR
+  // OSR only
   protected abstract void emit_loadretaddrconst(int bcIndex);
-  //-#endif
 
   protected abstract String getCompilerName();
 }

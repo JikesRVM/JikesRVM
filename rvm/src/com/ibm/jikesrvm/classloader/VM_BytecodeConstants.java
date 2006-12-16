@@ -433,7 +433,6 @@ public interface VM_BytecodeConstants  {
     3, // ifnonnull
     5, // goto_w
     5, // jsr_w
-      //-#if RVM_WITH_OSR
       -2, // 202
       -2, // 203
       -2, // 204
@@ -488,7 +487,6 @@ public interface VM_BytecodeConstants  {
       -2, // 253
       -1, // impdep1  254
       -2, // 255
-      //-#endif RVM_WITH_OSR
   };
 
   /**

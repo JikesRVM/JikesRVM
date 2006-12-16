@@ -2953,7 +2953,6 @@ public class VM_Compiler extends VM_BaselineCompiler
       for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
          asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
 
-      //-#if RVM_WITH_OSR
       // round up first, save scratch FPRs
       offset = VM_Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
 
@@ -2961,7 +2960,6 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
       for (int i = LAST_SCRATCH_GPR; i >= FIRST_SCRATCH_GPR; --i)
         asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
-      //-#endif
     }
     
     // Fill in frame header.
@@ -2976,12 +2974,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     genMoveParametersToLocals();                  // move parameters to locals
    
     // Perform a thread switch if so requested.
-    //-#if RVM_WITH_OSR
     /* defer generating prologues which may trigger GC, see emit_deferred_prologue*/
     if (method.isForOsrSpecialization()) {
       return;
     }
-    //-#endif
 
     genThreadSwitchTest(VM_Thread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
 
@@ -2991,7 +2987,6 @@ public class VM_Compiler extends VM_BaselineCompiler
       genSynchronizedMethodPrologue();
   }
 
-  //-#if RVM_WITH_OSR
   protected final void emit_deferred_prologue() {
     if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
     genThreadSwitchTest(VM_Thread.PROLOGUE);
@@ -3001,7 +2996,6 @@ public class VM_Compiler extends VM_BaselineCompiler
      */
     //  if (method.isSymchronized()) genSynchronizedMethodPrologue();
   }
-  //-#endif
   
   // Emit code to acquire method synchronization lock.
   //
@@ -3329,7 +3323,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
 
-  //-#if RVM_WITH_OSR
   protected final void emit_loadretaddrconst(int bcIndex) {
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0
@@ -3344,6 +3337,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * this object in the case.
    *
    * I havenot thought about GCMaps for invoke_compiledmethod 
+   * TODO: Figure out what the above GCMaps comment means and fix it!
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
     Offset methOffset = cm.getOsrJTOCoffset();
@@ -3359,7 +3353,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final VM_ForwardReference emit_pending_goto(int bTarget) {
     return asm.generatePendingJMP(bTarget);
   }
-  //-#endif
 
 
   //*************************************************************************

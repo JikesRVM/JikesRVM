@@ -14,6 +14,9 @@ package com.ibm.jikesrvm;
  */
 public class VM_MachineCode {
   private final VM_CodeArray instructions;
+
+  // TODO: This should really be a final field, but is not due to the way
+  //       OSR is currently implemented.
   private int[] bytecodeMap;
 
   public VM_MachineCode (VM_CodeArray i, int[] bm) {
@@ -29,9 +32,7 @@ public class VM_MachineCode {
     return bytecodeMap;
   }
 
-  //-#if RVM_WITH_OSR
   public void setBytecodeMap(int b2m[]) {
     bytecodeMap = b2m;
   }
-  //-#endif
 }

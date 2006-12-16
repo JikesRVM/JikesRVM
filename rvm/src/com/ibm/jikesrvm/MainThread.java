@@ -46,9 +46,7 @@ class MainThread extends Thread {
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;
     this.vmdata.isMainThread = true;
-    //-#if RVM_WITH_OSR
     this.vmdata.isSystemThread = false;
-    //-#endif
     if (dbg) VM.sysWriteln("MainThread(args.length == ", args.length,
                          "): constructor done");
     

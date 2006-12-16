@@ -205,7 +205,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  //-#if RVM_WITH_OSR
+  /************ OSR Support */
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
  
@@ -241,7 +241,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   public final VM_ForwardReference generatePendingJMP(int bTarget) {
     return this.emitForwardB();
   }
-  //-#endif RVM_WITH_OSR
+  /************ OSR Support */
 
   final void patchSwitchCase(int sourceMachinecodeIndex) {
     int delta = (mIP - sourceMachinecodeIndex) << 2;

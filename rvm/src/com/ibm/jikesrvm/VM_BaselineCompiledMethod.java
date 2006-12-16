@@ -49,10 +49,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    */
   private int[] eTable;
 
-  //-#if RVM_WITH_OSR
   /* To make a compiled method's local/stack offset independ of
    * original method, we move 'getStartLocalOffset' and 'getEmptyStackOffset'
    * here.
+   *
+   * TODO: redesign this.  There has to be a cleaner way!
    */
   private int startLocalOffset;
   private int emptyStackOffset;
@@ -71,11 +72,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
   }
-  //-#else
-  public VM_BaselineCompiledMethod(int id, VM_Method m) {
-    super(id, m);
-  }
-  //-#endif
 
   @Uninterruptible
   public final int getCompilerType () { 

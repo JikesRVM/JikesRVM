@@ -1544,7 +1544,6 @@ import org.vmmagic.unboxed.*;
     return totalCount;
   }
 
-  //-#if RVM_WITH_OSR
   /* Interface for general queries such as given a GC point, if a stack slot
    * or a local variable is a reference.
    */
@@ -1586,5 +1585,4 @@ import org.vmmagic.unboxed.*;
 
     return ((mask & maps[bytenum]) != 0);
   }
-  //-#endif
 }

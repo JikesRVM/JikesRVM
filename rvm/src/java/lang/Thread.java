@@ -54,9 +54,7 @@ public class Thread implements Runnable {
   protected Thread(String argv[]){
     vmdata = new VM_Thread(this);
     
-    //-#if RVM_WITH_OSR
     vmdata.isSystemThread = false;
-    //-#endif
     vmdata.priority = NORM_PRIORITY;
     name = "main";
     group = ThreadGroup.root;
@@ -145,9 +143,7 @@ public class Thread implements Runnable {
   public Thread(ThreadGroup group, Runnable runnable, String threadName) {
     vmdata = new VM_Thread(this);
 
-    //-#if RVM_WITH_OSR
     vmdata.isSystemThread = false;
-    //-#endif
     if (threadName==null) throw new NullPointerException();
     this.name = threadName;
     this.runnable = runnable;

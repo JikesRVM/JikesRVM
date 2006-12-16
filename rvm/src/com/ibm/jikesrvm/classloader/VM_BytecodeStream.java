@@ -783,7 +783,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     }
   }
 
-//-#if RVM_WITH_OSR
   public final int nextPseudoInstruction() {
         if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
         return readUnsignedByte();
@@ -808,7 +807,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     l |= ((long)bcodes[bcIndex++] & 0x0FF);
     return l;    
   }
-//-#endif
 
   //// READ BYTECODES
   private final byte readSignedByte() {

@@ -230,10 +230,8 @@ public class VM_Entrypoints implements VM_Constants {
   //////////////////
   public static final VM_Field specializedMethodsField = getField("Lcom/ibm/jikesrvm/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lcom/ibm/jikesrvm/VM_CodeArray;");
 
-//-#if RVM_WITH_OSR
   public static final VM_Field osrOrganizerQueueLockField = getField("Lcom/ibm/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
   public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
-//-#endif
   public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
   public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
   public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
@@ -246,10 +244,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   //-#endif
 
-  //-#if RVM_WITH_OSR
   public static final VM_NormalMethod osrGetRefAtMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod osrCleanRefsMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
-  //-#endif
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   ////////////////// 

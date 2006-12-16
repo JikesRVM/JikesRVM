@@ -41,11 +41,9 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   private final static int INVALID         = 0x40000000;
   private final static int OBSOLETE        = 0x20000000;
   private final static int ACTIVE_ON_STACK = 0x10000000;
-
-  //-#if RVM_WITH_OSR
   // flags the compiled method as outdated, needs OSR
   private final static int OUTDATED        = 0x08000000;
-  //-#endif
+
   /** Bits in bitfield1 available for use by subclasses */
   protected final static int AVAIL_BITS    = 0x00ffffff;
 
@@ -64,9 +62,9 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    */
   protected VM_CodeArray instructions; 
 
-  //-#if RVM_WITH_OSR
   /**
    * Has the method sample data for this compiled method been reset?
+   * TODO: This should be folded bitField1 to save space.
    */
   private boolean samplesReset = false;
  
@@ -76,6 +74,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   
   /* the offset of instructions in JTOC, for osr-special compiled method
    * only. all osr-ed method is treated like static.
+   * TODO: OSR redesign:  put in subclass?  Stick somewhere else?
+   *       Don't want to waste space for this on every compiled method.
    */
   protected boolean isSpecialForOSR = false;
   protected int osrJTOCoffset = 0;
@@ -95,7 +95,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
     if (VM.VerifyAssertions) VM._assert(this.isSpecialForOSR);
     return Offset.fromIntSignExtend(this.osrJTOCoffset);
   }
-  //-#endif
 
   /**
    * The time in milliseconds taken to compile the method.
@@ -275,7 +274,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
     bitField1 &= ~ACTIVE_ON_STACK;
   }
   
-  //-#if RVM_WITH_OSR
   /**
    * Mark the compiled method as outdated (ie requires OSR),
    * the flag is set in VM_AnalyticModel
@@ -294,7 +292,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   public final boolean isOutdated() { 
     return (bitField1 & OUTDATED) != 0;
   }
-  //-#endif
   
   /**
    * Has compilation completed?

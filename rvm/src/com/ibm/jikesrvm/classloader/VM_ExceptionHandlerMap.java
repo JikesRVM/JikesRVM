@@ -30,13 +30,12 @@ public final class VM_ExceptionHandlerMap {
   public final VM_TypeReference[] getExceptionTypes() { return exceptionTypes; }
   public final VM_TypeReference getExceptionType(int i) { return exceptionTypes[i]; }
    
-  //-#if RVM_WITH_OSR
   /* we need to adjust the exception handler map for pseudo bytecode
+   * TODO: OSR redesign; make a subclass of VM_ExceptionHandlerMap with this functionality
    */
   public final void setStartPC(int[] newPCs) { startPCs = newPCs; }
   public final void setEndPC(int[] newPCs) { endPCs = newPCs; }
   public final void setHandlerPC(int[] newPCs) { handlerPCs = newPCs; }
-  //-#endif
 
   //----------------//
   // Implementation //
@@ -119,7 +118,6 @@ public final class VM_ExceptionHandlerMap {
     }
   }
 
-  //-#if RVM_WITH_OSR
   VM_ExceptionHandlerMap deepCopy() {
     int n = startPCs.length;
     int copyStartPCs[]   = new int[n];
@@ -133,5 +131,4 @@ public final class VM_ExceptionHandlerMap {
 
     return new VM_ExceptionHandlerMap(copyStartPCs, copyEndPCs, copyHandlerPCs, copyExceptionTypes);
   }
-  //-#endif
 }

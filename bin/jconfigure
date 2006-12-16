@@ -917,9 +917,6 @@ declare -x -i RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
 # controls for diagnostic flags
 declare -i RVM_FOR_STRESSGC=0
 
-# using on stack replacement 
-declare -i RVM_WITH_OSR=0
-
 # These have Java preprocessor "//-#if" conditional directives that 
 # test against them.   If we put the Java preprocessor into paranoid mode, it
 # complains about any tests against undefined conditionals.
@@ -1287,12 +1284,10 @@ EOF
 
     # On stack replacement components.
     #
-    if (( RVM_WITH_OSR )); then
 	cleanFileList <<- EOF
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/osr
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/osr
 EOF
-    fi
 
     # standard library support
     #
@@ -2577,9 +2572,7 @@ EOF
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
         fi
-	if (( RVM_WITH_OSR )); then
-	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
-        fi
+	echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
@@ -2893,7 +2886,7 @@ java/io/PrintStream
 java/io/RandomAccessFile
 java/io/ObjectStreamField
 EOF
-    if (( RVM_WITH_OSR )); then
+    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
 	# on stack replacement
 com/ibm/jikesrvm/adaptive/OSR_OnStackReplacementTrigger

@@ -1,4 +1,3 @@
-
 /*
  * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
  * The Jikes RVM project is distributed under the Common Public License (CPL).
@@ -25,13 +24,11 @@ import org.vmmagic.unboxed.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
+import com.ibm.jikesrvm.adaptive.OSR_Listener;
+import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 //-#endif
 
-//-#if RVM_WITH_OSR
-import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
-import com.ibm.jikesrvm.adaptive.OSR_Listener;
-//-#endif
 
 /**
  * A java thread's execution context.
@@ -211,7 +208,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     }
   }
 
-  //-#if RVM_WITH_OSR
   /**
    * Suspends the thread waiting for OSR (rescheduled by recompilation
    * thread when OSR is done).
@@ -221,7 +217,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     suspendPending  = true;
     suspendLock.unlock();
   }
-  //-#endif
   
   /**
    * Put given thread to sleep.
@@ -410,14 +405,14 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
         threadSwitch = false;
       }
 
-      //-#if RVM_WITH_OSR
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
       threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
+      //-#endif
       if (threadSwitch) {
         VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
         VM_Processor.getCurrentProcessor().yieldForCBSCall = false; 
         VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
       }        
-      //-#endif
     }
 
     if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
@@ -475,24 +470,22 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
       threadSwitch = true;
     }
     
-    //-#if RVM_WITH_OSR
     if (VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
       VM_Processor.getCurrentProcessor().yieldToOSRRequested = false;
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
       OSR_Listener.handleOSRFromOpt();
+      //-#endif
       threadSwitch = true;
     }
-    //-#endif
 
     if (threadSwitch) {
       timerTickYield(whereFrom);
     }
 
-    //-#if RVM_WITH_OSR
     VM_Thread myThread = getCurrentThread();
     if (myThread.isWaitingForOsr) {
       OSR_PostThreadSwitch.postProcess(myThread);
     }
-    //-#endif 
   }
 
   /**
@@ -1150,7 +1143,7 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     if (VM.runningVM)
       jniEnv = VM_JNIEnvironment.allocateEnvironment();
 
-    //-#if RVM_WITH_OSR
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     onStackReplacementEvent = new OSR_OnStackReplacementEvent();
     //-#endif
   }
@@ -1843,7 +1836,6 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
     return isAlive;
   }
 
-  //-#if RVM_WITH_OSR
   /** Returns the value of {@link #isSystemThread}. */
   public boolean isSystemThread() {
     return isSystemThread;
@@ -1852,7 +1844,9 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   // Public since it needs to be able to be set by java.lang.Thread.
   public boolean isSystemThread = true;
 
+  //-#if RVM_WITH_ADAPTIVE_SYSTEM
   public OSR_OnStackReplacementEvent onStackReplacementEvent;
+  //-#endif
 
   ///////////////////////////////////////////////////////////
   // flags should be packaged or replaced by other solutions
@@ -1870,5 +1864,4 @@ import com.ibm.jikesrvm.adaptive.OSR_Listener;
   // flag to synchronize with osr organizer, the trigger sets osr requests
   // the organizer clear the requests
   public boolean requesting_osr = false;
-  //-#endif 
 }
