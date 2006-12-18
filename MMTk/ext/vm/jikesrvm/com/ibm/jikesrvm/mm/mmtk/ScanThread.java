@@ -521,16 +521,14 @@ import org.vmmagic.pragma.*;
    * performing the scan.
    */
   private void checkJNIBase(int verbosity) {
-    //-#if RVM_FOR_AIX
-    VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
-    Address refaddr =  iterator.getNextReferenceAddress();
-    while(!refaddr.isZero()) {
-      trace.addRootLocation(refaddr);
-      refaddr = iterator.getNextReferenceAddress();
+    if (VM.BuildForAix) {
+      VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
+      Address refaddr =  iterator.getNextReferenceAddress();
+      while(!refaddr.isZero()) {
+        trace.addRootLocation(refaddr);
+        refaddr = iterator.getNextReferenceAddress();
+      }
     }
-    //-#else
-    // exclude PPC FOR LINUX
-    //-#endif
   }
 
 

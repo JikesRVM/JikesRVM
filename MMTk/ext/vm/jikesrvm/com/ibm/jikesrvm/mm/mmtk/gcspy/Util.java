@@ -128,11 +128,12 @@ import org.vmmagic.pragma.*;
             swUnlock();
           }
           // Endianism matters
-          //-#if RVM_FOR_IA32
-          value = (byteVal << shift) | value;
-          //-#else
-          value = (value << shift) | byteVal; // not tested
-          //-#endif
+          if (com.ibm.jikesrvm.VM.BuildForIA32)
+            value = (byteVal << shift) | value;
+          else {
+        	com.ibm.jikesrvm.VM._assert(com.ibm.jikesrvm.VM.NOT_REACHED);
+            value = (value << shift) | byteVal; // not tested
+          }
           shift += BITS_IN_BYTE;
         }
         rtn.store(value, Offset.fromIntSignExtend(offset));
