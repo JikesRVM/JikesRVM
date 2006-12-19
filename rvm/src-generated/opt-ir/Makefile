@@ -20,16 +20,19 @@ GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 ifeq ($(RVM_FOR_IA32),1)
   ARCH_OPS = $(ARCH_IR_DIR)/OperatorList.dat
+  ARCH_BITS = 32
 endif
 ifeq ($(RVM_FOR_POWERPC),1)
   ifeq ($(RVM_FOR_64_ADDR),1)
     ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
                $(ARCH_IR_DIR)/OperatorList_Alu64.dat \
                $(ARCH_IR_DIR)/OperatorList_Mem64.dat
+    ARCH_BITS = 64              
   else 
     ARCH_OPS = $(ARCH_IR_DIR)/OperatorList_Common.dat \
                $(ARCH_IR_DIR)/OperatorList_Alu32.dat \
                $(ARCH_IR_DIR)/OperatorList_Mem32.dat
+    ARCH_BITS = 32
   endif
 endif
 
@@ -60,7 +63,7 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operator.java: OPT_Operator.templat
 	$(GENERATE) OPT_Operator.template \
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operator.java \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
-	ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) ARCH_BITS=$(ARCH_BITS) \
         ARCH_OP_LIST=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 
@@ -69,14 +72,14 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operators.java: OPT_Operators.templ
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_Operators.java \
 	ARCH_IF_LIST=$(ARCH_IFS) \
         ARCH_OP_LIST=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat \
-	ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) ARCH_BITS=$(ARCH_BITS) \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java:	OPT_OperatorNames.template OperatorList.dat $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat
 	$(GENERATE) OPT_OperatorNames.template \
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java \
         ARCH_OP_LIST=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat \
-	ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) ARCH_BITS=$(ARCH_BITS) \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW: InstructionFormats.template OperatorList.dat InstructionFormatList.dat CommonOperands.dat $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat $(ARCH_IFS)
@@ -84,6 +87,6 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW: InstructionForm
 	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW \
 	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCH_IF_LIST=$(ARCH_IFS) \
-	ARCHITECTURE=$(ARCHITECTURE) \
+	ARCHITECTURE=$(ARCHITECTURE) ARCH_BITS=$(ARCH_BITS) \
 	INSTRFMTPKG=com.ibm.jikesrvm.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW

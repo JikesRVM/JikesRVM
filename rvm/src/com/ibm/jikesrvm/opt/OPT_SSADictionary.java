@@ -752,13 +752,6 @@ public final class OPT_SSADictionary {
       case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
       case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode:
       case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
-	//-#if RVM_FOR_IA32
-      case PREFETCH_opcode:
-	//-#endif
-        //-#if RVM_FOR_POWERPC
-      case DCBST_opcode:case DCBT_opcode:case DCBTST_opcode:
-      case DCBZ_opcode:case DCBZL_opcode:case ICBI_opcode:
-        //-#endif
         // do nothing: these cases handled by registerUnknown
         break;
       case UBYTE_LOAD_opcode: case BYTE_LOAD_opcode: 
@@ -774,7 +767,8 @@ public final class OPT_SSADictionary {
         phiHelper(s, b);
         break;
       default:
-        if (!s.isPEI()) {
+        if (!OPT_Operators.helper.isHandledByRegisterUnknown(s.getOpcode()) &&
+            !s.isPEI()) {
           System.out.println("SSA dictionary failed on " + s.toString());
           throw  new OPT_OperationNotImplementedException(
                                                           "OPT_SSADictionary: Unsupported opcode " + s);

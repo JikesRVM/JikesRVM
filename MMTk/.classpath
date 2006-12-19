@@ -3,5 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="ext/vmmagic/stub"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/steveb/devel/jksrvm/scratch/rvmroot/vmmagic/vmmagic.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

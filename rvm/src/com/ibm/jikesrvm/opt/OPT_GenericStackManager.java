@@ -867,13 +867,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         }
       }
     }
-    //-#if RVM_FOR_IA32
-    // FNINIT and FCLEAR use/kill all floating points 
-    if (r.isFloatingPoint() && 
-        (s.operator == IA32_FNINIT || s.operator == IA32_FCLEAR)) {
+    if (VM.BuildForIA32 && r.isFloatingPoint() && 
+        (OPT_Operators.helper.isFNInit(s.operator) ||
+         OPT_Operators.helper.isFClear(s.operator))) {
       return true;
     }
-    //-#endif
 
     // Assume that all volatile registers 'appear' in all call 
     // instructions

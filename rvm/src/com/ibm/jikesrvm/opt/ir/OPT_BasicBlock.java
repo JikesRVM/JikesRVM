@@ -790,11 +790,9 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
 
-    //-#if RVM_FOR_IA32
-    if (s.operator == ADVISE_ESP) {
+    if (VM.BuildForIA32 && OPT_Operators.helper.isAdviseESP(s.operator)) {
       s = s.getPrev();
     }
-    //-#endif
 
     if (Athrow.conforms(s)) {
       return true;

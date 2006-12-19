@@ -1303,13 +1303,9 @@ public final class OPT_IR {
        operand.isMemory() ||
        (operand instanceof OPT_TrapCodeOperand) ||
        (operand instanceof OPT_InlinedOsrTypeInfoOperand) ||
-       //-#if RVM_FOR_IA32
-       (operand instanceof OPT_IA32ConditionOperand) ||
-       (operand instanceof OPT_BURSManagedFPROperand)
-       //-#else
-       (operand instanceof OPT_PowerPCConditionOperand) ||
-       (operand instanceof OPT_PowerPCTrapOperand)
-       //-#endif
+       (OPT_Operators.helper.isConditionOperand(operand)) ||
+       (VM.BuildForIA32 && OPT_Operators.helper.isBURSManagedFPROperand(operand)) ||
+       (VM.BuildForPowerPC && OPT_Operators.helper.isPowerPCTrapOperand(operand))
        ) {
       return null;
     }
@@ -1365,11 +1361,9 @@ public final class OPT_IR {
       }
       return ((OPT_HeapOperand)operand).getHeapVariable();
     }
-    //-#if RVM_FOR_IA32
-    else if(operand instanceof OPT_BURSManagedFPROperand) {
-      return Integer.valueOf(((OPT_BURSManagedFPROperand)operand).regNum);
+    else if(VM.BuildForIA32 && OPT_Operators.helper.isBURSManagedFPROperand(operand)) {
+      return OPT_Operators.helper.getBURSManagedFPRValue(operand);
     }
-    //-#endif
     else if(operand.isStackLocation() ||
             operand.isMemory()
             ) {

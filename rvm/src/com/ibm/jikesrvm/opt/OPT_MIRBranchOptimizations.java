@@ -269,20 +269,7 @@ public final class OPT_MIRBranchOptimizations
       if ((target2Label == nextLabel) && endsBlock) {
         // found a conditional branch to the next instruction. 
         // Reduce to MIR_BranchCond
-        //-#if RVM_FOR_POWERPC
-        MIR_CondBranch.mutate(cb, PPC_BCOND,
-                              MIR_CondBranch2.getValue(cb), 
-                              MIR_CondBranch2.getCond1(cb), 
-                              MIR_CondBranch2.getTarget1(cb),
-                              MIR_CondBranch2.getBranchProfile1(cb));
-        //-#elif RVM_FOR_IA32
-        MIR_CondBranch.mutate(cb, IA32_JCC,
-                              MIR_CondBranch2.getCond1(cb), 
-                              MIR_CondBranch2.getTarget1(cb),
-                              MIR_CondBranch2.getBranchProfile1(cb));
-        //-#else
-        throw new OPT_OptimizingCompilerException("Unhandled architecture");
-        //-#endif
+        OPT_Operators.helper.mutateMIRCondBranch(cb);
         return true;
       }
       OPT_BasicBlock target2Block = target2Label.getBasicBlock();

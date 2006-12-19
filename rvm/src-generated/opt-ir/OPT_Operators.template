@@ -28,6 +28,21 @@ package com.ibm.jikesrvm.opt.ir;
  */
 public interface OPT_Operators {
 
+$$$$ IF ARCHITECTURE == "ia32"
+$$$$ IF ARCH_BITS == "32"
+  OPT_IA32MachineSpecificIR helper = new OPT_IA32MachineSpecificIR();
+$$$$ ELSE
+  OPT_IAEM64TMachineSpecificIR helper = new OPT_IAEM64TMachineSpecificIR();
+$$$$ END IF
+$$$$ END IF
+$$$$ IF ARCHITECTURE == "ppc"
+$$$$ IF ARCH_BITS == "32"
+  OPT_PowerPC32MachineSpecificIR helper = new OPT_PowerPC32MachineSpecificIR();
+$$$$ ELSE
+  OPT_PowerPC64MachineSpecificIR helper = new OPT_PowerPC64MachineSpecificIR();
+$$$$ END IF
+$$$$ END IF
+
 $$$$ FOREACH OPERATOR OperatorList.dat
   public static final char OPERATOR.SYMBOL_opcode = (char)OPERATOR.INDEX;
 $$$$ END FOREACH

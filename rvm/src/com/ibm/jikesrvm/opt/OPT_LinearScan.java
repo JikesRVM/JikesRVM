@@ -1909,32 +1909,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       int dfnend = getDfnEnd(live, bb);
       int dfnbegin = getDfnBegin(live, bb);
 
-      //-#if RVM_FOR_IA32
-      // mutate FMOVs that end live ranges
-      if (MUTATE_FMOV) {
-        if (reg.isFloatingPoint()) {
-          OPT_Instruction end = live.getEnd();
-          if (end != null && end.operator == IA32_FMOV) {
-            if (dfnend == dfnbegin) {
-              // if end, an FMOV, both begins and ends the live range,
-              // then end is dead.  Change it to a NOP and return null. 
-              Empty.mutate(end,NOP);
-              return null;
-            } else {
-              if (!end.isPEI()) {
-                if (VM.VerifyAssertions) {                    
-                  OPT_Operand value = MIR_Move.getValue(end);
-                  VM._assert(value.isRegister());
-                  VM._assert(MIR_Move.getValue(end).asRegister().register 
-                            == reg);
-                }
-                end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
-              }
-            }
-          }
-        }
+      if (MUTATE_FMOV && reg.isFloatingPoint()) {
+        OPT_Operators.helper.mutateFMOVs(live, reg, dfnbegin, dfnend);
       }
-      //-#endif  RVM_FOR_IA32
 
       // check for an existing live interval for this register
       CompoundInterval existingInterval = getInterval(reg);
@@ -2532,7 +2509,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         //      stackMan.insertSpillCode();
       }
 
-      rewriteFPStack(ir);
+      if (VM.BuildForIA32)
+        OPT_Operators.helper.rewriteFPStack(ir);
     }
 
     /**
@@ -2560,63 +2538,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
     } 
 
-    /**
-     *  Rewrite floating point registers to reflect changes in stack
-     *  height induced by BURS. 
-     * 
-     *  Side effect: update the fpStackHeight in MIRInfo
-     */
-    private void rewriteFPStack(OPT_IR ir) {
-      //-#if RVM_FOR_IA32
-      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
-        OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
-
-        // The following holds the floating point stack offset from its
-        // 'normal' position.
-        int fpStackOffset = 0;
-
-        for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
-             inst.hasMoreElements();) {
-          OPT_Instruction s = inst.next();
-          for (OPT_OperandEnumeration ops = s.getOperands(); 
-               ops.hasMoreElements(); ) {
-            OPT_Operand op = ops.next();
-            if (op.isRegister()) {
-              OPT_RegisterOperand rop = op.asRegister();
-              OPT_Register r = rop.register;
-
-              // Update MIR state for every phyiscal FPR we see
-              if (r.isPhysical() && r.isFloatingPoint() &&
-                  s.operator() != DUMMY_DEF && 
-                  s.operator() != DUMMY_USE) {
-                int n = OPT_PhysicalRegisterSet.getFPRIndex(r);
-                if (fpStackOffset != 0) {
-                  n += fpStackOffset;
-                  rop.register = phys.getFPR(n);
-                }
-                ir.MIRInfo.fpStackHeight = 
-                  Math.max(ir.MIRInfo.fpStackHeight, n+1);
-              }
-            } else if (op instanceof OPT_BURSManagedFPROperand) {
-              int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
-              s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
-                                                           VM_TypeReference.Double));
-            }
-          }
-          // account for any effect s has on the floating point stack
-          // position.
-          if (s.operator().isFpPop()) {
-            fpStackOffset--;
-          } else if (s.operator().isFpPush()) {
-            fpStackOffset++;
-          }
-          if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
-        }
-      }
-      //-#endif
-    }
-  }
+   }
 
   /**
    * Update GC maps after register allocation but before inserting spill

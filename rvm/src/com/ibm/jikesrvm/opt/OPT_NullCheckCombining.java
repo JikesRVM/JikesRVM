@@ -173,19 +173,11 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
         GuardCarrier.hasGuard(s) && 
         activeGuard.similar(GuardCarrier.getGuard(s))) {
       if (!VM.ExplicitlyGuardLowMemory) return true;
-      //-#if RVM_FOR_POWERPC
       // TODO: In theory, lowMemory is protected even on AIX.
       // However, enabling this causes a large number of failures.
       // Figure out why that is the case and enable some variant of this.
       // if (isStore) return true; // Even on AIX low memory is write protected
-      if (MIR_Load.conforms(s)) {
-        OPT_Operand offset = MIR_Load.getOffset(s);
-        if (offset instanceof OPT_IntConstantOperand) {
-          return ((OPT_IntConstantOperand)offset).value < 0;
-        }
-      }
-      //-#endif
-      return false;
+      return VM.BuildForPowerPC && OPT_Operators.helper.canFoldNullCheckAndLoad(s);
     }
     for (int i=0, n = s.getNumberOfOperands(); i<n; i++) {
       OPT_Operand op = s.getOperand(i);
