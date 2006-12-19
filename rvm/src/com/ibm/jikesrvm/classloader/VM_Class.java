@@ -721,7 +721,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Interruptible pragma annotation?
    * @return true if this class, its parents or one of its interfaces has an
    * Interruptible pragma annotation.
-   * @see Uninterruptible
+   * @see Interruptible
    */
   public final boolean isInterruptible() {
     return isAnnotationPresent(Interruptible.class);
@@ -732,7 +732,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * LogicallyUninterruptible pragma annotation?
    * @return true if this class, its parents or one of its interfaces has an
    * LogicallyUninterruptible pragma annotation.
-   * @see Uninterruptible
+   * @see LogicallyUninterruptible
    */
   public final boolean isLogicallyUninterruptible() {
     return isAnnotationPresent(LogicallyUninterruptible.class);
@@ -743,7 +743,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * NoOptCompile pragma annotation?
    * @return true if this class, its parents or one of its interfaces has an
    * NoOptCompile pragma annotation.
-   * @see Uninterruptible
+   * @see NoOptCompile
    */
   public final boolean isNoOptCompile() {
     return isAnnotationPresent(NoOptCompile.class);
@@ -754,7 +754,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Preemptable pragma annotation?
    * @return true if this class, its parents or one of its interfaces has an
    * Preemptable pragma annotation.
-   * @see Uninterruptible
+   * @see Preemptible
    */
   public final boolean isPreemptible() {
     return isAnnotationPresent(Preemptible.class);
@@ -787,7 +787,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Unpreemptable pragma annotation?
    * @return true if this class, its parents or one of its interfaces has an
    * Unpreemptable pragma annotation.
-   * @see Uninterruptible
+   * @see Unpreemptible
    */
   public final boolean isUnpreemptible() {
     return isAnnotationPresent(Unpreemptible.class);
