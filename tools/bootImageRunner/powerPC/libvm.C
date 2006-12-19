@@ -1201,11 +1201,6 @@ createVM(int vmInSeparateThread)
     //
     bootRecord.initialHeapSize  = initialHeapSize;
     bootRecord.maximumHeapSize  = maximumHeapSize;
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-    bootRecord.initialStackSize = initialStackSize;
-    bootRecord.stackGrowIncrement = stackGrowIncrement;
-    bootRecord.maximumStackSize = maximumStackSize;
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
     bootRecord.bootImageDataStart   = (VM_Address) bootDataRegion;
     bootRecord.bootImageDataEnd     = (VM_Address) bootDataRegion + roundedDataRegionSize;
     bootRecord.bootImageCodeStart   = (VM_Address) bootCodeRegion;
@@ -1242,11 +1237,6 @@ createVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
         fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
         fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialStackSize));
-        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.stackGrowIncrement));
-        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR "\n",   rvmPTR_ARG(bootRecord.maximumStackSize));
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
         fprintf(SysTraceFile, "   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));

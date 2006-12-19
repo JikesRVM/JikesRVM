@@ -62,12 +62,6 @@ extern char *Me;		// Defined in libvm.C
 /* libvm.C and RunBootImage.C */
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
-// #define RVM_WITH_FLEXIBLE_STACK_SIZES
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-extern uint64_t initialStackSize;
-extern uint64_t stackGrowIncrement;
-extern uint64_t maximumStackSize;
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 
 /* Defined in RunBootImage.C */
 unsigned int parse_memory_size(

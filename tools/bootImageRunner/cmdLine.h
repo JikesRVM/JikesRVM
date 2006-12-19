@@ -24,14 +24,7 @@ static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
 static const int INITIAL_HEAP_INDEX            = VERBOSE_BOOT_INDEX+1;
 static const int MS_INDEX                      = INITIAL_HEAP_INDEX+1;
 static const int MX_INDEX                      = MS_INDEX+1;
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-static const int SS_INDEX                      = MX_INDEX+1;
-static const int SG_INDEX                      = SS_INDEX+1;
-static const int SX_INDEX                      = SG_INDEX+1;
-static const int SYSLOGFILE_INDEX              = SX_INDEX+1;
-#else
 static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
-#endif /* RVM_WITH_FLEXIBLE_STACK_SIZES */
 static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
 static const int BOOTIMAGE_DATA_FILE_INDEX     = BOOTIMAGE_CODE_FILE_INDEX+1;
 static const int BOOTIMAGE_RMAP_FILE_INDEX     = BOOTIMAGE_DATA_FILE_INDEX+1;
@@ -56,11 +49,6 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:h=",
    "-Xms",
    "-Xmx",
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-   "-Xss",
-   "-Xsg",
-   "-Xsx",
-#endif
    "-X:sysLogfile=",
    "-X:ic=",
    "-X:id=",
@@ -87,11 +75,6 @@ static const char* nonStandardUsage[] = {
    "    -X:verboseBoot=<number>  Print out messages while booting VM",
    "    -Xms<number><unit>       Initial size of heap,"
    "    -Xmx<number><unit>       Maximum size of heap,"
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-   "    -Xss<number><unit>       Initial Java thread stack size,"
-   "    -Xsg<number><unit>       Java thread stack growth increment,"
-   "    -Xsx<number><unit>       Maximum Java thread stack size",
-#endif
    "    -X:sysLogfile=<filename> Write standard error message to <filename>",
    "    -X:ic=<filename>         Read boot image code from <filename>",
    "    -X:id=<filename>         Read boot image data from <filename>",

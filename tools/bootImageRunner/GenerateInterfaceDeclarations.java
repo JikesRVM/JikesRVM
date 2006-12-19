@@ -496,19 +496,6 @@ class GenerateInterfaceDeclarations {
     p("static const int VM_Constants_STACK_SIZE_GUARD          = "
         + VM_Constants.STACK_SIZE_GUARD + ";\n");
 
-    //-#if RVM_WITH_FLEXIBLE_STACK_SIZES
-    p("static const int VM_Constants_STACK_SIZE_MIN      = "
-        + VM_Constants.STACK_SIZE_MIN + ";\n");
-    p("static const int VM_Constants_STACK_SIZE_NORMAL_DEFAULT  = "
-        + VM_Constants.STACK_SIZE_NORMAL_DEFAULT + ";\n");
-    p("static const int VM_Constants_STACK_SIZE_GROW_MIN       = "
-        + VM_Constants.STACK_SIZE_GROW_MIN + ";\n");
-    p("static const int VM_Constants_STACK_SIZE_GROW_DEFAULT   = "
-        + VM_Constants.STACK_SIZE_GROW_DEFAULT + ";\n");
-    p("static const int VM_Constants_STACK_SIZE_MAX_DEFAULT    = "
-        + VM_Constants.STACK_SIZE_MAX_DEFAULT + ";\n");
-    //-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-
     p("static const int VM_Constants_INVISIBLE_METHOD_ID       = "
         + VM_Constants.INVISIBLE_METHOD_ID + ";\n");
     p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= "

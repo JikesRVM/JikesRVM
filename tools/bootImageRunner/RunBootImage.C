@@ -80,11 +80,6 @@
 
 uint64_t initialHeapSize;       /* Declared in bootImageRunner.h */
 uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-uint64_t initialStackSize;      /* Declared in bootImageRunner.h */
-uint64_t stackGrowIncrement;      /* Declared in bootImageRunner.h */
-uint64_t maximumStackSize;      /* Declared in bootImageRunner.h */
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 int rvm_singleVirtualProcessor = /* Declared in bootImageRunner.h.  Set to 1
@@ -429,39 +424,6 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             continue;
         }
 
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-        if (strnequal(token, nonStandardArgs[SS_INDEX], 4)) {
-            subtoken = token + 4;
-            initialStackSize
-                = parse_memory_size("initial stack size", "ss", "", 4, 
-                                    token, subtoken, fastExit);
-            if (*fastExit)
-                break;
-            continue;
-        }
-
-        if (strnequal(token, nonStandardArgs[SG_INDEX], 4)) {
-            subtoken = token + 4;
-            stackGrowIncrement
-                = parse_memory_size("stack growth increment", "sg", "", 4, 
-                                    token, subtoken, fastExit);
-            if (*fastExit)
-                break;
-            continue;
-        }
-
-        if (strnequal(token, nonStandardArgs[SX_INDEX], 4)) {
-            subtoken = token + 4;
-            maximumStackSize
-                = parse_memory_size("maximum stack size", "sx", "", 4,
-                                    token, subtoken, fastExit);
-            
-            if (*fastExit)
-                break;
-            continue;
-        }
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-
         if (strnequal(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
             subtoken = token + 14;
             FILE* ftmp = fopen(subtoken, "a");
@@ -578,23 +540,6 @@ main(int argc, const char **argv)
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
 
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-    const unsigned stack_minimum_size         = 
-        VM_Constants_STACK_SIZE_MIN;
-    const unsigned stack_default_initial_size = 
-        VM_Constants_STACK_SIZE_NORMAL_DEFAULT;
-    const unsigned stack_grow_minimum_increment = 
-        VM_Constants_STACK_SIZE_GROW_MIN;
-    const unsigned stack_default_grow_increment = 
-        VM_Constants_STACK_SIZE_GROW_DEFAULT;
-    const unsigned stack_default_maximum_size = 
-        VM_Constants_STACK_SIZE_MAX_DEFAULT;
-    
-    initialStackSize = stack_default_initial_size;
-    stackGrowIncrement = stack_default_grow_increment;
-    maximumStackSize = stack_default_maximum_size;
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-  
     /*
      * Debugging: print out command line arguments.
      */
@@ -659,61 +604,15 @@ main(int argc, const char **argv)
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-    /* Verify stack sizes for sanity. */
-    if (initialStackSize == stack_default_initial_size &&
-        maximumStackSize != stack_default_maximum_size &&
-        initialStackSize > maximumStackSize) {
-        initialStackSize = maximumStackSize;
-    }
-
-    if (maximumStackSize == stack_default_maximum_size &&
-        initialStackSize != stack_default_initial_size &&
-        initialStackSize > maximumStackSize) {
-        maximumStackSize = initialStackSize;
-    }
-
-    if (maximumStackSize < initialStackSize) {
-        fprintf(SysTraceFile, "%s: maximum stack size %lu KiB is less than initial stack size %lu KiB\n", 
-                Me, (unsigned long) maximumStackSize/1024, 
-                (unsigned long) initialStackSize/1024);
-        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-    }
-
-    if (initialStackSize < stack_minimum_size) {
-        fprintf(SysTraceFile, "%s: initial stack size %lu KiB is less than minimum stack size %lu KiB\n", 
-                Me, (unsigned long) initialStackSize/1024, 
-                (unsigned long) stack_minimum_size/1024);
-        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-    }
-
-    if (stackGrowIncrement < stack_grow_minimum_increment) {
-        fprintf(SysTraceFile, "%s: stack growth increment %lu KiB is less than minimum growth increment %lu KiB\n", 
-                Me, (unsigned long) stackGrowIncrement/1024, 
-                (unsigned long) stack_grow_minimum_increment/1024);
-        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-    }
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-
     if (DEBUG){
         printf("\nRunBootImage.main(): VM variable settings\n");
         printf("initialHeapSize %lu\nmaxHeapSize %lu\n"
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-               "initialStackSize %lu\n"
-               "stackGrowIncrement %lu\n"
-               "maxStackSize %lu\n"
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                "rvm_singleVirtualProcessor %d\n"
                "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
-	       "bootRmapFileName |%s|\n"
+               "bootRmapFileName |%s|\n"
                "lib_verbose %d\n",
                (unsigned long) initialHeapSize, 
                (unsigned long) maximumHeapSize, 
-#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-               (unsigned long) initialStackSize, 
-               (unsigned long) stackGrowIncrement,
-               (unsigned long) maximumStackSize,
-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                rvm_singleVirtualProcessor,
                bootCodeFilename, bootDataFilename, bootRMapFilename,
                lib_verbose);
