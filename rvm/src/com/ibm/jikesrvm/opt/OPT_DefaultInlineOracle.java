@@ -116,7 +116,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
 
     // Critical section: must prevent class hierarchy from changing while
     // we are inspecting it to determine how/whether to do the inline guard.
-    synchronized(VM_Class.OptCLDepManager) {
+    synchronized(VM_Class.classLoadListener) {
 
       boolean guardOverrideOnStaticCallee = false;
       if (targets == null) {
@@ -283,14 +283,14 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
                 // Record that and also whether or not we think it needs a guard.
                 methodsToInline.add(callee);
                 if (preEx) {
+                  OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager)VM_Class.classLoadListener;
                   if (OPT_ClassLoadingDependencyManager.TRACE || 
                       OPT_ClassLoadingDependencyManager.DEBUG) {
-                    VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
-                                                    + callee + " into " + caller + "\n");
+                    cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
                   }
-                  VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, state.getCompiledMethod());
+                  cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
                   if (goosc) {
-                    VM_Class.OptCLDepManager.addNotOverriddenDependency(staticCallee, state.getCompiledMethod());
+                    cldm.addNotOverriddenDependency(staticCallee, state.getCompiledMethod());
                   }
                   methodsNeedGuard.add(Boolean.FALSE);
                 } else {
@@ -360,7 +360,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
    * from caller to callee according to the controlling {@link OPT_Options}.
    * If we are using IG_CODE_PATCH, then this method also records 
    * the required dependency.
-   * Precondition: lock on {@link VM_Class#OptCLDepManager} is held.
+   * Precondition: lock on {@link VM_Class#classLoadListener} is held.
    *
    * @param caller The caller method
    * @param callee The callee method
@@ -374,17 +374,16 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(VM_ObjectModel.holdsLock(VM_Class.OptCLDepManager,
+        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener,
                                             VM_Thread.getCurrentThread()));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
+        OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager)VM_Class.classLoadListener;
         if (OPT_ClassLoadingDependencyManager.TRACE || 
             OPT_ClassLoadingDependencyManager.DEBUG) {
-          VM_Class.OptCLDepManager.report("CODE PATCH: Inlined "
-                                          + singleImpl + " into " + caller + "\n");
+          cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }
-        VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-                                                            state.getCompiledMethod());
+        cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
       }
     } else if (guard == OPT_Options.IG_CODE_PATCH) {
       guard = OPT_Options.IG_METHOD_TEST;

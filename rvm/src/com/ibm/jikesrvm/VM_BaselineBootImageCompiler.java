@@ -45,14 +45,15 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     cm = VM_BaselineCompiler.compile(method);
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // Must estimate compilation time by using offline ratios.
-    // It is tempting to time via System.currentTimeMillis()
-    // but 1 millisecond granularity isn't good enough because the 
-    // the baseline compiler is just too fast.
-    double compileTime = method.getBytecodeLength() / com.ibm.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
-    cm.setCompilationTime(compileTime);
-    //-#endif
+    if (VM.BuildForAdaptiveSystem) {
+      // Must estimate compilation time by using offline ratios.
+      // It is tempting to time via System.currentTimeMillis()
+      // but 1 millisecond granularity isn't good enough because the 
+      // the baseline compiler is just too fast.
+      // TODO: Try Using System.nanoTime() instead
+      double compileTime = method.getBytecodeLength() / com.ibm.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+      cm.setCompilationTime(compileTime);
+    }
     return cm;
   }
 }

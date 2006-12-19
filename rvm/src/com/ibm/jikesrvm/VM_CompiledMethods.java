@@ -37,10 +37,8 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     VM_CompiledMethod cm = null;
     if (compilerType == VM_CompiledMethod.BASELINE) {
       cm = new VM_BaselineCompiledMethod(id, m);
-    } else if (compilerType == VM_CompiledMethod.OPT) {
-      //-#if RVM_WITH_OPT_COMPILER
+    } else if (VM.BuildForOptCompiler && compilerType == VM_CompiledMethod.OPT) {
       cm = new VM_OptCompiledMethod(id, m);
-      //-#endif
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {

@@ -284,7 +284,9 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     if (! VM.singleVirtualProcessor)
       VM_SysCall.sysWaitForMultithreadingStart();
 
-    OSR_ObjectHolder.boot();
+    if (VM.BuildForAdaptiveSystem) {
+      OSR_ObjectHolder.boot();
+    }
 
     // Start collector threads on each VM_Processor.
     for (int i = 0; i < numProcessors; ++i) {
@@ -595,8 +597,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
           int       lineNumber        = 
             compiledMethod.findLineNumberForInstruction(instructionOffset);
           
-          //-#if RVM_WITH_OPT_COMPILER
-          if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+          if (VM.BuildForOptCompiler &&
+              compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
             VM_OptCompiledMethod optInfo =
               (VM_OptCompiledMethod) compiledMethod;
             // Opt stack frames may contain multiple inlined methods.
@@ -626,7 +628,6 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
             fp = VM_Magic.getCallerFramePointer(fp);
             continue; // done printing this stack frame
           } 
-          //-#endif
 
           showMethod(method, lineNumber);
         }

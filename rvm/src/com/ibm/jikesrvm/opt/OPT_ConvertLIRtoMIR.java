@@ -94,7 +94,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
         case GET_OBJ_TIB_opcode:
           {
-            VM_ObjectModel.lowerGET_OBJ_TIB(s, ir);
+            OPT_ObjectModel.lowerGET_OBJ_TIB(s, ir);
           }
           break;
 

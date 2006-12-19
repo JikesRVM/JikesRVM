@@ -11,9 +11,7 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.ir.*;
-//-#endif
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -116,7 +114,7 @@ import org.vmmagic.pragma.*;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-@Uninterruptible public final class VM_ObjectModel implements VM_JavaHeaderConstants,
+@Uninterruptible public class VM_ObjectModel implements VM_JavaHeaderConstants,
                                              VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
@@ -905,18 +903,4 @@ import org.vmmagic.pragma.*;
                                          ) { 
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
-
-  //-#if RVM_WITH_OPT_COMPILER
-  /**
-   * Mutate a GET_OBJ_TIB instruction to the LIR
-   * instructions required to implement it.
-   * 
-   * @param s the GET_OBJ_TIB instruction to lower
-   * @param ir the enclosing OPT_IR
-   */
-  @Interruptible
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) { 
-    VM_JavaHeader.lowerGET_OBJ_TIB(s, ir);
-  }
-  //-#endif
 }

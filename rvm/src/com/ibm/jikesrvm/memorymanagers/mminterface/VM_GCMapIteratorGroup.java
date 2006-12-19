@@ -13,9 +13,7 @@ package com.ibm.jikesrvm.memorymanagers.mminterface;
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_BaselineGCMapIterator;
-//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.VM_OptGCMapIterator;
-//-#endif
 import com.ibm.jikesrvm.jni.VM_JNIGCMapIterator;
 import com.ibm.jikesrvm.VM_HardwareTrapGCMapIterator;
 import com.ibm.jikesrvm.VM_Thread;
@@ -52,28 +50,26 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   private final WordArray registerLocations;
 
   /** iterator for baseline compiled frames */
-  private final VM_BaselineGCMapIterator baselineIterator;
+  private final VM_GCMapIterator baselineIterator;
 
   /** iterator for opt compiled frames */
-  //-#if RVM_WITH_OPT_COMPILER
-  private final VM_OptGCMapIterator optIterator;
-  //-#else
-  private final VM_GCMapIterator optIterator = null;
-  //-#endif
+  private final VM_GCMapIterator optIterator;
   
   /** iterator for VM_HardwareTrap stackframes */
-  private final VM_HardwareTrapGCMapIterator hardwareTrapIterator;
+  private final VM_GCMapIterator hardwareTrapIterator;
   
   /** iterator for JNI Java -> C  stackframes */
-  private final VM_JNIGCMapIterator jniIterator;
+  private final VM_GCMapIterator jniIterator;
   
   public VM_GCMapIteratorGroup() { 
     registerLocations         = WordArray.create(VM_Constants.NUM_GPRS);
     
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
-    //-#if RVM_WITH_OPT_COMPILER
-    optIterator = new VM_OptGCMapIterator(registerLocations);
-    //-#endif
+    if (VM.BuildForOptCompiler) {
+      optIterator = new VM_OptGCMapIterator(registerLocations);
+    } else {
+      optIterator = null;
+    }
     jniIterator = new VM_JNIGCMapIterator(registerLocations);
     hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
   }
@@ -98,7 +94,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }
     baselineIterator.newStackWalk(thread);
-    if (optIterator != null) optIterator.newStackWalk(thread);
+    if (VM.BuildForOptCompiler) {
+      optIterator.newStackWalk(thread);
+    }
     hardwareTrapIterator.newStackWalk(thread);
     jniIterator.newStackWalk(thread);
   }

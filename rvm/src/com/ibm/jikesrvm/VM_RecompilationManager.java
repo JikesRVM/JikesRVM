@@ -10,9 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
-//-#endif
 
 /**
  * This class enables an external driver to block recompile all
@@ -68,12 +66,11 @@ public final class VM_RecompilationManager {
       }
     }
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // clear profiling counter
-    if (DEBUG||report) { VM.sysWrite("Reseting profiling information\n"); }
-    VM_RuntimeMeasurements.resetReportableObjects();
-    //-#endif
-
+    if (VM.BuildForAdaptiveSystem) {
+      // clear profiling counter
+      if (DEBUG||report) { VM.sysWrite("Reseting profiling information\n"); }
+      VM_RuntimeMeasurements.resetReportableObjects();
+    }
   }
 
   /**

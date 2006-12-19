@@ -22,11 +22,9 @@ import com.ibm.jikesrvm.mm.mmtk.Barriers;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
 import com.ibm.jikesrvm.adaptive.OSR_Listener;
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-//-#endif
 
 import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
 
@@ -393,9 +391,9 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
         }
       }
 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-      VM_RuntimeMeasurements.takeTimerSample(whereFrom);
-      //-#endif
+      if (VM.BuildForAdaptiveSystem) {
+        VM_RuntimeMeasurements.takeTimerSample(whereFrom);
+      }
 
       if (threadSwitch && (VM_Processor.getCurrentProcessor().yieldForCBSMethod ||
 			   VM_Processor.getCurrentProcessor().yieldForCBSCall)) {
@@ -405,9 +403,9 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
         threadSwitch = false;
       }
 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-      threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
-      //-#endif
+      if (VM.BuildForAdaptiveSystem) {
+        threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
+      }
       if (threadSwitch) {
         VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
         VM_Processor.getCurrentProcessor().yieldForCBSCall = false; 
@@ -418,10 +416,10 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
       if (!(whereFrom == BACKEDGE || whereFrom == OSROPT)) {
         if (--VM_Processor.getCurrentProcessor().countdownCBSCall <= 0) {
-          // take CBS sample
-          //-#if RVM_WITH_ADAPTIVE_SYSTEM
-          VM_RuntimeMeasurements.takeCBSCallSample(whereFrom);
-          //-#endif
+          if (VM.BuildForAdaptiveSystem) {
+            // take CBS sample
+            VM_RuntimeMeasurements.takeCBSCallSample(whereFrom);
+          }
           VM_Processor.getCurrentProcessor().countdownCBSCall = VM.CBSCallSampleStride;
           VM_Processor.getCurrentProcessor().numCBSCallSamples--;
           if (VM_Processor.getCurrentProcessor().numCBSCallSamples <= 0) {
@@ -441,10 +439,10 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     
     if (VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
       if (--VM_Processor.getCurrentProcessor().countdownCBSMethod <= 0) {
+        if (VM.BuildForAdaptiveSystem) {
         // take CBS sample
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_RuntimeMeasurements.takeCBSMethodSample(whereFrom);
-        //-#endif
+          VM_RuntimeMeasurements.takeCBSMethodSample(whereFrom);
+        }
         VM_Processor.getCurrentProcessor().countdownCBSMethod = VM.CBSMethodSampleStride;
         VM_Processor.getCurrentProcessor().numCBSMethodSamples--;
         if (VM_Processor.getCurrentProcessor().numCBSMethodSamples <= 0) {
@@ -470,11 +468,9 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
       threadSwitch = true;
     }
     
-    if (VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
+    if (VM.BuildForAdaptiveSystem && VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
       VM_Processor.getCurrentProcessor().yieldToOSRRequested = false;
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
       OSR_Listener.handleOSRFromOpt();
-      //-#endif
       threadSwitch = true;
     }
 
@@ -483,7 +479,7 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     }
 
     VM_Thread myThread = getCurrentThread();
-    if (myThread.isWaitingForOsr) {
+    if (VM.BuildForAdaptiveSystem && myThread.isWaitingForOsr) {
       OSR_PostThreadSwitch.postProcess(myThread);
     }
   }
@@ -688,9 +684,9 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
 
     }
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    VM_RuntimeMeasurements.monitorThreadExit();
-    //-#endif
+    if (VM.BuildForAdaptiveSystem) {
+      VM_RuntimeMeasurements.monitorThreadExit();
+    }
 
     VM_Thread myThread = getCurrentThread();
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
@@ -1143,9 +1139,11 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     if (VM.runningVM)
       jniEnv = VM_JNIEnvironment.allocateEnvironment();
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    onStackReplacementEvent = new OSR_OnStackReplacementEvent();
-    //-#endif
+    if (VM.BuildForAdaptiveSystem) {
+      onStackReplacementEvent = new OSR_OnStackReplacementEvent();
+    } else {
+      onStackReplacementEvent = null;
+    }
   }
   
   /**
@@ -1844,10 +1842,10 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
   // Public since it needs to be able to be set by java.lang.Thread.
   public boolean isSystemThread = true;
 
-  //-#if RVM_WITH_ADAPTIVE_SYSTEM
-  public OSR_OnStackReplacementEvent onStackReplacementEvent;
-  //-#endif
-
+  // Only used by OSR when VM.BuildForAdaptiveSystem
+  // Declared as an Object to cut link to adaptive system.  Ugh.
+  public Object /* OSR_OnStackReplacementEvent */ onStackReplacementEvent;
+  
   ///////////////////////////////////////////////////////////
   // flags should be packaged or replaced by other solutions
 

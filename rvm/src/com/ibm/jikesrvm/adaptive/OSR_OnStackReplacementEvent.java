@@ -66,8 +66,8 @@ public final class OSR_OnStackReplacementEvent
       optimizationPlan = oldCompPlan.optimizationPlan;
     } else {
       priority = 5.0;
-      options = VM_RuntimeCompiler.options;
-      optimizationPlan = VM_RuntimeCompiler.optimizationPlan;
+      options = (OPT_Options)VM_RuntimeCompiler.options;
+      optimizationPlan = (OPT_OptimizationPlanElement[])VM_RuntimeCompiler.optimizationPlan;
     }
 
     OPT_CompilationPlan compPlan = 

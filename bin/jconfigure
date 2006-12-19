@@ -1261,30 +1261,18 @@ function emitSourceToPreprocessList () {
 	# Core VM arch-specific
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/jni
-EOF
-    # Optimizing compiler components.
-    #
-    if (( RVM_WITH_OPT_COMPILER )); then
-	cleanFileList <<- EOF
+
+        # Optimizing compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt/ir
 
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt/ir
-EOF
-    fi
 
-    # Adaptive compiler components.
-    #
-    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	cleanFileList <<- EOF
+        # Adaptive compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/adaptive
-EOF
-    fi
 
-    # On stack replacement components.
-    #
-	cleanFileList <<- EOF
+        # On stack replacement components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/osr
 	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/osr
 EOF
@@ -1870,12 +1858,8 @@ function emitExpander () {
             mkdir -p ${SCRATCH_DIRECTORY_STR}/org/mmtk/vm/gcspy
 	EOF
     #fi
-    if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
             rm -rf ${GENERATED_FILES_DIRECTORY_STR}/com/ibm/jikesrvm/opt/ir/*.*
-	EOF
-    fi
-    cat <<- EOF
 
 	    echo -n "(templates cleaned) "
 
@@ -1885,15 +1869,9 @@ function emitExpander () {
 
 	# Make the tools that we need to do template expansion
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C "${ROOT_DIRECTORY_STR}/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
-EOF
-    if (( RVM_WITH_OPT_COMPILER )); then
-	cat <<- EOF
 
-	# Opt compiler only:
+	# Opt compiler code gen
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/tools-external/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/tools-external/jburg tool
-	EOF
-    fi
-    cat <<- EOF
 
 	# Build the command line options
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/options all_options GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
@@ -1908,22 +1886,15 @@ EOF
 
 	# Build VM_Assembler on Intel
 	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/ia32-assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+
+	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/ia32-assembler-opt GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
-	if (( RVM_WITH_OPT_COMPILER )); then
-	echo "\
-run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/ia32-assembler-opt GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
-	fi
     fi
 
-    if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
-		# (OPT Compiler only:)
-		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-ir ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-burs ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-		run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-scheduler ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-EOF
-    fi
-    cat <<EOF
+	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-ir ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-burs ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-scheduler ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 
 trap "" EXIT
 EOF
@@ -2159,9 +2130,7 @@ EOF
     echo '    echo "Dummy.java"'
     echo '    find com/ibm/jikesrvm/mm/mmtk -name \*.java -print'
 
-    if (( RVM_WITH_OPT_COMPILER )); then
-	echo '    echo "OptDummy.java"'
-    fi
+    echo '    echo "OptDummy.java"'
     if (( RVM_WITH_OPT_TEST_HARNESS )); then
 	echo '    echo "OptTestHarness.java"'
     fi
@@ -2263,11 +2232,23 @@ EOF
 
     ## Create a blank .jar file and put in Jikes RVM classes
     run touch jksvm.jar
-    \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
-    \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
-    if [[ -f OptTestHarness.java ]]; then
-	run $JAR_STR -u0f jksvm.jar OptTestHarness*.class
+EOF
+    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
+        cat <<- EOF
+        \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+        if [[ -f OptTestHarness.java ]]; then
+	    run $JAR_STR -u0f jksvm.jar OptTestHarness*.class
+        fi
+EOF
+    else
+        cat <<- EOF
+        \$FIND com -name opt -prune -o -name adaptive -prune -o -name osr -prune -o -name '*.class' -print | \$XARGS $JAR_STR -u0f jksvm.jar
+        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+EOF
     fi
+
+cat <<- EOF
     close_paren 'jksvm.jar built'
 
     open_paren 'building jksvmsrc.jar'
@@ -2568,11 +2549,14 @@ EOF
         echo "    \${FIND} . -name '*.class'"
         echo "    \$JAR tf ./vmmagic.jar| grep '.class'"
     else
-	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
+	    echo "    \$FIND . -name 'VM*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/adaptive -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
+        else 
+	    echo "    \$FIND . -name opt -prune -o -name adaptive -prune -o -name osr -prune -o -name 'VM*.class' -print"
         fi
-	echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"

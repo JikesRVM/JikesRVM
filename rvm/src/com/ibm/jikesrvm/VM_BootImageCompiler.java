@@ -23,11 +23,11 @@ import com.ibm.jikesrvm.classloader.*;
 public abstract class VM_BootImageCompiler {
 
   private static VM_BootImageCompiler compiler = 
-    //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
-    new VM_BaselineBootImageCompiler();
-    //-#elif RVM_WITH_OPT_BOOTIMAGE_COMPILER
-    new VM_OptimizingBootImageCompiler();
-    //-#endif
+      //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
+      new VM_BaselineBootImageCompiler();
+      //-#elif RVM_WITH_OPT_BOOTIMAGE_COMPILER
+      new com.ibm.jikesrvm.opt.VM_OptimizingBootImageCompiler();
+      //-#endif
 
   /** 
    * Initialize boot image compiler.
@@ -47,7 +47,14 @@ public abstract class VM_BootImageCompiler {
    * @param args command line arguments to the bootimage compiler
    */
   static void init(String[] args) {
-    compiler.initCompiler(args);
+    try {
+      compiler.initCompiler(args);
+    } catch (Throwable e) {
+      while (e != null) {
+        e.printStackTrace();
+        e= e.getCause();
+      }
+    }
   }
 
   public static VM_CompiledMethod compile(VM_NormalMethod method) {

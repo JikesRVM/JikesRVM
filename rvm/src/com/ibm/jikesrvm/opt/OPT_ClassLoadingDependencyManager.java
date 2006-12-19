@@ -24,7 +24,7 @@ import  java.io.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-public final class OPT_ClassLoadingDependencyManager {
+public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingListener {
 
   ////////////////////////
   // Entrypoints from VM_Class

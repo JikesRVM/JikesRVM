@@ -321,11 +321,10 @@ import org.vmmagic.unboxed.*;
     if (verboseBoot >= 1) VM.sysWriteln("Initializing socket factories");
     JikesRVMSocketImpl.boot();
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-    com.ibm.jikesrvm.adaptive.VM_Controller.boot();
-    //-#endif
-
+    if (VM.BuildForAdaptiveSystem) {
+      if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
+      com.ibm.jikesrvm.adaptive.VM_Controller.boot();
+    }
 
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
@@ -357,9 +356,9 @@ import org.vmmagic.unboxed.*;
     // 
     VM_EdgeCounts.boot();
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    VM_CompilerAdvice.postBoot();
-    //-#endif
+    if (VM.BuildForAdaptiveSystem) {
+      VM_CompilerAdvice.postBoot();
+    }
       
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");

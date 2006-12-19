@@ -9,9 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.adaptive.VM_Controller;
-//-#endif
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
@@ -474,42 +472,42 @@ public class VM_CommandLineArgs {
         // talking to several different compilers used by AOS for recompilation.
         // --------------------------------------------------------------------
       case RECOMP_HELP_ARG:
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_Controller.addOptCompilerOption("opt:help");
-        //-#else
-        VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem) {
+          VM_Controller.addOptCompilerOption("opt:help");
+        } else {
+          VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
       case RECOMP_ARG:
         // "-X:recomp[?]:arg" process as 'opt[?]:arg' to opt
         // Note arg actually includes the optional opt level and :
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_Controller.addOptCompilerOption("opt"+arg);
-        //-#else
-        VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem) {
+          VM_Controller.addOptCompilerOption("opt"+arg);
+        } else {
+          VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
 
         // -------------------------------------------------------------------
         // Access adaptive optimization system
         // -------------------------------------------------------------------
       case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_Controller.processCommandLineArg("help");
-        //-#else
-        VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem) {
+          VM_Controller.processCommandLineArg("help");
+        } else {
+          VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
       case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_Controller.processCommandLineArg(arg);
-        //-#else
-        VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem) {
+          VM_Controller.processCommandLineArg(arg);
+        } else {
+          VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
 
         // ----------------------------------------------------
@@ -536,14 +534,14 @@ public class VM_CommandLineArgs {
         }
         break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
-        //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:", arg);
-        VM_Controller.addOptCompilerOption("opt:"+arg);
-        //-#else
-        VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
-        VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        //-#endif
+        if (VM.BuildForAdaptiveSystem) {
+          VM_RuntimeCompiler.processOptCommandLineArg("-X:opt:", arg);
+          VM_Controller.addOptCompilerOption("opt:"+arg);
+        } else {
+          VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
+          VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         break;
 
         // -------------------------------------------------------------------

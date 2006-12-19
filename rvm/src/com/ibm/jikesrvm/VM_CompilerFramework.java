@@ -27,14 +27,8 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants
-  , VM_StackframeLayoutConstants
-  , OSR_Constants
-{
-
-   /** 
-    * Options used during compiler execution 
-    */
+public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants,
+                                                      VM_StackframeLayoutConstants {
 
   /**
    * has fullyBootedVM been called by VM.boot?
@@ -1800,138 +1794,141 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
        * this is not consistant with OPT compiler.
        */
       case JBC_impdep1: /* --- pseudo bytecode --- */ {
-        int pseudo_opcode = bcodes.nextPseudoInstruction(); 
-        // pseudo instruction
-        switch (pseudo_opcode) {
-        case PSEUDO_LoadIntConst: {
-          int value = bcodes.readIntConst();
-
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
-          emit_ldc(offset, VM_Class.CP_INT);
-            
-          break;
-        }
-        case PSEUDO_LoadLongConst: {
-          long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
- 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
-          emit_ldc2(offset, VM_Class.CP_LONG);
-
-          break;
-        }
-        case PSEUDO_LoadWordConst: {
-          if (VM.BuildFor32Addr) {
+        if (VM.BuildForAdaptiveSystem) {
+          int pseudo_opcode = bcodes.nextPseudoInstruction(); 
+          // pseudo instruction
+          switch (pseudo_opcode) {
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadIntConst: {
             int value = bcodes.readIntConst();
 
-            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
-
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
+          
             Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
             emit_ldc(offset, VM_Class.CP_INT);
-          } else {
-            long value = bcodes.readLongConst();
-
-            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
-
+            
+            break;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadLongConst: {
+            long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
+ 
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
+          
             Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
             emit_ldc2(offset, VM_Class.CP_LONG);
-            emit_l2i(); //dirty hack
+
+            break;
           }
-          break;
-        }
-        case PSEUDO_LoadFloatConst: {
-          int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
-          
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
-          emit_ldc(offset, VM_Class.CP_FLOAT);
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadWordConst: {
+            if (VM.BuildFor32Addr) {
+              int value = bcodes.readIntConst();
 
-          break;
-        }
-        case PSEUDO_LoadDoubleConst: {
-          long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
+              if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
-          
-          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
-          emit_ldc2(offset, VM_Class.CP_DOUBLE);
+              Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
+              emit_ldc(offset, VM_Class.CP_INT);
+            } else {
+              long value = bcodes.readLongConst();
 
-          break;
-        }
-        case PSEUDO_LoadRetAddrConst: {
-          int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
+              if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
-          // for bytecode to get future bytecode's address
-          // we register it and patch it later.
-          emit_loadretaddrconst(bcIndex);
-
-          break;
-        }
-        case PSEUDO_InvokeStatic: {
-          VM_Method methodRef = null;
-          int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
-          switch (targetidx) {
-          case GETREFAT:
-            methodRef = VM_Entrypoints.osrGetRefAtMethod;
+              Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
+              emit_ldc2(offset, VM_Class.CP_LONG);
+              emit_l2i(); //dirty hack
+            }
             break;
-          case CLEANREFS:
-            methodRef = VM_Entrypoints.osrCleanRefsMethod;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadFloatConst: {
+            int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
+          
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
+          
+            Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
+            emit_ldc(offset, VM_Class.CP_FLOAT);
+
             break;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadDoubleConst: {
+            long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
+
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
+          
+            Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
+            emit_ldc2(offset, VM_Class.CP_DOUBLE);
+
+            break;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_LoadRetAddrConst: {
+            int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
+
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
+            // for bytecode to get future bytecode's address
+            // we register it and patch it later.
+            emit_loadretaddrconst(bcIndex);
+
+            break;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_InvokeStatic: {
+            VM_Method methodRef = null;
+            int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
+            switch (targetidx) {
+            case com.ibm.jikesrvm.osr.OSR_Constants.GETREFAT:
+              methodRef = VM_Entrypoints.osrGetRefAtMethod;
+              break;
+            case com.ibm.jikesrvm.osr.OSR_Constants.CLEANREFS:
+              methodRef = VM_Entrypoints.osrCleanRefsMethod;
+              break;
+            default:
+              if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokstatic with unknown target index "+targetidx);
+              if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+              break;
+            }
+
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
+            emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
+            break;
+          }
+            /*
+              case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_CheckCast: {
+
+              if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
+          
+              // fetch 4 byte type id
+              int tid = bcodes.readIntConst(); // fetch4BytesSigned();
+              // do nothing now
+              break;
+              }
+            */
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_InvokeCompiledMethod: {
+            int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
+            int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
+
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
+          
+            this.pendingCMID = cmid;
+            this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
+            this.pendingRef = emit_pending_goto(this.pendingIdx);
+            /*
+              VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+              if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+              emit_invoke_compiledmethod(cm);
+            */
+            break;
+          }
+          case com.ibm.jikesrvm.osr.OSR_Constants.PSEUDO_ParamInitEnd: {
+            if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
+            // now we can inserted stack overflow check, 
+            emit_deferred_prologue();
+            break;
+          }
           default:
-            if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokstatic with unknown target index "+targetidx);
+            if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
+                                                        +VM.intAsHexString(pseudo_opcode)+"\n");
             if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
             break;
           }
-
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
-          emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
-          break;
-        }
-          /*
-        case PSEUDO_CheckCast: {
-
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
-          
-          // fetch 4 byte type id
-          int tid = bcodes.readIntConst(); // fetch4BytesSigned();
-          // do nothing now
-          break;
-        }
-          */
-        case PSEUDO_InvokeCompiledMethod: {
-          int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
-          int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
-
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
-          
-          this.pendingCMID = cmid;
-          this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
-          this.pendingRef = emit_pending_goto(this.pendingIdx);
-          /*
-          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
-          emit_invoke_compiledmethod(cm);
-          */
-          break;
-        }
-        case PSEUDO_ParamInitEnd: {
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
-          // now we can inserted stack overflow check, 
-          emit_deferred_prologue();
-          break;
-        }
-        default:
-          if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
-                                                      +VM.intAsHexString(pseudo_opcode)+"\n");
+        } else {
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-          break;
         }
-
         break;
       }
 

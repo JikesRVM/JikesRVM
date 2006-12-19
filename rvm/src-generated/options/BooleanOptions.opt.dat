@@ -135,9 +135,6 @@ Should all yield points be (unsafely) eliminated?
 NO_CACHE_FLUSH -1 VM.BuildForIA32
 Should cache flush instructions (PowerPC SYNC/ISYNC) be omitted? NOTE: Cannot be correctly changed via the command line!
 
-DETECT_UNIPROCESSOR -1 true
-Does the system automatically detect when there is one PHYSICAL CPU, and optimize accordingly? NOTE: Cannot be correctly changed via the command line!
-
 READS_KILL -1 false
 Should we constrain optimizations by enforcing reads-kill?
 

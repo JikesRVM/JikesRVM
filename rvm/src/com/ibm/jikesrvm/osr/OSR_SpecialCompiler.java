@@ -140,7 +140,7 @@ public class OSR_SpecialCompiler{
     _options.OSR_GUARDED_INLINING = false;
 
     OPT_CompilationPlan compPlan = 
-      new OPT_CompilationPlan(method, VM_RuntimeCompiler.optimizationPlan, 
+      new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[])VM_RuntimeCompiler.optimizationPlan, 
                               null, _options);
 
     // it is also necessary to recompile the current method

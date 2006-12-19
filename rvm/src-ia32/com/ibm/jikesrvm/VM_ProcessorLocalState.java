@@ -9,12 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.jikesrvm.opt.ir.*;
-import com.ibm.jikesrvm.classloader.VM_TypeReference;
-import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
-//-#endif 
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -26,13 +20,9 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Stephen Fink
  */
-public final class VM_ProcessorLocalState 
-//-#if RVM_WITH_OPT_COMPILER
-extends OPT_IRTools
-//-#endif 
-{
+public class VM_ProcessorLocalState {
   
-  static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
+  protected static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
    * The C bootstrap program has placed a pointer to the initial
@@ -193,46 +183,4 @@ extends OPT_IRTools
   public static void emitLoadProcessor(VM_Assembler asm, byte base, Offset offset) {
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
   }
-
-  //-#if RVM_WITH_OPT_COMPILER
-  /**
-   * Insert code before instruction s to load a pointer to the current 
-   * processor into a symbolic register, and return the resultant operand
-   */
-  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
-                                                       OPT_Instruction s) {
-    OPT_RegisterOperand result = ir.regpool.makeTemp(VM_TypeReference.VM_Processor);
-    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
-
-    s.insertBefore(MIR_Move.create(IA32_MOV,result,new OPT_RegisterOperand(ESI, VM_TypeReference.Int)));
-    return result;
-  }
-  /**
-   * Insert code before instruction s to load a pointer to the current 
-   * processor into a particular register operand.
-   */
-  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
-                                                       OPT_Instruction s,
-                                                       OPT_RegisterOperand rop)
-  {
-    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
-
-    OPT_RegisterOperand result = rop.copyRO();
-    s.insertBefore(MIR_Move.create(IA32_MOV,result,new OPT_RegisterOperand(ESI, VM_TypeReference.Int)));
-    return result;
-  }
-  /**
-   * Insert code after instruction s to set the current 
-   * processor to be the value of a particular register operand.
-   */
-  public static OPT_RegisterOperand appendSetCurrentProcessor(OPT_IR ir,
-                                                       OPT_Instruction s,
-                                                       OPT_RegisterOperand rop)
-  {
-    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
-
-    s.insertBefore(MIR_Move.create(IA32_MOV,new OPT_RegisterOperand(ESI, VM_TypeReference.Int),rop.copyRO()));
-    return rop;
-  }
-  //-#endif
 }

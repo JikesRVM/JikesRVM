@@ -337,7 +337,6 @@ public abstract class VM_RecompilationStrategy {
         }
       }
     }
-    VM_RuntimeCompiler.setNoCacheFlush(options);
   }
 }
 

@@ -7,8 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
-package com.ibm.jikesrvm;
+package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Vector;

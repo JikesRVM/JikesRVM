@@ -71,7 +71,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
   /**
    * Clear out crud from bootimage writing
    */
-  static void initOptions() {
+  public static void initOptions() {
     options = new VM_BaselineOptions();
   }
 
@@ -184,7 +184,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     // Phase 2: OSR setup
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     boolean edge_counters = options.EDGE_COUNTERS;
-    if (method.isForOsrSpecialization()) {
+    if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
       System.arraycopy(stackHeights, 0, stackHeights, 
@@ -223,7 +223,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
      */
     // Phase 4: OSR part 2
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
-    if (method.isForOsrSpecialization()) {
+    if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
                        method.getOsrPrologueLength(),

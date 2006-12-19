@@ -22,9 +22,7 @@ import java.io.UTFDataFormatException;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.*;
-//-#endif
 
 /**
  * Description of a java "class" type.<br/>
@@ -1779,10 +1777,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
-    if (VM.writingBootImage) {
-      //-#if RVM_WITH_OPT_COMPILER
-      OptCLDepManager.classInitialized(this, true);
-      //-#endif
+    // TODO: Make this into a more general listener interface
+    if (VM.BuildForOptCompiler && VM.writingBootImage) {
+      classLoadListener.classInitialized(this, true);
     }
     
     
@@ -1982,12 +1979,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       classInitializerMethod               = null;
     }
 
-    // report that a class is about to be marked initialized to 
-    // the opt compiler so it can invalidate speculative CHA optimizations
-    // before an instance of this class could actually be created.
-    //-#if RVM_WITH_OPT_COMPILER
-    OptCLDepManager.classInitialized(this, false);
-    //-#endif
+    if (VM.BuildForOptCompiler) {
+      // report that a class is about to be marked initialized to 
+      // the opt compiler so it can invalidate speculative CHA optimizations
+      // before an instance of this class could actually be created.
+      classLoadListener.classInitialized(this, false);
+    }
 
     state = CLASS_INITIALIZED;
 
@@ -2061,10 +2058,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   //------------------------------------------------------------//
   // Support for speculative optimizations that may need to 
   // invalidate compiled code when new classes are loaded.
+  // 
+  // TODO: Make this into a more general listener API
   //------------------------------------------------------------//
-  //-#if RVM_WITH_OPT_COMPILER
-  public static final OPT_ClassLoadingDependencyManager OptCLDepManager = new OPT_ClassLoadingDependencyManager();
-  //-#endif
+  public static final VM_ClassLoadingListener classLoadListener =
+    VM.BuildForOptCompiler ? new OPT_ClassLoadingDependencyManager() : null;
 
   /**
    * Given a method declared by this class, update all

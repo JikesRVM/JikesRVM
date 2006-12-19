@@ -40,12 +40,12 @@ public class OSR_OnStackReplacementTrigger {
     boolean isInBootImage = ypTakenInMethod.getDeclaringClass().isInBootImage();
 
     if (isInBootImage) return;
-    
-    thread.onStackReplacementEvent.suspendedThread = thread;
-    thread.onStackReplacementEvent.whereFrom = whereFrom;
-    thread.onStackReplacementEvent.CMID = ypTakenInCMID;
-    thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff;
-    thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff;
+    OSR_OnStackReplacementEvent event = (OSR_OnStackReplacementEvent)thread.onStackReplacementEvent;
+    event.suspendedThread = thread;
+    event.whereFrom = whereFrom;
+    event.CMID = ypTakenInCMID;
+    event.tsFromFPoff = tsFromFPoff;
+    event.ypTakenFPoff = ypTakenFPoff;
 
     // consumer:
     thread.requesting_osr = true;

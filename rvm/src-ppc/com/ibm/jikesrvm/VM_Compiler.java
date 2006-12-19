@@ -3135,8 +3135,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitBCCTRL();
       fr.resolve(asm);
 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-      if (options.INVOCATION_COUNTERS) {
+      if (VM.BuildForAdaptiveSystem && options.INVOCATION_COUNTERS) {
         int id = compiledMethod.getId();
         com.ibm.jikesrvm.adaptive.VM_InvocationCounts.allocateCounter(id);
         asm.emitLAddrToc (T0, VM_Entrypoints.invocationCountsField.getOffset());
@@ -3151,7 +3150,6 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitBCCTRL();
         fr2.resolve(asm);
       }
-      //-#endif
     }
   }
 

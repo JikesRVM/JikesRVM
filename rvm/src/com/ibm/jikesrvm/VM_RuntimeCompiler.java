@@ -10,10 +10,8 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
-//-#endif
 
 /**
  * Harness to select which compiler to dynamically
@@ -72,8 +70,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // We can't record values until Math.log is loaded, so we miss the first few
   private static int totalLogValueMethods[] = {0,0,0};
 
-  //-#if RVM_WITH_ADAPTIVE_SYSTEM
-  public static OPT_InlineOracle offlineInlineOracle;
   private static String[] earlyOptArgs = new String[0];
 
   // is the opt compiler usable?
@@ -95,9 +91,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
   protected static boolean preloadChecked = false;
 
   // Cache objects needed to cons up compilation plans
-  public static OPT_Options options;
-  public static OPT_OptimizationPlanElement[] optimizationPlan;
-  //-#endif
+  // TODO: cutting link to opt compiler by declaring type as object.
+  public static Object /* OPT_Options */ options;
+  public static Object /* OPT_OptimizationPlanElement[] */ optimizationPlan;
 
   /**
    * To be called when the VM is about to exit.
@@ -122,8 +118,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
                       compiledMethod.numberOfInstructions(),
                       compiledMethod.getCompilationTime());
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if (VM.LogAOSEvents) {
+    if (VM.BuildForAdaptiveSystem && VM.LogAOSEvents) {
       if (VM_AOSLogging.booted()) {
         VM_AOSLogging.recordUpdatedCompilationRates(compiler, 
                                                     method,
@@ -138,7 +133,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
                                                     totalMethods[compiler]);
       }
     }
-    //-#endif
   }
 
   /**
@@ -248,18 +242,18 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     VM_BaselineCompiler.generateBaselineCompilerSubsystemReport(explain);
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM 
-    // Get the opt's report
-    VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/opt/OPT_OptimizationPlanner;"));
-    VM_Type theType = theTypeRef.peekResolvedType();
-    if (theType != null && theType.asClass().isInitialized()) {
-      OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
-    } else {
-      VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");
-      VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
+    if (VM.BuildForAdaptiveSystem) {
+      // Get the opt's report
+      VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                                                  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/opt/OPT_OptimizationPlanner;"));
+      VM_Type theType = theTypeRef.peekResolvedType();
+      if (theType != null && theType.asClass().isInitialized()) {
+        OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
+      } else {
+        VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");
+        VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
+      }
     }
-    //-#endif
   }
    
   /**
@@ -292,28 +286,30 @@ public class VM_RuntimeCompiler implements VM_Constants,
     return cm;
   }
 
-  //-#if RVM_WITH_ADAPTIVE_SYSTEM
   /**
    * Process command line argument destined for the opt compiler
    */
   public static void processOptCommandLineArg(String prefix, String arg) {
-    if (compilerEnabled) {
-      if (options.processAsOption(prefix, arg)) {
-        // update the optimization plan to reflect the new command line argument
-        setNoCacheFlush(options);
-        optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
+    if (VM.BuildForAdaptiveSystem) {
+      if (compilerEnabled) {
+        if (((OPT_Options)options).processAsOption(prefix, arg)) {
+          // update the optimization plan to reflect the new command line argument
+          optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options)options);
+        } else {
+          VM.sysWrite("Unrecognized opt compiler argument \""+arg+"\"");
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
       } else {
-        VM.sysWrite("Unrecognized opt compiler argument \""+arg+"\"");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        String[] tmp = new String[earlyOptArgs.length+2];
+        for (int i=0; i<earlyOptArgs.length; i++) {
+          tmp[i] = earlyOptArgs[i];
+        }
+        earlyOptArgs = tmp;
+        earlyOptArgs[earlyOptArgs.length-2] = prefix;
+        earlyOptArgs[earlyOptArgs.length-1] = arg;
       }
     } else {
-      String[] tmp = new String[earlyOptArgs.length+2];
-      for (int i=0; i<earlyOptArgs.length; i++) {
-        tmp[i] = earlyOptArgs[i];
-      }
-      earlyOptArgs = tmp;
-      earlyOptArgs[earlyOptArgs.length-2] = prefix;
-      earlyOptArgs[earlyOptArgs.length-1] = arg;
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
   }
 
@@ -328,26 +324,31 @@ public class VM_RuntimeCompiler implements VM_Constants,
   private static VM_CompiledMethod optCompile(VM_NormalMethod method, 
                                               OPT_CompilationPlan plan) 
     throws OPT_OptimizingCompilerException {
-    if (VM.VerifyAssertions) {
-      VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
-    }
+    if (VM.BuildForOptCompiler) {
+      if (VM.VerifyAssertions) {
+        VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
+      }
     
-    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    long start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
-    }
+      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+      long start = 0;
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        start = VM_Thread.getCurrentThread().accumulateCycles();
+      }
     
-    VM_CompiledMethod cm = OPT_Compiler.compile(plan);
+      VM_CompiledMethod cm = OPT_Compiler.compile(plan);
 
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
-      double compileTime = VM_Time.cyclesToMillis(end - start);
-      cm.setCompilationTime(compileTime);
-      record(OPT_COMPILER, method, cm);
-    }
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        long end = VM_Thread.getCurrentThread().accumulateCycles();
+        double compileTime = VM_Time.cyclesToMillis(end - start);
+        cm.setCompilationTime(compileTime);
+        record(OPT_COMPILER, method, cm);
+      }
     
-    return cm;
+      return cm;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return null;
+    }
   }
   
 
@@ -363,16 +364,21 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    */
   public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method) {
-    if (compilationInProgress) {
-      return fallback(method);
-    } else {
-      try {
-        compilationInProgress = true;
-        OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-        return optCompileWithFallBackInternal(method, plan);
-      } finally {
-        compilationInProgress = false;
+    if (VM.BuildForOptCompiler) {
+      if (compilationInProgress) {
+        return fallback(method);
+      } else {
+        try {
+          compilationInProgress = true;
+          OPT_CompilationPlan plan = new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[])optimizationPlan, null, (OPT_Options)options);
+          return optCompileWithFallBackInternal(method, plan);
+        } finally {
+          compilationInProgress = false;
+        }
       }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return null;
     }
   }
 
@@ -388,16 +394,21 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method, 
                                                                       OPT_CompilationPlan plan) {
-    if (compilationInProgress) {
-      return fallback(method);
-    } else {
-      try {
-        compilationInProgress = true;
-        return optCompileWithFallBackInternal(method, plan);
-      } finally {
-        compilationInProgress = false;
+    if (VM.BuildForOptCompiler) {
+      if (compilationInProgress) {
+        return fallback(method);
+      } else {
+        try {
+          compilationInProgress = true;
+          return optCompileWithFallBackInternal(method, plan);
+        } finally {
+          compilationInProgress = false;
+        }
       }
-    }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return null;
+    }      
   }
 
   /**
@@ -407,57 +418,67 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, 
                                                                   OPT_CompilationPlan plan) {
-    if (method.hasNoOptCompilePragma()) return fallback(method);
-    try {
-      return optCompile(method, plan);
-    } catch (OPT_OptimizingCompilerException e) {
-      String msg = "VM_RuntimeCompiler: can't optimize \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
-      if (e.isFatal && VM.ErrorsFatal) {
-        e.printStackTrace();
-        VM.sysFail(msg);
-      } else {
-        boolean printMsg = true;
-        if (e instanceof OPT_MagicNotImplementedException) {
-          printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+    if (VM.BuildForOptCompiler) {
+      if (method.hasNoOptCompilePragma()) return fallback(method);
+      try {
+        return optCompile(method, plan);
+      } catch (OPT_OptimizingCompilerException e) {
+        String msg = "VM_RuntimeCompiler: can't optimize \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
+        if (e.isFatal && VM.ErrorsFatal) {
+          e.printStackTrace();
+          VM.sysFail(msg);
+        } else {
+          boolean printMsg = true;
+          if (e instanceof OPT_MagicNotImplementedException) {
+            printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+          }
+          if (printMsg) VM.sysWrite(msg);
         }
-        if (printMsg) VM.sysWrite(msg);
-      }
-      return fallback(method);
-    } 
+        return fallback(method);
+      } 
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return null;
+    }
   }
 
 
   /* recompile the specialized method with OPT_Compiler. */ 
   public static VM_CompiledMethod recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
-    if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
-    if (compilationInProgress) {
-      return null;
-    }
-
-    try {
-      compilationInProgress = true;
-
-      // the compiler will check if isForOsrSpecialization of the method
-      VM_CompiledMethod cm = optCompile(plan.method, plan);
-
-      // we donot replace the compiledMethod of original method, 
-      // because it is temporary method
-      return cm;
-    } catch (OPT_OptimizingCompilerException e) {
-      e.printStackTrace();
-      String msg = "Optimizing compiler " 
-        +"(via recompileWithOptOnStackSpecialization): "
-        +"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
-
-      if (e.isFatal && VM.ErrorsFatal) {
-        VM.sysFail(msg);
-      } else {
-        VM.sysWrite(msg);
+    if (VM.BuildForOptCompiler) {
+      if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
+      if (compilationInProgress) {
+        return null;
       }
-      return null;      
-    } finally {
-      compilationInProgress = false;
-    }
+
+      try {
+        compilationInProgress = true;
+
+        // the compiler will check if isForOsrSpecialization of the method
+        VM_CompiledMethod cm = optCompile(plan.method, plan);
+        
+        // we donot replace the compiledMethod of original method, 
+        // because it is temporary method
+        return cm;
+      } catch (OPT_OptimizingCompilerException e) {
+        e.printStackTrace();
+        String msg = "Optimizing compiler " 
+          +"(via recompileWithOptOnStackSpecialization): "
+          +"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+
+        if (e.isFatal && VM.ErrorsFatal) {
+          VM.sysFail(msg);
+        } else {
+          VM.sysWrite(msg);
+        }
+        return null;      
+      } finally {
+        compilationInProgress = false;
+      }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return null;
+    }      
   }
 
   /**
@@ -472,38 +493,43 @@ public class VM_RuntimeCompiler implements VM_Constants,
    *
    **/
   public static synchronized int recompileWithOpt(OPT_CompilationPlan plan) {
-    if (compilationInProgress) {
-      return -1;
-    } else {
-      try {
-        compilationInProgress = true;
-        VM_CompiledMethod cm = optCompile(plan.method, plan);
+    if (VM.BuildForOptCompiler) {
+      if (compilationInProgress) {
+        return -1;
+      } else {
         try {
-          plan.method.replaceCompiledMethod(cm);
-        } catch (Throwable e) {
-          String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan.method + "\" (error was: " + e + ")\n"; 
-          if (VM.ErrorsFatal) {
+          compilationInProgress = true;
+          VM_CompiledMethod cm = optCompile(plan.method, plan);
+          try {
+            plan.method.replaceCompiledMethod(cm);
+          } catch (Throwable e) {
+            String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan.method + "\" (error was: " + e + ")\n"; 
+            if (VM.ErrorsFatal) {
+              e.printStackTrace();
+              VM.sysFail(msg);
+            } else {
+              VM.sysWrite(msg);
+            }
+            return -1;
+          }
+          return cm.getId();
+        } catch (OPT_OptimizingCompilerException e) {
+          String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+          if (e.isFatal && VM.ErrorsFatal) {
             e.printStackTrace();
             VM.sysFail(msg);
           } else {
-            VM.sysWrite(msg);
+            // VM.sysWrite(msg);
           }
           return -1;
+        } finally {
+          compilationInProgress = false;
         }
-        return cm.getId();
-      } catch (OPT_OptimizingCompilerException e) {
-        String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
-        if (e.isFatal && VM.ErrorsFatal) {
-          e.printStackTrace();
-          VM.sysFail(msg);
-        } else {
-          // VM.sysWrite(msg);
-        }
-        return -1;
-      } finally {
-        compilationInProgress = false;
       }
-    }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return -1;
+    }      
   }
 
   /**
@@ -512,41 +538,17 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to recompile
    */
   public static int recompileWithOpt(VM_NormalMethod method) {
-    OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
-                                                       optimizationPlan, 
-                                                       null, 
-                                                       options);
-    return recompileWithOpt(plan);
+    if (VM.BuildForOptCompiler) {
+      OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
+                                                         (OPT_OptimizationPlanElement[])optimizationPlan, 
+                                                         null, 
+                                                         (OPT_Options)options);
+      return recompileWithOpt(plan);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false);
+      return -1;
+    }      
   }
-
-//   /**
-//    * This method uses the default compiler (baseline) to compile a method
-//    * It is typically called when a more aggressive compilation fails.
-//    * This method is safe to invoke from VM_RuntimeCompiler.compile
-//    */
-//   protected static VM_CompiledMethod fallback(VM_NormalMethod method) {
-//     // call the inherited method "baselineCompile"
-//     return baselineCompile(method);
-//   }
-
-
-  /**
-   * This method detect if we're running on a uniprocessor and optimizes
-   * accordingly.
-   * One needs to call this method each time a command line argument is changed
-   * and each time an OPT_Options object is created.
-   * @param options the command line options for the opt compiler
-  */
-  public static void setNoCacheFlush(OPT_Options options) {
-    if (options.DETECT_UNIPROCESSOR) {
-      if (VM_SysCall.sysNumProcessors() == 1) {
-        options.NO_CACHE_FLUSH = true;
-      }
-    }
-  }
-  //-#else
-  public static void processOptCommandLineArg(String prefix, String arg) {}
-  //-#endif
 
   /**
    * This method uses the default compiler (baseline) to compile a method
@@ -562,37 +564,35 @@ public class VM_RuntimeCompiler implements VM_Constants,
     if (VM.MeasureCompilation) {
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompiler());
     }
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    options = new OPT_Options();
-    setNoCacheFlush(options);
+    if (VM.BuildForAdaptiveSystem) {
+      options = new OPT_Options();
+      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options)options);
+      if (VM.MeasureCompilation) {
+        OPT_OptimizationPlanner.initializeMeasureCompilation();
+      }
 
-    optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
-    if (VM.MeasureCompilation) {
-      OPT_OptimizationPlanner.initializeMeasureCompilation();
+      OPT_Compiler.init((OPT_Options)options);
+
+      VM_PreCompile.init();
+      // when we reach here the OPT compiler is enabled.
+      compilerEnabled = true;
+
+      for (int i=0; i<earlyOptArgs.length; i+=2) {
+        processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i+1]);
+      }
     }
-
-    OPT_Compiler.init(options);
-
-    VM_PreCompile.init();
-    // when we reach here the OPT compiler is enabled.
-    compilerEnabled = true;
-
-    for (int i=0; i<earlyOptArgs.length; i+=2) {
-      processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i+1]);
-    }
-    //-#endif
   }
   
   public static void processCommandLineArg(String prefix, String arg) {
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
-      processOptCommandLineArg(prefix, arg);
+    if (VM.BuildForAdaptiveSystem) {
+      if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
+        processOptCommandLineArg(prefix, arg);
+      } else {
+        VM_BaselineCompiler.processCommandLineArg(prefix, arg);
+      }
     } else {
       VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     }
-    //-#else
-    VM_BaselineCompiler.processCommandLineArg(prefix, arg);
-    //-#endif
   }
   
   /**
@@ -601,128 +601,125 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @return its compiled method.
    */
   public static VM_CompiledMethod compile(VM_NormalMethod method) {
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    VM_CompiledMethod cm;
-    if (!VM_Controller.enabled) {
-      // System still early in boot process; compile with baseline compiler
-      cm = baselineCompile(method);
-      VM_ControllerMemory.incrementNumBase();
-    } else {
-      if (!preloadChecked) {
-        preloadChecked = true;                  // prevent subsequent calls
-        // N.B. This will use irc options
-        if (VM_BaselineCompiler.options.PRELOAD_CLASS != null) {
-          compilationInProgress = true;         // use baseline during preload
-          // Other than when boot options are requested (processed during preloadSpecialClass
-          // It is hard to communicate options for these special compilations. Use the 
-          // default options and at least pick up the verbose if requested for base/irc
-          OPT_Options tmpoptions = (OPT_Options)options.clone();
-          tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
-          tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
-          if (VM_BaselineCompiler.options.PRINT_METHOD) {
-            tmpoptions.PRINT_METHOD = true;
-          } else {
-            tmpoptions = options;
-          }
-          OPT_Compiler.preloadSpecialClass(tmpoptions);
-          compilationInProgress = false;
-        }
-      }
-      if (VM_Controller.options.optIRC()) {
-        if (// will only run once: don't bother optimizing
-            method.isClassInitializer() || 
-            // exception in progress. can't use opt compiler: 
-            // it uses exceptions and runtime doesn't support 
-            // multiple pending (undelivered) exceptions [--DL]
-            VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse) {
-          // compile with baseline compiler
-          cm = baselineCompile(method);
-          VM_ControllerMemory.incrementNumBase();
-        } else { // compile with opt compiler
-          VM_AOSInstrumentationPlan instrumentationPlan = 
-            new VM_AOSInstrumentationPlan(VM_Controller.options, method);
-          OPT_CompilationPlan compPlan = 
-            new OPT_CompilationPlan(method, optimizationPlan, 
-                                    instrumentationPlan, options);
-          if (offlineInlineOracle != null) {
-            compPlan.setInlineOracle(offlineInlineOracle);
-          }
-          cm = optCompileWithFallBack(method, compPlan);
-        }
+    if (VM.BuildForAdaptiveSystem) {
+      VM_CompiledMethod cm;
+      if (!VM_Controller.enabled) {
+        // System still early in boot process; compile with baseline compiler
+        cm = baselineCompile(method);
+        VM_ControllerMemory.incrementNumBase();
       } else {
-        if ((VM_Controller.options.BACKGROUND_RECOMPILATION
-             && (!VM_Controller.options.ENABLE_REPLAY_COMPILE)
-             && (!VM_Controller.options.ENABLE_PRECOMPILE))
-            ) {
-          // must be an inital compilation: compile with baseline compiler
-          // or if recompilation with OSR. 
-          cm = baselineCompile(method);
-          VM_ControllerMemory.incrementNumBase();
-        } else {
-          if (VM_CompilerAdviceAttribute.hasAdvice()) {
-            VM_CompilerAdviceAttribute attr =
-              VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
-            if (attr.getCompiler() != VM_CompiledMethod.OPT) {
-              cm=fallback(method);
-              if (VM.LogAOSEvents) {
-                VM_AOSLogging.recordCompileTime(cm, 0.0);
-              }
-              return cm;
-            }
-            int newCMID = -2;
-            OPT_CompilationPlan compPlan;
-            if (VM_Controller.options.counters()) {
-              // for invocation counter, we only use one optimization level
-              compPlan = VM_InvocationCounts.createCompilationPlan(method);
-            } else { 
-              // for now there is not two options for sampling, so
-              // we don't have to use: if (VM_Controller.options.sampling())
-              compPlan = VM_Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
-            }
-            if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
-            newCMID = recompileWithOpt(compPlan);
-            cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
-            if (VM.LogAOSEvents) {
-              if (newCMID == -1) {
-                VM_AOSLogging.recompilationAborted(compPlan);
-              } else if (newCMID > 0) {
-                VM_AOSLogging.recompilationCompleted(compPlan);
-              }
-            }    
-            if (cm == null) { // if recompilation is aborted
-              cm = baselineCompile(method);
-              VM_ControllerMemory.incrementNumBase();
-            }
-          }  else {
-            // check to see if there is a compilation plan for this method.
-            VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
-            if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
-              // initial compilation or some other funny state: compile with baseline compiler
-              cm = baselineCompile(method);
-              VM_ControllerMemory.incrementNumBase();
+        if (!preloadChecked) {
+          preloadChecked = true;                  // prevent subsequent calls
+          // N.B. This will use irc options
+          if (VM_BaselineCompiler.options.PRELOAD_CLASS != null) {
+            compilationInProgress = true;         // use baseline during preload
+            // Other than when boot options are requested (processed during preloadSpecialClass
+            // It is hard to communicate options for these special compilations. Use the 
+            // default options and at least pick up the verbose if requested for base/irc
+            OPT_Options tmpoptions = (OPT_Options)((OPT_Options)options).clone();
+            tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
+            tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
+            if (VM_BaselineCompiler.options.PRINT_METHOD) {
+              tmpoptions.PRINT_METHOD = true;
             } else {
-              cm = plan.doRecompile();
-              if (cm == null) {
-                // opt compilation aborted for some reason.
-                cm = baselineCompile(method);
+              tmpoptions = (OPT_Options)options;
+            }
+            OPT_Compiler.preloadSpecialClass(tmpoptions);
+            compilationInProgress = false;
+          }
+        }
+        if (VM_Controller.options.optIRC()) {
+          if (// will only run once: don't bother optimizing
+              method.isClassInitializer() || 
+              // exception in progress. can't use opt compiler: 
+              // it uses exceptions and runtime doesn't support 
+              // multiple pending (undelivered) exceptions [--DL]
+              VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse) {
+            // compile with baseline compiler
+            cm = baselineCompile(method);
+            VM_ControllerMemory.incrementNumBase();
+          } else { // compile with opt compiler
+            VM_AOSInstrumentationPlan instrumentationPlan = 
+              new VM_AOSInstrumentationPlan(VM_Controller.options, method);
+            OPT_CompilationPlan compPlan = 
+              new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement)optimizationPlan, 
+                                      instrumentationPlan, (OPT_Options)options);
+            cm = optCompileWithFallBack(method, compPlan);
+          }
+        } else {
+          if ((VM_Controller.options.BACKGROUND_RECOMPILATION
+               && (!VM_Controller.options.ENABLE_REPLAY_COMPILE)
+               && (!VM_Controller.options.ENABLE_PRECOMPILE))
+              ) {
+            // must be an inital compilation: compile with baseline compiler
+            // or if recompilation with OSR. 
+            cm = baselineCompile(method);
+            VM_ControllerMemory.incrementNumBase();
+          } else {
+            if (VM_CompilerAdviceAttribute.hasAdvice()) {
+              VM_CompilerAdviceAttribute attr =
+                VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
+              if (attr.getCompiler() != VM_CompiledMethod.OPT) {
+                cm=fallback(method);
+                if (VM.LogAOSEvents) {
+                  VM_AOSLogging.recordCompileTime(cm, 0.0);
+                }
+                return cm;
               }
-            }    
-          }       
+              int newCMID = -2;
+              OPT_CompilationPlan compPlan;
+              if (VM_Controller.options.counters()) {
+                // for invocation counter, we only use one optimization level
+                compPlan = VM_InvocationCounts.createCompilationPlan(method);
+              } else { 
+                // for now there is not two options for sampling, so
+                // we don't have to use: if (VM_Controller.options.sampling())
+                compPlan = VM_Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
+              }
+              if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
+              newCMID = recompileWithOpt(compPlan);
+              cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
+              if (VM.LogAOSEvents) {
+                if (newCMID == -1) {
+                  VM_AOSLogging.recompilationAborted(compPlan);
+                } else if (newCMID > 0) {
+                  VM_AOSLogging.recompilationCompleted(compPlan);
+                }
+              }    
+              if (cm == null) { // if recompilation is aborted
+                cm = baselineCompile(method);
+                VM_ControllerMemory.incrementNumBase();
+              }
+            }  else {
+              // check to see if there is a compilation plan for this method.
+              VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
+              if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
+                // initial compilation or some other funny state: compile with baseline compiler
+                cm = baselineCompile(method);
+                VM_ControllerMemory.incrementNumBase();
+              } else {
+                cm = plan.doRecompile();
+                if (cm == null) {
+                  // opt compilation aborted for some reason.
+                  cm = baselineCompile(method);
+                }
+              }    
+            }       
+          }
         }
       }
+      if ((VM_Controller.options.ENABLE_ADVICE_GENERATION)
+          && (cm.getCompilerType() == VM_CompiledMethod.BASELINE)
+          && VM_Controller.enabled) {
+        VM_AOSGenerator.baseCompilationCompleted(cm);
+      }
+      if (VM.LogAOSEvents) {
+        VM_AOSLogging.recordCompileTime(cm, 0.0);
+      }
+      return cm;
+    } else {
+      return baselineCompile(method);
     }
-    if ((VM_Controller.options.ENABLE_ADVICE_GENERATION)
-       && (cm.getCompilerType() == VM_CompiledMethod.BASELINE)
-       && VM_Controller.enabled) {
-       VM_AOSGenerator.baseCompilationCompleted(cm);
-    }
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.recordCompileTime(cm, 0.0);
-    }
-    return cm;
-    //-#else
-    return baselineCompile(method);
-    //-#endif
   }
 
   /**

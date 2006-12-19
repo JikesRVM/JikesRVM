@@ -224,64 +224,118 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field socketImplPortField     = getField("Ljava/net/SocketImpl;", "port", "I");
 
 
-  //-#if RVM_WITH_OPT_COMPILER
   ////////////////// 
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  public static final VM_Field specializedMethodsField = getField("Lcom/ibm/jikesrvm/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lcom/ibm/jikesrvm/VM_CodeArray;");
+  public static final VM_Field specializedMethodsField;
 
-  public static final VM_Field osrOrganizerQueueLockField = getField("Lcom/ibm/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
-  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
-  public static final VM_NormalMethod yieldpointFromNativePrologueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
-  public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
-  public static final VM_NormalMethod optResolveMethod                  = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
+  public static final VM_Field osrOrganizerQueueLockField;
+  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod;
+  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod;
+  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod;
+  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod;
+  public static final VM_NormalMethod yieldpointFromNativePrologueMethod;
+  public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod;
+  public static final VM_NormalMethod optResolveMethod;
+  public static final VM_NormalMethod optNewArrayArrayMethod;
+  public static final VM_NormalMethod sysArrayCopy;
 
-  public static final VM_NormalMethod optNewArrayArrayMethod            = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
+  static {
+    if (VM.BuildForOptCompiler) {
+      specializedMethodsField = getField("Lcom/ibm/jikesrvm/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lcom/ibm/jikesrvm/VM_CodeArray;");
+      osrOrganizerQueueLockField = getField("Lcom/ibm/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
+      optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
+      optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
+      optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
+      optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
+      yieldpointFromNativePrologueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
+      yieldpointFromNativeEpilogueMethod = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
+      optResolveMethod  = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
-  public static final VM_NormalMethod sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-  //-#endif
+      optNewArrayArrayMethod            = getMethod("Lcom/ibm/jikesrvm/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
 
-  public static final VM_NormalMethod osrGetRefAtMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
-  public static final VM_NormalMethod osrCleanRefsMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
+      sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+      sysArrayCopy.setRuntimeServiceMethod(false);
+    } else {
+      specializedMethodsField = null;
+      osrOrganizerQueueLockField = null;
+      optThreadSwitchFromOsrOptMethod = null;
+      optThreadSwitchFromPrologueMethod = null;
+      optThreadSwitchFromBackedgeMethod = null;
+      optThreadSwitchFromEpilogueMethod = null;
+      yieldpointFromNativePrologueMethod = null;
+      yieldpointFromNativeEpilogueMethod = null;
+      optResolveMethod = null;
+      optNewArrayArrayMethod = null;
+      sysArrayCopy = null;
+    }
+  };
 
-  //-#if RVM_WITH_ADAPTIVE_SYSTEM
+  public static final VM_NormalMethod osrGetRefAtMethod;
+  public static final VM_NormalMethod osrCleanRefsMethod;
+
+  static {
+    if (VM.BuildForAdaptiveSystem) {
+      osrGetRefAtMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
+      osrCleanRefsMethod = getMethod("Lcom/ibm/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
+    } else {
+      osrGetRefAtMethod = null;
+      osrCleanRefsMethod = null;
+    }
+  };      
+  
   ////////////////// 
   // Entrypoints that are valid only when the adaptive optimization system is included in the build
   //////////////////
-  public static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_MethodListener;", "numSamples", "I");
+  public static final VM_Field methodListenerNumSamplesField;
 
-  public static final VM_Field edgeListenerUpdateCalledField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;", "updateCalled", "I");
-  public static final VM_Field edgeListenerSamplesTakenField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;", "samplesTaken", "I");
+  public static final VM_Field edgeListenerUpdateCalledField;
+  public static final VM_Field edgeListenerSamplesTakenField;
 
-  public static final VM_Field yieldCountListenerNumYieldsField= getField("Lcom/ibm/jikesrvm/adaptive/VM_YieldCounterListener;", "numYields", "I");
+  public static final VM_Field yieldCountListenerNumYieldsField;
   
-  public static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
+  public static final VM_Field counterArrayManagerCounterArraysField;
 
-  public static final VM_Field invocationCountsField             = getField("Lcom/ibm/jikesrvm/adaptive/VM_InvocationCounts;", "counts", "[I");
-  public static final VM_NormalMethod invocationCounterTrippedMethod   = getMethod("Lcom/ibm/jikesrvm/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
+  public static final VM_Field invocationCountsField;
+  public static final VM_NormalMethod invocationCounterTrippedMethod;
 
   // Counter-based sampling fields
-  public static final VM_Field globalCBSField =  getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterBasedSampling;", "globalCounter", "I");
-  public static final VM_Field processorCBSField = getField("Lcom/ibm/jikesrvm/VM_Processor;", "processor_cbs_counter", "I");
-  public static final VM_Field cbsResetValueField   = getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterBasedSampling;","resetValue", "I");
-  //-#endif
+  public static final VM_Field globalCBSField;
+  public static final VM_Field processorCBSField;
+  public static final VM_Field cbsResetValueField;
+
+  static {
+    if (VM.BuildForAdaptiveSystem) {
+      methodListenerNumSamplesField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_MethodListener;", "numSamples", "I");
+      edgeListenerUpdateCalledField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;", "updateCalled", "I");
+      edgeListenerSamplesTakenField     = getField("Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;", "samplesTaken", "I");
+      yieldCountListenerNumYieldsField= getField("Lcom/ibm/jikesrvm/adaptive/VM_YieldCounterListener;", "numYields", "I");
+
+      counterArrayManagerCounterArraysField = getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
+
+      invocationCountsField = getField("Lcom/ibm/jikesrvm/adaptive/VM_InvocationCounts;", "counts", "[I");
+      invocationCounterTrippedMethod   = getMethod("Lcom/ibm/jikesrvm/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
+
+      globalCBSField =  getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterBasedSampling;", "globalCounter", "I");
+      processorCBSField = getField("Lcom/ibm/jikesrvm/VM_Processor;", "processor_cbs_counter", "I");
+      cbsResetValueField   = getField("Lcom/ibm/jikesrvm/adaptive/VM_CounterBasedSampling;","resetValue", "I");
+    } else {
+      methodListenerNumSamplesField = null;
+      edgeListenerUpdateCalledField = null;
+      edgeListenerSamplesTakenField = null;
+      yieldCountListenerNumYieldsField = null;
+      counterArrayManagerCounterArraysField = null;
+      invocationCountsField = null;
+      invocationCounterTrippedMethod = null;
+      globalCBSField = null;
+      processorCBSField = null;
+      cbsResetValueField = null;
+    }
+  };
 
   public static final VM_Field classLoaderDefinedPackages =
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
 
-  static {
-    // Don't mark the following as runtime serivce methods;
-    // they are included in VM_Entrypoints for other reasons
-    // than being called under-the-covers from generated code.
-    //-#if RVM_WITH_OPT_COMPILER
-    sysArrayCopy.setRuntimeServiceMethod(false);
-    //-#endif
-  };
-
-  
   /**
    * Get description of virtual machine component (field or method).
    * Note: This is method is intended for use only by VM classes that need 

@@ -15,10 +15,6 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.jikesrvm.opt.ir.*;
-//-#endif
-
 /**
  * Defines the JavaHeader portion of the object header for the 
  * default JikesRVM object model.
@@ -59,29 +55,26 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-@Uninterruptible public final class VM_JavaHeader implements VM_JavaHeaderConstants
-                                            //-#if RVM_WITH_OPT_COMPILER
-                                            ,OPT_Operators
-                                            //-#endif
+@Uninterruptible public class VM_JavaHeader implements VM_JavaHeaderConstants
 {
 
-  private static final int SCALAR_HEADER_SIZE = JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
-  private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
+  protected static final int SCALAR_HEADER_SIZE = JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
+  protected static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
 
   /** offset of object reference from the lowest memory word */
-  private static final int OBJECT_REF_OFFSET     = ARRAY_HEADER_SIZE;  // from start to ref
-  private static final Offset TIB_OFFSET         = JAVA_HEADER_OFFSET;
-  private static final Offset STATUS_OFFSET      = TIB_OFFSET.plus(STATUS_BYTES);
-  private static final Offset AVAILABLE_BITS_OFFSET = VM.LittleEndian 
+  protected static final int OBJECT_REF_OFFSET     = ARRAY_HEADER_SIZE;  // from start to ref
+  protected static final Offset TIB_OFFSET         = JAVA_HEADER_OFFSET;
+  protected static final Offset STATUS_OFFSET      = TIB_OFFSET.plus(STATUS_BYTES);
+  protected static final Offset AVAILABLE_BITS_OFFSET = VM.LittleEndian 
                                                    ? (STATUS_OFFSET) 
                                                    : (STATUS_OFFSET.plus(STATUS_BYTES-1));
 
   /*
    * Used for 10 bit header hash code in header (!ADDRESS_BASED_HASHING)
    */
-  private static final int HASH_CODE_SHIFT = 2;
-  private static final Word HASH_CODE_MASK  = Word.one().lsh(10).minus(Word.one()).lsh(HASH_CODE_SHIFT);
-  private static Word hashCodeGenerator; // seed for generating hash codes with copying collectors.
+  protected static final int HASH_CODE_SHIFT = 2;
+  protected static final Word HASH_CODE_MASK  = Word.one().lsh(10).minus(Word.one()).lsh(HASH_CODE_SHIFT);
+  protected static Word hashCodeGenerator; // seed for generating hash codes with copying collectors.
 
   /** How many bits are allocated to a thin lock? */
   public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
@@ -307,7 +300,7 @@ import com.ibm.jikesrvm.opt.ir.*;
    * Misc header words. In the case there are we probably have to ask
    * MM_Interface to distinguish this for us.
    */
-  private static ObjectReference getNextObject(ObjectReference obj, int size) {
+  protected static ObjectReference getNextObject(ObjectReference obj, int size) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
     
     return getObjectFromStartAddress(obj.toAddress().plus(size).minus(OBJECT_REF_OFFSET));
@@ -348,7 +341,7 @@ import com.ibm.jikesrvm.opt.ir.*;
   }
 
   @Inline
-  private static Object getReferenceWhenCopiedTo(Object obj, Address to) { 
+  protected static Object getReferenceWhenCopiedTo(Object obj, Address to) { 
     if (ADDRESS_BASED_HASHING) {
       // Read the hash state (used below)
       Word statusWord = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET);
@@ -526,7 +519,7 @@ import com.ibm.jikesrvm.opt.ir.*;
   
   /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
   @NoInline
-  private static int installHashCode(Object o) { 
+  protected static int installHashCode(Object o) { 
     Word hashCode;
     do {
       hashCodeGenerator = hashCodeGenerator.plus(Word.one().lsh(HASH_CODE_SHIFT));
@@ -897,24 +890,6 @@ import com.ibm.jikesrvm.opt.ir.*;
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
                                          byte object) { 
     asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
-  }
-  //-#endif
-
-  //-#if RVM_WITH_OPT_COMPILER
-  /**
-   * Mutate a GET_OBJ_TIB instruction to the LIR
-   * instructions required to implement it.
-   * 
-   * @param s the GET_OBJ_TIB instruction to lower
-   * @param ir the enclosing OPT_IR
-   */
-  @Interruptible
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) { 
-    // TODO: valid location operand.
-    OPT_Operand address = GuardedUnary.getClearVal(s);
-    Load.mutate(s, REF_LOAD, GuardedUnary.getClearResult(s), 
-                address, new OPT_AddressConstantOperand(TIB_OFFSET), 
-                null, GuardedUnary.getClearGuard(s));
   }
   //-#endif
 }
