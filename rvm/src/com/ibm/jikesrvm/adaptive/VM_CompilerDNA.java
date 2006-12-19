@@ -48,30 +48,42 @@ public class VM_CompilerDNA implements VM_Constants {
    * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
    * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
-  //-#if RVM_FOR_POWERPC
-  private static final double[] compilationRates = {
-    359.17,             // base
-    10.44, 4.69, 1.56}; // opt 0...2
-  //-#elif RVM_FOR_IA32
-  private static final double[] compilationRates = {
-    696.58,             // base
-    18.19, 8.90, 3.90}; // opt 0...2
-  //-#endif
+  private static final double[] compilationRates;
+  static {
+    if (VM.BuildForPowerPC) {
+      compilationRates = new double [] {
+        359.17,             // base
+        10.44, 4.69, 1.56}; // opt 0...2
+    } else if (VM.BuildForIA32) {
+      compilationRates = new double[] {
+        696.58,             // base
+        18.19, 8.90, 3.90}; // opt 0...2
+    } else {
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+      compilationRates = null;
+    }
+  };
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
    * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
    * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
-  //-#if RVM_FOR_POWERPC
-  private static final double[] speedupRates = {
-    1.00,               // base 
-    4.73, 6.65, 7.39};  // opt 0...2
-  //-#elif RVM_FOR_IA32
-  private static final double[] speedupRates = {
-    1.00,               // base
-    4.56, 7.13, 7.35};  // opt 0...2
-  //-#endif
+  private static final double[] speedupRates;
+  static {
+    if (VM.BuildForPowerPC) {
+      speedupRates = new double[] {
+        1.00,               // base 
+        4.73, 6.65, 7.39};  // opt 0...2
+    } else if (VM.BuildForIA32) {
+      speedupRates = new double[] {
+        1.00,               // base
+        4.56, 7.13, 7.35};  // opt 0...2
+    } else {
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+      speedupRates = null;
+    }      
+  };      
 
   /**
    * Benefits of moving from one compilation level to another
