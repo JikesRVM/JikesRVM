@@ -12,7 +12,7 @@
 
 include                 $(RVM_BUILD)/Make.rules.host
 
-default:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java
+default:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java:	VM_Configuration.java
 	cp $< $@ 
@@ -20,5 +20,9 @@ $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java:	VM_Configuration.java
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java:	VM_HeapLayoutConstants.java
 	cp $< $@ 
 
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java:	Selected.java
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/memorymanagers/mminterface
+	cp $< $@ 
+
 clean:
-	rm -f $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java
+	rm -f $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java
