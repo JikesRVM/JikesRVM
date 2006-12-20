@@ -352,7 +352,7 @@ public class GenerateFromTemplate {
           out.print(inLine+"\n");
           continue;
         }
-        Vector region = buildTemplateRegion(inLine);
+        Vector<Object> region = buildTemplateRegion(inLine);
         processTemplateRegion(region);
       }
     } finally {
@@ -398,8 +398,8 @@ public class GenerateFromTemplate {
     return st.hasMoreTokens() && st.nextToken().equals(templateMarker);
   }
 
-  Vector buildTemplateRegion(String inLine) throws IOException {
-    Vector region = new Vector();
+  Vector<Object> buildTemplateRegion(String inLine) throws IOException {
+    Vector<Object> region = new Vector<Object>();
     region.addElement(inLine);
     int command = getTemplateCommand(inLine);
     if (DEBUG) System.out.println("template command #"+command);
@@ -418,14 +418,14 @@ public class GenerateFromTemplate {
     return region;
   }
 
-  void buildLoopRegion(Vector region) throws IOException {
+  void buildLoopRegion(Vector<Object> region) throws IOException {
     for (;;) {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
       if (isTemplateLine(inLine)) {
         int command = getTemplateCommand(inLine);
         if (command == END) break;
-        region.addElement(buildTemplateRegion(inLine));
+        region.addElement((Object)buildTemplateRegion(inLine));
       } else {
          if (DEBUG) System.out.println("adding line to region :"+inLine);
          region.addElement(inLine);
@@ -433,8 +433,8 @@ public class GenerateFromTemplate {
     }
   }
 
-  void buildCondRegion(Vector region) throws IOException {
-    Vector intern = new Vector();
+  void buildCondRegion(Vector<Object> region) throws IOException {
+    Vector<Object> intern = new Vector<Object>();
     for (;;) {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
@@ -445,7 +445,7 @@ public class GenerateFromTemplate {
           break;
         } else if (command == ELSE) {
           region.addElement(intern);
-          intern = new Vector();
+          intern = new Vector<Object>();
         } else {
           intern.addElement(buildTemplateRegion(inLine));
         }
@@ -456,7 +456,7 @@ public class GenerateFromTemplate {
     }
   }
 
-  void buildIncludeRegion(Vector region) throws IOException {
+  void buildIncludeRegion(Vector<Object> region) throws IOException {
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
     if (!pst.hasMoreTokens())
        throw new IOException("Missing filename in INCLUDE");
@@ -494,8 +494,8 @@ public class GenerateFromTemplate {
     return INVALID_COMMAND;
   }
 
-  void processTemplateRegion(Vector region) throws IOException {
-    String inLine = (String) region.elementAt(0);
+  void processTemplateRegion(Vector<Object> region) throws IOException {
+    String inLine = (String)region.elementAt(0);
     int command = getTemplateCommand(inLine);
     switch (command) {
       case FOREACH: processForeachRegion(region); break;
@@ -566,13 +566,13 @@ public class GenerateFromTemplate {
     }   
 
     // read field information
-    Vector fields_v = new Vector();
-    Vector fpl_v = new Vector();
+    Vector<String> fields_v = new Vector<String>();
+    Vector<Integer> fpl_v = new Vector<Integer>();
     for (String inLine = getNextLine(data);
          (inLine != null && inLine.length() != 0);
          inLine = getNextLine(data)) {
       StringTokenizer st = new StringTokenizer(inLine);
-      fpl_v.addElement(new Integer(st.countTokens()));
+      fpl_v.addElement(st.countTokens());
       while (st.hasMoreTokens()) {
         String tok = st.nextToken();
         if (DEBUG) System.out.println("read field "+fields_v.size()+" :"+tok);
@@ -583,10 +583,8 @@ public class GenerateFromTemplate {
     // convert to arrays for faster access
     int[] fieldsPerLine = new int[fpl_v.size()];
     for (int i = 0; i < fieldsPerLine.length; i++)
-       fieldsPerLine[i] = ((Integer) fpl_v.elementAt(i)).intValue();
-    String[] fields = new String[fields_v.size()];
-    for (int i = 0; i < fields.length; i++)
-       fields[i] = (String) fields_v.elementAt(i);
+       fieldsPerLine[i] = fpl_v.elementAt(i);
+    String[] fields = fields_v.toArray(new String[0]);
 
     // Count through data file.
   dataFileLoop:
@@ -641,8 +639,9 @@ public class GenerateFromTemplate {
           String result = substitute(currentLine, var_name, fields, fieldData);
           out.print(result+"\n");
         } catch (ClassCastException e) {
-          Vector oldRegion = (Vector) region.elementAt(j);
-          Vector newRegion = substituteInRegion(oldRegion, var_name, fields,
+          @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+          Vector<Object> oldRegion = (Vector<Object>)region.elementAt(j);
+          Vector<Object> newRegion = substituteInRegion(oldRegion, var_name, fields,
                                                 fieldData);
           processTemplateRegion(newRegion);
         }
@@ -658,7 +657,7 @@ public class GenerateFromTemplate {
     if (!pst.hasMoreTokens())
        throw new IOException("Missing var name in LOOP");
     String var_name = pst.nextToken();
-    Vector valvec = new Vector();
+    Vector<String> valvec = new Vector<String>();
     while (pst.hasMoreTokens()) {
        String v_i = pst.nextToken();
        int dotdot = v_i.indexOf("..");
@@ -691,10 +690,11 @@ public class GenerateFromTemplate {
           result = substitute(result, var_name, values[curValue]);
           out.print(result+"\n");
         } catch (ClassCastException e) {
-          Vector oldRegion = (Vector) region.elementAt(j);
+          @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+          Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
           // Vector newRegion = substituteInRegion(oldRegion, var_name,
           //                                       values[curValue]);
-          Vector newRegion = substituteInRegion(oldRegion,
+          Vector<Object> newRegion = substituteInRegion(oldRegion,
                                                 var_name+"."+indexField,
                                                 Integer.toString(curValue));
           newRegion = substituteInRegion(newRegion, var_name, values[curValue]);
@@ -737,8 +737,9 @@ public class GenerateFromTemplate {
         String result = substitute(currentLine, var_name, value);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        Vector oldRegion = (Vector) region.elementAt(j);
-        Vector newRegion = substituteInRegion(oldRegion, var_name, value);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
+        Vector<Object> newRegion = substituteInRegion(oldRegion, var_name, value);
         processTemplateRegion(newRegion);
       }
     } // for j
@@ -954,14 +955,15 @@ public class GenerateFromTemplate {
         String result = substitute(currentLine, var_name, value);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        Vector oldRegion = (Vector) region.elementAt(j);
-        Vector newRegion = substituteInRegion(oldRegion, var_name, value);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> oldRegion = (Vector) region.elementAt(j);
+        Vector<Object> newRegion = substituteInRegion(oldRegion, var_name, value);
         processTemplateRegion(newRegion);
       }
     } // for j
   }
 
-  void processJoinRegion(Vector region) throws IOException {
+  void processJoinRegion(Vector<Object> region) throws IOException {
     // get var name and data values
     if (DEBUG) System.out.println("params=\""+params+"\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
@@ -990,14 +992,15 @@ public class GenerateFromTemplate {
         String result = substitute(currentLine, var_name, value);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        Vector oldRegion = (Vector) region.elementAt(j);
-        Vector newRegion = substituteInRegion(oldRegion, var_name, value);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
+        Vector<Object> newRegion = substituteInRegion(oldRegion, var_name, value);
         processTemplateRegion(newRegion);
       }
     } // for j
   }
 
-  void processSplitRegion(Vector region) throws IOException {
+  void processSplitRegion(Vector<Object> region) throws IOException {
     // get data value and var names
     if (DEBUG) System.out.println("params=\""+params+"\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
@@ -1035,8 +1038,9 @@ public class GenerateFromTemplate {
           result = substitute(result, var_names[curVar], values[curVar]);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        Vector oldRegion = (Vector) region.elementAt(j);
-        Vector newRegion = oldRegion;
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
+        Vector<Object> newRegion = oldRegion;
         // Loop through vars.
         for (int curVar = 0; curVar < var_names.length; curVar++)
           newRegion = substituteInRegion(newRegion, var_names[curVar],
@@ -1046,7 +1050,7 @@ public class GenerateFromTemplate {
     } // for j
   }
 
-  void processEvalRegion(Vector region) throws IOException {
+  void processEvalRegion(Vector<Object> region) throws IOException {
     if (DEBUG) System.out.println("doing eval");
 
     PrintWriter old_out = out;
@@ -1059,7 +1063,8 @@ public class GenerateFromTemplate {
         String currentLine = (String) region.elementAt(j);
         out.print(currentLine+"\n");
       } catch (ClassCastException e) {
-        Vector tmpRegion = (Vector) region.elementAt(j);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> tmpRegion = (Vector<Object>) region.elementAt(j);
         processTemplateRegion(tmpRegion);
       }
     } // for j
@@ -1080,7 +1085,7 @@ public class GenerateFromTemplate {
         out.print(inLine+"\n");
         continue;
       }
-      Vector newRegion = buildTemplateRegion(inLine);
+      Vector<Object> newRegion = buildTemplateRegion(inLine);
       processTemplateRegion(newRegion);
     }
 
@@ -1155,30 +1160,32 @@ public class GenerateFromTemplate {
         String currentLine = (String) newRegion.elementAt(j);
         out.print(currentLine+"\n");
       } catch (ClassCastException e) {
-        Vector tmpRegion = (Vector) newRegion.elementAt(j);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> tmpRegion = (Vector<Object>) newRegion.elementAt(j);
         processTemplateRegion(tmpRegion);
       }
     } // for j
   }
 
-  void processIncludeRegion(Vector region) throws IOException {
+  void processIncludeRegion(Vector<Object> region) throws IOException {
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
         String result = (String) region.elementAt(j);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        Vector newRegion = (Vector) region.elementAt(j);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> newRegion = (Vector<Object>)region.elementAt(j);
         processTemplateRegion(newRegion);
       }
     } // for j
   }
 
-  Vector substituteInRegion(Vector region, String var,
+  Vector<Object> substituteInRegion(Vector<Object> region, String var,
                             String[] fields, String[] fieldData)
        throws IOException
   {
-    Vector newRegion = new Vector(region.size());
+    Vector<Object> newRegion = new Vector<Object>(region.size());
     for (int i = 0; i < region.size(); i++) {
       Object el = region.elementAt(i);
       try {
@@ -1186,27 +1193,29 @@ public class GenerateFromTemplate {
         String r = substitute(s, var, fields, fieldData);
         newRegion.addElement(r);
       } catch (ClassCastException e) {
-        Vector s = (Vector) el;
-        Vector r = substituteInRegion(s, var, fields, fieldData);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> s = (Vector<Object>)el;
+        Vector<Object> r = substituteInRegion(s, var, fields, fieldData);
         newRegion.addElement(r);
       }
     }
     return newRegion;
   }
 
-  Vector substituteInRegion(Vector region, String var, String value)
+  Vector<Object> substituteInRegion(Vector<Object> region, String var, String value)
        throws IOException
   {
-    Vector newRegion = new Vector(region.size());
+    Vector<Object> newRegion = new Vector<Object>(region.size());
     for (int i = 0; i < region.size(); i++) {
       Object el = region.elementAt(i);
       try {
         String s = (String) el;
         String r = substitute(s, var, value);
-        newRegion.addElement(r);
+        newRegion.addElement((Object)r);
       } catch (ClassCastException e) {
-        Vector s = (Vector) el;
-        Vector r = substituteInRegion(s, var, value);
+        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
+        Vector<Object> s = (Vector<Object>)el;
+        Vector<Object> r = substituteInRegion(s, var, value);
         newRegion.addElement(r);
       }
     }
