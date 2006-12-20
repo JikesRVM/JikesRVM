@@ -11,8 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.VM_ObjectModel;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 
 /**
  * OPT compiler additions to VM_ObjectModel
