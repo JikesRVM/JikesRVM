@@ -25,7 +25,7 @@ THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 
 $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/com/ibm/jikesrvm/VM_Process.java
 	$(RM) $@
-	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.jikesrvm.VM_Process
+	$(HOST_JAVA_HOME)/bin/javah -o $@ -classpath $(JAL_BUILD)/RVM.classes com.ibm.jikesrvm.VM_Process
 
 # The Jikes RVM build process always invokes this with 
 # DEST=$(JAL_BUILD)/libjpnexec.{suffix}
