@@ -668,12 +668,10 @@ public class BootImageWriter extends BootImageWriterMessages
 
         Offset jtocOff = VM_Statics.slotAsOffset(i);
         int objCookie;
-        //-#if RVM_FOR_32_ADDR
-        objCookie = VM_Statics.getSlotContentsAsInt(jtocOff);
-        //-#endif
-        //-#if RVM_FOR_64_ADDR
-        objCookie = (int) VM_Statics.getSlotContentsAsLong(jtocOff);
-        //-#endif
+        if (VM.BuildFor32Addr)
+          objCookie = VM_Statics.getSlotContentsAsInt(jtocOff);
+        else
+          objCookie = (int) VM_Statics.getSlotContentsAsLong(jtocOff);
         // if (verbose >= 3)
         // say("       jtoc[", String.valueOf(i), "] = ", String.valueOf(objCookie));
         Object jdkObject = BootImageMap.getObject(objCookie);
@@ -739,15 +737,15 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("unable to update boot record: "+e);
     }
 
-    //-#if RVM_WITH_GCTRACE
-    /* Set the values in fields updated during the build process */
-    Offset prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
-    bootImage.setAddressWord(jtocPtr.plus(prevAddrOffset), 
-                             VM_MiscHeader.getBootImageLink().toWord(), false);
-    Offset oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
-    bootImage.setAddressWord(jtocPtr.plus(oIDOffset), 
-                             VM_MiscHeader.getOID(), false);
-    //-#endif
+    if (VM.BuildWithGCTrace) {
+      /* Set the values in fields updated during the build process */
+      Offset prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
+      bootImage.setAddressWord(jtocPtr.plus(prevAddrOffset), 
+                               VM_MiscHeader.getBootImageLink().toWord(), false);
+      Offset oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
+      bootImage.setAddressWord(jtocPtr.plus(oIDOffset), 
+                               VM_MiscHeader.getOID(), false);
+    }
 
     //
     // Write image to disk.

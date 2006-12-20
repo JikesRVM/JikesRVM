@@ -30,16 +30,16 @@ public interface OPT_Operators {
 
 $$$$ IF ARCHITECTURE == "ia32"
 $$$$ IF ARCH_BITS == "32"
-  OPT_IA32MachineSpecificIR helper = new OPT_IA32MachineSpecificIR();
+  static final OPT_MachineSpecificIRIA.IA32 helper = OPT_MachineSpecificIRIA.IA32.singleton;
 $$$$ ELSE
-  OPT_IAEM64TMachineSpecificIR helper = new OPT_IAEM64TMachineSpecificIR();
+  static final OPT_MachineSpecificIRIA.EM64T helper = OPT_MachineSpecificIRIA.EM64T.singleton;
 $$$$ END IF
 $$$$ END IF
 $$$$ IF ARCHITECTURE == "ppc"
 $$$$ IF ARCH_BITS == "32"
-  OPT_PowerPC32MachineSpecificIR helper = new OPT_PowerPC32MachineSpecificIR();
+  static final OPT_MachineSpecificIRPowerPC.PPC32 helper = OPT_MachineSpecificIRPowerPC.PPC32.singleton;
 $$$$ ELSE
-  OPT_PowerPC64MachineSpecificIR helper = new OPT_PowerPC64MachineSpecificIR();
+  static final OPT_MachineSpecificIRPowerPC.PPC64 helper = OPT_MachineSpecificIRPowerPC.PPC64.singleton;
 $$$$ END IF
 $$$$ END IF
 

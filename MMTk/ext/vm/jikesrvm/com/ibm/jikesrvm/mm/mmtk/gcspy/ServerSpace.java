@@ -11,6 +11,7 @@ package com.ibm.jikesrvm.mm.mmtk.gcspy;
 
 import org.mmtk.utility.Log;
 import com.ibm.jikesrvm.VM_SysCall;
+import com.ibm.jikesrvm.VM;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
@@ -52,7 +53,7 @@ import org.vmmagic.pragma.*;
               int tileNum,
               String unused, 
               boolean mainSpace) { 
-    if (VM_SysCall.WITH_GCSPY) {
+    if (VM.BuildWithGCSpy) {
       spaceId = serverInterpreter.addSpace(this);
       driver = VM_SysCall.gcspyMainServerAddDriver(serverInterpreter.getServerAddress());
       
@@ -87,7 +88,7 @@ import org.vmmagic.pragma.*;
    * @param end the end address
    */
   public void setTilename(int i, Address start, Address end) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverSetTileNameRange(driver, i, start, end);
   }
 
@@ -98,7 +99,7 @@ import org.vmmagic.pragma.*;
    * @param value The value for the format string
    */
   public void setTilename(int i, Address format, long value) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverSetTileName(driver, i, format, value);
   }
 
@@ -109,7 +110,7 @@ import org.vmmagic.pragma.*;
    * @param value The value for the format string
    */
   public void setTilename(int i, String format, long value) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (VM.BuildWithGCSpy) {
       Address tileName = GCspy.util.getBytes(format);
       setTilename(i, tileName, value);
       GCspy.util.free(tileName);
@@ -121,7 +122,7 @@ import org.vmmagic.pragma.*;
    * @param size the new driver size
    */
   public void resize(int size) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverResize(driver, size);
   }
 
@@ -129,7 +130,7 @@ import org.vmmagic.pragma.*;
    * Start a transmission
    */
   public void startCommunication() {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverStartComm(driver);
   }
 
@@ -139,7 +140,7 @@ import org.vmmagic.pragma.*;
    * @return the address of the C gcspy_gc_stream_t
    */
   public Address addStream(int streamId) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       return VM_SysCall.gcspyDriverAddStream(driver, streamId);
     else 
       return Address.zero();
@@ -151,7 +152,7 @@ import org.vmmagic.pragma.*;
    * @param len The number of items in the stream
    */
   public void stream(int streamId, int len) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverStream(driver, streamId, len);
   }
 
@@ -160,7 +161,7 @@ import org.vmmagic.pragma.*;
    * @param value The byte
    */
   public void streamByteValue(byte value) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverStreamByteValue(driver, value);
   }
 
@@ -169,7 +170,7 @@ import org.vmmagic.pragma.*;
    * @param value The short
    */
   public void streamShortValue(short value) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverStreamShortValue(driver, value);
   }
   
@@ -178,7 +179,7 @@ import org.vmmagic.pragma.*;
    * @param value The int
    */
   public void streamIntValue(int value) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverStreamIntValue(driver, value);
   }
 
@@ -186,7 +187,7 @@ import org.vmmagic.pragma.*;
    * End of this stream
    */
   public void streamEnd () {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverEndOutput(driver);
   }
 
@@ -196,7 +197,7 @@ import org.vmmagic.pragma.*;
    * @param len The number of items to be sent
    */
   public void summary (int streamId, int len) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverSummary(driver, streamId, len);
   }
 
@@ -212,7 +213,7 @@ import org.vmmagic.pragma.*;
    * End the summary
    */
   public void summaryEnd () {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverEndOutput(driver);
   }
 
@@ -223,7 +224,7 @@ import org.vmmagic.pragma.*;
    */
   public void sendControls (AbstractDriver space, int tileNum) {
     // start the stream
-    if (VM_SysCall.WITH_GCSPY) {
+    if (VM.BuildWithGCSpy) {
       VM_SysCall.gcspyDriverInitOutput(driver);
       VM_SysCall.gcspyIntWriteControl(
                               driver/* NOTE driver->interpreter in sys.C*/, 
@@ -244,7 +245,7 @@ import org.vmmagic.pragma.*;
    * @param info A pointer to the information (held as C string)
    */
   public void spaceInfo (Address info) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (VM.BuildWithGCSpy) 
       VM_SysCall.gcspyDriverSpaceInfo(driver, info);
   }
 

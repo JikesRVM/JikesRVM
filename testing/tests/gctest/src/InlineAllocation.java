@@ -37,17 +37,9 @@ class InlineAllocation {
 
   // Limits on sizes of allocation sequences.
   // Make them specific to the allocator so we can make them reasonably tight.
-  //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
-  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 75 : 22); // small object
-  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100: 30); // large object
-  //-#elif RVM_WITH_MARK_SWEEP
-  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // small object
-  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
-  //-#else
-  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // small object
-  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
-  //-#endif 
+  static int alloc1Limit = assertionSpace + (VM.BuildWithBumpAllocator ? (VM.BuildForIA32 ? 75 : 22) : (VM.BuildForIA32 ? 100 : 30)); // small object
   static int alloc2Limit = alloc1Limit + (VM.BuildForIA32 ? 8 : 2); // small array.  Should be only the store of the length different than small object
+  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
   static int alloc4Limit = (VM.BuildForIA32 ? 40 : 11); // unknown size object. Should not be inlined at all.
 
   /**

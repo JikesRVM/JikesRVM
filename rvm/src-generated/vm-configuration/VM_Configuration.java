@@ -22,6 +22,22 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  * @author David Grove
  */
 public abstract class VM_Configuration {
+  
+  public static final 
+  //-#if RVM_FOR_POWERPC
+  //-#if RVM_FOR_32_ADDR
+  VM_MachineSpecificPowerPC.PPC32 archHelper = VM_MachineSpecificPowerPC.PPC32.singleton;
+  //-#else
+  VM_MachineSpecificPowerPC.PPC64 archHelper = VM_MachineSpecificPowerPC.PPC64.singleton;
+  //-#endif
+  //-#else
+  //-#if RVM_FOR_32_ADDR
+  VM_MachineSpecificIA.IA32 archHelper = VM_MachineSpecificIA.IA32.singleton;
+  //-#else
+  VM_MachineSpecificIA.EM64T archHelper = VM_MachineSpecificIA.EM64T.singleton;
+  //-#endif
+  //-#endif
+
 
   public static final boolean BuildForPowerPC =
         //-#if RVM_FOR_POWERPC
@@ -32,6 +48,13 @@ public abstract class VM_Configuration {
 
   public static final boolean BuildForIA32 =
         //-#if RVM_FOR_IA32
+          true;
+        //-#else
+          false;
+        //-#endif
+          
+  public static final boolean singleVirtualProcessorDefault =
+        //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
           true;
         //-#else
           false;
@@ -149,7 +172,25 @@ public abstract class VM_Configuration {
       //-#else
         false;
       //-#endif
-              
+        
+   // build with Opt boot image compiler
+   public static final boolean BuildWithOptBootImageCompiler =
+      //-#if RVM_WITH_OPT_BOOTIMAGE_COMPILER
+         true;
+      //-#else
+         false;
+      //-#endif
+         
+   // build with Base boot image compiler
+   public static final boolean BuildWithBaseBootImageCompiler =
+      //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
+         true;
+      //-#else
+         false;
+      //-#endif
+
+
+        
   // Interface method invocation.
   // We have five mechanisms:
   //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber). 
@@ -238,4 +279,28 @@ public abstract class VM_Configuration {
     //-#else
     false;
    //-#endif
+    
+    
+  public final static boolean BuildWithBumpAllocator =
+    //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
+    true;
+    //-#else
+    false;
+    //-#endif
+    
+  public final static boolean BuildWithGCTrace = 
+    //-#if RVM_WITH_GCTRACE
+    true;
+    //-#else
+    false;
+    //-#endif
+    
+  public final static boolean BuildWithGCSpy = 
+    //-#if RVM_WITH_GCSPY
+    true;
+    //-#else
+    false;
+    //-#endif
+      
+    
 }

@@ -101,12 +101,7 @@ public class VM_Properties extends VM_Options {
    *    <dd>VM will use just one processor and no 
    *            synchronization instructions</dd>
    */
-  public static boolean singleVirtualProcessor =
-        //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          true;
-        //-#else
-          false;
-        //-#endif
+  public static boolean singleVirtualProcessor = VM_Configuration.singleVirtualProcessorDefault;
 
   // Runtime subsystem tracing.
   //

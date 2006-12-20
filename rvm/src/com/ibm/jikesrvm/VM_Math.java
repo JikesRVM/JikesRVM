@@ -18,14 +18,6 @@ package com.ibm.jikesrvm;
  * @author John Whaley
  */
 public class VM_Math {
-
-  //-#if RVM_FOR_IA32
-  /**
-   * A well-known memory location used to manipulate the FPU control word.
-   */
-  static int FPUControlWord;
-  //-#endif RVM_FOR_IA32
-
   /*
    * Constants that are used by the compilers in generated code.
    */

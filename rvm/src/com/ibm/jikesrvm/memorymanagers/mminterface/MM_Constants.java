@@ -38,8 +38,6 @@ public class MM_Constants implements VM_SizeConstants {
   public static final boolean GENERATE_GC_TRACE = Selected.Constraints.get().generateGCTrace();
   /** True if the selected plan may move objects */
   public static final boolean MOVES_OBJECTS = Selected.Constraints.get().movesObjects();
-  /** True of the selected plan needs GCspy functionality */
-  public static final boolean WITH_GCSPY = Selected.Constraints.get().withGCspy();
   /** True if the selected plan moves tib objects */
   public static final boolean MOVES_TIBS = false;
 }

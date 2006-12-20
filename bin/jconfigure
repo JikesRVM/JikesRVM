@@ -2332,7 +2332,11 @@ EOF
     ## Brace expansion precedes variable expansion, so we'll have to
     ## expand this variable at the time of emitting the script, rather
     ## than at run time.
-    generator_classes="{GenerateInterfaceDeclarations,AlternateRealityClassLoader,Emitters,IntEmitter,DoubleEmitter,FieldReader,OffsetEmitter,OffsetReader,Shared,Util}"
+    if (( RVM_FOR_POWERPC )); then
+        generator_classes="{GenArch,GenArchPPC,GenerateInterfaceDeclarations,AlternateRealityClassLoader,Emitters,IntEmitter,DoubleEmitter,FieldReader,OffsetEmitter,OffsetReader,Shared,Util}"
+    else
+        generator_classes="{GenArch,GenArchIA,GenerateInterfaceDeclarations,AlternateRealityClassLoader,Emitters,IntEmitter,DoubleEmitter,FieldReader,OffsetEmitter,OffsetReader,Shared,Util}"
+    fi
     cat <<-EOF
 	declare -r interface=$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h
 

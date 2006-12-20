@@ -42,11 +42,9 @@ implements VM_Constants {
    * this processor.
    */ 
   VM_Processor (int id) {
-    //-#if RVM_FOR_IA32
     // presave JTOC register contents 
     // (so lintel compiler can us JTOC for scratch)
-    if (VM.runningVM) this.jtoc = VM_Magic.getJTOC();
-    //-#endif
+    if (VM.BuildForIA32 && VM.runningVM) this.jtoc = VM_Magic.getJTOC();
     
     this.id = id;
     this.transferMutex     = new VM_ProcessorLock();
@@ -147,13 +145,13 @@ implements VM_Constants {
    * and issue memory synchronization instructions
    */
   public void requestPostCodePatchSync() {
-    //-#if RVM_FOR_POWERPC
-    takeYieldpoint = 1;
-    codePatchSyncRequested = true;
-    //-#else
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    //-#endif
-  }
+    if (VM.BuildForPowerPC) {
+      takeYieldpoint = 1;
+      codePatchSyncRequested = true;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+  }   
   
   /**
    * Get processor that's being used to run the current java thread.
@@ -444,7 +442,7 @@ implements VM_Constants {
    */
   public int threadId;
 
-  //-#if RVM_FOR_IA32
+  /* --------- BEGIN IA-specific fields. NOTE: NEED TO REFACTOR --------- */
   // On powerpc, these values are in dedicated registers,
   // we don't have registers to burn on IA32, so we indirect
   // through the PR register to get them instead.
@@ -464,7 +462,7 @@ implements VM_Constants {
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
   int arrayIndexTrapParam; 
-  //-#endif
+  /* --------- END IA-specific fields. NOTE: NEED TO REFACTOR --------- */
 
   // More GC fields
   //
@@ -539,13 +537,13 @@ implements VM_Constants {
    */
   int firstCBSMethodSample;
   
-  //-#if RVM_FOR_POWERPC
-  /**
+  /* --------- BEGIN PPC-specific fields. NOTE: NEED TO REFACTOR --------- */
+ /**
    * flag indicating this processor needs to execute a memory synchronization sequence
    * Used for code patching on SMP PowerPCs.
    */
   boolean codePatchSyncRequested;
-  //-#endif
+  /* --------- END PPC-specific fields. NOTE: NEED TO REFACTOR --------- */
   
   /**
    * For builds using counter-based sampling.  This field holds a

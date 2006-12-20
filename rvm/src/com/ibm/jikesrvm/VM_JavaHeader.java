@@ -869,8 +869,7 @@ import org.vmmagic.unboxed.*;
     VM.sysWrite(" STATUS=");
     VM.sysWriteHex(VM_Magic.getWordAtOffset(ref, STATUS_OFFSET).toAddress());
   }
-
-
+  
   /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
@@ -879,17 +878,9 @@ import org.vmmagic.unboxed.*;
    * @param dest the number of the destination register
    * @param object the number of the register holding the object reference
    */
-  //-#if RVM_FOR_POWERPC
   @Interruptible
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) { 
-    asm.emitLAddrOffset(dest, object, TIB_OFFSET);
+    VM_Configuration.archHelper.baselineEmitLoadTIB(asm, dest, object, TIB_OFFSET);
   }
-  //-#elif RVM_FOR_IA32
-  @Interruptible
-  public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
-                                         byte object) { 
-    asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
-  }
-  //-#endif
 }

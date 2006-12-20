@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
    */
   @Interruptible
   public void init (String name, int port, boolean verbose) { 
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(!initialised, "Tried to re-init server interpreter");
       initialised = true;
@@ -71,7 +71,7 @@ import org.vmmagic.pragma.*;
    * @param name the event name
    */
   public void addEvent (int num, String name) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.addEvent: server not initiialised");
@@ -87,7 +87,7 @@ import org.vmmagic.pragma.*;
    * @param info the information
    */
   public void setGeneralInfo(String info) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.setGeneralInfo: server not initiialised");
@@ -103,7 +103,7 @@ import org.vmmagic.pragma.*;
    * @param wait Whether to wait for the client to connect
    */
   public void startServer(boolean wait) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
       
       Address serverOuterLoop = VM_SysCall.gcspyMainServerOuterLoop();
@@ -117,7 +117,7 @@ import org.vmmagic.pragma.*;
    * @return true if we are connected
    */
   public boolean isConnected (int event) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.isConnected, server=", server);
       
@@ -135,7 +135,7 @@ import org.vmmagic.pragma.*;
    * not confused with the time spent in the application and the VM.
    */
   public void startCompensationTimer() {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.startCompensationTimer: server not initiialised");
@@ -149,7 +149,7 @@ import org.vmmagic.pragma.*;
    * not confused with the time spent in the application and the VM.r
    */
   public void stopCompensationTimer() {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.stopCompensationTimer: server not initiialised");
@@ -164,7 +164,7 @@ import org.vmmagic.pragma.*;
    * @param event The current event
    */
   public void serverSafepoint (int event) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.serverSafepoint, server=", server);
       

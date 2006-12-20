@@ -894,13 +894,7 @@ import org.vmmagic.pragma.*;
    * @param object the number of the register holding the object reference
    */
   @Interruptible
-  public static void baselineEmitLoadTIB(VM_Assembler asm, 
-                                         //-#if RVM_FOR_POWERPC
-                                         int dest, int object
-                                         //-#elif RVM_FOR_IA32
-                                         byte dest, byte object
-                                         //-#endif
-                                         ) { 
+  public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object) { 
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 }

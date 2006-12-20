@@ -864,9 +864,8 @@ public class VM_Runtime implements VM_Constants {
     if (VM.debugOOM) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
     }
-    //-#if RVM_FOR_IA32
-    VM_Magic.clearFloatingPointState();
-    //-#endif
+    if (VM.BuildForIA32)
+      VM_Magic.clearFloatingPointState();
     
     // walk stack and look for a catch block
     //

@@ -13,11 +13,9 @@ import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.classloader.VM_MemberReference;
 import com.ibm.jikesrvm.classloader.VM_Type;
 
-//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 import com.ibm.jikesrvm.opt.VM_OptMachineCodeMap;
 import com.ibm.jikesrvm.opt.VM_OptEncodedCallSiteTree;
-//-#endif
 
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
@@ -140,10 +138,11 @@ import org.vmmagic.pragma.*;
    * the allocation, and returns the address of the first non-trace, non-alloc
    * stack frame.
    *
-   *@param typeRef The type reference (tib) of the object just allocated
-   *@return The frame pointer address for the method that allocated the object
+   * @param typeRef The type reference (tib) of the object just allocated
+   * @return The frame pointer address for the method that allocated the object
    */
   @NoInline
+  @Interruptible // This can't be uninterruptible --- it is an IO routine
   public final Address skipOwnFramesAndDump(ObjectReference typeRef) { 
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
@@ -163,8 +162,7 @@ import org.vmmagic.pragma.*;
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
           ipOffset = compiledMethod.getInstructionOffset(ip);
           m = compiledMethod.getMethod();
-          //-#if RVM_WITH_OPT_COMPILER
-          if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+          if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
             VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
             /* Opt stack frames may contain multiple inlined methods. */
             VM_OptMachineCodeMap map = optInfo.getMCMap();
@@ -186,9 +184,7 @@ import org.vmmagic.pragma.*;
               if (!allocCall)
                 break;
             }
-          } else 
-          //-#endif
-          {
+          } else {
             if (!isAllocCall(m.getName().getBytes())) {
               VM_BaselineCompiledMethod baseInfo = 
                 (VM_BaselineCompiledMethod)compiledMethod;

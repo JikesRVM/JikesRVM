@@ -429,11 +429,11 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  //-#if RVM_FOR_IA32
   /**
    * IA32 "prefetchnta" operation: "fetches the data into the
    * second-level cache, minimizing cache pollution." (Semantics are
    * micro-architecture-specific: check for your processor!)
+   * NOTE: IA32-specific
    */
   public void prefetchNTA() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
@@ -467,9 +467,7 @@ import org.vmmagic.pragma.*;
 //    public void prefetchT2() {
 //      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 //    }
-  //-#endif
   
-  //-#if RVM_FOR_POWERPC
   /** 
    * Write contents of this processor's modified data cache back to
    * main storage.
@@ -480,6 +478,7 @@ import org.vmmagic.pragma.*;
 
   /** 
    * Touch a data cache block (use to prefetch).
+   * NOTE: PowerPC-specific
    */
   public void dcbt() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -488,6 +487,7 @@ import org.vmmagic.pragma.*;
   /** 
    * Touch a data cache block for a store (use to prefetch on a
    * store).
+   * NOTE: PowerPC-specific
    */
   public void dcbtst() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -496,6 +496,7 @@ import org.vmmagic.pragma.*;
   /** 
    * Zero all bytes of this 32 byte cache block without forcing a read
    * (use to avoid a miss on an initilizing store).
+   * NOTE: PowerPC-specific
    */
   public void dcbz() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -506,6 +507,7 @@ import org.vmmagic.pragma.*;
    * avoid a miss on an initilizing store). Note: this is an extended
    * form of dcbz for the PPC970 that deals with the larger (128 byte)
    * cache line.
+   * NOTE: PowerPC-specific
    */
   public void dcbzl() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -514,11 +516,11 @@ import org.vmmagic.pragma.*;
   /** 
    * The icbi instruction invalidates a block containing the byte
    * addressed in the instruction cache.
+   * NOTE: PowerPC-specific
    */
   public void icbi() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-  //-#endif
  
   /****************************************************************************
    *

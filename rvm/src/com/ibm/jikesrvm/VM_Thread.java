@@ -325,16 +325,14 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
 
     VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
     
-    //-#if RVM_FOR_POWERPC
     // Process request for code-patch memory sync operation
-    if (VM_Processor.getCurrentProcessor().codePatchSyncRequested) {
+    if (VM.BuildForPowerPC && VM_Processor.getCurrentProcessor().codePatchSyncRequested) {
       VM_Processor.getCurrentProcessor().codePatchSyncRequested = false;
       // TODO: Is this sufficient? Ask Steve why we don't need to sync icache/dcache. --dave
       // make sure not get stale data
       VM_Magic.isync();
       VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_Entrypoints.toSyncProcessorsField.getOffset(), 1);
     }
-    //-#endif
 
     // If thread is in critical section we can't switch right now, defer until later
     if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) { 
@@ -881,12 +879,11 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     // return to caller, resuming execution on new stack 
     // (original stack now abandoned)
     //
-//-#if RVM_FOR_POWERPC
-    VM_Magic.returnToNewStack(VM_Magic.getCallerFramePointer(newFP));
-//-#endif
-//-#if RVM_FOR_IA32
-    VM_Magic.returnToNewStack(newFP);
-//-#endif
+    if (VM.BuildForPowerPC)
+      VM_Magic.returnToNewStack(VM_Magic.getCallerFramePointer(newFP));
+    else if (VM.BuildForIA32)
+      VM_Magic.returnToNewStack(newFP);
+   
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -933,14 +930,8 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     //  (1) frames from all compilers on IA32 need to update ESP
     int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
-      //-#if RVM_FOR_IA32
-      Word old = registers.gprs.get(ESP);
-      registers.gprs.set(ESP, old.plus(delta));
-      if (traceAdjustments) {
-        VM.sysWrite(" esp =");
-        VM.sysWrite(registers.gprs.get(ESP));
-      }
-      //-#endif
+      if (VM.BuildForIA32)
+        VM_Configuration.archHelper.adjustESP(registers, delta, traceAdjustments);
       if (traceAdjustments) {
         VM_CompiledMethod compiledMethod = 
           VM_CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -1095,38 +1086,11 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
     //
     Address ip = VM_Magic.objectAsAddress(instructions);
     Address sp = VM_Magic.objectAsAddress(stack).plus(stack.length);
-    Address fp = STACKFRAME_SENTINEL_FP;
 
-//-#if RVM_FOR_IA32 
-
-    // initialize thread stack as if "startoff" method had been called
-    // by an empty baseline-compiled "sentinel" frame with one local variable
-    //
-    sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
-    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
-    VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
-
-    sp = sp.minus(BYTES_IN_ADDRESS);                                 // allow for one local
-    contextRegisters.gprs.set(ESP, sp.toWord());
-    contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
-                              VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
-    contextRegisters.fp  = fp;
-    contextRegisters.ip  = ip;
-
-//-#else
-
-    // align stack frame
-    int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
-    fp = VM_Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
-    fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
-    fp.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
-    fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
-        
-    contextRegisters.gprs.set(FRAME_POINTER, fp.toWord());
-    contextRegisters.ip  = ip;
-    //-#endif
-
+    /* Initialize the  a thread stack as if "startoff" method had been called by an
+     * empty baseline-compiled "sentinel" frame with one local variable. */
+    VM_Configuration.archHelper.initializeStack(contextRegisters, ip, sp);
+    
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
 

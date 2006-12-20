@@ -14,12 +14,12 @@ import org.vmmagic.unboxed.*;
 /**
  * Constants defining heap layout constants
  *
- * $Id$
+ * $Id: VM_HeapLayoutConstants.java 10996 2006-11-16 23:37:12Z dgrove-oss $
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 10996 $
+ * @date $Date: 2006-11-17 10:37:12 +1100 (Fri, 17 Nov 2006) $
  */
 public interface VM_HeapLayoutConstants {
 
@@ -56,6 +56,17 @@ public interface VM_HeapLayoutConstants {
      //-#value BOOTIMAGE_RMAP_ADDRESS
      );
 
+  /** The address in virtual memory that is the highest that can be mapped. */
+  public static Address MAXIMUM_MAPPABLE = 
+    //-#if RVM_FOR_32_ADDR
+    Address.fromIntZeroExtend
+    //-#elif RVM_FOR_64_ADDR
+    Address.fromLong
+    //-#endif
+    (
+     //-#value MAXIMUM_MAPPABLE_ADDRESS
+     );
+  
   /** The maximum boot image data size */
   public static final int BOOT_IMAGE_DATA_SIZE = 48<<20;
 
@@ -75,14 +86,4 @@ public interface VM_HeapLayoutConstants {
   /** The address of the end of the boot image. */
   public static final Address BOOT_IMAGE_END = BOOT_IMAGE_RMAP_END;
 
-  /** The address in virtual memory that is the highest that can be mapped. */
-  public static Address MAXIMUM_MAPPABLE = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value MAXIMUM_MAPPABLE_ADDRESS
-     );
 }

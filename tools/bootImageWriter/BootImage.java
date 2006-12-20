@@ -375,14 +375,11 @@ public class BootImage extends BootImageWriterMessages
   public void setAddressWord(Address address, Word value, boolean objField) {
     if (objField) 
       markReferenceMap(address);
-//-#if RVM_FOR_32_ADDR
-    setFullWord(address, value.toInt());
+    if (VM.BuildFor32Addr)
+      setFullWord(address, value.toInt());
+    else
+      setDoubleWord(address, value.toLong());
     numAddresses++;
-//-#endif
-//-#if RVM_FOR_64_ADDR
-    setDoubleWord(address, value.toLong());
-    numAddresses++;
-//-#endif
   }
 
   /**

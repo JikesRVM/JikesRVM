@@ -180,9 +180,8 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
         processors[i] = new VM_Processor(i);
       } else { 
         processors[i] = p;
-        //-#if RVM_FOR_IA32
-        p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
-        //-#endif
+        if (VM.BuildForIA32)
+          p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
       }
     }
 
@@ -235,26 +234,24 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
         processors[i].activeThreadStackLimit = target.stackLimit;
         target.registerThread(); // let scheduler know that thread is active.
         if (VM.BuildForPowerPC) {
-          //-#if RVM_FOR_POWERPC
           // NOTE: It is critical that we acquire the tocPointer explicitly
           //       before we start the SysCall sequence. This prevents 
           //       the opt compiler from generating code that passes the AIX 
           //       sys toc instead of the RVM jtoc. --dave
           Address toc = VM_Magic.getTocPointer();
-          VM_SysCall.
-            sysVirtualProcessorCreate(toc,
-                                      VM_Magic.objectAsAddress(processors[i]),
-                                      target.contextRegisters.ip, 
-                                      target.contextRegisters.getInnermostFramePointer());
+          VM_SysCall.sysVirtualProcessorCreate(toc,
+                                        VM_Magic.objectAsAddress(processors[i]),
+                                        target.contextRegisters.ip, 
+                                        target.contextRegisters.getInnermostFramePointer());
           if (cpuAffinity != NO_CPU_AFFINITY)
             VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
-          //-#endif
         } else if (VM.BuildForIA32) {
           VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                                VM_Magic.objectAsAddress(processors[i]),
                                                target.contextRegisters.ip, 
                                                target.contextRegisters.getInnermostFramePointer());
-        }
+        } else if (VM.VerifyAssertions)
+          VM._assert(VM.NOT_REACHED);
       }
 
       // wait for everybody to start up

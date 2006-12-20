@@ -94,9 +94,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field minintField         = getField("Lcom/ibm/jikesrvm/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
   public static final VM_Field IEEEmagicField      = getField("Lcom/ibm/jikesrvm/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
   public static final VM_Field I2DconstantField    = getField("Lcom/ibm/jikesrvm/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
-  //-#if RVM_FOR_IA32  
-  public static final VM_Field FPUControlWordField = getField("Lcom/ibm/jikesrvm/VM_Math;", "FPUControlWord", "I");
-  //-#endif
+  public static final VM_Field FPUControlWordField = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
    
   public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", "Lcom/ibm/jikesrvm/VM_CodeArray;");
   public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", "Lcom/ibm/jikesrvm/VM_CodeArray;");
@@ -114,12 +112,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field reportedTimerTicksField    = getField("Lcom/ibm/jikesrvm/VM_Processor;", "reportedTimerTicks", "I");
   public static final VM_Field vpStatusField              = getField("Lcom/ibm/jikesrvm/VM_Processor;", "vpStatus", "I");
   public static final VM_Field threadIdField              = getField("Lcom/ibm/jikesrvm/VM_Processor;", "threadId", "I");
-  //-#if RVM_FOR_IA32
-  public static final VM_Field jtocField               = getField("Lcom/ibm/jikesrvm/VM_Processor;", "jtoc", "Ljava/lang/Object;");
-  public static final VM_Field framePointerField       = getField("Lcom/ibm/jikesrvm/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field hiddenSignatureIdField  = getField("Lcom/ibm/jikesrvm/VM_Processor;", "hiddenSignatureId", "I");
-  public static final VM_Field arrayIndexTrapParamField= getField("Lcom/ibm/jikesrvm/VM_Processor;", "arrayIndexTrapParam", "I");
-  //-#endif
+  public static final VM_Field jtocField               = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Processor;", "jtoc", "Ljava/lang/Object;") : null;
+  public static final VM_Field framePointerField       = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;") : null;
+  public static final VM_Field hiddenSignatureIdField  = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Processor;", "hiddenSignatureId", "I") : null;
+  public static final VM_Field arrayIndexTrapParamField= (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Processor;", "arrayIndexTrapParam", "I") : null;
    
   public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
@@ -167,13 +163,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/jikesrvm/VM_Registers;", "fprs", "[D");
   public static final VM_Field registersGPRsField = getField("Lcom/ibm/jikesrvm/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_Field registersInUseField= getField("Lcom/ibm/jikesrvm/VM_Registers;", "inuse", "Z");
-  //-#if RVM_FOR_POWERPC
-  public static final VM_Field registersLRField   = getField("Lcom/ibm/jikesrvm/VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;");
-  static final VM_Field toSyncProcessorsField          = getField("Lcom/ibm/jikesrvm/VM_Scheduler;", "toSyncProcessors", "I");
-  //-#endif
-  //-#if RVM_FOR_IA32
-  public static final VM_Field registersFPField   = getField("Lcom/ibm/jikesrvm/VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;");
-  //-#endif
+  public static final VM_Field registersLRField   = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;") : null;
+  static final VM_Field toSyncProcessorsField     = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/VM_Scheduler;", "toSyncProcessors", "I") : null;
+  public static final VM_Field registersFPField   = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;") : null;
 
   static final VM_Field outputLockField                = getField("Lcom/ibm/jikesrvm/VM_Scheduler;", "outputLock", "I");
 
@@ -198,9 +190,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", "JNITopJavaFP", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lorg/vmmagic/unboxed/Address;");
-  //-#if RVM_FOR_POWERPC
-  public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", "savedJTOC", "Lorg/vmmagic/unboxed/Address;");
-  //-#endif
+  public static final VM_Field JNIEnvSavedJTOCField       = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/jni/VM_JNIEnvironment;", "savedJTOC", "Lorg/vmmagic/unboxed/Address;") : null;
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/jikesrvm/VM_BootRecord;", "the_boot_record", "Lcom/ibm/jikesrvm/VM_BootRecord;");
   public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/jikesrvm/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lorg/vmmagic/unboxed/Address;");

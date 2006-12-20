@@ -27,16 +27,26 @@ class GenerateInterfaceDeclarations {
 
   static PrintStream out;
   static PrintStream e;
-  
+  static final GenArch arch;
+  static {
+    GenArch tmp = null;
+    try {
+      tmp = (GenArch) Class.forName(VM.BuildForIA32 ? "GenArchIA" : "GenArchPPC").newInstance();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(-1);     // we must *not* go on if the above has failed
+    }
+    arch = tmp;
+  }
+
   static void p(String s) {
     out.print(s);
   }
   static void p(String s, Offset off) {
-    //-#if RVM_FOR_64_ADDR
-    out.print(s+ off.toLong());
-    //-#else
-    out.print(s+ VM.addressAsHexString(off.toWord().toAddress()));
-    //-#endif
+    if (VM.BuildFor64Addr)
+      out.print(s+ off.toLong());
+    else
+      out.print(s+ VM.addressAsHexString(off.toWord().toAddress()));
   }
   static void pln(String s) {
     out.println(s);
@@ -51,7 +61,7 @@ class GenerateInterfaceDeclarations {
     out.println();
   }
   
-  private GenerateInterfaceDeclarations() {
+  GenerateInterfaceDeclarations() {
   }
 
   static int bootImageDataAddress = 0;
@@ -365,6 +375,8 @@ class GenerateInterfaceDeclarations {
         continue;
 
       String fieldName = field.getName().toString();
+      if (fieldName.indexOf("gcspy") > - 1 && !VM.BuildWithGCSpy)
+	  continue;  // ugh.  NOTE: ugly hack to side-step unconditional inclusion of GCSpy stuff
       int suffixIndex = fieldName.indexOf("IP");
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
@@ -397,102 +409,6 @@ class GenerateInterfaceDeclarations {
 
     // values in VM_Constants, from VM_Configuration
     //
-    //-#if RVM_FOR_POWERPC
-    if (VM.BuildForPowerPC) {
-      p("static const int VM_Constants_JTOC_POINTER               = "
-          + VM_Constants.JTOC_POINTER + ";\n");
-      p("static const int VM_Constants_FRAME_POINTER              = "
-          + VM_Constants.FRAME_POINTER + ";\n");
-      p("static const int VM_Constants_PROCESSOR_REGISTER         = "
-          + VM_Constants.PROCESSOR_REGISTER + ";\n");
-      p("static const int VM_Constants_FIRST_VOLATILE_GPR         = "
-          + VM_Constants.FIRST_VOLATILE_GPR + ";\n");
-      p("static const int VM_Constants_DIVIDE_BY_ZERO_MASK        = "
-          + VM_Constants.DIVIDE_BY_ZERO_MASK + ";\n");
-      p("static const int VM_Constants_DIVIDE_BY_ZERO_TRAP        = "
-          + VM_Constants.DIVIDE_BY_ZERO_TRAP + ";\n");
-      p("static const int VM_Constants_MUST_IMPLEMENT_MASK        = "
-          + VM_Constants.MUST_IMPLEMENT_MASK + ";\n");
-      p("static const int VM_Constants_MUST_IMPLEMENT_TRAP        = "
-          + VM_Constants.MUST_IMPLEMENT_TRAP + ";\n");
-      p("static const int VM_Constants_STORE_CHECK_MASK           = "
-          + VM_Constants.STORE_CHECK_MASK + ";\n");
-      p("static const int VM_Constants_STORE_CHECK_TRAP           = "
-          + VM_Constants.STORE_CHECK_TRAP + ";\n");
-      p("static const int VM_Constants_ARRAY_INDEX_MASK           = "
-          + VM_Constants.ARRAY_INDEX_MASK + ";\n");
-      p("static const int VM_Constants_ARRAY_INDEX_TRAP           = "
-          + VM_Constants.ARRAY_INDEX_TRAP + ";\n");
-      p("static const int VM_Constants_ARRAY_INDEX_REG_MASK       = "
-          + VM_Constants.ARRAY_INDEX_REG_MASK + ";\n");
-      p("static const int VM_Constants_ARRAY_INDEX_REG_SHIFT      = "
-          + VM_Constants.ARRAY_INDEX_REG_SHIFT + ";\n");
-      p("static const int VM_Constants_CONSTANT_ARRAY_INDEX_MASK  = "
-          + VM_Constants.CONSTANT_ARRAY_INDEX_MASK + ";\n");
-      p("static const int VM_Constants_CONSTANT_ARRAY_INDEX_TRAP  = "
-          + VM_Constants.CONSTANT_ARRAY_INDEX_TRAP + ";\n");
-      p("static const int VM_Constants_CONSTANT_ARRAY_INDEX_INFO  = "
-          + VM_Constants.CONSTANT_ARRAY_INDEX_INFO + ";\n");
-      p("static const int VM_Constants_WRITE_BUFFER_OVERFLOW_MASK = "
-          + VM_Constants.WRITE_BUFFER_OVERFLOW_MASK + ";\n");
-      p("static const int VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP = "
-          + VM_Constants.WRITE_BUFFER_OVERFLOW_TRAP + ";\n");
-      p("static const int VM_Constants_STACK_OVERFLOW_MASK        = "
-          + VM_Constants.STACK_OVERFLOW_MASK + ";\n");
-      p("static const int VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP = "
-          + VM_Constants.STACK_OVERFLOW_HAVE_FRAME_TRAP + ";\n");
-      p("static const int VM_Constants_STACK_OVERFLOW_TRAP        = "
-          + VM_Constants.STACK_OVERFLOW_TRAP + ";\n");
-      p("static const int VM_Constants_CHECKCAST_MASK             = "
-          + VM_Constants.CHECKCAST_MASK + ";\n");
-      p("static const int VM_Constants_CHECKCAST_TRAP             = "
-          + VM_Constants.CHECKCAST_TRAP + ";\n");
-      p("static const int VM_Constants_REGENERATE_MASK            = "
-          + VM_Constants.REGENERATE_MASK + ";\n");
-      p("static const int VM_Constants_REGENERATE_TRAP            = "
-          + VM_Constants.REGENERATE_TRAP + ";\n");
-      p("static const int VM_Constants_NULLCHECK_MASK             = "
-          + VM_Constants.NULLCHECK_MASK + ";\n");
-      p("static const int VM_Constants_NULLCHECK_TRAP             = "
-          + VM_Constants.NULLCHECK_TRAP + ";\n");
-      p("static const int VM_Constants_JNI_STACK_TRAP_MASK             = "
-          + VM_Constants.JNI_STACK_TRAP_MASK + ";\n");
-      p("static const int VM_Constants_JNI_STACK_TRAP             = "
-          + VM_Constants.JNI_STACK_TRAP + ";\n");
-      p("static const int VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET = "
-          + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET + ";\n");
-          p("static const int VM_Constants_STACKFRAME_ALIGNMENT = "
-                  + VM_Constants.STACKFRAME_ALIGNMENT + " ;\n");
-    }
-    //-#endif
-
-    //-#if RVM_FOR_IA32
-    if (VM.BuildForIA32) {
-      p("static const int VM_Constants_EAX                    = "
-          + VM_Constants.EAX + ";\n");
-      p("static const int VM_Constants_ECX                    = "
-          + VM_Constants.ECX + ";\n");
-      p("static const int VM_Constants_EDX                    = "
-          + VM_Constants.EDX + ";\n");
-      p("static const int VM_Constants_EBX                    = "
-          + VM_Constants.EBX + ";\n");
-      p("static const int VM_Constants_ESP                    = "
-          + VM_Constants.ESP + ";\n");
-      p("static const int VM_Constants_EBP                    = "
-          + VM_Constants.EBP + ";\n");
-      p("static const int VM_Constants_ESI                    = "
-          + VM_Constants.ESI + ";\n");
-      p("static const int VM_Constants_EDI                    = "
-          + VM_Constants.EDI + ";\n");
-      p("static const int VM_Constants_STACKFRAME_BODY_OFFSET             = "
-          + VM_Constants.STACKFRAME_BODY_OFFSET + ";\n");
-      p("static const int VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = "
-          + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET   + ";\n");    
-      p("static const int VM_Constants_RVM_TRAP_BASE  = "
-          + VM_Constants.RVM_TRAP_BASE   + ";\n");    
-    }
-    //-#endif
-
     p("static const int VM_Constants_STACK_SIZE_GUARD          = "
         + VM_Constants.STACK_SIZE_GUARD + ";\n");
 
@@ -639,14 +555,6 @@ class GenerateInterfaceDeclarations {
     pln("VM_Processor_vpStatus_offset = ", offset);
     offset = VM_Entrypoints.threadIdField.getOffset();
     pln("VM_Processor_threadId_offset = ", offset);
-    //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.framePointerField.getOffset();
-    pln("VM_Processor_framePointer_offset = ", offset);
-    offset = VM_Entrypoints.jtocField.getOffset();
-    pln("VM_Processor_jtoc_offset = ", offset);
-    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
-    pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
-    //-#endif
 
     // fields in VM_Thread
     //
@@ -667,14 +575,6 @@ class GenerateInterfaceDeclarations {
     pln("VM_Registers_fprs_offset = ", offset);
     offset = VM_Entrypoints.registersIPField.getOffset();
     pln("VM_Registers_ip_offset = ", offset);
-    //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.registersFPField.getOffset();
-    pln("VM_Registers_fp_offset = ", offset);
-    //-#endif
-    //-#if RVM_FOR_POWERPC
-    offset = VM_Entrypoints.registersLRField.getOffset();
-    pln("VM_Registers_lr_offset = ", offset);
-    //-#endif
 
     offset = VM_Entrypoints.registersInUseField.getOffset();
     pln("VM_Registers_inuse_offset = ", offset);  
@@ -700,6 +600,8 @@ class GenerateInterfaceDeclarations {
     // fields in com.ibm.jikesrvm.memorymanagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
     pln("com_ibm_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset = ", offset);
+
+    arch.emitArchVirtualMachineDeclarations();
   }
 
 
@@ -735,51 +637,7 @@ class GenerateInterfaceDeclarations {
   // Emit assembler constants.
   //
   static void emitAssemblerDeclarations () {
-
-    //-#if RVM_FOR_POWERPC
-    //-#if RVM_FOR_OSX
-    if (VM.BuildForPowerPC) {
-      pln("#define FP r"   + VM_BaselineConstants.FP);
-      pln("#define JTOC r" + VM_BaselineConstants.JTOC);
-      pln("#define PROCESSOR_REGISTER r"    + VM_BaselineConstants.PROCESSOR_REGISTER);
-      pln("#define S0 r"   + VM_BaselineConstants.S0);
-      pln("#define T0 r"   + VM_BaselineConstants.T0);
-      pln("#define T1 r"   + VM_BaselineConstants.T1);
-      pln("#define T2 r"   + VM_BaselineConstants.T2);
-      pln("#define T3 r"   + VM_BaselineConstants.T3);
-      pln("#define STACKFRAME_NEXT_INSTRUCTION_OFFSET " + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-    }
-    //-#else
-    if (VM.BuildForPowerPC) {
-      pln(".set FP,"   + VM_BaselineConstants.FP);
-      pln(".set JTOC," + VM_BaselineConstants.JTOC);
-      pln(".set PROCESSOR_REGISTER,"    
-          + VM_BaselineConstants.PROCESSOR_REGISTER);
-      pln(".set S0,"   + VM_BaselineConstants.S0);
-      pln(".set T0,"   + VM_BaselineConstants.T0);
-      pln(".set T1,"   + VM_BaselineConstants.T1);
-      pln(".set T2,"   + VM_BaselineConstants.T2);
-      pln(".set T3,"   + VM_BaselineConstants.T3);
-      pln(".set STACKFRAME_NEXT_INSTRUCTION_OFFSET," 
-          + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-
-      if (!VM.BuildForAix) 
-        pln(".set T4,"   + (VM_BaselineConstants.T3 + 1));
-    }
-    //-#endif
-    //-#endif
-
-    //-#if RVM_FOR_IA32
-    if (VM.BuildForIA32) {
-      p("#define JTOC %" 
-        + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
-          + ";\n");
-      p("#define PR %"   
-        + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI]
-          + ";\n");
-    }
-    //-#endif
-
+    arch.emitArchAssemblerDeclarations();
   }
 }
 

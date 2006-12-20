@@ -26,7 +26,65 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * 
  * @author Steve Blackburn
  */
-public abstract class OPT_IAMachineSpecificIR extends OPT_MachineSpecificIR {
+public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
+
+  /**
+   * Wrappers around IA32-specific IR (32-bit specific)
+   */
+  public static final class IA32 extends OPT_MachineSpecificIRIA {
+    public static final IA32 singleton = new IA32();
+    
+    /* common to all ISAs */
+    @Override
+    public boolean mayEscapeThread(OPT_Instruction instruction) {
+      switch (instruction.getOpcode()) {
+      case PREFETCH_opcode:
+        return false;
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
+        return true;
+      default:
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscapge: Unexpected " + instruction);
+      }
+    }
+    @Override
+    public boolean mayEscapeMethod(OPT_Instruction instruction) {
+      return mayEscapeThread(instruction); // at this stage we're no more specific
+    }
+  }
+  
+  /**
+   * Wrappers around EMT64-specific IR (64-bit specific)
+   */
+  public static final class EM64T extends OPT_MachineSpecificIRIA {
+    public static final EM64T singleton = new EM64T();
+
+    /* common to all ISAs */
+    @Override
+    public boolean mayEscapeThread(OPT_Instruction instruction) {
+      switch (instruction.getOpcode()) {
+      case PREFETCH_opcode:
+        return false;
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
+      case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
+      case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
+      case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
+      case LONG_MOVE_opcode: case LONG_2ADDR_opcode:
+        return true;
+      default:
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscapge: Unexpected " + instruction);
+      }
+    }
+    @Override
+    public boolean mayEscapeMethod(OPT_Instruction instruction) {
+      return mayEscapeThread(instruction); // at this stage we're no more specific
+    } 
+  }
+ 
+  
+  /* 
+   * Generic (32/64 neutral) IA support
+   */
+  
   /* common to all ISAs */
   @Override
   public boolean isConditionOperand(OPT_Operand operand) {

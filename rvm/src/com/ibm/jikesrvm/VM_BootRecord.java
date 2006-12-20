@@ -333,7 +333,7 @@ public class VM_BootRecord {
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;
 
-   //-#if RVM_WITH_GCSPY
+   /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
    // GCspy entry points
    public Address gcspyDriverAddStreamIP;
    public Address gcspyDriverEndOutputIP;
@@ -369,6 +369,4 @@ public class VM_BootRecord {
 
    public Address gcspyFormatSizeIP;
    public Address gcspySprintfIP;
-   //-#endif
-
 }

@@ -157,9 +157,8 @@ public class VM_SysCallMagic {
   public static int sysDoubleToInt(Address functionAddress, double x) { return 0; }
   public static long sysFloatToLong(Address functionAddress, float x) { return 0; }
   public static long sysDoubleToLong(Address functionAddress, double x) { return 0; }
-  //-#if RVM_FOR_POWERPC
+  /* NOTE: PowerPC-specific */
   public static double sysDoubleRemainder(Address functionAddress, double x, double y) { return 0; }
-  //-#endif
 
   /**
    * Used to parse command line arguments that are
@@ -255,7 +254,7 @@ public class VM_SysCallMagic {
   public static void sysWaitForVirtualProcessorInitialization(Address functionAddress) {} 
   public static void sysWaitForMultithreadingStart(Address functionAddress) {} 
 
-  //-#if RVM_WITH_GCSPY
+  /* FIXME: We *really* don't want this here unconditionally */
   // sysCall entry points to GCSpy
   public static Address gcspyDriverAddStream (Address functionAddress, Address driver, int it) { return null; }
   public static void gcspyDriverEndOutput (Address functionAddress, Address driver) {}
@@ -297,5 +296,4 @@ public class VM_SysCallMagic {
   public static void gcspyFormatSize (Address functionAddress, Address buffer, int size) {}
 
   public static int gcspySprintf (Address functionAddress, Address str, Address format, Address value) { return 0; }
-  //-#endif
 }

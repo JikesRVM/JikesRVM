@@ -12,9 +12,12 @@
 
 include                 $(RVM_BUILD)/Make.rules.host
 
-default:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java
+default:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Configuration.java:	VM_Configuration.java
+	cp $< $@ 
+
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_HeapLayoutConstants.java:	VM_HeapLayoutConstants.java
 	cp $< $@ 
 
 clean:

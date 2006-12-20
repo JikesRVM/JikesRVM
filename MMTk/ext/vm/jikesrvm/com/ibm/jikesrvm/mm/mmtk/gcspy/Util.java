@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
    * @see #free
    */
   public final Address malloc(int size) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       Address rtn  = VM_SysCall.sysMalloc(size);
       if (rtn.isZero()) VM.assertions.fail("GCspy malloc failure");
       return rtn;
@@ -61,7 +61,7 @@ import org.vmmagic.pragma.*;
    * @see #malloc
    */
   public final void free(Address addr) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
       if (!addr.isZero())
         VM_SysCall.sysFree(addr);
   }
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   private static Offset sysWriteLockOffset = Offset.max();
 
   private static final void swLock() {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
       while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
         ;
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
   }
 
   private static final void swUnlock() {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
       VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
     }
@@ -98,7 +98,7 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   public final Address getBytes (String str) { 
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (str == null) 
         return Address.zero();
   
@@ -157,7 +157,7 @@ import org.vmmagic.pragma.*;
    * @param size The size in bytes
    */
   public final void formatSize(Address buffer, int size) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
       VM_SysCall.gcspyFormatSize(buffer, size);
   }
 
@@ -170,7 +170,7 @@ import org.vmmagic.pragma.*;
    * @param size The size in bytes
    */
   public final Address formatSize(String format, int bufsize, int size) {
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       // - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
       Address tmp = malloc(bufsize);
       Address formattedSize = malloc(bufsize);
@@ -193,7 +193,7 @@ import org.vmmagic.pragma.*;
    */
   @Interruptible
   public Object createDataArray(Object templ, int numElements) { 
-    if (VM_SysCall.WITH_GCSPY) {
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       VM_Array array = VM_Magic.getObjectType(templ).asArray();
       return VM_Runtime.resolvedNewArray(numElements, 
                               array.getLogElementSize(),
@@ -219,7 +219,7 @@ import org.vmmagic.pragma.*;
    * @return The number of characters printed (as returned by C's sprintf
    */
   public final int sprintf(Address str, Address format, Address value) {
-    if (VM_SysCall.WITH_GCSPY) 
+    if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
       return VM_SysCall.gcspySprintf(str, format, value);
     else 
       return 0;

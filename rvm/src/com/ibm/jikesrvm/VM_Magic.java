@@ -67,18 +67,16 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  //-#if RVM_FOR_IA32
-  /** Get contents of ESI, as a VM_Processor */
+  /** Get contents of ESI, as a VM_Processor. NOTE: IA-specific */
   public static VM_Processor getESIAsProcessor() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
-  /** Set contents of ESI to hold a reference to a processor object */
+  /** Set contents of ESI to hold a reference to a processor object. NOTE: IA-specific */
   public static void setESIAsProcessor(VM_Processor p) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
-  //-#endif
 
   /**
    * Read contents of hardware time base registers.
@@ -805,21 +803,19 @@ public class VM_Magic {
     return null;
   }
 
-  //-#if RVM_FOR_IA32
    /**
-    * Set the floating-point rounding mode to round-towards-zero
+    * Set the floating-point rounding mode to round-towards-zero. NOTE: IA-specific 
     */
    public static void roundToZero() {
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
    }
 
    /**
-    * Clear the hardware floating point state
+    * Clear the hardware floating point state. NOTE: IA-specific 
     */
    public static void clearFloatingPointState() {
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
    }
-  //-#endif
   
   //---------------------------------------//
   //            Cache Management.          //

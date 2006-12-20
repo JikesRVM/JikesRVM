@@ -14,6 +14,7 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
+import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_SysCall;
 
 import org.vmmagic.pragma.*;
@@ -73,7 +74,7 @@ import org.vmmagic.unboxed.Address;
           stringPre, stringPost, presentation, paintStyle, 
           indexMaxStream, colour, summary);
   
-    if (VM_SysCall.WITH_GCSPY) {
+    if (VM.BuildWithGCSpy) {
       // We never delete these
       Address tmpName = GCspy.util.getBytes(name);
       Address tmpPre = GCspy.util.getBytes(stringPre);
