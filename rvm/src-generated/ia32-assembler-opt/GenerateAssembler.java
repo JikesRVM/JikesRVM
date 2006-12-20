@@ -111,7 +111,7 @@ public class GenerateAssembler {
      *
      * @see OPT_InstructionFormatTables
      */
-    private static Class formats;
+    private static Class<?> formats;
 
     /**
      *  Load the instruction format table, and throw up if that is
@@ -164,13 +164,13 @@ public class GenerateAssembler {
      * when an instruction has extra operands that are not used in
      * assembly (e.g. CALL) has mappings only for such instructions.
      */
-    static Hashtable opcodeArgTables;
+    static Hashtable<String,int[]> opcodeArgTables;
 
     /**
      *  Initialize the opcodeArgTables table
      */
     static {
-        opcodeArgTables = new Hashtable();
+        opcodeArgTables = new Hashtable<String,int[]>();
         opcodeArgTables.put("CALL", new int[]{2});
         opcodeArgTables.put("INT", new int[]{1});
         opcodeArgTables.put("CDQ", new int[]{0});
@@ -671,7 +671,7 @@ public class GenerateAssembler {
          *  The VM_Assembler emit methods that this set represents.
          * This is a set of EmitterDescriptor objects.
          */
-        private final Set emitters = new HashSet();
+        private final Set<EmitterDescriptor> emitters = new HashSet<EmitterDescriptor>();
 
         /**
          * Print this EmitterSet readably.
@@ -680,7 +680,7 @@ public class GenerateAssembler {
         public String toString() {
             StringBuffer s = new StringBuffer();
             s.append("Emitter Set of:\n");
-            Iterator i = emitters.iterator();
+            Iterator<EmitterDescriptor> i = emitters.iterator();
             while (i.hasNext()) 
                 s.append(i.next().toString() + "\n");
             
@@ -718,7 +718,7 @@ public class GenerateAssembler {
          * @return the number of emit methods of which the specified
          *         operand type matches the specified one.  */
         private int countEncoding(int n, int code) {
-            Iterator i = emitters.iterator();
+            Iterator<EmitterDescriptor> i = emitters.iterator();
             int count = 0;
             while (i.hasNext())
                 if (((EmitterDescriptor)i.next()).argMatchesEncoding(n, code))
@@ -789,7 +789,7 @@ public class GenerateAssembler {
             int test = split.test;
             EmitterSet yes = new EmitterSet();
             EmitterSet no = new EmitterSet();
-            Iterator i = emitters.iterator();
+            Iterator<EmitterDescriptor> i = emitters.iterator();
             while (i.hasNext()) {
                 EmitterDescriptor ed = (EmitterDescriptor) i.next();
                 if (ed.argMatchesEncoding(arg, test))
@@ -990,7 +990,7 @@ public class GenerateAssembler {
      *
      * @see #main
      */
-    static Class lowLevelAsm;
+    static Class<?> lowLevelAsm;
 
     /**
      * Computes the set of emit methods in the VM_Assembler for a
@@ -1022,7 +1022,7 @@ public class GenerateAssembler {
      * the VM_Assembler if other compilers use them.  We keep an
      * explicit list of such opcodes to ignore.
      */
-    private static Set excludedOpcodes;
+    private static Set<String> excludedOpcodes;
 
     /**
      *  Initialize the set of opcodes to ignore 
@@ -1030,7 +1030,7 @@ public class GenerateAssembler {
      * @see #excludedOpcodes
      */
     static {
-        excludedOpcodes = new HashSet();
+        excludedOpcodes = new HashSet<String>();
         excludedOpcodes.add("FSAVE");
         excludedOpcodes.add("FNSTSW");
         excludedOpcodes.add("FUCOMPP");
@@ -1051,8 +1051,8 @@ public class GenerateAssembler {
      * @param emitters the set of all emit methods in the VM_Assembler
      * @return the set of all opcodes handled by the VM_Assembler
      */
-    private static Set getOpcodes(Method[] emitters) {
-        Set s = new HashSet();
+    private static Set<String> getOpcodes(Method[] emitters) {
+        Set<String> s = new HashSet<String>();
         for(int i = 0; i < emitters.length; i++) {
             String name = emitters[i].getName();
             if (DEBUG) System.out.println(name);
@@ -1087,9 +1087,9 @@ public class GenerateAssembler {
      * @return the set of IA32 opt operators that the assembler does
      * not understand.
      */
-    private static Set getErrorOpcodes(Set emittedOpcodes) {
-        Iterator e = OPT_OperatorFormatTables.getOpcodes();
-        Set errorOpcodes = new HashSet();
+    private static Set<String> getErrorOpcodes(Set<String> emittedOpcodes) {
+        Iterator<String> e = OPT_OperatorFormatTables.getOpcodes();
+        Set<String> errorOpcodes = new HashSet<String>();
         while (e.hasNext()) {
             String opcode = (String) e.next();
             if (! emittedOpcodes.contains(opcode))
@@ -1108,9 +1108,9 @@ public class GenerateAssembler {
      * this case, an opt operator of the form ADD__B would mean use the
      * ADD IA32 opcode with a byte operand size.  
      */
-    private static Set getMatchingOperators(String lowLevelOpcode) {
-        Iterator e = OPT_OperatorFormatTables.getOpcodes();
-        Set matchingOperators = new HashSet();
+    private static Set<String> getMatchingOperators(String lowLevelOpcode) {
+        Iterator<String> e = OPT_OperatorFormatTables.getOpcodes();
+        Set<String> matchingOperators = new HashSet<String>();
         while (e.hasNext()) {
             String o = (String) e.next();
             if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"__"))
@@ -1165,9 +1165,9 @@ public class GenerateAssembler {
         emit("\n\n");
 
         Method[] emitters = lowLevelAsm.getDeclaredMethods();
-        Set opcodes = getOpcodes(emitters);
+        Set<String> opcodes = getOpcodes(emitters);
 
-        Iterator i = opcodes.iterator();
+        Iterator<String> i = opcodes.iterator();
         while (i.hasNext()) {
             String opcode = (String) i.next();
             setCurrentOpcode( opcode );
@@ -1201,14 +1201,14 @@ public class GenerateAssembler {
         emitTab(2);    emit("resolveForwardReferences(++instructionCount);\n");
         emitTab(2);    emit("switch (inst.getOpcode()) {\n");
 
-        Set emittedOpcodes = new HashSet();
+        Set<String> emittedOpcodes = new HashSet<String>();
 
         i = opcodes.iterator();
         while (i.hasNext()) {
-            String opcode = (String) i.next();
-            Iterator operators = getMatchingOperators( opcode ).iterator();
+            String opcode = i.next();
+            Iterator<String> operators = getMatchingOperators( opcode ).iterator();
             while (operators.hasNext()) {
-                Object operator = operators.next();
+                String operator = operators.next();
                 emitTab(3); 
                 emittedOpcodes.add( operator );
                 emit("case IA32_" + operator + "_opcode:\n");
@@ -1242,7 +1242,7 @@ public class GenerateAssembler {
         emitTab(4);    emit("emitPatchPoint();\n");
         emitTab(4);    emit("break;\n");
 
-        Set errorOpcodes = getErrorOpcodes( emittedOpcodes );
+        Set<String> errorOpcodes = getErrorOpcodes( emittedOpcodes );
         if (! errorOpcodes.isEmpty()) {
             i = errorOpcodes.iterator();
             while (i.hasNext()) {

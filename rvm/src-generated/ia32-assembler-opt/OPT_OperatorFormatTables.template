@@ -21,13 +21,13 @@ class OPT_OperatorFormatTables {
     /**
      * A mapping for each opcode to its expected instruction format 
      */
-    static private final Hashtable formats = new Hashtable();
+    static private final Hashtable<String,String> formats = new Hashtable<String,String>();
 
     /**
      * The set of all low-level operators understood by the opt
      * compiler.
      */
-    static private final Set operators = new HashSet();
+    static private final Set<String> operators = new HashSet<String>();
 
     /**
      * For a given low-level opcode understood by the opt compiler,
@@ -37,7 +37,7 @@ class OPT_OperatorFormatTables {
      * @return the correponding opt compiler instruction format.
      */
     static public String getFormat(String MIRopcode) {
-	return (String) formats.get( MIRopcode );
+	return formats.get( MIRopcode );
     }
 
     /**
@@ -45,7 +45,7 @@ class OPT_OperatorFormatTables {
      * @return all low-level opt operators the pot compiler
      * understands.
      */
-    static public Iterator getOpcodes() {
+    static public Iterator<String> getOpcodes() {
 	return operators.iterator();
 	    }
 
