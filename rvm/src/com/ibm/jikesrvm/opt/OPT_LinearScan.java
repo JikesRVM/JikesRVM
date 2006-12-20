@@ -44,7 +44,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Mark FMOVs that end a live range?
    */
-  private final static boolean MUTATE_FMOV = true;
+  private final static boolean MUTATE_FMOV = VM.BuildForIA32;
 
   /**
    * Attempt to coalesce to eliminate register moves?
