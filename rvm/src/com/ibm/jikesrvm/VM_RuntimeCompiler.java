@@ -642,7 +642,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
             VM_AOSInstrumentationPlan instrumentationPlan = 
               new VM_AOSInstrumentationPlan(VM_Controller.options, method);
             OPT_CompilationPlan compPlan = 
-              new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement)optimizationPlan, 
+              new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[])optimizationPlan, 
                                       instrumentationPlan, (OPT_Options)options);
             cm = optCompileWithFallBack(method, compPlan);
           }
