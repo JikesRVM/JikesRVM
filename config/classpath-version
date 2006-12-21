@@ -6,6 +6,7 @@
 ##
 
 sum=$((	${RVM_WITH_CLASSPATH_0_92-0} + \
+	${RVM_WITH_CLASSPATH_0_93-0} + \
         ${RVM_WITH_CLASSPATH_CVS_HEAD-0} ))
 
 if (( sum == 0 )); then

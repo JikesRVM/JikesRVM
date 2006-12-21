@@ -280,6 +280,13 @@ public abstract class VM_Configuration {
     false;
    //-#endif
     
+  public final static boolean BuildForClasspath_0_93 =
+    //-#if RVM_WITH_CLASSPATH_0_93
+    true;
+    //-#else
+    false;
+   //-#endif
+    
     
   public final static boolean BuildWithBumpAllocator =
     //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
