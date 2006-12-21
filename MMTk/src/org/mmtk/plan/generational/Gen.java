@@ -174,11 +174,11 @@ import org.vmmagic.unboxed.*;
       if (!traceFullHeap()) {
       	nurseryTrace.release();
         ploSpace.release();
-        lastCommittedPLOSpages = ploSpace.committedPages();
       } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
+      lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       progress = (getPagesReserved() + required) < getTotalPages();
       return;
