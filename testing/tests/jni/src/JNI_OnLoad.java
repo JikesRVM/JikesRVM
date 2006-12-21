@@ -8,7 +8,6 @@
  * 
  * $Id$
  */
-import java.nio.*;
 
 /**
  * @author Elias Naur
