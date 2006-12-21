@@ -1,0 +1,193 @@
+/* -*-c++-*-
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp 2001,2002,2004, 2005
+ */
+//$Id: sys.C 11178 2006-12-13 18:32:12Z dgrove-oss $
+
+/**
+ * Implementation of JNI Invocation API for Jikes RVM.
+ *
+ * @author Steve Augart
+ * @author Julian Dolby
+ * @author Dave Grove
+ * @author Ian Rogers
+ */
+
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
+#include "bootImageRunner.h"    // In tools/bootImageRunner.
+#include "pthread-wrappers.h"
+
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+// Address of the single VM_Processor object.
+static VM_Address VmProcessor;
+#else
+// Thread-specific data key in which to stash the id of
+// the pthread's VM_Processor.  This allows the system call library
+// to find the VM_Processor object at runtime.
+pthread_key_t VmProcessorKey;
+pthread_key_t IsVmProcessorKey;
+#endif
+
+// Fish out an address stored in an instance field of an object.
+static void *
+getFieldAsAddress(void *objPtr, int fieldOffset)
+{
+    char *fieldAddress = ((char*) objPtr) + fieldOffset;
+    return *((void**) fieldAddress);
+}
+
+// Get the JNI environment object from the VM_Processor.
+static JNIEnv *
+getJniEnvFromVmProcessor(void *vmProcessorPtr)
+{
+    if (vmProcessorPtr == 0)
+        return 0; // oops
+
+    // Follow chain of pointers:
+    // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
+    void *vmThreadPtr =
+        getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+    void *jniEnvironment =
+        getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+    // Convert VM_JNIEnvironment to JNIEnv* expected by native code
+    // by creating the appropriate interior pointer.
+    void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
+
+    return (JNIEnv*) jniEnv;
+}
+
+
+//////////////////////////////////////////////////////////////
+// JNI Invocation API functions
+//////////////////////////////////////////////////////////////
+
+/** Destroying the Java VM only makes sense if programs can create a VM
+ * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
+ * unloading virtual machine instances.  It is supposed to block until all
+ * other user threads are gone, and then return an error code.
+ *
+ * TODO: Implement.
+ */
+static
+jint 
+DestroyJavaVM(JavaVM UNUSED * vm) 
+{
+    fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+    return JNI_ERR;
+}
+
+/* "Trying to attach a thread that is already attached is a no-op".  We
+ * implement that common case.  (In other words, it works like GetEnv()).
+ * However, we do not implement the more difficult case of actually attempting
+ * to attach a native thread that is not currently attached to the VM.
+ *
+ * TODO: Implement for actually attaching unattached threads.
+ */
+static
+jint 
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
+{
+    JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
+    jint version;
+    if (args == NULL) {
+        version = JNI_VERSION_1_1;
+    } else {
+        version = aargs->version ;
+        /* We'd like to handle aargs->name and aargs->group */
+    }
+
+    // Handled for us by GetEnv().  We do it here anyway so that we avoid
+    // printing an error message further along in this function.
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+    
+    /* If we're already attached, we're gold. */
+    register jint retval = GetEnv(vm, penv, version);
+    if (retval == JNI_OK)
+        return retval;
+    else if (retval == JNI_EDETACHED) {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+    } else {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    }
+
+    // Upon failure:
+    *penv = NULL;               // Make sure we don't yield a bogus one to use.
+    return retval;
+}
+
+/* TODO: Implement */
+static
+jint 
+DetachCurrentThread(JavaVM UNUSED *vm) 
+{
+    fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+    return JNI_ERR;
+}
+ 
+jint 
+GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
+{ 
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    // Return NULL if we are not on a VM pthread
+    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+        *penv = NULL;
+        return JNI_EDETACHED;
+    }
+#endif
+
+    // Get VM_Processor id.
+    void *vmProcessor =
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+      (void *)VmProcessor;
+#else
+      pthread_getspecific(VmProcessorKey);
+#endif
+
+    // Get the JNIEnv from the VM_Processor object
+    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
+ 
+    *penv = env;
+
+    return JNI_OK;
+}
+
+/** JNI 1.4 */
+/* TODO: Implement */
+static
+jint 
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+{
+    fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
+    return JNI_ERR;
+}
+
+const struct JNIInvokeInterface_ externalJNIFunctions = {
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  DestroyJavaVM,
+  AttachCurrentThread,
+  DetachCurrentThread,
+  GetEnv,         // JNI 1.2
+  AttachCurrentThreadAsDaemon   // JNI 1.4
+};
+
+struct JavaVM_ sysJavaVM = {
+  &externalJNIFunctions, // functions
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  NULL, // pthreadIDTable
+  NULL, // jniEnvTable
+};
+

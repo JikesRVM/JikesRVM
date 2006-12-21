@@ -22,7 +22,7 @@ import java.io.*;
 public class VM_Process extends java.lang.Process {
 
   static {
-    System.loadLibrary("jpnexec");
+    System.loadLibrary("rvmexec");
   }
 
   // VM_Processor from which the child process was created.

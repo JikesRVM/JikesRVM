@@ -31,7 +31,7 @@ public class VM_DynamicLibrary {
    * Add symbol for the boot image runner to find symbols within it.
    */
   static void boot() {
-    dynamicLibraries.put("JikesRVM", new VM_DynamicLibrary());
+    System.loadLibrary("rvmdynlib");
   }
 
   /**
@@ -43,19 +43,6 @@ public class VM_DynamicLibrary {
    * Value returned from dlopen
    */
   private final Address libHandler;
-
-  /**
-   * Create a dynamic library for the boot image runner
-   */ 
-  private VM_DynamicLibrary() {
-    libName = "JikesRVM";
-    libHandler = VM_SysCall.sysDlopen(null);
-
-    if (libHandler.isZero()) {
-      VM.sysWriteln("error loading library: JikesRVM");
-      throw new UnsatisfiedLinkError();
-    }
-  }
 
   /**
    * Load a dynamic library and maintain it in this object.

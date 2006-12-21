@@ -10,7 +10,7 @@
 #$Id$
 #
 # @author Julian Dolby
-# @modified Steven Augart March, 2004	For Self-booting
+# @author Dave Grove
 #
 
 ## This Makefile is invoked with the current working directory
@@ -18,20 +18,32 @@
 
 include			$(JAL_BUILD)/Make.rules.target
 
+default: libjvm librvmexec librvmdynlib
+
+
 SCRATCH:=$(JAL_BUILD)/RVM.scratch
 
 SRC_DIR:=$(JAL_ROOT)/rvm/src
 THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 
+
+libjvm: jvm.C
+	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include -lpthread $<
+
+
 $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/com/ibm/jikesrvm/VM_Process.java
 	$(RM) $@
-	$(HOST_JAVA_HOME)/bin/javah -o $@ -classpath $(JAL_BUILD)/RVM.classes com.ibm.jikesrvm.VM_Process
+	$(HOST_JAVA_HOME)/bin/javah -o $@ -classpath $(JAL_BUILD)/RVM.classes/jksvm.jar com.ibm.jikesrvm.VM_Process
 
-# The Jikes RVM build process always invokes this with 
-# DEST=$(JAL_BUILD)/libjpnexec.{suffix}
+librvmexec: com_ibm_jikesrvm_VM_0005fProcess.C $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h
+	$(RM) $(DEST_DIR)/$@$(SUFFIX)
+	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include $<
 
-# For testing:
-DEST ?= $(JAL_BUILD)/libjpnexec.so
-$(DEST): com_ibm_jikesrvm_VM_0005fProcess.C $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h
+
+$(SCRATCH)/com_ibm_jikesrvm_VM_0005fDynamicLibrary.h:	$(SRC_DIR)/com/ibm/jikesrvm/VM_DynamicLibrary.java
 	$(RM) $@
-	$(LDSHARED) -o $@ -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include $<
+	$(HOST_JAVA_HOME)/bin/javah -o $@ -classpath $(JAL_BUILD)/RVM.classes/jksvm.jar com.ibm.jikesrvm.VM_DynamicLibrary
+
+librvmdynlib: com_ibm_jikesrvm_VM_0005fDynamicLibrary.C $(SCRATCH)/com_ibm_jikesrvm_VM_0005fDynamicLibrary.h
+	$(RM) $(DEST_DIR)/$@$(SUFFIX)
+	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include -L$(DEST_DIR) -ljvm $<

@@ -3450,8 +3450,7 @@ EOF_RUNBOOTIMAGE_H
 	# and a couple of wrapper libraries we may need.
 	chdir ${ROOT_DIRECTORY_STR}/tools/bootImageRunner/
 EOF
-    DEST="${BUILD_DIRECTORY_STR}/libjpnexec\${shlib_suffix}"
-    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni DEST=\"$DEST\" \"$DEST\""
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni DEST_DIR=\"${BUILD_DIRECTORY_STR}\" SUFFIX=\${shlib_suffix}"
 
     ## De-quote the spaces.
     CPP_ARGS="$(echo ${C_PREPROCESSOR_DEFINITIONS})"
@@ -3629,6 +3628,7 @@ EOF
 	chdir $SCRATCH_DIRECTORY_STR
 	\$BOOTER_CXX -o $BOOTER_STR \${OBJECTS} \
 	    \$GCSPY_LIBS \${CCLIBS} \
+	    -L$BUILD_DIRECTORY_STR -ljvm \
 	    -lpthread
 	EOF
 
@@ -3638,6 +3638,7 @@ EOF
 	## Get the no-pthreads versions of the .o files.
 	mv noPthreads/*.o .
 	\$BOOTER_CXX -o $BOOTER_NO_PTHREADS_STR \${OBJECTS} \
+	    -L$BUILD_DIRECTORY_STR -ljvm \
 	    \$GCSPY_LIBS \${CCLIBS}
 	EOF
     fi
@@ -3653,12 +3654,12 @@ EOF
       ## libraries linked against the booter (see bug 1224191)
 
       ## Check we have all the executables to run this check
-      if [ -x \`which ldd\` ] && [ -x \`which tr\` ] && [ -x \`which sed\` ]; then
+      if [ -x \`which ldd\` ] && [ -x \`which tr\` ] && [ -x \`which sed\` ] && [ -x \`which grep\` ]; then
          ## Remove trailing "0x" for bc
          BOOTIMAGE_DATA_ADDRESS=\`echo ${BOOTIMAGE_DATA_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
          MAXIMUM_MAPPABLE_ADDRESS=\`echo ${MAXIMUM_MAPPABLE_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
          ## Iterate over all libraries linked against JikesRVM
-         for i in \`ldd $BOOTER_STR |tr 'a-f' 'A-F'|sed -e's/.*0x\([A-F0-9]*\)./\1/g'\`; do
+         for i in \`ldd $BOOTER_STR | grep -v 'not found' | tr 'a-f' 'A-F'|sed -e's/.*0x\([A-F0-9]*\)./\1/g'\`; do
             ## use bc to perform hex comparison
             COMPARISON=\`echo "ibase=16; \$i > \${BOOTIMAGE_DATA_ADDRESS} && \$i < \${MAXIMUM_MAPPABLE_ADDRESS}"|bc\`
             if [ \${COMPARISON} == "1" ]; then

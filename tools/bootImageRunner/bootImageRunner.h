@@ -103,8 +103,6 @@ extern void *getJTOC(void);
 extern VM_Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
-extern pthread_key_t VmProcessorKey;
-extern pthread_key_t IsVmProcessorKey;
 extern jint GetEnv(JavaVM *, void **, jint);
 
 // Defined in sys.C.; used in libvm.C

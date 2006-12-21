@@ -15,7 +15,6 @@ import com.ibm.jikesrvm.classloader.*;
 
 import com.ibm.jikesrvm.VM_Reflection;
 import com.ibm.jikesrvm.VM_Runtime;
-import com.ibm.jikesrvm.VM;
 
 
 /**
@@ -23,7 +22,7 @@ import com.ibm.jikesrvm.VM;
  */
 public final class JikesRVMSupport {
   public static Instrumentation createInstrumentation() {
-    // TODO: Fix this mess once classpath fixes its end
+    //-#if RVM_WITH_CLASSPATH_0_92
     try {
       // Horrific backdoor to workaround the private (not package)
       // constructor for InstrumentationImpl found in classpath 0.92
@@ -61,5 +60,8 @@ public final class JikesRVMSupport {
       e.printStackTrace();
       return null;
     }
-   }
+    //-#else
+    return new InstrumentationImpl();
+    //-#endif
+  }
 }
