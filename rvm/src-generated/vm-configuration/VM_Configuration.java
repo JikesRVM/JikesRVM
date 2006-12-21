@@ -268,18 +268,12 @@ public abstract class VM_Configuration {
    * the most recent release).  Sometimes we also support some back-level
    * releases of GNU classpath.
    * For each supported released version, define a static final boolean.
-   * We don't define a boolean for CVS head because we prefer to define CVS head
-   * as the ! of all other variables.  This makes it easier to find an eliminate
+   * We don't define a boolean for CVS head because we prefer to define
+   * CVS head as the ! of all other variables.
+   * This makes it easier to find an eliminate
    * old code when we move up to the next version.
    */
   
-  public final static boolean BuildForClasspath_0_92 =
-    //-#if RVM_WITH_CLASSPATH_0_92
-    true;
-    //-#else
-    false;
-   //-#endif
-    
   public final static boolean BuildForClasspath_0_93 =
     //-#if RVM_WITH_CLASSPATH_0_93
     true;

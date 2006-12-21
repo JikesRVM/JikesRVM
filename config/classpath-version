@@ -5,8 +5,7 @@
 ## can remove it.  
 ##
 
-sum=$((	${RVM_WITH_CLASSPATH_0_92-0} + \
-	${RVM_WITH_CLASSPATH_0_93-0} + \
+sum=$((	${RVM_WITH_CLASSPATH_0_93-0} + \
         ${RVM_WITH_CLASSPATH_CVS_HEAD-0} ))
 
 if (( sum == 0 )); then
@@ -14,8 +13,8 @@ if (( sum == 0 )); then
     # platform them you must set one of the variables above to override.
     # NOTE to core team: if you change the default version of classpath here, 
     #      also change it in doc/userguide.tex
-    export RVM_WITH_CLASSPATH_0_92=1
-    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.92-generics.tar.gz
+    export RVM_WITH_CLASSPATH_0_93=1
+    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.93-generics.tar.gz
 fi
 
 ## CLASSPATH_INSTALLATION

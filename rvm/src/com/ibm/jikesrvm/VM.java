@@ -277,11 +277,7 @@ import org.vmmagic.unboxed.*;
     System.loadLibrary("javaio");
     runClassInitializer("java.lang.Math");
     runClassInitializer("gnu.java.nio.VMChannel");
-    if (VM.BuildForClasspath_0_92) {
-      runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
-    } else {
-      runClassInitializer("gnu.java.nio.FileChannelImpl");
-    }
+    runClassInitializer("gnu.java.nio.FileChannelImpl");
       
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
