@@ -143,4 +143,21 @@ public class EnumOption extends Option {
   public String[] getValues() {
     return this.values;
   }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(values[value]);
+        break;
+      default:
+        super.log(format);
+    }
+  }
 }

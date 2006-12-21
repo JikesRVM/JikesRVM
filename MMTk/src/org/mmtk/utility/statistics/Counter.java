@@ -31,7 +31,12 @@ import org.vmmagic.pragma.*;
   private final String name;
   private final boolean start;
   private final boolean mergephases;
-
+  
+  /**
+   * Allow for counters whose values are too complex to be simply printed out.
+   */
+  protected boolean complex = false;
+  
   /****************************************************************************
    * 
    * Initialization
@@ -166,4 +171,6 @@ import org.vmmagic.pragma.*;
    * @return True if this counter will merge stats for GC and mutator phases.
    */
   boolean mergePhases() { return mergephases; }
+
+  boolean isComplex() { return complex; }
 }

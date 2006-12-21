@@ -136,5 +136,13 @@ import org.vmmagic.pragma.*;
   final void printSecs(long value) {
     Log.write(VM.statistics.cyclesToSecs(value));
   }
+
+  /**
+   * Get the current value of the timer in milliseconds
+   */
+  final double getTotalMillis() {
+    return VM.statistics.cyclesToMillis(totalCount);
+  }
+
 }
 

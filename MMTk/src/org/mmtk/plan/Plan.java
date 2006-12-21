@@ -517,7 +517,8 @@ import org.vmmagic.unboxed.*;
    * instrumentation, etc.  By default we stop all statistics objects
    * and print their values.
    */
-  public static void harnessEnd() {
+  @Interruptible
+  public static void harnessEnd()  {
     Stats.stopAll();
     Stats.printStats();
     insideHarness = false;

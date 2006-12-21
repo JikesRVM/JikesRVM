@@ -14,6 +14,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.PrintPhaseStats;
+import org.mmtk.utility.options.XmlStats;
 
 import org.mmtk.vm.VM;
 
@@ -61,6 +62,7 @@ import org.vmmagic.pragma.*;
   static {
     counter = new Counter[MAX_COUNTERS];
     Options.printPhaseStats = new PrintPhaseStats();
+    Options.xmlStats = new XmlStats();
   }
 
   /**
@@ -125,6 +127,11 @@ import org.vmmagic.pragma.*;
       if (counter[c].getStart())
         counter[c].start();
     }
+    if (Options.xmlStats.getValue()) {
+      Xml.begin();
+      Xml.openTag("mmtk-stats");
+      Xml.end();
+    }
   }
 
   /**
@@ -138,10 +145,19 @@ import org.vmmagic.pragma.*;
     gatheringStats = false;
   }
 
+  @Interruptible
+  public static void printStats() {
+    if (Options.xmlStats.getValue())
+      printStatsXml();
+    else
+      printStatsPlain();
+  }
+
   /**
    * Print out statistics
    */
-  public static void printStats() {
+  @Interruptible
+  public static void printStatsPlain() {
     if (Options.printPhaseStats.getValue())
       printPhases();
     printTotals();
@@ -150,6 +166,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print out statistics totals
    */
+  @Interruptible
   public static void printTotals() {
     Log.writeln("============================ MMTk Statistics Totals ============================");
     printColumnNames();
@@ -171,6 +188,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print out statistics for each mutator/gc phase
    */
+  @Interruptible
   public static void printPhases() {
     Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
     printColumnNames();
@@ -191,6 +209,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print out statistics column names
    */
+  @Interruptible
   private static void printColumnNames() {
     Log.write("GC\t");
     for (int c = 0; c < counters; c++) {
@@ -205,6 +224,134 @@ import org.vmmagic.pragma.*;
       }
     }
     Log.writeln();
+  }
+
+  /* ****************************************************************
+   * 
+   *              Statistics output in xml format
+   * 
+   */
+
+  /**
+   * Print command-line options and statistics in XML format
+   */
+  @Interruptible
+  public static void printStatsXml() {
+    Xml.begin();
+    Options.printOptionsXml();
+    if (Options.printPhaseStats.getValue())
+      printPhasesXml();
+    printTotalsXml();
+    Xml.closeAllTags(); // The global mmtk-stats tag
+    Xml.end();
+  }
+  
+  private static void openStatXml(String name) {
+    Xml.openMinorTag("stat");
+    Xml.attribute("name", name);
+  }
+
+  private static void closeStatXml() {
+    Xml.closeMinorTag();
+  }
+  
+  enum Phase {
+    MUTATOR("mu"), GC("gc"), COMBINED("all");
+    
+    private final String name;
+    private Phase(String name) { 
+      this.name = name; 
+    }
+    public String toString() { return name; }
+  }
+
+  /**
+   * Print out statistics totals in Xml format
+   */
+  @Interruptible
+  public static void printTotalsXml() {
+    Xml.openTag("mmtk-stats-totals");
+    Xml.singleValue("gc",(phase/2)+1);
+    for (int c = 0; c < counters; c++) {
+     if (!counter[c].isComplex())
+      if (counter[c].mergePhases()) {
+        printTotalXml(counter[c],Phase.COMBINED);
+      } else {
+        printTotalXml(counter[c],Phase.MUTATOR);
+        printTotalXml(counter[c],Phase.GC);
+      }
+    }
+    Xml.singleValue("total-time",Plan.totalTime.getTotalMillis(),"ms");
+    Xml.closeTag();
+  }
+
+  /**
+   * Print a single total in an xml tag
+   * 
+   * @param c The counter
+   * @param phase The phase
+   */
+  @Interruptible
+  private static void printTotalXml(Counter c, Phase phase) {
+    openStatXml(c.getName());
+    Xml.openAttribute("value");
+    if (phase == Phase.COMBINED) {
+      c.printTotal(); 
+    } else {
+      c.printTotal(phase == Phase.MUTATOR);
+      Xml.closeAttribute();
+      Xml.openAttribute("phase");
+      Log.write(phase.toString());
+    }
+    Xml.closeAttribute();
+    closeStatXml();
+  }
+
+  /**
+   * Print a single phase counter in an xml tag
+   * 
+   * @param c The counter
+   * @param p The phase number
+   * @param phase The phase (null, "mu" or "gc")
+   */
+  @Interruptible
+  private static void printPhaseStatXml(Counter c, int p, Phase phase) {
+    openStatXml(c.getName());
+    Xml.openAttribute("value");
+    if (phase == Phase.COMBINED) {
+      c.printCount(p); 
+    } else {
+      c.printCount(p);
+      Xml.closeAttribute();
+      Xml.openAttribute("phase");
+      Log.write(phase.name);
+   }
+    Xml.closeAttribute();
+    closeStatXml();
+  }
+
+  /**
+   * Print out statistics for each mutator/gc phase in Xml format
+   */
+  @Interruptible
+  public static void printPhasesXml() {
+    Xml.openTag("mmtk-stats-per-gc");
+    for (int p = 0; p <= phase; p += 2) {
+      Xml.openTag("phase",false); 
+      Xml.attribute("gc",(p/2)+1);
+      Xml.closeMinorTag();
+      for (int c = 0; c < counters; c++) {
+       if (!counter[c].isComplex())
+        if (counter[c].mergePhases()) {
+          printPhaseStatXml(counter[c],p,Phase.COMBINED);
+        } else {
+          printPhaseStatXml(counter[c],p,Phase.MUTATOR);
+          printPhaseStatXml(counter[c],p,Phase.GC);
+        }
+      }
+      Xml.closeTag();
+    }
+    Xml.closeTag();
   }
 
   /** @return The GC count (inclusive of any in-progress GC) */

@@ -9,6 +9,9 @@
  */
 package org.mmtk.utility.options;
 
+import org.mmtk.utility.Log;
+import org.mmtk.utility.heap.HeapGrowthManager;
+
 /**
  * Repository for all option instances.
  * 
@@ -55,4 +58,39 @@ public final class Options {
   public static VerboseFragmentationStats verboseFragmentationStats;
   public static Verbose verbose;
   public static VerboseTiming verboseTiming;
+  public static XmlStats xmlStats;
+  
+  /**
+   * Print the options for the current run in XML format
+   */
+  public static void printOptionsXml() {
+    Log.writeln("<options>");
+    
+    startOpt("minHeap"); 
+    Log.write(HeapGrowthManager.getInitialHeapSize());
+    units("bytes");
+    endOpt();
+    
+    startOpt("maxHeap"); 
+    Log.write(HeapGrowthManager.getMaxHeapSize()); 
+    units("bytes");
+    endOpt();
+    
+    Option opt = Option.getFirst();
+    while (opt != null) {
+      opt.log(Option.XML);
+      opt = opt.getNext();
+    }
+    Log.writeln("</options>");
+  }
+
+  private static void startOpt(String key) {
+    Log.write("<option name=\""); Log.write(key); Log.write("\" value=\"");
+  }
+  private static void units(String units) {
+    Log.write("\" units=\""); Log.write(units);
+  }
+  private static void endOpt() {
+    Log.writeln("\"/>");
+  }
 }
