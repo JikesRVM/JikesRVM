@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
