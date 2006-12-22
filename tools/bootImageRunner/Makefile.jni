@@ -16,7 +16,8 @@
 ## This Makefile is invoked with the current working directory
 ## the same as the directory this source Makefile is in, $(THIS_DIR)
 
-include			$(JAL_BUILD)/Make.rules.target
+INCLUDED_MAKEFILE?=$(JAL_BUILD)/Make.rules.target
+include			$(INCLUDED_MAKEFILE)
 
 default: libjvm librvmexec librvmdynlib
 
@@ -26,6 +27,7 @@ SCRATCH:=$(JAL_BUILD)/RVM.scratch
 SRC_DIR:=$(JAL_ROOT)/rvm/src
 THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 
+no_javah_on_target: $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h $(SCRATCH)/com_ibm_jikesrvm_VM_0005fDynamicLibrary.h 
 
 libjvm: jvm.C
 	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include -lpthread $<

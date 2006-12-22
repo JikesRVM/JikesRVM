@@ -928,6 +928,7 @@ declare -i jconfigure_do_not_override=0
 ## Just affects the build process
 declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
 declare -i CPP_EXPLICIT_UNDEFS=0
+declare -i NO_JAVAH_ON_TARGET=0
 
 ## Consequences of the target Operating System.
 ## These are overridden in the OSX config file.
@@ -3190,6 +3191,21 @@ EOF
 EOF
 }
 
+function emitNoJavahOnTarget () {
+  if (( NO_JAVAH_ON_TARGET )); then
+    echo ""
+    echo "# Build com_ibm_jikesrvm_VM_0005fProcess.h on host instead of on target"
+    echo "# in case target does not have the rigth javah"
+    echo "[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD"
+    echo ". ./environment.host"
+    
+    echo "chdir ${ROOT_DIRECTORY_STR}/tools/bootImageRunner/"
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni no_javah_on_target INCLUDED_MAKEFILE=\"${BUILD_DIRECTORY_STR}/Make.rules.host\""
+    echo ""
+  fi
+
+}
+
 function emitCheckIfIAmTheTarget () {
     echo "# Make sure that the architecture and O/S I am running on are"
     echo "# the ones I should be on in order to link native executables."
@@ -3200,18 +3216,21 @@ function emitCheckIfIAmTheTarget () {
 
     if (( RVM_FOR_AIX )); then
 	echo "if [[ \$(uname) != AIX ]]; then"
+        emitNoJavahOnTarget
 	echo '    echo "Please run me on AIX"'
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
    elif (( RVM_FOR_OSX )); then
 	echo "if [[ \$(uname) != Darwin ]]; then"
+        emitNoJavahOnTarget
 	echo '    echo "Please run me on OSX/Darwin"'
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
     elif (( RVM_FOR_LINUX )); then
 	echo "if [[ \$(uname) != Linux ]]; then"
+        emitNoJavahOnTarget
 	echo '    echo "Please run me on Linux"'
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
@@ -3219,18 +3238,21 @@ function emitCheckIfIAmTheTarget () {
 
         if (( RVM_FOR_POWERPC && RVM_FOR_64_ADDR )); then
             echo "if [[ \$(uname -m) != ppc64 ]]; then"
+            emitNoJavahOnTarget
             echo '    echo "Please run me on 64-bit Linux PowerPC"'
             echo '    trap "" EXIT'
             echo "    exit $Exit_Status_Run_Linker"
             echo 'fi'
 	elif (( RVM_FOR_POWERPC )); then
 	    echo "if [[ (\$(uname -m) != ppc) && (\$(uname -m) != ppc64)]]; then"
+            emitNoJavahOnTarget
 	    echo '    echo "Please run me on Linux PowerPC"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
 	    echo 'fi'
 	elif (( RVM_FOR_IA32 )); then
 	    echo "if [[ \$(uname -m) != i686 && \$(uname -m) != x86_64 ]]; then"
+            emitNoJavahOnTarget
 	    echo '    echo "Please run me on Linux IA32"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
