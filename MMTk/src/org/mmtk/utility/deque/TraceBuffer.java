@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
    */
   private static final Word TRACE_NEW_RECORD = Word.fromIntSignExtend(3);
   private static final Word TRACE_ALLOC_SIZE = Word.fromIntSignExtend(5);
-  private static final Word TRACE_ALLOC_NAME = Word.fromIntSignExtend(6);
+//  private static final Word TRACE_ALLOC_NAME = Word.fromIntSignExtend(6);
   private static final Word TRACE_ALLOC_FP = Word.fromIntSignExtend(7);
   private static final Word TRACE_ALLOC_THREAD = Word.fromIntSignExtend(9);
   private static final Word TRACE_TIB_VALUE = Word.fromIntSignExtend(10);
@@ -58,12 +58,6 @@ import org.vmmagic.unboxed.*;
   public static final boolean OMIT_OUTPUT=OMIT_ALLOCS && OMIT_UPDATES && 
                                           OMIT_OTHERS;
 
-
-  /***********************************************************************
-   * 
-   * Instance fields
-   */
-  private SortSharedDeque tracePool;
 
   /***********************************************************************
    * 

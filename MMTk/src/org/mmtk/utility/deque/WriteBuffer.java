@@ -50,5 +50,4 @@ import org.vmmagic.pragma.*;
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
-  private static boolean inWB = false;
 }

@@ -53,6 +53,7 @@ import org.vmmagic.pragma.*;
    * in the buffer visible to any other consumer associated with the
    * shared deque).
    */
+  @Override
   public final void flushLocal() {
     super.flushLocal();
     if (head.NE(Deque.HEAD_INITIAL_VALUE)) {
@@ -139,8 +140,9 @@ import org.vmmagic.pragma.*;
    * @param arity The arity of this buffer  
    * @return True if the consumer has eaten all of the entries
    */
+  @SuppressWarnings("unused")
   private final boolean tailStarved(int arity) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

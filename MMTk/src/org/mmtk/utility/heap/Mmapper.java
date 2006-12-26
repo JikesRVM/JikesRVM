@@ -237,6 +237,7 @@ import org.vmmagic.pragma.*;
    * @param addr The address to be aligned
    * @return The given address rounded up to an mmap chunk size
    */
+  @SuppressWarnings("unused")  // but might be useful someday
   private static Address chunkAlignUp(Address addr) {
     return chunkAlignDown(addr.plus(MMAP_CHUNK_MASK));
   }

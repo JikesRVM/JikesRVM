@@ -19,16 +19,13 @@ import org.vmmagic.pragma.*;
  * This class specializes SortSharedQueue to sort objects according to
  * their time of death (TOD).
  * 
+ * $Id$
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 @Uninterruptible final public class SortTODSharedDeque extends SortSharedDeque {
-  public final static String Id = "$Id$"; 
-
-  private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
-  private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final Offset INSERTION_SORT_LIMIT = Offset.fromIntSignExtend(80);
 
   /**
    * Constructor
