@@ -35,6 +35,25 @@ import com.ibm.jikesrvm.classloader.VM_Type;
 
 
 public final class VMStackWalker {
+
+  /**                                                          n-
+   * Walk up the stack and return the first non-null class loader.
+   * If there aren't any non-null class loaders on the stack, return null.
+   *
+   * @return the first non-null classloader on stack or null.ge 
+   */
+  public static ClassLoader firstNonNullClassLoader()
+  {
+    Class[] stack = getClassContext();
+    for (int i = 0; i < stack.length; i++)
+      {
+        ClassLoader loader = stack[i].getClassLoader();
+        if (loader != null)
+          return loader;
+      }
+    return null;
+  }
+
   /**
    * Classpath's Javadoc for this method says:
    * <blockquote>
