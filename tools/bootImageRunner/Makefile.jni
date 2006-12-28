@@ -30,7 +30,7 @@ THIS_DIR:=$(SRC_DIR)/tools/bootImageRunner
 no_javah_on_target: $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h $(SCRATCH)/com_ibm_jikesrvm_VM_0005fDynamicLibrary.h 
 
 libjvm: jvm.C
-	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include -lpthread $<
+	$(LDSHARED) -o $(DEST_DIR)/$@$(SUFFIX) $(CXXFLAGS) -I$(SCRATCH) -I$(THIS_DIR) -I$(JAL_ROOT)/include -lpthread $<
 
 
 $(SCRATCH)/com_ibm_jikesrvm_VM_0005fProcess.h:	$(SRC_DIR)/com/ibm/jikesrvm/VM_Process.java

@@ -19,13 +19,14 @@
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
+#include <stdlib.h>
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "pthread-wrappers.h"
 
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 // Address of the single VM_Processor object.
-static VM_Address VmProcessor;
+VM_Address VmProcessor;
 #else
 // Thread-specific data key in which to stash the id of
 // the pthread's VM_Processor.  This allows the system call library

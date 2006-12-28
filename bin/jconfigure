@@ -3200,7 +3200,12 @@ function emitNoJavahOnTarget () {
     echo ". ./environment.host"
     
     echo "chdir ${ROOT_DIRECTORY_STR}/tools/bootImageRunner/"
-    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni no_javah_on_target INCLUDED_MAKEFILE=\"${BUILD_DIRECTORY_STR}/Make.rules.host\""
+    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
+	echo "SVPFLAGS=\"CXXFLAGS='-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1'\""
+    else
+	echo "SVPFLAGS=\"\""
+    fi
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' \$SVPFLAGS -f Makefile.jni no_javah_on_target INCLUDED_MAKEFILE=\"${BUILD_DIRECTORY_STR}/Make.rules.host\""
     echo ""
   fi
 
@@ -3472,7 +3477,12 @@ EOF_RUNBOOTIMAGE_H
 	# and a couple of wrapper libraries we may need.
 	chdir ${ROOT_DIRECTORY_STR}/tools/bootImageRunner/
 EOF
-    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni DEST_DIR=\"${BUILD_DIRECTORY_STR}\" SUFFIX=\${shlib_suffix}"
+    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
+        echo "SVPFLAGS=\"CXXFLAGS='-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1'\""
+    else
+        echo "SVPFLAGS=\"\""
+    fi
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' \$SVPFLAGS -f Makefile.jni DEST_DIR=\"${BUILD_DIRECTORY_STR}\" SUFFIX=\${shlib_suffix}"
 
     ## De-quote the spaces.
     CPP_ARGS="$(echo ${C_PREPROCESSOR_DEFINITIONS})"
