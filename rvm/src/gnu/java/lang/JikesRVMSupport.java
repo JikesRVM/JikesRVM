@@ -11,12 +11,6 @@ package gnu.java.lang;
 
 import java.lang.instrument.Instrumentation;
 
-import com.ibm.jikesrvm.classloader.*;
-
-import com.ibm.jikesrvm.VM_Reflection;
-import com.ibm.jikesrvm.VM_Runtime;
-
-
 /**
  * @author Elias Naur
  */

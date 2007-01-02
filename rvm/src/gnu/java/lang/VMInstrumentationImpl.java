@@ -32,16 +32,16 @@ final class VMInstrumentationImpl {
     throw new UnsupportedOperationException();
   }
 
-  static Class[] getAllLoadedClasses() {
+  static Class<?>[] getAllLoadedClasses() {
     return java.lang.JikesRVMSupport.getAllLoadedClasses();
   }
 
-  static Class[] getInitiatedClasses(ClassLoader loader) {
+  static Class<?>[] getInitiatedClasses(ClassLoader loader) {
     return java.lang.JikesRVMSupport.getInitiatedClasses(loader);
   }
 
   static long getObjectSize(Object objectToSize) {
-    Class cl = objectToSize.getClass();
+    Class<?> cl = objectToSize.getClass();
     VM_Type vmType = java.lang.JikesRVMSupport.getTypeForClass(cl);
     if (cl.isArray()) {
       VM_Array vmArray = (VM_Array)vmType;
