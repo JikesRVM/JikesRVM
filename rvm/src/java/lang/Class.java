@@ -632,7 +632,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
 
     // Allocate an uninitialized instance;
-    T obj = VM_Runtime.resolvedNewScalar(cls);
+    @SuppressWarnings("unchecked") // yes, we're giving an anonymous object a type.
+    T obj = (T)VM_Runtime.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
     VM_Reflection.invoke(defaultConstructor, obj, null);

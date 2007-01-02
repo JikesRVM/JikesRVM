@@ -16,12 +16,10 @@ import com.ibm.jikesrvm.VM_BootRecord;
 import com.ibm.jikesrvm.VM_CodeArray;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_HeapLayoutConstants;
-import com.ibm.jikesrvm.VM_DynamicLibrary;
 import com.ibm.jikesrvm.VM_JavaHeader;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Memory;
 import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.classloader.VM_Type;
 import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.classloader.VM_Class;
@@ -515,13 +513,13 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  public static <T> T allocateScalar(int size, Object [] tib, int allocator,
+  public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset, int site) { 
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
 				       align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    T result = (T)VM_ObjectModel.initializeScalar(region, tib, size);
+    Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), 
                    ObjectReference.fromObject(tib), size, allocator);
     return result;
