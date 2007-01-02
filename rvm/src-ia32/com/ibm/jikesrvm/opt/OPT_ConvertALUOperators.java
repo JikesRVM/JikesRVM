@@ -12,6 +12,8 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * <ul>
  * <li> Convert instructions with 3-operand binary ALU operators to use 
@@ -366,20 +368,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
     // Sigh need some move instructions after all.
     if (result.similar(op2)) {
-      OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
-      OPT_Instruction move = 
-        Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
-      s.insertBefore(move);
-      OPT_DefUse.updateDUForNewInstruction(move);
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(tmp);
-      if (op1.isRegister()) {
-        OPT_DefUse.removeUse(op1.asRegister());
-      }
-      BinaryAcc.mutate(s, opCode, tmp, op2);
-      move = Move.create(getMoveOp(tmp.type), result.copyRO(), tmp.copyRO());
-      s.insertAfter(move);
-      OPT_DefUse.updateDUForNewInstruction(move);
+      similarNonCommutative(s, opCode, ir, result, op1, op2);
     } else {
       OPT_Instruction move =   
         Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
@@ -392,6 +381,24 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       }
       BinaryAcc.mutate(s, opCode, result, op2);
     }
+  }
+
+  @NoOptCompile // this code is pulled out and baseline compiled to work around a bug (see bug track 1626523)
+  private void similarNonCommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir, OPT_RegisterOperand result, OPT_Operand op1, OPT_Operand op2) {
+    OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
+    OPT_Instruction move = 
+      Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
+    s.insertBefore(move);
+    OPT_DefUse.updateDUForNewInstruction(move);
+    OPT_DefUse.removeDef(result);
+    OPT_DefUse.recordDefUse(tmp);
+    if (op1.isRegister()) {
+      OPT_DefUse.removeUse(op1.asRegister());
+    }
+    BinaryAcc.mutate(s, opCode, tmp, op2);
+    move = Move.create(getMoveOp(tmp.type), result.copyRO(), tmp.copyRO());
+    s.insertAfter(move);
+    OPT_DefUse.updateDUForNewInstruction(move);
   }
 
   private void unary(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir) {
