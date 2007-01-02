@@ -12,6 +12,10 @@ package com.ibm.jikesrvm;
 import org.vmmagic.unboxed.Offset;
 import com.ibm.jikesrvm.osr.*;
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 
 /**
  * Baseline compiler - platform independent code.
@@ -210,7 +214,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     }
 
     VM_MachineCode  machineCode  = genCode();
-    VM_CodeArray    instructions = machineCode.getInstructions();
+    VM_CodeArray    instructions = (VM_CodeArray) machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();

@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
 import org.vmmagic.pragma.*;

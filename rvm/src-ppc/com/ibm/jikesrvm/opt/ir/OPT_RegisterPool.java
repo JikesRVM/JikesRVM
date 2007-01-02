@@ -25,7 +25,7 @@ import com.ibm.jikesrvm.classloader.*;
  * @modified Vivek Sarkar
  * @author Peter Sweeney
  */
-public class OPT_RegisterPool extends OPT_GenericRegisterPool {
+public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.

@@ -21,13 +21,13 @@ import  java.util.ArrayList;
  * @author Dave Grove
  * @author Michael Hind 
  */
-class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
+public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
 
 
   /**
    * Initialize the "master plan" for the PowerPC backend of the opt compiler.
    */
-  static void intializeMasterPlan(ArrayList temp) {
+  public static void intializeMasterPlan(ArrayList temp) {
     LIR2MIR(temp);
     MIROptimizations(temp);
     MIR2MC(temp);

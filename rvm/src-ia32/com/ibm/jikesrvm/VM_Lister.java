@@ -9,6 +9,7 @@
 // $Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.vmmagic.unboxed.Offset;
 
 /** 

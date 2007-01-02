@@ -9,6 +9,8 @@
 // $Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+
 /** 
  *  
  *  A forward reference has a machine-code-index source and optionally

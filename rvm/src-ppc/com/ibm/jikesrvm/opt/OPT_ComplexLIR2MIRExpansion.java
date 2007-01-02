@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -27,7 +28,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @modified Martin Trapp
  * @modified Stephen Fink
  */
-abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
+public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   /**
    * Converts the given IR to low level PowerPC IR.

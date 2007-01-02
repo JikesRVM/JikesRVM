@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -24,7 +25,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  */
 public abstract class OPT_BURS {
 
-  protected static final boolean DEBUG = false;
+  public static final boolean DEBUG = false;
 
   protected  final OPT_BURS_TreeNode NullTreeNode = 
     new OPT_BURS_TreeNode(NULL_opcode);
@@ -47,7 +48,7 @@ public abstract class OPT_BURS {
     BranchTarget.setNumRegisters(0);
   }
 
-  protected OPT_IR ir;
+  public OPT_IR ir;
   protected OPT_Instruction lastInstr;
 
   /**

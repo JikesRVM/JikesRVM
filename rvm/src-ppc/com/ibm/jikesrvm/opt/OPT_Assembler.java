@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 import com.ibm.jikesrvm.opt.ir.*;
 
@@ -20,7 +22,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Igor Pechtchanski
  * @author Mauricio Serrano
  */
-public final class OPT_Assembler implements OPT_Operators, VM_Constants {
+public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;
@@ -31,11 +33,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
   private static final int LI_MASK = 0x3FFFFFC;         // for 24-bit integer (shifted by 2)
   private static final int BD_MASK = 0xFFFC;            // for 14-bit integer (shifted by 2)
-  static final int MAX_24_BITS = 0x7FFFFF;              // for 24-bit signed positive integer
+  public static final int MAX_24_BITS = 0x7FFFFF;              // for 24-bit signed positive integer
   private static final int MIN_24_BITS = -0x800000;     // for 24-bit signed positive integer
   private static final int MAX_14_BITS = 0x1FFF;        // for 14-bit signed positive integer
   private static final int MIN_14_BITS = -0x2000;       // for 14-bit signed positive integer
-  static final int MAX_COND_DISPL = MAX_14_BITS;        // max conditional displacement
+  public static final int MAX_COND_DISPL = MAX_14_BITS;        // max conditional displacement
   private static final int MIN_COND_DISPL = MIN_14_BITS;// min conditional displacement
   private static final int MAX_DISPL = MAX_24_BITS;     // max unconditional displacement
   private static final int MIN_DISPL = MIN_24_BITS;     // min unconditional displacement
@@ -59,11 +61,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
-    ir.MIRInfo.machinecode = VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
-    return new OPT_Assembler().genCode(ir, shouldPrint);
+    ir.MIRInfo.machinecode = ArchitectureSpecific.VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
+    return new ArchitectureSpecific.OPT_Assembler().genCode(ir, shouldPrint);
   }
 
-  private final int genCode(OPT_IR ir, boolean shouldPrint) {
+  protected final int genCode(OPT_IR ir, boolean shouldPrint) {
     int mi = 0;
     VM_CodeArray machinecodes = ir.MIRInfo.machinecode;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -1290,7 +1292,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param rel32       the new immediate to use in the branch instruction
    * 
    */
-  final static void patchCode(VM_CodeArray code,
+  public final static void patchCode(VM_CodeArray code,
                               int patchOffset,
                               int rel32) {
 

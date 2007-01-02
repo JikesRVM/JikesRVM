@@ -10,6 +10,9 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.Iterator;
+
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -20,18 +23,18 @@ import java.util.Enumeration;
  * 
  * @author Stephen Fink
  */
-final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions implements OPT_Operators, OPT_PhysicalRegisterConstants {
+public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
    * Allow scratch registers in PEIs?
    */
-  final static boolean SCRATCH_IN_PEI = true;
+  public final static boolean SCRATCH_IN_PEI = true;
 
   /**
    * Default Constructor
    */
-  OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
-    super(phys);
+  protected OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
+    super((OPT_PhysicalRegisterSet) phys);
   }
 
   /**
@@ -178,7 +181,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
    * Given symbolic register r that appears in instruction s, does the
    * architecture demand that r be assigned to a physical register in s?
    */
-  static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
+  public static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
     switch (s.getOpcode()) {
       case IA32_SHRD_opcode: case IA32_SHLD_opcode:
         {
@@ -276,7 +279,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
-  boolean isForbidden(OPT_Register symb, OPT_Register r,
+  public boolean isForbidden(OPT_Register symb, OPT_Register r,
                              OPT_Instruction s) {
 
     // Look at 8-bit restrictions.

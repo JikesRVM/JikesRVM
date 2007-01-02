@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import com.ibm.jikesrvm.classloader.*;
 
 /**

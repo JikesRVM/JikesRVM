@@ -12,9 +12,9 @@ package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_CompiledMethod;
-import com.ibm.jikesrvm.VM_BaselineGCMapIterator;
-import com.ibm.jikesrvm.opt.VM_OptGCMapIterator;
-import com.ibm.jikesrvm.jni.VM_JNIGCMapIterator;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNIGCMapIterator;
 import com.ibm.jikesrvm.VM_HardwareTrapGCMapIterator;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.VM;

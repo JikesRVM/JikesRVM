@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -19,7 +20,7 @@ import org.vmmagic.unboxed.*;
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-@Uninterruptible class VM_DynamicLinkerHelper implements VM_Constants {
+@Uninterruptible abstract class VM_DynamicLinkerHelper implements VM_Constants {
 
   /**
    * Reach up two stack frames into a frame that is compiled

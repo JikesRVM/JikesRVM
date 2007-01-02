@@ -78,7 +78,7 @@ import org.vmmagic.pragma.*;
  * </pre>
  * @author Dave Grove
  */
-final class OPT_ConvertALUOperators extends OPT_CompilerPhase 
+public class OPT_ConvertALUOperators extends OPT_CompilerPhase 
   implements OPT_Operators {
 
   private static final boolean OPTIMIZE = true;

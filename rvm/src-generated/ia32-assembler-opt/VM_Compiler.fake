@@ -11,5 +11,5 @@ package com.ibm.jikesrvm;
 /**
  * @author Dave Grove
  */
-class VM_Compiler {
+public class VM_Compiler {
 }

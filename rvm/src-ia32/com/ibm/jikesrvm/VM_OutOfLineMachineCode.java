@@ -9,7 +9,11 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.jni.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 
 import org.vmmagic.unboxed.Offset;
 
@@ -36,7 +40,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Maria Butrico
  */
-class VM_OutOfLineMachineCode implements VM_BaselineConstants {
+abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //-----------//
   // interface //
   //-----------//

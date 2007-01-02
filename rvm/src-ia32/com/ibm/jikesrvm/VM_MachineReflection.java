@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Maria Butrico
  */
-public class VM_MachineReflection implements VM_Constants {
+public abstract class VM_MachineReflection implements VM_Constants {
 
   /** 
    * Determine number/type of registers and parameters required to

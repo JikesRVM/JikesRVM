@@ -9,6 +9,8 @@
 // $Id$
 package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC
  *

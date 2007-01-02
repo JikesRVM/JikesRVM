@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
+
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**
@@ -23,12 +25,12 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author John Whaley
  * @author Stephen Fink
  */
-abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
+public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
 
   /**
    * Return the governing IR.
    */
-  abstract OPT_IR getIR();
+  public abstract OPT_IR getIR();
 
 
   /**
@@ -41,7 +43,7 @@ abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * @param regnum the given GPR register number
    * @return integer register operand
    */
-  final OPT_RegisterOperand A(int regnum) {
+  protected final OPT_RegisterOperand A(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return A(phys.getGPR(regnum));
   }
@@ -57,7 +59,7 @@ abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * @param regnum the given GPR register number
    * @return integer register operand
    */
-  final OPT_RegisterOperand R(int regnum) {
+  protected final OPT_RegisterOperand R(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return I(phys.getGPR(regnum));
   }

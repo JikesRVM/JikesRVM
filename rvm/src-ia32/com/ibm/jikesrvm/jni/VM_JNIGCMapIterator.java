@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 
 import org.vmmagic.pragma.*;
@@ -26,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-@Uninterruptible public final class VM_JNIGCMapIterator extends VM_GCMapIterator
+@Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
     implements VM_BaselineConstants {
 
   // Java to Native C transition frame...(see VM_JNICompiler)

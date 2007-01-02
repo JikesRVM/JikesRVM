@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.opt.*;
 import java.util.Enumeration;
 

@@ -10,6 +10,9 @@
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import java.util.Enumeration;
@@ -30,7 +33,7 @@ import static com.ibm.jikesrvm.VM_StackframeLayoutConstants.*;
  * @author Mauricio J. Serrano
  * @author Julian Dolby
  */
-public final class OPT_StackManager extends OPT_GenericStackManager {
+public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
    * A frame offset for 108 bytes of stack space to store the 

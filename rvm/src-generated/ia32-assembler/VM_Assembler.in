@@ -11,6 +11,11 @@
 
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -172,7 +177,7 @@ import org.vmmagic.unboxed.*;
  * @author Julian Dolby
  * @author Bowen Alpern 
 */
-public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
+public abstract class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	
   /**
    * The lister object is used to print generated machine code.
@@ -197,7 +202,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @param bytecodeSize initial machine code buffer size.
    */
-  public VM_Assembler (int bytecodeSize) {
+  protected VM_Assembler (int bytecodeSize) {
     this(bytecodeSize, false);
   }
 
@@ -210,9 +215,9 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param bytecodeSize initial machine code buffer size.
    * @param shouldPrint whether to dump generated machine code.
    */
-  public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
+  protected VM_Assembler (int bytecodeSize, boolean shouldPrint) {
     machineCodes = new byte[bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
-    lister = shouldPrint ? new VM_Lister(this) : null;
+    lister = shouldPrint ? new VM_Lister((ArchitectureSpecific.VM_Assembler) this) : null;
   }
 
   /**
@@ -226,7 +231,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param comp VM_Compiler instance that this assembler is associated with;
    *	             currently ignored on IA32.
    */
-  public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler comp) {
+  protected VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler comp) {
     this(bytecodeSize, shouldPrint);
   }
 
@@ -285,8 +290,8 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   /**
    * Create a VM_MachineCode object
    */
-  final VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
-    return new VM_MachineCode(getMachineCodes(), bytecodeMap);
+  public final VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
+    return new VM_MachineCode((VM_CodeArray) getMachineCodes(), bytecodeMap);
   }
 
   /**
@@ -301,7 +306,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    */
   public final VM_CodeArray getMachineCodes () {
     int len = getMachineCodeIndex();
-    VM_CodeArray trimmed = VM_CodeArray.Factory.create(len, isHotCode());
+    VM_CodeArray trimmed = (ArchitectureSpecific.VM_CodeArray) ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
     for (int i=0; i<len; i++) {
       trimmed.set(i, machineCodes[i]);
     }
@@ -319,43 +324,43 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *         current method's bytecode array.
    * @param bc a message descriptive of the current bytecode.
    */
-  final void noteBytecode (int bytecodeNumber, String bc) {
+  public final void noteBytecode (int bytecodeNumber, String bc) {
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
 
   @NoInline
-  final void noteBytecode (int i, String bcode, int x) { 
+  public final void noteBytecode (int i, String bcode, int x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
   @NoInline
-  final void noteBytecode (int i, String bcode, long x) { 
+  public final void noteBytecode (int i, String bcode, long x) { 
     noteBytecode(i, bcode+" "+x);
   }
 
   @NoInline
-  final void noteBytecode (int i, String bcode, Object o) { 
+  public final void noteBytecode (int i, String bcode, Object o) { 
     noteBytecode(i, bcode+" "+o);
   }
 
   @NoInline
-  final void noteBytecode (int i, String bcode, int x, int y) { 
+  public final void noteBytecode (int i, String bcode, int x, int y) { 
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
   @NoInline
-  final void noteBranchBytecode (int i, String bcode, int off,
+  public final void noteBranchBytecode (int i, String bcode, int off,
                            int bt) { 
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
   @NoInline
-  final void noteTableswitchBytecode (int i, int l, int h, int d) { 
+  public final void noteTableswitchBytecode (int i, int l, int h, int d) { 
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
   @NoInline
-  final void noteLookupswitchBytecode (int i, int n, int d) { 
+  public final void noteLookupswitchBytecode (int i, int n, int d) { 
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   
@@ -767,7 +772,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     emitNOP();
     emitNOP();
     emitNOP();
-    r.resolve(this);
+    r.resolve((ArchitectureSpecific.VM_Assembler) this);
   }
 
   /**
@@ -910,7 +915,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    */
   public final void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; // premature optimization
-    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
+    forwardRefs = VM_ForwardReference.resolveMatching((ArchitectureSpecific.VM_Assembler) this, forwardRefs, label);
   }
 
   // OSR SUPPORT //
@@ -922,7 +927,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     targetBCpc = target;
   }
 
-  final void patchLoadRetAddrConst(int bIP) {
+  public final void patchLoadRetAddrConst(int bIP) {
     if (bIP != targetBCpc) return;
     emitImm32(mi, toBePatchedMCAddr);
   }
@@ -984,7 +989,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param sourceIndex the machine code offset of the unconditional
    *                    branch to patch.
    */
-  final void patchShortBranch (int sourceIndex) {
+  public final void patchShortBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
     if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8));

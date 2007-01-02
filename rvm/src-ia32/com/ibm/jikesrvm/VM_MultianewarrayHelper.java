@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.*;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-public class VM_MultianewarrayHelper {
+public abstract class VM_MultianewarrayHelper {
 
   /**
    * Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",

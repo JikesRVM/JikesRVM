@@ -8,6 +8,10 @@
  */
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

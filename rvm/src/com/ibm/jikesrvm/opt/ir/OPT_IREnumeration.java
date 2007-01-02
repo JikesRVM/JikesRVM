@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import com.ibm.jikesrvm.ArchitectureSpecific;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import org.vmmagic.pragma.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
@@ -304,7 +306,7 @@ public abstract class OPT_IREnumeration {
     /**
      * Implicit definitions from the operator
      */
-    private OPT_PhysicalDefUse.PDUEnumeration implicitDefs;
+    private ArchitectureSpecific.OPT_PhysicalDefUse.PDUEnumeration implicitDefs;
     /**
      * Defining instruction
      */
@@ -320,7 +322,7 @@ public abstract class OPT_IREnumeration {
       this.instr = instr;
       instructionOperands = instr.getDefs();
       if(instr.operator().getNumberOfImplicitDefs() > 0) {
-        implicitDefs = OPT_PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
+        implicitDefs = ArchitectureSpecific.OPT_PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
       }
       if (ir.inSSAForm()) {
         if (instr.operator != PHI) {

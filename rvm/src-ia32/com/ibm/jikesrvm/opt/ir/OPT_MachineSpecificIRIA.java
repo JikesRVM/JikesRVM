@@ -9,6 +9,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import java.util.Enumeration;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 import org.vmmagic.pragma.Inline;
 

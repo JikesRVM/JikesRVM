@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 15 Jul 1998 
  */
-public class VM_MachineReflection implements VM_Constants {
+public abstract class VM_MachineReflection implements VM_Constants {
 
   /** 
    * Determine number/type of registers/spills required to call specified method.

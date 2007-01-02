@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.osr.*;
 
 /**

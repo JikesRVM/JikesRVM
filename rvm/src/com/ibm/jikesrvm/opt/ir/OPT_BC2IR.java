@@ -16,6 +16,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import com.ibm.jikesrvm.osr.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import com.ibm.jikesrvm.adaptive.*;
 import java.util.ArrayList;
 

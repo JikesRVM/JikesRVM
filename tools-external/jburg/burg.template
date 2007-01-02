@@ -8,6 +8,10 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.opt.OPT_BURS;
+import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
+
 import org.vmmagic.unboxed.*;
 
 /**
@@ -25,15 +29,15 @@ import org.vmmagic.unboxed.*;
  *
  * NOTE: Program generated file, do not edit!
  */
-public final class OPT_BURS_STATE extends OPT_BURS_Helpers 
+public class OPT_BURS_STATE extends OPT_BURS_Helpers 
    implements OPT_Operators, OPT_BURS_Definitions {
 
-   static final byte NOFLAGS           = 0x00;
-   static final byte EMIT_INSTRUCTION  = 0x01;
-   static final byte LEFT_CHILD_FIRST  = 0x02;
-   static final byte RIGHT_CHILD_FIRST = 0x04;
+          static final byte NOFLAGS           = 0x00;
+          static final byte EMIT_INSTRUCTION  = 0x01;
+   public static final byte LEFT_CHILD_FIRST  = 0x02;
+   public static final byte RIGHT_CHILD_FIRST = 0x04;
 
-   OPT_BURS_STATE(OPT_BURS b) {
+   public OPT_BURS_STATE(OPT_BURS b) {
       super(b);
    }
 

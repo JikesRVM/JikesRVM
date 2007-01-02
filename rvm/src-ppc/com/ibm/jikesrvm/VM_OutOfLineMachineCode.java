@@ -9,6 +9,10 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -32,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Derek Lieber
  */
-class VM_OutOfLineMachineCode implements VM_BaselineConstants,
+abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
                                          com.ibm.jikesrvm.jni.VM_JNIStackframeLayoutConstants,
                                          VM_AssemblerConstants {
   static void init() {
@@ -156,7 +160,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitADDI  (S0, -BYTES_IN_ADDRESS, T1);   // predecrement gpr index (to prepare for update instruction)
     asm.emitBCLR  ();                            // branch to gpr loading instructions
      
-    return asm.makeMachineCode().getInstructions();
+    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
   }
 
   // Machine code to implement "VM_Magic.saveThreadState()".
@@ -198,7 +202,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitBCLR();
      
-    return asm.makeMachineCode().getInstructions();
+    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
   }
       
   /**
@@ -266,7 +270,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitMTLR(T0);
     asm.emitBCLR();
 
-    return asm.makeMachineCode().getInstructions();
+    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
   }
   
       
@@ -328,7 +332,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitBCCTR();
 
-    return asm.makeMachineCode().getInstructions();
+    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
   }
 
   /**
@@ -449,6 +453,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitMTLR  (S0);
     asm.emitBCLR   ();
 
-    return asm.makeMachineCode().getInstructions();
+    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
   }
 }

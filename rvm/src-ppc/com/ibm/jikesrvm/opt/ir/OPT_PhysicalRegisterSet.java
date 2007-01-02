@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.opt.*;
 
 import java.util.Enumeration;
@@ -46,7 +48,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  * @author Mauricio J. Serrano
  */
-public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
+public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
   implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
 
   /**
@@ -102,7 +104,7 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
   /**
    * Constructor: set up a pool of physical registers.
    */
-  OPT_PhysicalRegisterSet() {
+  public OPT_PhysicalRegisterSet() {
     
     // 1. Create all the physical registers in the pool.
     for (int i = 0; i < reg.length ; i++) {

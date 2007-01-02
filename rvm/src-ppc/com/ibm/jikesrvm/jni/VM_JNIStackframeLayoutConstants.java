@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 
 /**
  * Define the stackframes used for JNI transition frames.

@@ -11,6 +11,8 @@ package com.ibm.jikesrvm.jni;
 
 import java.lang.reflect.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 

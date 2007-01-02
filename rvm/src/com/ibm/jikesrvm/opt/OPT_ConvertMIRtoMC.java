@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_FinalMIRExpansion;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**

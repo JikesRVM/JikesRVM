@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import java.util.Enumeration;
 
 /**
@@ -22,7 +23,7 @@ import java.util.Enumeration;
  * @author John Whaley
  * @author Stephen Fink
  */
-abstract class OPT_PhysicalRegisterTools extends
+public abstract class OPT_PhysicalRegisterTools extends
 OPT_GenericPhysicalRegisterTools {
 
   /**
@@ -35,7 +36,7 @@ OPT_GenericPhysicalRegisterTools {
    * @param regnum the given condition register number
    * @return condition register operand
    */
-  final OPT_RegisterOperand CR(int regnum) {
+  protected final OPT_RegisterOperand CR(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return CR(phys.getConditionRegister(regnum));
   }

@@ -9,6 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.classloader.*;
 
 /**
@@ -18,7 +21,7 @@ import com.ibm.jikesrvm.classloader.*;
  * @author Bowen Alpern
  * @author Dave Grove
  */
-public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
+public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
                                                            VM_AssemblerConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.

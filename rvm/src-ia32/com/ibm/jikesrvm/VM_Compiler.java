@@ -9,10 +9,13 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.jni.VM_JNICompiler;
 
 import org.vmmagic.unboxed.*;
 
@@ -26,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * @author Perry Cheng
  * @author Ian Rogers
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
+public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -2542,7 +2545,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
                                               indexReg);
 
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );       // trap
-    fr.resolve(asm);
+    fr.resolve((VM_Assembler) asm);
   }
 
   /**

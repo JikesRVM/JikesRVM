@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.jni;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.*;
 
@@ -31,7 +32,7 @@ import org.vmmagic.pragma.*;
  *
  * @author Steve Smith
  */
-@Uninterruptible public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
+@Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
              VM_JNIStackframeLayoutConstants {
 

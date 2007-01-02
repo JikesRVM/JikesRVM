@@ -104,7 +104,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference ObjectReferenceArray = findOrCreate("Lorg/vmmagic/unboxed/ObjectReferenceArray;");
   public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
-  public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/jikesrvm/VM_CodeArray;");
+  public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/jikesrvm/VM_Magic;");
   public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/jikesrvm/VM_SysCallMagic;");
 

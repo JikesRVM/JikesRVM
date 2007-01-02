@@ -9,6 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -20,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 18 Sep 1998 
  */
-class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer 
+abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer 
   implements VM_BaselineConstants {
 
   /**
@@ -52,7 +55,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     if (VM.VerifyAssertions) VM._assert(registers.inuse == true); 
 
     registers.inuse = false;
-    VM_Magic.restoreHardwareExceptionState(registers);
+    VM_Magic.restoreHardwareExceptionState((VM_Registers) registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
    

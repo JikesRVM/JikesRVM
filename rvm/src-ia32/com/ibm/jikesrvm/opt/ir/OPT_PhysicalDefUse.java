@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import java.util.Enumeration;
 
 /**
@@ -19,7 +20,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  * @author Dave Grove
  */
-public class OPT_PhysicalDefUse {
+public abstract class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
   public final static int mask             = 0x0000;  // empty mask

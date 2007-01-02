@@ -10,6 +10,8 @@
 
 package com.ibm.jikesrvm.osr;
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -20,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Feng Qian
  */
 
-@Uninterruptible public class OSR_PostThreadSwitch implements VM_BaselineConstants {
+@Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
   /* This method must be inlined to keep the correctness 
    * This method is called at the end of threadSwitch, the caller

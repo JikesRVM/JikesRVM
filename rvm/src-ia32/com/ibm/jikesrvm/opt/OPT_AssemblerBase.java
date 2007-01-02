@@ -10,6 +10,11 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.*;
 
 import org.vmmagic.unboxed.*;

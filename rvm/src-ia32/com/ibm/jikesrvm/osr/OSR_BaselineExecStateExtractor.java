@@ -11,6 +11,7 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 
@@ -24,7 +25,7 @@ import org.vmmagic.unboxed.*;
  * @author Feng Qian
  */
 
-public final class OSR_BaselineExecStateExtractor 
+public abstract class OSR_BaselineExecStateExtractor 
   extends OSR_ExecStateExtractor implements VM_Constants, 
                                             OSR_Constants,
                                             OPT_PhysicalRegisterConstants {

@@ -8,6 +8,11 @@
  */
 //$Id$
 package com.ibm.jikesrvm;
+
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+
 import org.vmmagic.unboxed.Offset;
 
 /**

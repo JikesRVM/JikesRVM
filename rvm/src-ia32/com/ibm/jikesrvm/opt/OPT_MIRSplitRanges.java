@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**

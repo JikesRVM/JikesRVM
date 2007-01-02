@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.classloader.*;
 
 /**

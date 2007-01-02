@@ -11,6 +11,8 @@ package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+
 /**
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps
  * 

@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
@@ -20,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Stephen Fink
  */
-public class VM_ProcessorLocalState {
+public abstract class VM_ProcessorLocalState {
   
   protected static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 

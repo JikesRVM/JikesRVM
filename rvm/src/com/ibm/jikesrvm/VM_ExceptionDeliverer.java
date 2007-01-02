@@ -11,6 +11,8 @@ package com.ibm.jikesrvm;
 
 import org.vmmagic.unboxed.*;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
+
 /**
  * Interface for exception delivery called by VM_Runtime.deliverException() to
  * pass control to a stackframe whose method has an appropriate "catch" block 

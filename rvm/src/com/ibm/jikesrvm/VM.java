@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;

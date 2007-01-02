@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.classloader.*;
 
@@ -27,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * @author Anthony Cocchi
  * @author Derek Lieber
  */
-@Uninterruptible public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+@Uninterruptible public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants {
 
   // Iterator state for mapping any stackframe.

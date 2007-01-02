@@ -20,12 +20,12 @@ import  java.util.ArrayList;
  * @author Stephen Fink
  * @author Dave Grove
  * @author Michael Hind */
-class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
+public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
 
   /**
    * Initialize the "master plan" for the IA32 backend of the opt compiler.
    */
-  static void intializeMasterPlan(ArrayList temp) {
+  public static void intializeMasterPlan(ArrayList temp) {
     LIR2MIR(temp);
     MIROptimizations(temp);
     MIR2MC(temp);

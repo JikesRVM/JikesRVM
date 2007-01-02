@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @author David Grove
  */
-@Uninterruptible public class VM_Registers implements VM_Constants {
+@Uninterruptible public abstract class VM_Registers implements VM_Constants {
 
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.

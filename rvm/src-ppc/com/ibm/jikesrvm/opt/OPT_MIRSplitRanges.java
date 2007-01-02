@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.opt.ir.OPT_IR;
+
 /**
  * This class splits live ranges for certain special cases before register
  * allocation.
@@ -24,7 +26,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return false;
   }
 
@@ -32,7 +34,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase {
    * Return the name of this phase
    * @return "Live Range Splitting"
    */
-  final String getName() {
+  public final String getName() {
     return "MIR Range Splitting"; 
   }
 

@@ -23,7 +23,7 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMapping {
+public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMapping {
 
   /**
    * Return the total number of physical registers.

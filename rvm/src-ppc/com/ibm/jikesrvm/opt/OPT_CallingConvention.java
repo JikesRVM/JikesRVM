@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
@@ -33,7 +34,7 @@ import static com.ibm.jikesrvm.VM_StackframeLayoutConstants.*;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_IRTools {
+public abstract class OPT_CallingConvention extends OPT_IRTools {
 
   /**
    * Expand calls, returns, and add initialize code for arguments/parms.
@@ -406,7 +407,7 @@ final class OPT_CallingConvention extends OPT_IRTools {
    *
    * @param call the sys call
    */
-  static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
+  public static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
   }
 
   

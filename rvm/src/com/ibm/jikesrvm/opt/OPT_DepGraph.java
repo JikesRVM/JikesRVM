@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.Enumeration;
+
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.opt.OPT_DepGraphConstants.*;

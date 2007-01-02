@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import com.ibm.jikesrvm.classloader.*;
 import java.util.Enumeration;
 import org.vmmagic.unboxed.*;

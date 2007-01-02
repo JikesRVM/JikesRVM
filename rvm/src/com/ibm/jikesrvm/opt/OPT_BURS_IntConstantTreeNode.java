@@ -10,6 +10,7 @@
 
 package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**

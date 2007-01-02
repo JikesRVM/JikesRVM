@@ -10,6 +10,9 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.osr.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -1539,7 +1542,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
         if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef);
         VM_Type type = typeRef.peekResolvedType();
-        if (type != null && (type.isInitialized() || type.isInBootImage())) { 
+        if (type != null && (type.isInitialized() || type.isInBootImage())) {
           emit_resolved_new(type.asClass());
         } else { 
           emit_unresolved_new(typeRef);
@@ -1939,7 +1942,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       ending_bytecode();
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();
-    return asm.finalizeMachineCode(bytecodeMap);
+    return (VM_MachineCode) asm.finalizeMachineCode(bytecodeMap);
   }
   
 

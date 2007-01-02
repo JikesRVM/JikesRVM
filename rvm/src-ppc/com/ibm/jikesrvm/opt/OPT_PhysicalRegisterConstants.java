@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
 
 /**
  * This class holds constants that describe PowerPC register set.

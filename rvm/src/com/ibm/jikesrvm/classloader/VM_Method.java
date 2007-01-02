@@ -10,6 +10,9 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
@@ -583,7 +586,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         } else {
           // All other virtual methods in the family must generate unique stubs to
           // ensure correct operation of the method test (guarded inlining of virtual calls).
-          return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+          return (VM_CodeArray) VM_LazyCompilationTrampolineGenerator.getTrampoline();
         }
       } else {
         // We'll never do a method test against this method.

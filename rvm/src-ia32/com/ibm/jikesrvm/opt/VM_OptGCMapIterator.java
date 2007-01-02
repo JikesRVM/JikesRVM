@@ -23,8 +23,8 @@ import org.vmmagic.unboxed.*;
  *
  * @author Michael Hind
  */
-@Uninterruptible public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-  implements VM_SizeConstants{
+@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
+  implements VM_SizeConstants {
 
   private static final boolean DEBUG = false;
  
@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.*;
    * registers were saved.  Also, check for special methods that also
    * save the volatile gprs.
    */
-  void updateLocateRegisters() {
+  protected void updateLocateRegisters() {
 
     //           HIGH MEMORY
     //

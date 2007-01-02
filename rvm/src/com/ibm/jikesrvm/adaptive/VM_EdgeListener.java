@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

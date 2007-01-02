@@ -11,6 +11,7 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
 import com.ibm.jikesrvm.classloader.*;
 
 import java.lang.reflect.*;
@@ -78,10 +79,10 @@ import org.vmmagic.unboxed.*;
  * @modified Steven Augart
  * @date June 2004 -- JNI 1.2 and 1.4 largely implemented
  */
-class VM_JNIFunctions implements VM_NativeBridge, 
+public class VM_JNIFunctions implements VM_NativeBridge, 
                                  VM_SizeConstants {
   // one message for each JNI function called from native
-  final static boolean traceJNI = false;
+  public final static boolean traceJNI = false;
 
   // number of JNI function entries
   public static final int FUNCTIONCOUNT = 232; // JNI 1.4

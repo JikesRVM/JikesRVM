@@ -12,6 +12,7 @@ package com.ibm.jikesrvm;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 
 /**
  * Harness to select which compiler to dynamically
@@ -734,7 +735,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
 
-    VM_CompiledMethod cm = com.ibm.jikesrvm.jni.VM_JNICompiler.compile(method);
+    VM_CompiledMethod cm = VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " + 
                     method.getDeclaringClass() + "." + method.getName() +

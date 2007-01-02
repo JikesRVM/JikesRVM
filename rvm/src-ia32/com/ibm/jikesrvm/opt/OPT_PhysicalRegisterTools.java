@@ -23,17 +23,17 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @author John Whaley
  * @author Stephen Fink
  */
-abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTools{
+public abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTools{
 
   /**
    * Return the governing IR.
    */
-  abstract OPT_IR getIR();
+  public abstract OPT_IR getIR();
 
   /**
    * Create an MIR instruction to move rhs into lhs
    */
-  static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs, 
+  public static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs, 
                                              OPT_RegisterOperand rhs) {
     if (rhs.register.isInteger() || rhs.register.isLong() || rhs.register.isAddress()) {
       if (VM.VerifyAssertions) 

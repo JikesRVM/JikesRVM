@@ -13,7 +13,7 @@ package com.ibm.jikesrvm.memorymanagers.mminterface;
 import com.ibm.jikesrvm.BootImageInterface;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_BootRecord;
-import com.ibm.jikesrvm.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_HeapLayoutConstants;
 import com.ibm.jikesrvm.VM_JavaHeader;

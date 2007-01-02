@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * 
  * @author Stephen Fink
  */
-abstract class OPT_GenericRegisterRestrictions {
+public abstract class OPT_GenericRegisterRestrictions {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
   private final HashMap<OPT_Register,RestrictedRegisterSet> hash =
@@ -42,7 +43,7 @@ abstract class OPT_GenericRegisterRestrictions {
   /**
    * Default Constructor
    */
-  OPT_GenericRegisterRestrictions(OPT_PhysicalRegisterSet phys) {
+  protected OPT_GenericRegisterRestrictions(OPT_PhysicalRegisterSet phys) {
     this.phys = phys;
   }
 
@@ -50,14 +51,14 @@ abstract class OPT_GenericRegisterRestrictions {
    * Record that the register allocator must not spill a symbolic
    * register.
    */
-  final void noteMustNotSpill(OPT_Register r) {
+  protected final void noteMustNotSpill(OPT_Register r) {
     noSpill.add(r);
   }
 
   /**
    * Is spilling a register forbidden?
    */
-  final boolean mustNotSpill(OPT_Register r) {
+  public final boolean mustNotSpill(OPT_Register r) {
     return noSpill.contains(r);
   }
 
@@ -68,7 +69,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  final void init(OPT_IR ir) {
+  public final void init(OPT_IR ir) {
     // process each basic block
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock b = (OPT_BasicBlock)e.nextElement();
@@ -237,7 +238,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * Record that it is illegal to assign a symbolic register symb to any
    * of a set of physical registers 
    */
-  final void addRestrictions(OPT_Register symb, OPT_BitSet set) {
+  protected final void addRestrictions(OPT_Register symb, OPT_BitSet set) {
     RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
@@ -250,7 +251,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * Record that it is illegal to assign a symbolic register symb to a
    * physical register p
    */
-  final void addRestriction(OPT_Register symb, OPT_Register p) {
+  protected final void addRestriction(OPT_Register symb, OPT_Register p) {
     RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
@@ -273,7 +274,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * @return true :yes, all volatiles are forbidden
    *         false :maybe, maybe not
    */
-  final boolean allVolatilesForbidden(OPT_Register symb) {
+  public final boolean allVolatilesForbidden(OPT_Register symb) {
     if (VM.VerifyAssertions) {
       VM._assert(symb != null);
     }
@@ -286,7 +287,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * Is it forbidden to assign symbolic register symb to physical register
    * phys?
    */
-  final boolean isForbidden(OPT_Register symb, OPT_Register phys) {
+  public final boolean isForbidden(OPT_Register symb, OPT_Register phys) {
     if (VM.VerifyAssertions) {
       VM._assert(symb != null);
       VM._assert(phys != null);
@@ -300,7 +301,7 @@ abstract class OPT_GenericRegisterRestrictions {
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
-  abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
+  public abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
                                OPT_Instruction s);
 
   /**

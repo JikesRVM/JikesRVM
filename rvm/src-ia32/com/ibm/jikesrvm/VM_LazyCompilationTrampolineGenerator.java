@@ -9,6 +9,11 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
  * We do this to enable the optimizing compiler to use ptr equality of
@@ -20,7 +25,7 @@ package com.ibm.jikesrvm;
  * 
  * @author Dave Grove
  */
-public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
+public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
   /** Generate a new lazy compilation trampoline. */
   public static VM_CodeArray getTrampoline (){

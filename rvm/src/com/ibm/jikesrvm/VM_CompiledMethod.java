@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.classloader.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

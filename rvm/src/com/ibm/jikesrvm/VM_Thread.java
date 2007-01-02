@@ -24,7 +24,9 @@ import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
 import com.ibm.jikesrvm.adaptive.OSR_Listener;
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 
-import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
+import com.ibm.jikesrvm.ArchitectureSpecific.OSR_PostThreadSwitch;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 
 /**
  * A java thread's execution context.

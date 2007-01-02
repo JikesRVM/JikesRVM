@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
@@ -24,7 +26,8 @@ import org.vmmagic.pragma.*;
  *
  * @author Michael Hind
  */
-@Uninterruptible abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
+@Uninterruptible
+public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
     implements VM_OptGCMapIteratorConstants, VM_Constants {
 
   /**
@@ -74,7 +77,7 @@ import org.vmmagic.pragma.*;
   static final boolean lookForMissedReferencesInSpills = false;
 
   // Constructor 
-  VM_OptGenericGCMapIterator(WordArray registerLocations) {
+  protected VM_OptGenericGCMapIterator(WordArray registerLocations) {
     super();
     this.registerLocations = registerLocations;
   }
@@ -343,7 +346,7 @@ import org.vmmagic.pragma.*;
    * then update the registerLocations array with the locations where the
    * registers were saved.
    */
-  abstract void updateLocateRegisters();
+  protected abstract void updateLocateRegisters();
 
   /** 
    *  Determine the stack location given the frame ptr and spill offset.

@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Ian Rogers
  */
-abstract class OPT_NormalizeConstants implements OPT_Operators {
+public abstract class OPT_NormalizeConstants implements OPT_Operators {
 
   /**
    * Only thing we do for IA32 is to restrict the usage of 
@@ -30,7 +30,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
    * 
    * @param ir IR to normalize
    */
-  static void perform(OPT_IR ir) { 
+  public static void perform(OPT_IR ir) { 
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
          s != null; 
          s = s.nextInstructionInCodeOrder()) {

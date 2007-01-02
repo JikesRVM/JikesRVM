@@ -18,17 +18,10 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  *
  * @author Perry Cheng
  */
-@Uninterruptible public final class VM_CodeArray {
+@Uninterruptible public abstract class VM_CodeArray {
   private int [] data;
 
-  // only intended to be called from VM_CodeArray.factory
-  @Interruptible
-  static VM_CodeArray create (int size) { 
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
-    return new VM_CodeArray(size);
-  }
-
-  private VM_CodeArray (int size) { 
+  public VM_CodeArray (int size) { 
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new int[size];
   }
@@ -69,11 +62,11 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
      * @param isHot is this an allocation of code for a hot method?
      * @return a VM_CodeArray containing the instructions
      */
-    public static VM_CodeArray create(int numInstrs, boolean isHot) {
+    public static ArchitectureSpecific.VM_CodeArray create(int numInstrs, boolean isHot) {
       if (VM.runningVM) {
         return MM_Interface.allocateCode(numInstrs, isHot);
       } else {
-        return VM_CodeArray.create(numInstrs);
+        return ArchitectureSpecific.VM_CodeArray.create(numInstrs);
       }
     }
   }

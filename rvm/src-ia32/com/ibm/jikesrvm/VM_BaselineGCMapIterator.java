@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 
@@ -26,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-@Uninterruptible public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+@Uninterruptible abstract public class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL  = false; // dynamic link frames

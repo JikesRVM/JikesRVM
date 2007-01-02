@@ -10,6 +10,7 @@
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper;
 import org.vmmagic.unboxed.*;
 
 /**

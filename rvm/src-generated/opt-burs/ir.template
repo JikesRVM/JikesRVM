@@ -42,7 +42,7 @@ RULE.PRODUCTION		"" RULE.COST
 $$$$ END IF
 $$$$ END FOREACH
 %%
-static final byte action[]={0
+public static final byte action[]={0
 $$$$ FOREACH RULE THE_RULE_FILE
    ,RULE.FLAGS
 $$$$ END FOREACH
@@ -58,7 +58,7 @@ void codeCASE(OPT_BURS_TreeNode p) {
 $$$$ END IF
 $$$$ END FOREACH
 
-void code(OPT_BURS_TreeNode p, int  n, int ruleno) {
+public void code(OPT_BURS_TreeNode p, int  n, int ruleno) {
   switch(ruleno) {
 $$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"

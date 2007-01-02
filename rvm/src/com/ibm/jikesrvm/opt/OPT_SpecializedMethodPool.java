@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 
 /**
  * This class holds the static array of pointers to instructions

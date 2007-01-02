@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.OPT_MagicNotImplementedException;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_GenerateMachineSpecificMagic;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.VM_SizeConstants.*;
 

@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.OPT_IndexPropagation.*;

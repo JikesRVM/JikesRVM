@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 
 /**
@@ -17,7 +18,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * 
  * @author Stephen Fink
  */
-public final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions {
+public abstract class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions {
   /**
    * Default Constructor
    */

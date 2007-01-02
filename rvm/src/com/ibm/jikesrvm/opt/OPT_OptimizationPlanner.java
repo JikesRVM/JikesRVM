@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_MIROptimizationPlanner;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.ArrayList;
 import com.ibm.jikesrvm.osr.*;

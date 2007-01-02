@@ -25,6 +25,7 @@ import java.lang.reflect.Modifier;
 import java.util.Comparator;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.jni.*;
 import com.ibm.jikesrvm.classloader.*;
 

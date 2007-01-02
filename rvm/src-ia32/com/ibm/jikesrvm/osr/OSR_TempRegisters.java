@@ -11,6 +11,7 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 
 import org.vmmagic.unboxed.*;
 

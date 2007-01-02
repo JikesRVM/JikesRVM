@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
 import org.vmmagic.unboxed.Offset;
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-class OPT_GenerateMachineSpecificMagic 
+public abstract class OPT_GenerateMachineSpecificMagic 
   implements OPT_Operators, VM_StackframeLayoutConstants {
 
   /**
@@ -35,7 +36,7 @@ class OPT_GenerateMachineSpecificMagic
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  static boolean generateMagic (OPT_BC2IR bc2ir, 
+  public static boolean generateMagic (OPT_BC2IR bc2ir, 
                                 OPT_GenerationContext gc, 
                                 VM_MethodReference meth) 
     throws OPT_MagicNotImplementedException {

@@ -10,6 +10,11 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -28,7 +33,7 @@ import org.vmmagic.unboxed.*;
  * @author Ton Ngo
  * @author Steve Smith
  */
-public class VM_JNICompiler implements VM_BaselineConstants {
+public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
   // offsets to saved regs and addresses in java to C glue frames
   // EDI (JTOC) and EBX are nonvolatile registers in RVM
@@ -178,7 +183,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitRET_Imm((parameterWords+1) << LG_WORDSIZE); 
 
     VM_MachineCode machineCode = new VM_MachineCode(asm.getMachineCodes(), null);
-    cm.compileComplete(machineCode.getInstructions());
+    cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
     return cm;
   }
 

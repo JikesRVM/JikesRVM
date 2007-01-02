@@ -10,6 +10,11 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -26,7 +31,7 @@ import org.vmmagic.pragma.*;
  *       Problem: can't risk doing that until we get OSX working again,
  *                so we can actually test that the refactors are correct.
  */
-public class VM_JNICompiler implements VM_BaselineConstants,
+public abstract class VM_JNICompiler implements VM_BaselineConstants,
                                        VM_AssemblerConstants,
                                        VM_JNIStackframeLayoutConstants {
 
@@ -321,7 +326,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
 
     VM_MachineCode machineCode = asm.makeMachineCode();
-    cm.compileComplete(machineCode.getInstructions());
+    cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
     return cm;
   } 
 

@@ -10,12 +10,16 @@
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPreferences;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
-import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
+import static com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.*;
 import static com.ibm.jikesrvm.VM_SizeConstants.*;
 import static com.ibm.jikesrvm.VM_Constants.*;
 
@@ -210,7 +214,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @return the offset into the stack where n*4 contiguous words are
    * reserved
    */
-  int allocateSpaceForSysCall(int n) {
+  public int allocateSpaceForSysCall(int n) {
     int bytes = n * WORDSIZE;
     if (sysCallOffset == 0) {
       sysCallOffset = allocateOnStackFrame(bytes);
@@ -228,7 +232,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @return the offset into the stack where n*4 contiguous words are
    * reserved
    */
-  int getOffsetForSysCall() {
+  public int getOffsetForSysCall() {
     return sysCallOffset;
   }
 
@@ -958,7 +962,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * @param set information from linear scan analysis
    */
-  void insertSpillCode(OPT_LinearScan.ActiveSet set) {
+  public void insertSpillCode(OPT_LinearScan.ActiveSet set) {
     if (USE_LINEAR_SCAN) {
       activeSet = set;
     }
@@ -1243,7 +1247,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * We encountered a float/int conversion that uses
    * the stack as temporary storage.
    */
-  int allocateSpaceForConversion() {
+  public int allocateSpaceForConversion() {
     if (conversionOffset == 0) {
       conversionOffset = allocateOnStackFrame(8);
     } 
@@ -1255,7 +1259,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * exception object; allocate a stack slot for the exception delivery
    * code to use to pass the exception object to us.
    */
-  int allocateSpaceForCaughtException() {
+  public int allocateSpaceForCaughtException() {
     if (caughtExceptionOffset == 0) {
       caughtExceptionOffset = allocateOnStackFrame(BYTES_IN_ADDRESS);
     } 

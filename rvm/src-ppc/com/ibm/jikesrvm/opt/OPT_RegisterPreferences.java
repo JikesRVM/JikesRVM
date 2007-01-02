@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * 
  * @author Stephen Fink
  */
-final class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
+public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
 implements OPT_Operators {
 
   /**
@@ -39,7 +39,7 @@ implements OPT_Operators {
   /**
    * Set up register preferences based on instructions in an IR.
    */
-  void initialize(OPT_IR ir) {
+  public void initialize(OPT_IR ir) {
     for (Enumeration e = ir.forwardInstrEnumerator(); 
          e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();

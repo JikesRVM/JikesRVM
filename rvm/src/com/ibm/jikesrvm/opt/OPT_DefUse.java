@@ -286,7 +286,7 @@ public final class OPT_DefUse {
   /**
    * Enumerate all operands that def a given register.
    */
-  static OPT_RegisterOperandEnumeration defs(OPT_Register reg) {
+  public static OPT_RegisterOperandEnumeration defs(OPT_Register reg) {
     return new RegOpListWalker(reg.defList);
   }
 

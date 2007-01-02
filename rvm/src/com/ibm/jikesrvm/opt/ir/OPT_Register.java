@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+
 /**
  * Represents a symbolic or physical register. 
  * OPT_Registers are shared among all OPT_Operands -- for a given register 
@@ -179,7 +181,7 @@ public final class OPT_Register {
   public int scratch;
 
 
-  OPT_Register(int Number) {
+  public OPT_Register(int Number) {
     number = Number;
   }
 

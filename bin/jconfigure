@@ -2562,6 +2562,7 @@ EOF
         else 
 	    echo "    \$FIND . -name opt -prune -o -name adaptive -prune -o -name osr -prune -o -name 'VM*.class' -print"
         fi
+	echo "    \$FIND ./com/ibm/jikesrvm -name 'ArchitectureSpecific.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/memorymanagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./com/ibm/jikesrvm/mm/mmtk -name '*.class'"
@@ -2937,7 +2938,11 @@ EOF
 	fi
 
     fi
-
+    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
+	ARCH_SPECIFIC_OPT_EXCLUSION_STR=""
+    else
+	ARCH_SPECIFIC_OPT_EXCLUSION_STR="| \$FGREP -v \"ArchitectureSpecific\\\$OPT\" | \$FGREP -v \"ArchitectureSpecific\\\$OSR\" | \$FGREP -v \"ArchitectureSpecific\\\$VM_Opt\""
+    fi
     cat <<- EOF
 EOF_PRIMORDIAL_CLASSES_STR_1
 
@@ -2961,7 +2966,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
 	# Convert from file names ending in .class "java/lang/String.class"
 	# into internal form "Ljava/lang/String;"
-	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
+	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath $ARCH_SPECIFIC_OPT_EXCLUSION_STR | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
 	eval \$CLEANUP		# Remove temp files.
 	# 
 	# (4) Add Array types.  NOTE: These must be in internal form.
@@ -3031,6 +3036,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lorg/vmmagic/unboxed/Extent;
 	[Lcom/ibm/jikesrvm/VM_Code;
 	    
+	[Lcom/ibm/jikesrvm/ArchitectureSpecific\$VM_CodeArray;
 	[Lcom/ibm/jikesrvm/VM_CodeArray;
         [Lorg/vmmagic/unboxed/AddressArray;
         [Lorg/vmmagic/unboxed/ObjectReferenceArray;

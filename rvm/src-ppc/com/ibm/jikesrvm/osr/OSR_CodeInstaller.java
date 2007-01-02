@@ -11,6 +11,10 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 
@@ -24,7 +28,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Feng Qian
  */
-public class OSR_CodeInstaller implements VM_BaselineConstants {
+public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   /* install the newly compiled instructions. */
   public static boolean install(OSR_ExecutionState state, 
@@ -107,7 +111,7 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
 
     // mark the thread as waiting for on stack replacement.
     thread.isWaitingForOsr = true;
-    thread.bridgeInstructions = mc.getInstructions();
+    thread.bridgeInstructions = (VM_CodeArray) mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
     Address bridgeaddr = 

@@ -12,6 +12,8 @@ package com.ibm.jikesrvm;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.classloader.VM_Type;
 
 /**

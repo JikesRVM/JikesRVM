@@ -24,14 +24,14 @@ import org.vmmagic.unboxed.*;
  * @author Peter Sweeney
  * @author Stephen Fink
  */
-public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
+public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
 
   /**
    * Initializes a new register pool for the method meth.
    * 
    * @param meth the VM_Method of the outermost method
    */
-  OPT_RegisterPool(VM_Method meth) {
+  protected OPT_RegisterPool(VM_Method meth) {
     super(meth);
   }
 

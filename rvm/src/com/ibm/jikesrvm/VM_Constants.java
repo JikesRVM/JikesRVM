@@ -9,6 +9,10 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
+
 /**
  * Constants describing vm object, stack, and register characteristics.
  * Some of these constants are architecture-specific

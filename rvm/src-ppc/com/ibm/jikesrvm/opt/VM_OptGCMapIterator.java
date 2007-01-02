@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Michael Hind
  */
-@Uninterruptible public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
+@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
   private final static boolean DEBUG = false;
 
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
    * registers were saved.
    *
    */
-  void updateLocateRegisters() {
+  protected void updateLocateRegisters() {
 
     //  HIGH MEMORY
     //

@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.classloader.*;
 
 import java.util.*;

@@ -9,10 +9,12 @@
 // $Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+
 /** 
  * @author Julian Dolby
  */
-public class VM_MachineCode {
+public abstract class VM_MachineCode {
   private final VM_CodeArray instructions;
 
   // TODO: This should really be a final field, but is not due to the way

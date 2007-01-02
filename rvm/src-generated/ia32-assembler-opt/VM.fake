@@ -11,7 +11,7 @@ package com.ibm.jikesrvm;
 /**
  * @author Julian Dolby
  */
-class VM {
+public class VM {
 
     public static boolean BuildForFastInterfaceInvocation;
 

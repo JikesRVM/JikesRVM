@@ -1140,6 +1140,7 @@ public class GenerateAssembler {
 
         emit("package com.ibm.jikesrvm.opt;\n\n");
         emit("import com.ibm.jikesrvm.*;\n\n");
+        emit("import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;\n\n");
         emit("import com.ibm.jikesrvm.opt.ir.*;\n\n");
         emit("\n\n");
 
@@ -1154,12 +1155,12 @@ public class GenerateAssembler {
         emit(" *\n");
         emit(" * @author Julian Dolby\n");
         emit(" */\n");
-        emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
+        emit("public abstract class OPT_Assembler extends OPT_AssemblerBase {\n\n");
 
         emitTab(1);emit("/**\n");
         emitTab(1);emit(" * @see VM_Assembler\n");
         emitTab(1);emit(" */\n");
-        emitTab(1); emit("OPT_Assembler(int bcSize, boolean print, OPT_IR ir) {\n");
+        emitTab(1); emit("public OPT_Assembler(int bcSize, boolean print, OPT_IR ir) {\n");
         emitTab(2);   emit("super(bcSize, print, ir);\n");
         emitTab(1); emit("}");
         emit("\n\n");
@@ -1197,7 +1198,7 @@ public class GenerateAssembler {
         emitTab(1);emit(" *\n");
         emitTab(1);emit(" * @param inst the instruction to assemble\n");
         emitTab(1);emit(" */\n");
-        emitTab(1); emit("void doInst(OPT_Instruction inst) {\n");
+        emitTab(1); emit("public void doInst(OPT_Instruction inst) {\n");
         emitTab(2);    emit("resolveForwardReferences(++instructionCount);\n");
         emitTab(2);    emit("switch (inst.getOpcode()) {\n");
 

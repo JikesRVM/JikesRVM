@@ -14,6 +14,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * @author Dave Grove 
  */
-class VM_Magic {
+public class VM_Magic {
   public static void setIntAtOffset(Object o, Offset x, int y) { } 
 }

@@ -10,6 +10,10 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_StackManager;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
@@ -30,7 +34,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_IRTools
+public abstract class OPT_CallingConvention extends OPT_IRTools
   implements OPT_Operators,
              OPT_PhysicalRegisterConstants {
 
@@ -285,7 +289,7 @@ final class OPT_CallingConvention extends OPT_IRTools
    *
    * @param call the sys call
    */
-  static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
+  public static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
     saveNonvolatilesBeforeSysCall(call, ir); 
     restoreNonvolatilesAfterSysCall(call, ir);
     call.operator = IA32_CALL;

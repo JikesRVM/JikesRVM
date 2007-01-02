@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
+public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
@@ -35,7 +35,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  static Object invokeInitializer(Class cls, int methodID, Address argAddress, 
+  public static Object invokeInitializer(Class cls, int methodID, Address argAddress, 
                                   boolean isJvalue, boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
@@ -72,7 +72,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    */
   @NoInline
   @NoOptCompile // expect a certain stack frame structure
-  static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
+  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
     throws Exception {
     Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
@@ -90,7 +90,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    */
   @NoInline
   @NoOptCompile // expect a certain stack frame structure
-  static Object invokeWithDotDotVarArg(Object obj, int methodID, 
+  public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
                                               VM_TypeReference expectReturnType, 
                                               boolean skip4Args)
     throws Exception {
@@ -184,7 +184,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType) 
+  public static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
   }
@@ -198,7 +198,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, 
+  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
@@ -210,7 +210,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithJValue(int methodID, Address argAddress, 
+  public static Object invokeWithJValue(int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
@@ -225,7 +225,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithJValue(Object obj, int methodID, Address argAddress, 
+  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);

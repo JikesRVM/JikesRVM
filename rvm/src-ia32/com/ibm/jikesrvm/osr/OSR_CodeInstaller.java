@@ -11,6 +11,8 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 
@@ -24,7 +26,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Feng Qian
  */
-public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
+public abstract class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 
   public static boolean install(OSR_ExecutionState state,
                          VM_CompiledMethod cm) {

@@ -11,6 +11,9 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
+import com.ibm.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
+import com.ibm.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.osr.*;
 import org.vmmagic.unboxed.Offset;

@@ -20,7 +20,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  *
  * @author Dave Grove, Mauricio J. Serrano, Martin Trapp
  */
-abstract class OPT_NormalizeConstants extends OPT_IRTools {
+public abstract class OPT_NormalizeConstants extends OPT_IRTools {
   /**
    * lower bound on int immediate values in
    * an instruction (can use values down
@@ -44,7 +44,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
    *
    * @param ir IR to normalize
    */
-  static void perform(OPT_IR ir) {
+  public static void perform(OPT_IR ir) {
 
     // This code assumes that INT/LONG/ADDR constant folding in OPT_Simplifier is enabled.
     // This greatly reduces the number of cases we have to worry about below.

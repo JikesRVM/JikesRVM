@@ -10,6 +10,10 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_StackManager;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;

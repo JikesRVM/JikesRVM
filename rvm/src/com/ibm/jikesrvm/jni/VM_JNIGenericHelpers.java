@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-abstract class VM_JNIGenericHelpers {
+public abstract class VM_JNIGenericHelpers {
 
   /**
    * Given an address in C that points to a null-terminated string,
@@ -33,7 +33,7 @@ abstract class VM_JNIGenericHelpers {
    * @param stringAddress an address in C space for a string
    * @return a new Java byte[]
    */
-  static byte[] createByteArrayFromC(Address stringAddress) {
+  public static byte[] createByteArrayFromC(Address stringAddress) {
     // scan the memory for the null termination of the string
     int length = 0;
     for (Address addr = stringAddress; true; addr = addr.plus(4)) {
@@ -77,7 +77,7 @@ abstract class VM_JNIGenericHelpers {
    * @param stringAddress an address in C space for a string
    * @return a new Java String
    */
-  static String createStringFromC(Address stringAddress) {
+  public static String createStringFromC(Address stringAddress) {
     byte[] tmp = createByteArrayFromC(stringAddress);
     if (VM.fullyBooted) {
       return new String(tmp);

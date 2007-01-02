@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -29,7 +30,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Mauricio J. Serrano
  * @author Stephen Fink
  */
-public final class OPT_StackManager extends OPT_GenericStackManager {
+public abstract class OPT_StackManager extends OPT_GenericStackManager {
   
   /**
    * stack locaiton to save the XER register

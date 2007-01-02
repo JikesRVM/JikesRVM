@@ -11,6 +11,9 @@ package com.ibm.jikesrvm;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
+
 /**
  * Wrappers around machine specific code
  * 

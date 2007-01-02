@@ -22,7 +22,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @modified Peter Sweeney
  * @modified Ian Rogers
  */
-abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
+public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   /**
    * Converts the given IR to low level IA32 IR.

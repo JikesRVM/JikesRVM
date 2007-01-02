@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
@@ -29,7 +31,7 @@ import static com.ibm.jikesrvm.opt.OPT_PhysicalRegisterConstants.*;
  * @author Dave Grove
  * @author Igor Pechtchanski
  */
-abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
+public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   /**
    * @param ir the IR to expand

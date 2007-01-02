@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;

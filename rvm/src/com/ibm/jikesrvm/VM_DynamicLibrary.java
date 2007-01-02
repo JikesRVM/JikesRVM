@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;

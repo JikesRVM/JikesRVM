@@ -12,7 +12,7 @@ package com.ibm.jikesrvm;
 /**
  * @author Dave Grove
  */
-public final class VM_CodeArray {
+public class VM_CodeArray {
   private byte [] data;
 
   public byte get (int index) {
@@ -28,7 +28,7 @@ public final class VM_CodeArray {
   }
 
   public static class Factory {
-    public static VM_CodeArray create(int numInstrs, boolean isHot) {
+    public static ArchitectureSpecific.VM_CodeArray create(int numInstrs, boolean isHot) {
       return null;
     }
   }

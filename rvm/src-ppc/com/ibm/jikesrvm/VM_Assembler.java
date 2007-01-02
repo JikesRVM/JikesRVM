@@ -9,6 +9,11 @@
 //$Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -36,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * @modified Kris Venstermans
  * @modified Daniel Frampton
  */
-public final class VM_Assembler implements VM_BaselineConstants,
+public abstract class VM_Assembler implements VM_BaselineConstants,
                                     VM_AssemblerConstants {
 
 
@@ -169,7 +174,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   /* call before emiting code for the target */
   final void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; 
-    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
+    forwardRefs = VM_ForwardReference.resolveMatching((ArchitectureSpecific.VM_Assembler) this, forwardRefs, label);
   }
 
   final void patchUnconditionalBranch(int sourceMachinecodeIndex) {
@@ -2257,7 +2262,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
-    fr1.resolve(this);
+    fr1.resolve((ArchitectureSpecific.VM_Assembler) this);
     emitLAddrOffset (0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitLVAL  (S0, STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
@@ -2265,8 +2270,8 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitCMPLAddr(0, S0);
     VM_ForwardReference fr3 = emitForwardBC(LE);
     emitTAddrWI ( 1 );                                    // trap if new frame pointer below guard page
-    fr2.resolve(this);
-    fr3.resolve(this);
+    fr2.resolve((ArchitectureSpecific.VM_Assembler) this);
+    fr3.resolve((ArchitectureSpecific.VM_Assembler) this);
   }
 
   private static class ShortBranch extends VM_ForwardReference.ShortBranch {
@@ -2277,7 +2282,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
       spTopOffset = sp;
     }
     public void resolve (VM_Assembler asm) {
-      super.resolve(asm);
+      super.resolve((ArchitectureSpecific.VM_Assembler) asm);
       if (asm.compiler != null) {
         asm.compiler.spTopOffset = spTopOffset;
       }

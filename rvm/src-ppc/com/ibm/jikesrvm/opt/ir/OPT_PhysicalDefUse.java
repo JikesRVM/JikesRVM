@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import java.util.Enumeration;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 /**
  * This class provides utilities to record defs and uses of physical
@@ -17,7 +18,7 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-public class OPT_PhysicalDefUse {
+public abstract class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
   public final static int mask         = 0x00;  // empty mask
@@ -79,7 +80,7 @@ public class OPT_PhysicalDefUse {
   /**
    * A class to enumerate physical registers based on a code.
    */
-  static final class PDUEnumeration implements Enumeration {
+  public static final class PDUEnumeration implements Enumeration {
     private int code;
     private int curMask;
     private OPT_PhysicalRegisterSet phys;

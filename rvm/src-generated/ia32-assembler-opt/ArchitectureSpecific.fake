@@ -1,0 +1,30 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id: VM.fake 10984 2006-11-15 21:17:28Z dgrove-oss $
+package com.ibm.jikesrvm;
+public class ArchitectureSpecific {
+  public static final class VM_Assembler extends com.ibm.jikesrvm.VM_Assembler {
+    public VM_Assembler (int bytecodeSize) {
+      super(bytecodeSize, false);
+    }
+    public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler compiler) {
+      super(bytecodeSize, shouldPrint, compiler);
+    }
+    public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
+      super(bytecodeSize, shouldPrint);
+    }
+  }
+  public static final class VM_CodeArray extends com.ibm.jikesrvm.VM_CodeArray {}
+  public static final class VM_Compiler extends com.ibm.jikesrvm.VM_Compiler {}
+  public static final class VM_MachineCode extends com.ibm.jikesrvm.VM_MachineCode {
+    public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
+      super(array, bm);
+    }}
+  public static interface VM_RegisterConstants extends com.ibm.jikesrvm.VM_RegisterConstants {}
+}

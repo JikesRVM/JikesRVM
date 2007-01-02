@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-public class VM_MultianewarrayHelper implements VM_Constants {
+public abstract class VM_MultianewarrayHelper implements VM_Constants {
 
   /**
    * Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",

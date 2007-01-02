@@ -10,6 +10,8 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_InterfaceMethodConflictResolver;
 
 /**
  * Runtime system mechanisms and data structures to implement interface invocation.

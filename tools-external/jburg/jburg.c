@@ -608,7 +608,7 @@ emitheader(void)
     /* obsolete, now part of burg.template
        print("// program generated file, do not edit\n\n");
        print("import java.io.*;\n");
-       print("\npublic final class OPT_BURS_STATE implements OPT_Operators, OPT_BURS_Definitions, VM_BaselineConstants {\n\n");
+       print("\npublic class OPT_BURS_STATE implements OPT_Operators, OPT_BURS_Definitions, VM_BaselineConstants {\n\n");
        print("#include \"burg.template\"\n");
     */
     /*
@@ -937,7 +937,7 @@ emitstring(Rule rules_)
 //    Term p;
  
     print("package com.ibm.jikesrvm.opt; \n");
-    print("final class OPT_BURS_Debug {\n");
+    print("public class OPT_BURS_Debug {\n");
  
 #if 0
     print("static final String opname[] = {\n");
@@ -965,7 +965,7 @@ emitstring(Rule rules_)
     }
     print("};\n");
 #endif
-    print("static final String string[] = {\n");
+    print("public static final String string[] = {\n");
     print("%1null,     \t// 0\n");
     for (r = rules_; r; r = r->link)
         print("%1\"%R\",  \t// %d\n", r,r->ern);
@@ -985,9 +985,9 @@ emitstruct(Nonterm nts_)
         while ((m >>= 1) != 0)
             n++;
         if (oneterminal)
-            print("%1int ");
+            print("%1public int ");
         else
-            print("%1char ");
+            print("%1public char ");
         print("cost_%S;\n", ntsc);
     }
     /*
@@ -996,7 +996,7 @@ emitstruct(Nonterm nts_)
     print("\n%1// rule for each non-terminal\n");
     bit_offset = 0;
     word_number = 0;
-    print("%1int word0;\n");
+    print("%1public int word0;\n");
     for (ntsc=nts_ ; ntsc; ntsc = ntsc->link) {
         int n = 1, m = ntsc->lhscount; //, k;
         while ((m >>= 1) != 0)
@@ -1004,7 +1004,7 @@ emitstruct(Nonterm nts_)
         ntsc->number_bits = n;
         if ((bit_offset/32) != ((bit_offset+n)/32)) {
             word_number++;
-            print("%1int word%d;\n",word_number);
+            print("%1public int word%d;\n",word_number);
             bit_offset  = 0;
         } 
         ntsc->word_number= word_number;
@@ -1020,9 +1020,9 @@ emitstruct(Nonterm nts_)
               ntsc,ntsc->word_number,ntsc->bit_offset,ntsc->number_bits,ntsc->lhscount);
     }
     if (oneterminal)
-        print("\n%1int getCost(int goalNT) {\n");
+        print("\n%1public int getCost(int goalNT) {\n");
     else
-        print("\n%1char getCost(int goalNT) {\n");
+        print("\n%1public char getCost(int goalNT) {\n");
     if (nts_->link) {
         print("%2switch(goalNT) {\n");
         for (ntsc=nts_ ; ntsc; ntsc = ntsc->link) {
@@ -1041,7 +1041,7 @@ emitstruct(Nonterm nts_)
     }
 
     word_number = 0;
-    print("\n%1void initCost() {\n");
+    print("\n%1public void initCost() {\n");
     for (ntsc=nts_ ; ntsc; ntsc = ntsc->link) {
         int n = 1, m = ntsc->lhscount;
         if (ntsc->word_number > word_number) word_number = ntsc->word_number;
@@ -1056,7 +1056,7 @@ emitstruct(Nonterm nts_)
     print("\n%1}\n");
 
 
-    print("\n%1int rule(int goalNT) {\n");
+    print("\n%1public int rule(int goalNT) {\n");
     if (nts_->link) {
         print("%2int statement = 0;\n");
         print("%2switch(goalNT) {\n");

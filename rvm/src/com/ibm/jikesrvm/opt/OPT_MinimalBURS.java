@@ -11,6 +11,9 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_Debug;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_STATE;
+import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 

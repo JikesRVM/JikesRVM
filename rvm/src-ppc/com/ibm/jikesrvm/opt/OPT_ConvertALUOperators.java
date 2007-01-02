@@ -16,7 +16,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Dave Grove
  */
-final class OPT_ConvertALUOperators extends OPT_CompilerPhase 
+public abstract class OPT_ConvertALUOperators extends OPT_CompilerPhase 
   implements OPT_Operators {
  
   /**

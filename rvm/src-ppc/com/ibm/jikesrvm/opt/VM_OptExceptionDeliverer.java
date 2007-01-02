@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.classloader.*;
 
 import org.vmmagic.pragma.*;
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @author Mauricio J. Serrano 
  */
-final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
+public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   implements VM_Constants, VM_BytecodeConstants {
 
   /** 
@@ -52,7 +53,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     registers.inuse = false;
 
     // "branches" to catchBlockInstructionAddress
-    VM_Magic.restoreHardwareExceptionState(registers);
+    VM_Magic.restoreHardwareExceptionState((VM_Registers) registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 

@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
-
 import com.ibm.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.*;
 /**
@@ -18,19 +17,19 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @author Stephen Fink
  */
-abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
+public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   // word size for memory operands
-  static final byte B  = 0x01;  // byte (8 bits)
-  static final byte W  = 0x02;  // word (16 bits)
-  static final byte DW = 0x04;  // doubleword (32 bits)
-  static final byte QW = 0x08;  // quadword (64 bits)
+  protected static final byte B  = 0x01;  // byte (8 bits)
+  protected static final byte W  = 0x02;  // word (16 bits)
+  protected static final byte DW = 0x04;  // doubleword (32 bits)
+  protected static final byte QW = 0x08;  // quadword (64 bits)
 
-  static final byte B_S  = 0x00;  // byte (8*2^0 bits)
-  static final byte W_S  = 0x01;  // word (8*2^116 bits)
-  static final byte DW_S = 0x02;  // doubleword (8*2^2 bits)
-  static final byte QW_S = 0x03;  // quadword (8*2^3 bits)
+  protected static final byte B_S  = 0x00;  // byte (8*2^0 bits)
+  protected static final byte W_S  = 0x01;  // word (8*2^116 bits)
+  protected static final byte DW_S = 0x02;  // doubleword (8*2^2 bits)
+  protected static final byte QW_S = 0x03;  // quadword (8*2^3 bits)
 
-  OPT_BURS_MemOp_Helpers(OPT_BURS burs) {
+  protected OPT_BURS_MemOp_Helpers(OPT_BURS burs) {
     super(burs);
   }
 
