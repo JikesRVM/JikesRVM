@@ -151,16 +151,20 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
     if (runtimeVisibleAnnotations != null) {       
       for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
-         if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
-            return (T)runtimeVisibleAnnotations[i].getValue();
-         }
+        if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
+          @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
+          T result = (T)runtimeVisibleAnnotations[i].getValue();
+          return result;
+        }
       }
     }
     if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
       for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
-         if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
-            return (T)runtimeInvisibleAnnotations[i].getValue();
-         }
+        if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
+          @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
+          T result = (T)runtimeInvisibleAnnotations[i].getValue();
+          return result;
+        }
       }
     }
     return null;
@@ -169,7 +173,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Is there an annotation of this type implemented on this annotated
    * element?
    */
-  public boolean isAnnotationPresent(Class annotationClass) {
+  public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
     if (runtimeVisibleAnnotations != null) {       
       for(int i=0; i < runtimeVisibleAnnotations.length; i++) {

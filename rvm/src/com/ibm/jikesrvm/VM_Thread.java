@@ -11,12 +11,10 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-// Used for Javadoc:
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread; 
+import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread; // Used for Javadoc
 
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 
-import org.mmtk.utility.Log;
 import com.ibm.jikesrvm.mm.mmtk.Barriers;
 
 import org.vmmagic.pragma.*;
@@ -616,6 +614,7 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
    * Begin execution of current thread by calling its "run" method.
    */ 
   @Interruptible
+  @SuppressWarnings("unused") // Called by back-door methods.
   private static void startoff () { 
     VM_Thread currentThread = getCurrentThread();
     if (trace) VM.sysWriteln("VM_Thread.startoff(): about to call ", 
@@ -1294,7 +1293,9 @@ import com.ibm.jikesrvm.osr.OSR_PostThreadSwitch;
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
   private static char[] dumpBuffer = new char[MAX_DUMP_LEN];
 
+  @SuppressWarnings("unused") // Actually used by indirect means
   private static int dumpBufferLock = 0;
+  
   /** Reset at boot time. */
   private static Offset dumpBufferLockOffset = Offset.max();
 

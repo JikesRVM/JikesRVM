@@ -100,7 +100,7 @@ public final class Field extends AccessibleObject implements Member {
     return getCharInternal(object);
   }
 
-  public Class getDeclaringClass() {
+  public Class<?> getDeclaringClass() {
     return field.getDeclaringClass().getClassForType();
   }
 
@@ -137,7 +137,7 @@ public final class Field extends AccessibleObject implements Member {
     return getShortInternal(object);
   }
 
-  public Class getType() {
+  public Class<?> getType() {
     return field.getType().resolve().getClassForType();
   }
 
@@ -535,7 +535,7 @@ public final class Field extends AccessibleObject implements Member {
     return field.getDeclaredAnnotations();
   }
 
-  public Annotation getAnnotation(Class annotationClass) {
+  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     return field.getAnnotation(annotationClass);
   }
 

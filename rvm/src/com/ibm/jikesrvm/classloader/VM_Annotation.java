@@ -16,7 +16,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import org.vmmagic.unboxed.Offset;
 import java.lang.annotation.Annotation;
-import java.lang.JikesRVMSupport;
 import java.util.Arrays;
 
 /**
@@ -240,11 +239,15 @@ public final class VM_Annotation {
     case 'e':
       {
         int typeNameIndex = input.readUnsignedShort();
+        @SuppressWarnings("unchecked")
         Class enumType = VM_TypeReference.findOrCreate(classLoader,
                                                        VM_Class.getUtf(constantPool, typeNameIndex)
                                                        ).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
-        value = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
+        
+        @SuppressWarnings("unchecked") // Yes, we're breaking type safety here.
+        Enum tmp = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
+        value = tmp;
         break;
       }
     case 'c':
@@ -381,7 +384,7 @@ public final class VM_Annotation {
      *
      * @return Class object of interface annotation object implements
      */
-    public Class annotationType() {
+    public Class<? extends Annotation> annotationType() {
       return vmAnnotation.annotationType().resolve().getClassForType();
     }
     /**
@@ -415,7 +418,7 @@ public final class VM_Annotation {
    * A class to decode and hold the name and its associated value for
    * an annotation member
    */
-  private static final class AnnotationMember implements Comparable {
+  private static final class AnnotationMember implements Comparable<AnnotationMember> {
     /**
      * Name of element
      */
@@ -509,8 +512,7 @@ public final class VM_Annotation {
     /**
      * Ordering for sorted annotation members
      */
-    public int compareTo(Object o) {
-      AnnotationMember am = (AnnotationMember)o;
+    public int compareTo(AnnotationMember am) {
       if(am.name != this.name) {
         return am.name.toString().compareTo(this.name.toString());
       } else {
@@ -518,7 +520,9 @@ public final class VM_Annotation {
           return Arrays.hashCode((Object[])value) - Arrays.hashCode((Object[])am.value);
         }
         else {
-          return ((Comparable)value).compareTo(am.value);
+          @SuppressWarnings("unchecked") // True generic programming, we can't type check it in Java
+          Comparable<Object> cValue = (Comparable)value;
+          return cValue.compareTo(am.value);
         }
       }
     }

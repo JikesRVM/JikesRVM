@@ -46,17 +46,17 @@ public final class Constructor<T> extends AccessibleObject
 
   public boolean equals(Object other) {
     if (other instanceof Constructor) {
-      return constructor == ((Constructor)other).constructor;
+      return constructor == ((Constructor<?>)other).constructor;
     } else {
       return false;
     }
   }
     
-  public Class getDeclaringClass() {
+  public Class<T> getDeclaringClass() {
     return constructor.getDeclaringClass().getClassForType();
   }
 
-  public Class[] getExceptionTypes() {
+  public Class<?>[] getExceptionTypes() {
     VM_TypeReference[] exceptionTypes = constructor.getExceptionTypes();
     if (exceptionTypes == null) {
       return new Class[0];
@@ -73,7 +73,7 @@ public final class Constructor<T> extends AccessibleObject
     return getDeclaringClass().getName();
   }
     
-  public Class[] getParameterTypes() {
+  public Class<?>[] getParameterTypes() {
     return JikesRVMSupport.typesToClasses(constructor.getParameterTypes());
   }
 
@@ -142,7 +142,7 @@ public final class Constructor<T> extends AccessibleObject
     StringBuilder sb = new StringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(getDeclaringClass().getName()).append('(');
-    Class[] c = getParameterTypes();
+    Class<?>[] c = getParameterTypes();
     if (c.length > 0)
       {
         sb.append(ClassHelper.getUserName(c[0]));
@@ -162,7 +162,7 @@ public final class Constructor<T> extends AccessibleObject
 
   // Generics support
 
-  public TypeVariable[] getTypeParameters() {
+  public TypeVariable<?>[] getTypeParameters() {
     VM_Atom sig = constructor.getSignature();
     if (sig == null)
       return new TypeVariable[0];
@@ -209,7 +209,7 @@ public final class Constructor<T> extends AccessibleObject
     return sb.toString();
   }
 
-  static void addTypeParameters(StringBuilder sb, TypeVariable[] typeArgs) {
+  static void addTypeParameters(StringBuilder sb, TypeVariable<?>[] typeArgs) {
     if (typeArgs.length == 0)
       return;
     sb.append('<');
