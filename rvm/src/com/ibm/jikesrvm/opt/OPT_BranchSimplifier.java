@@ -272,7 +272,7 @@ abstract class OPT_BranchSimplifier {
       return true;
     } else if (val.isObjectConstant()) {
       // TODO:
-      VM.sysWrite("TODO: should constant fold MethodIfCmp on ObjectConstant");
+      // VM.sysWrite("TODO: should constant fold MethodIfCmp on ObjectConstant");
     }
     return false;
   }
