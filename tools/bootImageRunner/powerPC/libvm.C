@@ -730,7 +730,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #if (defined RVM_FOR_OSX)
        fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
-       if (rvm_singleVirtualProcessor) 
+       if (!rvm_singleVirtualProcessor) 
            fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
 #endif // ! RVM_FOR_OSX
        
