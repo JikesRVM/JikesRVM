@@ -44,7 +44,7 @@ public final class VMStackWalker {
    */
   public static ClassLoader firstNonNullClassLoader()
   {
-    Class[] stack = getClassContext();
+    Class<?>[] stack = getClassContext();
     for (int i = 0; i < stack.length; i++)
       {
         ClassLoader loader = stack[i].getClassLoader();
@@ -71,7 +71,7 @@ public final class VMStackWalker {
    * @return an array of the declaring classes of each stack frame
    * </blockquote>
    */
-  public static Class[] getClassContext() {
+  public static Class<?>[] getClassContext() {
     VM_StackBrowser b = new VM_StackBrowser();
     int frames = 0;
     VM.disableGC();
@@ -113,7 +113,7 @@ public final class VMStackWalker {
     }
     VM.enableGC();    
 
-    Class[] classes = new Class[ frames ];
+    Class<?>[] classes = new Class[ frames ];
     for(int j = 0; j < iclasses.length; j++) {
       classes[j] = iclasses[j].getClassForType();
     }
@@ -135,11 +135,11 @@ public final class VMStackWalker {
    * version of this method.
    * </blockquote>
    */
-  public static Class getCallingClass() {
+  public static Class<?> getCallingClass() {
     return getCallingClass(1);  // Skip this method (getCallingClass())
   }
 
-  public static Class getCallingClass(int skip) {
+  public static Class<?> getCallingClass(int skip) {
     VM_StackBrowser b = new VM_StackBrowser();
     VM.disableGC();
     
@@ -175,7 +175,7 @@ public final class VMStackWalker {
    * </blockquote>
    */
   public static ClassLoader getCallingClassLoader() {
-    Class caller = getCallingClass(1); // skip getCallingClassLoader
+    Class<?> caller = getCallingClass(1); // skip getCallingClassLoader
     if (caller == null)
       return null;
     return caller.getClassLoader();

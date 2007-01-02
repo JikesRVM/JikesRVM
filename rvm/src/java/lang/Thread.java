@@ -10,6 +10,9 @@
  */
 package java.lang;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import com.ibm.jikesrvm.VM;     // for VM.sysWrite()
 import com.ibm.jikesrvm.VM_ObjectModel;
 import com.ibm.jikesrvm.VM_Thread;
@@ -45,7 +48,7 @@ public class Thread implements Runnable {
     
   private volatile boolean isInterrupted;
 
-  java.util.WeakHashMap locals = new java.util.WeakHashMap();
+  WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
   
   // Special constructor to create thread that has no parent.
   // Only for use by MainThread() constructor.
@@ -434,7 +437,7 @@ public class Thread implements Runnable {
     return VM_ObjectModel.holdsLock(obj, VM_Thread.getCurrentThread());
   }
 
-  static java.util.Map getThreadLocals() {
+  static Map<?,?> getThreadLocals() {
     return currentThread().locals;
   }
 

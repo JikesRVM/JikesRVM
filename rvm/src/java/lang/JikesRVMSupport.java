@@ -30,29 +30,29 @@ public class JikesRVMSupport {
     VMClassLoader.setInstrumenter(instrumenter);
   }
 
-  public static Class[] getAllLoadedClasses() {
+  public static Class<?>[] getAllLoadedClasses() {
     return VMClassLoader.getAllLoadedClasses();
   }
 
-  public static Class[] getInitiatedClasses(ClassLoader classLoader) {
+  public static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
     return VMClassLoader.getInitiatedClasses(classLoader);
   }
 
-  public static Class createClass(VM_Type type) {
+  public static Class<?> createClass(VM_Type type) {
     return Class.create(type);
   }
 
-  public static Class createClass(VM_Type type, ProtectionDomain pd) {
-    Class c = Class.create(type);
+  public static Class<?> createClass(VM_Type type, ProtectionDomain pd) {
+    Class<?> c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
   }
 
-  public static VM_Type getTypeForClass(Class c) {
+  public static VM_Type getTypeForClass(Class<?> c) {
     return c.type;
   }
 
-  public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
+  public static void setClassProtectionDomain(Class<?> c, ProtectionDomain pd) {
     c.pd = pd;
   }
 

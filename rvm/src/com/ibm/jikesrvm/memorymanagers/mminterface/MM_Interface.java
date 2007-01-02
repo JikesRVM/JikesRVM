@@ -515,13 +515,13 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  public static Object allocateScalar(int size, Object [] tib, int allocator,
+  public static <T> T allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset, int site) { 
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
 				       align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = VM_ObjectModel.initializeScalar(region, tib, size);
+    T result = (T)VM_ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), 
                    ObjectReference.fromObject(tib), size, allocator);
     return result;

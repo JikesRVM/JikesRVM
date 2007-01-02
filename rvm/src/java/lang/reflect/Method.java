@@ -54,11 +54,11 @@ public final class Method extends AccessibleObject implements Member {
     }
   }
 
-  public Class getDeclaringClass() {
+  public Class<?> getDeclaringClass() {
     return method.getDeclaringClass().getClassForType();
   }
 
-  public Class[] getExceptionTypes() {
+  public Class<?>[] getExceptionTypes() {
     VM_TypeReference[] exceptionTypes = method.getExceptionTypes();
     if (exceptionTypes == null) {
       return new Class[0];
@@ -75,7 +75,7 @@ public final class Method extends AccessibleObject implements Member {
     return method.getName().toString();
   }
 
-  public Class[] getParameterTypes() {
+  public Class<?>[] getParameterTypes() {
     return JikesRVMSupport.typesToClasses(method.getParameterTypes());
   }
 
@@ -83,7 +83,7 @@ public final class Method extends AccessibleObject implements Member {
     return method.isSynthetic();
   }
 
-  public Class getReturnType() {
+  public Class<?> getReturnType() {
     return method.getReturnType().resolve().getClassForType();
   }
 
@@ -159,7 +159,7 @@ public final class Method extends AccessibleObject implements Member {
     sb.append(ClassHelper.getUserName(getReturnType())).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');
     sb.append(getName()).append('(');
-    Class[] c = getParameterTypes();
+    Class<?>[] c = getParameterTypes();
     if (c.length > 0)
       {
         sb.append(ClassHelper.getUserName(c[0]));
@@ -183,13 +183,13 @@ public final class Method extends AccessibleObject implements Member {
     return method.getDeclaredAnnotations();
   }
 
-  public Annotation getAnnotation(Class annotationClass) {
+  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     return method.getAnnotation(annotationClass);
   }
 
   // Generics support
 
-  public TypeVariable[] getTypeParameters() {
+  public TypeVariable<?>[] getTypeParameters() {
     VM_Atom sig = method.getSignature();
     if (sig == null)
       return new TypeVariable[0];

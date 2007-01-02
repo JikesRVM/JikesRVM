@@ -306,7 +306,7 @@ public class VM_Runtime implements VM_Constants {
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  public static Object resolvedNewScalar(VM_Class cls) {
+  public static <T> T resolvedNewScalar(VM_Class cls) {
     
     int allocator = MM_Interface.pickAllocator(cls);
     int site = MM_Interface.getAllocationSite(false);
@@ -334,7 +334,7 @@ public class VM_Runtime implements VM_Constants {
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  public static Object resolvedNewScalar(int size, 
+  public static <T> T resolvedNewScalar(int size, 
                                          Object[] tib, 
                                          boolean hasFinalizer, 
                                          int allocator,
@@ -353,7 +353,7 @@ public class VM_Runtime implements VM_Constants {
     }
 
     // Allocate the object and initialize its header
-    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
+    T newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
 
     // Deal with finalization
     if (hasFinalizer) MM_Interface.addFinalizer(newObj);

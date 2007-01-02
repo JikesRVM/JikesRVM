@@ -148,7 +148,7 @@ final class VMSystem {
     return new String(buf, 0, len);
   }
 
-  static List environ() {
+  static List<?> environ() {
     throw new VM_UnimplementedError();
   }
 }

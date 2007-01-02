@@ -48,55 +48,55 @@ import com.ibm.jikesrvm.util.VM_HashMap;
 final class VMClassLoader
 {
   /**
-	* A map of maps. The first map is indexed by the classloader. The
-	* map this finds then maps String class names to classes
-	*/
+   * A map of maps. The first map is indexed by the classloader. The
+   * map this finds then maps String class names to classes
+   */
   private static final VM_HashMap loadedClasses = new VM_HashMap();
 
   /** packages loaded by the bootstrap class loader */
   private static final VM_HashMap definedPackages = new VM_HashMap();
 
   private static final VM_HashMap bootjars = new VM_HashMap();
-    
+
   static
   {
     String[] packages = getBootPackages();
-    
-    if( packages != null)
-      {
-        String specName = 
-              SystemProperties.getProperty("java.specification.name");
-        String vendor =
-              SystemProperties.getProperty("java.specification.vendor");
-        String version =
-              SystemProperties.getProperty("java.specification.version");
-        
-        Package p;
-              
-        for(int i = 0; i < packages.length; i++)
-          {
-            p = new Package(packages[i],
-                  specName,
-                  vendor,
-                  version,
-                  "GNU Classpath",
-                  "GNU",
-                  Configuration.CLASSPATH_VERSION,
-                  null,
-                  null);
 
-            definedPackages.put(packages[i], p);
-          }
+    if( packages != null)
+    {
+      String specName = 
+        SystemProperties.getProperty("java.specification.name");
+      String vendor =
+        SystemProperties.getProperty("java.specification.vendor");
+      String version =
+        SystemProperties.getProperty("java.specification.version");
+
+      Package p;
+
+      for(int i = 0; i < packages.length; i++)
+      {
+        p = new Package(packages[i],
+            specName,
+            vendor,
+            version,
+            "GNU Classpath",
+            "GNU",
+            Configuration.CLASSPATH_VERSION,
+            null,
+            null);
+
+        definedPackages.put(packages[i], p);
       }
+    }
   }
-  
-  static final Class defineClass(ClassLoader cl, String name,
-                                 byte[] data, int offset, int len,
-                                 ProtectionDomain pd)
-    throws ClassFormatError
-  {
+
+  static final Class<?> defineClass(ClassLoader cl, String name,
+      byte[] data, int offset, int len,
+      ProtectionDomain pd)
+      throws ClassFormatError
+      {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
-    Class ans = vmType.getClassForType();
+    Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
     if (mapForCL == null) {
@@ -105,87 +105,87 @@ final class VMClassLoader
     }
     mapForCL.put(name, ans);
     return ans;
-  }
+      }
 
-  static final void resolveClass(Class c) {
+  static final void resolveClass(Class<?> c) {
     VM_Type cls = JikesRVMSupport.getTypeForClass(c);
     cls.resolve();
     cls.instantiate();
     cls.initialize();
   }
 
-  static final Class loadClass(String name, boolean resolve)
-    throws ClassNotFoundException
+  static final Class<?> loadClass(String name, boolean resolve)
+  throws ClassNotFoundException
   {
     return VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
   }
 
   static URL getResource(String name)
   {
-    Enumeration e = getResources(name);
+    Enumeration<URL> e = getResources(name);
     if (e.hasMoreElements())
       return (URL)e.nextElement();
     return null;
   }
-  
-  static Enumeration getResources(String name)
+
+  static Enumeration<URL> getResources(String name)
   {
     StringTokenizer st = new StringTokenizer(
-      SystemProperties.getProperty("java.boot.class.path", "."),
-      File.pathSeparator);
-    Vector v = new Vector();
+        SystemProperties.getProperty("java.boot.class.path", "."),
+        File.pathSeparator);
+    Vector<URL> v = new Vector<URL>();
     while (st.hasMoreTokens())
+    {
+      File file = new File(st.nextToken());
+      if (file.isDirectory())
       {
-	File file = new File(st.nextToken());
-	if (file.isDirectory())
-	  {
-	    try
-	      {
-                File f = new File(file, name);
-                if (!f.exists()) continue;
-                v.add(new URL("file://" + f.getAbsolutePath()));
-	      }
-	    catch (MalformedURLException e)
-	      {
-		throw new Error(e);
-	      }
-	  }
-	else if (file.isFile())
-	  {
-	    ZipFile zip;
-            synchronized(bootjars)
-              {
-                zip = (ZipFile) bootjars.get(file.getName());
-              }
-            if(zip == null)
-              {
-                try
-	          {
-                    zip = new ZipFile(file);
-                    synchronized(bootjars)
-                      {
-                        bootjars.put(file.getName(), zip);
-                      }
-	          }
-	        catch (IOException e)
-	          {
-		    continue;
-	          }
-              }
-	    String zname = name.startsWith("/") ? name.substring(1) : name;
-	    if (zip.getEntry(zname) == null)
-	      continue;
-	    try
-	      {
-		v.add(new URL("jar:file://"
-		  + file.getAbsolutePath() + "!/" + zname));
-	      }
-	    catch (MalformedURLException e)
-	      {
-		throw new Error(e);
-	      }
-	  }
+        try
+        {
+          File f = new File(file, name);
+          if (!f.exists()) continue;
+          v.add(new URL("file://" + f.getAbsolutePath()));
+        }
+        catch (MalformedURLException e)
+        {
+          throw new Error(e);
+        }
       }
+      else if (file.isFile())
+      {
+        ZipFile zip;
+        synchronized(bootjars)
+        {
+          zip = (ZipFile) bootjars.get(file.getName());
+        }
+        if(zip == null)
+        {
+          try
+          {
+            zip = new ZipFile(file);
+            synchronized(bootjars)
+            {
+              bootjars.put(file.getName(), zip);
+            }
+          }
+          catch (IOException e)
+          {
+            continue;
+          }
+        }
+        String zname = name.startsWith("/") ? name.substring(1) : name;
+        if (zip.getEntry(zname) == null)
+          continue;
+        try
+        {
+          v.add(new URL("jar:file://"
+              + file.getAbsolutePath() + "!/" + zname));
+        }
+        catch (MalformedURLException e)
+        {
+          throw new Error(e);
+        }
+      }
+    }
     return v.elements();
   }
 
@@ -193,7 +193,7 @@ final class VMClassLoader
     URL indexList = getResource("META-INF/INDEX.LIST");
     if (indexList != null) {
       try {
-        Set packageSet = new HashSet();
+        Set<String> packageSet = new HashSet<String>();
         String line;
         int lineToSkip = 3;
         BufferedReader reader = new BufferedReader(new InputStreamReader(indexList.openStream()));
@@ -222,10 +222,12 @@ final class VMClassLoader
   static Package getPackage(String name) {
     return (Package)definedPackages.get(name);
   }
-  
+
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
-    Iterator it = definedPackages.valueIterator();
+    
+    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
+    Iterator<Package> it = definedPackages.valueIterator();
     int idx = 0;
     while (it.hasNext()) {
       packages[idx++] = (Package)it.next();
@@ -233,7 +235,7 @@ final class VMClassLoader
     return packages;
   }
 
-  static final Class getPrimitiveClass(char type) {
+  static final Class<?> getPrimitiveClass(char type) {
     VM_Type t;
     switch (type) {
     case 'Z': 
@@ -273,11 +275,13 @@ final class VMClassLoader
     return true;
   }
 
-  static final Map packageAssertionStatus() {
+  @SuppressWarnings({"unchecked","unused"}) // TODO should this method be deleted ?
+  private static final Map packageAssertionStatus() {
     return new HashMap();
   }
 
-  static final Map classAssertionStatus() {
+  @SuppressWarnings({"unchecked","unused"}) // TODO should this method be deleted ?
+  private static final Map classAssertionStatus() {
     return new HashMap();
   }
 
@@ -285,34 +289,37 @@ final class VMClassLoader
     return VM_ClassLoader.getApplicationClassLoader();
   }
 
-  static Class[] getAllLoadedClasses() {
-    Vector classList = new Vector();
-    Iterator classLoaderMaps = loadedClasses.valueIterator();
+  static Class<?>[] getAllLoadedClasses() {
+    Vector<Class<?>> classList = new Vector<Class<?>>();
+    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
+    Iterator<VM_HashMap> classLoaderMaps = loadedClasses.valueIterator();
     while (classLoaderMaps.hasNext()) {
       VM_HashMap classes = (VM_HashMap)classLoaderMaps.next();
-      Iterator classIterator = classes.valueIterator();
+      @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
+      Iterator<Class<?>> classIterator = classes.valueIterator();
       while (classIterator.hasNext())
         classList.add(classIterator.next());
     }
-    Class[] result = new Class[classList.size()];
+    Class<?>[] result = new Class[classList.size()];
     return (Class[])classList.toArray(result);
   }
 
-  static Class[] getInitiatedClasses(ClassLoader classLoader) {
+  static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(classLoader);
     if (mapForCL == null) return new Class[]{};
-    Vector classList = new Vector();
-    Iterator classIterator = mapForCL.valueIterator();
+    Vector<Class<?>> classList = new Vector<Class<?>>();
+    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
+    Iterator<Class<?>> classIterator = mapForCL.valueIterator();
     while (classIterator.hasNext())
       classList.add(classIterator.next());
-    Class[] result = new Class[classList.size()];
+    Class<?>[] result = new Class[classList.size()];
     return (Class[])classList.toArray(result);
   }
 
-  static Class findLoadedClass(ClassLoader cl, String name) {
+  static Class<?> findLoadedClass(ClassLoader cl, String name) {
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
     if (mapForCL == null) return null;
-    return (Class)mapForCL.get(name);
+    return (Class<?>)mapForCL.get(name);
   }
 
   private static Instrumentation instrumenter = null;
@@ -321,16 +328,16 @@ final class VMClassLoader
     instrumenter = theInstrumenter;
   }
 
-  static final Class defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
-                                                 int offset, int len, ProtectionDomain pd) {
-    
+  static final Class<?> defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
+      int offset, int len, ProtectionDomain pd) {
+
     if (instrumenter != null) {
       byte[] modifiedData = new byte[len];
       System.arraycopy(data, offset, modifiedData, 0, len);
       String jvmName = name.replace('.', '/');
       modifiedData =
         ((InstrumentationImpl)instrumenter).callTransformers(loader, jvmName, null, pd, modifiedData);
-        
+
       return defineClass(loader, name, modifiedData, 0, modifiedData.length, pd);
     } else {
       return defineClass(loader, name, data, offset, len, pd);

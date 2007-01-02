@@ -147,19 +147,19 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**
    * Get the annotation implementing the specified class or null
    */
-  public Annotation getAnnotation(Class annotationClass) {
+  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
     if (runtimeVisibleAnnotations != null) {       
       for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
          if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
-            return runtimeVisibleAnnotations[i].getValue();
+            return (T)runtimeVisibleAnnotations[i].getValue();
          }
       }
     }
     if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
       for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
          if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
-            return runtimeInvisibleAnnotations[i].getValue();
+            return (T)runtimeInvisibleAnnotations[i].getValue();
          }
       }
     }

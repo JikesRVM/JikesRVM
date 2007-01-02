@@ -83,12 +83,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return true; // TODO: assertion status support isn't yet present
   }
   
-  public static Class forName(String typeName) throws ClassNotFoundException {
+  public static Class<?> forName(String typeName) throws ClassNotFoundException {
     ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
   }
 
-  public static Class forName(String className, 
+  public static Class<?> forName(String className, 
                               boolean initialize, 
                               ClassLoader classLoader) 
     throws ClassNotFoundException,
@@ -114,14 +114,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return forNameInternal(className, initialize, classLoader);
   }
 
-  public Class[] getClasses() 
+  public Class<?>[] getClasses() 
     throws SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Class[0];
     
-    ArrayList<Class> publicClasses = new ArrayList<Class>();
-    for (Class c = this; c != null; c = c.getSuperclass()) {
+    ArrayList<Class<?>> publicClasses = new ArrayList<Class<?>>();
+    for (Class<?> c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
       VM_TypeReference[] declaredClasses 
         = c.type.asClass().getDeclaredClasses();
@@ -136,7 +136,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
         }
       }
     }
-    Class result[] = new Class[publicClasses.size()];
+    Class<?> result[] = new Class[publicClasses.size()];
     result = publicClasses.toArray(result);
     return result;
   }
@@ -153,13 +153,13 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return cl == VM_BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
   }
 
-  public Class getComponentType() {
+  public Class<?> getComponentType() {
     return type.isArrayType() 
       ? type.asArray().getElementType().getClassForType() 
       : null;
   }
 
-  public Constructor<T> getConstructor(Class parameterTypes[]) 
+  public Constructor<T> getConstructor(Class<?> parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
@@ -177,7 +177,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throw new NoSuchMethodException("<init> " + parameterTypes );
   }                                                                                            
 
-  public Constructor[] getConstructors() 
+  public Constructor<?>[] getConstructors() 
     throws SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
@@ -194,7 +194,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return coll.constructorArray();
   }
 
-  public Class[] getDeclaredClasses() 
+  public Class<?>[] getDeclaredClasses() 
     throws SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
@@ -219,7 +219,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
 
     // Now build actual result array.
-    Class[] result = new Class[count];
+    Class<?>[] result = new Class[count];
     count = 0;
     for (int i = 0; i < length; ++i) {
       if (declaredClasses[i] != null) {
@@ -230,7 +230,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return result;
   }
 
-  public Constructor<T> getDeclaredConstructor(Class parameterTypes[]) 
+  public Constructor<T> getDeclaredConstructor(Class<?> parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
@@ -247,12 +247,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throw new NoSuchMethodException("<init> " + parameterTypes );
   }
 
-  public Constructor[] getDeclaredConstructors() throws SecurityException {
+  public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Constructor[0];
 
     VM_Method methods[] = type.asClass().getConstructorMethods();
-    Constructor[] ans = new Constructor[methods.length];
+    Constructor<?>[] ans = new Constructor[methods.length];
     for (int i = 0; i<methods.length; i++) {
       ans[i] = JikesRVMSupport.createConstructor(methods[i]);
     }
@@ -290,7 +290,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return ans;
   }
 
-  public Method getDeclaredMethod(String name, Class parameterTypes[]) 
+  public Method getDeclaredMethod(String name, Class<?> parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
@@ -346,7 +346,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return coll.methodArray();
   }
 
-  public Class getDeclaringClass() {
+  public Class<?> getDeclaringClass() {
     if (!type.isClassType()) return null;
     VM_TypeReference dc = type.asClass().getDeclaringClass();
     if (dc == null) return null;
@@ -391,14 +391,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return coll.fieldArray();
   }
 
-  public Class[] getInterfaces () {
+  public Class<?>[] getInterfaces () {
     if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
       return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
                            VM_Type.JavaIoSerializableType.getClassForType() };
     } else if (type.isClassType()) {
       VM_Class[] interfaces  = type.asClass().getDeclaredInterfaces();
-      Class[]    jinterfaces = new Class[interfaces.length];
+      Class<?>[]    jinterfaces = new Class[interfaces.length];
       for (int i = 0; i != interfaces.length; i++)
         jinterfaces[i] = interfaces[i].getClassForType();
       return jinterfaces;
@@ -407,7 +407,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Method getMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
+  public Method getMethod(String name, Class<?> parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
     if (!type.isClassType()) throw new NoSuchMethodException(name + parameterTypes);
@@ -546,7 +546,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Class getSuperclass () {
+  public Class<?> getSuperclass () {
     if (type.isArrayType()) {
       return VM_Type.JavaLangObjectType.getClassForType();
     } else if (type.isClassType()) {
@@ -563,7 +563,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return type.isArrayType();
   }
 
-  public boolean isAssignableFrom(Class cls) {
+  public boolean isAssignableFrom(Class<?> cls) {
     return type == cls.type || VM_Runtime.isAssignableWith(type, cls.type);
   }
 
@@ -632,7 +632,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
 
     // Allocate an uninitialized instance;
-    T obj = (T)VM_Runtime.resolvedNewScalar(cls);
+    T obj = VM_Runtime.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
     VM_Reflection.invoke(defaultConstructor, obj, null);
@@ -658,8 +658,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   /**
    * Create a java.lang.Class corresponding to a given VM_Type
    */
-  static Class create(VM_Type type) {
-    Class c = new Class();
+  static <T> Class<T> create(VM_Type type) {
+    Class<T> c = new Class<T>();
     c.type = type;
     return c;
   }
@@ -668,7 +668,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     this.signers = signers;
   }
    
-  private static Class forNameInternal(String className, 
+  private static Class<?> forNameInternal(String className, 
                                        boolean initialize, 
                                        ClassLoader classLoader)
     throws ClassNotFoundException,
@@ -796,7 +796,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   /**
    * Compare parameter lists for agreement.
    */ 
-  private boolean parametersMatch(VM_TypeReference[] lhs, Class[] rhs) {
+  private boolean parametersMatch(VM_TypeReference[] lhs, Class<?>[] rhs) {
     if (rhs == null) return lhs.length == 0;
     if (lhs.length != rhs.length) return false;
 
@@ -836,8 +836,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return ans;
     }
 
-    Constructor[] constructorArray() {
-      Constructor[] ans = new Constructor[n];
+    Constructor<?>[] constructorArray() {
+      Constructor<?>[] ans = new Constructor[n];
       System.arraycopy(coll, 0, ans, 0, n);
       return ans;
     }
@@ -880,11 +880,13 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return type.getAnnotations();
   }
 
-  public Annotation getAnnotation(Class annotationClass) {
+  //@Override
+  public <U extends Annotation> U getAnnotation(Class<U> annotationClass) {
     return type.getAnnotation(annotationClass);
   }
 
-  public boolean isAnnotationPresent(Class annotationClass) {
+  //@Override
+  public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return type.isAnnotationPresent(annotationClass);
   }
 
@@ -937,7 +939,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       }
   }
   
-  public TypeVariable<Class<T>>[] getTypeParameters() {
+  public TypeVariable<?>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
     }
@@ -980,7 +982,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return getName();
   }
 
-  public Class getEnclosingClass() {
+  public Class<?> getEnclosingClass() {
     if (type.isClassType()) {
       VM_TypeReference enclosingClass = type.asClass().getEnclosingClass();
       if(enclosingClass != null) {
@@ -995,7 +997,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Constructor getEnclosingConstructor() {
+  public Constructor<? super T> getEnclosingConstructor() {
     throw new VM_UnimplementedError();
   }
 

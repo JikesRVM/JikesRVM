@@ -37,7 +37,7 @@ public class Object {
   protected void finalize () throws Throwable {
   }
 
-  public final Class getClass() {
+  public final Class<?> getClass() {
     return VM_ObjectModel.getObjectType(this).getClassForType();
   }
     
