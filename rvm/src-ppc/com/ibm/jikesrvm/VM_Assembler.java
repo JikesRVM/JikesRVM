@@ -39,16 +39,16 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @modified Dave Grove
  * @modified Kris Venstermans
- * @modified Daniel Frampton
+ * @modified Daniel Frampton 
  */
-public abstract class VM_Assembler implements VM_BaselineConstants,
+public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_BaselineConstants,
                                     VM_AssemblerConstants {
 
 
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
   private boolean shouldPrint;
-  private VM_Compiler compiler; // VM_Baseline compiler instance for this assembler.  May be null.
+  VM_Compiler compiler; // VM_Baseline compiler instance for this assembler.  May be null.
 
   public VM_Assembler (int length) {
     this(length, false);
@@ -328,7 +328,7 @@ public abstract class VM_Assembler implements VM_BaselineConstants,
   public final VM_ForwardReference emitForwardB() {
     VM_ForwardReference fr;
     if (compiler != null) {
-      fr = new ShortBranch(mIP, compiler.spTopOffset);
+      fr = new VM_AssemblerShortBranch(mIP, compiler.spTopOffset);
     } else {
       fr = new VM_ForwardReference.ShortBranch(mIP);
     }
@@ -367,7 +367,7 @@ public abstract class VM_Assembler implements VM_BaselineConstants,
   public final VM_ForwardReference emitForwardBL() {
     VM_ForwardReference fr;
     if (compiler != null) { 
-      fr = new ShortBranch(mIP, compiler.spTopOffset);
+      fr = new VM_AssemblerShortBranch(mIP, compiler.spTopOffset);
     } else {
       fr = new VM_ForwardReference.ShortBranch(mIP);
     }
@@ -428,7 +428,7 @@ public abstract class VM_Assembler implements VM_BaselineConstants,
   public final VM_ForwardReference emitForwardBC(int cc) {
     VM_ForwardReference fr;
     if (compiler != null) {
-      fr = new ShortBranch(mIP, compiler.spTopOffset);
+      fr = new VM_AssemblerShortBranch(mIP, compiler.spTopOffset);
     } else {
       fr = new VM_ForwardReference.ShortBranch(mIP);
     }
@@ -2272,21 +2272,6 @@ public abstract class VM_Assembler implements VM_BaselineConstants,
     emitTAddrWI ( 1 );                                    // trap if new frame pointer below guard page
     fr2.resolve((ArchitectureSpecific.VM_Assembler) this);
     fr3.resolve((ArchitectureSpecific.VM_Assembler) this);
-  }
-
-  private static class ShortBranch extends VM_ForwardReference.ShortBranch {
-    final int spTopOffset;
-    
-    ShortBranch (int source, int sp) {
-      super(source);
-      spTopOffset = sp;
-    }
-    public void resolve (VM_Assembler asm) {
-      super.resolve((ArchitectureSpecific.VM_Assembler) asm);
-      if (asm.compiler != null) {
-        asm.compiler.spTopOffset = spTopOffset;
-      }
-    }
   }
 
   public static int getTargetOffset(int instr) {

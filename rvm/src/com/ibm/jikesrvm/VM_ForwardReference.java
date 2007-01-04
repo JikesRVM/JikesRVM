@@ -9,8 +9,6 @@
 // $Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
-
 /** 
  *  
  *  A forward reference has a machine-code-index source and optionally
@@ -61,7 +59,7 @@ public abstract class VM_ForwardReference {
 
   // rewrite source to reference current machine code (in asm's machineCodes)
   //
-  public abstract void resolve (VM_Assembler asm);
+  public abstract void resolve (VM_AbstractAssembler asm);
 
   // add a new reference r to a priority queue q
   // return the updated queue
@@ -106,7 +104,7 @@ public abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    public void resolve (VM_Assembler asm) {
+    public void resolve (VM_AbstractAssembler asm) {
       asm.patchUnconditionalBranch(sourceMachinecodeIndex);
     }
 
@@ -118,7 +116,7 @@ public abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    public void resolve (VM_Assembler asm) {
+    public void resolve (VM_AbstractAssembler asm) {
       asm.patchConditionalBranch(sourceMachinecodeIndex);
     }
 
@@ -134,7 +132,7 @@ public abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    public void resolve (VM_Assembler asm) {
+    public void resolve (VM_AbstractAssembler asm) {
       asm.patchShortBranch(sourceMachinecodeIndex);
     }
 
@@ -146,7 +144,7 @@ public abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    public void resolve (VM_Assembler asm) {
+    public void resolve (VM_AbstractAssembler asm) {
       asm.patchSwitchCase(sourceMachinecodeIndex);
     }
 

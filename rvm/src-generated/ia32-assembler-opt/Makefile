@@ -28,7 +28,7 @@ OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.java
 VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.class
 
-FAKES =	ArchitectureSpecific.fake VM_CodeArray.fake VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_Compiler.fake
+FAKES =	ArchitectureSpecific.fake VM_CodeArray.fake VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_Compiler.fake VM_AbstractAssembler.fake
 FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES)) NoInline.java Offset.java Word.java 
 FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/jikesrvm/%.java,$(FAKES)) \
            $(SCRATCH_DIR)/org/vmmagic/pragma/NoInline.java \

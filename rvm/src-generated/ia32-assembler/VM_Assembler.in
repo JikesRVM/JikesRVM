@@ -177,7 +177,7 @@ import org.vmmagic.unboxed.*;
  * @author Julian Dolby
  * @author Bowen Alpern 
 */
-public abstract class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
+public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	
   /**
    * The lister object is used to print generated machine code.
