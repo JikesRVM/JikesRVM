@@ -861,7 +861,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp, int &trouble)
 
     // look for "package [c.]*;"
     //
-    if (strneql(p, "package ", 8)) {
+    if (strneql(p, "package ", 8) && PassLines) {
         if (PutIntoPackage)
             fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
         if (*package)
