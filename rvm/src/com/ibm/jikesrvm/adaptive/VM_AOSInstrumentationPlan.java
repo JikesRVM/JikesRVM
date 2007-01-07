@@ -22,7 +22,11 @@ import com.ibm.jikesrvm.classloader.VM_NormalMethod;
  * @author Matthew Arnold
  */
 public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
-  /** The method that this plan is for */
+  /** 
+   * The method that this plan is for 
+   * 
+   * FIXME: This is unused - can it be deleted ?
+   */
   private final VM_NormalMethod method;
 
   /**

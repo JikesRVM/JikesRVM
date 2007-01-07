@@ -175,7 +175,8 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
  /** 
   *  Map strings to a counter location
   */
-  protected final Hashtable stringToCounterMap = new Hashtable();
+  protected final Hashtable<String,Integer> stringToCounterMap = 
+    new Hashtable<String,Integer>();
 
   /**
    * A string description of this data;

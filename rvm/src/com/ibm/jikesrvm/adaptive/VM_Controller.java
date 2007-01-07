@@ -82,7 +82,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   /**
    * Threads that will organize profile data as directed by the controller
    */
-  public static Vector organizers = new Vector();
+  public static Vector<VM_Organizer> organizers = new Vector<VM_Organizer>();
 
 
   /**

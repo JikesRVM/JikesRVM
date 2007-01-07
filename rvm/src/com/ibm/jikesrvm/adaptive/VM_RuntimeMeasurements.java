@@ -320,7 +320,7 @@ public abstract class VM_RuntimeMeasurements {
   /**
    * The currently registered decayable objects
    */
-  static Vector decayObjects = new Vector();
+  static Vector<VM_Decayable> decayObjects = new Vector<VM_Decayable>();
 
   /**
    * Counts the number of decay events
@@ -356,7 +356,7 @@ public abstract class VM_RuntimeMeasurements {
   /**
    * The currently registered reportable objects
    */
-  static Vector reportObjects = new Vector();
+  static Vector<VM_Reportable> reportObjects = new Vector<VM_Reportable>();
 
   /** 
    * Register an object that wants to have its report method called

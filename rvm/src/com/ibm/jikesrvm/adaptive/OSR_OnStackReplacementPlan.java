@@ -34,6 +34,10 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private Offset tsFromFPoff;
   private Offset ypTakenFPoff;
 
+  /* Status is write-only at the moment, but I suspect it comes in
+   * handy for debugging -- RJG
+   */
+  @SuppressWarnings("unused")
   private byte status;
   
   private VM_Thread suspendedThread;
@@ -84,7 +88,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     
     {
       // we will reuse the compilation plan before
-      long start = cpThread.accumulateCycles();
+      cpThread.accumulateCycles();
       
       OSR_ExecStateExtractor extractor = null;
 
@@ -119,8 +123,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       // compile from callee to caller 
       VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state,invalidate);
       
-      long end = cpThread.accumulateCycles();
-      double compileTime = VM_Time.cyclesToMillis(end - start);
+      cpThread.accumulateCycles();
      
       setTimeCompleted(VM_Controller.controllerClock);
 

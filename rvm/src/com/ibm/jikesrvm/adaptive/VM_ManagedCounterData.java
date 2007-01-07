@@ -205,7 +205,7 @@ public class VM_ManagedCounterData {
     */
    final void report(VM_CounterNameFunction f) {
     double sum = 0;
-    Vector vec = new Vector();
+    Vector<Counter> vec = new Vector<Counter>();
 
     // set up a vector of non-zero counts
     for (int i=0; i < getNumCounters(); i++) {
@@ -236,7 +236,7 @@ public class VM_ManagedCounterData {
    * Shell sort
    * Reference: "The C Programming Language", Kernighan & Ritchie, p. 116
    */
-  private void sort(Vector v) {
+  private void sort(Vector<?> v) {
      int n = v.size();
      for (int gap = n/2; gap > 0; gap /= 2) {
        for (int i = gap; i<n; ++i) {
@@ -251,8 +251,8 @@ public class VM_ManagedCounterData {
   }
   
   // Interchange vec[i] with vec[j]
-  private void swap (Vector vec, int i, int j) {
-     Object t = vec.elementAt(i);
+  private <T> void swap (Vector<T> vec, int i, int j) {
+     T t = vec.elementAt(i);
      vec.setElementAt(vec.elementAt(j),i);
      vec.setElementAt(t,j);
   }

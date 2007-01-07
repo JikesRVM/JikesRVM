@@ -55,6 +55,7 @@ import org.vmmagic.pragma.*;
   public final void reset() { }
 
   private int yieldThreshold;
+  @SuppressWarnings("unused")  // Accessed via VM_EntryPoints
   private int numYields = 0;
   private int totalYields = 0;
 }

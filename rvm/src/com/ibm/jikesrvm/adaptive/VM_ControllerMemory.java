@@ -106,11 +106,11 @@ public final class VM_ControllerMemory implements VM_Constants {
     }
 
     // first check to see if there is a plan list for this method
-    LinkedList planList = findPlan(plan.getCompPlan().method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(plan.getCompPlan().method);
 
     if (planList == null) {
       // create a plan list, with the single element being this plan
-      planList = new LinkedList();
+      planList = new LinkedList<VM_ControllerPlan>();
 
       // no synch needed here because the planList is not in the table yet
       planList.addLast(plan);
@@ -135,8 +135,9 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
-  private static synchronized LinkedList findPlan(VM_Method method) {
-    return (LinkedList)table.get(method);
+  @SuppressWarnings("unchecked") // until VM_HashMap becomes generic
+  private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
+    return (LinkedList<VM_ControllerPlan>)table.get(method);
   }
 
   /**

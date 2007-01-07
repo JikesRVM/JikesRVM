@@ -15,6 +15,7 @@ import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_CompiledMethods;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A container for recording how often a method is executed.
@@ -235,7 +236,8 @@ public final class VM_MethodCountData implements VM_Reportable {
   public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
                                                                 double threshold) {
     if (DEBUG) validityCheck();
-    ArrayList collect = new ArrayList();
+    ArrayList<VM_HotMethodRecompilationEvent> collect = 
+      new ArrayList<VM_HotMethodRecompilationEvent>();
     collectHotOptMethodsInternal(1, collect, hotnessToCounts(threshold), optLevel);
 
     // now package the data into the form the caller expects.
@@ -327,7 +329,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param optLevel target opt level to look for.
    */
   private void collectHotOptMethodsInternal(int index, 
-                                            ArrayList collect, 
+                                            List<VM_HotMethodRecompilationEvent> collect, 
                                             double threshold, 
                                             int optLevel) {
     if (index < nextIndex) {

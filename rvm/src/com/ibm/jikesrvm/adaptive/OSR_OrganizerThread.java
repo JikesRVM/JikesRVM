@@ -74,6 +74,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   }
 
   // lock = 0, free , 1 owned by someone
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private int queueLock = 0;
   private VM_ThreadQueue tq = new VM_ThreadQueue();
   private void passivate() {
