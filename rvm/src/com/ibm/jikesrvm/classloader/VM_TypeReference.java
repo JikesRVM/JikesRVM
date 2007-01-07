@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.*;
 import org.vmmagic.pragma.*;
 import com.ibm.jikesrvm.util.VM_HashMap;
 import static com.ibm.jikesrvm.VM_SizeConstants.*;

@@ -384,8 +384,9 @@ public final class VM_Annotation {
      *
      * @return Class object of interface annotation object implements
      */
+    @SuppressWarnings("unchecked") // We intentionally break type-safety
     public Class<? extends Annotation> annotationType() {
-      return vmAnnotation.annotationType().resolve().getClassForType();
+      return (Class<? extends Annotation>)vmAnnotation.annotationType().resolve().getClassForType();
     }
     /**
      * Are two annotations logically equivalent?

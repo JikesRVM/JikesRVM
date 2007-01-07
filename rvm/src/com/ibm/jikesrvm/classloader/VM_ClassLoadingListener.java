@@ -9,8 +9,6 @@
 // $Id$
 package com.ibm.jikesrvm.classloader;
 
-import com.ibm.jikesrvm.*;
-
 /**
  * Interface for callbacks on classloading events. 
  * Just before a class is marked as INITIALIZED, VM_Class.initialize()

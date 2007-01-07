@@ -97,10 +97,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom
    */ 
   public static VM_Atom findOrCreateAsciiAtom(String str) {
-    int    len   = str.length();
-    byte[] ascii = new byte[len];
-    str.getBytes(0, len, ascii, 0);
-    return findOrCreate(ascii, true);
+    return findOrCreate(VM_StringUtilities.stringToBytes(str), true);
   }
    
   /**
@@ -110,10 +107,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom or null if it doesn't already exist
    */ 
   public static VM_Atom findAsciiAtom(String str) {
-    int    len   = str.length();
-    byte[] ascii = new byte[len];
-    str.getBytes(0, len, ascii, 0);
-    return findOrCreate(ascii, false);
+    return findOrCreate(VM_StringUtilities.stringToBytes(str), false);
   }
    
   /**
@@ -178,7 +172,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Does not correctly handle UTF8 translation.
    */ 
   public final String toString() {
-    return new String(val, 0);
+    return VM_StringUtilities.asciiBytesToString(val);
   }
 
   /** Get at a string-like representation without doing any heap allocation.
@@ -239,9 +233,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
     }
-    return new String(val, 0, 1, val.length - 2).replace('/','.'); 
+    return VM_StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/','.'); 
   }
-   
+
   /**
    * Return name of class file corresponding to "this" class descriptor.
    * this: class descriptor - something like "Ljava/lang/String;"
@@ -252,7 +246,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
     }
-    return new String(val, 0, 1, val.length - 2) + ".class";
+    return VM_StringUtilities.asciiBytesToString(val,1, val.length - 2) + ".class";
   }
 
   //----------------//
@@ -618,7 +612,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length-1] == ';', toString()); 
     }
-    return new String(val, 0, 1, val.length - 4).replace('/','.'); 
+    return VM_StringUtilities.asciiBytesToString(val,1,val.length-4).replace('/','.'); 
   }
   /**
    * Is this an annotation class name of the form Lfoo.bar$$;

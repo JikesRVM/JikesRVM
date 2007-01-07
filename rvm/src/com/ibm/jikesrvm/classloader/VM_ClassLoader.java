@@ -260,8 +260,8 @@ public class VM_ClassLoader implements VM_Constants,
     }
 
     // Drop class file version number on floor. VM_Class constructor will do the check later.
-    int minor = input.readUnsignedShort();
-    int major = input.readUnsignedShort();
+    input.readUnsignedShort(); // minor ID
+    input.readUnsignedShort(); // major ID
     
     //
     // pass 1: read constant pool

@@ -92,6 +92,12 @@ public final class VM_NormalMethod
   private static final int HAS_BACK_BRANCH= 0x00080000;
   private static final int IS_RS_METHOD   = 0x00040000;
   
+  static {
+    if (VM.VerifyAssertions) {
+      VM._assert((SIZE_MASK & FLAG_MASK) == 0);
+    }
+  }
+  
   /**
    * storage for bytecode summary
    */

@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.classloader;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.util.*;
 
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -68,7 +69,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   public static void boot(String bootstrapClasspath) {
     if (bootstrapClasspath != null)
       VM_BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
-    zipFileCache = new java.util.HashMap();
+    zipFileCache = new HashMap<String,ZipFile>();
     if (VM.runningVM) {
       try {
         /* Here, we have to replace the fields that aren't carried over from
@@ -131,7 +132,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
-  public synchronized Class loadClass(String className, boolean resolveClass)
+  public synchronized Class<?> loadClass(String className, boolean resolveClass)
     throws ClassNotFoundException {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);
@@ -156,7 +157,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
-  public Class findClass (String className) throws ClassNotFoundException {
+  public Class<?> findClass (String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
       VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
                                                                VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
@@ -211,19 +212,19 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   
   public String toString() { return myName; }
 
-  private static java.util.HashMap zipFileCache;
+  private static HashMap<String,ZipFile> zipFileCache;
     
-  private interface Handler {
+  private interface Handler<T> {
     void process(ZipFile zf, ZipEntry ze) throws Exception;
     void process(File f) throws Exception;
-    Object getResult();
+    T getResult();
   }
 
   public InputStream getResourceAsStream(final String name) {
-    Handler findStream = new Handler() {
+    Handler<InputStream> findStream = new Handler<InputStream>() {
         InputStream stream;
 
-        public Object getResult() { return stream; }
+        public InputStream getResult() { return stream; }
 
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
           stream = zf.getInputStream(ze);
@@ -234,14 +235,14 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         }
       };
 
-    return (InputStream)getResourceInternal(name, findStream, false);
+    return getResourceInternal(name, findStream, false);
   }
 
   public URL findResource(final String name) {
-    Handler findURL = new Handler() {
+    Handler<URL> findURL = new Handler<URL>() {
         URL url;
 
-        public Object getResult() { return url; }
+        public URL getResult() { return url; }
 
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
           url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name);
@@ -252,33 +253,33 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         }
       };
 
-    return (URL)getResourceInternal(name, findURL, false);
+    return getResourceInternal(name, findURL, false);
   }
 
-  public Enumeration findResources(final String name) {
-    Handler findURL = new Handler() {
-        Vector urls;
+  public Enumeration<URL> findResources(final String name) {
+    Handler<Enumeration<URL>> findURL = new Handler<Enumeration<URL>>() {
+      Vector<URL> urls;
 
-        public Object getResult() { 
-          if (urls == null) urls = new Vector();
-          return urls.elements(); 
-        }
-        
-        public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          if (urls == null) urls = new Vector();
-          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name));
-        }
+      public Enumeration<URL> getResult() { 
+        if (urls == null) urls = new Vector<URL>();
+        return urls.elements(); 
+      }
 
-        public void process(File file) throws Exception {
-          if (urls == null) urls = new Vector();
-          urls.addElement(new URL("file", null, -1, file.getName()));
-        }
-      };
+      public void process(ZipFile zf, ZipEntry ze) throws Exception {
+        if (urls == null) urls = new Vector<URL>();
+        urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name));
+      }
 
-    return (Enumeration)getResourceInternal(name, findURL, true);
+      public void process(File file) throws Exception {
+        if (urls == null) urls = new Vector<URL>();
+        urls.addElement(new URL("file", null, -1, file.getName()));
+      }
+    };
+
+    return getResourceInternal(name, findURL, true);
   }
 
-  private Object getResourceInternal(String name, Handler h, boolean multiple) {
+  private <T> T getResourceInternal(String name, Handler<T> h, boolean multiple) {
     if (name.startsWith(File.separator)) {
       name = name.substring(File.separator.length());
     }

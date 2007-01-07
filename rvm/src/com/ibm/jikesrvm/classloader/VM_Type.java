@@ -177,7 +177,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * instance of java.lang.Class corresponding to this type 
    */
-  private final Class classForType; 
+  private final Class<?> classForType; 
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
@@ -280,7 +280,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * Instance of java.lang.Class corresponding to this type.
    * This is commonly used for reflection.
    */   
-  public final <T> Class<T> getClassForType() {
+  public final Class<?> getClassForType() {
     // Resolve the class so that we don't need to resolve it
     // in reflection code
     if (!isResolved()) {
