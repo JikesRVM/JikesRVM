@@ -21,13 +21,11 @@ import com.ibm.jikesrvm.classloader.VM_Class;
  *
  * @author Steven Augart (w/ brainstorming by David Grove)
  */
+@SuppressWarnings("unused")  // Suppress the unused import warning as per comment above
 public abstract class PrintLN {
   //  PrintLN(PrintWriter out);
   //  PrintLN(PrintStream out);
   public boolean isSysWrite() { return false; }
-  // Transitional method; will go away RSN
-  /** @deprecated superseded by <code>isSysWrite()</code> */
-  public boolean isVMSysWriteln() { return isSysWrite(); }
   public boolean isSystemErr() { return false; }
   public abstract void flush();
   

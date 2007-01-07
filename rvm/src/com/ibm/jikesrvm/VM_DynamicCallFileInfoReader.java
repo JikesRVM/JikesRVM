@@ -100,6 +100,7 @@ public class VM_DynamicCallFileInfoReader {
       } else 
         caller = callerRef.getResolvedMember();
       //if (caller == null) continue;
+      @SuppressWarnings("unused") // serves as doco - token skipped 
       int callerSize = Integer.parseInt(parser.nextToken());
       int bci = Integer.parseInt(parser.nextToken());
       VM_MemberReference calleeKey = VM_MemberReference.parse(parser, boot);
@@ -110,6 +111,7 @@ public class VM_DynamicCallFileInfoReader {
         callee = calleeRef.resolve();
       } else 
         callee = calleeRef.getResolvedMember();
+      @SuppressWarnings("unused") // serves as doco - token skipped 
       int calleeSize = Integer.parseInt(parser.nextToken());
       parser.nextToken(); // skip "weight:"
       float weight = Float.parseFloat(parser.nextToken());

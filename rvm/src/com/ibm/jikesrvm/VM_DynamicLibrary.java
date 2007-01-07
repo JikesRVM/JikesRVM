@@ -53,8 +53,7 @@ public class VM_DynamicLibrary {
     // Convert file name from unicode to filesystem character set.
     // (Assume file name is ASCII, for now).
     //
-    byte[] asciiName = new byte[libraryName.length() + 1]; // +1 for null terminator
-    libraryName.getBytes(0, libraryName.length(), asciiName, 0);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(libraryName);
 
     // make sure we have enough stack to load the library.  
     // This operation has been known to require more than 20K of stack.
@@ -140,8 +139,7 @@ public class VM_DynamicLibrary {
     // Convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now).
     //
-    byte[] asciiName = new byte[symbolName.length() + 1]; // +1 for null terminator
-    symbolName.getBytes(0, symbolName.length(), asciiName, 0);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(symbolName);
     return VM_SysCall.sysDlsym(libHandler, asciiName);
   }
 

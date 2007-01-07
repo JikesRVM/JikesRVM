@@ -18,11 +18,7 @@ import com.ibm.jikesrvm.classloader.*;
 import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Iterator;
 import com.ibm.jikesrvm.adaptive.VM_Controller;
-import com.ibm.jikesrvm.adaptive.VM_InvocationCounts;
-import com.ibm.jikesrvm.adaptive.VM_AOSLogging;
-import com.ibm.jikesrvm.opt.OPT_CompilationPlan;
 /**
  * Defines an attribute for dynamic call graph, and maintains a map
  * allowing attributes to be retrived by method and bytecode offset.
@@ -46,7 +42,7 @@ import com.ibm.jikesrvm.opt.OPT_CompilationPlan;
  */
 class VM_DynamicCallAttribute {
 
-  private static HashMap attribMap = null;
+  private static HashMap<VM_DynamicCallAttribute,VM_DynamicCallAttribute> attribMap = null;
   private static VM_DynamicCallAttribute tempAttr = null;
   private static boolean hasAdvice = false;
 
@@ -65,7 +61,7 @@ class VM_DynamicCallAttribute {
    * Initialization of key compiler advice data structure.  
    */
   public static void postBoot () {
-    attribMap = new HashMap();
+    attribMap = new HashMap<VM_DynamicCallAttribute,VM_DynamicCallAttribute>();
 
     // With defaultAttr set up this way, methods will be BASELINE compiled
     // *unless* they appear in the advice file. If defaultAttr is set to
@@ -110,7 +106,9 @@ class VM_DynamicCallAttribute {
    * @return The state of this instance expressed as a string
    */
   public String toString() {
-    return ("Dynamic call site attribute: " );
+    return ("Dynamic call site attribute: \n\tcallerSize " + callerSize+
+        " callee: <"+calleeClassName+"."+calleeName+"("+calleeSig+")> ["+
+        calleeSize+":"+weight+"]");
   }
 
   /**
@@ -121,7 +119,7 @@ class VM_DynamicCallAttribute {
    * @param compilerAdviceList A list of compiler advice attributes
    * @see VM_DynamicCallAttribute.getDynamicCallInfo
    */
-  public static void registerDynamicCall(List dynamicCallList) {
+  public static void registerDynamicCall(List<VM_DynamicCallAttribute> dynamicCallList) {
     // do nothing for empty list
     if (dynamicCallList == null) return;
 
@@ -129,10 +127,10 @@ class VM_DynamicCallAttribute {
       hasAdvice = true;
     
     // iterate over each element of the list
-    ListIterator it = dynamicCallList.listIterator();
+    ListIterator<VM_DynamicCallAttribute> it = dynamicCallList.listIterator();
     while (it.hasNext()) {
       // pick up an attribute
-      VM_DynamicCallAttribute attr = (VM_DynamicCallAttribute) it.next();
+      VM_DynamicCallAttribute attr = it.next();
       attribMap.put(attr, attr);
       // XXX if already there, should we warn the user?
     }

@@ -245,7 +245,6 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       VM._assert(l == VM_Scheduler.locks[old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt()]);
     }
     Word old;
-    Word changed;
     do {
       old = VM_Magic.prepareWord(o, lockOffset);
     } while (!VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));

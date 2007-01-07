@@ -32,5 +32,7 @@ public class VM_UnimplementedError extends VirtualMachineError {
   public VM_UnimplementedError(java.lang.String detailMessage) {
     super(detailMessage+": not implemented");
   }
+  
+  private static final long serialVersionUID = 1L;
 }
 

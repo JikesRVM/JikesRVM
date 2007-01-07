@@ -705,6 +705,7 @@ implements VM_Constants {
 
   // Scratch area for use for gpr <=> fpr transfers by 
   // PPC baseline compiler
+  @SuppressWarnings("unused") // accessed via VM_EntryPoints
   private double scratchStorage;
 
   @LogicallyUninterruptible /* GACK --dave */ 

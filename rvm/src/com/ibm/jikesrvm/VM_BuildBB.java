@@ -310,7 +310,7 @@ public final class VM_BuildBB
       case JBC_ret:
         {
           lastInstrType = BRANCH;
-          int index = bcodes.getLocalNumber();
+          bcodes.getLocalNumber(); // index
           int blocknum = currentBB.getBlockNumber();
           basicBlocks[blocknum].setState(VM_BasicBlock.JSREXIT);
 
@@ -329,7 +329,7 @@ public final class VM_BuildBB
 
       case JBC_wide: {
         int widecode = bcodes.getWideOpcode();
-        int index = bcodes.getWideLocalNumber();
+        bcodes.getWideLocalNumber(); // index
         if (widecode == JBC_ret) {
           lastInstrType = BRANCH;
           int blocknum = currentBB.getBlockNumber();
@@ -346,7 +346,7 @@ public final class VM_BuildBB
           }
           retList[nextRetList++] = blocknum;      
         } else if (widecode == JBC_iinc) {
-          int val = bcodes.getWideIncrement();
+          bcodes.getWideIncrement();
         } else {
           // nothing more to do
         }

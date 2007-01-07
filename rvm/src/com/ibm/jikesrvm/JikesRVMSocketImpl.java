@@ -317,6 +317,9 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       int close_fd = native_fd;
       this.native_fd = -1;
       int rc = VM_SysCall.sysNetSocketClose(close_fd);
+      if (rc < 0) {
+        throw new IOException("socket close returned "+rc);
+      }
     }
   }
 

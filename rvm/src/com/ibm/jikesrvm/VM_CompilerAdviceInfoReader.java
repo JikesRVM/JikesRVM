@@ -60,8 +60,9 @@ class VM_CompilerAdviceInfoReader {
    * @param file The annoation file to be read
    * @return A list of compileration advice attributes
    */
-  public static List readCompilerAdviceFile(String file) {
-    List compilerAdviceInfo = new ArrayList();;
+  public static List<VM_CompilerAdviceAttribute> readCompilerAdviceFile(String file) {
+    List<VM_CompilerAdviceAttribute> compilerAdviceInfo = 
+      new ArrayList<VM_CompilerAdviceAttribute>();
     BufferedReader fileIn = null;
     
     if (file == null) return null;

@@ -750,7 +750,9 @@ public class VM_CommandLineArgs {
             called early on in the boot process (which the
             default-character-set version below does). */
       //      return new String(buf, 0, cnt);
-      return new String(buf, 0, 0, cnt);
+      @SuppressWarnings("deprecation")
+      String result = new String(buf, 0, 0, cnt);
+      return result;
     }
     int numArgs() {
       return sysArg(-1, buf);

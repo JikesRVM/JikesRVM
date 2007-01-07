@@ -21,7 +21,8 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public final class VM_GlobalThreadQueue extends VM_ThreadQueue {
 
-  private final VM_ProcessorLock mutex; // TODO check that mutex is heald when manipulating this queue.
+  @SuppressWarnings("unused")
+  private final VM_ProcessorLock mutex; // TODO check that mutex is held when manipulating this queue.
   private int length;
   
   public VM_GlobalThreadQueue(VM_ProcessorLock mutex) {

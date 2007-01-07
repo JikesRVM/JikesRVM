@@ -94,7 +94,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 
       case JBC_tableswitch: {
         bcodes.alignSwitch();
-        int def = bcodes.getDefaultSwitchOffset();
+        bcodes.getDefaultSwitchOffset();
         int low = bcodes.getLowSwitchValue();
         int high = bcodes.getHighSwitchValue();
         int n = high - low + 1;
@@ -106,7 +106,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 
       case JBC_lookupswitch: { 
         bcodes.alignSwitch();
-        int def = bcodes.getDefaultSwitchOffset();
+        bcodes.getDefaultSwitchOffset();
         int numPairs = bcodes.getSwitchLength();
         data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, numPairs+1);
         countIdx += numPairs + 1;

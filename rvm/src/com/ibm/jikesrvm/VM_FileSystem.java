@@ -13,6 +13,8 @@ import java.io.*;
 
 import org.vmmagic.pragma.*;
 
+import com.ibm.jikesrvm.util.VM_StringUtilities;
+
 /**
  * Interface to filesystem of underlying operating system.
  * These methods use nonblocking I/O for reads and writes and, if necessary,
@@ -82,24 +84,6 @@ public class VM_FileSystem {
   private static boolean[] standardFdIsNonblocking = new boolean[3];
 
   /**
-   * Convert a <code>String</code> filename to a byte array.  Use the
-   * deprecated String method because passing it through a character
-   * set converter is too heavyweight. 
-   * 
-   * RJG - at least I think so: should try switching to the I18N aware
-   * version sometime
-   * 
-   * @param fileName File name
-   * @param asciiName Byte-array representation
-   */
-  @SuppressWarnings("deprecation")
-  private static byte[] stringToBytes(String fileName) {
-    byte[] asciiName = new byte[fileName.length()+1]; // +1 for \0 terminator
-    fileName.getBytes(0, fileName.length(), asciiName, 0);
-    return asciiName;
-  }
-
-  /**
    * Get file status.
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
@@ -110,7 +94,7 @@ public class VM_FileSystem {
   public static int stat(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
-    byte[] asciiName = stringToBytes(fileName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
     int rc = VM_SysCall.sysStat(asciiName, kind);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
@@ -125,7 +109,7 @@ public class VM_FileSystem {
   public static int access(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
-    byte[] asciiName = stringToBytes(fileName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
 
     int rc = VM_SysCall.sysAccess(asciiName, kind);
 
@@ -137,7 +121,7 @@ public class VM_FileSystem {
    * Set the modification time on given file.
    */
   public static boolean setLastModified(String fileName, long time) {
-    byte[] asciiName = stringToBytes(fileName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
 
     // convert milliseconds to seconds
     int rc = VM_SysCall.sysUtime(asciiName, (int) (time / 1000));
@@ -153,7 +137,7 @@ public class VM_FileSystem {
   public static int open(String fileName, int how) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
-    byte[] asciiName = stringToBytes(fileName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
     int fd = VM_SysCall.sysOpen(asciiName, how);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
@@ -494,7 +478,7 @@ public class VM_FileSystem {
     // convert directory name from unicode to filesystem character set
     // (assume directory name is ascii, for now)
     //
-    byte[] asciiName = stringToBytes(dirName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(dirName);
 
     // fill buffer with list of null terminated names, resizing as needed to fit
     // (List will be in filesystem character set, assume that this is the
@@ -547,7 +531,7 @@ public class VM_FileSystem {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     //
-    byte[] asciiName = stringToBytes(fileName);
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
     int rc = VM_SysCall.sysDelete(asciiName);
     if (rc == 0) return true;
     else return false;
@@ -563,9 +547,9 @@ public class VM_FileSystem {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     //
-    byte[] fromCharStar = stringToBytes(fromName);
+    byte[] fromCharStar = VM_StringUtilities.stringToBytesNullTerminated(fromName);
 
-    byte[] toCharStar = stringToBytes(toName);
+    byte[] toCharStar = VM_StringUtilities.stringToBytesNullTerminated(toName);
 
     int rc = VM_SysCall.sysRename(fromCharStar, toCharStar);
 
@@ -583,7 +567,7 @@ public class VM_FileSystem {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     //
-    byte[] asciiName = stringToBytes(fileName);      
+    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);      
     int rc = VM_SysCall.sysMkDir(asciiName);
     return (rc == 0);
   } 

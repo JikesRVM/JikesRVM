@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.lang.instrument.Instrumentation;
@@ -102,8 +101,8 @@ class MainThread extends Thread {
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     try {
-      Class agentClass = cl.loadClass(agentClassName);
-      Method agentPremainMethod = agentClass.getMethod("premain", new Class[]{String.class, Instrumentation.class});
+      Class<?> agentClass = cl.loadClass(agentClassName);
+      Method agentPremainMethod = agentClass.getMethod("premain", new Class<?>[]{String.class, Instrumentation.class});
       agentPremainMethod.invoke(null, new Object[]{agentOptions, instrumenter});
     } catch (InvocationTargetException e) {
       // According to the spec, exceptions from premain() can be ignored
@@ -143,7 +142,7 @@ class MainThread extends Thread {
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 
 
-	runAgents(cl);
+    runAgents(cl);
 
     if (dbg) VM.sysWrite("[MainThread.run() loading class to run... ");
     // find method to run

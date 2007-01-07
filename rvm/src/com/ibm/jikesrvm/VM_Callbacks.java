@@ -1134,6 +1134,7 @@ public final class VM_Callbacks {
    * Return current thread id.
    * @return current thread id
    */
+  @SuppressWarnings("unused")
   private static int getThread() {
     if (VM.runningVM)
       return VM_Thread.getCurrentThread().getIndex();
@@ -1144,6 +1145,7 @@ public final class VM_Callbacks {
   /**
    * Print current stack trace.
    */
+  @SuppressWarnings("unused")
   private static void printStack(String message) {
     if (VM.runningVM)
       VM_Scheduler.traceback(message);

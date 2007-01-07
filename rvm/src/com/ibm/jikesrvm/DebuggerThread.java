@@ -158,10 +158,10 @@ class DebuggerThread extends VM_Thread {
       if (tokens.length != 3 || !tokens[1].equals(".")) {
         VM.sysWrite("please specify <class>.<method>\n");
       } else {
-        Class    cls = Class.forName(tokens[0]);
-        Class[]  signature = new Class[0];
-        Method   method = cls.getMethod(tokens[2], signature);
-        Object[] args = new Object[0];
+        Class<?>   cls = Class.forName(tokens[0]);
+        Class<?>[] signature = new Class[0];
+        Method     method = cls.getMethod(tokens[2], signature);
+        Object[]   args = new Object[0];
         method.invoke(null, args);
       }
       return;
@@ -230,7 +230,7 @@ class DebuggerThread extends VM_Thread {
     for ( ; bb >= 0 && bb != '\n'; bb = VM_FileSystem.readByte(STDIN))
       line.append((char)bb);
 
-    ArrayList tokens = new ArrayList();
+    ArrayList<String> tokens = new ArrayList<String>();
     for (int i = 0, n = line.length(); i < n; ++i) {
       char ch = line.charAt(i);
          

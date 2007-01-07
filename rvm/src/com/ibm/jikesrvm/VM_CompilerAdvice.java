@@ -44,7 +44,7 @@ class VM_CompilerAdvice {
     if (compilerAdviceFileName != null) {
       VM.sysWrite("Compiler advice file name ");
       VM.sysWriteln(compilerAdviceFileName);
-      List compilerAdviceInfoList = 
+      List<VM_CompilerAdviceAttribute> compilerAdviceInfoList = 
         VM_CompilerAdviceInfoReader.readCompilerAdviceFile(
           compilerAdviceFileName);
       // register these sites so that when a compilation is done,

@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-import com.ibm.jikesrvm.osr.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;

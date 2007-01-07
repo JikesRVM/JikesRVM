@@ -23,4 +23,5 @@ public class VM_TimeoutException extends Exception {
   public VM_TimeoutException(String msg) {
     super(msg);
   }
+  private static final long serialVersionUID = 1L;
 }

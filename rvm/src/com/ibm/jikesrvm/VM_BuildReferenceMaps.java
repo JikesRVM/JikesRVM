@@ -1292,7 +1292,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
         }
 
         case JBC_multianewarray: {
-          VM_TypeReference tRef = bcodes.getTypeReference();
+          bcodes.getTypeReference();
           int dim = bcodes.getArrayDimension();
           if (!inJSRSub)
             referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, 
@@ -1391,7 +1391,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
           }
 
           case JBC_iinc: {
-            int val = bcodes.getWideIncrement();
+            bcodes.getWideIncrement();
             break;
           }
           case JBC_ret: {

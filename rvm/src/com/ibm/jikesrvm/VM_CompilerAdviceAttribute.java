@@ -45,7 +45,7 @@ import java.util.Iterator;
  */
 public class VM_CompilerAdviceAttribute {
 
-  private static HashMap attribMap = null;
+  private static HashMap<VM_CompilerAdviceAttribute,VM_CompilerAdviceAttribute> attribMap = null;
   private static VM_CompilerAdviceAttribute defaultAttr = null;
   private static VM_CompilerAdviceAttribute tempAttr = null;
   private static boolean hasAdvice = false;
@@ -60,7 +60,7 @@ public class VM_CompilerAdviceAttribute {
    * Initialization of key compiler advice data structure.  
    */
   public static void postBoot () {
-    attribMap = new HashMap();
+    attribMap = new HashMap<VM_CompilerAdviceAttribute,VM_CompilerAdviceAttribute>();
 
     // With defaultAttr set up this way, methods will be BASELINE compiled
     // *unless* they appear in the advice file. If defaultAttr is set to
@@ -167,14 +167,15 @@ public class VM_CompilerAdviceAttribute {
    * @param compilerAdviceList A list of compiler advice attributes
    * @see #getCompilerAdviceInfo
    */
-  public static void registerCompilerAdvice(List compilerAdviceList) {
+  public static void registerCompilerAdvice(
+      List<VM_CompilerAdviceAttribute> compilerAdviceList) {
     // do nothing for empty list
     if (compilerAdviceList == null) return;
 
     hasAdvice = true;
     
     // iterate over each element of the list
-    ListIterator it = compilerAdviceList.listIterator();
+    ListIterator<VM_CompilerAdviceAttribute> it = compilerAdviceList.listIterator();
     while (it.hasNext()) {
       // pick up an attribute
       VM_CompilerAdviceAttribute attr = (VM_CompilerAdviceAttribute) it.next();
