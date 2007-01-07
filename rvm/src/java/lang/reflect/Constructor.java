@@ -52,8 +52,9 @@ public final class Constructor<T> extends AccessibleObject
     }
   }
     
+  @SuppressWarnings("unchecked")  // Type system needs to be bent a bit here
   public Class<T> getDeclaringClass() {
-    return constructor.getDeclaringClass().getClassForType();
+    return (Class<T>)constructor.getDeclaringClass().getClassForType();
   }
 
   public Class<?>[] getExceptionTypes() {

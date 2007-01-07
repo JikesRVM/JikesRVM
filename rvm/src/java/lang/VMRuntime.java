@@ -32,6 +32,7 @@ final class VMRuntime {
     gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
   }
   private static final VMRuntime instance;
+  @SuppressWarnings("unused") // Accessed from VM_EntryPoints
   private int gcLock;
   private static final Offset gcLockOffset;
   
