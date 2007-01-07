@@ -57,6 +57,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * when we are making a C => Java transition.
    * We mainly need this for OSX/Linux but it is also nice to have on AIX.
    */
+  @SuppressWarnings("unused")  // used by native code
   private final Address savedJTOC = VM.BuildForPowerPC ? VM_Magic.getTocPointer() : Address.zero();
    
   /**
@@ -67,6 +68,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * by handing the native code an interior pointer to 
    * this object that points directly to this field.
    */ 
+  @SuppressWarnings("unused")  // used by native code
   private final Address externalJNIFunctions = VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
 
   /**

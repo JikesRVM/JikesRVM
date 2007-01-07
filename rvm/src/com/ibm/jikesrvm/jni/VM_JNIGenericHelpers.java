@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.util.VM_StringUtilities;
 
 import org.vmmagic.unboxed.*;
 
@@ -84,7 +85,7 @@ public abstract class VM_JNIGenericHelpers {
     } else {
       // Can't do real Char encoding until VM is fully booted.
       // All Strings encountered during booting must be ascii
-      return new String(tmp, 0);
+      return VM_StringUtilities.asciiBytesToString(tmp);
     }
   }
 

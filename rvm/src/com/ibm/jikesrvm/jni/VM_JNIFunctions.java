@@ -79,6 +79,7 @@ import org.vmmagic.unboxed.*;
  * @modified Steven Augart
  * @date June 2004 -- JNI 1.2 and 1.4 largely implemented
  */
+@SuppressWarnings("unused")  // called from native code 
 public class VM_JNIFunctions implements VM_NativeBridge, 
                                  VM_SizeConstants {
   // one message for each JNI function called from native
@@ -206,8 +207,8 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
 
     try {
-      Class cls1 = (Class) env.getJNIRef(firstClassJREF);
-      Class cls2 = (Class) env.getJNIRef(secondClassJREF);
+      Class<?> cls1 = (Class) env.getJNIRef(firstClassJREF);
+      Class<?> cls2 = (Class) env.getJNIRef(secondClassJREF);
       if (cls1==null || cls2==null)
         return false;
       return cls2.isAssignableFrom(cls1);
@@ -251,7 +252,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ThrowNew  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(throwableClassJREF);
+      Class<?> cls = (Class) env.getJNIRef(throwableClassJREF);
       // find the constructor that has a string as a parameter
       Class[] argClasses = new Class[1];
       argClasses[0] = VM_Type.JavaLangStringType.getClassForType();
