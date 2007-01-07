@@ -53,7 +53,7 @@ final class VMString {
 
       // If we get to here, then there is no interned version of the String.
       // So we make one.
-      internedStrings.put(str, new WeakReference(str));
+      internedStrings.put(str, new WeakReference<String>(str));
     }
     return str;
   }

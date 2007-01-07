@@ -31,6 +31,7 @@ public abstract class Reference<T> {
    * be garbage collected if the mutator no longer maintains strong
    * references to them.
    */
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private Address nextAsAddress;
 
   /**
@@ -51,7 +52,7 @@ public abstract class Reference<T> {
    * The queue this reference is registered on. This is null, if this
    * wasn't registered to any queue or reference was already enqueued.
    */
-  ReferenceQueue queue;
+  ReferenceQueue<T> queue;
 
   /**
    * Record whether this object has ever been enqueued, to ensure
@@ -59,11 +60,11 @@ public abstract class Reference<T> {
    */
   boolean wasEnqueued = false;
 
-  Reference(Object ref) {
+  Reference(T ref) {
     referent = VM_Magic.objectAsAddress(ref);
   }
 
-  Reference(Object ref, ReferenceQueue q) {
+  Reference(T ref, ReferenceQueue<T> q) {
     if (q == null)
       throw new NullPointerException();
     referent = VM_Magic.objectAsAddress(ref);
@@ -75,6 +76,7 @@ public abstract class Reference<T> {
    * @return the object, this reference refers to, or null if the 
    * reference was cleared.
    */
+  @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
 
     Address tmp = referent;

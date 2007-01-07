@@ -15,14 +15,14 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  * Implementation of java.lang.ref.SoftReference for JikesRVM.
  * @author Chris Hoffmann
  */
-public class SoftReference extends Reference {
+public class SoftReference<T> extends Reference<T> {
 
-  public SoftReference(Object referent) {
+  public SoftReference(T referent) {
     super(referent);
     MM_Interface.addSoftReference(this);
   }
 
-  public SoftReference(Object referent, ReferenceQueue q) {
+  public SoftReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
     MM_Interface.addSoftReference(this);
   }

@@ -17,14 +17,14 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  * @author Chris Hoffmann
  * @see java.util.WeakHashMap
  */
-public class WeakReference extends Reference {
+public class WeakReference<T> extends Reference<T> {
 
-  public WeakReference(Object referent) {
+  public WeakReference(T referent) {
     super(referent);
     MM_Interface.addWeakReference(this);
   }
 
-  public WeakReference(Object referent, ReferenceQueue q) {
+  public WeakReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
     MM_Interface.addWeakReference(this);
   }

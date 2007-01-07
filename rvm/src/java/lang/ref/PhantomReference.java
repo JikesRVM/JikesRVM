@@ -15,9 +15,9 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.
  * @author Chris Hoffmann
  */
-public class PhantomReference extends Reference {
+public class PhantomReference<T> extends Reference<T> {
   
-  public PhantomReference(Object referent, ReferenceQueue q) {
+  public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
     MM_Interface.addPhantomReference(this);
   }
@@ -27,7 +27,7 @@ public class PhantomReference extends Reference {
   always return <code>null</code>.
    * @return <code>null</code>
    */
-  public Object get() {
+  public T get() {
     return null;
   }
 
