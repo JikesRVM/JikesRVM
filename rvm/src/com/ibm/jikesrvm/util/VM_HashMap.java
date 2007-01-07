@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.jikesrvm.util;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
   
@@ -21,6 +22,7 @@ import java.util.NoSuchElementException;
  * data structure is going to need to be and what API I have to support on it.
  *
  * TODO: This should be a final class; rewrite subclasses to let us do that.
+ * TODO: make this a generic class
  *
  * @author Dave Grove
  */
@@ -30,7 +32,7 @@ public class VM_HashMap {
   private static final float LOAD = 3; /* bias to save space by default */
 
     /* if STAGING */
-  private final java.util.HashMap map;
+  private final HashMap<Object,Object> map;
   /* if !STAGING */
   private Bucket[] buckets;
   private int numElems = 0;
@@ -42,7 +44,7 @@ public class VM_HashMap {
   
   public VM_HashMap(int size) {
     if (STAGING) {
-      map = new java.util.HashMap(size);
+      map = new HashMap<Object,Object>(size);
     } else {
       map = null;
       buckets = new Bucket[size];
