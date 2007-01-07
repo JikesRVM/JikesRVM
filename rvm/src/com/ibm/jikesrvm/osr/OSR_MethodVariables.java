@@ -28,16 +28,16 @@ public final class OSR_MethodVariables extends OPT_LinkedListElement {
   public int bcIndex;
 
   /* a list of variables */
-  public LinkedList tupleList;
+  public LinkedList<OSR_LocalRegPair> tupleList;
 
-  public OSR_MethodVariables(int mid, int pc, LinkedList tupleList) {
+  public OSR_MethodVariables(int mid, int pc, LinkedList<OSR_LocalRegPair> tupleList) {
     this.methId = mid;
     this.bcIndex = pc;
     this.tupleList = tupleList;
   }
 
 
-  public final LinkedList getTupleList() {
+  public final LinkedList<OSR_LocalRegPair> getTupleList() {
     return tupleList;
   }
 

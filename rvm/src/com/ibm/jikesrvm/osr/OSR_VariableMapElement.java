@@ -20,10 +20,10 @@ import java.util.*;
  */
 public class OSR_VariableMapElement {
   public OPT_Instruction osr;
-  public LinkedList mvars;
+  public LinkedList<OSR_MethodVariables> mvars;
 
   public OSR_VariableMapElement(OPT_Instruction inst,
-                                   LinkedList methVars) {
+                                   LinkedList<OSR_MethodVariables> methVars) {
     if (VM.VerifyAssertions) {
       VM._assert(OsrPoint.conforms(inst));
     }

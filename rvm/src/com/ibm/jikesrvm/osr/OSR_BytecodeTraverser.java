@@ -278,7 +278,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   
   /* returns type code of the return type from the signature.
    * SEE also : VM_Atom.parseForReturnType
-   */       
+   */ 
+  @SuppressWarnings("unused") 
   private byte getReturnCodeFromSignature(String sig) {
     byte[] val = sig.getBytes();
     
@@ -769,7 +770,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         break;
       case JBC_iinc:{
         int index = bytecodes.getLocalNumber();
-        int value = bytecodes.getIncrement();
+        /* int value = */ bytecodes.getIncrement();
         if (doDFS) ltypes[index] = IntTypeCode;
       }
         break;
@@ -1065,7 +1066,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         }
         
         for (int i=0; i<npairs; i++) {
-          int match = matches[i];
+          //int match = matches[i];
           int offset = offsets[i];
 
           int tgtpc = pc + offset;
@@ -1293,7 +1294,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         }
           break;
         case JBC_iinc: {
-          int value = bytecodes.getWideIncrement(); // skip increment
+          bytecodes.getWideIncrement(); // skip increment
           if (doDFS) ltypes[index] = IntTypeCode;
           }
           break;

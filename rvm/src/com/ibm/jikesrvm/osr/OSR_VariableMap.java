@@ -25,7 +25,7 @@ import java.util.*;
 public final class OSR_VariableMap {
 
   /* A list of OSR_VariableMapElement */
-  public LinkedList list = new LinkedList();
+  public LinkedList<OSR_VariableMapElement> list = new LinkedList<OSR_VariableMapElement>();
 
   public final int getNumberOfElements() {
     return list.size();
@@ -36,7 +36,7 @@ public final class OSR_VariableMap {
    * @param inst      the IR instruction we care about
    * @param mvarList  the set of symbolic registers as a list
    */
-  public void insert (OPT_Instruction inst, LinkedList mvarList) {
+  public void insert (OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
     // make a VariableMapElement and put it on the big list
     list.add(new OSR_VariableMapElement(inst, mvarList));
   }
@@ -44,7 +44,7 @@ public final class OSR_VariableMap {
   /**
    * Inserts a new entry at the begin of the list.
    */
-  public void insertFirst (OPT_Instruction inst, LinkedList mvarList) {
+  public void insertFirst (OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
     list.addFirst(new OSR_VariableMapElement(inst, mvarList));
   }
 
@@ -52,7 +52,7 @@ public final class OSR_VariableMap {
    * Creates and returns an enumerator for this object
    * @return an iterator for this object
    */
-  public final ListIterator iterator() {
+  public final ListIterator<OSR_VariableMapElement> iterator() {
     return list.listIterator(0);
   }
 
@@ -65,8 +65,7 @@ public final class OSR_VariableMap {
     if (list.size() == 0)
       buf.append("empty"); 
     else {
-      for (int i=0, n=list.size(); i<n; i++) {
-        OSR_VariableMapElement ptr = (OSR_VariableMapElement)list.get(i); 
+      for (OSR_VariableMapElement ptr : list) {
         buf.append(ptr.toString());
       }
     }

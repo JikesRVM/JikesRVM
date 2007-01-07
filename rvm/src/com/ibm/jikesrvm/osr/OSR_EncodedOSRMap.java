@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 
@@ -498,6 +497,7 @@ public class OSR_EncodedOSRMap
     return (int)((mapEntries[entry] & BCI_MASK) >>> BCI_SHIFT);
   }
 
+  @SuppressWarnings("unused") // Here for completeness (RJG ??)
   private final int getIEIndex(int entry) {
     return (int)((mapEntries[entry] & IEI_MASK) >>> IEI_SHIFT);
   }

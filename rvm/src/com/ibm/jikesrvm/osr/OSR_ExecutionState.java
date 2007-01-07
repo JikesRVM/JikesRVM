@@ -41,7 +41,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
    * the bytecode index
    * Each element is an object of OSR_VariableElement. 
    */
-  public LinkedList varElms; 
+  public LinkedList<OSR_VariableElement> varElms; 
 
   /* the thread on which the activation is running */
   public VM_Thread thread;
@@ -71,7 +71,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     this.bcIndex  = pc;
     this.tsFPOffset = tsFPOffset;
 
-    this.varElms  = new LinkedList();
+    this.varElms  = new LinkedList<OSR_VariableElement>();
     this.meth     = (VM_NormalMethod)VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
   }
 
@@ -118,8 +118,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     VM.sysWriteln("            cmid : ",cmid);
     VM.sysWriteln("         bcIndex : ",bcIndex);
 
-    for (int i=0, n=varElms.size(); i<n; i++) {
-      OSR_VariableElement var = (OSR_VariableElement)varElms.get(i);
+    for (OSR_VariableElement var : varElms) {
       VM.sysWrite("  "+var+"\n");
     }
   }
@@ -151,7 +150,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     // restore parameters first;
     // restore "this"
     if (!this.meth.isStatic()) {
-      OSR_VariableElement var = (OSR_VariableElement)varElms.get(elmcount);
+      OSR_VariableElement var = varElms.get(elmcount);
       tail = processElement(var, tail, elmcount);
       elmcount++;
 
@@ -162,7 +161,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     // restore other parameters, 
     int paranum = this.meth.getParameterTypes().length;
     for (int i=0; i<paranum; i++) {
-      OSR_VariableElement var = (OSR_VariableElement)varElms.get(elmcount);
+      OSR_VariableElement var = varElms.get(elmcount);
       tail = processElement(var, tail, elmcount);
       elmcount ++;
       if (VM.VerifyAssertions) {
@@ -178,8 +177,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     // restore other locals and stack slots, assuming stack element 
     // were sorted
     for (; elmcount < size; elmcount++) {
-      OSR_VariableElement var = 
-        (OSR_VariableElement)varElms.get(elmcount);
+      OSR_VariableElement var = varElms.get(elmcount);
       tail = processElement(var, tail, elmcount);
     }// end of for loop
     
@@ -467,8 +465,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
                                         +this.bcIndex+"@"+this.meth
                                         +" "+this.thread);
     for (int i=0, n=varElms.size(); i<n; i++) {
-      OSR_VariableElement var = 
-        (OSR_VariableElement)varElms.get(i);
+      OSR_VariableElement var = varElms.get(i);
       buf.append("\n  "+var);
     }
 
