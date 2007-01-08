@@ -188,6 +188,9 @@ public class VM_Runtime implements VM_Constants {
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
     Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    if (VM.VerifyAssertions) {
+      VM._assert(rhsTIB != null);
+    }
     if (!VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
       VM_Type rhsType = VM_ObjectModel.getObjectType(object);
       raiseCheckcastException(lhsType, rhsType);

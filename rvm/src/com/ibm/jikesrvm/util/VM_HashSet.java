@@ -10,42 +10,152 @@
 package com.ibm.jikesrvm.util;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Stripped down implementation of HashSet for use
  * by core parts of the JikesRVM runtime.
  *
- * TODO: Make this more space efficient by implementing it directly
- *       instead of creating a silly HashMap to back it.
  * @author Dave Grove
  */
-public final class VM_HashSet {
+public final class VM_HashSet<T> implements Iterable<T> {
+  private static final int DEFAULT_SIZE = 7;
+  private static final float LOAD = 3; /* bias to save space by default */
 
-  private final VM_HashMap map;
+  private Bucket<T>[] buckets;
+  private int numElems = 0;
   
   public VM_HashSet() {
-    map = new VM_HashMap();
+    this(DEFAULT_SIZE);
   }
-
+  
+  @SuppressWarnings("unchecked") // the java generic array problem
+  private Bucket<T>[] newBucketArray(int size) {
+    return new Bucket[size];
+  }
+  
   public VM_HashSet(int size) {
-    map = new VM_HashMap(size);
+      buckets = newBucketArray(size);
   }
 
-  public void add(Object o) {
-    map.put(o, null);
+  public final int size() {
+    return numElems;
   }
 
-  public void remove(Object o) {
-    map.remove(o);
+  public void add(T key) {
+    if (numElems > (buckets.length * LOAD)) {
+      growMap();
+    }
+
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<T> cur = buckets[bucketIdx];
+    while (cur != null && !cur.key.equals(key)) {
+      cur = cur.next;
+    }
+    if (cur == null) {
+      Bucket<T> newBucket = new Bucket<T>(key);
+      newBucket.next = buckets[bucketIdx];
+      buckets[bucketIdx] = newBucket;
+      numElems++;
+    }
+  }
+  
+
+  public void addAll(VM_HashSet<T> c) {
+    for (T t : c) {
+      add(t);
+    }
   }
 
-  public Iterator iterator() {
-    return map.keyIterator();
+
+  private final void growMap() {
+    Bucket<T>[] newBuckets = newBucketArray(buckets.length*2+1);
+    for (int i=0; i<buckets.length; i++) {
+      Bucket<T> cur = buckets[i];
+      while (cur != null) {
+        Bucket<T> next = cur.next;
+        int newIdx = bucketIndex(cur.key, newBuckets.length);
+        cur.next = newBuckets[newIdx];
+        newBuckets[newIdx] = cur;
+        cur = next;
+      }
+    }
+    buckets = newBuckets;
   }
 
-  public void addAll(VM_HashSet c) {
-    for (Iterator it = c.iterator(); it.hasNext(); ) {
-      add(it.next());
+  public final void remove(T key) {
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<T> cur = buckets[bucketIdx];
+    Bucket<T> prev = null;
+    while (cur != null && !cur.key.equals(key)) {
+      prev = cur;
+      cur = cur.next;
+    }
+    if (cur != null) {
+      if (prev == null) {
+        // removing first bucket in chain.
+        buckets[bucketIdx] = cur.next;
+      } else {
+        prev.next = cur.next;
+      }
+      numElems--;
+    } 
+  }
+
+  public final Iterator<T> iterator() {
+      return new SetIterator();
+  }
+  
+  private final int bucketIndex(T key, int divisor) {
+    if (key == null) {
+      return 0;
+    } else {
+      return (key.hashCode() & 0x7fffffff) % divisor;
+    }
+  }
+  
+  private static final class Bucket<T> {
+    final T key;
+    Bucket<T> next;
+
+    Bucket(T key) {
+      this.key = key;
+    }
+  }
+
+  /**
+   * Iterator 
+   */
+  private class SetIterator implements Iterator<T> {
+    private int bucketIndex = 0;
+    private Bucket<T> next = null;
+    private Bucket<T> last = null;
+    private int numVisited = 0;
+
+    public T next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+        
+      while (next == null) {
+        next = buckets[bucketIndex++];
+      }
+      Bucket<T> ans = next;
+      next = ans.next;
+      numVisited++;
+      return ans.key;
+    }
+
+    public boolean hasNext() {
+      return numVisited < numElems;
+    }
+
+    public void remove() {
+      if (last == null) {
+        throw new IllegalStateException();
+      }
+      VM_HashSet.this.remove(last.key);
+      last = null;
     }
   }
 }

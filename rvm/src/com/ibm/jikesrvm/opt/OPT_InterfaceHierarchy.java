@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.util.*;
 import com.ibm.jikesrvm.classloader.*;
-import java.util.Iterator;
 
 /**
  * This class holds, for each interface, the set of initialized classes
@@ -45,7 +44,7 @@ public class OPT_InterfaceHierarchy {
    * Note that class c implements interface I;
    */
   private static void noteImplements(VM_Class c, VM_Class I) {
-    VM_HashSet implementsSet = findOrCreateSet(I);
+    VM_HashSet<VM_Class> implementsSet = findOrCreateSet(I);
     implementsSet.add(c);
   }
 
@@ -53,10 +52,10 @@ public class OPT_InterfaceHierarchy {
    * Return the set of classes that implement a given interface. Create a
    * set if none found.
    */
-  private static synchronized VM_HashSet findOrCreateSet(VM_Class I) {
-    VM_HashSet set = (VM_HashSet)interfaceMapping.get(I);
+  private static synchronized VM_HashSet<VM_Class> findOrCreateSet(VM_Class I) {
+    VM_HashSet<VM_Class> set = (VM_HashSet<VM_Class>)interfaceMapping.get(I);
     if (set == null) {
-      set = new VM_HashSet(3);
+      set = new VM_HashSet<VM_Class>(3);
       interfaceMapping.put(I,set);
     }
     return set;
@@ -65,9 +64,9 @@ public class OPT_InterfaceHierarchy {
   /**
    * Return the set of all classes known to implement interface I.
    */
-  private static VM_HashSet allImplementors(VM_Class I) {
+  private static VM_HashSet<VM_Class> allImplementors(VM_Class I) {
     // get the set of classes registered as implementing I
-    VM_HashSet result = findOrCreateSet(I);
+    VM_HashSet<VM_Class> result = findOrCreateSet(I);
     
     // also add any classes that implement a sub-interface of I.
     VM_Class[] subI = I.getSubClasses();
@@ -78,9 +77,8 @@ public class OPT_InterfaceHierarchy {
 
     // also add any sub-classes of these classes.
     // need to cache additions to avoid modifying the set while iterating
-    VM_HashSet toAdd = new VM_HashSet(5);
-    for (Iterator i = result.iterator(); i.hasNext(); ) {
-      VM_Class c = (VM_Class)i.next();
+    VM_HashSet<VM_Class> toAdd = new VM_HashSet<VM_Class>(5);
+    for (VM_Class c : result) {
       toAdd.addAll(allSubClasses(c));
     }
     result.addAll(toAdd);
@@ -91,8 +89,8 @@ public class OPT_InterfaceHierarchy {
   /**
    * Return the set of all classes known to extend C
    */
-  private static VM_HashSet allSubClasses(VM_Class C) {
-    VM_HashSet result = new VM_HashSet(5);
+  private static VM_HashSet<VM_Class> allSubClasses(VM_Class C) {
+    VM_HashSet<VM_Class> result = new VM_HashSet<VM_Class>(5);
     
     // also add any classes that implement a sub-interface of I.
     VM_Class[] subC = C.getSubClasses();
@@ -113,13 +111,12 @@ public class OPT_InterfaceHierarchy {
   public static synchronized VM_Method getUniqueImplementation(VM_Method foo) {
     VM_Class I = foo.getDeclaringClass();
 
-    VM_HashSet classes = allImplementors(I);
+    VM_HashSet<VM_Class> classes = allImplementors(I);
     VM_Method firstMethod = null;
     VM_Atom name = foo.getName();
     VM_Atom desc = foo.getDescriptor();
 
-    for (Iterator i = classes.iterator(); i.hasNext(); ) {
-      VM_Class klass = (VM_Class)i.next();
+    for (VM_Class klass : classes) {
       VM_Method m = klass.findDeclaredMethod(name,desc);
       if (firstMethod == null) 
         firstMethod = m;

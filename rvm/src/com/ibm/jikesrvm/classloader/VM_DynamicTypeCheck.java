@@ -232,6 +232,10 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    */
   @Uninterruptible
   public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) { 
+    if (VM.VerifyAssertions) {
+      VM._assert(rhsTIB != null);
+      VM._assert(rhsTIB[TIB_SUPERCLASS_IDS_INDEX] != null);
+    }
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;

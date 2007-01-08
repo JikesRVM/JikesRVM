@@ -3050,6 +3050,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/jikesrvm/VM_DynamicLibrary;
 
 	[Lcom/ibm/jikesrvm/util/VM_HashMap\$Bucket;
+	[Lcom/ibm/jikesrvm/util/VM_HashSet\$Bucket;
 
 	[Lcom/ibm/jikesrvm/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
    [Lcom/ibm/jikesrvm/classloader/VM_Annotation;

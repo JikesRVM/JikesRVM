@@ -129,13 +129,13 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
     }
 
     // 4. set up the volatile GPRs
-    for (Enumeration e = enumerateVolatileGPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+    for (Enumeration<OPT_Register> e = enumerateVolatileGPRs(); e.hasMoreElements(); ) {
+      OPT_Register r = e.nextElement();
       r.setVolatile();
     }
 
     // 5. set up the non-volatile GPRs
-    for (Enumeration e = enumerateNonvolatileGPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateNonvolatileGPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
       r.setNonVolatile();
     }
@@ -154,27 +154,27 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
-    for (Enumeration e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
       r.setVolatile();
     }
 
     // 8. set up the non-volatile FPRs
-    for (Enumeration e = enumerateNonvolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateNonvolatileFPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
       r.setNonVolatile();
     }
 
     // 9. Cache the volatile registers for efficiency
     volatileSet = new OPT_BitSet(this);
-    for (Enumeration e = enumerateVolatiles(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
       volatileSet.add(r);
     }
 
     // 10. Cache the FPRs for efficiency
     fpSet = new OPT_BitSet(this);
-    for (Enumeration e = enumerateFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateFPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
       fpSet.add(r);
     }
@@ -472,28 +472,28 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the physical registers in this set.
    */
-  public Enumeration enumerateAll() {
+  public Enumeration<OPT_Register> enumerateAll() {
     return new RangeEnumeration(0,getSize()-1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  public Enumeration enumerateGPRs() {
+  public Enumeration<OPT_Register> enumerateGPRs() {
     return new RangeEnumeration(FIRST_INT,FIRST_DOUBLE-1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  public Enumeration enumerateFPRs() {
+  public Enumeration<OPT_Register> enumerateFPRs() {
     return new RangeEnumeration(FIRST_DOUBLE,FIRST_SPECIAL-1);
   }
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  public Enumeration enumerateVolatileGPRs() {
+  public Enumeration<OPT_Register> enumerateVolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_GPRS ];
     for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
       r[i] = getGPR(VOLATILE_GPRS[i]);
@@ -503,7 +503,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  public Enumeration enumerateNonvolatileGPRs() {
+  public Enumeration<OPT_Register> enumerateNonvolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
@@ -513,14 +513,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /** 
    * Enumerate the nonvolatile GPRS backwards
    */
-  public Enumeration enumerateNonvolatileGPRsBackwards() {
-    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  public Enumeration<OPT_Register> enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatileGPRs());
   }
 
   /**
    * Enumerate all the volatile FPRs in this set.
    */
-  public Enumeration enumerateVolatileFPRs() {
+  public Enumeration<OPT_Register> enumerateVolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_FPRS ];
     for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
       r[i] = getFPR(VOLATILE_FPRS[i]);
@@ -530,7 +530,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  public Enumeration enumerateNonvolatileFPRs() {
+  public Enumeration<OPT_Register> enumerateNonvolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
       r[i] = getFPR(NONVOLATILE_FPRS[i]);
@@ -541,7 +541,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  public Enumeration enumerateVolatiles(int regClass) {
+  public Enumeration<OPT_Register> enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateVolatileGPRs();
@@ -557,9 +557,9 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the volatile physical registers
    */
-  public Enumeration enumerateVolatiles() {
-    Enumeration e1 = enumerateVolatileGPRs();
-    Enumeration e2 = enumerateVolatileFPRs();
+  public Enumeration<OPT_Register> enumerateVolatiles() {
+    Enumeration<OPT_Register> e1 = enumerateVolatileGPRs();
+    Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
     return new OPT_CompoundEnumerator(e1, e2);
   }
 
@@ -581,7 +581,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  public Enumeration enumerateNonvolatiles(int regClass) {
+  public Enumeration<OPT_Register> enumerateNonvolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateNonvolatileGPRs();
@@ -599,22 +599,22 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * backwards
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
-  public Enumeration enumerateNonvolatilesBackwards(int regClass) {
-    return new OPT_ReverseEnumerator(enumerateNonvolatiles(regClass));
+  public Enumeration<OPT_Register> enumerateNonvolatilesBackwards(int regClass) {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatiles(regClass));
   }
 
 
   /**
    * An enumerator for use by the physical register utilities.
    */
-  final static class PhysicalRegisterEnumeration implements Enumeration {
+  final static class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
     private int index;
     private final OPT_Register r[];
     PhysicalRegisterEnumeration(OPT_Register[] r) {
       this.r = r;
       this.index = 0;
     }
-    public Object nextElement() {
+    public OPT_Register nextElement() {
       return r[index++];
     }
     public boolean hasMoreElements() {
@@ -624,7 +624,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * An enumerator for use by the physical register utilities.
    */
-  final class RangeEnumeration implements Enumeration {
+  final class RangeEnumeration implements Enumeration<OPT_Register> {
     private final int end;
     private int index;
     private final int exclude; // an index in the register range to exclude
@@ -638,7 +638,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       this.exclude = exclude;
       this.index = start;
     }
-    public Object nextElement() {
+    public OPT_Register nextElement() {
       if (index == exclude) index++;
       return reg[index++];
     }

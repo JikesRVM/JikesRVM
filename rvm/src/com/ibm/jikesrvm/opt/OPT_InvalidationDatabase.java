@@ -50,7 +50,7 @@ public final class OPT_InvalidationDatabase {
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
    * a delicate * dance to avoid recursive classloading. --dave.
    */
-  public Iterator invalidatedByOverriddenMethod(VM_Method m) {
+  public Iterator<Integer> invalidatedByOverriddenMethod(VM_Method m) {
     MethodSet s = (MethodSet)nonOverriddenHash.get(m);
     return (s == null) ? null : s.iterator();
   }
@@ -159,21 +159,21 @@ public final class OPT_InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */ 
-    VM_HashSet methods = new VM_HashSet();  
+    VM_HashSet<Integer> methods = new VM_HashSet<Integer>();  
 
     MethodSet (Object key) {
       this.key = key;
     }
 
     void add (int cmid) {
-      methods.add(Integer.valueOf(cmid));
+      methods.add(cmid);
     }
 
     void remove (int cmid) {
-      methods.remove(Integer.valueOf(cmid));
+      methods.remove(cmid);
     }
 
-    public Iterator iterator () {
+    public Iterator<Integer> iterator () {
       return methods.iterator();
     }
   }

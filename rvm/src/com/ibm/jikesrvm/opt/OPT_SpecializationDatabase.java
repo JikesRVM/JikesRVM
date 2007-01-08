@@ -40,7 +40,7 @@ public final class OPT_SpecializationDatabase {
     if (specializationInProgress)
       return;
     specializationInProgress = true;
-    Iterator methods = deferredMethods.iterator();
+    Iterator<OPT_SpecializedMethod> methods = deferredMethods.iterator();
     while (methods.hasNext()) {
       OPT_SpecializedMethod m = (OPT_SpecializedMethod)methods.next();
       if (m.getCompiledMethod() == null) {
@@ -56,7 +56,8 @@ public final class OPT_SpecializationDatabase {
     specializationInProgress = false;
   }
   private static boolean specializationInProgress;
-  private static VM_HashSet deferredMethods = new VM_HashSet();
+  private static VM_HashSet<OPT_SpecializedMethod> deferredMethods = 
+    new VM_HashSet<OPT_SpecializedMethod>();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(OPT_SpecializedMethod m) {
@@ -68,7 +69,7 @@ public final class OPT_SpecializationDatabase {
    * specialied compiled versions of the method pointed by VM_Method
    * @return null if no specialized versions
    */
-  static synchronized Iterator getSpecialVersions(VM_Method m) {
+  static synchronized Iterator<OPT_SpecializedMethod> getSpecialVersions(VM_Method m) {
     MethodSet s = (MethodSet)specialVersionsHash.get(m);
     if (s == null) {
       return  null;
@@ -79,7 +80,7 @@ public final class OPT_SpecializationDatabase {
   }
 
   static int getSpecialVersionCount(VM_Method m) {
-    Iterator versions = getSpecialVersions(m);
+    Iterator<OPT_SpecializedMethod> versions = getSpecialVersions(m);
     int count = 0;
     if (versions != null) {
       while (versions.hasNext() && (versions.next() != null)) {
@@ -124,7 +125,7 @@ public final class OPT_SpecializationDatabase {
     /**
      * a set of OPT_SpecializedMethod
      */
-    VM_HashSet methods = new VM_HashSet();
+    VM_HashSet<OPT_SpecializedMethod> methods = new VM_HashSet<OPT_SpecializedMethod>();
 
     MethodSet(Object key) {
       this.key = key;
@@ -134,7 +135,7 @@ public final class OPT_SpecializationDatabase {
       methods.add(spMethod);
     }
 
-    public Iterator iterator() {
+    public Iterator<OPT_SpecializedMethod> iterator() {
       return  methods.iterator();
     }
   }

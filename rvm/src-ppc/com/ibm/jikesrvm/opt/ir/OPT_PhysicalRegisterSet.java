@@ -202,8 +202,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
 
     // 11. cache the volatiles for efficiency
     volatileSet = new OPT_BitSet(this);
-    for (Enumeration e = enumerateVolatiles(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements(); ) {
+      OPT_Register r = e.nextElement();
       volatileSet.add(r);
     }
 
@@ -574,14 +574,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate all the physical registers in this set.
    */
-  public Enumeration enumerateAll() {
+  public Enumeration<OPT_Register> enumerateAll() {
     return new PhysicalRegisterEnumeration(0,getSize()-1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
-  public Enumeration enumerateGPRs() {
+  public Enumeration<OPT_Register> enumerateGPRs() {
     return new PhysicalRegisterEnumeration(FIRST_INT,FIRST_DOUBLE-1);
   }
 
@@ -590,7 +590,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * NOTE: This assumes the scratch GPRs are numbered immediately 
    * <em> after </em> the volatile GPRs
    */
-  public Enumeration enumerateVolatileGPRs() {
+  public Enumeration<OPT_Register> enumerateVolatileGPRs() {
     return new PhysicalRegisterEnumeration(FIRST_INT+FIRST_VOLATILE_GPR,
                                            FIRST_INT+LAST_SCRATCH_GPR);
   }
@@ -606,7 +606,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate the first n GPR parameters.
    */
-  public Enumeration enumerateGPRParameters(int n) {
+  public Enumeration<OPT_Register> enumerateGPRParameters(int n) {
     if (VM.VerifyAssertions)
       VM._assert(n <= NUMBER_INT_PARAM);
     return new PhysicalRegisterEnumeration(FIRST_INT_PARAM,
@@ -616,7 +616,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  public Enumeration enumerateNonvolatileGPRs() {
+  public Enumeration<OPT_Register> enumerateNonvolatileGPRs() {
     return new
       PhysicalRegisterEnumeration(FIRST_INT+FIRST_NONVOLATILE_GPR,
                                   FIRST_INT+LAST_NONVOLATILE_GPR);
@@ -626,8 +626,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /** 
    * Enumerate the nonvolatile GPRs backwards.
    */
-  public Enumeration enumerateNonvolatileGPRsBackwards() {
-    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  public Enumeration<OPT_Register> enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatileGPRs());
   }
 
   /**
@@ -635,7 +635,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * NOTE: This assumes the scratch FPRs are numbered immediately 
    * <em> before</em> the volatile FPRs
    */
-  public Enumeration enumerateVolatileFPRs() {
+  public Enumeration<OPT_Register> enumerateVolatileFPRs() {
     return new PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_SCRATCH_FPR,
                                            FIRST_DOUBLE+LAST_VOLATILE_FPR);
   }
@@ -643,7 +643,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate the first n FPR parameters.
    */
-  public Enumeration enumerateFPRParameters(int n) {
+  public Enumeration<OPT_Register> enumerateFPRParameters(int n) {
     if (VM.VerifyAssertions)
       VM._assert(n <= NUMBER_DOUBLE_PARAM);
     return new PhysicalRegisterEnumeration(FIRST_DOUBLE_PARAM,
@@ -653,7 +653,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  public Enumeration enumerateNonvolatileFPRs() {
+  public Enumeration<OPT_Register> enumerateNonvolatileFPRs() {
     return new
       PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_NONVOLATILE_FPR,
                                   FIRST_DOUBLE+LAST_NONVOLATILE_FPR);
@@ -663,10 +663,10 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Enumerate the volatile physical condition registers.
    * Note that the TSR is non-volatile.
    */
-  public Enumeration enumerateVolatileConditionRegisters() {
-    return new Enumeration() {
+  public Enumeration<OPT_Register> enumerateVolatileConditionRegisters() {
+    return new Enumeration<OPT_Register>() {
         private int idx = 0;
-        public Object nextElement() {
+        public OPT_Register nextElement() {
           return reg[FIRST_CONDITION + CR_NUMS[idx++]];
         }
         public boolean hasMoreElements() {
@@ -679,14 +679,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Enumerate the non-volatile physical condition registers.
    * Note that only the TSR is non-volatile.
    */
-  public Enumeration enumerateNonvolatileConditionRegisters() {
+  public Enumeration<OPT_Register> enumerateNonvolatileConditionRegisters() {
     return new PhysicalRegisterEnumeration(0, -1);
   }
   /** 
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
    */
-  public Enumeration enumerateVolatiles(int regClass) {
+  public Enumeration<OPT_Register> enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateVolatileGPRs();
@@ -704,10 +704,10 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Enumerate all the volatile physical registers
    */
-  public Enumeration enumerateVolatiles() {
-    Enumeration e1 = enumerateVolatileGPRs();
-    Enumeration e2 = enumerateVolatileFPRs();
-    Enumeration e3 = enumerateVolatileConditionRegisters();
+  public Enumeration<OPT_Register> enumerateVolatiles() {
+    Enumeration<OPT_Register> e1 = enumerateVolatileGPRs();
+    Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
+    Enumeration<OPT_Register> e3 = enumerateVolatileConditionRegisters();
     return new OPT_CompoundEnumerator(e1, new
                                       OPT_CompoundEnumerator(e2,e3));
   }
@@ -723,7 +723,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
    */
-  public Enumeration enumerateNonvolatiles(int regClass) {
+  public Enumeration<OPT_Register> enumerateNonvolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
         return enumerateNonvolatileGPRs();
@@ -743,8 +743,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Enumerate the nonvolatile physical registers of a given class,
    * backwards.
    */
-  public Enumeration enumerateNonvolatilesBackwards(int regClass) {
-    return new OPT_ReverseEnumerator(enumerateNonvolatiles(regClass));
+  public Enumeration<OPT_Register> enumerateNonvolatilesBackwards(int regClass) {
+    return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatiles(regClass));
   }
 
 
@@ -784,7 +784,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * An enumerator for use by the physical register utilities.
    */
-  final class PhysicalRegisterEnumeration implements Enumeration {
+  final class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
     private int start;
     private int end;
     private int index;
@@ -794,7 +794,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       this.end = end;
       this.index = start;
     }
-    public Object nextElement() {
+    public OPT_Register nextElement() {
       return reg[index++];
     }
     public boolean hasMoreElements() {

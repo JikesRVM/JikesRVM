@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.*;
 import java.util.Vector;
 
 /**
@@ -24,9 +23,10 @@ import java.util.Vector;
 public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 
   // Cache objects needed to cons up compilation plans
-  private final Vector optimizationPlans = new Vector();
-  private final Vector optimizationPlanLocks = new Vector();
-  private final Vector options = new Vector();
+  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans = 
+    new Vector<OPT_OptimizationPlanElement[]>();
+  private final Vector<Boolean> optimizationPlanLocks = new Vector<Boolean>();
+  private final Vector<OPT_Options> options = new Vector<OPT_Options>();
   private final OPT_Options masterOptions = new OPT_Options();
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
