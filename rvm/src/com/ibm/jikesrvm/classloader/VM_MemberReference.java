@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.util.VM_HashMap;
+import com.ibm.jikesrvm.util.VM_HashSet;
 import org.vmmagic.pragma.*;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -37,7 +37,7 @@ public abstract class VM_MemberReference {
   /**
    * Used to canonicalize memberReferences
    */
-  private static VM_HashMap dictionary = new VM_HashMap();
+  private static VM_HashSet<VM_MemberReference> dictionary = new VM_HashSet<VM_MemberReference>();
 
   /**
    * Dictionary of all VM_MemberReference instances.
@@ -86,7 +86,7 @@ public abstract class VM_MemberReference {
     } else {
       key = new VM_FieldReference(tRef, mn, md);
     }
-    VM_MemberReference val = (VM_MemberReference)dictionary.get(key);
+    VM_MemberReference val = dictionary.get(key);
     if (val != null)  return val;
     key.id = nextId++;
     VM_TableBasedDynamicLinker.ensureCapacity(key.id);
@@ -96,7 +96,7 @@ public abstract class VM_MemberReference {
       members = tmp;
     }
     members[key.id] = key;
-    dictionary.put(key, key);
+    dictionary.add(key);
     return key;
   }
 

@@ -24,7 +24,8 @@ public class OPT_InterfaceHierarchy {
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
    */
-  private static VM_HashMap interfaceMapping = new VM_HashMap();
+  private static VM_HashMap<VM_Class,VM_HashSet<VM_Class>> interfaceMapping = 
+    new VM_HashMap<VM_Class,VM_HashSet<VM_Class>>();
 
   /**
    * Notify this dictionary that a new class has been initialized. 
@@ -53,7 +54,7 @@ public class OPT_InterfaceHierarchy {
    * set if none found.
    */
   private static synchronized VM_HashSet<VM_Class> findOrCreateSet(VM_Class I) {
-    VM_HashSet<VM_Class> set = (VM_HashSet<VM_Class>)interfaceMapping.get(I);
+    VM_HashSet<VM_Class> set = interfaceMapping.get(I);
     if (set == null) {
       set = new VM_HashSet<VM_Class>(3);
       interfaceMapping.put(I,set);

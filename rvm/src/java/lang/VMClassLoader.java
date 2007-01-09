@@ -51,12 +51,15 @@ final class VMClassLoader
    * A map of maps. The first map is indexed by the classloader. The
    * map this finds then maps String class names to classes
    */
-  private static final VM_HashMap loadedClasses = new VM_HashMap();
+  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses = 
+    new VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>>();
 
   /** packages loaded by the bootstrap class loader */
-  private static final VM_HashMap definedPackages = new VM_HashMap();
+  private static final VM_HashMap<String,Package> definedPackages = 
+    new VM_HashMap<String,Package>();
 
-  private static final VM_HashMap bootjars = new VM_HashMap();
+  private static final VM_HashMap<String,ZipFile> bootjars = 
+    new VM_HashMap<String,ZipFile>();
 
   static
   {
@@ -98,9 +101,9 @@ final class VMClassLoader
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
     Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
-    VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
+    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(cl);
     if (mapForCL == null) {
-      mapForCL = new VM_HashMap();
+      mapForCL = new VM_HashMap<String,Class<?>>();
       loadedClasses.put(cl, mapForCL);
     }
     mapForCL.put(name, ans);
@@ -220,13 +223,12 @@ final class VMClassLoader
 
 
   static Package getPackage(String name) {
-    return (Package)definedPackages.get(name);
+    return definedPackages.get(name);
   }
 
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
     
-    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
     Iterator<Package> it = definedPackages.valueIterator();
     int idx = 0;
     while (it.hasNext()) {
@@ -291,33 +293,27 @@ final class VMClassLoader
 
   static Class<?>[] getAllLoadedClasses() {
     Vector<Class<?>> classList = new Vector<Class<?>>();
-    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
-    Iterator<VM_HashMap> classLoaderMaps = loadedClasses.valueIterator();
-    while (classLoaderMaps.hasNext()) {
-      VM_HashMap classes = (VM_HashMap)classLoaderMaps.next();
-      @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
-      Iterator<Class<?>> classIterator = classes.valueIterator();
-      while (classIterator.hasNext())
-        classList.add(classIterator.next());
+    for (VM_HashMap<String,Class<?>> classes : loadedClasses.values()) {
+      for (Class<?> cl : classes.values()) {
+        classList.add(cl);
+      }
     }
     Class<?>[] result = new Class[classList.size()];
     return (Class[])classList.toArray(result);
   }
 
   static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
-    VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(classLoader);
+    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(classLoader);
     if (mapForCL == null) return new Class[]{};
     Vector<Class<?>> classList = new Vector<Class<?>>();
-    @SuppressWarnings("unchecked") // Until VM_HashMap gets genericised
-    Iterator<Class<?>> classIterator = mapForCL.valueIterator();
-    while (classIterator.hasNext())
-      classList.add(classIterator.next());
+    for (Class<?> cl : mapForCL.values())
+      classList.add(cl);
     Class<?>[] result = new Class[classList.size()];
     return (Class[])classList.toArray(result);
   }
 
   static Class<?> findLoadedClass(ClassLoader cl, String name) {
-    VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
+    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(cl);
     if (mapForCL == null) return null;
     return (Class<?>)mapForCL.get(name);
   }

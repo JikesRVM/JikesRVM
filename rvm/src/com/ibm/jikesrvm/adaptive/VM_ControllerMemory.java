@@ -20,7 +20,6 @@ import com.ibm.jikesrvm.util.VM_HashMap;
 import java.io.PrintStream;
 
 import java.util.LinkedList;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 
@@ -38,7 +37,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  This is a hashtable of controller plans indexed by VM_Method.  
    *  Each method can have a list of such plans associated with.
    */
-  private static final VM_HashMap table = new VM_HashMap();
+  private static final VM_HashMap<VM_Method,LinkedList<VM_ControllerPlan>> table = 
+    new VM_HashMap<VM_Method,LinkedList<VM_ControllerPlan>>();
 
   /**
    * Number of times controller is awoken and did nothing.
@@ -135,9 +135,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
-  @SuppressWarnings("unchecked") // until VM_HashMap becomes generic
   private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
-    return (LinkedList<VM_ControllerPlan>)table.get(method);
+    return table.get(method);
   }
 
   /**
@@ -326,8 +325,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred
-    for (Iterator it = table.keyIterator(); it.hasNext();) {
-      VM_Method meth = (VM_Method) it.next();
+    for (VM_Method meth : table.keys()) {
       LinkedList planList = (LinkedList) table.get(meth);
 
       int bitPattern = 0;

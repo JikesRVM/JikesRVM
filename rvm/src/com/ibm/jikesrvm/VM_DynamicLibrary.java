@@ -11,7 +11,6 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.util.*;
-import java.util.Iterator;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -26,7 +25,8 @@ public class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static final VM_HashMap dynamicLibraries = new VM_HashMap();
+  private static final VM_HashMap<String,VM_DynamicLibrary> dynamicLibraries = 
+    new VM_HashMap<String,VM_DynamicLibrary>();
 
   /**
    * Add symbol for the boot image runner to find symbols within it.
@@ -168,7 +168,7 @@ public class VM_DynamicLibrary {
    * @return 0 on failure, 1 on success
    */
   public static synchronized int load(String libname) {
-    VM_DynamicLibrary dl = (VM_DynamicLibrary)dynamicLibraries.get(libname);
+    VM_DynamicLibrary dl = dynamicLibraries.get(libname);
     if (dl != null) return 1; // success: already loaded
     
     if (VM_FileSystem.stat(libname, VM_FileSystem.STAT_EXISTS) == 1) {
@@ -184,8 +184,7 @@ public class VM_DynamicLibrary {
    * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
   public static synchronized Address resolveSymbol(String symbol) {
-    for (Iterator i = dynamicLibraries.valueIterator(); i.hasNext();) {
-      VM_DynamicLibrary lib = (VM_DynamicLibrary)i.next();
+    for (VM_DynamicLibrary lib : dynamicLibraries.values()) {
       Address symbolAddress = lib.getSymbol(symbol);
       if (!symbolAddress.isZero()) {
         return symbolAddress;

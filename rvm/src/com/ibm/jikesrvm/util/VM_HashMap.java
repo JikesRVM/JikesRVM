@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.util;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
   
@@ -17,95 +16,78 @@ import java.util.NoSuchElementException;
  * Stripped down implementation of HashMap data structure for use
  * by core parts of the JikesRVM runtime.
  *
- * While developing; have a bogus impl by forwarding to java.util.HashMap
- * This won't actually fix anything, but enables me to see how widely used this
- * data structure is going to need to be and what API I have to support on it.
- *
  * TODO: This should be a final class; rewrite subclasses to let us do that.
- * TODO: make this a generic class
  *
  * @author Dave Grove
+ * @author Robin Garner
  */
-public class VM_HashMap {
-  private static final boolean STAGING = false;
+public class VM_HashMap<K,V> {
   private static final int DEFAULT_SIZE = 7;
   private static final float LOAD = 3; /* bias to save space by default */
 
-    /* if STAGING */
-  private final HashMap<Object,Object> map;
-  /* if !STAGING */
-  private Bucket[] buckets;
+  private Bucket<K,V>[] buckets;
   private int numElems = 0;
   
   public VM_HashMap() {
     this(DEFAULT_SIZE);
   }
-      
+  
+  @SuppressWarnings("unchecked") // the java generic array problem
+  private Bucket<K,V>[] newBucketArray(int size) {
+    return new Bucket[size];
+  }
   
   public VM_HashMap(int size) {
-    if (STAGING) {
-      map = new HashMap<Object,Object>(size);
-    } else {
-      map = null;
-      buckets = new Bucket[size];
-    }
+    buckets = newBucketArray(size);
   }
 
   public final int size() {
     return numElems;
   }
   
-  public final Object get(Object key) {
-    if (STAGING) {
-      return map.get(key);
+  public final V get(K key) {
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<K,V> cur = buckets[bucketIdx];
+    while (cur != null && !cur.key.equals(key)) {
+      cur = cur.next;
+    }
+    if (cur == null) {
+      return null;
     } else {
-      int bucketIdx = bucketIndex(key, buckets.length);
-      Bucket cur = buckets[bucketIdx];
-      while (cur != null && !cur.key.equals(key)) {
-        cur = cur.next;
-      }
-      if (cur == null) {
-        return null;
-      } else {
-        return cur.value;
-      }
+      return cur.value;
     }
   }
 
-  public final Object put(Object key, Object value) {
-    if (STAGING) {
-      return map.put(key, value);
-    } else {
-      if (numElems > (buckets.length * LOAD)) {
-        growMap();
-      }
+  public final V put(K key, V value) {
+    if (numElems > (buckets.length * LOAD)) {
+      growMap();
+    }
 
-      int bucketIdx = bucketIndex(key, buckets.length);
-      Bucket cur = buckets[bucketIdx];
-      while (cur != null && !cur.key.equals(key)) {
-        cur = cur.next;
-      }
-      if (cur != null) {
-        // replacing existing <key,value> pair
-        Object tmp = cur.value;
-        cur.value = value;
-        return tmp;
-      } else {
-        Bucket newBucket = new Bucket(key, value);
-        newBucket.next = buckets[bucketIdx];
-        buckets[bucketIdx] = newBucket;
-        numElems++;
-        return null;
-      }
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<K,V> cur = buckets[bucketIdx];
+    while (cur != null && !cur.key.equals(key)) {
+      cur = cur.next;
+    }
+    if (cur != null) {
+      // replacing existing <key,value> pair
+      V tmp = cur.value;
+      cur.value = value;
+      return tmp;
+    } else {
+      Bucket<K,V> newBucket = new Bucket<K,V>(key, value);
+      newBucket.next = buckets[bucketIdx];
+      buckets[bucketIdx] = newBucket;
+      numElems++;
+      return null;
     }
   }
 
   private final void growMap() {
-    Bucket[] newBuckets = new Bucket[buckets.length*2+1];
+    Bucket<K,V>[] newBuckets = newBucketArray(buckets.length*2+1);
     for (int i=0; i<buckets.length; i++) {
-      Bucket cur = buckets[i];
+      Bucket<K,V> cur = buckets[i];
       while (cur != null) {
-        Bucket next = cur.next;
+        Bucket<K,V> next = cur.next;
         int newIdx = bucketIndex(cur.key, newBuckets.length);
         cur.next = newBuckets[newIdx];
         newBuckets[newIdx] = cur;
@@ -115,49 +97,37 @@ public class VM_HashMap {
     buckets = newBuckets;
   }
   
-  public final Object remove(Object key) {
-    if (STAGING) {
-      return map.remove(key);
-    } else {
-      int bucketIdx = bucketIndex(key, buckets.length);
-      Bucket cur = buckets[bucketIdx];
-      Bucket prev = null;
-      while (cur != null && !cur.key.equals(key)) {
-        prev = cur;
-        cur = cur.next;
-      }
-      if (cur != null) {
-        if (prev == null) {
-          // removing first bucket in chain.
-          buckets[bucketIdx] = cur.next;
-        } else {
-          prev.next = cur.next;
-        }
-        numElems--;
-        return cur.value;
+  public final V remove(K key) {
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<K,V> cur = buckets[bucketIdx];
+    Bucket<K,V> prev = null;
+    while (cur != null && !cur.key.equals(key)) {
+      prev = cur;
+      cur = cur.next;
+    }
+    if (cur != null) {
+      if (prev == null) {
+        // removing first bucket in chain.
+        buckets[bucketIdx] = cur.next;
       } else {
-        return null;
+        prev.next = cur.next;
       }
+      numElems--;
+      return cur.value;
+    } else {
+      return null;
     }
   }
 
-  public final Iterator valueIterator() {
-    if (STAGING) {
-      return map.values().iterator();
-    } else {
-      return new MapIterator(false);
-    }
+  public final Iterator<V> valueIterator() {
+    return new ValueIterator();
   }
     
-  public final Iterator keyIterator() {
-    if (STAGING) {
-      return map.keySet().iterator();
-    } else {
-      return new MapIterator(true);
-    }
+  public final Iterator<K> keyIterator() {
+    return new KeyIterator();
   }
 
-  private final int bucketIndex(Object key, int divisor) {
+  private final int bucketIndex(K key, int divisor) {
     if (key == null) {
       return 0;
     } else {
@@ -165,29 +135,27 @@ public class VM_HashMap {
     }
   }
   
-  private static final class Bucket {
-    final Object key;
-    Object value;
-    Bucket next;
+  private static final class Bucket<K,V> {
+    final K key;
+    V value;
+    Bucket<K,V> next;
 
-    Bucket(Object k, Object v) {
+    Bucket(K k, V v) {
       key = k;
       value = v;
     }
   }
 
-  private final class MapIterator implements Iterator {
-    private final boolean key;
+  /**
+   * Iterator types for key and value
+   */
+  private class BucketIterator {
     private int bucketIndex = 0;
-    private Bucket next = null;
-    private Bucket last = null;
+    private Bucket<K,V> next = null;
+    private Bucket<K,V> last = null;
     private int numVisited = 0;
 
-    MapIterator(boolean k) {
-      key = k;
-    }
-    
-    public Object next() {
+    public Bucket<K,V> nextBucket() {
       if (!hasNext()) {
         throw new NoSuchElementException();
       }
@@ -195,10 +163,10 @@ public class VM_HashMap {
       while (next == null) {
         next = buckets[bucketIndex++];
       }
-      Bucket ans = next;
+      Bucket<K,V> ans = next;
       next = ans.next;
       numVisited++;
-      return key ? ans.key : ans.value;
+      return ans;
     }
 
     public boolean hasNext() {
@@ -212,5 +180,46 @@ public class VM_HashMap {
       VM_HashMap.this.remove(last.key);
       last = null;
     }
+  }
+  
+  private final class KeyIterator extends BucketIterator implements Iterator<K> {
+    public K next() {
+      Bucket<K,V> cur = nextBucket(); 
+      return cur.key;
+    }
+  }
+  
+  private final class ValueIterator extends BucketIterator implements Iterator<V> {
+    public V next() {
+      Bucket<K,V> cur = nextBucket(); 
+      return cur.value;
+    }
+  }
+  
+  /**
+   * These two methods allow VM_HashMaps to be used in the Java 5 for loop.
+   */
+  
+  /**
+   * @return a java.lang.Iterable for the values in the hash map
+   */
+  public final Iterable<V> values() {
+    return new Iterable<V>() {
+      public Iterator<V> iterator() {
+        return VM_HashMap.this.valueIterator();
+      }
+    };
+  }
+  
+  /**
+   * 
+   * @return a java.lang.Iterable for the values in the hash map
+   */
+  public final Iterable<K> keys() {
+    return new Iterable<K>() {
+      public Iterator<K> iterator() {
+        return VM_HashMap.this.keyIterator();
+      }
+    };
   }
 }

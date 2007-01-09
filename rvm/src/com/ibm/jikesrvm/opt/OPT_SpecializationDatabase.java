@@ -101,14 +101,15 @@ public final class OPT_SpecializationDatabase {
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }
-  private static VM_HashMap specialVersionsHash = new VM_HashMap();
+  private static VM_HashMap<VM_Method,MethodSet> specialVersionsHash = 
+    new VM_HashMap<VM_Method,MethodSet>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static MethodSet findOrCreateMethodSet(VM_HashMap hash, Object key) {
-    MethodSet result = (MethodSet)hash.get(key);
+  private static <T> MethodSet findOrCreateMethodSet(VM_HashMap<T,MethodSet> hash, T key) {
+    MethodSet result = hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
       hash.put(key, result);

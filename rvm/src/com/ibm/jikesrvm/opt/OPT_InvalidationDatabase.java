@@ -113,7 +113,7 @@ public final class OPT_InvalidationDatabase {
    * Delete a NoSubclassDependency. No effect if the dependency doesn't exist..
    */
   public void removeNoSubclassDependency (VM_Class source, int dependent_cmid) {
-    MethodSet s = (MethodSet)noSubclassHash.get(source);
+    MethodSet s = noSubclassHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
     }
@@ -130,20 +130,22 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private VM_HashMap nonOverriddenHash = new VM_HashMap();
+  private VM_HashMap<VM_Method,MethodSet> nonOverriddenHash = 
+    new VM_HashMap<VM_Method,MethodSet>();
   
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private VM_HashMap noSubclassHash = new VM_HashMap();
+  private VM_HashMap<VM_Class,MethodSet> noSubclassHash = 
+    new VM_HashMap<VM_Class,MethodSet>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private MethodSet findOrCreateMethodSet (VM_HashMap hash, Object key) {
-    MethodSet result = (MethodSet)hash.get(key);
+  private <T> MethodSet findOrCreateMethodSet (VM_HashMap<T,MethodSet> hash, T key) {
+    MethodSet result = hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
       hash.put(key, result);

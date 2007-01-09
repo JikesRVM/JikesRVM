@@ -19,7 +19,7 @@ import com.ibm.jikesrvm.classloader.*;
  *
  * @author Stephen Fink
  */
-final class OPT_FieldDatabase extends VM_HashMap {
+final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.FieldDatabaseEntry> {
   final static private boolean DEBUG = false;
 
   OPT_FieldDatabase() { }
@@ -49,20 +49,19 @@ final class OPT_FieldDatabase extends VM_HashMap {
 
   // a data structure holding information about a field
   final class FieldDatabaseEntry {
-    private VM_HashMap summaries;        // VM_Method -> FieldWriterInfo
+    private VM_HashMap<VM_Method,FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
     VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
     
     FieldWriterInfo findMethodInfo(VM_Method m) { 
-      return (FieldWriterInfo)summaries.get(m);
+      return summaries.get(m);
     }
 
     // are all methods that may write this field analyzed already?
     boolean allMethodsAreAnalyzed() {
       
       if (cachedAllAnalyzed) return true;
-      for (java.util.Iterator i = summaries.valueIterator(); i.hasNext(); ) {
-        FieldWriterInfo info = (FieldWriterInfo)i.next();
+      for (FieldWriterInfo info : summaries.values()) {
         if (!info.isAnalyzed()) return false;
       }
       cachedAllAnalyzed = true;
@@ -74,8 +73,7 @@ final class OPT_FieldDatabase extends VM_HashMap {
     VM_TypeReference getConcreteType() {
       if (cachedConcreteType != null) return cachedConcreteType;
       VM_TypeReference result = null;
-      for (java.util.Iterator i = summaries.valueIterator(); i.hasNext(); ) {
-        FieldWriterInfo info = (FieldWriterInfo)i.next();
+      for (FieldWriterInfo info : summaries.values()) {
         if (!info.isAnalyzed()) return null;
         if (info.isBottom()) return null;
         VM_TypeReference t = info.concreteType;
@@ -97,7 +95,7 @@ final class OPT_FieldDatabase extends VM_HashMap {
       if (VM.VerifyAssertions) VM._assert(f.isPrivate());
 
       VM_Class klass = f.getDeclaringClass();
-      summaries = new VM_HashMap(1);
+      summaries = new VM_HashMap<VM_Method,FieldWriterInfo>(1);
        
       // walk thru each method of the declaring class.  
       // If a method m may write to f, then create a FieldWriterInfo for m

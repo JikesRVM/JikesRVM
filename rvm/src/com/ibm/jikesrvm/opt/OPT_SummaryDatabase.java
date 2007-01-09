@@ -32,15 +32,15 @@ public class OPT_SummaryDatabase {
    */
   public static void init () {}
 
-  /** 
-   * Lookup a given class in the database.
-   * 
-   * @return OPT_ClassSummary instance representing class. 
-   *  null if not found
-   */
-  public static synchronized OPT_ClassSummary findClassSummary (VM_Class c) {
-    return  (OPT_ClassSummary)hash.get(c);
-  }
+//  /** 
+//   * Lookup a given class in the database.
+//   * 
+//   * @return OPT_ClassSummary instance representing class. 
+//   *  null if not found
+//   */
+//  public static synchronized OPT_ClassSummary findClassSummary (VM_Class c) {
+//    return  (OPT_ClassSummary)hash.get(c);
+//  }
 
   /** 
    * Lookup a given method in the database
@@ -48,7 +48,7 @@ public class OPT_SummaryDatabase {
    * @return OPT_MethodSummary instance representing method
    */
   public static synchronized OPT_MethodSummary findMethodSummary (VM_Method m) {
-    return  (OPT_MethodSummary)hash.get(m);
+    return hash.get(m);
   }
 
   public static synchronized OPT_MethodSummary findOrCreateMethodSummary (VM_Method m) {
@@ -61,7 +61,8 @@ public class OPT_SummaryDatabase {
   }
 
   /** Implementation */
-  private static final VM_HashMap hash = new VM_HashMap();
+  private static final VM_HashMap<VM_Method,OPT_MethodSummary> hash = 
+    new VM_HashMap<VM_Method,OPT_MethodSummary>();
 
 }
 

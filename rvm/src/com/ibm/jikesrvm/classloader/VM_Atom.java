@@ -38,7 +38,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Used to canonicalize VM_Atoms: Key => VM_Atom
    */
-  private static final VM_HashMap dictionary = new VM_HashMap();
+  private static final VM_HashMap<Key,VM_Atom> dictionary = 
+    new VM_HashMap<Key,VM_Atom>();
 
   /**
    * Dictionary of all VM_Atom instances.
@@ -150,7 +151,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * one.  And they all feed through here.  */
   private static synchronized VM_Atom findOrCreate(byte[] bytes, boolean create) {
     Key key = new Key(bytes);
-    VM_Atom val = (VM_Atom)dictionary.get(key);
+    VM_Atom val = dictionary.get(key);
     if (val != null || !create)  return val;
     val = new VM_Atom(key, nextId++);
     if (val.id == atoms.length) {

@@ -60,6 +60,21 @@ public final class VM_HashSet<T> implements Iterable<T> {
     }
   }
   
+  public T get(T key) {
+    int bucketIdx = bucketIndex(key, buckets.length);
+    Bucket<T> cur = buckets[bucketIdx];
+    while (cur != null && !cur.key.equals(key)) {
+      cur = cur.next;
+    }
+    if (cur == null)
+      return null;
+    else
+      return cur.key;
+  }
+  
+  public boolean contains(T key) {
+    return get(key) != null;
+  }
 
   public void addAll(VM_HashSet<T> c) {
     for (T t : c) {

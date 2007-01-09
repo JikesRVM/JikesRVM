@@ -11,7 +11,7 @@ package com.ibm.jikesrvm.classloader;
 
 import com.ibm.jikesrvm.VM;
 import org.vmmagic.pragma.*;
-import com.ibm.jikesrvm.util.VM_HashMap;
+import com.ibm.jikesrvm.util.VM_HashSet;
 import static com.ibm.jikesrvm.VM_SizeConstants.*;
 /**
  * A class to represent the reference in a class file to some 
@@ -60,7 +60,7 @@ public final class VM_TypeReference {
   /**
    * Used to canonicalize TypeReferences
    */
-  private static final VM_HashMap dictionary = new VM_HashMap();
+  private static final VM_HashSet<VM_TypeReference> dictionary = new VM_HashSet<VM_TypeReference>();
 
   /**
    * Dictionary of all VM_TypeReference instances.
@@ -263,7 +263,7 @@ public final class VM_TypeReference {
         types = tmp;
       }
       types[val.id] = val;
-      dictionary.put(key, val);
+      dictionary.add(val);
     }
     return val;
   }
