@@ -45,7 +45,7 @@ public abstract class Reference<T> {
    * @see java.lang.ref.ReferenceQueue
    *
    */
-  Reference nextOnQueue;
+  Reference<?> nextOnQueue;
 
   
   /**

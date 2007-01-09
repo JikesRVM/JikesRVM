@@ -97,7 +97,7 @@ public class OSR_EncodedOSRMap
    * we can not trust the osrlist is in the increasing order of 
    * machine code offset. Sort it first.
    */
-  private void translateMap(LinkedList osrlist) {
+  private void translateMap(LinkedList<OSR_VariableMapElement> osrlist) {
 
     /* sort the list, use the mc offset of the index instruction 
      * as the key.
@@ -106,7 +106,7 @@ public class OSR_EncodedOSRMap
 
     OSR_VariableMapElement[] osrarray = new OSR_VariableMapElement[n];
     for (int i=0; i<n; i++) {
-      osrarray[i] = (OSR_VariableMapElement)osrlist.get(i);
+      osrarray[i] = osrlist.get(i);
     }
 
     /* ideally, the osrList should be in sorted order by MC offset,
@@ -136,7 +136,7 @@ public class OSR_EncodedOSRMap
       setIEIndex(i, iei);
 
       // get osr map 
-      LinkedList mVarList = elm.mvars;
+      LinkedList<OSR_MethodVariables> mVarList = elm.mvars;
       int osrMapIndex = generateOsrMaps(mVarList);
       
       // use this offset, and adjust on extractState
@@ -204,15 +204,14 @@ public class OSR_EncodedOSRMap
    *
    * The MSB of mpc indicates if the next is a valid pair
    */
-  private int generateOsrMaps(LinkedList mVarList) {
+  private int generateOsrMaps(LinkedList<OSR_MethodVariables> mVarList) {
 
     int regmap = (mVarList.size() > 0)? NEXT_BIT:0;
     int mapIndex = addIntToOsrMap(regmap);
 
     // from inner to outer
     for (int i=0, m=mVarList.size(); i<m; i++) {
-      OSR_MethodVariables mVar = 
-        (OSR_MethodVariables)mVarList.get(i);
+      OSR_MethodVariables mVar = mVarList.get(i);
       _generateMapForOneMethodVariable(mapIndex, mVar, (i==(m-1)));
     }
 
@@ -229,7 +228,7 @@ public class OSR_EncodedOSRMap
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
     addIntToOsrMap(mid);
 
-    LinkedList tupleList = mVar.tupleList;
+    LinkedList<OSR_LocalRegPair> tupleList = mVar.tupleList;
     int m = tupleList.size();
 
     // Is this method has variables?
@@ -238,8 +237,7 @@ public class OSR_EncodedOSRMap
 
     // append each element 
     for (int j=0; j<m; j++) {
-      OSR_LocalRegPair tuple = 
-        (OSR_LocalRegPair)tupleList.get(j);
+      OSR_LocalRegPair tuple = tupleList.get(j);
 
       boolean isLast = (j == m-1);
         

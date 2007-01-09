@@ -28,7 +28,7 @@ class VMArray {
    * @throws NegativeArraySizeException if dim is negative
    * @throws OutOfMemoryError if memory allocation fails
    */
-  static Object createObjectArray(Class cls, int length)
+  static Object createObjectArray(Class<?> cls, int length)
     throws OutOfMemoryError, NegativeArraySizeException {
     if(cls == null)
       throw new NullPointerException();

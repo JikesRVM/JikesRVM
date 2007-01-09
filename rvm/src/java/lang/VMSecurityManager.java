@@ -26,7 +26,7 @@ import com.ibm.jikesrvm.classloader.VM_BootstrapClassLoader;
  */
 final class VMSecurityManager
 {
-  static Class[] getClassContext() {
+  static Class<?>[] getClassContext() {
       VM_StackBrowser b = new VM_StackBrowser();
       int frames = 0;
       VM.disableGC();
@@ -57,7 +57,7 @@ final class VMSecurityManager
       }
 
       VM.enableGC();
-      Class[] classes = new Class[ frames ];
+      Class<?>[] classes = new Class[ frames ];
       for(int j = 0; j < iclasses.length; j++) {
           classes[j] = iclasses[j].getClassForType();
       }

@@ -152,14 +152,14 @@ $$$$ END FOREACH
       if (latsize > opclass.id) latObj = latencies.get(opclass.id);
 
       // walk through backwards, since any_insn (most general) is first
-      ArrayList opcrc = opclass.rclasses;
+      ArrayList<OPT_OperatorClass> opcrc = opclass.rclasses;
       for (int i = opcrc.size(); latObj == null && i > 0; i--) {
-         OPT_OperatorClass rc = (OPT_OperatorClass) opcrc.get(i - 1);
+         OPT_OperatorClass rc = opcrc.get(i - 1);
          if (latsize > rc.id) latObj = latencies.get(rc.id);
       }
 
       for (int i = rclasses.size(); latObj == null && i > 0; i--) {
-         OPT_OperatorClass rc = (OPT_OperatorClass) rclasses.get(i - 1);
+         OPT_OperatorClass rc = rclasses.get(i - 1);
          latObj = rc.latObj(opclass);
       }
 
@@ -277,7 +277,7 @@ $$$$ END FOREACH
    /**
     * Resource Classes used by this Operator Class
     */
-   final ArrayList rclasses;
+   final ArrayList<OPT_OperatorClass> rclasses;
 
    /**
     * Resource Usage Masks
@@ -287,8 +287,8 @@ $$$$ END FOREACH
    // For internal use only.
    private OPT_OperatorClass(int _id) {
       id = _id;
-      rclasses = new ArrayList();
-      latencies = new ArrayList();
+      rclasses = new ArrayList<OPT_OperatorClass>();
+      latencies = new ArrayList<Integer>();
    }
 
    // For internal use only.

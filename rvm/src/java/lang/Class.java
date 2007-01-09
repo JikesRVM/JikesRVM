@@ -159,7 +159,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       : null;
   }
 
-  public Constructor<T> getConstructor(Class<?> parameterTypes[]) 
+  public Constructor<?> getConstructor(Class<?> parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
@@ -230,7 +230,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return result;
   }
 
-  public Constructor<T> getDeclaredConstructor(Class<?> parameterTypes[]) 
+  public Constructor<?> getDeclaredConstructor(Class<?> parameterTypes[]) 
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);

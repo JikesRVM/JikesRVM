@@ -78,7 +78,8 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
          *
          * bootstrapClassLoader.definedPackages    = new HashMap();
          */
-        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, new java.util.HashMap());
+        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, 
+            new java.util.HashMap<String,Package>());
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }
@@ -138,7 +139,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
       className = className.substring(1, className.length()-2);
     }
     VM_Type loadedType = (VM_Type)loaded.get(className);
-    Class loadedClass;
+    Class<?> loadedClass;
     if (loadedType == null) {
       loadedClass = findClass(className);
     } else {
@@ -180,7 +181,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
         if (is == null) throw new ClassNotFoundException(className);
         DataInputStream dataInputStream = new DataInputStream(is);
-        Class cls = null;
+        Class<?> cls = null;
         try {
           VM_Type type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
           loaded.put(className, type);

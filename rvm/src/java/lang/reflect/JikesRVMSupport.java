@@ -23,8 +23,8 @@ public class JikesRVMSupport {
   /**
    * Convert from "vm" type system to "jdk" type system.
    */ 
-  static Class[] typesToClasses(VM_TypeReference[] types) {
-    Class[] classes = new Class[types.length];
+  static Class<?>[] typesToClasses(VM_TypeReference[] types) {
+    Class<?>[] classes = new Class[types.length];
     for (int i = 0; i < types.length; i++) {
       classes[i] = types[i].resolve().getClassForType();
     }
@@ -84,8 +84,9 @@ public class JikesRVMSupport {
     return new Method(m);
   }
 
-  public static <T> Constructor<T> createConstructor(VM_Method m) {
-    return new Constructor<T>(m);
+  @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
+  public static Constructor<?> createConstructor(VM_Method m) {
+    return new Constructor(m);
   }
 
   public static VM_Field getFieldOf(Field f) {
@@ -96,7 +97,7 @@ public class JikesRVMSupport {
     return f.method;
   }
 
-  public static VM_Method getMethodOf(Constructor f) {
+  public static VM_Method getMethodOf(Constructor<?> f) {
     return f.constructor;
   }
 

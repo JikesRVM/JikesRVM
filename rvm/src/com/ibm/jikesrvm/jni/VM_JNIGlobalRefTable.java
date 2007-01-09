@@ -46,7 +46,7 @@ class VM_JNIGlobalRefTable {
   static final int STRONG_REF_BIT = 1 << 30;
 
   static int newWeakRef(Object referent) {
-    int gref = newGlobalRef(new WeakReference(referent));
+    int gref = newGlobalRef(new WeakReference<Object>(referent));
     return gref & ~STRONG_REF_BIT;
   }
 
@@ -69,7 +69,8 @@ class VM_JNIGlobalRefTable {
 
   static Object weakRef(int index) {
     if (VM.VerifyAssertions) VM._assert( isWeakRef(index));
-    WeakReference ref = (WeakReference) refs[ - (index | STRONG_REF_BIT)];
+    @SuppressWarnings("unchecked") // yes, we're being bad.
+    WeakReference<Object> ref = (WeakReference<Object>) refs[ - (index | STRONG_REF_BIT)];
     return ref.get();
   }
 

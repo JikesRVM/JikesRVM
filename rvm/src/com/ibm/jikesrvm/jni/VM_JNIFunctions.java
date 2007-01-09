@@ -160,7 +160,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       classString = VM_JNIHelpers.createStringFromC(classNameAddress);
       if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = VM_Class.getClassLoaderFromStackFrame(1);
-      Class matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
+      Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {
       if (traceJNI) e.printStackTrace(System.err);
@@ -184,8 +184,8 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF); 
-      Class supercls = cls.getSuperclass();
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
+      Class<?> supercls = cls.getSuperclass();
       return supercls == null ? 0 : env.pushJNIRef(supercls);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -207,8 +207,8 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
 
     try {
-      Class<?> cls1 = (Class) env.getJNIRef(firstClassJREF);
-      Class<?> cls2 = (Class) env.getJNIRef(secondClassJREF);
+      Class<?> cls1 = (Class<?>) env.getJNIRef(firstClassJREF);
+      Class<?> cls2 = (Class<?>) env.getJNIRef(secondClassJREF);
       if (cls1==null || cls2==null)
         return false;
       return cls2.isAssignableFrom(cls1);
@@ -252,11 +252,11 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ThrowNew  \n");
 
     try {
-      Class<?> cls = (Class) env.getJNIRef(throwableClassJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(throwableClassJREF);
       // find the constructor that has a string as a parameter
-      Class[] argClasses = new Class[1];
+      Class<?>[] argClasses = new Class[1];
       argClasses[0] = VM_Type.JavaLangStringType.getClassForType();
-      Constructor constMethod = cls.getConstructor(argClasses);
+      Constructor<?> constMethod = cls.getConstructor(argClasses);
       // prepare the parameter list for reflective invocation
       Object[] argObjs = new Object[1];
       argObjs[0] = VM_JNIHelpers.createStringFromC(exceptionNameAddress);
@@ -424,7 +424,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
 
     try {
-      Class javaCls = (Class) env.getJNIRef(classJREF);
+      Class<?> javaCls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(javaCls);
       if (type.isArrayType() || type.isPrimitiveType()) {
         env.recordException(new InstantiationException());
@@ -459,7 +459,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF); 
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
       VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
       
       if (vmcls.isAbstract() || vmcls.isInterface()) {
@@ -493,7 +493,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewObjectV  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF); 
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
       VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
@@ -527,7 +527,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewObjectA  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
 
       if (vmcls.isAbstract() || vmcls.isInterface()) {
@@ -577,7 +577,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: IsInstanceOf  \n");
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       Object obj = (Object) env.getJNIRef(objJREF);
       if (obj == null) return 0; // null instanceof T is always false
       VM_Type RHStype = VM_ObjectModel.getObjectType(obj);
@@ -613,7 +613,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
-      Class jcls = (Class) env.getJNIRef(classJREF);
+      Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
@@ -2171,7 +2171,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");  
 
     try {
-      Class cls = (Class) env.getJNIRef(classJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       String fieldString = VM_JNIHelpers.createStringFromC(fieldNameAddress);
       VM_Atom fieldName = VM_Atom.findOrCreateAsciiAtom(fieldString);
 
@@ -2595,7 +2595,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
-      Class jcls = (Class) env.getJNIRef(classJREF);
+      Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
@@ -3321,7 +3321,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
     
     try {
-      Class cls = (Class) env.getJNIRef(classJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
       String fieldString = VM_JNIHelpers.createStringFromC(fieldNameAddress);
       VM_Atom fieldName = VM_Atom.findOrCreateAsciiAtom(fieldString);
@@ -3942,7 +3942,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     try {
       Object initElement = env.getJNIRef(initElementJREF);
-      Class cls = (Class) env.getJNIRef(classJREF);
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
       if(cls == null)
         throw new NullPointerException();
@@ -5265,7 +5265,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     try {
       // get the target class 
-      Class jcls = (Class) env.getJNIRef(classJREF);
+      Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
@@ -5326,7 +5326,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     try {
 
       // get the target class 
-      Class jcls = (Class) env.getJNIRef(classJREF);
+      Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoClassDefFoundError());
@@ -5417,7 +5417,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     VM_Method meth;
     if (methodObj instanceof Constructor)
       meth = 
-        java.lang.reflect.JikesRVMSupport.getMethodOf((Constructor) methodObj);
+        java.lang.reflect.JikesRVMSupport.getMethodOf((Constructor<?>) methodObj);
     else
       meth = java.lang.reflect.JikesRVMSupport.getMethodOf((Method) methodObj);
       

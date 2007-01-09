@@ -22,8 +22,8 @@ import com.ibm.jikesrvm.VM_Statics;
  * @author Ian Rogers
  */
 final class VMString {
-  private static final WeakHashMap<String,WeakReference> internedStrings = 
-    new WeakHashMap<String,WeakReference>();
+  private static final WeakHashMap<String,WeakReference<String>> internedStrings = 
+    new WeakHashMap<String,WeakReference<String>>();
 
   /** 
    * Intern the argument string.
@@ -33,9 +33,9 @@ final class VMString {
   static String intern(String str) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     synchronized (internedStrings) {
-      WeakReference ref = internedStrings.get(str);
+      WeakReference<String> ref = internedStrings.get(str);
       if (ref != null) {
-        String s = (String)ref.get();
+        String s = ref.get();
         if (s != null) {
           return s;
         }
