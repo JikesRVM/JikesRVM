@@ -221,8 +221,8 @@ public class VM_ManagedCounterData {
     sort(vec);
 
     // print
-    for (Enumeration e = vec.elements(); e.hasMoreElements(); ) {
-       Counter c = (Counter)e.nextElement();
+    for (Enumeration<Counter> e = vec.elements(); e.hasMoreElements(); ) {
+       Counter c = e.nextElement();
        String s = c.name;
        double count = c.count;
        double percent = (100 * count) / sum;

@@ -15,7 +15,6 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 import java.util.Vector;
-import java.util.Enumeration;
 
 /**
  * RuntimeMeasurements manages listeners, decayable objects, and 
@@ -343,8 +342,7 @@ public abstract class VM_RuntimeMeasurements {
     decayEventCounter++;
     if (VM.LogAOSEvents) VM_AOSLogging.decayingCounters();
     
-    for (Enumeration e=decayObjects.elements(); e.hasMoreElements();) {
-      VM_Decayable obj = (VM_Decayable) e.nextElement();
+    for (VM_Decayable obj : decayObjects) {
       obj.decay();
     }
   }
@@ -370,8 +368,7 @@ public abstract class VM_RuntimeMeasurements {
    * Reset to all registered reportable objects
    */
   public static void resetReportableObjects() {
-    for (Enumeration e=reportObjects.elements(); e.hasMoreElements();) {
-      VM_Reportable obj = (VM_Reportable)e.nextElement();
+    for (VM_Reportable obj : reportObjects) {
       obj.reset();
     }
   }    
@@ -379,8 +376,7 @@ public abstract class VM_RuntimeMeasurements {
    * Report to all registered reportable objects
    */
   private static void reportReportableObjects() {
-    for (Enumeration e=reportObjects.elements(); e.hasMoreElements();) {
-      VM_Reportable obj = (VM_Reportable)e.nextElement();
+    for (VM_Reportable obj : reportObjects) {
       obj.report();
     }
   }    

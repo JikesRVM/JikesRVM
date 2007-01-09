@@ -209,7 +209,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * invisible annotations
    */
   protected VM_Type(VM_TypeReference typeRef,
-                    Class classForType,
+                    Class<?> classForType,
                     int dimension,
                     VM_Annotation runtimeVisibleAnnotations[],
                     VM_Annotation runtimeInvisibleAnnotations[])
@@ -593,7 +593,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * Utility to create a java.lang.Class for the given type using the
    * given type reference
    */
-  protected static Class createClassForType(VM_Type type,
+  protected static Class<?> createClassForType(VM_Type type,
                                             VM_TypeReference typeRef) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);

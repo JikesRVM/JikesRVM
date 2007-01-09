@@ -13,7 +13,6 @@
 
 package com.ibm.jikesrvm.adaptive;
 
-import java.util.Iterator;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.OPT_CompilationPlan;
@@ -55,13 +54,10 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
    */
   public static void compileAllMethods() {
     //Collection allMethodsSet = attribMap.values();
-    Iterator it = VM_CompilerAdviceAttribute.getEntries();
     VM.sysWriteln("Start precompile");
-    while (it.hasNext()) {
+    for (VM_CompilerAdviceAttribute value : VM_CompilerAdviceAttribute.values()) {
       //while (allMethods.hasNext()) {
       //VM.sysWriteln("checking one");
-      VM_CompilerAdviceAttribute value =
-        (VM_CompilerAdviceAttribute)it.next();
 
       VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), value.getClassName());
       VM_Class cls = (VM_Class)tRef.peekResolvedType();

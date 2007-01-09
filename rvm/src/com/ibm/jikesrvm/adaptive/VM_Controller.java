@@ -290,8 +290,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     VM_ControllerThread.report();
     VM_RuntimeMeasurements.report();
 
-    for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
-      VM_Organizer organizer = (VM_Organizer)e.nextElement();
+    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements(); ) {
+      VM_Organizer organizer = e.nextElement();
       organizer.report();
     }
 
@@ -322,8 +322,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     if (!booted) return;
     
     VM.sysWrite("\nAOS: Killing all adaptive system threads\n");
-    for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
-      VM_Organizer organizer = (VM_Organizer)e.nextElement();
+    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements(); ) {
+      VM_Organizer organizer = e.nextElement();
       organizer.kill(new ThreadDeath(), true);
     }
     compilationThread.kill(new ThreadDeath(), true);

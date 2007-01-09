@@ -435,7 +435,7 @@ public class VM_StackTrace implements VM_Constants {
     int foundTriggerAt = -1;    // -1 is a sentinel value; important in code
                                 // below. 
     if (trigger != null) {
-      Class triggerClass = trigger.getClass();
+      Class<? extends Throwable> triggerClass = trigger.getClass();
       /* So, elide up to the triggeringMethod.  If we never find the
          triggeringMethod, then leave foundTriggerAt set to -1; the printing
          code will handle that correctly.. */

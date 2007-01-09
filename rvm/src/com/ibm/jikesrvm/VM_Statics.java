@@ -264,7 +264,7 @@ public class VM_Statics implements VM_Constants {
    * @return the offset of slot that was allocated
    */
   public static int findOrCreateClassLiteral(int typeReferenceID) {
-    Class literalAsClass =
+    Class<?> literalAsClass =
       VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
     Integer offAsInt;
     synchronized(objectLiterals) {

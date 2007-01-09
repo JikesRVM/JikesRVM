@@ -151,9 +151,9 @@ public class VM_ControllerThread extends VM_Thread {
   // Now that we're done initializing, Schedule all the organizer threads
   // and signal the sentinel object.
   private void controllerInitDone() {
-    for (Enumeration e = VM_Controller.organizers.elements(); 
+    for (Enumeration<VM_Organizer> e = VM_Controller.organizers.elements(); 
          e.hasMoreElements(); ) {
-      VM_Organizer o = (VM_Organizer)e.nextElement();
+      VM_Organizer o = e.nextElement();
       o.start();
     }
 

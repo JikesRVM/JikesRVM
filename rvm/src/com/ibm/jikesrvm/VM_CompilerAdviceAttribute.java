@@ -15,10 +15,11 @@ package com.ibm.jikesrvm;
 
 
 import com.ibm.jikesrvm.classloader.*;
+
+import java.util.Collection;
 import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Iterator;
 
 /**
  * Defines an attribute for compiler advice, and maintains a map
@@ -204,8 +205,8 @@ public class VM_CompilerAdviceAttribute {
       return value;
   }
 
-  public static Iterator getEntries() {
-    return attribMap.values().iterator();
+  public static Collection<VM_CompilerAdviceAttribute> values() {
+    return attribMap.values();
   }
 
   final public static boolean hasAdvice() {

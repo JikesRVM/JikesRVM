@@ -29,8 +29,6 @@ package INSTRFMTPKG;
 import RVMPKGopt.OPT_OptimizingCompilerException;
 import RVMPKGVM;
 
-import com.ibm.jikesrvm.VM_Configuration;
-
 /**
  * Abstract parent class of all InstructionFormat classes.
  * 

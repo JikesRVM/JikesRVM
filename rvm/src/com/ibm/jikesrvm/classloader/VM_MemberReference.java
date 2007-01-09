@@ -131,7 +131,7 @@ public abstract class VM_MemberReference {
       } else {
        try {
           ClassLoader appCl = VM_ClassLoader.getApplicationClassLoader();
-          Class cls = (Class)appCl.loadClass(clName.substring(0, clName.indexOf('@')));
+          Class<?> cls = (Class<?>)appCl.loadClass(clName.substring(0, clName.indexOf('@')));
           cl = (ClassLoader)cls.newInstance();
         } catch (Exception ex) {
           throw new InternalError("Unable to load class with custom class loader: " + ex);

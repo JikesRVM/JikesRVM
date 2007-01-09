@@ -20,7 +20,6 @@ import com.ibm.jikesrvm.util.VM_HashMap;
 import java.io.PrintStream;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 
 /**
@@ -135,6 +134,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
+  @SuppressWarnings("unchecked") // until VM_HashMap becomes generic
   private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
     return table.get(method);
   }
@@ -147,32 +147,20 @@ public final class VM_ControllerMemory implements VM_Constants {
   public static synchronized VM_ControllerPlan findMatchingPlan(VM_CompiledMethod cmpMethod) {
     VM_Method method = cmpMethod.getMethod();
 
-    LinkedList planList = findPlan(method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return null;
     } else{
       // iterate over the planList until we get to this item
-      boolean found = false;
-      VM_ControllerPlan curPlan = null;
       synchronized(planList) {
-        ListIterator iter = planList.listIterator();
-        while (iter.hasNext()) {
-          curPlan = (VM_ControllerPlan) iter.next();
-
+        for (VM_ControllerPlan plan : planList) {
           // exit when we find ourselves
-          if (curPlan.getCMID() == cmpMethod.getId()) {
-            found = true;
-            break;
+          if (plan.getCMID() == cmpMethod.getId()) {
+            return plan;
           }
         } // more to process
       }
-
-      if (!found) {
-        // there was a plan for this method, but not for this compiled method
-        curPlan = null;
-      }
-
-      return curPlan;
+      return null;
     }
   }
 
@@ -187,18 +175,14 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  @return whether the method should be considered or not
    */
   static synchronized boolean shouldConsiderForInitialRecompilation(VM_Method method) {
-    LinkedList planList = findPlan(method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return true;
     } else {
       // iterate over the planList until we find a plan whose status is
       // inprogress, completed, 
       synchronized(planList) {
-        VM_ControllerPlan curPlan = null;
-        ListIterator iter = planList.listIterator();
-        while (iter.hasNext()) {
-          curPlan = (VM_ControllerPlan) iter.next();
-
+        for (VM_ControllerPlan curPlan : planList) {
           // exit when we find ourselves
           byte status = curPlan.getStatus();
           if (status == VM_ControllerPlan.COMPLETED || 
@@ -222,13 +206,11 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return whether or not there is plan with that status for the method
    */
   static synchronized boolean planWithStatus(VM_Method method, byte status) {
-    LinkedList planList = findPlan(method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList != null) {
       // iterate over the planList until we find a plan with status 'status'
       synchronized(planList) {
-        ListIterator iter = planList.listIterator();
-        while (iter.hasNext()) {
-          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+        for (VM_ControllerPlan curPlan : planList) {
           if (curPlan.getStatus() == status) {
             return true;
           }
@@ -264,14 +246,12 @@ public final class VM_ControllerMemory implements VM_Constants {
    *             for the method
    */
   static synchronized boolean completedPlanWithOptLevel(VM_Method method, int optLevel) {
-    LinkedList planList = findPlan(method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList != null) {
       // iterate over the planList until we find a completed plan with the
       // opt level passed
       synchronized(planList) {
-        ListIterator iter = planList.listIterator();
-        while (iter.hasNext()) {
-          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+        for (VM_ControllerPlan curPlan : planList) {
           if (curPlan.getStatus() == VM_ControllerPlan.COMPLETED &&
               curPlan.getCompPlan().options.getOptLevel() == optLevel) {
             return true;
@@ -291,7 +271,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *         otherwise, null
    */
   public static synchronized VM_ControllerPlan findLatestPlan(VM_Method method) {
-    LinkedList planList = findPlan(method);
+    LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return null;
     } else {
@@ -326,15 +306,12 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     // traverse table and give a summary of all actions that have occurred
     for (VM_Method meth : table.keys()) {
-      LinkedList planList = (LinkedList) table.get(meth);
+      LinkedList<VM_ControllerPlan> planList = (LinkedList<VM_ControllerPlan>) table.get(meth);
 
       int bitPattern = 0;
       int recompsAtLevel2 = 0;
-      VM_ControllerPlan plan = null;
         
-      ListIterator iter = planList.listIterator();
-      while (iter.hasNext()) {
-        plan = (VM_ControllerPlan) iter.next();
+      for (VM_ControllerPlan plan : planList) {
 
         // only process plans that were completed or completed and outdated 
         // by subsequent plans for this method
@@ -353,7 +330,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       } // while
       
       if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-        log.println("Method: "+ plan.getCompPlan().getMethod() 
+        log.println("Method: "+ meth 
                     +", bitPattern: "+ bitPattern
                     +", recompsAtLevel2: "+ recompsAtLevel2);
       }

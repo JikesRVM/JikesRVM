@@ -24,8 +24,6 @@ import com.ibm.jikesrvm.opt.*;
  * @author Matthew Arnold
  *
 **/
-import java.util.Enumeration;
-
 public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   implements VM_Reportable 
 {
@@ -60,10 +58,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
     double total=0;
     double methodEntryTotal=0;
     double backedgeTotal=0;
-    for (Enumeration e = stringToCounterMap.keys();
-         e.hasMoreElements();) {
-      String stringName = (String) e.nextElement();
-
+    for (String stringName : stringToCounterMap.keySet()) {
       Integer counterNum = (Integer) stringToCounterMap.get(stringName);
       double count = getCounter(counterNum.intValue());
 

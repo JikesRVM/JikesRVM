@@ -335,11 +335,10 @@ public class VM_CollectorThread extends VM_Thread {
         HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
       if (gcOrdinal == 1 && Selected.Plan.get().isLastGCFull()) {
-        boolean heapSizeChanged = false;
         if (Options.variableSizeHeap.getValue() && 
             handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
           // Don't consider changing the heap size if gc was forced by System.gc()
-          heapSizeChanged = HeapGrowthManager.considerHeapSize();
+          HeapGrowthManager.considerHeapSize();
         }
         HeapGrowthManager.reset();
       } 

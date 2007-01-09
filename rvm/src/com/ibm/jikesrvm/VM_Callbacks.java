@@ -636,7 +636,7 @@ public final class VM_Callbacks {
      * Notify the monitor that boot image writing is in progress.
      * @param types the types that are included in the boot image
      */
-    public void notifyBootImage(Enumeration types);
+    public void notifyBootImage(Enumeration<String> types);
   }
 
   /**
@@ -665,7 +665,7 @@ public final class VM_Callbacks {
    * Notify the monitor that boot image writing is in progress.
    * @param types the types that are included in the boot image
    */
-  public static void notifyBootImage(Enumeration types) {
+  public static void notifyBootImage(Enumeration<String> types) {
     // NOTE: will need synchronization if allowing unregistering
     if (!bootImageEnabled) return;
     bootImageEnabled = false;

@@ -210,7 +210,7 @@ public final class VM_TypeReference {
    * use in boot image writing
    * @param klass java.lang.Class to convert to typereference
    */
-  public static VM_TypeReference findOrCreate(Class klass) {
+  public static VM_TypeReference findOrCreate(Class<?> klass) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.getTypeForClass(klass).getTypeRef();
     } else {
@@ -647,7 +647,7 @@ public final class VM_TypeReference {
     if (isClassType()) {
       VM_Type ans; 
       if (VM.runningVM) {
-        Class klass;
+        Class<?> klass;
         String myName = name.classNameFromDescriptor();
         try {
           klass = classloader.loadClass(myName);

@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.Hashtable;
-import java.util.Enumeration;
 
 /**
  * VM_StringEventCounterData.java
@@ -106,10 +105,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
     VM.sysWrite("Printing " + dataName + ":\n");
     VM.sysWrite("--------------------------------------------------\n");
     double total=0;
-    for (Enumeration e = stringToCounterMap.keys();
-         e.hasMoreElements();) {
-      String stringName = (String) e.nextElement();
-
+    for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
       double counterVal = getCounter(counterIdx);
       VM.sysWrite(doubleToString(counterVal) + " " + stringName + "\n");
@@ -164,9 +160,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    *  Part of VM_Reportable interface
    **/
   public void reset() { 
-    for (Enumeration e = stringToCounterMap.keys();
-         e.hasMoreElements();) {
-      String stringName = (String) e.nextElement();
+    for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
       setCounter(counterIdx, 0.0);
     }

@@ -16,7 +16,6 @@ import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_RuntimeCompiler;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 /**
  * An instance of this class describes a compilation decision made by
@@ -111,7 +110,7 @@ public final class VM_ControllerPlan {
   /**
    *  The list that we are onstatus of this plan
    */
-  private LinkedList planList; 
+  private LinkedList<VM_ControllerPlan> planList; 
 
 
   /**
@@ -290,10 +289,7 @@ public final class VM_ControllerPlan {
     if (newStatus == COMPLETED) {
       // iterate over the planList until we get to this item
       synchronized(planList) {
-        ListIterator iter = planList.listIterator();
-        while (iter.hasNext()) {
-          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
-
+        for (VM_ControllerPlan curPlan : planList) {
           // exit when we find ourselves
           if (curPlan == this) break;
           
@@ -308,7 +304,7 @@ public final class VM_ControllerPlan {
   /**
    * List of plans for a source method
    */
-  public void setPlanList(LinkedList list) { planList = list; }
+  public void setPlanList(LinkedList<VM_ControllerPlan> list) { planList = list; }
 
   public String getStatusString() {
     switch (status) {

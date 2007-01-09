@@ -66,7 +66,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * @param name The name for this primitive
    * @param stackWords The stack slots used by this primitive
    */
-  private VM_Primitive(VM_TypeReference tr, Class classForType,
+  private VM_Primitive(VM_TypeReference tr, Class<?> classForType,
                        VM_Atom name, int stackWords) {
     super(tr,    // type reference
           classForType, // j.l.Class representation
@@ -85,7 +85,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   static VM_Primitive createPrimitive(VM_TypeReference tr) {
     VM_Atom name;
     int stackWords;
-    Class classForType;
+    Class<?> classForType;
     switch (tr.getName().parseForTypeCode()) {
     case VoidTypeCode:
       stackWords = 0;

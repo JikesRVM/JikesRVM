@@ -796,7 +796,7 @@ import org.vmmagic.pragma.*;
    * @param obj the soft reference to be added to the list
    */
    @Interruptible
-   public static void addSoftReference(SoftReference obj) { 
+   public static void addSoftReference(SoftReference<?> obj) { 
      ReferenceGlue.addSoftCandidate(obj);
    }
  
@@ -806,7 +806,7 @@ import org.vmmagic.pragma.*;
    * @param obj the weak reference to be added to the list
    */
    @Interruptible
-   public static void addWeakReference(WeakReference obj) { 
+   public static void addWeakReference(WeakReference<?> obj) { 
      ReferenceGlue.addWeakCandidate(obj);
    }
  
@@ -816,7 +816,7 @@ import org.vmmagic.pragma.*;
    * @param obj the phantom reference to be added to the list
    */
    @Interruptible
-   public static void addPhantomReference(PhantomReference obj) { 
+   public static void addPhantomReference(PhantomReference<?> obj) { 
      ReferenceGlue.addPhantomCandidate(obj);
    }
 

@@ -68,6 +68,7 @@ import org.vmmagic.pragma.*;
   
   
   // From VM.java
+  @SuppressWarnings("unused") // Accessed by native code
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 

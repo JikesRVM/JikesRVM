@@ -60,6 +60,8 @@ import org.mmtk.utility.Log;
   // Core Instance fields
   private String name;        // logical name of lock
   private final int id;       // lock id (based on a non-resetting counter)
+  
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private int dispenser;      // ticket number of next customer
   private int serving;        // number of customer being served
   // Diagnosis Instance fields

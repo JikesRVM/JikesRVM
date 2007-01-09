@@ -111,7 +111,7 @@ import java.lang.ref.PhantomReference;
    */
   @Interruptible
   @NoInline
-  private void addCandidate(Reference ref) { 
+  private void addCandidate(Reference<?> ref) { 
     if (TRACE) {
         Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
         ObjectReference referent = getReferent(referenceAsAddress);
@@ -284,7 +284,7 @@ import java.lang.ref.PhantomReference;
    */
   public final boolean enqueueReference(Address addr,
                                                boolean onlyOnce) {
-    Reference reference = (Reference)VM_Magic.addressAsObject(addr);
+    Reference<?> reference = (Reference<?>)VM_Magic.addressAsObject(addr);
     if (!onlyOnce || !reference.wasEverEnqueued())
       return reference.enqueue();
     else
@@ -296,7 +296,7 @@ import java.lang.ref.PhantomReference;
    * @param ref the SoftReference to add
    */
   @Interruptible
-  public static void addSoftCandidate(SoftReference ref) { 
+  public static void addSoftCandidate(SoftReference<?> ref) { 
     softReferenceProcessor.addCandidate(ref);
   }
 
@@ -305,7 +305,7 @@ import java.lang.ref.PhantomReference;
    * @param ref the WeakReference to add
    */
   @Interruptible
-  public static void addWeakCandidate(WeakReference ref) { 
+  public static void addWeakCandidate(WeakReference<?> ref) { 
     weakReferenceProcessor.addCandidate(ref);
   }
   
@@ -314,7 +314,7 @@ import java.lang.ref.PhantomReference;
    * @param ref the PhantomReference to add
    */
   @Interruptible
-  public static void addPhantomCandidate(PhantomReference ref) { 
+  public static void addPhantomCandidate(PhantomReference<?> ref) { 
     phantomReferenceProcessor.addCandidate(ref);
   }
   

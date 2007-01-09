@@ -37,9 +37,6 @@ public final class SynchronizationBarrier {
 
   private static final int verbose = 0;
 
-  // maximum processor id for rendezvous
-  private int maxProcessorId;
-
   // number of physical processors on running computer 
   private int   numRealProcessors; 
 
@@ -60,7 +57,7 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   public int rendezvous (int where) { 
 
-    int myOrder = barrier.arrive(where);
+    barrier.arrive(where);
 
     VM_Magic.isync(); // so subsequent instructions won't see stale values
 
@@ -106,8 +103,6 @@ public final class SynchronizationBarrier {
       else
         numParticipating++;
     }
-
-    maxProcessorId = VM_Scheduler.numProcessors;
 
     if (verbose > 0) 
         VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
