@@ -9,12 +9,14 @@
 
 //$Id$
 
-package com.ibm.jikesrvm;
+package com.ibm.jikesrvm.ia32;
 
+import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -370,7 +372,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param comment a comment string
    */
-  final void comment (String comment) {
+  public final void comment (String comment) {
     if (lister != null) lister.comment(mi, comment);
   }
 
@@ -922,7 +924,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
   /* we have 5 bytes, opcode, imm */
-  final void registerLoadRetAddrConst(int target) {
+  public final void registerLoadRetAddrConst(int target) {
     toBePatchedMCAddr = mi+1;
     targetBCpc = target;
   }

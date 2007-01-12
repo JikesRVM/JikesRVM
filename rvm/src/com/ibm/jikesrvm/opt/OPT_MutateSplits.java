@@ -18,7 +18,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  *
  * @author Stephen Fink
  */
-final class OPT_MutateSplits extends OPT_CompilerPhase {
+public final class OPT_MutateSplits extends OPT_CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

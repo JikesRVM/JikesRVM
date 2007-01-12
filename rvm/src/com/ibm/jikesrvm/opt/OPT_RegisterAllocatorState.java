@@ -22,7 +22,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Mauricio J. Serrano
  */
-class OPT_RegisterAllocatorState {
+public class OPT_RegisterAllocatorState {
 
   /**
    *  Resets the physical register info
@@ -70,7 +70,7 @@ class OPT_RegisterAllocatorState {
     reg.scratch = spill;
   }
 
-  static int getSpill(OPT_Register reg) {
+  public static int getSpill(OPT_Register reg) {
     return reg.scratch;
   }
 

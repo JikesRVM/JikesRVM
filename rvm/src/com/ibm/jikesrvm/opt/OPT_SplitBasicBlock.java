@@ -16,7 +16,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * 
  * @author Jong Choi
  */
-final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
+public final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
 
   private static final int MAX_NUM_INSTRUCTIONS = 300;
 

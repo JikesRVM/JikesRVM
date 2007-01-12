@@ -1157,7 +1157,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param obj
    * @param field
    */
-  static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
+  public static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
                                        OPT_RegisterOperand obj, 
                                        VM_Field field) {
     return getField(s, ir, obj, field, null);

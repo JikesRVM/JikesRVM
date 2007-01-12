@@ -1132,15 +1132,18 @@ public class GenerateAssembler {
         }
 
         try {
-            lowLevelAsm = Class.forName("com.ibm.jikesrvm.VM_Assembler");
+            lowLevelAsm = Class.forName("com.ibm.jikesrvm.ia32.VM_Assembler");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             System.exit(1 );
         }
 
-        emit("package com.ibm.jikesrvm.opt;\n\n");
-        emit("import com.ibm.jikesrvm.*;\n\n");
+        emit("package com.ibm.jikesrvm.ia32.opt;\n\n");
+        emit("import com.ibm.jikesrvm.ia32.*;\n\n");
+        emit("import com.ibm.jikesrvm.ia32.opt.ir.*;\n\n");
         emit("import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;\n\n");
+        emit("import com.ibm.jikesrvm.*;\n\n");
+        emit("import com.ibm.jikesrvm.opt.*;\n\n");
         emit("import com.ibm.jikesrvm.opt.ir.*;\n\n");
         emit("\n\n");
 

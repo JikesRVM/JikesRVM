@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio Serrano
  * @author Perry Cheng
  */
-class OPT_GenerateMagic {
+public class OPT_GenerateMagic {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class.
@@ -413,7 +413,7 @@ class OPT_GenerateMagic {
     } else if (methodName == VM_MagicNames.addressAsRegisters) {
       OPT_RegisterOperand reg = 
         gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                        VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_Registers;")));
+                                                        VM_Atom.findOrCreateAsciiAtom(VM.BuildForIA32 ? "Lcom/ibm/jikesrvm/ia32/VM_Registers;" : "Lcom/ibm/jikesrvm/ppc/VM_Registers;")));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsByteArray) {

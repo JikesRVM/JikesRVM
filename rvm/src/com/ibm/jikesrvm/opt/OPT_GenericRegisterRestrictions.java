@@ -161,7 +161,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
-  void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {}
+  public void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {}
 
   /**
    * Does a live range R contain an instruction with number n?

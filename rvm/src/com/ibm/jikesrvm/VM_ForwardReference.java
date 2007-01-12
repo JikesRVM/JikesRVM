@@ -9,6 +9,8 @@
 // $Id$
 package com.ibm.jikesrvm;
 
+import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
+
 /** 
  *  
  *  A forward reference has a machine-code-index source and optionally
@@ -86,7 +88,7 @@ public abstract class VM_ForwardReference {
   // resolve any forward references on priority queue q to bytecode index bi
   // return queue of unresolved references
   //
-  static VM_ForwardReference resolveMatching (VM_Assembler asm, VM_ForwardReference q, int bi) {
+  public static VM_ForwardReference resolveMatching (VM_AbstractAssembler asm, VM_ForwardReference q, int bi) {
     if (q == null) return null;
     if (VM.VerifyAssertions) VM._assert(bi <= q.targetBytecodeIndex);
     if (bi != q.targetBytecodeIndex) return q;
@@ -98,33 +100,33 @@ public abstract class VM_ForwardReference {
     return r;
   }
 
-  static class UnconditionalBranch extends VM_ForwardReference {
+  public static class UnconditionalBranch extends VM_ForwardReference {
 
-    UnconditionalBranch (int source, int btarget) {
+    public UnconditionalBranch (int source, int btarget) {
       super(source, btarget);
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      asm.patchUnconditionalBranch(sourceMachinecodeIndex);
+      ((VM_Assembler) asm).patchUnconditionalBranch(sourceMachinecodeIndex);
     }
 
   }
 
-  static class ConditionalBranch extends VM_ForwardReference {
+  public static class ConditionalBranch extends VM_ForwardReference {
 
-    ConditionalBranch (int source, int btarget) {
+    public ConditionalBranch (int source, int btarget) {
       super(source, btarget);
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      asm.patchConditionalBranch(sourceMachinecodeIndex);
+      ((VM_Assembler) asm).patchConditionalBranch(sourceMachinecodeIndex);
     }
 
   }
 
   public static class ShortBranch extends VM_ForwardReference {
 
-    ShortBranch (int source) {
+    public ShortBranch (int source) {
       super(source);
     }
 
@@ -133,19 +135,19 @@ public abstract class VM_ForwardReference {
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      asm.patchShortBranch(sourceMachinecodeIndex);
+      ((VM_Assembler) asm).patchShortBranch(sourceMachinecodeIndex);
     }
 
   }
 
-  static class SwitchCase extends VM_ForwardReference {
+  public static class SwitchCase extends VM_ForwardReference {
 
-    SwitchCase (int source, int btarget) {
+    public SwitchCase (int source, int btarget) {
       super(source, btarget);
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      asm.patchSwitchCase(sourceMachinecodeIndex);
+      ((VM_Assembler) asm).patchSwitchCase(sourceMachinecodeIndex);
     }
 
   }

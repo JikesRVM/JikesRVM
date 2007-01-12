@@ -15,6 +15,8 @@ include $(RVM_BUILD)/Make.rules.host
 ARCH_IFS = $(JAL_ROOT)/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat
 ARCH_OPS = $(JAL_ROOT)/rvm/src-generated/opt-ir/ia32/OperatorList.dat
 
+ARCH_DIR = ia32
+
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
 GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
@@ -25,17 +27,19 @@ TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class
 OPCODE_JAVA=$(SCRATCH_DIR)/OPT_OperatorFormatTables.java
 OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 
-VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.java
-VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/jikesrvm/VM_Assembler.class
+VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/VM_Assembler.java
+VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/VM_Assembler.class
 
-FAKES =	ArchitectureSpecific.fake VM_CodeArray.fake VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_Compiler.fake VM_AbstractAssembler.fake
-FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES)) NoInline.java Offset.java Word.java 
-FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/jikesrvm/%.java,$(FAKES)) \
+GENERIC_FAKES =	ArchitectureSpecific.fake VM.fake VM_Magic.fake VM_AbstractAssembler.fake
+ARCH_FAKES =	VM_CodeArray.fake VM_MachineCode.fake VM_Compiler.fake VM_Lister.fake
+FAKE_JAVA = $(patsubst %.fake,%.java,$(GENERIC_FAKES)) $(patsubst %.fake,%.java,$(ARCH_FAKES)) NoInline.java Offset.java Word.java 
+FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/jikesrvm/%.java,$(GENERIC_FAKES)) \
+           $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/%.java,$(ARCH_FAKES)) \
            $(SCRATCH_DIR)/org/vmmagic/pragma/NoInline.java \
 	   $(SCRATCH_DIR)/org/vmmagic/unboxed/Offset.java \
 	   $(SCRATCH_DIR)/org/vmmagic/unboxed/Word.java
 FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC)) \
-	   $(SCRATCH_DIR)/com/ibm/jikesrvm/VM_CodeArray\$$Factory.class \
+	   $(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/VM_CodeArray\$$Factory.class \
 	   $(SCRATCH_DIR)/com/ibm/jikesrvm/ArchitectureSpecific\$$VM_Assembler.class \
 	   $(SCRATCH_DIR)/com/ibm/jikesrvm/ArchitectureSpecific\$$VM_CodeArray.class \
 	   $(SCRATCH_DIR)/com/ibm/jikesrvm/ArchitectureSpecific\$$VM_MachineCode.class
@@ -46,13 +50,13 @@ SRCS=   $(TABLES_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
 	$(JAL_ROOT)/rvm/src/com/ibm/jikesrvm/VM_ForwardReference.java \
-	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/VM_RegisterConstants.java \
-	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/VM_AssemblerConstants.java
+	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/$(ARCH_DIR)/VM_RegisterConstants.java \
+	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/$(ARCH_DIR)/VM_AssemblerConstants.java
 
 default:		assembler clean
 
 $(VM_ASM_JAVA):
-	$(CP) $(GEN_FILES_DIR)/com/ibm/jikesrvm/VM_Assembler.java $(VM_ASM_JAVA)
+	$(CP) $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/VM_Assembler.java $(VM_ASM_JAVA)
 
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 	$(GENERATE) OPT_InstructionFormatTables.template $(TABLES_JAVA) FORMAT_FILE=$(ARCH_IFS)
@@ -63,21 +67,25 @@ $(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
 $(SCRATCH_DIR)/com/ibm/jikesrvm/%.java:	%.fake
 	$(CP) $< $@
 
+$(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/%.java:	%.fake
+	mkdir -p $(SCRATCH_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)
+	$(CP) $< $@
+
 $(SCRATCH_DIR)/org/vmmagic/pragma/%.java:	%.fake
 	$(CP) $< $@
 
 $(SCRATCH_DIR)/org/vmmagic/unboxed/%.java:	%.fake
 	$(CP) $< $@
 
-assembler:		$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_Assembler.java
+assembler:		$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_Assembler.java
 
 $(SCRATCH_DIR)/GenerateAssembler.java:	GenerateAssembler.java
 	$(CP) GenerateAssembler.java $(SCRATCH_DIR) 
 
-$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
-	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt
 	$(JCOMPILE) -d $(SCRATCH_DIR) $(SRCS) $(SCRATCH_DIR)/GenerateAssembler.java
-	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt GenerateAssembler
+	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt GenerateAssembler
 
 clean:
 	$(RM) $(FAKE_SRC) $(FAKE_CLS) 

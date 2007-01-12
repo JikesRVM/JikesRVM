@@ -34,22 +34,23 @@ ifeq ($(RVM_FOR_POWERPC),1)
  endif
 endif
 
-all:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_BURS_STATE.java
+all:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_BURS_STATE.java
 
 $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/LIR2MIR.rules:	$(RULE_FILES)
 	cat $(RULE_FILES) > $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/LIR2MIR.rules
 
-$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir.brg: $(RVM_ROOT)/rvm/src-generated/opt-ir/OperatorList.dat ir.template $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/LIR2MIR.rules
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/ir.brg: $(RVM_ROOT)/rvm/src-generated/opt-ir/OperatorList.dat ir.template $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/LIR2MIR.rules
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt
 	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate ir.template \
-	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir.brg \
+	$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/ir.brg \
 	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR) \
         ARCH_OP_LIST=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir/Arch_OperatorList.dat \
 	THE_RULE_FILE=$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/LIR2MIR.rules
 
-$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/ir.brg $(BURG_TEMPLATE)
+$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/ir.brg $(BURG_TEMPLATE)
 	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt
-	(cd $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt && $(JBURG_DIR)/jburg -p BURS ir.brg > $(ARCH_DIR).tmp)
-	cat OPT_BURS_TreeNode.template $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/BURS_State.template > $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_BURS_TreeNode.java
-	cat $(BURG_TEMPLATE) $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/$(ARCH_DIR).tmp > $(GEN_FILES_DIR)/com/ibm/jikesrvm/opt/OPT_BURS_STATE.java
-
+	mkdir -p $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt
+	(cd $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt && $(JBURG_DIR)/jburg -a $(ARCH_DIR). -p BURS ir.brg > $(ARCH_DIR).tmp)
+	cat OPT_BURS_TreeNode.template $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/BURS_State.template > $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_BURS_TreeNode.java
+	cat $(BURG_TEMPLATE) $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/$(ARCH_DIR).tmp > $(GEN_FILES_DIR)/com/ibm/jikesrvm/$(ARCH_DIR)/opt/OPT_BURS_STATE.java

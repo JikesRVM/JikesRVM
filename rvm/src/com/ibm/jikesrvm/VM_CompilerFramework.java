@@ -65,7 +65,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * The VM_Assembler being used for this compilation
    */
-  protected VM_Assembler asm; 
+  public VM_Assembler asm; 
 
   /**
    * The compiledMethod assigned to this compilation of method

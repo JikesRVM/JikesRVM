@@ -56,7 +56,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   /**
    * The VM_Method that was compiled
    */
-  protected final VM_Method method;
+  public final VM_Method method;
 
   /**
    * The compiled machine code for said method.

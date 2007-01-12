@@ -27,12 +27,12 @@ import static com.ibm.jikesrvm.VM_SizeConstants.*;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
+public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
   /**
    * Create this phase element as a composite of other elements
    */
-  OPT_ConvertLIRtoMIR () {
+  public OPT_ConvertLIRtoMIR () {
     super("Instruction Selection", new OPT_OptimizationPlanElement[] {
         // Stage 1: Reduce the LIR operator set to a core set of operators.
         new OPT_OptimizationPlanAtomicElement(new ReduceOperators()), 

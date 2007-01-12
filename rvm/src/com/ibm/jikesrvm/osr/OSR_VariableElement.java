@@ -94,7 +94,7 @@ public class OSR_VariableElement implements OSR_Constants {
   /////////////////////////////////////
 
   /* for 32-bit value */
-  OSR_VariableElement(int what_kind, 
+  public OSR_VariableElement(int what_kind, 
                      int which_num,
                      int type,
                      int ibits) {
@@ -109,7 +109,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for 64-bit value */
-  OSR_VariableElement(int what_kind,
+  public OSR_VariableElement(int what_kind,
                      int which_num,
                      int type,
                      long lbits) {
@@ -124,7 +124,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for reference type */
-  OSR_VariableElement(int what_kind,
+  public OSR_VariableElement(int what_kind,
                      int which_num,
                      int type,
                      Object ref) {

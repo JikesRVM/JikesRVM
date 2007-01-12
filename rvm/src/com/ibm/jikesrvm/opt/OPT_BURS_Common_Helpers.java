@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Address;
  * @author Dave Grove
  * @author Stephen Fink
  */
-abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools {
+public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools {
 
   /** Infinte cost for a rule */
   protected static final int INFINITE = 0x7fff;
@@ -36,7 +36,7 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools {
    */
   protected final OPT_RegisterPool regpool;
 
-  OPT_BURS_Common_Helpers(OPT_BURS b) {
+  protected OPT_BURS_Common_Helpers(OPT_BURS b) {
     burs = b;
     regpool = b.ir.regpool;
   }

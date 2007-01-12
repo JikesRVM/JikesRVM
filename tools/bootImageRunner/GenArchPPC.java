@@ -8,6 +8,7 @@
  */
 
 import com.ibm.jikesrvm.*;
+import com.ibm.jikesrvm.ppc.*;
 import org.vmmagic.unboxed.*;
 
 /**

@@ -18,6 +18,7 @@
 // static char rcsid[] = "$Id$";
 // #endif
 static const char *prefix = ""; /* prefix for any Java symbols */
+static const char *arch = ""; /* arch name for packages & directories */
 static int Tflag = 0;
 static int ntnumber = 0;
 static Nonterm start = 0;
@@ -96,8 +97,12 @@ main(int argc, char *argv[])
             prefix = &argv[i][2];
         } else if (strncmp(argv[i], "-p", 2) == 0 && i + 1 < argc) {
             prefix = argv[++i];
+        } else if (strncmp(argv[i], "-a", 2) == 0 && argv[i][2]) {
+            arch = &argv[i][2];
+        } else if (strncmp(argv[i], "-a", 2) == 0 && i + 1 < argc) {
+            arch = argv[++i];
         } else if (*argv[i] == '-' && argv[i][1]) {
-            yyerror("usage: %s [-T | -p prefix]... [ input [ output ] ] \n",
+            yyerror("usage: %s [-T | -p prefix] [-a arch] ... [ input [ output ] ] \n",
                     argv[0]);
             exit(1);
         } else if (infp == NULL) {
@@ -586,7 +591,7 @@ emitdefs(Nonterm nts_)
 {
     Nonterm p;
 
-    print("package com.ibm.jikesrvm.opt; \n");
+    print("package com.ibm.jikesrvm.%sopt; \n", arch);
     print("interface OPT_BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1static final byte %S_NT  \t= %d;\n", p, p->number);
@@ -936,7 +941,7 @@ emitstring(Rule rules_)
 //    int k;
 //    Term p;
  
-    print("package com.ibm.jikesrvm.opt; \n");
+    print("package com.ibm.jikesrvm.%sopt; \n", arch);
     print("public class OPT_BURS_Debug {\n");
  
 #if 0

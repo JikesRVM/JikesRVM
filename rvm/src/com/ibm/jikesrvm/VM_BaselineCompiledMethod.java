@@ -231,7 +231,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   @Uninterruptible
-  boolean hasCounterArray() { 
+  public boolean hasCounterArray() { 
     return (bitField1 & HAS_COUNTERS) != 0;
   }
 

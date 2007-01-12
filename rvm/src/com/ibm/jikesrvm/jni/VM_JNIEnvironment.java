@@ -86,12 +86,12 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * references passed to native code
    */
-  protected AddressArray JNIRefs; 
+  public AddressArray JNIRefs; 
 
   /**
    * address of current top ref in JNIRefs array   
    */
-  protected int JNIRefsTop;
+  public int JNIRefsTop;
 
   /**
    * offset of end (last entry) of JNIRefs array
@@ -101,7 +101,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * previous frame boundary in JNIRefs array
    */
-  protected int JNIRefsSavedFP;
+  public int JNIRefsSavedFP;
 
   /**
    * Top java frame when in C frames on top of the stack

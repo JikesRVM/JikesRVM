@@ -20,7 +20,7 @@ import  java.util.Enumeration;
  *
  * @author Igor Pechtchanski
  */
-final class OPT_PrePassScheduler extends OPT_CompilerPhase {
+public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
   public final boolean shouldPerform(OPT_Options options) {
     return  options.SCHEDULE_PREPASS;
@@ -48,6 +48,6 @@ final class OPT_PrePassScheduler extends OPT_CompilerPhase {
   /**
    * Initialize pre-pass scheduler
    */
-  OPT_PrePassScheduler() {
+  public OPT_PrePassScheduler() {
   }
 }

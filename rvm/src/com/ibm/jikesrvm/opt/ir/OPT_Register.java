@@ -295,7 +295,7 @@ public final class OPT_Register {
   public final OPT_Register getNext() { return next; }
   final void setNext(OPT_Register e) { next = e; }
   public final OPT_Register getPrev() { return prev; }
-  final void linkWithNext(OPT_Register Next) {
+  public final void linkWithNext(OPT_Register Next) {
     next = Next;
     Next.prev = this;
   }

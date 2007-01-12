@@ -21,6 +21,7 @@ import com.ibm.jikesrvm.classloader.*;
  */
 public class VM_Entrypoints implements VM_Constants {
 
+  public static final String archdir = VM.BuildForIA32 ? "ia32/" : "ppc/"; 
   public static final VM_NormalMethod bootMethod               =
     getMethod("Lcom/ibm/jikesrvm/VM;", "boot", "()V");
 
@@ -45,7 +46,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod unresolvedNewScalarMethod= getMethod("Lcom/ibm/jikesrvm/VM_Runtime;", "unresolvedNewScalar", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lcom/ibm/jikesrvm/VM_Runtime;", "unresolvedNewArray", "(III)Ljava/lang/Object;");
   public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lcom/ibm/jikesrvm/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
-  public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lcom/ibm/jikesrvm/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
+  public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lcom/ibm/jikesrvm/"+archdir+"VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
   public static final VM_Field gcLockField            = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
   public static final VM_Field sysWriteLockField     = getField("Lcom/ibm/jikesrvm/VM;", "sysWriteLock", "I");  
@@ -94,13 +95,13 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field minintField         = getField("Lcom/ibm/jikesrvm/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
   public static final VM_Field IEEEmagicField      = getField("Lcom/ibm/jikesrvm/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
   public static final VM_Field I2DconstantField    = getField("Lcom/ibm/jikesrvm/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
-  public static final VM_Field FPUControlWordField = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
+  public static final VM_Field FPUControlWordField = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/"+archdir+"VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
    
-  public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "threadSwitchInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/jikesrvm/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+  public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+  public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_OutOfLineMachineCode;", "saveThreadStateInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+  public static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_OutOfLineMachineCode;", "threadSwitchInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+  public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+  public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
 
   public static final VM_Field scratchStorageField        = getField("Lcom/ibm/jikesrvm/VM_Processor;", "scratchStorage", "D");
   public static final VM_Field timeSliceExpiredField      = getField("Lcom/ibm/jikesrvm/VM_Processor;", "timeSliceExpired", "I");
@@ -159,13 +160,13 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
   public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom/ibm/jikesrvm/memorymanagers/mminterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
-  public static final VM_Field registersIPField   = getField("Lcom/ibm/jikesrvm/VM_Registers;",   "ip",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field registersFPRsField = getField("Lcom/ibm/jikesrvm/VM_Registers;", "fprs", "[D");
-  public static final VM_Field registersGPRsField = getField("Lcom/ibm/jikesrvm/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
-  public static final VM_Field registersInUseField= getField("Lcom/ibm/jikesrvm/VM_Registers;", "inuse", "Z");
-  public static final VM_Field registersLRField   = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;") : null;
+  public static final VM_Field registersIPField   = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;",   "ip",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field registersFPRsField = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;", "fprs", "[D");
+  public static final VM_Field registersGPRsField = getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
+  public static final VM_Field registersInUseField= getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;", "inuse", "Z");
+  public static final VM_Field registersLRField   = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;") : null;
   static final VM_Field toSyncProcessorsField     = (VM.BuildForPowerPC) ? getField("Lcom/ibm/jikesrvm/VM_Scheduler;", "toSyncProcessors", "I") : null;
-  public static final VM_Field registersFPField   = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;") : null;
+  public static final VM_Field registersFPField   = (VM.BuildForIA32) ? getField("Lcom/ibm/jikesrvm/"+archdir+"VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;") : null;
 
   static final VM_Field outputLockField                = getField("Lcom/ibm/jikesrvm/VM_Scheduler;", "outputLock", "I");
 

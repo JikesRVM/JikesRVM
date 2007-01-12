@@ -2727,7 +2727,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param s instruction to append
    */
-  void appendInstruction(OPT_Instruction s) {
+  public void appendInstruction(OPT_Instruction s) {
     currentBBLE.block.appendInstruction(s);
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
@@ -3043,7 +3043,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param r operand to push
    */
-  void push(OPT_Operand r) {
+  public void push(OPT_Operand r) {
     if (VM.VerifyAssertions) VM._assert(r.instruction == null);
     stack.push(r);
   }
@@ -3123,7 +3123,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Pop an int operand from the stack.
    */
-  OPT_Operand popInt() {
+  public OPT_Operand popInt() {
     OPT_Operand r = pop();
     if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     return r;
@@ -3141,7 +3141,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Pop a ref operand from the stack.
    */
-  OPT_Operand popRef() {
+  public OPT_Operand popRef() {
     OPT_Operand r = pop();
     if (VM.VerifyAssertions) VM._assert(r.isRef() || r.isAddress());
     return r;
@@ -3150,7 +3150,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Pop a ref operand from the stack.
    */
-  OPT_Operand popAddress() {
+  public OPT_Operand popAddress() {
     OPT_Operand r = pop();
     if (VM.VerifyAssertions) VM._assert(r.isAddress());
     return r;

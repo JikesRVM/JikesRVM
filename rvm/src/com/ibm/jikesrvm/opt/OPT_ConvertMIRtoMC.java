@@ -20,12 +20,12 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
+public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 
   /**
    * Create this phase element as a composite of other elements.
    */
-  OPT_ConvertMIRtoMC() {
+  public OPT_ConvertMIRtoMC() {
     super("Generate Machine Code", new OPT_OptimizationPlanElement[] {
        // Step 1: Final MIR Expansion
        new OPT_OptimizationPlanAtomicElement(new FinalMIRExpansionDriver()),

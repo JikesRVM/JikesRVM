@@ -134,6 +134,13 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
 package INSTRFMTPKG;
 
 import com.ibm.jikesrvm.VM_Configuration;
+$$$$ IF ARCHITECTURE == "ia32"
+import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_IA32ConditionOperand;
+$$$$ ELSE
+import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCConditionOperand;
+import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCTrapOperand;
+$$$$ END IF
+
 
 /**
  * The OPTYPE.NAME InstructionFormat class.

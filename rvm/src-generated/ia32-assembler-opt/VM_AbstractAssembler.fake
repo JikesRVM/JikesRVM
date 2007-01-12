@@ -12,8 +12,8 @@ package com.ibm.jikesrvm;
  * @author Dave Grove
  */
 public abstract class VM_AbstractAssembler {
-  abstract void patchShortBranch(int sourceMachinecodeIndex);
-  abstract void patchUnconditionalBranch(int sourceMachinecodeIndex);
-  abstract void patchConditionalBranch(int sourceMachinecodeIndex);
-  abstract void patchSwitchCase(int sourceMachinecodeIndex);
+  public abstract void patchShortBranch(int sourceMachinecodeIndex);
+  public abstract void patchUnconditionalBranch(int sourceMachinecodeIndex);
+  public abstract void patchConditionalBranch(int sourceMachinecodeIndex);
+  public abstract void patchSwitchCase(int sourceMachinecodeIndex);
 }

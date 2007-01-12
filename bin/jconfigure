@@ -1260,22 +1260,22 @@ function emitSourceToPreprocessList () {
 	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
 	
 	# Core VM arch-specific
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/jni
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/jni
 
         # Optimizing compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt/ir
 
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/opt/ir
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/opt
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/opt/ir
 
         # Adaptive compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/adaptive
 
         # On stack replacement components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/osr
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/osr
+	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/osr
 EOF
 
     # standard library support
@@ -3034,10 +3034,10 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lorg/vmmagic/unboxed/Word;
 	[Lorg/vmmagic/unboxed/Offset;
 	[Lorg/vmmagic/unboxed/Extent;
-	[Lcom/ibm/jikesrvm/VM_Code;
+	[Lcom/ibm/jikesrvm/$ARCH_DIR/VM_Code;
 	    
 	[Lcom/ibm/jikesrvm/ArchitectureSpecific\$VM_CodeArray;
-	[Lcom/ibm/jikesrvm/VM_CodeArray;
+	[Lcom/ibm/jikesrvm/$ARCH_DIR/VM_CodeArray;
         [Lorg/vmmagic/unboxed/AddressArray;
         [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
@@ -3080,8 +3080,8 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 
 	if (( RVM_WITH_ALL_CLASSES && RVM_FOR_POWERPC )); then
 	cat <<- EOF
-		[Lcom/ibm/jikesrvm/opcodeXX;   # PPC Dissasembler
-		[Lcom/ibm/jikesrvm/opcode_tab; # PPC Dissasembler
+		[Lcom/ibm/jikesrvm/$ARCH_DIR/opcodeXX;   # PPC Dissasembler
+		[Lcom/ibm/jikesrvm/$ARCH_DIR/opcode_tab; # PPC Dissasembler
 	EOF
 	fi
 

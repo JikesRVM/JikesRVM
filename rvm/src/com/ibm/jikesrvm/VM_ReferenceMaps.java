@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
+  public static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
 
   private byte[] referenceMaps;
   private int MCSites[];
@@ -358,7 +358,7 @@ import org.vmmagic.unboxed.*;
    * For debugging (used with CheckRefMaps)
    *  Note: all maps are the same size
    */ 
-  int getStackDepth(int mapid)  {
+  public int getStackDepth(int mapid)  {
     return bytesPerMap();
   }
 

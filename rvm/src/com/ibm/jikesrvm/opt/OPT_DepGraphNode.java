@@ -22,7 +22,7 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
   /**
    * Instruction that this node represents.
    */
-  OPT_Instruction _instr;
+  public OPT_Instruction _instr;
 
   /**
    * Constructor.

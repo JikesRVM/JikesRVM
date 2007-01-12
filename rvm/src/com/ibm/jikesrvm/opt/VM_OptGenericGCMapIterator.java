@@ -355,21 +355,21 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  @param offset  the offset 
    *  @return the resulting stack location
    */
-  abstract Address getStackLocation(Address framePtr, int offset);
+  public abstract Address getStackLocation(Address framePtr, int offset);
 
   /** 
    *  Get address of the first spill location
    *  (The location of spills varies among architectures.)
    *  @return the first spill location
    */
-  abstract Address getFirstSpillLoc();
+  public abstract Address getFirstSpillLoc();
 
   /** 
    *  Get address of the last spill location
    *  (The location of spills varies among architectures.)
    *  @return the last spill location
    */
-  abstract Address getLastSpillLoc();
+  public abstract Address getLastSpillLoc();
 
   /**
    * This method inspects the "current" register for values that look like refs.

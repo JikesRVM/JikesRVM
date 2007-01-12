@@ -16,9 +16,9 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Michael Hind
  */
-final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
+public final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
 
-  OPT_PrologueEpilogueCreator() { }
+  public OPT_PrologueEpilogueCreator() { }
 
   /**
    * Return this instance of this phase. This phase contains no

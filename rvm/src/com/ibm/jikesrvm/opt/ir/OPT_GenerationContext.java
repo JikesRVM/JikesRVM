@@ -53,7 +53,7 @@ public final class OPT_GenerationContext
   /**
    * The options to control the generation
    */
-  OPT_Options options;
+  public OPT_Options options;
 
   /**
    * The CFG object into which instructions should be generated.
@@ -63,7 +63,7 @@ public final class OPT_GenerationContext
   /**
    * The register pool to be used during generation
    */
-  OPT_RegisterPool temps;
+  public OPT_RegisterPool temps;
 
   /**
    * The parameters which BC2IR should use to seed the local state
@@ -148,7 +148,7 @@ public final class OPT_GenerationContext
   /**
    * Did BC2IR encounter a magic that requires us to allocate a stack frame?
    */
-  boolean allocFrame;
+  public boolean allocFrame;
 
   /**
    * Used to communicate the meet of the return values back to the caller

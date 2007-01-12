@@ -121,7 +121,7 @@ public final class OPT_DefUse {
    *
    * @param regOp the operand that uses the register
    */
-  static void recordDefUse(OPT_RegisterOperand regOp) {
+  public static void recordDefUse(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.useList);
@@ -143,7 +143,7 @@ public final class OPT_DefUse {
    * Record that a use of a register no longer applies
    * @param regOp the operand that uses the register
    */
-  static void removeUse(OPT_RegisterOperand regOp) {
+  public static void removeUse(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.useList) {
@@ -168,7 +168,7 @@ public final class OPT_DefUse {
    * Record that a def of a register no longer applies
    * @param regOp the operand that uses the register
    */
-  static void removeDef(OPT_RegisterOperand regOp) {
+  public static void removeDef(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.defList) {
@@ -249,7 +249,7 @@ public final class OPT_DefUse {
    * Update register lists to account for the effect of a new
    * instruction s
    */
-  static void updateDUForNewInstruction(OPT_Instruction s) {
+  public static void updateDUForNewInstruction(OPT_Instruction s) {
     for (OPT_OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
       if (op instanceof OPT_RegisterOperand) {
@@ -326,7 +326,7 @@ public final class OPT_DefUse {
    *
    * @param ir the IR in question
    */
-  static void recomputeSSA(OPT_IR ir) {
+  public static void recomputeSSA(OPT_IR ir) {
     // Use register /ist to enumerate register objects (FAST)
     for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
@@ -339,7 +339,7 @@ public final class OPT_DefUse {
    * Merge register reg2 into register reg1.
    * Remove reg2 from the DU information
    */
-  static void mergeRegisters(OPT_IR ir, OPT_Register reg1, OPT_Register reg2) {
+  public static void mergeRegisters(OPT_IR ir, OPT_Register reg1, OPT_Register reg2) {
     OPT_RegisterOperand lastOperand;
     if (reg1 == reg2)
       return;

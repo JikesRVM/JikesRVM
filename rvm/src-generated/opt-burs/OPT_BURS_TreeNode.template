@@ -8,7 +8,11 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.opt;
+//-#if RVM_FOR_IA32
+package com.ibm.jikesrvm.ia32.opt;
+//-#else
+package com.ibm.jikesrvm.ppc.opt;
+//-#endif
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;

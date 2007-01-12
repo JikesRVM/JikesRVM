@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.jikesrvm;
+package com.ibm.jikesrvm.ia32;
 /**
  * @author Dave Grove 
  */
-class VM_MachineCode {
-  VM_MachineCode(VM_CodeArray x, int[] y) {} 
+public class VM_MachineCode {
+  public VM_MachineCode(VM_CodeArray x, int[] y) {} 
 }

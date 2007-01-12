@@ -37,7 +37,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * 
    * @param meth the VM_Method of the outermost method
    */
-  OPT_GenericRegisterPool(VM_Method meth) {
+  protected OPT_GenericRegisterPool(VM_Method meth) {
     // currentNum is assigned an initial value to avoid overlap of
     // physical and symbolic registers.
     currentNum = OPT_PhysicalRegisterSet.getSize();

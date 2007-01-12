@@ -18,6 +18,12 @@
 
 package com.ibm.jikesrvm.opt.ir;
 
+$$$$ IF ARCHITECTURE == "ia32"
+import com.ibm.jikesrvm.ia32.opt.ir.OPT_MachineSpecificIRIA;
+$$$$ ELSE
+import com.ibm.jikesrvm.ppc.opt.ir.OPT_MachineSpecificIRPowerPC;
+$$$$ END IF
+
 /**
  * Interface with all operator names and opcodes.
  * 
@@ -28,18 +34,19 @@ package com.ibm.jikesrvm.opt.ir;
  */
 public interface OPT_Operators {
 
+  static final OPT_MachineSpecificIR helper = 
 $$$$ IF ARCHITECTURE == "ia32"
 $$$$ IF ARCH_BITS == "32"
-  static final OPT_MachineSpecificIRIA.IA32 helper = OPT_MachineSpecificIRIA.IA32.singleton;
+                                              OPT_MachineSpecificIRIA.IA32.singleton;
 $$$$ ELSE
-  static final OPT_MachineSpecificIRIA.EM64T helper = OPT_MachineSpecificIRIA.EM64T.singleton;
+                                              OPT_MachineSpecificIRIA.EM64T.singleton;
 $$$$ END IF
 $$$$ END IF
 $$$$ IF ARCHITECTURE == "ppc"
 $$$$ IF ARCH_BITS == "32"
-  static final OPT_MachineSpecificIRPowerPC.PPC32 helper = OPT_MachineSpecificIRPowerPC.PPC32.singleton;
+                                              OPT_MachineSpecificIRPowerPC.PPC32.singleton;
 $$$$ ELSE
-  static final OPT_MachineSpecificIRPowerPC.PPC64 helper = OPT_MachineSpecificIRPowerPC.PPC64.singleton;
+                                              OPT_MachineSpecificIRPowerPC.PPC64.singleton;
 $$$$ END IF
 $$$$ END IF
 

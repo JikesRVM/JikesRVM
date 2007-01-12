@@ -10,7 +10,11 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
+//-#if RVM_FOR_POWERPC
+import com.ibm.jikesrvm.ppc.*;
+//-#else
+import com.ibm.jikesrvm.ia32.*;
+//-#endif
 /**
  * Flags that specify the configuration of our virtual machine.
  *

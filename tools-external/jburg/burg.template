@@ -3,12 +3,19 @@
  */
 //$Id$
 
-package com.ibm.jikesrvm.opt;
+//-#if RVM_FOR_IA32
+package com.ibm.jikesrvm.ia32.opt;
+import com.ibm.jikesrvm.ia32.opt.ir.*;
+//-#else
+package com.ibm.jikesrvm.ppc.opt;
+import com.ibm.jikesrvm.ppc.opt.ir.*;
+//-#endif
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_BURS;
+import com.ibm.jikesrvm.opt.OPT_Bits;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 

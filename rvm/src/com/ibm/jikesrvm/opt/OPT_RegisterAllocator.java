@@ -14,9 +14,9 @@ import com.ibm.jikesrvm.opt.ir.*;
  *
  * @author Stephen Fink
  */
-final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
+public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
 
-  OPT_RegisterAllocator() {
+  public OPT_RegisterAllocator() {
     super("Register Allocation", new OPT_OptimizationPlanElement[] {
       // 1. Prepare for the allocation
       new OPT_OptimizationPlanAtomicElement(new RegisterAllocPreparation()), 

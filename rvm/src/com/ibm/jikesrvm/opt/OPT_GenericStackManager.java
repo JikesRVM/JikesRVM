@@ -79,18 +79,18 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Perform some architecture-specific initialization.
    */
-  abstract void initForArch(OPT_IR ir);
+  public abstract void initForArch(OPT_IR ir);
 
   /**
    * Is a particular instruction a system call?
    */
-  abstract boolean isSysCall(OPT_Instruction s);
+  public abstract boolean isSysCall(OPT_Instruction s);
 
   /**
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    */
-  abstract boolean needScratch(OPT_Register r, OPT_Instruction s);
+  public abstract boolean needScratch(OPT_Register r, OPT_Instruction s);
 
   /**
    * Allocate a new spill location and grow the
@@ -99,13 +99,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param type the type to spill
    * @return the spill location
    */
-  abstract int allocateNewSpillLocation(int type); 
+  public abstract int allocateNewSpillLocation(int type); 
 
   /**
    * Clean up some junk that's left in the IR after register allocation,
    * and add epilogue code.
    */ 
-  abstract void cleanUpAndInsertEpilogue();
+  public abstract void cleanUpAndInsertEpilogue();
 
   /**
    * Return the size of the fixed portion of the stack.
@@ -113,7 +113,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * the stackpointer after the prologue of the method completes).
    * @return size in bytes of the fixed portion of the stackframe
    */
-  abstract int getFrameFixedSize(); 
+  public abstract int getFrameFixedSize(); 
 
   /**
    * Compute the number of stack words needed to hold nonvolatile
@@ -126,13 +126,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
    */
-  abstract void computeNonVolatileArea();
+  public abstract void computeNonVolatileArea();
 
   /**
    * Insert the prologue for a normal method.  
    *
    */
-  abstract void insertNormalPrologue();
+  public abstract void insertNormalPrologue();
 
   /**
    * Walk over the currently available scratch registers. 
@@ -151,7 +151,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
-  abstract void restoreScratchRegistersBefore(OPT_Instruction s);
+  public abstract void restoreScratchRegistersBefore(OPT_Instruction s);
 
   /**
    * In instruction s, replace all appearances of a symbolic register 
@@ -161,7 +161,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
-  abstract void replaceOperandWithSpillLocation(OPT_Instruction s, 
+  public abstract void replaceOperandWithSpillLocation(OPT_Instruction s, 
                                                 OPT_RegisterOperand symb);
 
   // Get the spill location previously assigned to the symbolic
@@ -389,7 +389,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Is a particular register dead immediately before instruction s.
    */
-  boolean isDeadBefore(OPT_Register r, OPT_Instruction s) {
+  public boolean isDeadBefore(OPT_Register r, OPT_Instruction s) {
 
     OPT_LinearScan.BasicInterval bi = activeSet.getBasicInterval(r,s);
     // If there is no basic interval containing s, then r is dead before
@@ -440,7 +440,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Is it legal to assign symbolic register symb to scratch register phys
    * in instruction s?
    */
-  boolean isLegal(OPT_Register symb, OPT_Register phys, OPT_Instruction s) {
+  protected boolean isLegal(OPT_Register symb, OPT_Register phys, OPT_Instruction s) {
     // If the physical scratch register already appears in s, so we can't 
     // use it as a scratch register for another value.
     if (appearsIn(phys,s)) return false;
@@ -924,7 +924,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * PROLOGUE/EPILOGUE. must be done after register allocation
    */
-  final void insertPrologueAndEpilogue() {
+  public final void insertPrologueAndEpilogue() {
     insertPrologue();
     cleanUpAndInsertEpilogue();
   }
@@ -952,7 +952,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * After register allocation, go back through the IR and insert
    * compensating code to deal with spills.
    */
-  void insertSpillCode() {
+  public void insertSpillCode() {
     insertSpillCode(null);
   }
 
@@ -1115,7 +1115,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  abstract void insertSpillBefore(OPT_Instruction s, OPT_Register r,
+  public abstract void insertSpillBefore(OPT_Instruction s, OPT_Register r,
                                   byte type, int location);
   /**
    * Insert a spill of a physical register after instruction s.
@@ -1126,7 +1126,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  final void insertSpillAfter(OPT_Instruction s, OPT_Register r,
+  public final void insertSpillAfter(OPT_Instruction s, OPT_Register r,
                               byte type, int location) {
     insertSpillBefore(s.nextInstructionInCodeOrder(),r,type,location);
   }
@@ -1141,7 +1141,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r, 
+  public abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r, 
                                     byte type, int location);
   /**
    * Insert a load of a physical register from a spill location before 
@@ -1153,7 +1153,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  final void insertUnspillAfter(OPT_Instruction s, OPT_Register r, 
+  public final void insertUnspillAfter(OPT_Instruction s, OPT_Register r, 
                                 byte type, int location) {
     insertUnspillBefore(s.nextInstructionInCodeOrder(),r,type,location);
   }
@@ -1199,24 +1199,24 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Are we required to allocate a stack frame for this method?
    */
-  boolean frameIsRequired() { return frameRequired; }
+  protected boolean frameIsRequired() { return frameRequired; }
 
   /**
    * Record that we need a stack frame for this method.
    */
-  void setFrameRequired() {
+  protected void setFrameRequired() {
     frameRequired = true;
   }
 
   /**
    * Does this IR have a prologue yieldpoint?
    */
-  boolean hasPrologueYieldpoint() { return prologueYieldpoint; }
+  protected boolean hasPrologueYieldpoint() { return prologueYieldpoint; }
 
   /**
    * Ensure param passing area of size - STACKFRAME_HEADER_SIZE bytes
    */
-  void allocateParameterSpace(int s) {
+  public void allocateParameterSpace(int s) {
     if (spillPointer < s) {
       spillPointer = s;
       frameRequired = true;
@@ -1230,7 +1230,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param size the number of bytes to allocate
    * @return offset to the start of the allocated space.
    */
-  int allocateOnStackFrame(int size) {
+  public int allocateOnStackFrame(int size) {
     int free = spillPointer;
     spillPointer += size;
     frameRequired = true;
@@ -1278,7 +1278,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * (5) initialize the restrictions object
    * @param ir the IR
    */
-  void prepare(OPT_IR ir) {
+  public void prepare(OPT_IR ir) {
     // (1) if we haven't yet committed to a stack frame we 
     //     will look for operators that would require a stack frame
     //        - LOWTABLESWITCH
@@ -1382,7 +1382,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Set up register restrictions
    */
-  final void computeRestrictions(OPT_IR ir) {
+  public final void computeRestrictions(OPT_IR ir) {
     restrict.init(ir);
   }
 
@@ -1392,7 +1392,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *  @param symbReg the place to start the search
    *  @return the allocated register or null
    */
-  final OPT_Register allocateVolatileRegister(OPT_Register symbReg) {
+  public final OPT_Register allocateVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
@@ -1416,7 +1416,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
    */
-  final byte getValueType(OPT_Register r) {
+  public final byte getValueType(OPT_Register r) {
     if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_VALUE;
     } else if (r.isCondition()) {
@@ -1431,7 +1431,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
   }
 
-  static int align(int number, int alignment) {
+  protected static int align(int number, int alignment) {
     alignment--;
     return (number + alignment) & ~alignment;
   }
@@ -1445,7 +1445,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *  @param symbReg the place to start the search
    *  @return the allocated register or null
    */
-  final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
+  public final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration e = phys.enumerateNonvolatilesBackwards(physType);
@@ -1467,12 +1467,12 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     /**
      * The physical register used as scratch.
      */
-    final OPT_Register scratch;
+    public final OPT_Register scratch;
 
     /**
      * The current contents of scratch
      */
-    OPT_Register currentContents;
+    public OPT_Register currentContents;
 
     /**
      * Is this physical register currently dirty? (Must be written back to
@@ -1480,18 +1480,18 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
      */
     private boolean dirty = false;
 
-    boolean isDirty() { return dirty; }
-    void setDirty(boolean b) { dirty = b; }
+    public boolean isDirty() { return dirty; }
+    public void setDirty(boolean b) { dirty = b; }
 
     /**
      * Did we spill a value in order to free up this scratch register?
      */
     private boolean spilledIt = false;
-    boolean hadToSpill() { return spilledIt; }
-    void setHadToSpill(boolean b) { spilledIt = b; }
+    public boolean hadToSpill() { return spilledIt; }
+    public void setHadToSpill(boolean b) { spilledIt = b; }
 
 
-    ScratchRegister(OPT_Register scratch, OPT_Register currentContents) {
+    public ScratchRegister(OPT_Register scratch, OPT_Register currentContents) {
       this.scratch = scratch;
       this.currentContents = currentContents;
     }

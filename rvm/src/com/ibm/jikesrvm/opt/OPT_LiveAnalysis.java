@@ -37,7 +37,7 @@ import java.util.LinkedList;
  * @author Martin Trapp
  * @author Stephen Fink
  */
-final class OPT_LiveAnalysis extends OPT_CompilerPhase {
+public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   // Real Instance Variables
   /**
    *  Should we also create GC maps while we are computing liveness

@@ -97,7 +97,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference ObjectReference = findOrCreate("Lorg/vmmagic/unboxed/ObjectReference;");
   public static final VM_TypeReference Offset  = findOrCreate("Lorg/vmmagic/unboxed/Offset;");
   public static final VM_TypeReference Extent  = findOrCreate("Lorg/vmmagic/unboxed/Extent;");
-  public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/jikesrvm/VM_Code;");
+  public static final VM_TypeReference Code    = findOrCreate(VM.BuildForIA32 ? "Lcom/ibm/jikesrvm/ia32/VM_Code;":"Lcom/ibm/jikesrvm/ppc/VM_Code;");
   public static final VM_TypeReference WordArray = findOrCreate("Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lorg/vmmagic/unboxed/AddressArray;");
   public static final VM_TypeReference ObjectReferenceArray = findOrCreate("Lorg/vmmagic/unboxed/ObjectReferenceArray;");

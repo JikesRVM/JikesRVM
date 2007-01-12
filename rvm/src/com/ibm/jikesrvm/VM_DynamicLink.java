@@ -33,11 +33,11 @@ import org.vmmagic.pragma.*;
     this.bytecode  = bytecode;
   }
 
-  VM_MethodReference methodRef() {
+  public VM_MethodReference methodRef() {
     return methodRef;
   }
 
-  boolean isInvokedWithImplicitThisParameter() {
+  public boolean isInvokedWithImplicitThisParameter() {
     return bytecode != JBC_invokestatic;
   }
 

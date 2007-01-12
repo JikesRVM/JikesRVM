@@ -27,7 +27,7 @@ public final class OPT_MIRBranchOptimizations
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    */
-  OPT_MIRBranchOptimizations(int level) {
+  public OPT_MIRBranchOptimizations(int level) {
     super(level);
   }
 

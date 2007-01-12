@@ -18,7 +18,7 @@ import java.util.*;
  *
  * @author Stephen Fink
  */
-final class OPT_ScratchMap {
+public final class OPT_ScratchMap {
 
   private static final boolean DEBUG = false;
 
@@ -70,7 +70,7 @@ final class OPT_ScratchMap {
    * @param r the symbolic register being moved into scratch
    * @param end the instruction before which the scratch interval ends
    */
-  void endSymbolicInterval(OPT_Register r, OPT_Instruction end) {
+  public void endSymbolicInterval(OPT_Register r, OPT_Instruction end) {
     if (DEBUG) {
       System.out.println("endSymbolicInterval " + r + " " + end.scratch); 
     }
@@ -106,7 +106,7 @@ final class OPT_ScratchMap {
    * @param end the instruction before which the physical register is
    * vacated.
    */
-  void endScratchInterval(OPT_Register r, OPT_Instruction end) {
+  public void endScratchInterval(OPT_Register r, OPT_Instruction end) {
     if (DEBUG) {
       System.out.println("endScratchInterval " + r + " "  + end.scratch);
     }
