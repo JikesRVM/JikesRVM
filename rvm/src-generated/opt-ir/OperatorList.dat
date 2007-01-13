@@ -10,7 +10,7 @@
 #//$Id$
 #
 # This file defines the HIR and LIR subsets of the Operators.
-# See src-<ARCH>/optimizingCompiler/IR/OperatorList.dat for the MIR subset
+# See <ARCH>/OperatorList.dat for the MIR subset
 SYMBOL
 INSTRUCTION_FORMAT
 TRAITS

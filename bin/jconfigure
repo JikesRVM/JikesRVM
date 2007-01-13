@@ -1260,22 +1260,22 @@ function emitSourceToPreprocessList () {
 	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk/gcspy
 	
 	# Core VM arch-specific
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/jni
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/$ARCH_DIR
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/$ARCH_DIR/jni
 
         # Optimizing compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/opt/ir
 
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/opt
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/opt/ir
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/$ARCH_DIR/opt
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/$ARCH_DIR/opt/ir
 
         # Adaptive compiler components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/adaptive
 
         # On stack replacement components.
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/osr
-	$RVM_ROOT/rvm/src-$ARCH_DIR/com/ibm/jikesrvm/$ARCH_DIR/osr
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/$ARCH_DIR/osr
 EOF
 
     # standard library support
@@ -2559,6 +2559,7 @@ EOF
 	    echo "    \$FIND ./com/ibm/jikesrvm/adaptive -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/*/osr -name '*.class'"
         else 
 	    echo "    \$FIND . -name opt -prune -o -name adaptive -prune -o -name osr -prune -o -name 'VM*.class' -print"
         fi

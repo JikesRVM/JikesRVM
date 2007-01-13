@@ -50,8 +50,8 @@ SRCS=   $(TABLES_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
 	$(JAL_ROOT)/rvm/src/com/ibm/jikesrvm/VM_ForwardReference.java \
-	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/$(ARCH_DIR)/VM_RegisterConstants.java \
-	$(JAL_ROOT)/rvm/src-ia32/com/ibm/jikesrvm/$(ARCH_DIR)/VM_AssemblerConstants.java
+	$(JAL_ROOT)/rvm/src/com/ibm/jikesrvm/$(ARCH_DIR)/VM_RegisterConstants.java \
+	$(JAL_ROOT)/rvm/src/com/ibm/jikesrvm/$(ARCH_DIR)/VM_AssemblerConstants.java
 
 default:		assembler clean
 
