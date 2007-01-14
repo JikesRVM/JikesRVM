@@ -30,6 +30,9 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
  * @author Derek Lieber
  */
 @Uninterruptible public class VM_Scheduler implements VM_Constants {
+  
+  /** Toggle display of frame pointer address in stack dump */
+  private static final boolean SHOW_FP_IN_STACK_DUMP = false;
 
   /** Index of initial processor in which "VM.boot()" runs. */
   public static final int PRIMORDIAL_PROCESSOR_ID = 1;
@@ -486,7 +489,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
    * is called, so we try to rely on as little runtime functionality
    * as possible (eg. use no bytecodes that require VM_Runtime support).
    */
-  static void traceback(String message) {
+  public static void traceback(String message) {
     if (VM.runningVM) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       lockOutput();
@@ -570,7 +573,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
       if (!MM_Interface.addressInVM(ip)) {
-        VM.sysWrite("   <native frame>\n");
+        showMethod("native frame",fp);
         ip = VM_Magic.getReturnAddress(fp);
         fp = VM_Magic.getCallerFramePointer(fp);
         continue; // done printing this stack frame
@@ -578,15 +581,15 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId == INVISIBLE_METHOD_ID) {
-        VM.sysWrite("   <invisible method>\n");
+        showMethod("invisible method", fp);
       } else {
         // normal java frame(s)
         VM_CompiledMethod compiledMethod    =
           VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         if (compiledMethod == null) {
-          VM.sysWrite("   <unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(", compiledMethodId, ") returned null>");
+          showMethod(compiledMethodId,fp);
         } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP){
-          VM.sysWrite("   <hardware trap>\n");
+          showMethod("hardware trap",fp);
         } else {
           VM_Method method            = compiledMethod.getMethod();
           Offset    instructionOffset = 
@@ -613,32 +616,65 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
                   .asMethodReference().getResolvedMember();
                 lineNumber = ((VM_NormalMethod)method)
                   .getLineNumberForBCIndex(bci);
-                showMethod(method, lineNumber);
+                showMethod(method, lineNumber,fp);
                 if (iei > 0) 
                   bci = VM_OptEncodedCallSiteTree
                     .getByteCodeOffset(iei, inlineEncoding);
               }
             } else {
-              showMethod(method, lineNumber);
+              showMethod(method, lineNumber,fp);
             }
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
             continue; // done printing this stack frame
           } 
 
-          showMethod(method, lineNumber);
+          showMethod(method, lineNumber,fp);
         }
       }
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     }
     --inDumpStack;
+  }
+
+  private static void showPrologue(Address fp) {
+    VM.sysWrite("   ");
+    if (SHOW_FP_IN_STACK_DUMP) {
+      VM.sysWrite("[");
+      VM.sysWrite(fp);
+      VM.sysWrite("] ");
+    }
+  }
+
+  /**
+   * Show a method where getCompiledMethod returns null
+   * 
+   * @param compiledMethodId
+   * @param fp
+   */
+  private static void showMethod(int compiledMethodId, Address fp) {
+    showPrologue(fp);
+    VM.sysWrite("<unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(", 
+        compiledMethodId, ") returned null>\n");
+  }
+
+  /**
+   * Show a method that we can't show (ie just a text description of the 
+   * stack frame
+   * 
+   * @param name
+   * @param fp
+   */
+  private static void showMethod(String name, Address fp) {
+    showPrologue(fp);
+    VM.sysWrite("<"); VM.sysWrite(name); VM.sysWrite(">\n");
   }  
 
   /** Helper function for {@link #dumpStack(Address, Address)}.  Print a
    * stack frame showing the method.  */
-  private static void showMethod(VM_Method method, int lineNumber) {
-    VM.sysWrite("   ");
+  private static void showMethod(VM_Method method, int lineNumber, Address fp) {
+    showPrologue(fp);
     if (method == null) {
       VM.sysWrite("<unknown method>");
     } else {

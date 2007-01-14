@@ -29,7 +29,6 @@ import com.ibm.jikesrvm.opt.ir.OPT_Operand;
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
 import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
 import com.ibm.jikesrvm.opt.ir.OPT_TrapCodeOperand;
-import com.ibm.jikesrvm.ppc.*;
 import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 import java.util.Enumeration;
@@ -76,14 +75,18 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @return the spill location
    */
   public final int allocateNewSpillLocation(int type) {
+    int spillSize = OPT_PhysicalRegisterSet.getSpillSize(type);
+    
+    // Naturally align the spill pointer
+    spillPointer = align(spillPointer, spillSize);
 
     // increment by the spill size
-    spillPointer += OPT_PhysicalRegisterSet.getSpillSize(type);
+    spillPointer += spillSize;
 
     if (spillPointer > frameSize) {
       frameSize = spillPointer;
     }
-    return spillPointer - OPT_PhysicalRegisterSet.getSpillSize(type);
+    return spillPointer - spillSize;
   }
 
   /**
@@ -534,6 +537,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * (2) stack overflow check has to come first.
    */
   final void insertExceptionalPrologue () {
+    if (VM.VerifyAssertions)
+      VM._assert((frameSize & (STACKFRAME_ALIGNMENT-1)) == 0,
+          "Stack frame alignment error");
     if (frameSize >= 0x7ff0) {
       throw new OPT_OptimizingCompilerException("Stackframe size exceeded!");
     }
@@ -645,8 +651,6 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short)numFprNv);
       frameSize += numFprNv * BYTES_IN_DOUBLE;
 
-      frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
-
       // Record that we need a stack frame.
       setFrameRequired();
 
@@ -723,8 +727,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       } else {
         ir.compiledMethod.setUnsignedNonVolatileOffset(0);
       }
-      frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
     }
+    frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
   }
 
   /**

@@ -185,10 +185,12 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
       // buy mini frame (1)
       asm.emitSTAddrU   (FP, -JNI_SAVE_AREA_SIZE, FP);
-      asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (1)
-      asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+      asm.emitLVAL      (S0, compiledMethodId);             // save jni method id at mini frame (1)
+      asm.emitSTW       (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
       // buy mini frame (2), the total size equals to frameSize
       asm.emitSTAddrU   (FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
+      asm.emitLVAL      (S0,INVISIBLE_METHOD_ID);             // mark the frame as invisible 
+      asm.emitSTW       (S0,STACKFRAME_METHOD_ID_OFFSET,FP);  // since we done't have a real CMID
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
       asm.emitSTAddrU   (FP,  -frameSize, FP);             // get transition frame on stack
