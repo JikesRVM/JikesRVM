@@ -2557,7 +2557,9 @@ EOF
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	    echo "    \$FIND . -name 'VM*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/adaptive -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/*/adaptive -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/*/opt -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/*/osr -name '*.class'"
         else 
