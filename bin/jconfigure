@@ -2434,6 +2434,15 @@ EOF
 
 # echo >&2  "HERE I AM! emitImageLinker" # DBG
 function emitImageLinker () {
+
+    if (( RVM_FOR_POWERPC )); then
+	ARCH_DIR="ppc"
+    elif (( RVM_FOR_IA32 )); then
+	ARCH_DIR="ia32"
+    else
+	ARCH_DIR="UNSPECIFIED_ARCHITECTURE"
+    fi
+
     cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate the VM bootimage.
@@ -2557,11 +2566,10 @@ EOF
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	    echo "    \$FIND . -name 'VM*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/adaptive -name '*.class'"
-	    echo "    \$FIND ./com/ibm/jikesrvm/*/adaptive -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/opt -name '*.class'"
-	    echo "    \$FIND ./com/ibm/jikesrvm/*/opt -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/$ARCH_DIR/opt -name '*.class'"
 	    echo "    \$FIND ./com/ibm/jikesrvm/osr -name '*.class'"
-	    echo "    \$FIND ./com/ibm/jikesrvm/*/osr -name '*.class'"
+	    echo "    \$FIND ./com/ibm/jikesrvm/$ARCH_DIR/osr -name '*.class'"
         else 
 	    echo "    \$FIND . -name opt -prune -o -name adaptive -prune -o -name osr -prune -o -name 'VM*.class' -print"
         fi
