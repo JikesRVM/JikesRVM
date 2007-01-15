@@ -220,7 +220,6 @@ import org.vmmagic.unboxed.*;
 
     runClassInitializer("java.io.File"); // needed for when we initialize the
                                          // system/application class loader.
-    runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
     runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
@@ -236,7 +235,6 @@ import org.vmmagic.unboxed.*;
 
     runClassInitializer("java.lang.ClassLoader$StaticData");
 
-    runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
     runClassInitializer("java.nio.charset.CharsetEncoder");
     runClassInitializer("java.nio.charset.CoderResult");
 
@@ -251,7 +249,6 @@ import org.vmmagic.unboxed.*;
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    runClassInitializer("gnu.java.locale.Calendar");
     runClassInitializer("java.util.Date");
     if (VM.BuildWithAllClasses)
       runClassInitializer("java.util.jar.Attributes$Name");
@@ -266,8 +263,10 @@ import org.vmmagic.unboxed.*;
     VM_Scheduler.boot();
     VM_DynamicLibrary.boot();
 
+    //FIXME: Dynamic class loading is nore really available here -- JNI MUST be enabled or else the IO fails...
     VM.dynamicClassLoadingEnabled = true;
-    // Create JNI Environment for boot thread.  
+
+    // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     com.ibm.jikesrvm.jni.VM_JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
@@ -426,7 +425,15 @@ import org.vmmagic.unboxed.*;
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
-    if (cls != null && cls.isInBootImage()) {
+    if (null == cls) {
+      sysWrite("Failed to run class intializer for ");
+      sysWrite(className);
+      sysWriteln(" as the class does not exist.");
+    }  else if (!cls.isInBootImage()) {
+      sysWrite("Failed to run class intializer for ");
+      sysWrite(className);
+      sysWriteln(" as the class is not in the boot image.");
+    } else {
       VM_Method clinit = cls.getClassInitializerMethod();
       if (clinit != null) {
         clinit.compile();
