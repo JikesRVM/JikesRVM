@@ -68,13 +68,6 @@
 #define NEED_GNU_CLASSPATH_VERSION
 #define NEED_EXIT_STATUS_CODES  // Get EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
 
-
-
-
-#ifdef RVM_FOR_IBM
-#include <AixLinkageLayout.h>
-#endif
-
 #include <InterfaceDeclarations.h>
 
 
@@ -82,31 +75,6 @@ uint64_t initialHeapSize;       /* Declared in bootImageRunner.h */
 uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
-int rvm_singleVirtualProcessor = /* Declared in bootImageRunner.h.  Set to 1
-                                  * for true, 0 for false, -1 for Debian
-                                  * auto-detection, -2 for multiboot
-                                  * auto-detection.  The auto-detection
-                                  * settings are temporary until the
-                                  * auto-detection is performed; they should
-                                  * never be seen by the pthread code. */
-
-                                 /* The auto-detection is actually performed by
-                                  * the "runrvm" script, which sets things up
-                                  * for us.   The auto-detection code here
-                                  * should never be executed. */
-#if !defined RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
-    0
-#elif defined RVM_FOR_MULTIBOOT_GLIBC
-   -2
-#elif defined RVM_FOR_DEBIAN_GLIBC
-   -1
-#elif defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-   1
-#else
-   0
-#endif
-;
-
 
 static int DEBUG = 0;                   // have to set this from a debugger
 static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
@@ -177,46 +145,6 @@ fullVersion()
     fprintf(SysTraceFile, "\theap default maximum size: %u MiBytes\n",
             heap_default_maximum_size/(1024*1024));
 }
-
-
-#ifdef RVM_FOR_LINUX
-static bool 
-singleVirtualProcessor_for_Debian() 
-{
-    struct utsname u;
-    int r = uname(&u);
-    if (r < 0) {
-        fprintf(SysErrorFile, "%s: Internal error (presumably EFAULT) in call to uname(3): %s\n", Me, strerror(r));
-        exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-    }
-    if (strnequal(u.release, "2.2.", 4) || strnequal(u.release, "2.4.", 4))
-        return 1;               // Debian needs single-virtual-processor mode.
-    else
-        return 0;
-}
-
-/** Are we running Debian GNU/Linux?  If so, then return true.
- * We just test for the existence of the file /etc/debian_version.  */
-static bool
-running_Debian()
-{
-    if (verboseBoot)
-        fprintf(SysTraceFile, "Checking if running Debian GNU/Linux...");
-    FILE *f = fopen("/etc/debian_version", "r");
-    if (f) {
-        if (verboseBoot)
-            fprintf(SysTraceFile, "YES\n");
-        fclose(f);
-        return true;
-    } else {
-        if (verboseBoot)
-            fprintf(SysTraceFile, "no\n");
-        return false;
-    }
-}
-#endif
-
-
 
 /*
  * Identify all command line arguments that are VM directives.
@@ -450,36 +378,6 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             bootRMapFilename = token + 6;
             continue;
         }
-        int mainlen = strlen(nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX]);
-        if (strnequal(token, nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX], 
-                      mainlen))
-        {
-            subtoken = token + mainlen;
-            if (strcasecmp(subtoken, "true") == 0)
-                rvm_singleVirtualProcessor = 1;
-            else if (strcasecmp(subtoken, "false") == 0)
-                rvm_singleVirtualProcessor = 0;
-            else if (strcasecmp(subtoken, "debian") == 0)
-                rvm_singleVirtualProcessor = -1;
-            else if (strcasecmp(subtoken, "multiboot") == 0)
-                rvm_singleVirtualProcessor = -2;
-            else {
-                fprintf(SysTraceFile, "%s: \"%s\": I don't understand the"
-                        " argument value \"%s\".\n", Me, token, subtoken);
-                fprintf(SysTraceFile, "   The acceptable values are \"true\","
-                        "\"false\", and \"debian\"\n");
-                *fastExit = true;
-                break;
-            }
-#if !defined RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
-            if (rvm_singleVirtualProcessor) {
-                fprintf(SysTraceFile, "%s: \"%s\": Jikes RVM is ignoring this argument and proceeding in multiprocessor mode, since we were built without RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT\n");
-                rvm_singleVirtualProcessor = 0;
-            }
-#endif // ! RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
-            continue;
-        }
-
 
         //
         // All VM directives that are not handled here but in VM.java
@@ -566,24 +464,6 @@ main(int argc, const char **argv)
     }
   
             
-#ifdef RVM_FOR_LINUX
-    if (rvm_singleVirtualProcessor <= -2) {
-        if (running_Debian())
-            rvm_singleVirtualProcessor = -1;
-        else
-            rvm_singleVirtualProcessor = 0;
-    }
-    
-
-    if (rvm_singleVirtualProcessor < 0) // Debian.
-        rvm_singleVirtualProcessor = singleVirtualProcessor_for_Debian();
-#else
-    /* Turn it off for all non-Linux systems.  We could print a diagnostic
-     * message here, but that seems like too much work to implement. */
-    if (rvm_singleVirtualProcessor < 0)
-        rvm_singleVirtualProcessor = 0; 
-#endif
-
     /* Verify heap sizes for sanity. */
     if (initialHeapSize == heap_default_initial_size &&
         maximumHeapSize != heap_default_maximum_size &&
@@ -607,13 +487,11 @@ main(int argc, const char **argv)
     if (DEBUG){
         printf("\nRunBootImage.main(): VM variable settings\n");
         printf("initialHeapSize %lu\nmaxHeapSize %lu\n"
-               "rvm_singleVirtualProcessor %d\n"
                "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
                "bootRmapFileName |%s|\n"
                "lib_verbose %d\n",
                (unsigned long) initialHeapSize, 
                (unsigned long) maximumHeapSize, 
-               rvm_singleVirtualProcessor,
                bootCodeFilename, bootDataFilename, bootRMapFilename,
                lib_verbose);
     }

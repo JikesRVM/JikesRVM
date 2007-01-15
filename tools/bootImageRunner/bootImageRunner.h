@@ -71,11 +71,6 @@ unsigned int parse_memory_size(
 
 extern int verboseBoot;
 
-/* Set to 1 for true, 0 for false, -1 for Debian auto-detection. */ 
-    extern int rvm_singleVirtualProcessor;
-    
-
-
 /* Defined in libvm.C; used in RunBootImage.C */
 extern int createVM(int);
 /* Used in libvm.C; Defined in sys.C */

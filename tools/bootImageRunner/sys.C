@@ -210,9 +210,9 @@ sysExit(int value)
 
     systemExiting = true;
 
-    if (! rvm_singleVirtualProcessor)
-        pthread_mutex_lock( &DeathLock );
-
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    pthread_mutex_lock( &DeathLock );
+#endif
     exit(value);
 }
 
@@ -781,10 +781,10 @@ static void *timeSlicerThreadMain(void *) __attribute__((noreturn));
 static void *
 timeSlicerThreadMain(void *arg)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: timeSlicerThreadMain: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    fprintf(stderr, "%s: timeSlicerThreadMain: Unsupported operation with single virtual processor\n", Me);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif 
 
     long ns = (long) arg;
 #ifdef DEBUG_SYS
@@ -912,7 +912,7 @@ extern "C" void processTimerTick(void) {
 static void
 setTimeSlicer(int msTimerDelay)
 {
-    if (! rvm_singleVirtualProcessor) {
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 
         pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
                                     // variable.
@@ -925,10 +925,10 @@ setTimeSlicer(int msTimerDelay)
                     Me, strerror(errorCode));
             sysExit(EXIT_STATUS_TIMER_TROUBLE);
         }
-    } else {
+#else
         /* NOTE: This code is ONLY called if we are running in single virtual
          * processor mode. */
-#if (defined RVM_FOR_LINUX)  || (defined __MACH__)
+  #if (defined RVM_FOR_LINUX)  || (defined __MACH__)
 
         // set it to issue a periodic SIGALRM (or 0 to disable timer)
         //
@@ -946,7 +946,7 @@ setTimeSlicer(int msTimerDelay)
             perror(NULL);
             sysExit(EXIT_STATUS_TIMER_TROUBLE);
         }
-#else  /* ! defined RVM_FOR_LINUX && ! defined __MACH__ */
+  #else  /* ! defined RVM_FOR_LINUX && ! defined __MACH__ */
         // fetch system timer
         //
         timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
@@ -970,8 +970,8 @@ setTimeSlicer(int msTimerDelay)
             perror(NULL);
             sysExit(EXIT_STATUS_TIMER_TROUBLE);
         }
+  #endif
 #endif
-    }
     // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
 }
 
@@ -1189,10 +1189,10 @@ sysNumProcessors()
 extern "C" VM_Address
 sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Address fp)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
+#endif
 
     VM_Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
@@ -1238,10 +1238,10 @@ sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Addr
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysVirtualProcessorStartup: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
+#endif
     
     VM_Address jtoc     = ((VM_Address *)args)[0];
     VM_Address pr       = ((VM_Address *)args)[1];
@@ -1280,10 +1280,10 @@ sysVirtualProcessorStartup(void *args)
 extern "C" void
 sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
+#endif
     
     int numCpus = sysNumProcessors();
     if (VERBOSE_PTHREAD)
@@ -1362,10 +1362,10 @@ sysCreateThreadSpecificDataKeys(void)
 extern "C" void
 sysInitializeStartupLocks(int howMany)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysInitializeStartupLocks: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     VirtualProcessorsLeftToStart = howMany;
     VirtualProcessorsLeftToWait = howMany;
 }
@@ -1373,10 +1373,10 @@ sysInitializeStartupLocks(int howMany)
 extern "C" void
 sysWaitForVirtualProcessorInitialization()
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysWaitForVirtualProcessorInitialization: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     pthread_mutex_lock( &VirtualProcessorStartupLock );
     if (--VirtualProcessorsLeftToStart == 0)
         pthread_cond_broadcast( &VirtualProcessorStartup );
@@ -1388,10 +1388,10 @@ sysWaitForVirtualProcessorInitialization()
 extern "C" void
 sysWaitForMultithreadingStart()
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysWaitForMultithreadingStart: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     pthread_mutex_lock( &MultithreadingStartupLock );
     if (--VirtualProcessorsLeftToWait == 0)
         pthread_cond_broadcast( &MultithreadingStartup );
@@ -1415,10 +1415,10 @@ sysWaitForMultithreadingStart()
 extern "C" int
 sysPthreadSelf()
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
+#endif
     
     int thread;
 
@@ -1438,10 +1438,10 @@ sysPthreadSelf()
 extern "C" void
 sysPthreadSetupSignalHandling()
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
+#endif
 
     int rc;                     // retval from subfunction.
 
@@ -1501,10 +1501,10 @@ sysPthreadSetupSignalHandling()
 extern "C" int
 sysPthreadSignal(int pthread)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadSignal: FATAL Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     pthread_t thread;
     thread = (pthread_t)pthread;
     
@@ -1516,10 +1516,10 @@ sysPthreadSignal(int pthread)
 extern "C" int
 sysPthreadJoin(int pthread)
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadJoin: FATAL Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     pthread_t thread;
     thread = (pthread_t)pthread;
     // fprintf(SysTraceFile, "%s: pthread %d joins %d\n", Me, pthread_self(), thread);
@@ -1531,10 +1531,10 @@ sysPthreadJoin(int pthread)
 extern "C" void
 sysPthreadExit()
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadExit: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     // fprintf(SysTraceFile, "%s: pthread %d exits\n", Me, pthread_self());
     pthread_exit(NULL);
 }
@@ -1567,10 +1567,10 @@ extern "C" int
 sysPthreadSigWait( int * lockwordAddress, 
                    int  lockReleaseValue )
 {
-    if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
+#endif 
     sigset_t input_set, output_set;
     int      sig;
     int rc;                     // retval from subfunction
@@ -1614,21 +1614,18 @@ sysPthreadSigWait( int * lockwordAddress,
 extern "C" int
 sysStashVmProcessorInPthread(VM_Address vmProcessor)
 {
-    if (rvm_singleVirtualProcessor) {
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-        // We have only a single VM_Processor so remember it
-        VmProcessor = vmProcessor;
-#endif
-    } else {
-        //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
-        int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
-        int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
-        if (rc != 0 || rc2 != 0) {
-            fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
-            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    // We have only a single VM_Processor so remember it
+    VmProcessor = vmProcessor;
+#else
+    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
+    int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
+    int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
+    if (rc != 0 || rc2 != 0) {
+        fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-    
+#endif
     return 0;
 }
 

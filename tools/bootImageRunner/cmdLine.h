@@ -38,9 +38,8 @@ static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int VMCLASSES_INDEX               = OPT_INDEX+1;
 static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
 static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
-static const int SINGLE_VIRTUAL_PROCESSOR_INDEX= PROCESSORS_INDEX+1;
 
-static const int numNonstandardArgs      = SINGLE_VIRTUAL_PROCESSOR_INDEX+1;
+static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X", 
@@ -63,9 +62,6 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:vmClasses=",
    "-X:cpuAffinity=",
    "-X:processors=",
-   "-X:singleVirtualProcessor=", /* Leave it here, even if no support built
-                                  * in, but suppress it from the help
-                                  * message. */ 
 };
 
 // a NULL-terminated list.
@@ -73,8 +69,8 @@ static const char* nonStandardUsage[] = {
    "    -X                       Print usage on nonstandard options", 
    "    -X:verbose               Print out additional lowlevel information",
    "    -X:verboseBoot=<number>  Print out messages while booting VM",
-   "    -Xms<number><unit>       Initial size of heap,"
-   "    -Xmx<number><unit>       Maximum size of heap,"
+   "    -Xms<number><unit>       Initial size of heap",
+   "    -Xmx<number><unit>       Maximum size of heap",
    "    -X:sysLogfile=<filename> Write standard error message to <filename>",
    "    -X:ic=<filename>         Read boot image code from <filename>",
    "    -X:id=<filename>         Read boot image data from <filename>",
@@ -98,21 +94,6 @@ static const char* nonStandardUsage[] = {
    "                             -classpath argument.",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
-#ifdef RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
-   "    -X:singleVirtualProcessor=<\"true\"|\"false\"|\"debian\"|\"multiboot\">",
-   "                             Operate with a single virtual processor",
-   "                             (default is \""
-#ifdef RVM_FOR_MULTIBOOT_GLIBC
-   "multiboot"
-#elif defined RVM_FOR_DEBIAN_GLIBC
-   "debian"
-#elif defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-   "true"
-#else
-   "false"
-#endif
-   "\")",
-#endif // #ifdef RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
    NULL                         /* End of messages */
 };
 

@@ -85,7 +85,6 @@ import org.vmmagic.unboxed.*;
     runningVM        = true;
     runningAsSubsystem = false;
     verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
-    singleVirtualProcessor = (VM_BootRecord.the_boot_record.singleVirtualProcessor != 0);
     
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");

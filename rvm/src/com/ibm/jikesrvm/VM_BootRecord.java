@@ -153,13 +153,6 @@ public class VM_BootRecord {
    */
   int verboseBoot = 0;
   
-  
-  /**
-   * Set by -X:singleVirtualProcessor
-   * 
-   */
-  int singleVirtualProcessor;
-
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register

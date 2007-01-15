@@ -410,15 +410,15 @@ public class VM_CommandLineArgs {
         // Options needed by VM_Scheduler to boot correctly //
         // -------------------------------------------------//  
       case CPUAFFINITY_ARG:
-        int cpuAffinity = 0;
+        int cpuAffinity = -1;
         try { cpuAffinity = primitiveParseInt(arg); }
-        catch (NumberFormatException e) { cpuAffinity = -1; }
+        catch (NumberFormatException e) {}
         if (cpuAffinity < 0) {
           VM.sysWriteln("vm: ", p.value, " needs a cpu number (0..N-1), but found '", arg, "'");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         if (VM.singleVirtualProcessor && cpuAffinity != 0) { 
-          VM.sysWriteln("vm: I can not support multiple processors; check the -X:singleVirtualProcessor flag");
+          VM.sysWriteln("vm: VM built requiring a single virtual processor. No support for multiple processors. CPU affinity must be 0.");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         VM_Scheduler.cpuAffinity = cpuAffinity;
@@ -440,7 +440,7 @@ public class VM_CommandLineArgs {
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         if (VM.singleVirtualProcessor && nProcs != 1) {
-          VM.sysWriteln("vm: I can not support multiple processors; check the -X:singleVirtualProcessor flag");
+          VM.sysWriteln("vm: VM built requiring a single virtual processor. No support for multiple processors. Can not specify number of processors more than 1.");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         VM_Scheduler.numProcessors = nProcs;

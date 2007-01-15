@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright © IBM Corp 2001,2002,2003,2004
+ * (C) Copyright IBM Corp 2001,2002,2003,2004
  *
  * $Id$
  */
@@ -730,8 +730,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #if (defined RVM_FOR_OSX)
        fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
-       if (!rvm_singleVirtualProcessor) 
+  #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
            fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
+  #endif           
 #endif // ! RVM_FOR_OSX
        
        if (isRecoverable) {
@@ -1208,8 +1209,7 @@ createVM(int vmInSeparateThread)
     bootRecord.bootImageRMapStart   = (VM_Address) bootRMapRegion;
     bootRecord.bootImageRMapEnd     = (VM_Address) bootRMapRegion + roundedRMapRegionSize;
     bootRecord.verboseBoot      = verboseBoot;
-    bootRecord.singleVirtualProcessor = rvm_singleVirtualProcessor;
-  
+
     // set host o/s linkage information into boot record
     //
     if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", Me);
@@ -1404,10 +1404,10 @@ createVM(int vmInSeparateThread)
         // clear flag for synchronization
         bootRecord.bootCompleted = 0;
 
-        if (rvm_singleVirtualProcessor) {
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
             fprintf(stderr, "%s: createVM(vmInSeparateThread = %d): Unsupported operation (no pthreads available)\n", Me, vmInSeparateThread);
             exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-        }
+#endif
     
         pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);
      

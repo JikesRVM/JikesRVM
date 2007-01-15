@@ -264,8 +264,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     unsigned int localInstructionAddress;
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-    if (!rvm_singleVirtualProcessor)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         pthread_mutex_lock( &exceptionLock );
+#endif        
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
@@ -480,9 +481,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         gregs[REG_EIP] = dumpStack;
         *vmr_inuse = false;
 
-        if (!rvm_singleVirtualProcessor)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
             pthread_mutex_unlock( &exceptionLock );
-
+#endif
         return;
     }
 
@@ -601,8 +602,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
 
-    if (!rvm_singleVirtualProcessor)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         pthread_mutex_unlock( &exceptionLock );
+#endif        
 }
 
 
@@ -613,12 +615,12 @@ softwareSignalHandler(int signo,
 {
 //    bool croak_with_signo = false;
     
-    if (rvm_singleVirtualProcessor) {
-        if (signo == SIGALRM) { /* asynchronous signal used for time slicing */
-            processTimerTick();
-            return;
-        }
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    if (signo == SIGALRM) { /* asynchronous signal used for time slicing */
+       processTimerTick();
+       return;
     }
+#endif
 
     // asynchronous signal used to awaken internal debugger
     if (signo == SIGQUIT) { 
@@ -855,9 +857,9 @@ createVM(int UNUSED vmInSeparateThread)
     bootRecord->bootImageRMapStart   = (int) bootRMapRegion;
     bootRecord->bootImageRMapEnd     = (int) bootRMapRegion + roundedRMapRegionSize;
     bootRecord->verboseBoot      = verboseBoot;
-    bootRecord->singleVirtualProcessor = rvm_singleVirtualProcessor;
-  
+
     /* write sys.C linkage information into boot record */
+
     setLinkage(bootRecord);
     if (lib_verbose) {
         fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
