@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
-import java.util.Enumeration;
 
 /**
  * This class represents a diamond (if-then-else) structure in the
@@ -80,9 +79,9 @@ final class OPT_Diamond {
     if (bb.getNumberOfNormalOut() != 2) return null;
 
     // Identify the two out nodes from bb.
-    Enumeration outNodes = bb.getNormalOut();
-    OPT_BasicBlock out1 = (OPT_BasicBlock)outNodes.nextElement();
-    OPT_BasicBlock out2 = (OPT_BasicBlock)outNodes.nextElement();
+    OPT_BasicBlockEnumeration outNodes = bb.getNormalOut();
+    OPT_BasicBlock out1 = outNodes.nextElement();
+    OPT_BasicBlock out2 = outNodes.nextElement();
     int out1In = out1.getNumberOfIn();
     int out2In = out2.getNumberOfIn();
 

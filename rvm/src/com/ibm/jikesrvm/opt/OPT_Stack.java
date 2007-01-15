@@ -17,18 +17,18 @@ package com.ibm.jikesrvm.opt;
  * @author John Whaley
  * @date  3/18/98
  */
-public class OPT_Stack {
+public class OPT_Stack<T> {
   OPT_LinkedListObjectElement head;
 
   public OPT_Stack() {
     head = null;
   }
 
-  public OPT_Stack(Object e) {
+  public OPT_Stack(T e) {
     head = new OPT_LinkedListObjectElement(e);
   }
 
-  public final Object push(Object e) {
+  public final Object push(T e) {
     OPT_LinkedListObjectElement el = new OPT_LinkedListObjectElement(e);
     if (head != null)
       head.insertBefore(el);
@@ -36,17 +36,17 @@ public class OPT_Stack {
     return  e;
   }
 
-  public final Object pop() {
+  public final T pop() {
     OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
     head = (OPT_LinkedListObjectElement)head.getNext();
-    return  el.getValue();
+    return  (T)el.getValue();
   }
 
-  public final Object getTOS() {
-    return  ((OPT_LinkedListObjectElement)head).getValue();
+  public final T getTOS() {
+    return  (T)((OPT_LinkedListObjectElement)head).getValue();
   }
 
-  public final Object peek() {
+  public final T peek() {
     return  getTOS();
   }
 
@@ -58,7 +58,7 @@ public class OPT_Stack {
     return  isEmpty();
   }
 
-  public final int search(Object obj) {
+  public final int search(T obj) {
     OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
     for (int i = 0; el != null; ++i, 
         el = (OPT_LinkedListObjectElement)el.getNext()) {
@@ -68,7 +68,7 @@ public class OPT_Stack {
     return  -1;
   }
 
-  public final boolean compare(OPT_Stack s2) {
+  public final boolean compare(OPT_Stack<T> s2) {
     OPT_LinkedListObjectElement p1 = this.head;
     OPT_LinkedListObjectElement p2 = s2.head;
     for (;;) {
@@ -83,23 +83,22 @@ public class OPT_Stack {
     }
   }
 
-  public final OPT_Stack copy() {
-    OPT_Stack s = new OPT_Stack();
+  public final OPT_Stack<T> copy() {
+    OPT_Stack<T> s = new OPT_Stack<T>();
     if (head == null)
       return  s;
     s.head = head.copyFrom();
     return  s;
   }
 
-  public final OPT_Stack shallowCopy() {
-    OPT_Stack s = new OPT_Stack();
+  public final OPT_Stack<T> shallowCopy() {
+    OPT_Stack<T> s = new OPT_Stack<T>();
     s.head = head;
     return  s;
   }
 
   public final OPT_LinkedListObjectEnumerator elements() {
-    return  new OPT_LinkedListObjectEnumerator(
-        (OPT_LinkedListObjectElement)head);
+    return  new OPT_LinkedListObjectEnumerator((OPT_LinkedListObjectElement)head);
   }
 
   public String toString() {

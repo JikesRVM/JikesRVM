@@ -19,14 +19,14 @@ import  java.util.NoSuchElementException;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-public class OPT_FilterEnumerator
-    implements Enumeration {
-  final Enumeration e;
-  final Filter f;
-  private Object next;
+public class OPT_FilterEnumerator<S,T>
+    implements Enumeration<T> {
+  final Enumeration<S> e;
+  final Filter<S,T> f;
+  private S next;
   private boolean done;
 
-  public OPT_FilterEnumerator (Enumeration e, Filter f) {
+  public OPT_FilterEnumerator (Enumeration<S> e, Filter<S,T> f) {
     this.e = e;
     this.f = f;
     advance();
@@ -41,10 +41,10 @@ public class OPT_FilterEnumerator
     done = true;
   }
 
-  public Object nextElement () {
+  public T nextElement () {
     if (done)
       throw  new NoSuchElementException();
-    Object o = next;
+    S o = next;
     advance();
     return  f.map(o);
   }
@@ -53,14 +53,15 @@ public class OPT_FilterEnumerator
     return  !done;
   }
 
-  public static class Filter {                  // override with your mapping.
+  public static class Filter<S,T> {                  // override with your mapping.
 
-    public boolean isElement (Object o) {
+    public boolean isElement (S o) {
       return  true;
     }
 
-    public Object map (Object o) {
-      return  o;
+    @SuppressWarnings("unchecked")
+    public T map (S o) {
+      return  (T)o;
     }
   }
 }

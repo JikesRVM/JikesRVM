@@ -12,6 +12,7 @@ package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import  java.io.*;
+import java.util.Iterator;
 
 /**
  * This class acts as an intermediary between VM_ClassLoader and the 
@@ -99,7 +100,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   }
   
   private void processOverride(VM_Method overridden) {
-    java.util.Iterator invalidatedMethods = 
+    Iterator<Integer> invalidatedMethods = 
       db.invalidatedByOverriddenMethod(overridden);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
@@ -117,7 +118,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   private void handleSubclassing(VM_Class c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do
     VM_Class sc = c.getSuperClass();
-    java.util.Iterator invalidatedMethods = db.invalidatedBySubclass(sc);
+    Iterator<Integer> invalidatedMethods = db.invalidatedBySubclass(sc);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = ((Integer)invalidatedMethods.next()).intValue();

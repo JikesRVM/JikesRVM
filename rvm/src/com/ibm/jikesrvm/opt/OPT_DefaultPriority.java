@@ -20,7 +20,6 @@ import com.ibm.jikesrvm.opt.ir.*;
  */
 class OPT_DefaultPriority extends OPT_Priority {
   // Underlying enumeration.
-  private OPT_IR ir;
   private OPT_BasicBlock bb;
   private OPT_Instruction i;
   private OPT_InstructionEnumeration instr;
@@ -31,8 +30,7 @@ class OPT_DefaultPriority extends OPT_Priority {
    * @param ir IR in question
    * @param bb basic block
    */
-  public OPT_DefaultPriority (OPT_IR ir, OPT_BasicBlock bb) {
-    this.ir = ir;
+  public OPT_DefaultPriority (OPT_BasicBlock bb) {
     this.bb = bb;
     // i = bb.firstInstruction();
     // instr = bb.forwardRealInstrEnumerator();

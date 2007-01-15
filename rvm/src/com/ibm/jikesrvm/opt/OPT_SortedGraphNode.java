@@ -24,11 +24,11 @@ import  java.util.Enumeration;
 public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
 
   // Return enumerator for all the in nodes.
-  public abstract Enumeration getInNodes();  // should be overridden 
+  public abstract Enumeration<? extends OPT_SortedGraphNode> getInNodes();  // should be overridden 
                                               // by a subclass
 
   // Return enumerator for all the out nodes.
-  public abstract Enumeration getOutNodes(); // should be overridden by a 
+  public abstract Enumeration<? extends OPT_SortedGraphNode> getOutNodes(); // should be overridden by a 
                                               // subclass
 
   public OPT_SortedGraphNode getSortedNext(boolean forward) {

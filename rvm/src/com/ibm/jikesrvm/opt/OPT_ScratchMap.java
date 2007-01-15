@@ -181,7 +181,7 @@ public final class OPT_ScratchMap {
    * register?
    */
   public boolean isDirty(OPT_Instruction s, OPT_Register r) {
-    HashSet set = (HashSet)dirtyMap.get(s);
+    HashSet<OPT_Register> set = dirtyMap.get(s);
     if (set == null) {
       return false;
     } else {
@@ -194,10 +194,9 @@ public final class OPT_ScratchMap {
    */
   public String toString() {
     String result = "";
-    for (Iterator i = map.values().iterator(); i.hasNext(); ) {
-      ArrayList v = (ArrayList)i.next();
-      for (Iterator e = v.iterator(); e.hasNext(); ) {
-        result += e.next() + "\n";
+    for (ArrayList<Interval> v : map.values()) {
+      for (Interval i : v) {
+        result += i + "\n";
       }
     }
     return result;

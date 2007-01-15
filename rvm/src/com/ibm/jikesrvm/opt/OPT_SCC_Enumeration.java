@@ -27,7 +27,7 @@ import  java.util.*;
  *
  */
 class OPT_SCC_Enumeration
-    implements Enumeration {
+    implements Enumeration<OPT_SCC> {
   /**
    *  The second DFS (the reverse one) needed while computing SCCs
    */
@@ -99,7 +99,7 @@ class OPT_SCC_Enumeration
    *
    * @return The next SCC in this enumeration
    */
-  public Object nextElement () {
+  public OPT_SCC nextElement () {
     return  next();
   }
 }

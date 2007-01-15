@@ -22,7 +22,7 @@ import  java.util.Enumeration;
 // List of Graph Edges.
 //
 class OPT_SpaceEffGraphEdgeList
-    implements Enumeration {
+    implements Enumeration<OPT_SpaceEffGraphEdgeList> {
   OPT_SpaceEffGraphEdge _edge;
   OPT_SpaceEffGraphEdgeList _next;
   OPT_SpaceEffGraphEdgeList _prev;
@@ -34,7 +34,7 @@ class OPT_SpaceEffGraphEdgeList
       return  true;
   }
 
-  public Object nextElement() {
+  public OPT_SpaceEffGraphEdgeList nextElement() {
     OPT_SpaceEffGraphEdgeList tmp = _next;
     _next = _next._next;
     return  tmp;

@@ -82,14 +82,14 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
 
   public OPT_LSTNode getParent() { return (OPT_LSTNode)inNodes().next(); }
 
-  public Enumeration getChildren() {
-    return new Enumeration() {
+  public Enumeration<OPT_LSTNode> getChildren() {
+    return new Enumeration<OPT_LSTNode>() {
         private OPT_SpaceEffGraphEdge _edge = _outEdgeStart;
         public boolean hasMoreElements() { return _edge != null; }
-        public Object nextElement()      {
+        public OPT_LSTNode nextElement()      {
           OPT_SpaceEffGraphEdge e = _edge;
           _edge = e.nextOut;
-          return e.toNode();
+          return (OPT_LSTNode)e.toNode();
         }
       };
   }

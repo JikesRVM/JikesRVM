@@ -53,9 +53,9 @@ import org.vmmagic.pragma.*;
     if (tree.isEmpty())
       return  null; 
     else {
-      Enumeration e = tree.elements();
+      Enumeration<OPT_TreeNode> e = tree.elements();
       while (e.hasMoreElements()) {
-        OPT_TreeNode x = (OPT_TreeNode)e.nextElement();
+        OPT_TreeNode x = e.nextElement();
         if (x.getLeftChild() == null)
           size += 2; 
         else 

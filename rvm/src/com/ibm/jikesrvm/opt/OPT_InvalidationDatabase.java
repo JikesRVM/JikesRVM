@@ -95,7 +95,7 @@ public final class OPT_InvalidationDatabase {
    * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
    * a delicate dance to avoid recursive classloading. --dave.
    */
-  public Iterator invalidatedBySubclass(VM_Class m) {
+  public Iterator<Integer> invalidatedBySubclass(VM_Class m) {
     MethodSet s = (MethodSet)noSubclassHash.get(m);
     return (s == null) ? null : s.iterator();
   }

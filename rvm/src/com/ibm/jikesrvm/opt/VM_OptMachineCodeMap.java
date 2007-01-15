@@ -160,7 +160,7 @@ import java.util.ArrayList;
             int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
             VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
-              if (ans == null) ans = new java.util.ArrayList();
+              if (ans == null) ans = new ArrayList<VM_CallSite>();
               ans.add(new VM_CallSite(caller, bcIndex));
             }
           }

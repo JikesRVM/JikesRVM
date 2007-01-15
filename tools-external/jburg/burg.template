@@ -6,13 +6,13 @@
 //-#if RVM_FOR_IA32
 package com.ibm.jikesrvm.ia32.opt;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
+import com.ibm.jikesrvm.classloader.*;
 //-#else
 package com.ibm.jikesrvm.ppc.opt;
 import com.ibm.jikesrvm.ppc.opt.ir.*;
 //-#endif
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_BURS;
 import com.ibm.jikesrvm.opt.OPT_Bits;
@@ -36,6 +36,7 @@ import org.vmmagic.unboxed.*;
  *
  * NOTE: Program generated file, do not edit!
  */
+@SuppressWarnings("unused") // Machine generated code is hard to get perfect
 public class OPT_BURS_STATE extends OPT_BURS_Helpers 
    implements OPT_Operators, OPT_BURS_Definitions {
 

@@ -136,14 +136,14 @@ public final class OPT_Simple extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_Simple",
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_Simple",
                                                                              new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 

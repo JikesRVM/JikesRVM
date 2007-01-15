@@ -68,7 +68,7 @@ public class OPT_Tree {
    * Provides an undefined enumeration over all elements in the tree
    * @return enumeration
    */
-  public final Enumeration elements() {
+  public final Enumeration<OPT_TreeNode> elements() {
     return  new OPT_TreeTopDownEnumerator(root);
   }
 
@@ -78,7 +78,7 @@ public class OPT_Tree {
    */
   public final int numberOfNodes() {
     int n = 0;
-    for (Enumeration e = elements(); e.hasMoreElements();) {
+    for (Enumeration<OPT_TreeNode> e = elements(); e.hasMoreElements();) {
       e.nextElement();
       n++;
     }
@@ -89,7 +89,7 @@ public class OPT_Tree {
    * Provides a bottom-up enumeration over all elements in the tree
    * @return enumeration
    */
-  public final  Enumeration getBottomUpEnumerator() {
+  public final  Enumeration<OPT_TreeNode> getBottomUpEnumerator() {
     return  new OPT_TreeBottomUpEnumerator(root);
   }
 
@@ -97,7 +97,7 @@ public class OPT_Tree {
    * Provides a top-down enumeration over all elements in the tree
    * @return enumeration
    */
-  public final Enumeration getTopDownEnumerator() {
+  public final Enumeration<OPT_TreeNode> getTopDownEnumerator() {
     return  new OPT_TreeTopDownEnumerator(root);
   }
 
@@ -129,7 +129,7 @@ public class OPT_Tree {
     }
     sb.append(node +"\n");
 
-    Enumeration childEnum = node.getChildren();
+    Enumeration<OPT_TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {
       OPT_TreeNode child = (OPT_TreeNode)childEnum.nextElement();
       DFS(sb, child, depth + 1);

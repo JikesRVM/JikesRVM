@@ -9,7 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * This class computes strongly connected components for a OPT_Graph
@@ -34,7 +35,7 @@ class OPT_SCC_Engine {
    *
    * @return An enumeration of all SCCs
    */
-  java.util.Iterator iterateSCCs () {
+  java.util.Iterator<OPT_SCC> iterateSCCs () {
     return  sccs.iterator();
   }
 
@@ -45,16 +46,17 @@ class OPT_SCC_Engine {
    * @return The SCC for v.
    */
   OPT_SCC getSCC (OPT_GraphNode v) {
-    return  (OPT_SCC)vertexHash.get(v);
+    return  vertexHash.get(v);
   }
   /**
    *  Map of graph nodes to SCCs
    */
-  private java.util.HashMap vertexHash = new java.util.HashMap();
+  private HashMap<OPT_GraphNode,OPT_SCC> vertexHash = 
+    new HashMap<OPT_GraphNode,OPT_SCC>();
   /**
    *  Set of all SCCs
    */
-  private java.util.HashSet sccs = new java.util.HashSet();
+  private HashSet<OPT_SCC> sccs = new HashSet<OPT_SCC>();
 
   /** 
    * Compute the SCCs and cache the result
@@ -68,7 +70,7 @@ class OPT_SCC_Engine {
     OPT_GraphNode currentRoot = null;
     OPT_SCC currentSCC = null;
     while (rev.hasMoreElements()) {
-      OPT_GraphNode v = (OPT_GraphNode)rev.nextElement();
+      OPT_GraphNode v = rev.nextElement();
       if (rev.currentRoot != currentRoot) {
         currentRoot = rev.currentRoot;
         currentSCC = new OPT_SCC();

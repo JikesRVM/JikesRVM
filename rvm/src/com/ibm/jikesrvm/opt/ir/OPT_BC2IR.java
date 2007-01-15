@@ -3081,6 +3081,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op1 operand to push
    * @param b1 bytecode index to associate with the pushed operand
    */
+  @SuppressWarnings("unused")
   private OPT_Instruction pushCopy(OPT_Operand op1, int b1) {
     if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
     if (op1 instanceof OPT_RegisterOperand) {
@@ -3304,7 +3305,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private String printBlocks() {
     StringBuffer res = new StringBuffer();
-    for (Enumeration e = blocks.contents(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlockLE> e = blocks.contents(); e.hasMoreElements();) {
       BasicBlockLE b = (BasicBlockLE)e.nextElement();
       if (b == currentBBLE)
         res.append("*");
@@ -4766,7 +4767,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * Return a enumeration of the BasicBlockLE's currently in the BBSet.
      */ 
-    Enumeration contents() {
+    Enumeration<BasicBlockLE> contents() {
       return TreeEnumerator.enumFromRoot(root);
     }
 
@@ -5786,6 +5787,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       x.parent = y;
     }
 
+    @SuppressWarnings("unused")  // here for debugging
     private void verifyTree() {
       if (VM.VerifyAssertions) {
         VM._assert(root.isBlack());
@@ -5821,7 +5823,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return left;
     }
 
-    private static final class TreeEnumerator implements Enumeration {
+    private static final class TreeEnumerator 
+                               implements Enumeration<BasicBlockLE> {
       BasicBlockLE node;
 
       static TreeEnumerator enumFromRoot(BasicBlockLE root) {
@@ -5865,7 +5868,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         return retVal;
       }
 
-      public Object nextElement() {
+      public BasicBlockLE nextElement() {
         return next();
       }
     }

@@ -152,6 +152,7 @@ $$$$ END IF
  * @author Dave Grove
  * @author Igor Pechtchanski
  */
+@SuppressWarnings("unused")  // Machine generated code is never 100% clean
 public final class OPTYPE.NAME extends OPT_InstructionFormat {
   /**
    * InstructionFormat identification method for OPTYPE.NAME.

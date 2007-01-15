@@ -43,8 +43,8 @@ class OPT_UniformlyGeneratedGVN {
     gvn = new OPT_GlobalValueNumberState(ir);
 
     // Merge classes related by a constant
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       // Check if s is a fixed-point add/subtract instruction with 
       // a constant second operand
       if ( s.operator == INT_ADD || s.operator == LONG_ADD ||

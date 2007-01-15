@@ -90,13 +90,14 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_SSATuneUp$TuneUpPreparation");
+    private static final Constructor<OPT_CompilerPhase> constructor = 
+      getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_SSATuneUp$TuneUpPreparation");
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
-    public Constructor getClassConstructor() {
+    public Constructor<OPT_CompilerPhase> getClassConstructor() {
       return constructor;
     }
 

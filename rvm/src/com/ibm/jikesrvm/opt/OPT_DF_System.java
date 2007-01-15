@@ -80,7 +80,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    */
   public String toString() {
     String result = "EQUATIONS:\n";
-    Enumeration v = equations.enumerateNodes();
+    Enumeration<OPT_GraphNode> v = equations.enumerateNodes();
     for (int i = 0; i < equations.numberOfNodes(); i++) {
       result = result + i + " : " + v.nextElement() + "\n";
     }
@@ -91,11 +91,11 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * Return an Enumeration over the equations in this system.
    * @return an Enumeration over the equations in this system 
    */
-  public Enumeration getEquations() {
-    return new OPT_FilterEnumerator(
+  public Enumeration<OPT_DF_Equation> getEquations() {
+    return new OPT_FilterEnumerator<OPT_GraphNode,OPT_DF_Equation>(
                                     equations.enumerateNodes(),
-                                    new OPT_FilterEnumerator.Filter() {
-                                    public boolean isElement(Object x) {
+        new OPT_FilterEnumerator.Filter<OPT_GraphNode,OPT_DF_Equation>() {
+          public boolean isElement(OPT_GraphNode x) {
                                     return x instanceof OPT_DF_Equation;
                                     }
                                     }
@@ -139,8 +139,8 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * Add all equations to the work list. 
    */
   public void addAllEquationsToWorkList() {
-    for (Enumeration e = getEquations(); e.hasMoreElements();) {
-      OPT_DF_Equation eq = (OPT_DF_Equation)e.nextElement();
+    for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
+      OPT_DF_Equation eq = e.nextElement();
       addToWorkList(eq);
     }
   }
@@ -152,9 +152,9 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @param cell the lattice cell that has changed
    */
   public void changedCell(OPT_DF_LatticeCell cell) {
-    Iterator e = cell.getUses();
+    Iterator<OPT_DF_Equation> e = cell.getUses();
     while (e.hasNext()) {
-      newEquations.add((OPT_DF_Equation)e.next());
+      newEquations.add(e.next());
     }
   }
 
@@ -324,7 +324,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @param cell the cell in question
    */
   public void addCellAppearancesToWorkList(OPT_DF_LatticeCell cell) {
-    for (Enumeration e = getEquations(); e.hasMoreElements();) {
+    for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
       OPT_DF_Equation eq = (OPT_DF_Equation)e.nextElement();
       if (eq.hasCell(cell)) {
         addToWorkList(eq);
@@ -337,13 +337,9 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    */
   final OPT_Graph equations = new OPT_DF_Graph();
 
-  private static final Comparator<Object> dfComparator =
-    new Comparator<Object>() {
-    public int compare(Object o1, Object o2) {
-      if (!(o1 instanceof OPT_DF_Equation))
-        throw  new OPT_OptimizingCompilerException();
-      if (!(o2 instanceof OPT_DF_Equation))
-        throw  new OPT_OptimizingCompilerException();
+  private static final Comparator<OPT_DF_Equation> dfComparator =
+    new Comparator<OPT_DF_Equation>() {
+    public int compare(OPT_DF_Equation o1, OPT_DF_Equation o2) {
       OPT_DF_Equation eq1 = (OPT_DF_Equation)o1;
       OPT_DF_Equation eq2 = (OPT_DF_Equation)o2;
       return  (eq1.topologicalNumber - eq2.topologicalNumber);
@@ -414,10 +410,10 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   private void numberEquationsTopological() {
     OPT_GraphNodeEnumeration topOrder = OPT_GraphUtilities.
       enumerateTopSort(equations);
-    Enumeration rev = new OPT_ReverseDFSenumerateByFinish(equations, topOrder);
+    Enumeration<OPT_GraphNode> rev = new OPT_ReverseDFSenumerateByFinish(equations, topOrder);
     int number = 0;
     while (rev.hasMoreElements()) {
-      Object elt = rev.nextElement();
+      OPT_GraphNode elt = rev.nextElement();
       if (elt instanceof OPT_DF_Equation) {
         OPT_DF_Equation eq = (OPT_DF_Equation)elt;
         eq.setTopologicalNumber(number++);
@@ -431,8 +427,8 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   void showGraphStats() {
     System.out.println("graph has " + equations.numberOfNodes() + " nodes");
     int count = 0;
-    for (Enumeration e = equations.enumerateNodes(); e.hasMoreElements();) {
-      OPT_GraphNode eq = (OPT_GraphNode)e.nextElement();
+    for (Enumeration<OPT_GraphNode> e = equations.enumerateNodes(); e.hasMoreElements();) {
+      OPT_GraphNode eq = e.nextElement();
       OPT_GraphNodeEnumeration outs = eq.outNodes();
       while (outs.hasMoreElements()) {
         count++;

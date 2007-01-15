@@ -28,4 +28,6 @@ class OPT_SCC_Vertex extends OPT_EdgelessGraphNode {
   public String toString() {
     return  scc.toString();
   }
+  
+  private static final long serialVersionUID = 1L;
 }

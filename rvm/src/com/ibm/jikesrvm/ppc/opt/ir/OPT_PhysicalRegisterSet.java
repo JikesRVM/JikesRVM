@@ -19,8 +19,6 @@ import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.opt.OPT_ReverseEnumerator;
 import com.ibm.jikesrvm.opt.ir.OPT_GenericPhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.ppc.*;
-import com.ibm.jikesrvm.ppc.opt.*;
 
 import java.util.Enumeration;
 
@@ -703,7 +701,9 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       case CONDITION_REG:
         return enumerateVolatileConditionRegisters();
       case SPECIAL_REG:
-        return OPT_EmptyEnumerator.EMPTY;
+        @SuppressWarnings("unchecked") // Can't type check this in generic Java
+        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
+        return empty;
       default:
         throw new OPT_OptimizingCompilerException("Unsupported volatile type");
     }
@@ -716,8 +716,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     Enumeration<OPT_Register> e1 = enumerateVolatileGPRs();
     Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
     Enumeration<OPT_Register> e3 = enumerateVolatileConditionRegisters();
-    return new OPT_CompoundEnumerator(e1, new
-                                      OPT_CompoundEnumerator(e2,e3));
+    return new OPT_CompoundEnumerator<OPT_Register>(e1, new
+                                      OPT_CompoundEnumerator<OPT_Register>(e2,e3));
   }
 
   /**
@@ -740,7 +740,9 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       case CONDITION_REG:
         return enumerateNonvolatileConditionRegisters();
       case SPECIAL_REG:
-        return OPT_EmptyEnumerator.EMPTY;
+        @SuppressWarnings("unchecked") // Can't type check this in generic Java
+        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
+        return empty;
       default:
         throw new OPT_OptimizingCompilerException
           ("Unsupported non-volatile type");
@@ -793,12 +795,10 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * An enumerator for use by the physical register utilities.
    */
   final class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
-    private int start;
     private int end;
     private int index;
 
     PhysicalRegisterEnumeration(int start, int end) {
-      this.start = start;
       this.end = end;
       this.index = start;
     }

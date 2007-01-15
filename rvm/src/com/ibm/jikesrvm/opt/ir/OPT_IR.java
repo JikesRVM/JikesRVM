@@ -424,8 +424,8 @@ public final class OPT_IR {
    */
   public void resetBasicBlockMap() {
     basicBlockMap = new OPT_BasicBlock[getMaxBasicBlockNumber()+1] ;
-    for (Enumeration bbEnum = cfg.nodes(); bbEnum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
+    for (Enumeration<OPT_BasicBlock> bbEnum = cfg.basicBlocks(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = bbEnum.nextElement();
       basicBlockMap[block.getNumber()] = block;
     }
   }
@@ -467,9 +467,9 @@ public final class OPT_IR {
     protected BitSetBBEnum(OPT_IR ir, OPT_BitVector bits) {
       stack = new Stack<OPT_BasicBlock>();
       int size = bits.length();
-      Enumeration bbEnum = ir.getBasicBlocks();
+      Enumeration<OPT_BasicBlock> bbEnum = ir.getBasicBlocks();
       for ( ; bbEnum.hasMoreElements(); ) {
-        OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
+        OPT_BasicBlock block = bbEnum.nextElement();
         int number = block.getNumber();
         if (number < size && bits.get(number)) stack.push(block);
       }
@@ -576,8 +576,8 @@ public final class OPT_IR {
    */
   public void pruneExceptionalOut() {
     if (hasReachableExceptionHandlers()) {
-      for (Enumeration e = getBasicBlocks(); e.hasMoreElements(); ) {
-        OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      for (Enumeration<OPT_BasicBlock> e = getBasicBlocks(); e.hasMoreElements(); ) {
+        OPT_BasicBlock bb = e.nextElement();
         bb.pruneExceptionalOut(this);
       } 
     }      
@@ -855,7 +855,7 @@ public final class OPT_IR {
         // time around
         if (!origOutSet.isEmpty()) {
           OPT_BasicBlock missing = 
-            (OPT_BasicBlock) origOutSet.iterator().next();
+            origOutSet.iterator().next();
 
           cur.printExtended();
           verror(where, "An edge in the cfg was incorrect.  " +
@@ -908,9 +908,9 @@ public final class OPT_IR {
    * @param where phrase identifying invoking  compilation phase
    */
   private void verifyInstructions(String where) {
-    Enumeration bbEnum = cfg.nodes();
+    Enumeration<OPT_BasicBlock> bbEnum = cfg.basicBlocks();
     while(bbEnum.hasMoreElements()) {
-      OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
+      OPT_BasicBlock block = bbEnum.nextElement();
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(this, block);
       boolean startingInstructionsPassed = false;
       while (instructions.hasMoreElements()) {
@@ -1031,6 +1031,7 @@ public final class OPT_IR {
    * 
    * @param where    phrase identifying invoking  compilation phase
    */
+  @SuppressWarnings("unused") // used when needed for debugging
   private void verifyAllBlocksAreReachable(String where) {
     OPT_BitVector reachableNormalBlocks = new OPT_BitVector(cfg.numberOfNodes());
     OPT_BitVector reachableExceptionBlocks = new OPT_BitVector(cfg.numberOfNodes());
@@ -1222,7 +1223,7 @@ public final class OPT_IR {
             if((variable != null) && (definedVariables.contains(variable) == false)) {
               StringBuffer pathString = new StringBuffer();
               for(int j=0; j < path.size(); j++) {
-                pathString.append(((OPT_BasicBlock)path.get(j)).getNumber());
+                pathString.append(path.get(j).getNumber());
                 if(j < (path.size() - 1)) {
                   pathString.append("->");
                 }
@@ -1240,7 +1241,7 @@ public final class OPT_IR {
           if((variable != null)&&(definedVariables.contains(variable) == false)) {
             StringBuffer pathString = new StringBuffer();
             for(int i=0; i < path.size(); i++) {
-              pathString.append(((OPT_BasicBlock)path.get(i)).getNumber());
+              pathString.append(path.get(i).getNumber());
               if(i < (path.size() - 1)) {
                 pathString.append("->");
               }
@@ -1317,7 +1318,7 @@ public final class OPT_IR {
       return (register.isPhysical()) ? null : register;  
     }
     else if (operand.isBlock()) {
-      Enumeration blocks = cfg.nodes();
+      Enumeration<OPT_BasicBlock> blocks = cfg.basicBlocks();
       while(blocks.hasMoreElements()) {
         if(operand.asBlock().block == blocks.nextElement()) {
           return null;
@@ -1330,7 +1331,7 @@ public final class OPT_IR {
       if (actualSSAOptions.getHeapValid() == false) {
         return null;
       }
-      OPT_HeapVariable variable = ((OPT_HeapOperand)operand).getHeapVariable();
+      OPT_HeapVariable<?> variable = ((OPT_HeapOperand<?>)operand).getHeapVariable();
       if(variable.getNumber() > 0) {
         return variable;
       }
@@ -1361,7 +1362,7 @@ public final class OPT_IR {
       if (actualSSAOptions.getHeapValid() == false) {
         return null;
       }
-      return ((OPT_HeapOperand)operand).getHeapVariable();
+      return ((OPT_HeapOperand<?>)operand).getHeapVariable();
     }
     else if(VM.BuildForIA32 && OPT_Operators.helper.isBURSManagedFPROperand(operand)) {
       return OPT_Operators.helper.getBURSManagedFPRValue(operand);

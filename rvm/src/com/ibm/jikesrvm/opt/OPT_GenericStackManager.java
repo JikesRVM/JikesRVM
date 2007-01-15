@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.*;
-import static com.ibm.jikesrvm.VM_SizeConstants.*;
 import static com.ibm.jikesrvm.VM_Constants.*;
 
 /**
@@ -188,8 +187,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   private void replaceRegisterWithScratch(OPT_Instruction s, 
                                           OPT_Register r1, OPT_Register r2) {
     int spill1 = OPT_RegisterAllocatorState.getSpill(r1);
-    for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null) {
         if (op.isRegister()) {
           OPT_Register r3 = op.asRegister().register;
@@ -275,8 +274,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   private ArrayList<OPT_Register> getReservedScratchRegisters(OPT_Instruction s) {
     ArrayList<OPT_Register> result = new ArrayList<OPT_Register>(3);
 
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister sr = (ScratchRegister)i.next();
+    for (ScratchRegister sr : scratchInUse) {
       if (sr.currentContents != null && appearsIn(sr.currentContents,s)) {
         result.add(sr.scratch);
       }
@@ -298,8 +296,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param s the instruction for which we need r in a register
    */
   private ScratchRegister getCurrentScratchRegister(OPT_Register r,OPT_Instruction s) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister sr = (ScratchRegister)i.next();
+    for (ScratchRegister sr : scratchInUse) {
       if (sr.currentContents == r) {
         return sr;
       }
@@ -326,8 +323,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Else return null.
    */
   private ScratchRegister getPhysicalScratchRegister(OPT_Register r) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister sr = (ScratchRegister)i.next();
+    for (ScratchRegister sr : scratchInUse) {
       if (sr.scratch == r) {
         return sr;
       }
@@ -343,8 +339,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * instruction s.
    */
   private void markDirtyScratchRegisters(OPT_Instruction s) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister scratch = (ScratchRegister)i.next();
+    for (ScratchRegister scratch : scratchInUse) {
       if (scratch.isDirty()) {
         scratchMap.markDirty(s,scratch.currentContents);
       }
@@ -361,8 +356,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * registers that are used by s.  The others are dead.
    */
   private void restoreAllScratchRegistersBefore(OPT_Instruction s) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister scratch = (ScratchRegister)i.next();
+    for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister scratch = i.next();
 
       // SPECIAL CASE: If s is a return instruction, only restore the 
       // scratch
@@ -451,8 +446,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // Further assure legality for all other symbolic registers in symb
     // which are mapped to the same spill location as symb.
     int location = OPT_RegisterAllocatorState.getSpill(symb);
-    for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op.isRegister()) {
         OPT_Register r = op.asRegister().register;
         if (r.isSymbolic()) {
@@ -697,8 +692,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Does instruction s define spill location loc?
    */
   private boolean definesSpillLocation(int loc, OPT_Instruction s) {
-    for (Enumeration e = s.getDefs(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         OPT_Register r= op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
@@ -712,8 +707,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Does instruction s use spill location loc?
    */
   private boolean usesSpillLocation(int loc, OPT_Instruction s) {
-    for (Enumeration e = s.getUses(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         OPT_Register r= op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
@@ -731,8 +726,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * live register can use a given spill location.
    */
   private OPT_Register spillLocationUse(int loc, OPT_Instruction s) {
-    for (Enumeration e = s.getUses(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         OPT_Register r= op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
@@ -757,8 +752,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
-    for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register p = (OPT_Register)e.nextElement();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+      OPT_Register p = e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() &&
           !reserved.contains(p) && isLegal(r,p,s)) {
         return p;
@@ -783,8 +778,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
-    for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register p = (OPT_Register)e.nextElement();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+      OPT_Register p = e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
         if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
@@ -806,18 +801,18 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                                             ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
-    for (Enumeration e = phys.enumerateVolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register p= (OPT_Register)e.nextElement();
+      OPT_Register p= e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)
           && isLegal(r,p,s)) {
         return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
-      OPT_Register p = (OPT_Register)e.nextElement();
+      OPT_Register p = e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p) && 
           isLegal(r,p,s)) {
         return p;
@@ -841,17 +836,17 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                                                 ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
-    for (Enumeration e = phys.enumerateVolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register p = (OPT_Register)e.nextElement();
+      OPT_Register p = e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
         if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
-      OPT_Register p = (OPT_Register)e.nextElement();
+      OPT_Register p = e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
         if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
@@ -863,8 +858,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Does register r appear in instruction s?
    */
   private boolean appearsIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {
           return true;
@@ -972,15 +967,15 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
 
     // walk over each instruction in the IR
-    for (Enumeration blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)blocks.nextElement();
-      for (Enumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
+      OPT_BasicBlock bb = blocks.nextElement();
+      for (Enumeration<OPT_Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
 
         // If the following is true, don't expend effort trying to
         // optimize scratch assignements
         boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
 
-        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        OPT_Instruction s = e.nextElement();
         if (verboseDebug) {
           System.out.println(s);
         }
@@ -1020,8 +1015,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
         // Walk over each operand and insert the appropriate spill code.
         // for the operand.
-        for (Enumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
-          OPT_Operand op = (OPT_Operand)ops.nextElement();
+        for (Enumeration<OPT_Operand> ops = s.getOperands(); ops.hasMoreElements(); ) {
+          OPT_Operand op = ops.nextElement();
           if (op != null && op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (!r.isPhysical()) {
@@ -1396,9 +1391,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
-    for (Enumeration e = phys.enumerateVolatiles(physType);
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(physType);
          e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
+      OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
         if (debug) VM.sysWrite(" volat."+realReg+" to symb "+symbReg+'\n');
@@ -1448,9 +1443,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
-    for (Enumeration e = phys.enumerateNonvolatilesBackwards(physType);
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(physType);
          e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
+      OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
         return realReg;

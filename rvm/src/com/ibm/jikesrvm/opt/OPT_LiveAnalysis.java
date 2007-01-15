@@ -157,14 +157,15 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LiveAnalysis",
-                                                                             new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
+  private static final Constructor<OPT_CompilerPhase> constructor = 
+    getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LiveAnalysis",
+      new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
      
@@ -275,10 +276,12 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * Return an iterator over all the live interval elements for a given
    * register.
    */
-  public Iterator iterateLiveIntervals(OPT_Register r) {
-    ArrayList set = registerMap[r.getNumber()];
+  public Iterator<OPT_LiveIntervalElement> iterateLiveIntervals(OPT_Register r) {
+    ArrayList<OPT_LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
-      return new OPT_EmptyIterator();
+      @SuppressWarnings("unchecked") // Can't type-check OPT_EmptyIterator.INSTANCE in java
+      Iterator<OPT_LiveIntervalElement> empty = (Iterator)OPT_EmptyIterator.INSTANCE;
+      return empty;
     } else {
       return set.iterator();
     }
@@ -292,8 +295,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     ArrayList<OPT_LiveIntervalElement> toRemove =
       new ArrayList<OPT_LiveIntervalElement>(5);
 
-    for (Iterator i = iterateLiveIntervals(r2); i.hasNext(); ) {
-      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+    for (Iterator<OPT_LiveIntervalElement> i = iterateLiveIntervals(r2); i.hasNext(); ) {
+      OPT_LiveIntervalElement interval = i.next();
       interval.setRegister(r1);
       addToRegisterMap(r1,interval);
       // defer removing the interval to avoid concurrent modification of
@@ -543,9 +546,9 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * post: May add to liveInfo for this block
    */
   private void getUsesFromPhis(OPT_BasicBlock bblock) {
-    Enumeration successors = bblock.getOut();
+    Enumeration<OPT_BasicBlock> successors = bblock.getOut();
     while (successors.hasMoreElements()) {
-      OPT_BasicBlock sb = (OPT_BasicBlock)successors.nextElement();
+      OPT_BasicBlock sb = successors.nextElement();
       if (sb.isExit())
         continue;
 
@@ -1044,8 +1047,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    */   
   HashSet<OPT_Register> getLiveRegistersOnExit(OPT_BasicBlock bb) {
     HashSet<OPT_Register> result = new HashSet<OPT_Register>(10);
-    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
-      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+    for (Enumeration<OPT_LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = e.nextElement();
       OPT_Instruction end = lie.getEnd(); 
       if (end == null) result.add(lie.getRegister());
     }
@@ -1057,8 +1060,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    */   
   HashSet<OPT_Register> getLiveRegistersOnEntry(OPT_BasicBlock bb) {
     HashSet<OPT_Register> result = new HashSet<OPT_Register>(10);
-    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
-      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+    for (Enumeration<OPT_LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = e.nextElement();
       OPT_Instruction begin = lie.getBegin(); 
       if (begin == null) result.add(lie.getRegister());
     }

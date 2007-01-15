@@ -36,13 +36,13 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_DominatorsPhase", new Class[]{Boolean.TYPE});
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_DominatorsPhase", new Class[]{Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 

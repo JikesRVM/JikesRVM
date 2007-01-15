@@ -20,7 +20,7 @@ import  java.util.Enumeration;
  * @author Harini Srinivasan.
  */
 class OPT_SpaceEffGraphNodeList
-    implements Enumeration {
+    implements Enumeration<OPT_SpaceEffGraphNodeList> {
   OPT_SpaceEffGraphNode _node;
   OPT_SpaceEffGraphNodeList _next;
   OPT_SpaceEffGraphNodeList _prev;
@@ -39,7 +39,7 @@ class OPT_SpaceEffGraphNodeList
   }
 
   // return the next GraphNodeList element.
-  public Object nextElement() {
+  public OPT_SpaceEffGraphNodeList nextElement() {
     OPT_SpaceEffGraphNodeList tmp = _next;
     _next = _next._next;
     return  tmp;

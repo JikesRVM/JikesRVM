@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import java.util.Enumeration;
-
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
@@ -146,18 +144,18 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
            uses.hasMoreElements(); ) {
         computeForwardDependencesUse(uses.next(), pnode, lastExceptionNode);
       }
-      for (Enumeration uses = OPT_PhysicalDefUse.enumerate(useMask,ir);
+      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask,ir);
            uses.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)uses.nextElement(); 
+        OPT_Register r = uses.nextElement(); 
         computeImplicitForwardDependencesUse(r, pnode);
       }
       for (OPT_OperandEnumeration defs = p.getDefs();
            defs.hasMoreElements(); )  {
         computeForwardDependencesDef(defs.next(), pnode, lastExceptionNode);
       }
-      for (Enumeration defs = OPT_PhysicalDefUse.enumerate(defMask,ir);
+      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask,ir);
            defs.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)defs.nextElement(); 
+        OPT_Register r = defs.nextElement(); 
         computeImplicitForwardDependencesDef(r, pnode);
       }
 
@@ -236,18 +234,18 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
            uses.hasMoreElements(); ) {
         computeBackwardDependencesUse(uses.next(), pnode, lastExceptionNode);
       }
-      for (Enumeration uses = OPT_PhysicalDefUse.enumerate(useMask,ir);
+      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask,ir);
            uses.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)uses.nextElement(); 
+        OPT_Register r = uses.nextElement(); 
         computeImplicitBackwardDependencesUse(r, pnode);
       }
       for (OPT_OperandEnumeration defs = p.getDefs();
            defs.hasMoreElements(); ) {
         computeBackwardDependencesDef(defs.next(), pnode, lastExceptionNode);
       }
-      for (Enumeration defs = OPT_PhysicalDefUse.enumerate(defMask,ir);
+      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask,ir);
            defs.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)defs.nextElement(); 
+        OPT_Register r = defs.nextElement(); 
         computeImplicitBackwardDependencesDef(r, pnode);
       }
 
@@ -376,9 +374,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
       if (regOp.register.isValidation()) {
         sourceNode.insertOutEdge(destNode, GUARD_TRUE);
       } else {
-        for (Enumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
+        for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
              e.hasMoreElements(); ) {
-          OPT_Register r = (OPT_Register)e.nextElement(); 
+          OPT_Register r = e.nextElement(); 
           if (regOp.register == r) {
             sourceNode.insertOutEdge(destNode, REG_MAY_DEF);
             return;
@@ -477,9 +475,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
                                                     OPT_DepGraphNode destNode){
     OPT_DepGraphNode sourceNode = r.dNode();
     if (sourceNode != null) {
-      for (Enumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
+      for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
            e.hasMoreElements(); ) {
-        OPT_Register r2 = (OPT_Register)e.nextElement(); 
+        OPT_Register r2 = e.nextElement(); 
         if (r == r2) {
           sourceNode.insertOutEdge(destNode, REG_MAY_DEF);
           return;
@@ -563,9 +561,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
       }
       if (p == end) break;
     }
-    for (Enumeration e = OPT_PhysicalDefUse.enumerateAllImplicitDefUses(ir);
+    for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerateAllImplicitDefUses(ir);
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement(); 
+      OPT_Register r = e.nextElement(); 
       r.setdNode(null);
     }
   }

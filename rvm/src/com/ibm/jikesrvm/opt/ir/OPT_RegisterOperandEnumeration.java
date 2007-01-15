@@ -9,12 +9,14 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import java.util.Enumeration;
+
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  *
  * @author Dave Grove
  */
-public interface OPT_RegisterOperandEnumeration extends java.util.Enumeration {
+public interface OPT_RegisterOperandEnumeration extends Enumeration<OPT_RegisterOperand> {
   /** Same as nextElement but avoid the need to downcast from Object */
   public OPT_RegisterOperand next();
 }

@@ -14,7 +14,7 @@ package com.ibm.jikesrvm.opt;
  *
  * @author Stephen Fink
  */
-class OPT_ValueNumberPair implements Comparable {
+class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
   /** the value number of an array pointer */
   final int v1;
   /** the value number of an array index */
@@ -48,8 +48,7 @@ class OPT_ValueNumberPair implements Comparable {
   }
 
   // total order over OPT_ValueNumberPairs
-  public int compareTo(Object o) {
-    OPT_ValueNumberPair p = (OPT_ValueNumberPair)o;
+  public int compareTo(OPT_ValueNumberPair p) {
     if (v1 > p.v1)
       return  1;
     else if (v1 < p.v1)

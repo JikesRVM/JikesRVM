@@ -15,7 +15,6 @@ import com.ibm.jikesrvm.opt.ir.*;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
@@ -64,13 +63,13 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_InstrumentationSamplingFramework");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_InstrumentationSamplingFramework");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -124,13 +123,13 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
   }
 
-  /** 
-   * Initialization to perform before the transformation is applied
-   */
-  private static void initialize(OPT_IR ir) {
-
-  }
-  
+//  /** 
+//   * Initialization to perform before the transformation is applied
+//   */
+//  private static void initialize(OPT_IR ir) {
+//
+//  }
+//  
   /**
    * Initialization to perform after the transformation is applied
    */
@@ -302,10 +301,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
                                      HashSet<OPT_BasicBlock> exceptionHandlerBlocks){
     
     // Iterate through the basic blocks in the original code
-    Iterator origBlocks = origToDupMap.keySet().iterator();
-    while (origBlocks.hasNext()) {
-      OPT_BasicBlock bb = (OPT_BasicBlock) origBlocks.next();
-      
+    for (OPT_BasicBlock bb : origToDupMap.keySet()) {
       OPT_BasicBlock dup = (OPT_BasicBlock) origToDupMap.get(bb);
 
       if (dup == null) {
@@ -661,9 +657,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   private final static void adjustPointersInDuplicatedCode(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
 
     // Iterate over the original version of all duplicate blocks
-    Iterator dupBlocks = origToDupMap.values().iterator();
-    while (dupBlocks.hasNext()) {
-      OPT_BasicBlock dupBlock = (OPT_BasicBlock) dupBlocks.next();
+    for (OPT_BasicBlock dupBlock : origToDupMap.values()) {
 
       // Look at the successors of duplicated Block. 
       for (OPT_BasicBlockEnumeration out = dupBlock.getNormalOut();
@@ -715,9 +709,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   private final static void removeInstrumentationFromOrig(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
     // Iterate over the original version of all duplicate blocks
 
-    Iterator origBlocks = origToDupMap.keySet().iterator();
-    while (origBlocks.hasNext()) {
-      OPT_BasicBlock origBlock = (OPT_BasicBlock) origBlocks.next();
+    for (OPT_BasicBlock origBlock : origToDupMap.keySet()) {
     
       // Remove all instrumentation instructions.  They already have
       // been transfered to the duplicated code.
@@ -880,10 +872,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     }
 
     // for each instrumentation operation.
-    Iterator itr = instrumentationOperations.iterator();
-    while (itr.hasNext()) {
-      OPT_Instruction i = (OPT_Instruction)itr.next();
-
+    for (OPT_Instruction i : instrumentationOperations) {
       OPT_BasicBlock bb = i.getBasicBlock();
       conditionalizeInstrumentationOperation(ir,i,bb);
     }

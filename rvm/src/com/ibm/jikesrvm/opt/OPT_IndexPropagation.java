@@ -36,13 +36,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_IndexPropagation");
+  private static final Constructor<OPT_CompilerPhase> constructor = 
+    getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_IndexPropagation");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -119,7 +120,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * The heap variable this lattice cell tracks information for.
      */
-    private final OPT_HeapVariable key;
+    private final OPT_HeapVariable<?> key;
     /**
      * Does this lattice cell represent TOP?
      */
@@ -129,14 +130,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Create a latticle cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
-    ObjectCell(OPT_HeapVariable key) {
+    ObjectCell(OPT_HeapVariable<?> key) {
       this.key = key;
     }
 
     /**
      * Return the key
      */
-    OPT_HeapVariable getKey() {
+    OPT_HeapVariable<?> getKey() {
       return key;
     }
 
@@ -328,7 +329,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * The heap variable this lattice cell tracks information for.
      */
-    private final OPT_HeapVariable key;
+    private final OPT_HeapVariable<?> key;
     /**
      * Does this lattice cell represent TOP?
      */
@@ -338,14 +339,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Create a latticle cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
-    ArrayCell(OPT_HeapVariable key) {
+    ArrayCell(OPT_HeapVariable<?> key) {
       this.key = key;
     }
 
     /**
      * Return the key
      */
-    OPT_HeapVariable getKey() {
+    OPT_HeapVariable<?> getKey() {
       return key;
     }
 

@@ -178,7 +178,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       } else if (fieldType == VM_TypeReference.JavaLangString) {
         return new OPT_StringConstantOperand((String)val, off);
       } else if (fieldType == VM_TypeReference.JavaLangClass) {
-        Class klass = (Class)getObjectStaticFieldValue(field);
+        Class<?> klass = (Class<?>)getObjectStaticFieldValue(field);
         VM_Type type;
         if (VM.runningVM) {
           type = java.lang.JikesRVMSupport.getTypeForClass(klass);

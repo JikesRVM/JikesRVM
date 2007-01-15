@@ -15,11 +15,11 @@ import java.util.*;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-public class OPT_CompoundEnumerator implements Enumeration {
-  private final Enumeration first;    
-  private final Enumeration second;
+public class OPT_CompoundEnumerator<T> implements Enumeration<T> {
+  private final Enumeration<T> first;    
+  private final Enumeration<T> second;
 
-  public OPT_CompoundEnumerator(Enumeration first, Enumeration second) {
+  public OPT_CompoundEnumerator(Enumeration<T> first, Enumeration<T> second) {
     this.first = first;
     this.second = second;
   }
@@ -28,7 +28,7 @@ public class OPT_CompoundEnumerator implements Enumeration {
     return first.hasMoreElements()||second.hasMoreElements();
   }
 
-  public Object nextElement() {
+  public T nextElement() {
     if (first.hasMoreElements())
       return first.nextElement();
     else

@@ -58,7 +58,7 @@ class OPT_DF_Graph implements OPT_Graph {
         return nodes.get(i++);
       }
 
-      public Object nextElement () {
+      public OPT_GraphNode nextElement () {
         return next();
       }
     };

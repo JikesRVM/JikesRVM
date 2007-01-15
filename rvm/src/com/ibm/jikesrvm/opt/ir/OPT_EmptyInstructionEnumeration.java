@@ -26,7 +26,7 @@ class OPT_EmptyInstructionEnumeration implements OPT_InstructionEnumeration {
 
     public boolean hasMoreElements() { return false; }
 
-    public Object nextElement() { return next(); }
+    public OPT_Instruction nextElement() { return next(); }
 
     public OPT_Instruction next() {
         throw new java.util.NoSuchElementException("Empty Instruction Enumeration");

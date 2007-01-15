@@ -94,9 +94,6 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * and add epilogue code.
    */ 
   public void cleanUpAndInsertEpilogue() {
-
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
       switch (inst.getOpcode()) {
@@ -250,22 +247,21 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    */
   private void saveVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. save the volatile GPRs
     OPT_Register FP = phys.getFP();
     int i = 0;
-    for (Enumeration e = phys.enumerateVolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); i++) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       inst.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP), IC(location)));
     }
     // 2. save the volatile FPRs
     i = 0;
-    for (Enumeration e = phys.enumerateVolatileFPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
          e.hasMoreElements(); i++) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileFPRLocation[i];
       inst.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP), IC(location)));
     }
@@ -301,7 +297,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use a stm
       OPT_Register nv = null;
-      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
         nv = (OPT_Register)e.nextElement();
       }
@@ -313,7 +309,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       inst.insertBack(MIR_Store.create(PPC_STMW, range, A(FP), IC(offset)));
     } else {
       // use a sequence of load instructions
-      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileGPROffset(n);
@@ -330,7 +326,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
-      for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); 
          e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileFPROffset(n);
@@ -355,7 +351,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use an lm
       OPT_Register nv = null;
-      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
         nv = (OPT_Register)e.nextElement();
       }
@@ -366,7 +362,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Load.create(PPC_LMW, range, A(FP), IC(offset)));
     } else {
-      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileGPROffset(n);
@@ -379,7 +375,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
-      for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileFPROffset(n);
@@ -396,12 +392,11 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    */
   private void restoreVolatileRegisters(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. restore the volatile GPRs
     OPT_Register FP = phys.getFP();
     int i = 0;
-    for (Enumeration e = phys.enumerateVolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileGPRLocation[i];
@@ -409,7 +404,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     }
     // 2. restore the volatile FPRs
     i = 0;
-    for (Enumeration e = phys.enumerateVolatileFPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileFPRLocation[i];
@@ -656,9 +651,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each volatile GPR to a spill location.
       int i = 0;
-      for (Enumeration e = phys.enumerateVolatileGPRs(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); 
            e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
@@ -666,9 +661,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each non-volatile GPR register to a spill location.
       i=0;
-      for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); 
            e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
         nonVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
@@ -679,9 +674,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       saveCTRLocation = allocateNewSpillLocation(INT_REG);
       i=0;
 
-      for (Enumeration e = phys.enumerateVolatileFPRs(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); 
            e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileFPRLocation[i] = allocateNewSpillLocation(DOUBLE_REG);      
@@ -694,9 +689,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // Count the number of nonvolatiles used. 
       int numGprNv = 0;
       int i = 0;
-      for (Enumeration e = phys.enumerateNonvolatileGPRs();
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
            e.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        OPT_Register r = e.nextElement();
         if (r.isTouched() ) {
           // Note that as a side effect, the following call bumps up the
           // frame size.
@@ -706,9 +701,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
       i = 0;
       int numFprNv = 0;
-      for (Enumeration e = phys.enumerateNonvolatileFPRs();
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRs();
            e.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        OPT_Register r = e.nextElement();
         if (r.isTouched() ) {
           // Note that as a side effect, the following call bumps up the
           // frame size.
@@ -749,8 +744,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
   public void restoreScratchRegistersBefore(OPT_Instruction s) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister scratch = (ScratchRegister)i.next();
+    for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister scratch = i.next();
 
       if (scratch.currentContents == null) continue;
       if (verboseDebug) {

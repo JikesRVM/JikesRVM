@@ -449,9 +449,9 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
     
   /* enumerations to get the nodes/edges */
 
-  public interface GraphEdgeEnumeration extends Enumeration {
+  public interface GraphEdgeEnumeration<T extends OPT_GraphEdge> extends Enumeration<T> {
     // Same as nextElement but avoid the need to downcast from Object
-    public OPT_SpaceEffGraphEdge next();
+    public T next();
   }
 
   public final InEdgeEnumeration inEdges() {
@@ -612,13 +612,13 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   }
 
 
-  static final class InEdgeEnumeration implements GraphEdgeEnumeration {
+  static final class InEdgeEnumeration implements GraphEdgeEnumeration<OPT_GraphEdge> {
     private OPT_SpaceEffGraphEdge _edge;
     public InEdgeEnumeration(OPT_SpaceEffGraphNode n) {
       _edge = n._inEdgeStart;
     }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement() { return next(); }
+    public OPT_SpaceEffGraphEdge nextElement() { return next(); }
     public OPT_SpaceEffGraphEdge next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
@@ -632,7 +632,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       _edge = n._inEdgeStart;
     }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement() { return next(); }
+    public OPT_GraphNode nextElement() { return next(); }
     public OPT_GraphNode next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
@@ -640,14 +640,14 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
     }
   }
 
-  static final class OutEdgeEnumeration implements GraphEdgeEnumeration {
+  static final class OutEdgeEnumeration implements GraphEdgeEnumeration<OPT_GraphEdge> {
     private OPT_SpaceEffGraphEdge _edge;
     public OutEdgeEnumeration(OPT_SpaceEffGraphNode n) {
       _edge = n._outEdgeStart;
     }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement() { return next(); }
-    public OPT_SpaceEffGraphEdge next() {
+    public OPT_GraphEdge nextElement() { return next(); }
+    public OPT_GraphEdge next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
       return e;
@@ -660,7 +660,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       _edge = n._outEdgeStart;
     }
     public boolean hasMoreElements() { return _edge != null; }
-    public Object nextElement() { return next(); }
+    public OPT_GraphNode nextElement() { return next(); }
     public OPT_GraphNode next() {
       OPT_SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
@@ -673,7 +673,13 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * @return the enumeration that would list the out edges of the node
    * @see OPT_VCGNode#edges
    */
-  public final Enumeration edges() { return outEdges(); }
+  public final Enumeration<OPT_VisEdge> edges() { 
+    return new Enumeration<OPT_VisEdge>() {
+      OutEdgeEnumeration underlying = outEdges(); 
+      public boolean hasMoreElements() { return underlying.hasMoreElements(); }
+      public OPT_VisEdge nextElement() { return (OPT_VisEdge)underlying.nextElement(); }
+    };
+  }
 
   /**
    * Returns a VCG descriptor for the graph which will provide VCG-relevant

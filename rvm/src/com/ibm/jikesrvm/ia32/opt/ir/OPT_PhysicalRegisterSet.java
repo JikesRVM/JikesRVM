@@ -9,13 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt.ir;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
-import com.ibm.jikesrvm.opt.*;
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.*;
 import com.ibm.jikesrvm.opt.OPT_BitSet;
 import com.ibm.jikesrvm.opt.OPT_CompoundEnumerator;
 import com.ibm.jikesrvm.opt.OPT_EmptyEnumerator;
@@ -504,7 +500,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  public Enumeration<OPT_Register> enumerateVolatileGPRs() {
+  public PhysicalRegisterEnumeration enumerateVolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_GPRS ];
     for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
       r[i] = getGPR(VOLATILE_GPRS[i]);
@@ -514,7 +510,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
-  public Enumeration<OPT_Register> enumerateNonvolatileGPRs() {
+  public PhysicalRegisterEnumeration enumerateNonvolatileGPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
@@ -531,7 +527,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the volatile FPRs in this set.
    */
-  public Enumeration<OPT_Register> enumerateVolatileFPRs() {
+  public PhysicalRegisterEnumeration enumerateVolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_FPRS ];
     for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
       r[i] = getFPR(VOLATILE_FPRS[i]);
@@ -541,7 +537,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
-  public Enumeration<OPT_Register> enumerateNonvolatileFPRs() {
+  public PhysicalRegisterEnumeration enumerateNonvolatileFPRs() {
     OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
       r[i] = getFPR(NONVOLATILE_FPRS[i]);
@@ -559,7 +555,9 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       case DOUBLE_REG:
         return enumerateVolatileFPRs();
       case SPECIAL_REG:
-        return OPT_EmptyEnumerator.EMPTY;
+        @SuppressWarnings("unchecked") // Can't type check this in generic Java
+        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
+        return empty;
       default:
         throw new OPT_OptimizingCompilerException("Unsupported volatile type");
     }
@@ -571,7 +569,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   public Enumeration<OPT_Register> enumerateVolatiles() {
     Enumeration<OPT_Register> e1 = enumerateVolatileGPRs();
     Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
-    return new OPT_CompoundEnumerator(e1, e2);
+    return new OPT_CompoundEnumerator<OPT_Register>(e1, e2);
   }
 
   /**
@@ -599,7 +597,9 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       case DOUBLE_REG:
         return enumerateNonvolatileFPRs();
       case SPECIAL_REG:
-        return OPT_EmptyEnumerator.EMPTY;
+        @SuppressWarnings("unchecked") // Can't type check this in generic Java
+        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
+        return empty;
       default:
         throw new OPT_OptimizingCompilerException
           ("Unsupported non-volatile type");

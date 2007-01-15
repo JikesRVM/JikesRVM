@@ -67,7 +67,7 @@ final class OPT_TreeBottomUpEnumerator implements Enumeration<OPT_TreeNode> {
    * @param node
    */
   private void DFS(OPT_TreeNode node) {
-    Enumeration childEnum = node.getChildren();
+    Enumeration<OPT_TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {
       OPT_TreeNode child = (OPT_TreeNode)childEnum.nextElement();
       DFS(child);

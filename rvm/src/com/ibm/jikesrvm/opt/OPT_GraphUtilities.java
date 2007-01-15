@@ -58,7 +58,7 @@ class OPT_GraphUtilities {
           return elts[--top];
         }
 
-        public Object nextElement() {
+        public OPT_GraphNode nextElement() {
           return next();
         }
       };
@@ -70,8 +70,8 @@ class OPT_GraphUtilities {
   public static TreeSet<OPT_GraphNode> sortByDecreasingFinishTime(OPT_Graph net, OPT_DFS dfs) {
     FinishTimeComparator f = new FinishTimeComparator(dfs);
     TreeSet<OPT_GraphNode> result = new TreeSet<OPT_GraphNode>(f);
-    for(Enumeration e = net.enumerateNodes(); e.hasMoreElements();) {
-      OPT_GraphNode v =(OPT_GraphNode)e.nextElement();
+    for(Enumeration<OPT_GraphNode> e = net.enumerateNodes(); e.hasMoreElements();) {
+      OPT_GraphNode v = e.nextElement();
       result.add(v);
     }
     return  result;
@@ -108,13 +108,13 @@ class OPT_GraphUtilities {
    * Note: The equals() method must be defined properly for uniqueness of the
    * OPT_GraphNodes to be checked correctly.
    */
-  public static boolean isTopologicalOrder(Enumeration sorted, boolean forward) {
+  public static boolean isTopologicalOrder(Enumeration<OPT_GraphNode> sorted, boolean forward) {
     while (sorted.hasMoreElements()) {
       OPT_GraphNode cur = (OPT_GraphNode)sorted.nextElement();
       HashSet<OPT_GraphNode> s = new HashSet<OPT_GraphNode>();
       if (!s.add(cur))
         return  false;
-      Enumeration e = cur.outNodes();
+      Enumeration<OPT_GraphNode> e = cur.outNodes();
       while (e.hasMoreElements()) {
         OPT_GraphNode out = (OPT_GraphNode)e.nextElement();
         if (forward == s.contains(out))
@@ -136,13 +136,13 @@ class OPT_GraphUtilities {
    *  Note: Duplicated code in enumerateTopSort in order to avoid doing the 
    *  topological sort twice.
    */
-  public static Enumeration enumerateTopSortWithCheck(OPT_Graph G) {
-    OPT_Stack order = new OPT_Stack();
+  public static Enumeration<OPT_GraphNode> enumerateTopSortWithCheck(OPT_Graph G) {
+    OPT_Stack<OPT_GraphNode> order = new OPT_Stack<OPT_GraphNode>();
     OPT_GraphNodeEnumeration e = new OPT_DFSenumerateByFinish(G);
     while (e.hasMoreElements())
       order.push(e.nextElement());
     if (isTopologicalOrder(order.elements(), true)) {
-      final Enumeration e1 = order.elements();
+      final Enumeration<OPT_GraphNode> e1 = order.elements();
       return  new OPT_GraphNodeEnumeration() {
 
         public boolean hasMoreElements() {
@@ -153,7 +153,7 @@ class OPT_GraphUtilities {
           return  (OPT_GraphNode)e1.nextElement();
         }
 
-        public Object nextElement() {
+        public OPT_GraphNode nextElement() {
           return  next();
         }
       };

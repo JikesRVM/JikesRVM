@@ -48,7 +48,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
   }
 
   public final String getName() {
-    return  "Array SSA Load Elimination";
+    return  "Array SSA Load Elimination, round "+round;
   }
 
   /**
@@ -123,8 +123,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       if (!GetField.conforms(s) 
           && !GetStatic.conforms(s) 
           && !ALoad.conforms(s))
@@ -132,7 +132,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
       // this instruction is a USE of heap variable H.
       // get the lattice cell that holds the available indices
       // for this heap variable
-      OPT_HeapOperand[] H = ssa.getHeapUses(s);
+      OPT_HeapOperand<?>[] H = ssa.getHeapUses(s);
       if (H == null) {
         // this case can happen due to certain magics that insert
         // INT_LOAD instructions in HIR
@@ -209,8 +209,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
   final static void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet, 
                                  HashMap<UseRecord,OPT_Register> registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       if (!GetField.conforms(s) && !GetStatic.conforms(s) 
           && !PutField.conforms(s)
           && !PutStatic.conforms(s) && !ALoad.conforms(s) 
@@ -220,7 +220,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
         continue;
       // this instruction is a DEF of heap variable H.
       // Check if UseRepSet needs the scalar assigned by this def
-      OPT_HeapOperand H[] = ssa.getHeapDefs(s);
+      OPT_HeapOperand<?> H[] = ssa.getHeapDefs(s);
       if (H.length != 1)
         throw  new OPT_OptimizingCompilerException("OPT_LoadElimination: encountered a store with more than one def? "
                                                    + s);
@@ -380,7 +380,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 
     // Does this set contain a use that has the same type as H and
     // the given value number?
-    boolean containsMatchingUse(OPT_HeapVariable H, int valueNumber) {
+    boolean containsMatchingUse(OPT_HeapVariable<?> H, int valueNumber) {
       Object type = H.getHeapType();
       UseRecord u = new UseRecord(type, valueNumber);
       return  (set.contains(u));
@@ -388,19 +388,19 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 
     // Does this set contain a use that has the same type as H and
     // the given value number pair <v1,v2>?
-    boolean containsMatchingUse(OPT_HeapVariable H, int v1, int v2) {
+    boolean containsMatchingUse(OPT_HeapVariable<?> H, int v1, int v2) {
       Object type = H.getHeapType();
       UseRecord u = new UseRecord(type, v1, v2);
       return  (set.contains(u));
     }
 
     // add a USE to the set
-    void add(OPT_HeapVariable H, int valueNumber) {
+    void add(OPT_HeapVariable<?> H, int valueNumber) {
       UseRecord u = new UseRecord(H.getHeapType(), valueNumber);
       set.add(u);
     }
 
-    void add(OPT_HeapVariable H, int v1, int v2) {
+    void add(OPT_HeapVariable<?> H, int v1, int v2) {
       UseRecord u = new UseRecord(H.getHeapType(), v1, v2);
       set.add(u);
     }
@@ -429,6 +429,9 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * Algorithm: return those types T where
    *    1) there's a load L(i) of type T 
    *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
+   *    
+   * The result contains objects of type VM_Field and VM_TypeReference, whose
+   * narrowest common ancestor is Object.
    */
   @SuppressWarnings("unchecked")
   final public static HashSet<Object> getCandidates(OPT_IR ir) {
@@ -620,13 +623,13 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
-    public Constructor getClassConstructor() {
+    public Constructor<OPT_CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
@@ -678,13 +681,13 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
-    public Constructor getClassConstructor() {
+    public Constructor<OPT_CompilerPhase> getClassConstructor() {
       return constructor;
     }
 

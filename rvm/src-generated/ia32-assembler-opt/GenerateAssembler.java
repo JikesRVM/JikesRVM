@@ -1139,9 +1139,6 @@ public class GenerateAssembler {
         }
 
         emit("package com.ibm.jikesrvm.ia32.opt;\n\n");
-        emit("import com.ibm.jikesrvm.ia32.*;\n\n");
-        emit("import com.ibm.jikesrvm.ia32.opt.ir.*;\n\n");
-        emit("import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;\n\n");
         emit("import com.ibm.jikesrvm.*;\n\n");
         emit("import com.ibm.jikesrvm.opt.*;\n\n");
         emit("import com.ibm.jikesrvm.opt.ir.*;\n\n");

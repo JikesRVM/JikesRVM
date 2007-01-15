@@ -16,7 +16,7 @@ import  java.util.*;
  * global value numbering.
  * @author Steve Fink
  */
-final class OPT_GVCongruenceClass {
+final class OPT_GVCongruenceClass implements Iterable<OPT_ValueGraphVertex> {
   /**
    * A label representing a property of this congruence class.
    */
@@ -110,7 +110,7 @@ final class OPT_GVCongruenceClass {
    * Return an iterator over the vertices in this congruence class
    * @return an iterator over the vertices in this congruence class
    */
-  public Iterator iterator () {
+  public Iterator<OPT_ValueGraphVertex> iterator () {
     return vertices.iterator();
   }
 

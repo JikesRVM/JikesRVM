@@ -12,12 +12,14 @@ package com.ibm.jikesrvm.opt;
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 
+import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
+
 /**
  * An enumeration over live set lists
  *
  * @author Michael Hind
  */
-public class OPT_LiveSetEnumerator implements Enumeration {
+public class OPT_LiveSetEnumerator implements Enumeration<OPT_RegisterOperand> {
 
   /**
    *  the current element on this list
@@ -44,7 +46,7 @@ public class OPT_LiveSetEnumerator implements Enumeration {
    * Returns the next element, if one exists, otherwise throws an exception
    * @return the next element, if one exists, otherwise throws an exception
    */
-  public Object nextElement() {
+  public OPT_RegisterOperand nextElement() {
     if (current != null) {
       OPT_LiveSetElement ret = current;
       current = current.getNext();

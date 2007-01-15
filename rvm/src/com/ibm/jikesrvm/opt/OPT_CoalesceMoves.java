@@ -71,8 +71,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
     HashSet<OPT_Instruction> dead = new HashSet<OPT_Instruction>(5);
 
     // for each Move instruction ...
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       if (s.operator.isMove()) {
         OPT_Register r = Move.getResult(s).asRegister().register;
         if (r.isSymbolic()) {
@@ -91,8 +91,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
     }
 
     // Now remove all dead Move instructions.
-    for (Iterator i = dead.iterator(); i.hasNext(); ) {
-      OPT_Instruction s = (OPT_Instruction)i.next();
+    for (Iterator<OPT_Instruction> i = dead.iterator(); i.hasNext(); ) {
+      OPT_Instruction s = i.next();
       OPT_DefUse.removeInstructionAndUpdateDU(s);
     }
   }

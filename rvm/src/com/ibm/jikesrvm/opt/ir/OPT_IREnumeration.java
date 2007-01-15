@@ -49,7 +49,7 @@ public abstract class OPT_IREnumeration {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
       public final boolean hasMoreElements() { return current != null; }
-      public final Object nextElement() { return next(); }
+      public final OPT_Instruction nextElement() { return next(); }
       public final OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -86,7 +86,7 @@ public abstract class OPT_IREnumeration {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
       public final boolean hasMoreElements() { return current != null; }
-      public final Object nextElement() { return next(); }
+      public final OPT_Instruction nextElement() { return next(); }
       public final OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -113,7 +113,7 @@ public abstract class OPT_IREnumeration {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
-      public final Object nextElement() { return next(); }
+      public final OPT_Instruction nextElement() { return next(); }
       public final OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -137,7 +137,7 @@ public abstract class OPT_IREnumeration {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
-      public final Object nextElement() { return next(); }
+      public final OPT_Instruction nextElement() { return next(); }
       public final OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -277,7 +277,7 @@ public abstract class OPT_IREnumeration {
      *
      * @return the next instruction
      */
-    public Object nextElement () {
+    public OPT_Instruction nextElement () {
       return next();
     }
   }
@@ -298,7 +298,7 @@ public abstract class OPT_IREnumeration {
     /**
      * Array of heap operands defined by the instruction
      */
-    private OPT_HeapOperand[] heapOperands;
+    private OPT_HeapOperand<?>[] heapOperands;
     /**
      * Current heap operand we're upto for the enumeration
      */
@@ -358,7 +358,7 @@ public abstract class OPT_IREnumeration {
           if (curHeapOperand >= heapOperands.length) {
             fail("Regular and heap operands exhausted");
           }
-          OPT_HeapOperand result = heapOperands[curHeapOperand];
+          OPT_HeapOperand<?> result = heapOperands[curHeapOperand];
           curHeapOperand++;
           return result;
         }
@@ -367,7 +367,7 @@ public abstract class OPT_IREnumeration {
     /**
      * Next element in the enumeration
      */
-    public Object nextElement () {
+    public OPT_Operand nextElement () {
       return next();
     }
   }
@@ -388,7 +388,7 @@ public abstract class OPT_IREnumeration {
     /**
      * Array of heap operands defined by the instruction
      */
-    private OPT_HeapOperand[] heapOperands;
+    private OPT_HeapOperand<?>[] heapOperands;
     /**
      * Current heap operand we're upto for the enumeration
      */
@@ -448,7 +448,7 @@ public abstract class OPT_IREnumeration {
           if (curHeapOperand >= heapOperands.length) {
             fail("Regular and heap operands exhausted");
           }
-          OPT_HeapOperand result = heapOperands[curHeapOperand];
+          OPT_HeapOperand<?> result = heapOperands[curHeapOperand];
           curHeapOperand++;
           return result;
         }
@@ -457,7 +457,7 @@ public abstract class OPT_IREnumeration {
     /**
      * Next element in the enumeration
      */
-    public Object nextElement () {
+    public OPT_Operand nextElement () {
       return next();
     }
   }

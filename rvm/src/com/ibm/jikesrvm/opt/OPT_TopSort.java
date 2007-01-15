@@ -18,7 +18,7 @@ import  java.util.Enumeration;
  * @author  Michael Hind
  * Builds topological sort of a graph consisting of OPT_SortedGraphNode.
  */
-public class OPT_TopSort extends OPT_Stack {
+public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
 
   /**
    * the "visited" marker to use
@@ -72,16 +72,17 @@ public class OPT_TopSort extends OPT_Stack {
 
     // push node on to the emulated activation stack
     push(node);
-    Enumeration[] nodeEnum = new Enumeration[numNodes];
+    @SuppressWarnings("unchecked") // the java generic array problem
+    Enumeration<? extends OPT_SortedGraphNode>[] nodeEnum = new Enumeration[numNodes];
 
   recurse:
     while (!empty()) {
 
-      node = (OPT_SortedGraphNode) peek();
+      node = peek();
 
       // check if we were already processing this node, if so we would have
       // saved the state of the enumeration in the loop below
-      Enumeration _enum = nodeEnum[node.getNumber()];
+      Enumeration<? extends OPT_SortedGraphNode> _enum = nodeEnum[node.getNumber()];
       if (_enum == null) {
         // mark node as visited
         node.setSortMarker(sortMarker);
@@ -94,8 +95,7 @@ public class OPT_TopSort extends OPT_Stack {
       }
 
       while (_enum.hasMoreElements()) {
-        OPT_SortedGraphNode target = 
-          (OPT_SortedGraphNode) _enum.nextElement();
+        OPT_SortedGraphNode target =  _enum.nextElement();
 
         // have we visited target?
         if (target.getSortMarker() != sortMarker) {

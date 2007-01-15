@@ -230,7 +230,7 @@ EMIT(MIR_Empty.mutate(P(p), PPC_ISYNC));
 stm:	DCBF(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBF, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBF, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # DCBST
@@ -238,7 +238,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBF, R(0), R(CacheOp.getRef(P(p)))));
 stm:	DCBST(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBST, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBST, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # DCBT
@@ -246,7 +246,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBST, R(0), R(CacheOp.getRef(P(p)))));
 stm:	DCBT(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBT, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBT, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # DCBTST
@@ -254,7 +254,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBT, R(0), R(CacheOp.getRef(P(p)))));
 stm:	DCBTST(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBTST, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBTST, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # DCBZ
@@ -262,7 +262,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBTST, R(0), R(CacheOp.getRef(P(p)))));
 stm:	DCBZ(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZ, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZ, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # DCBZL
@@ -270,7 +270,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZ, R(0), R(CacheOp.getRef(P(p)))));
 stm:	DCBZL(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZL, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZL, I(0), R(CacheOp.getRef(P(p)))));
 
 #####
 # ICBI
@@ -278,7 +278,7 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZL, R(0), R(CacheOp.getRef(P(p)))));
 stm:	ICBI(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_CacheOp.mutate(P(p), PPC_ICBI, R(0), R(CacheOp.getRef(P(p)))));
+EMIT(MIR_CacheOp.mutate(P(p), PPC_ICBI, I(0), R(CacheOp.getRef(P(p)))));
 
 ##################################
 # Trap operations

@@ -59,7 +59,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
    */
   private Edge findOrCreateEdge(Node src, Node dest) {
     Edge edge = null;
-    for (Enumeration e = src.edges(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_VisEdge> e = src.edges(); e.hasMoreElements(); ) {
       Edge candidate = (Edge)e.nextElement();
       if (candidate.toNode() == dest) {
         edge = candidate;

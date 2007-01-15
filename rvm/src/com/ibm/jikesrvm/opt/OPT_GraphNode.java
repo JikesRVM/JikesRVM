@@ -21,7 +21,7 @@ package com.ibm.jikesrvm.opt;
  * @see OPT_GraphUtilities
  *
  */
-interface OPT_GraphNode extends OPT_GraphElement
+public interface OPT_GraphNode extends OPT_GraphElement
 {
 
   /** 

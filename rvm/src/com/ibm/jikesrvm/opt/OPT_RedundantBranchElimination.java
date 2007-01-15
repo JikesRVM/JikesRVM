@@ -12,7 +12,6 @@ import com.ibm.jikesrvm.*;
 
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
-import java.util.*;
 
 /**
  * Redundant branch elimination based on SSA form, global value numbers,
@@ -118,8 +117,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         if (!(IfCmp.conforms(candTest) || InlineGuard.conforms(candTest))) continue;
         OPT_GVCongruenceClass cc = gvns.congruenceClass(candTest);
         if (cc.size() > 1) {
-          for (Iterator e = cc.iterator(); e.hasNext();) {
-            OPT_Instruction poss = (OPT_Instruction)((OPT_ValueGraphVertex)e.next()).getName();
+          for (OPT_ValueGraphVertex vertex : cc) {
+            OPT_Instruction poss = (OPT_Instruction)vertex.getName();
             if (poss != candTest) {
               OPT_BasicBlock notTaken = getNotTakenBlock(poss);
               OPT_BasicBlock taken = poss.getBranchTarget();

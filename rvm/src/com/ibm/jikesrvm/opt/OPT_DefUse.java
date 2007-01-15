@@ -45,9 +45,9 @@ public final class OPT_DefUse {
       reg.scratch = -1;
       reg.clearSeenUse();
     }
-    for (Enumeration e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
+    for (Enumeration<OPT_Register> e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
          e.hasMoreElements(); ) {
-      OPT_Register reg = (OPT_Register)e.nextElement();
+      OPT_Register reg = e.nextElement();
       reg.defList = null;
       reg.useList = null;
       reg.scratch = -1;
@@ -470,7 +470,7 @@ public final class OPT_DefUse {
     public boolean hasMoreElements () { 
       return current != null; 
     }
-    public Object nextElement () { 
+    public OPT_RegisterOperand nextElement () { 
       return next(); 
     }
     public OPT_RegisterOperand next () {

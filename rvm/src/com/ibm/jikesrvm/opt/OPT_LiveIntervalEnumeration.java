@@ -20,7 +20,7 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-public class OPT_LiveIntervalEnumeration implements Enumeration {
+public class OPT_LiveIntervalEnumeration implements Enumeration<OPT_LiveIntervalElement> {
   private OPT_LiveIntervalElement currentElement;
 
   /**
@@ -34,8 +34,8 @@ public class OPT_LiveIntervalEnumeration implements Enumeration {
     return currentElement != null;
   }
 
-  public Object nextElement() { 
-    Object result = currentElement;
+  public OPT_LiveIntervalElement nextElement() { 
+    OPT_LiveIntervalElement result = currentElement;
     currentElement = currentElement.getNext();
     return result;
   } 

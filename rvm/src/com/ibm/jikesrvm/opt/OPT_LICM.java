@@ -37,13 +37,13 @@ class OPT_LICM extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LICM");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LICM");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -121,14 +121,6 @@ class OPT_LICM extends OPT_CompilerPhase {
     return  options.GCP || options.VERBOSE_GCP;
   }
   
-  /**
-   * Report that we feel really sick for the given reason.
-   * @param reason
-   */
-  private static void BARF(String reason) {
-    throw new OPT_OptimizingCompilerException(reason);
-  }
-
   //------------------------- Implementation -------------------------
   
   /**
@@ -490,7 +482,7 @@ class OPT_LICM extends OPT_CompilerPhase {
    * Schedule me as early as possible,
    * but behind the definitions of op[i] and behind earlyPos
    */
-  OPT_Instruction scheduleHeapDefsEarly(OPT_HeapOperand[] op, OPT_Instruction earlyPos, OPT_Instruction me) {
+  OPT_Instruction scheduleHeapDefsEarly(OPT_HeapOperand<?>[] op, OPT_Instruction earlyPos, OPT_Instruction me) {
     if (op == null) return  earlyPos;
     
     for (int i = 0; i < op.length; ++i) {
@@ -559,15 +551,16 @@ class OPT_LICM extends OPT_CompilerPhase {
     
     //VM.sysWrite (" defs: "+defs.length+"\n");
     for (int i = 0; i < defs.length; ++i) {
-      OPT_HeapOperand dhop = (OPT_HeapOperand) defs[i];
-      OPT_HeapVariable H = dhop.value;
+      @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
+      OPT_HeapOperand<Object> dhop = (OPT_HeapOperand) defs[i];
+      OPT_HeapVariable<Object> H = dhop.value;
       if (DEBUG) VM.sysWrite ("H: "+H+"\n");
-      Iterator it = ssad.iterateHeapUses (H);
+      Iterator<OPT_HeapOperand<Object>> it = ssad.iterateHeapUses (H);
       //VM.sysWrite (" H: "+H+" ("+ssad.getNumberOfUses (H)+")\n");
       while (it.hasNext()) {
-        OPT_HeapOperand uhop = (OPT_HeapOperand) it.next();
+        OPT_HeapOperand<Object> uhop = it.next();
         //VM.sysWrite (" uhop: "+uhop+"\n");
-        OPT_Instruction use = (OPT_Instruction) uhop.instruction;
+        OPT_Instruction use = uhop.instruction;
         //VM.sysWrite ("use: "+use+"\n");
         OPT_BasicBlock _block = useBlock (use, uhop);
         lateBlock = commonDominator (_block, lateBlock);
@@ -582,9 +575,10 @@ class OPT_LICM extends OPT_CompilerPhase {
    */
   OPT_Instruction definingInstruction(OPT_Operand op) {
     if (op instanceof OPT_HeapOperand) {
-      OPT_HeapOperand hop = (OPT_HeapOperand)op;
-      OPT_HeapVariable H = hop.value;
-      OPT_HeapOperand defiOp = ssad.getUniqueDef(H);
+      @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
+      OPT_HeapOperand<Object> hop = (OPT_HeapOperand)op;
+      OPT_HeapVariable<Object> H = hop.value;
+      OPT_HeapOperand<Object> defiOp = ssad.getUniqueDef(H);
       // Variable may be defined by caller, so depends on method entry
       if (defiOp == null || defiOp.instruction == null) {
         return  ir.firstInstructionInCodeOrder();
@@ -864,7 +858,7 @@ class OPT_LICM extends OPT_CompilerPhase {
     e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
-      Enumeration ie = ssad.getAllInstructions(b);
+      Enumeration<OPT_Instruction> ie = ssad.getAllInstructions(b);
       while (ie.hasMoreElements()) {
         OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
         setBlock(inst, b);
@@ -879,7 +873,7 @@ class OPT_LICM extends OPT_CompilerPhase {
         
         if (ir.options.FREQ_FOCUS_EFFORT && b.getInfrequent()) continue;
 
-        Enumeration ie = ssad.getAllInstructions(b);
+        Enumeration<OPT_Instruction> ie = ssad.getAllInstructions(b);
         while (ie.hasMoreElements()) {
           OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
           while (simplify (inst, b));
@@ -940,10 +934,11 @@ class OPT_LICM extends OPT_CompilerPhase {
     }
     if (x == null) return false;
 
-    replaceUses (inst, (OPT_HeapOperand) Phi.getValue (inst, xidx),
+    replaceUses (inst, (OPT_HeapOperand<?>) Phi.getValue (inst, xidx),
                                          Phi.getPred  (inst, xidx), true);
 
-    OPT_HeapOperand hop = (OPT_HeapOperand) resOp;
+    @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
+    OPT_HeapOperand<Object> hop = (OPT_HeapOperand) resOp;
     if (hop.value.isExceptionHeapType()) return false;
 
     /* check that inside the loop, the heap variable is only used/defed
@@ -953,7 +948,7 @@ class OPT_LICM extends OPT_CompilerPhase {
     */
     int type = checkLoop (inst, hop, xidx, block);
     if (type == CL_LOADS_ONLY || type == CL_STORES_ONLY || type == CL_NONE) {
-      replaceUses (inst, (OPT_HeapOperand) Phi.getValue (inst, xidx),
+      replaceUses (inst, (OPT_HeapOperand<?>) Phi.getValue (inst, xidx),
                                            Phi.getPred  (inst, xidx), false);
     }
     return false;
@@ -972,7 +967,8 @@ class OPT_LICM extends OPT_CompilerPhase {
    * returns one of:
    * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
    */
-  private int _checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx)
+  @SuppressWarnings("unused") // useful for debugging
+  private int _checkLoop (OPT_Instruction inst, OPT_HeapOperand<?> hop, int xidx)
   {
     for (int i = Phi.getNumberOfValues (inst) - 1;  i >= 0;  --i) {
       if (i == xidx) continue;
@@ -988,7 +984,7 @@ class OPT_LICM extends OPT_CompilerPhase {
           //VM.sysWrite (" no loc or volatile field\n");          
           return CL_COMPLEX;
         }
-        OPT_HeapOperand[] ops = ssad.getHeapUses (y);
+        OPT_HeapOperand<?>[] ops = ssad.getHeapUses (y);
         for (int j = 0;  j < ops.length;  ++j) {
           if (ops[j].value.isExceptionHeapType()) continue;
           if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
@@ -1007,11 +1003,11 @@ class OPT_LICM extends OPT_CompilerPhase {
    * returns one of:
    * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
    */
-  private int checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx,
+  private int checkLoop (OPT_Instruction inst, OPT_HeapOperand<Object> hop, int xidx,
                          OPT_BasicBlock block)
   {
     HashSet<OPT_Instruction> seen = new HashSet<OPT_Instruction>();
-    OPT_Queue workList = new OPT_Queue();
+    OPT_Queue<OPT_Instruction> workList = new OPT_Queue<OPT_Instruction>();
     int _state = CL_NONE;
     int instUses = 0;
     
@@ -1057,7 +1053,7 @@ class OPT_LICM extends OPT_CompilerPhase {
         } else {
           _state |= CL_LOADS_ONLY;
         }
-        OPT_HeapOperand[] ops = ssad.getHeapUses (y);
+        OPT_HeapOperand<?>[] ops = ssad.getHeapUses (y);
         for (int j = 0;  j < ops.length;  ++j) {
           if (ops[j].value.isExceptionHeapType()) continue;
           if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
@@ -1106,18 +1102,19 @@ class OPT_LICM extends OPT_CompilerPhase {
    * with uses of `replacement' 
    */
   private boolean replaceUses (OPT_Instruction inst,
-                               OPT_HeapOperand replacement,
+                               OPT_HeapOperand<?> replacement,
                                OPT_BasicBlockOperand replacementBlock, 
                                boolean onlyPEIs)
   {
     if (VM.VerifyAssertions) VM._assert (Phi.conforms (inst));
     
     boolean changed = false;
-    OPT_HeapOperand hop = (OPT_HeapOperand) Phi.getResult (inst);
-    OPT_HeapVariable H = hop.value;
-    Iterator it = ssad.iterateHeapUses (H);
+    @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
+    OPT_HeapOperand<Object> hop = (OPT_HeapOperand) Phi.getResult (inst);
+    OPT_HeapVariable<Object> H = hop.value;
+    Iterator<OPT_HeapOperand<Object>> it = ssad.iterateHeapUses (H);
     while (it.hasNext()) {
-      hop = (OPT_HeapOperand) it.next();
+      hop = it.next();
       OPT_Instruction user = hop.instruction;
       if (onlyPEIs && !user.isPEI()) continue;
       
@@ -1131,11 +1128,11 @@ class OPT_LICM extends OPT_CompilerPhase {
         }
         changed |= replacement.value != H;
       } else {
-        OPT_HeapOperand[] uses = ssad.getHeapUses (user);
+        OPT_HeapOperand<?>[] uses = ssad.getHeapUses (user);
         for (int i = uses.length - 1;  i >= 0;  --i) {
           if (uses[i].value == H) {
             changed |= replacement.value != H;
-            uses[i] = (OPT_HeapOperand) (replacement.copy());
+            uses[i] = (OPT_HeapOperand<?>) (replacement.copy());
             uses[i].setInstruction (user);
           }
         }

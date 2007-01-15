@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * This class provides an enumerator for a list of OPT_RegSpillElements
  * @author Michael Hind
  */
-public class OPT_RegSpillListEnumerator implements Enumeration {
+public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListElement> {
 
   /**
    *  The next element to return when called
@@ -44,7 +44,7 @@ public class OPT_RegSpillListEnumerator implements Enumeration {
    * Returns the next element or throws an exception if none exist
    * @return the next element
    */
-  public final Object nextElement() {
+  public final OPT_RegSpillListElement nextElement() {
     if (nextElementToReturn != null) {
       return next();
     } 

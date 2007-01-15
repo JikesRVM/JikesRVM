@@ -37,7 +37,7 @@ abstract class OPT_Priority
    *
    * @return the next instruction in sequence
    */
-  public final Object nextElement () {
+  public final OPT_Instruction nextElement () {
     return  next();
   }
 

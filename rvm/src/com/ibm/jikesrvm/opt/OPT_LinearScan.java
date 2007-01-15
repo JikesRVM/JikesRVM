@@ -14,11 +14,11 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_StackManager;
-import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import java.util.*;
 import org.vmmagic.unboxed.*;
 import com.ibm.jikesrvm.osr.*;
+
 import java.lang.reflect.Constructor;
 
 /**
@@ -247,13 +247,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       /**
        * Constructor for this compiler phase
        */
-      private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$LinearScan");
+      private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$LinearScan");
 
       /**
        * Get a constructor object for this compiler phase
        * @return compiler phase constructor
        */
-      public Constructor getClassConstructor() {
+      public Constructor<OPT_CompilerPhase> getClassConstructor() {
         return constructor;
       }
 
@@ -1274,9 +1274,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // next attempt to allocate to a volatile
       if (!restrict.allVolatilesForbidden(r)) {
-        for (Enumeration e = phys.enumerateVolatiles(type); 
+        for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(type); 
              e.hasMoreElements(); ) {
-          OPT_Register p = (OPT_Register)e.nextElement();
+          OPT_Register p = e.nextElement();
           if (allocateToPhysical(ci,p)) {
             return p;
           }
@@ -1285,9 +1285,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // next attempt to allocate to a Nonvolatile.  we allocate the
       // novolatiles backwards.
-      for (Enumeration e = phys.enumerateNonvolatilesBackwards(type);
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(type);
            e.hasMoreElements(); ) {
-        OPT_Register p = (OPT_Register)e.nextElement();
+        OPT_Register p = e.nextElement();
         if (allocateToPhysical(ci,p)) {
           return p;
         }
@@ -1320,9 +1320,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // next attempt to allocate to a volatile
       if (!restrict.allVolatilesForbidden(symb)) {
-        for (Enumeration e = phys.enumerateVolatiles(type); 
+        for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(type); 
              e.hasMoreElements(); ) {
-          OPT_Register p = (OPT_Register)e.nextElement();
+          OPT_Register p = e.nextElement();
           if (allocateNewSymbolicToPhysical(symb,p)) {
             return p;
           }
@@ -1331,9 +1331,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // next attempt to allocate to a Nonvolatile.  we allocate the
       // novolatiles backwards.
-      for (Enumeration e = phys.enumerateNonvolatilesBackwards(type);
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(type);
            e.hasMoreElements(); ) {
-        OPT_Register p = (OPT_Register)e.nextElement();
+        OPT_Register p = e.nextElement();
         if (allocateNewSymbolicToPhysical(symb,p)) {
           return p;
         }
@@ -1364,7 +1364,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       if (node == null) return null;
 
       // walk through all in edges of the node, searching for affinity
-      for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.inEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node src = (OPT_CoalesceGraph.Node)edge.from();
         OPT_Register neighbor = src.getRegister();
@@ -1391,7 +1391,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       }
       // walk through all out edges of the node, searching for affinity
-      for (Enumeration in = node.outEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.outEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node dest = (OPT_CoalesceGraph.Node)edge.to();
         OPT_Register neighbor = dest.getRegister();
@@ -1422,7 +1422,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       int weight = -1;
       for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
            i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
+        Map.Entry<OPT_Register,Integer> entry = i.next();
         int w = ((Integer)entry.getValue()).intValue();
         if (w > weight) {
           weight = w;
@@ -1452,7 +1452,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       if (node == null) return null;
 
       // walk through all in edges of the node, searching for affinity
-      for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.inEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node src = (OPT_CoalesceGraph.Node)edge.from();
         OPT_Register neighbor = src.getRegister();
@@ -1479,7 +1479,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       }
       // walk through all out edges of the node, searching for affinity
-      for (Enumeration in = node.outEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.outEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node dest = (OPT_CoalesceGraph.Node)edge.to();
         OPT_Register neighbor = dest.getRegister();
@@ -1510,7 +1510,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       int weight = -1;
       for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
            i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
+        Map.Entry<OPT_Register,Integer> entry = i.next();
         int w = ((Integer)entry.getValue()).intValue();
         if (w > weight) {
           weight = w;
@@ -1725,13 +1725,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$IntervalAnalysis");
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$IntervalAnalysis");
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
-    public Constructor getClassConstructor() {
+    public Constructor<OPT_CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
@@ -2056,7 +2056,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // walk through all in edges of the node, searching for spill
       // location affinity
-      for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.inEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node src = (OPT_CoalesceGraph.Node)edge.from();
         OPT_Register neighbor = src.getRegister();
@@ -2082,7 +2082,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // walk through all out edges of the node, searching for spill
       // location affinity
-      for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
+      for (Enumeration<OPT_GraphEdge> in = node.inEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
         OPT_CoalesceGraph.Node dest = (OPT_CoalesceGraph.Node)edge.to();
         OPT_Register neighbor = dest.getRegister();
@@ -2109,12 +2109,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // OK, now find the highest preference. 
       SpillLocationInterval result = null;
       int weight = -1;
-      for (Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
-        int w = ((Integer)entry.getValue()).intValue();
+      for (Map.Entry<SpillLocationInterval,Integer> entry : map.entrySet()) {
+        int w = entry.getValue();
         if (w > weight) {
           weight = w;
-          result = (SpillLocationInterval)entry.getKey();
+          result = entry.getKey();
         }
       }
       return result;
@@ -2172,10 +2171,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /** Support for Set serialization */
     static final long serialVersionUID = -7086728932911844728L;
     
-    private static class StartComparator implements Comparator<Object> {
-      public int compare(Object o1, Object o2) {
-        BasicInterval b1 = (BasicInterval)o1;
-        BasicInterval b2 = (BasicInterval)o2;
+    private static class StartComparator implements Comparator<BasicInterval> {
+      public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getBegin() - b2.getBegin();
         if (result == 0) {
           result = b1.getEnd() - b2.getEnd();
@@ -2186,7 +2183,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     static final StartComparator c = new StartComparator();
 
     IncreasingStartIntervalSet() {
-      super(c,true);
+      super(c /*,true*/);
     }
   }
   /**
@@ -2197,10 +2194,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /** Support for Set serialization */
     static final long serialVersionUID = -975667667343524421L;
     
-    private static class StartComparator implements Comparator<Object> {
-      public int compare(Object o1, Object o2) {
-        BasicInterval b1 = (BasicInterval)o1;
-        BasicInterval b2 = (BasicInterval)o2;
+    private static class StartComparator implements Comparator<BasicInterval> {
+      public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getBegin() - b2.getBegin();
         if (result == 0) {
           result = b1.getEnd() - b2.getEnd();
@@ -2221,7 +2216,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     static final StartComparator c = new StartComparator();
 
     IncreasingStartMappedIntervalSet() {
-      super(c,true);
+      super(c);
     }
   }
   /**
@@ -2232,10 +2227,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /** Support for Set serialization */
     static final long serialVersionUID = -3121737650157210290L;
     
-    private static class EndComparator implements Comparator<Object> {
-      public int compare(Object o1, Object o2) {
-        BasicInterval b1 = (BasicInterval)o1;
-        BasicInterval b2 = (BasicInterval)o2;
+    private static class EndComparator implements Comparator<BasicInterval> {
+      public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getEnd() - b2.getEnd();
         if (result == 0) {
           result = b1.getBegin() - b2.getBegin();
@@ -2256,20 +2249,17 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     static final EndComparator c = new EndComparator();
 
     IncreasingEndMappedIntervalSet() {
-      super(c,false);
+      super(c);
     }
   }
 
   static abstract class IntervalSet extends TreeSet<BasicInterval> {
 
-    private final boolean sortByStart;
-
     /**
      * Create an interval set sorted by increasing start or end number
      */
-    IntervalSet(Comparator<Object> c, boolean sortByStart) {
+    IntervalSet(Comparator<BasicInterval> c) {
       super(c);
-      this.sortByStart = sortByStart;
     }
 
     /**
@@ -2277,8 +2267,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     public String toString() {
       String result = "";
-      for (Iterator e = iterator(); e.hasNext();) {
-        BasicInterval b = (BasicInterval)e.next();
+      for (BasicInterval b : this) {
         result = result + b + "\n";
       }
       return result;
@@ -2460,14 +2449,12 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
         } 
         // delete all obsolete elements
-        for (Iterator i = toDelete.iterator(); i.hasNext(); ) {
-          OPT_RegSpillListElement deadElem = (OPT_RegSpillListElement)i.next();
+        for (OPT_RegSpillListElement deadElem : toDelete) {
           GCelement.deleteRegSpillElement(deadElem);
         }
 
         // add each new Element to the gc map
-        for (Iterator i = newElements.iterator(); i.hasNext(); ) {
-          OPT_RegSpillListElement newElem = (OPT_RegSpillListElement)i.next();
+        for (OPT_RegSpillListElement newElem : newElements) {
           GCelement.addRegSpillElement(newElem);
         }
       } 
@@ -2562,13 +2549,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$UpdateOSRMaps");
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LinearScan$UpdateOSRMaps");
 
     /**
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
-    public Constructor getClassConstructor() {
+    public Constructor<OPT_CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
@@ -2599,7 +2586,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.ir = ir;
 
       // list of OsrVariableMapElement
-      LinkedList mapList = ir.MIRInfo.osrVarMap.list;
+      LinkedList<OSR_VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
 
       // for each osr instruction
       for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
@@ -2607,16 +2594,14 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           (OSR_VariableMapElement)mapList.get(numOsrs);
 
         // for each inlined method
-        LinkedList mvarsList = elm.mvars;
+        LinkedList<OSR_MethodVariables> mvarsList = elm.mvars;
         for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
-          OSR_MethodVariables mvar =
-            (OSR_MethodVariables)mvarsList.get(numMvars);
+          OSR_MethodVariables mvar = mvarsList.get(numMvars);
 
           // for each tuple
-          LinkedList tupleList = mvar.tupleList;
+          LinkedList<OSR_LocalRegPair> tupleList = mvar.tupleList;
           for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
-            OSR_LocalRegPair tuple = 
-              (OSR_LocalRegPair) tupleList.get(numTuple);
+            OSR_LocalRegPair tuple = tupleList.get(numTuple);
 
             OPT_Operand op = tuple.operand;
             if (op.isRegister()) {

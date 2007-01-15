@@ -114,7 +114,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 
   private String dumpIt(OPT_LSTNode n) {
     String ans = n.toString() + "\n";
-    for (Enumeration e = n.getChildren();
+    for (Enumeration<OPT_LSTNode> e = n.getChildren();
          e.hasMoreElements();) {
       ans += dumpIt((OPT_LSTNode)e.nextElement());
     }
@@ -226,9 +226,9 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private void setDepth(OPT_IR ir, OPT_LSTNode node, int depth) {
     if (VM.VerifyAssertions) VM._assert(node.depth == 0);
     node.depth = depth;
-    for (Enumeration e = node.getChildren();
+    for (Enumeration<OPT_LSTNode> e = node.getChildren();
          e.hasMoreElements();) {
-      setDepth(ir, (OPT_LSTNode)e.nextElement(), depth+1);
+      setDepth(ir, e.nextElement(), depth+1);
     }
     OPT_BitVector loop = node.loop;
     if (loop != null) {
@@ -251,9 +251,9 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param numBlocks The number of basic blocks
    */
   private void findBackEdges(OPT_BasicBlock bb, int numBlocks) {
-    OPT_Stack stack = new OPT_Stack();
-    OPT_SpaceEffGraphNode.GraphEdgeEnumeration[] BBenum = 
-      new OPT_SpaceEffGraphNode.GraphEdgeEnumeration[numBlocks];
+    OPT_Stack<OPT_BasicBlock> stack = new OPT_Stack<OPT_BasicBlock>();
+    OPT_SpaceEffGraphNode.OutEdgeEnumeration[] BBenum = 
+      new OPT_SpaceEffGraphNode.OutEdgeEnumeration[numBlocks];
     
     // push node on to the emulated activation stack
     stack.push(bb);
@@ -264,7 +264,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 
       // check if we were already processing this node, if so we would have
       // saved the state of the enumeration in the loop below
-      OPT_SpaceEffGraphNode.GraphEdgeEnumeration e = BBenum[bb.getNumber()];
+      OPT_SpaceEffGraphNode.OutEdgeEnumeration e = BBenum[bb.getNumber()];
       if (e == null) {
         if (DEBUG) { System.out.println(" Initial processing of " + bb);  }
         bb.setDfsVisited();
@@ -274,7 +274,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
       }
 
       while (e.hasMoreElements()) {
-        OPT_SpaceEffGraphEdge outEdge = e.next();
+        OPT_SpaceEffGraphEdge outEdge = (OPT_SpaceEffGraphEdge)e.next();
 
         OPT_BasicBlock outbb = (OPT_BasicBlock)outEdge.toNode();
         if (OPT_LTDominatorInfo.isDominatedBy(bb, outbb)) {   // backedge
@@ -307,9 +307,9 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param bb the basic block
    */
   private void clearBackEdges(OPT_SpaceEffGraphNode bb) {
-    OPT_SpaceEffGraphNode.GraphEdgeEnumeration f = bb.outEdges();
+    OPT_SpaceEffGraphNode.OutEdgeEnumeration f = bb.outEdges();
     while (f.hasMoreElements()) {
-      OPT_SpaceEffGraphEdge outEdge = f.next();
+      OPT_SpaceEffGraphEdge outEdge = (OPT_SpaceEffGraphEdge)f.next();
       outEdge.clearBackEdge();
     }
   }

@@ -16,14 +16,14 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-public class OPT_FilterIterator
-    implements java.util.Iterator {
-  final java.util.Iterator i;
-  final Filter f;
-  private Object next = null;
+public class OPT_FilterIterator<T>
+    implements java.util.Iterator<T> {
+  final java.util.Iterator<T> i;
+  final Filter<T> f;
+  private T next = null;
   private boolean done = false;
 
-  public OPT_FilterIterator(java.util.Iterator i, Filter f) {
+  public OPT_FilterIterator(java.util.Iterator<T> i, Filter<T> f) {
     this.i = i;
     this.f = f;
     advance();
@@ -38,10 +38,10 @@ public class OPT_FilterIterator
     done = true;
   }
 
-  public Object next() {
+  public T next() {
     if (done)
       throw  new java.util.NoSuchElementException();
-    Object o = next;
+    T o = next;
     advance();
     return  f.map(o);
   }
@@ -54,13 +54,13 @@ public class OPT_FilterIterator
     throw  new java.lang.UnsupportedOperationException();
   }
 
-  public static class Filter {                  // override with your mapping.
+  public static class Filter<T> {                  // override with your mapping.
 
     public boolean isElement(Object o) {
       return  true;
     }
 
-    public Object map(Object o) {
+    public T map(T o) {
       return  o;
     }
   }

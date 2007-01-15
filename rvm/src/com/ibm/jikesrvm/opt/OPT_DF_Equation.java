@@ -219,7 +219,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
                 return x;
             }
 
-            public Object nextElement () {
+            public OPT_GraphNode nextElement () {
                 return  next();
             }
         };
@@ -243,7 +243,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
                   return operands[i++];
               }
               
-              public Object nextElement () {
+              public OPT_GraphNode nextElement () {
                   return  next();
               }
           };

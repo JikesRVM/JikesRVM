@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * This class provides an enumerator for a OPT_GCIRMap 
  * @author Michael Hind
  */
-public class OPT_GCIRMapEnumerator implements Enumeration {
+public class OPT_GCIRMapEnumerator implements Enumeration<OPT_GCIRMapElement> {
 
   /**
    *  The next element to return when called.
@@ -46,7 +46,7 @@ public class OPT_GCIRMapEnumerator implements Enumeration {
    * @return the next element
    * @throws NoSuchElementException if there is no next element.
    */
-  public final Object nextElement() {
+  public final OPT_GCIRMapElement nextElement() {
     if (nextElementToReturn != null) {
       return next();
     } 

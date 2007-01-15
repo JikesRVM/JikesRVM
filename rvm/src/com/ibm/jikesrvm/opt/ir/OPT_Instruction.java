@@ -10,10 +10,8 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.opt.*;
-import java.util.Enumeration;
 
 import org.vmmagic.pragma.*;
 
@@ -127,6 +125,7 @@ public final class OPT_Instruction
    * BITFIELD used to encode {@link #operatorInfo}.
    * NB: OI_INVALID must be default value!
    */
+  @SuppressWarnings("unused")  // FIXME use it or lose it!
   private static final byte OI_INVALID    = 0x00;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_PEI_VALID  = 0x01;
@@ -648,16 +647,16 @@ public final class OPT_Instruction
    * @param n the new register
    */
   public void replaceRegister(OPT_Register r, OPT_Register n) {
-    for (Enumeration u = getUses(); u.hasMoreElements(); ) {
-      OPT_Operand use = (OPT_Operand)u.nextElement();
+    for (OPT_OperandEnumeration u = getUses(); u.hasMoreElements(); ) {
+      OPT_Operand use = u.nextElement();
       if (use.isRegister()) {
         if (use.asRegister().register == r) {
           use.asRegister().register = n;
         }
       }
     }
-    for (Enumeration d = getDefs(); d.hasMoreElements(); ) {
-      OPT_Operand def = (OPT_Operand)d.nextElement();
+    for (OPT_OperandEnumeration d = getDefs(); d.hasMoreElements(); ) {
+      OPT_Operand def = d.nextElement();
       if (def.isRegister()) {
         if (def.asRegister().register == r) {
           def.asRegister().register = n;
@@ -1623,7 +1622,7 @@ public final class OPT_Instruction
       this.nextElem = null;
     }
     public final boolean hasMoreElements() { return nextElem != null; }
-    public final Object nextElement() { return next(); }
+    public final OPT_Operand nextElement() { return next(); }
     public final OPT_Operand next() {
       OPT_Operand temp = nextElem;
       if (temp == null) fail();

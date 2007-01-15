@@ -22,7 +22,7 @@ import java.util.HashMap;
  * @author Stephen Fink
  * @author Julian Dolby
  */
-class OPT_DFS extends OPT_Stack {
+class OPT_DFS extends OPT_Stack<VertexInfo> {
   // Interface 
 
   OPT_DFS(OPT_Graph net) {
@@ -61,9 +61,9 @@ class OPT_DFS extends OPT_Stack {
    * Perform a DFS of net and mark the discover and finish times
    * for each vertex
    */
-  private static final int WHITE = 0;
-  private static final int GRAY  = 1;
-  private static final int BLACK = 2;
+  static final int WHITE = 0;
+  static final int GRAY  = 1;
+  static final int BLACK = 2;
 
   private synchronized void traverse(OPT_GraphNodeEnumeration e) {
     time = 0;
@@ -112,19 +112,19 @@ class OPT_DFS extends OPT_Stack {
       pop();
     }
   }
+}
    
   /** Class that holds information for the DFS */
-  private static class VertexInfo {
+class VertexInfo {
     int discover;
     int finish;
-    int color = WHITE;
+  int color = OPT_DFS.WHITE;
     final OPT_GraphNode node;
     final OPT_GraphNodeEnumeration pendingChildren;
     
     VertexInfo(OPT_GraphNode n, HashMap<OPT_GraphNode, VertexInfo> info) {
-      pendingChildren = getConnected( n );
+    pendingChildren = OPT_DFS.getConnected( n );
       node = n;
       info.put(n, this);
     }
   }
-}

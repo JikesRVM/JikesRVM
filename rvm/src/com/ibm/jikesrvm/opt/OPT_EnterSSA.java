@@ -92,13 +92,13 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_EnterSSA");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_EnterSSA");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -138,7 +138,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     this.ir = ir;
     boolean scalarsOnly = ir.desiredSSAOptions.getScalarsOnly();
     boolean backwards = ir.desiredSSAOptions.getBackwards();
-    Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
+    Set<Object> heapTypes = ir.desiredSSAOptions.getHeapTypes();
     boolean insertUsePhis = ir.desiredSSAOptions.getInsertUsePhis();
     boolean insertPEIDeps = ir.desiredSSAOptions.getInsertPEIDeps();
     boolean excludeGuards = ir.desiredSSAOptions.getExcludeGuards();
@@ -191,6 +191,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * local to a basic block.  Store the result in the <code> nonLocalRegisters
    * </code> field.
    */
+  @SuppressWarnings("unused")
   private void computeNonLocals () {
     nonLocalRegisters = new HashSet<OPT_Register>(20);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
@@ -265,8 +266,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     }
     // having determine where copies should be inserted, now insert them.
     if (!needed.isEmpty()) {
-      for (Iterator copies = needed.iterator(); copies.hasNext(); ) {
-        OPT_Pair copy = (OPT_Pair)copies.next();
+      for (Iterator<OPT_Pair> copies = needed.iterator(); copies.hasNext(); ) {
+        OPT_Pair copy = copies.next();
         OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
         OPT_RegisterOperand registerOp = (OPT_RegisterOperand)copy.second;
         VM_TypeReference type = registerOp.type;
@@ -311,7 +312,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * @param excludeGuards Should we exclude guard registers from SSA?
    */
   private void computeSSA (OPT_IR ir, boolean scalarsOnly, boolean backwards, 
-                           Set heapTypes, boolean insertUsePhis,
+                           Set<Object> heapTypes, boolean insertUsePhis,
                            boolean insertPEIDeps, boolean excludeGuards) {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
@@ -467,9 +468,9 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * @param ir the governing IR
    */
   private void insertHeapPhiFunctions (OPT_IR ir) {
-    Iterator<OPT_HeapVariable<?>> e = ir.HIRInfo.SSADictionary.getHeapVariables();
+    Iterator<OPT_HeapVariable<Object>> e = ir.HIRInfo.SSADictionary.getHeapVariables();
     for (; e.hasNext();) {
-      OPT_HeapVariable<?> H = e.next();
+      OPT_HeapVariable<Object> H = e.next();
 
       if (DEBUG) System.out.println("Inserting phis for Heap " + H);
       if (DEBUG) System.out.println("Start iterated frontier...");
@@ -690,6 +691,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     */
     private void renameSymbolicRegisters(OPT_Register[] symbolicRegisters) {
       int n = ir.getNumberOfSymbolicRegisters();
+      @SuppressWarnings("unchecked") // the old covariant array-type problem
       Stack<OPT_RegisterOperand>[] S = new Stack[n + 1];
       for (int i = 0; i < S.length; i++) {
         S[i] = new Stack<OPT_RegisterOperand>();
@@ -792,7 +794,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     } // end of second loop
 
     if (DEBUG) System.out.println("SEARCH (third loop) " + X);
-    for (Enumeration c = ir.HIRInfo.dominatorTree.getChildren(X); 
+    for (Enumeration<OPT_TreeNode> c = ir.HIRInfo.dominatorTree.getChildren(X); 
          c.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)c.nextElement();
       search(v.getBlock(), S);
@@ -834,15 +836,15 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
     // use stacks.get(OPT_ClassLoaderProxy.IntType);
-    HashMap<Object, Stack<OPT_HeapOperand<?>>> stacks =
-      new HashMap<Object, Stack<OPT_HeapOperand<?>>>(n);
+    HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks =
+      new HashMap<Object, Stack<OPT_HeapOperand<Object>>>(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
-    for (Iterator<OPT_HeapVariable<?>> e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
+    for (Iterator<OPT_HeapVariable<Object>> e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
          e.hasNext();) {
-      OPT_HeapVariable<?> H = e.next();
-      Stack<OPT_HeapOperand<?>> S = new Stack<OPT_HeapOperand<?>>();
-      S.push(new OPT_HeapOperand(H));
+      OPT_HeapVariable<Object> H = e.next();
+      Stack<OPT_HeapOperand<Object>> S = new Stack<OPT_HeapOperand<Object>>();
+      S.push(new OPT_HeapOperand<Object>(H));
       Object heapType = H.getHeapType();
       stacks.put(heapType, S);
     }
@@ -863,20 +865,21 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * used and defined by each instruction.
    */
   private void search2(OPT_BasicBlock X,
-                       HashMap<Object, Stack<OPT_HeapOperand<?>>> stacks) {
+                       HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (Enumeration ie = dictionary.getAllInstructions(X); ie.hasMoreElements();) {
-      OPT_Instruction A = (OPT_Instruction)ie.nextElement();
+    for (Enumeration<OPT_Instruction> ie = dictionary.getAllInstructions(X); ie.hasMoreElements();) {
+      OPT_Instruction A = ie.nextElement();
       if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       if (A.operator() != PHI) {
         // replace the Heap variables USED by this instruction
-        OPT_HeapOperand[] uses = dictionary.getHeapUses(A);
+        OPT_HeapOperand<Object>[] uses = dictionary.getHeapUses(A);
         if (uses != null) {
-          OPT_HeapOperand[] newUses = new OPT_HeapOperand[uses.length];
+          @SuppressWarnings("unchecked")  // Generic array problem
+          OPT_HeapOperand<Object>[] newUses = new OPT_HeapOperand[uses.length];
           for (int i = 0; i < uses.length; i++) {
-            Stack<OPT_HeapOperand<?>> S = stacks.get(uses[i].getHeapType());
-            newUses[i] = (OPT_HeapOperand)((OPT_HeapOperand)S.peek()).copy();
+            Stack<OPT_HeapOperand<Object>> S = stacks.get(uses[i].getHeapType());
+            newUses[i] = (OPT_HeapOperand<Object>)S.peek().copy();
             if (DEBUG)
               System.out.println("NORMAL USE PEEK " + newUses[i]);
           }
@@ -885,18 +888,18 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       }
       // replace any Heap variable DEF
       if (A.operator() != PHI) {
-        OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
+        OPT_HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
-          OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
+          OPT_HeapOperand<Object> r[] = dictionary.replaceDefs(A, X);
           for (int i = 0; i < r.length; i++) {
-            Stack<OPT_HeapOperand<?>> S = stacks.get(r[i].getHeapType());
+            Stack<OPT_HeapOperand<Object>> S = stacks.get(r[i].getHeapType());
             S.push(r[i]);
             if (DEBUG) System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
           }
         }
       } else {
-        OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
-        Stack<OPT_HeapOperand<?>> S = stacks.get(r[0].getHeapType());
+        OPT_HeapOperand<Object> r[] = dictionary.replaceDefs(A, X);
+        Stack<OPT_HeapOperand<Object>> S = stacks.get(r[0].getHeapType());
         S.push(r[0]);
         if (DEBUG) System.out.println("PUSH " + r[0] + " FOR " + r[0].getHeapType());
       }
@@ -909,35 +912,37 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       // replace each USE in each HEAP-PHI function for Y
       for (Iterator<OPT_Instruction> hp = dictionary.getHeapPhiInstructions(Y); hp.hasNext();) {
         OPT_Instruction s = hp.next();
-        OPT_HeapOperand H1 = (OPT_HeapOperand)Phi.getResult(s);
-        Stack<OPT_HeapOperand<?>> S = stacks.get(H1.getHeapType());
-        OPT_HeapOperand<?> H2 = S.peek();
-        Phi.setValue(s, j, new OPT_HeapOperand(H2.getHeapVariable()));
+        @SuppressWarnings("unchecked") // Down-cast to a generic type
+        OPT_HeapOperand<Object> H1 = (OPT_HeapOperand)Phi.getResult(s);
+        Stack<OPT_HeapOperand<Object>> S = stacks.get(H1.getHeapType());
+        OPT_HeapOperand<Object> H2 = S.peek();
+        Phi.setValue(s, j, new OPT_HeapOperand<Object>(H2.getHeapVariable()));
         Phi.setPred(s, j, new OPT_BasicBlockOperand(X));
       }
     } // end of second loop
 
-    for (Enumeration c = ir.HIRInfo.dominatorTree.getChildren(X); c.hasMoreElements();) {
+    for (Enumeration<OPT_TreeNode> c = ir.HIRInfo.dominatorTree.getChildren(X); c.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)c.nextElement();
       search2(v.getBlock(), stacks);
     } // end of third loop
 
-    for (Enumeration a = dictionary.getAllInstructions(X); a.hasMoreElements();) {
-      OPT_Instruction A = (OPT_Instruction)a.nextElement();
+    for (Enumeration<OPT_Instruction> a = dictionary.getAllInstructions(X); a.hasMoreElements();) {
+      OPT_Instruction A = a.nextElement();
       if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       // retrieve the Heap Variables defined by A
       if (A.operator != PHI) {
-        OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
+        OPT_HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
           for (int i = 0; i < defs.length; i++) {
-            Stack<OPT_HeapOperand<?>> S = stacks.get(defs[i].getHeapType());
+            Stack<OPT_HeapOperand<Object>> S = stacks.get(defs[i].getHeapType());
             S.pop();
             if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
           }
         }
       } else {
-        OPT_HeapOperand<?> H = (OPT_HeapOperand<?>)Phi.getResult(A);
-        Stack<OPT_HeapOperand<?>> S = stacks.get(H.getHeapType());
+        @SuppressWarnings("unchecked") // Down-cast to a generic type
+        OPT_HeapOperand<Object> H = (OPT_HeapOperand)Phi.getResult(A);
+        Stack<OPT_HeapOperand<Object>> S = stacks.get(H.getHeapType());
         S.pop();
         if (DEBUG) System.out.println("POP " + H.getHeapType());
       }
@@ -949,19 +954,21 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * After performing renaming on heap phi functions, this
    * routines notifies the SSA dictionary of the new names.
    * 
+   * FIXME - this was commented out: delete it ??  RJG
+   * 
    * @param ir the governing IR
    */
-  /*
+  @SuppressWarnings({"unused","unchecked"}) // OPT_HeapOperand requires casts to a generic type
   private void registerRenamedHeapPhis (OPT_IR ir) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
-    for (Enumeration e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)e1.nextElement();
-      for (Enumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e2.nextElement();
+    for (OPT_BasicBlockEnumeration e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
+      OPT_BasicBlock bb = e1.nextElement();
+      for (Enumeration<OPT_Instruction> e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
+        OPT_Instruction s = e2.nextElement();
         if (Phi.conforms(s)) {
           if (ssa.defsHeapVariable(s)) {
             int n = Phi.getNumberOfValues(s);
-            OPT_HeapOperand[] uses = new OPT_HeapOperand[n];
+            OPT_HeapOperand<Object>[] uses = new OPT_HeapOperand[n];
             for (int i = 0; i < n; i++) {
               uses[i] = (OPT_HeapOperand)Phi.getValue(s, i);
             }
@@ -971,7 +978,6 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       }
     }
   }
-  */
 
   /**
    * Store a copy of the Heap variables each instruction defs.
@@ -979,14 +985,15 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * @param ir governing IR
    * @param store place to store copies
    */
+  @SuppressWarnings("unused")
   private void copyHeapDefs (OPT_IR ir, HashMap<OPT_Instruction,OPT_HeapOperand<?>[]> store) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); 
          be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
-      for (Enumeration e = dictionary.getAllInstructions(bb); 
+      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb); 
            e.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        OPT_Instruction s = e.nextElement();
         store.put(s, ir.HIRInfo.SSADictionary.getHeapDefs(s));
       }
     }
@@ -1006,8 +1013,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     removeAllUnreachablePhis(scalarPhis);
     while (!scalarPhis.isEmpty()) {
       boolean didSomething = false;
-      for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
-        OPT_Instruction phi = (OPT_Instruction)i.next();
+      for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) {
+        OPT_Instruction phi = i.next();
         phi.scratch = NO_NULL_TYPE;
         if (DEBUG) System.out.println("PHI: " + phi);
         VM_TypeReference meet = meetPhiType(phi);
@@ -1017,8 +1024,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
           if (phi.scratch == NO_NULL_TYPE) i.remove();
           OPT_RegisterOperand result = (OPT_RegisterOperand)Phi.getResult(phi);
           result.type = meet;
-          for (Enumeration e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) { 
-              OPT_RegisterOperand rop = (OPT_RegisterOperand)e.nextElement();
+          for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) { 
+              OPT_RegisterOperand rop = e.nextElement();
               if (rop.type != meet) {
                   rop.clearPreciseType();
                   rop.type = meet;
@@ -1036,12 +1043,12 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * Remove all phis that are unreachable
    */
-  private void removeAllUnreachablePhis(HashSet scalarPhis) {
+  private void removeAllUnreachablePhis(HashSet<OPT_Instruction> scalarPhis) {
     boolean iterateAgain = false;
     do {
       iterateAgain = false;
-outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
-         OPT_Instruction phi = (OPT_Instruction)i.next();
+outer: for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) {
+         OPT_Instruction phi = i.next();
          for (int j=0; j<Phi.getNumberOfValues(phi); j++) {
            OPT_Operand op = Phi.getValue(phi,j);
            if (!(op instanceof OPT_UnreachableOperand)) {
@@ -1050,8 +1057,8 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
          }
          OPT_RegisterOperand result = Phi.getResult(phi).asRegister(); 
          i.remove();
-         for (Enumeration e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) {
-           OPT_RegisterOperand use = (OPT_RegisterOperand)e.nextElement();
+         for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) {
+           OPT_RegisterOperand use = e.nextElement();
            OPT_Instruction s = use.instruction;
            if (Phi.conforms(s)) {
              for (int k = 0; k < Phi.getNumberOfValues(phi); k++) {
@@ -1068,10 +1075,12 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
   }
   /**
    * Remove all unreachable operands from scalar phi functions
+   * 
+   * NOT CURRENTLY USED
    */
-  /* NOT CURRENTLY USED
-  private void removeUnreachableOperands(HashSet scalarPhis) {
-    for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
+  @SuppressWarnings("unused")
+  private void removeUnreachableOperands(HashSet<OPT_Instruction> scalarPhis) {
+    for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) {
       OPT_Instruction phi = (OPT_Instruction)i.next();
       boolean didSomething = true;
       while (didSomething) {
@@ -1096,7 +1105,7 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
       }
     }
   }
-  */
+  
 
   /**
    * Return the meet of the types on the rhs of a phi instruction
@@ -1146,6 +1155,7 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
    * <p> Given a register that holds a parameter, look at the register's
    * use chain to find the type of the parameter
    */
+  @SuppressWarnings("unused")
   private VM_TypeReference findParameterType (OPT_Register p) {
     OPT_RegisterOperand firstUse = p.useList;
     if (firstUse == null) {

@@ -368,8 +368,9 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     _lastNode = null;
   }
 
-  // VCG Graph stuff (visualization of FCFG using VCG tool)
-  private static final class NodeEnumeration implements Enumeration {
+  // Enumerate the nodes in the CFG, casting them to whatever concrete type
+  // the caller wants.
+  private static final class NodeEnumeration<T> implements Enumeration<T> {
     private OPT_SpaceEffGraphNode  _node;
     private OPT_SpaceEffGraphNode  _end;
     public NodeEnumeration(OPT_ControlFlowGraph cfg) { 
@@ -377,15 +378,22 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
       _end=cfg.exit(); 
     }
     public boolean hasMoreElements() { return _node != null; }
-    public Object nextElement() {
+    @SuppressWarnings("unchecked") // We cast to whatever the concrete type of the graph is
+    public T nextElement() {
       OPT_SpaceEffGraphNode n = _node;
       _node = n.getNext();
       if ((n != _end) && (_node == null)) 
         _node = _end;
-      return n;
+      return (T)n;
     }
   }
 
   // implements OPT_VCGGraph
-  public Enumeration nodes() { return new NodeEnumeration(this); }
+  public Enumeration<OPT_VCGNode> nodes() { return new NodeEnumeration<OPT_VCGNode>(this); }
+  
+  // implements OPT_VCGGraph
+  public Enumeration<OPT_GraphNode> graphNodes() { return new NodeEnumeration<OPT_GraphNode>(this); }
+  
+  // implements OPT_VCGGraph
+  public Enumeration<OPT_BasicBlock> basicBlocks() { return new NodeEnumeration<OPT_BasicBlock>(this); }
 }

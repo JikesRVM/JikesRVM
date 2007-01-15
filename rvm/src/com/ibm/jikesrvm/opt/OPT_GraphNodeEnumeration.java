@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Enumeration;
+
 /**
  *  Generic interface for enumerations of graph nodes.  All graph
  * implementations should make sure that their enumerations of graph
@@ -20,7 +22,7 @@ package com.ibm.jikesrvm.opt;
  * @see OPT_Graph
  * @see OPT_GraphNode
  */
-interface OPT_GraphNodeEnumeration extends java.util.Enumeration
+interface OPT_GraphNodeEnumeration extends Enumeration<OPT_GraphNode>
 {
 
   /**

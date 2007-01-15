@@ -11,7 +11,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
-import java.util.Enumeration;
 
 /**
  * Instruction Scheduler
@@ -243,7 +242,7 @@ final class OPT_Scheduler {
     if (OPT_SchedulingInfo.getCriticalPath(i) != -1)
       return;
     int cp = 0;
-    for (Enumeration succ = n.outNodes(); succ.hasMoreElements();) {
+    for (OPT_GraphNodeEnumeration succ = n.outNodes(); succ.hasMoreElements();) {
       OPT_DepGraphNode np = (OPT_DepGraphNode)succ.nextElement();
       OPT_Instruction j = np.instruction();
       computeCriticalPath(np, depth + 1);
@@ -421,7 +420,7 @@ final class OPT_Scheduler {
     if (PRINT_CRITICAL_PATH_LENGTH)
       System.err.println("::: BL=" + bl + " CP=" + cp + " LOC=" + ir.method
                          + ":" + bb);
-    OPT_Priority ilist = new OPT_DefaultPriority(ir, bb);
+    OPT_Priority ilist = new OPT_DefaultPriority(bb);
     int maxtime = 0;
     for (ilist.reset(); ilist.hasMoreElements(); ) {
       OPT_Instruction i = ilist.next();

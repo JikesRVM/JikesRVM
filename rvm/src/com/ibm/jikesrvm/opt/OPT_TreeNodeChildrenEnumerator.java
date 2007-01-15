@@ -17,7 +17,7 @@ import  java.util.NoSuchElementException;
  *
  * @author Michael Hind
  */
-final class OPT_TreeNodeChildrenEnumerator implements Enumeration {
+final class OPT_TreeNodeChildrenEnumerator implements Enumeration<OPT_TreeNode> {
 
   /**
    * the current child we are working on
@@ -45,7 +45,7 @@ final class OPT_TreeNodeChildrenEnumerator implements Enumeration {
    * returns the next element in the list iterator
    * @return the next element in the list iterator or null
    */
-  public Object nextElement() {
+  public OPT_TreeNode nextElement() {
     // save the return value
     OPT_TreeNode returnValue = currentChild;
 

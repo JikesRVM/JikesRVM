@@ -61,11 +61,11 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       throw  new OPT_OptimizingCompilerException(
                                                  "OPT_IndexPropagation:makeCell");
     OPT_DF_LatticeCell result = null;
-    Object heapType = ((OPT_HeapVariable)o).getHeapType();
+    Object heapType = ((OPT_HeapVariable<?>)o).getHeapType();
     if (heapType instanceof VM_TypeReference) {
-      result = new ArrayCell((OPT_HeapVariable)o);
+      result = new ArrayCell((OPT_HeapVariable<?>)o);
     } else {
-      result = new ObjectCell((OPT_HeapVariable)o);
+      result = new ObjectCell((OPT_HeapVariable<?>)o);
     }
     return  result;
   }
@@ -76,18 +76,17 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   protected void initializeLatticeCells() {
     // initially all lattice cells are set to TOP
     // set the lattice cells that are exposed on entry to BOTTOM
-    for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
-      OPT_DF_LatticeCell c = (OPT_DF_LatticeCell)e.next();
+    for (OPT_DF_LatticeCell c : cells.values()) {
       if (c instanceof ObjectCell) {
         ObjectCell c1 = (ObjectCell)c;
-        OPT_HeapVariable key = c1.getKey();
+        OPT_HeapVariable<?> key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
         }
       } 
       else {
         ArrayCell c1 = (ArrayCell)c;
-        OPT_HeapVariable key = c1.getKey();
+        OPT_HeapVariable<?> key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
         }
@@ -101,8 +100,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   protected void initializeWorkList() {
     // add all equations to the work list that contain a non-TOP
     // variable
-    for (Enumeration e = getEquations(); e.hasMoreElements();) {
-      OPT_DF_Equation eq = (OPT_DF_Equation)e.nextElement();
+    for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
+      OPT_DF_Equation eq = e.nextElement();
       OPT_DF_LatticeCell[] operands = eq.getOperands();
       for (int i = 0; i < operands.length; i++) {
         if (operands[i] instanceof ObjectCell) {
@@ -126,10 +125,10 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * that affects the values of Array SSA variables.
    */
   void setupEquations() {
-    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
-      for (Enumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e2.nextElement();
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      OPT_BasicBlock bb = e.nextElement();
+      for (OPT_SSADictionary.AllInstructionEnumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
+        OPT_Instruction s = e2.nextElement();
         // only consider instructions which use/def Array SSA variables
         if (!ssa.usesHeapVariable(s) && !ssa.defsHeapVariable(s))
           continue;
@@ -186,8 +185,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param s the Load instruction
    */
   void processLoad(OPT_Instruction s) {
-    OPT_HeapOperand[] A1 = ssa.getHeapUses(s);
-    OPT_HeapOperand[] A2 = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
+    OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
       throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processLoad: load instruction defs or uses multiple heap variables?");
     int valueNumber = -1;
@@ -229,8 +228,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param s the Store instruction
    */
   void processStore(OPT_Instruction s) {
-    OPT_HeapOperand[] A1 = ssa.getHeapUses(s);
-    OPT_HeapOperand[] A2 = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
+    OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
       throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processStore: store instruction defs or uses multiple heap variables?");
     int valueNumber = -1;
@@ -261,8 +260,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param s the Aload instruction
    */
   void processALoad(OPT_Instruction s) {
-    OPT_HeapOperand A1[] = ssa.getHeapUses(s);
-    OPT_HeapOperand A2[] = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?> A1[] = ssa.getHeapUses(s);
+    OPT_HeapOperand<?> A2[] = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
       throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processALoad: aload instruction defs or uses multiple heap variables?");
     OPT_Operand array = ALoad.getArray(s);
@@ -298,8 +297,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param s the Astore instruction
    */
   void processAStore(OPT_Instruction s) {
-    OPT_HeapOperand A1[] = ssa.getHeapUses(s);
-    OPT_HeapOperand A2[] = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?> A1[] = ssa.getHeapUses(s);
+    OPT_HeapOperand<?> A2[] = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
       throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processAStore: astore instruction defs or uses multiple heap variables?");
     OPT_Operand array = AStore.getArray(s);
@@ -320,7 +319,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * TODO: add logic that understands that after a
      * NEW, all fields have their default values.
      */
-    OPT_HeapOperand A[] = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?> A[] = ssa.getHeapDefs(s);
     for (int i = 0; i < A.length; i++) {
       OPT_DF_LatticeCell c = findOrCreateCell(A[i].getHeapVariable());
       if (c instanceof ObjectCell) {
@@ -341,7 +340,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processCall(OPT_Instruction s) {
 
     /** set all lattice cells def'ed by the call to bottom */
-    OPT_HeapOperand A[] = ssa.getHeapDefs(s);
+    OPT_HeapOperand<?> A[] = ssa.getHeapDefs(s);
     for (int i = 0; i < A.length; i++) {
       OPT_DF_LatticeCell c = findOrCreateCell(A[i].getHeapVariable());
       if (c instanceof ObjectCell) {
@@ -367,11 +366,11 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
     OPT_Operand result = Phi.getResult(s);
     if (!(result instanceof OPT_HeapOperand))
       return;
-    OPT_HeapVariable lhs = ((OPT_HeapOperand)result).value;
+    OPT_HeapVariable<?> lhs = ((OPT_HeapOperand<?>)result).value;
     OPT_DF_LatticeCell A1 = findOrCreateCell(lhs);
     OPT_DF_LatticeCell rhs[] = new OPT_DF_LatticeCell[Phi.getNumberOfValues(s)];
     for (int i = 0; i < rhs.length; i++) {
-      OPT_HeapOperand op = (OPT_HeapOperand)Phi.getValue(s, i);
+      OPT_HeapOperand<?> op = (OPT_HeapOperand<?>)Phi.getValue(s, i);
       rhs[i] = findOrCreateCell(op.value);
     }
     newEquation(A1, MEET, rhs);
@@ -385,7 +384,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param A2 variable in the equation
    * @param valueNumber value number of the address
    */
-  void addUpdateObjectDefEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+  void addUpdateObjectDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
                                   int valueNumber) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
@@ -403,7 +402,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param A2 variable in the equation
    * @param valueNumber value number of address
    */
-  void addUpdateObjectUseEquation (OPT_HeapVariable A1, OPT_HeapVariable A2, 
+  void addUpdateObjectUseEquation (OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
                                    int valueNumber) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
@@ -422,7 +421,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param array variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayDefEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+  void addUpdateArrayDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
                                  Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
@@ -444,7 +443,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @param array variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayUseEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+  void addUpdateArrayUseEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
                                  Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);

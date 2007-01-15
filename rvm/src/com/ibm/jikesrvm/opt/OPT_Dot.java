@@ -113,10 +113,10 @@ public final class OPT_Dot implements OPT_DotConstants
 
     // Process nodes
 
-    Hashtable nodeNames = new Hashtable();
+    Hashtable<OPT_VisNode,String> nodeNames = new Hashtable<OPT_VisNode,String>();
     int nodenum = 0;
 
-    for (Enumeration nodes = g.nodes(); nodes.hasMoreElements();) {
+    for (Enumeration<OPT_VCGNode> nodes = g.nodes(); nodes.hasMoreElements();) {
       OPT_DotNode node = (OPT_DotNode) nodes.nextElement();
       String name = (String) nodeNames.get(node);
       if (name == null) {
@@ -143,7 +143,7 @@ public final class OPT_Dot implements OPT_DotConstants
 
       // Process edges
 
-      for (Enumeration edges = node.edges(); edges.hasMoreElements(); ) {
+      for (Enumeration<OPT_VisEdge> edges = node.edges(); edges.hasMoreElements(); ) {
         OPT_DotEdge edge = (OPT_DotEdge) edges.nextElement();
         OPT_DotEdge.EdgeDesc ed = edge.getDotDescriptor();
         OPT_VisNode sNode = edge.sourceNode();
@@ -241,6 +241,7 @@ public final class OPT_Dot implements OPT_DotConstants
    * @param filename name of file
    * @param DotOutput the string to write
    */
+  @SuppressWarnings("unused")
   private static void writeToDotFile(String filename, String DotOutput) {
     writeToDotFile(filename, DotOutput, false);
   }
@@ -280,7 +281,7 @@ public final class OPT_Dot implements OPT_DotConstants
   // Creates an {indent}value string
   // For internal use only.
   private static String indent(String value, int indent) {
-    return indents[indent]+value;
+    return indent(indent)+value;
   }
   // Creates an {indent}name=value string
   // For internal use only.
@@ -291,9 +292,6 @@ public final class OPT_Dot implements OPT_DotConstants
     return name+"="+value;
   }
   private static String pair(String name, float value) {
-    return name+"="+value;
-  }
-  private static String pair(String name, Object value) {
     return name+"="+value;
   }
   // Place value in quotes, quoting all special characters (only '"' for now)
@@ -308,12 +306,6 @@ public final class OPT_Dot implements OPT_DotConstants
       sb.append(value.substring(s));
       value = sb.toString();
     }
-    return "\""+value+"\"";
-  }
-  private static String quote(int value) {
-    return "\""+value+"\"";
-  }
-  private static String quote(Object value) {
     return "\""+value+"\"";
   }
 

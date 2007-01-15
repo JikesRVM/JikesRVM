@@ -386,7 +386,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * the supplied enumeration.
    * @param e enumeration order to print blocks
    */
-  private void print(Enumeration e) {
+  private void print(Enumeration<OPT_GraphNode> e) {
     while (e.hasMoreElements()) {
       OPT_SpaceEffGraphNode bb = (OPT_SpaceEffGraphNode) e.nextElement();
       bb.printExtended();
@@ -394,16 +394,29 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   }
 
   private static final class NodeEnumeration
-    implements OPT_GraphNodeEnumeration
+  implements OPT_GraphNodeEnumeration
+{
+  private OPT_SpaceEffGraphNode _node;
+  public NodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
+  public boolean hasMoreElements() { return _node != null; }
+  public OPT_GraphNode nextElement() { return next(); }
+  public OPT_GraphNode next() {
+    OPT_SpaceEffGraphNode n = _node;
+    _node = n.getNext();
+    return n;
+  }
+}
+
+  protected static final class VCGNodeEnumeration
+  implements Enumeration<OPT_VCGNode>
   {
     private OPT_SpaceEffGraphNode _node;
-    public NodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
+    public VCGNodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
     public boolean hasMoreElements() { return _node != null; }
-    public Object nextElement() { return next(); }
-    public OPT_GraphNode next() {
+    public OPT_VCGNode nextElement() { 
       OPT_SpaceEffGraphNode n = _node;
       _node = n.getNext();
-      return n;
+      return n; 
     }
   }
 
@@ -412,7 +425,10 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * @return the enumeration that would list the nodes of the graph
    * @see OPT_VCGGraph#nodes
    */
-  public Enumeration nodes() { return new NodeEnumeration(firstNode()); }
+  public Enumeration<OPT_VCGNode> nodes() { 
+    return new VCGNodeEnumeration(firstNode());
+  }
+
 
   /**
    * Returns a VCG descriptor for the graph which will provide VCG-relevant

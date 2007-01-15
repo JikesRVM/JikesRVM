@@ -32,12 +32,12 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
   /**
    *  The set of nodes that have edges pointing to this node.
    */
-  private HashSet inEdges = null;
+  private HashSet<OPT_GraphNode> inEdges = null;
 
   /**
    *  The set of nodes to which this node has edges.
    */
-  private HashSet outEdges = null;
+  private HashSet<OPT_GraphNode> outEdges = null;
 
   /**
    *  A scratch field in int type
@@ -95,9 +95,9 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    */
   static class NodeEnumeration
       implements OPT_GraphNodeEnumeration {
-    private Iterator e;
+    private Iterator<OPT_GraphNode> e;
 
-    NodeEnumeration(Iterator e) {
+    NodeEnumeration(Iterator<OPT_GraphNode> e) {
       this.e = e;
     }
 
@@ -109,7 +109,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
       return  (OPT_GraphNode)e.next();
     }
 
-    public Object nextElement() {
+    public OPT_GraphNode nextElement() {
       return  next();
     }
   }
@@ -145,7 +145,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @see OPT_Graph#addGraphEdge
    */
   void addOutEdgeInternal(OPT_EdgelessGraphNode n) {
-    if (outEdges == null) outEdges = new HashSet();
+    if (outEdges == null) outEdges = new HashSet<OPT_GraphNode>();
     outEdges.add(n);
   }
 
@@ -158,7 +158,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @see OPT_Graph#addGraphEdge
    */
   void addInEdgeInternal(OPT_EdgelessGraphNode n) {
-    if (inEdges == null) inEdges = new HashSet();
+    if (inEdges == null) inEdges = new HashSet<OPT_GraphNode>();
     inEdges.add(n);
   }
 
@@ -168,9 +168,10 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return enumeration of nodes to which this node has an edge
    *
    */
+  @SuppressWarnings("unchecked") // You can't type-check OPT_EmptyIterator.INSTANCE in Java
   public OPT_GraphNodeEnumeration outNodes() {
-    return  new NodeEnumeration(
-      outEdges==null? OPT_EmptyIterator.INSTANCE: outEdges.iterator());
+    return  new NodeEnumeration((Iterator<OPT_GraphNode>)(
+      outEdges==null? OPT_EmptyIterator.INSTANCE: outEdges.iterator()));
   }
 
   /**
@@ -179,9 +180,10 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return enumeration of nodes that have an edge to this node.
    *
    */
+  @SuppressWarnings("unchecked") // You can't type-check OPT_EmptyIterator.INSTANCE in Java
   public OPT_GraphNodeEnumeration inNodes() {
-    return  new NodeEnumeration(
-      inEdges==null? OPT_EmptyIterator.INSTANCE: inEdges.iterator());
+    return  new NodeEnumeration((Iterator<OPT_GraphNode>)(
+      inEdges==null? OPT_EmptyIterator.INSTANCE: inEdges.iterator()));
   }
 
   /**
@@ -203,6 +205,8 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
   public boolean hasIn(OPT_GraphNode x) {
     return  inEdges!=null && inEdges.contains(x);
   }
+  
+  private static final long serialVersionUID = 1L;
 }
 
 

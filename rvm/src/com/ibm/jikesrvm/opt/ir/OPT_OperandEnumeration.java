@@ -14,7 +14,7 @@ package com.ibm.jikesrvm.opt.ir;
  *
  * @author Igor Pechtchanski
  */
-public interface OPT_OperandEnumeration extends java.util.Enumeration {
+public interface OPT_OperandEnumeration extends java.util.Enumeration<OPT_Operand> {
   /** Same as nextElement but avoid the need to downcast from Object */
   public OPT_Operand next();
 }

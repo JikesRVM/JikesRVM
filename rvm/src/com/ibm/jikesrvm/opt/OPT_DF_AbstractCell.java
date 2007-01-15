@@ -94,19 +94,19 @@ abstract class OPT_DF_AbstractCell
 
   public OPT_GraphNodeEnumeration inNodes() {
       return new OPT_GraphNodeEnumeration() {
-              private Iterator i = defs.iterator();
+              private Iterator<OPT_DF_Equation> i = defs.iterator();
               public boolean hasMoreElements() { return i.hasNext(); }
-              public OPT_GraphNode next() { return (OPT_GraphNode)i.next(); }
-              public Object nextElement() { return next(); }
+              public OPT_GraphNode next() { return i.next(); }
+              public OPT_GraphNode nextElement() { return next(); }
           };
   }
 
   public OPT_GraphNodeEnumeration outNodes() {
       return new OPT_GraphNodeEnumeration() {
-              private Iterator i = uses.iterator();
+              private Iterator<OPT_DF_Equation> i = uses.iterator();
               public boolean hasMoreElements() { return i.hasNext(); }
-              public OPT_GraphNode next() { return (OPT_GraphNode)i.next(); }
-              public Object nextElement() { return next(); }
+              public OPT_GraphNode next() { return i.next(); }
+              public OPT_GraphNode nextElement() { return next(); }
           };
   }
 

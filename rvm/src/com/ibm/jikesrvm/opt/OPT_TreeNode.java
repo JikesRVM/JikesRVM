@@ -94,7 +94,7 @@ public class OPT_TreeNode {
     parent = null;
   }
 
-  public Enumeration getChildren() {
+  public Enumeration<OPT_TreeNode> getChildren() {
     return  new OPT_TreeNodeChildrenEnumerator(this);
   }
 

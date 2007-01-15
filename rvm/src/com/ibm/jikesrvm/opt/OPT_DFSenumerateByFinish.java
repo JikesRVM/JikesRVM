@@ -18,7 +18,7 @@ package com.ibm.jikesrvm.opt;
  *
  * @author Julian Dolby
  */
-class OPT_DFSenumerateByFinish extends OPT_Stack
+class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
     implements OPT_GraphNodeEnumeration {
 
   /**
@@ -108,7 +108,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
    * @return the next node in finishing time order
    *
    */
-  public Object nextElement () {
+  public OPT_GraphNode nextElement () {
     return  next();
   }
   /**

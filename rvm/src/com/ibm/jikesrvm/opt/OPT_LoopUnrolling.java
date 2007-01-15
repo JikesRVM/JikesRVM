@@ -40,13 +40,13 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoopUnrolling");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LoopUnrolling");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -99,7 +99,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
    */
   int unrollLoopTree(OPT_LSTNode t, OPT_IR ir, int target) {
     int height = 1;
-    Enumeration e = t.outNodes();
+    Enumeration<OPT_GraphNode> e = t.outNodes();
     if (!e.hasMoreElements()) {
       if (t.loop != null) {
         report ("Leaf loop in " + ir.method + ": "+t.loop+"\n");
@@ -780,6 +780,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
   }
 
 
+  @SuppressWarnings("unused") // For debugging
   private static void _printDefs (OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
@@ -812,7 +813,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
   static private void markHeaders (OPT_LSTNode t) {
     OPT_BasicBlock header = t.header;
     header.scratchObject = t;
-    Enumeration e = t.outNodes();
+    Enumeration<OPT_GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
       markHeaders (n);
@@ -983,7 +984,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
     }
 
     
-    public Object nextElement() {
+    public OPT_Operand nextElement() {
       return next();
     }
     

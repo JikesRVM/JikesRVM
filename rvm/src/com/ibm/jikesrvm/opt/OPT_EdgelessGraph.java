@@ -28,18 +28,18 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
     /**
      * an array of all nodes in the graph
      */
-    protected ArrayList nodes = new ArrayList();
+    protected ArrayList<OPT_GraphNode> nodes = new ArrayList<OPT_GraphNode>();
 
     /** 
      * Enumerate all the nodes in the graph
      * @return an enumeration of all the nodes in the graph
      */
     public OPT_GraphNodeEnumeration enumerateNodes() {
-        final Iterator it = nodes.iterator();
+        final Iterator<OPT_GraphNode> it = nodes.iterator();
         return new OPT_GraphNodeEnumeration() {
           public boolean hasMoreElements() { return it.hasNext(); }
           public OPT_GraphNode next() { return (OPT_GraphNode)it.next();}
-          public Object nextElement() { return next(); }
+          public OPT_GraphNode nextElement() { return next(); }
         };
     }
 
@@ -95,4 +95,6 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
     public OPT_EdgelessGraphNode getNode(int index) {
         return (OPT_EdgelessGraphNode) nodes.get(index);
     }
+    
+    private static final long serialVersionUID = 1L;
 }

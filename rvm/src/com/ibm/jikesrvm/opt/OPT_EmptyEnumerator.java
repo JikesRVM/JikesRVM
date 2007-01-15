@@ -19,7 +19,7 @@ import  java.util.NoSuchElementException;
  * @author Igor Pechtchanski
  */
 public final class OPT_EmptyEnumerator
-    implements Enumeration {
+    implements Enumeration<Object> {
   public static final OPT_EmptyEnumerator EMPTY = new OPT_EmptyEnumerator();
 
   public boolean hasMoreElements () {

@@ -129,7 +129,7 @@ public abstract class OPT_CompilerPhase {
    * @return an opt compiler phase on which performPhase may be invoked.
    */
   public OPT_CompilerPhase newExecution(OPT_IR ir) {
-    Constructor cons = getClassConstructor();
+    Constructor<OPT_CompilerPhase> cons = getClassConstructor();
     if(cons != null) {
       try {
         return (OPT_CompilerPhase)cons.newInstance(initargs);
@@ -149,7 +149,7 @@ public abstract class OPT_CompilerPhase {
    *
    * @return exception/null as this phase can't be created
    */
-   public Constructor getClassConstructor(){
+   public Constructor<OPT_CompilerPhase> getClassConstructor(){
      OPT_OptimizingCompilerException.UNREACHABLE();
      return null;
    }
@@ -158,7 +158,7 @@ public abstract class OPT_CompilerPhase {
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor getCompilerPhaseConstructor(String compilerPhaseName) {
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(String compilerPhaseName) {
     return getCompilerPhaseConstructor(compilerPhaseName, null);
   }
 
@@ -166,10 +166,13 @@ public abstract class OPT_CompilerPhase {
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor getCompilerPhaseConstructor(String compilerPhaseName, Class initTypes[]) {
-    Constructor constructor;
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(String compilerPhaseName, 
+      Class<?> initTypes[]) {
     try{
-      constructor = Class.forName(compilerPhaseName).getConstructor(initTypes);
+      @SuppressWarnings("unchecked") // We are explicitly breaking type safety
+      Constructor<OPT_CompilerPhase> constructor = 
+        (Constructor<OPT_CompilerPhase>)Class.forName(compilerPhaseName).getConstructor(initTypes);
+      return constructor;
     }
     catch (ClassNotFoundException e) {
       throw new Error("Compiler phase " + compilerPhaseName  + " not found", e);
@@ -177,7 +180,6 @@ public abstract class OPT_CompilerPhase {
     catch (NoSuchMethodException e) {
       throw new Error("Constructor not found in " + compilerPhaseName  + " compiler phase", e);
     }
-    return constructor;
   }
 
   /**

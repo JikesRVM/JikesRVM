@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.util.*;
-
 /**
  * This class implements a graph where each node is a strongly
  * connected component of OPT_GraphNodes
@@ -49,6 +47,7 @@ class OPT_SCC_Graph extends OPT_EdgelessGraph {
       }
     }
   }
+  private static final long serialVersionUID = 1L;
 }
 
 

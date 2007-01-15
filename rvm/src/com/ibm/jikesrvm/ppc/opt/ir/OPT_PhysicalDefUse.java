@@ -82,7 +82,7 @@ public abstract class OPT_PhysicalDefUse {
   /**
    * A class to enumerate physical registers based on a code.
    */
-  public static final class PDUEnumeration implements Enumeration {
+  public static final class PDUEnumeration implements Enumeration<OPT_Register> {
     private int code;
     private int curMask;
     private OPT_PhysicalRegisterSet phys;
@@ -97,7 +97,7 @@ public abstract class OPT_PhysicalDefUse {
       return code != 0;
     }
 
-    public Object nextElement() {
+    public OPT_Register nextElement() {
       while (true) {
         int curBit = code & curMask;
         code -= curBit;

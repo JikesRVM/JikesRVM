@@ -13,7 +13,7 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-final class OPT_Queue {
+final class OPT_Queue<T> {
   OPT_LinkedListElement head;
   OPT_LinkedListElement tail;
   OPT_LinkedListObjectElement free;
@@ -22,11 +22,11 @@ final class OPT_Queue {
     // head = tail = free = null;
   }
 
-  OPT_Queue(Object e) {
+  OPT_Queue(T e) {
     head = tail = new OPT_LinkedListObjectElement(e);
   }
 
-  final Object insert(Object e) {
+  final T insert(T e) {
     OPT_LinkedListObjectElement el;
     if (free == null)
       el = new OPT_LinkedListObjectElement(e); 
@@ -46,14 +46,14 @@ final class OPT_Queue {
     return  e;
   }
 
-  final Object remove() {
+  final T remove() {
     OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
     head = head.next;
     el.next = free;
     free = el;
     Object result = el.value;
     el.value = null;
-    return  result;
+    return (T) result;
   }
 
   final boolean isEmpty() {

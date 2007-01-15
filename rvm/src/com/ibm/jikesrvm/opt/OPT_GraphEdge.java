@@ -16,7 +16,7 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-interface OPT_GraphEdge {
+interface OPT_GraphEdge extends OPT_VCGEdge{
 
     OPT_GraphNode from();
 

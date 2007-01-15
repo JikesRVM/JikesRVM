@@ -9,17 +9,20 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Enumeration;
+import java.util.Iterator;
+
 /**
  * An <code>IteratorEnumerator</code> converts an <code>Iterator</code>
  * into an <code>Enumeration</code>.
  *
  * @author Stephen Fink
+ * @deprecated
  */
-public class OPT_IteratorEnumerator
-    implements java.util.Enumeration {
-  private final java.util.Iterator i;
+public class OPT_IteratorEnumerator<T> implements Enumeration<T> {
+  private final Iterator<T> i;
 
-  public OPT_IteratorEnumerator(java.util.Iterator i) {
+  public OPT_IteratorEnumerator(Iterator<T> i) {
     this.i = i;
   }
 
@@ -27,7 +30,7 @@ public class OPT_IteratorEnumerator
     return  i.hasNext();
   }
 
-  public Object nextElement() {
+  public T nextElement() {
     return  i.next();
   }
 }

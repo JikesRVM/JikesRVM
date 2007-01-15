@@ -57,8 +57,8 @@ final class OPT_ValueGraph {
     addRegisterNodes(ir);
     // go through the IR and add nodes and edges to the value graph
     // for each instruction, as needed
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       processInstruction(s);
     }
 
@@ -71,7 +71,7 @@ final class OPT_ValueGraph {
    * register label was not removed.
    */
   private void computeClosure() {
-    for (Enumeration e = enumerateVertices(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_GraphNode> e = enumerateVertices(); e.hasMoreElements(); ) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       if (v.getName() instanceof OPT_Register){
         if (v.getLabel() instanceof OPT_Register) {
@@ -96,7 +96,7 @@ final class OPT_ValueGraph {
    *
    * @return an enumeration of the vertices in the value graph
    */
-  public Enumeration enumerateVertices() {
+  public Enumeration<OPT_GraphNode> enumerateVertices() {
     return graph.enumerateNodes();
   }
 
@@ -133,7 +133,7 @@ final class OPT_ValueGraph {
   public String toString() {
     // print the nodes
     StringBuilder s = new StringBuilder("VALUE GRAPH: \n");
-    for (Enumeration n = graph.enumerateNodes(); n.hasMoreElements();) {
+    for (Enumeration<OPT_GraphNode> n = graph.enumerateNodes(); n.hasMoreElements();) {
       OPT_ValueGraphVertex node = (OPT_ValueGraphVertex)n.nextElement();
       s.append(node).append("\n");
     }

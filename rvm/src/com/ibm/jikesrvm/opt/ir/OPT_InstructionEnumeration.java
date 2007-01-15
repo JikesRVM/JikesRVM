@@ -9,13 +9,15 @@
 //$Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import java.util.Enumeration;
+
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty instruction enumeration.
  *
  * @author Dave Grove
  */
-public interface OPT_InstructionEnumeration extends java.util.Enumeration {
+public interface OPT_InstructionEnumeration extends Enumeration<OPT_Instruction> {
   /**
    * Same as nextElement but avoid the need to downcast from Object
    */

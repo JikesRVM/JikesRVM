@@ -69,9 +69,9 @@ final class OPT_TreeTopDownEnumerator implements Enumeration<OPT_TreeNode> {
    */
   private void DFS(OPT_TreeNode node) {
     list.add(node);
-    Enumeration childEnum = node.getChildren();
+    Enumeration<OPT_TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {
-      OPT_TreeNode child = (OPT_TreeNode)childEnum.nextElement();
+      OPT_TreeNode child = childEnum.nextElement();
       DFS(child);
     }
   }

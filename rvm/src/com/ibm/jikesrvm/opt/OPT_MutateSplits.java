@@ -42,8 +42,8 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
    * The main entrypoint for this pass.
    */
   public final void perform(OPT_IR ir) {
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       if (s.operator == SPLIT) {
         OPT_RegisterOperand lhs = Unary.getResult(s);
         OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type);

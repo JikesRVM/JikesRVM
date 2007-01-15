@@ -64,7 +64,7 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
     return I(phys.getGPR(regnum));
   }
 
-  final OPT_RegisterOperand I(int regnum) {
+  protected final OPT_RegisterOperand I(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return I(phys.getGPR(regnum));
   }
@@ -118,8 +118,8 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * Does instruction s have an operand that contains a physical register?
    */
   static boolean hasPhysicalOperand(OPT_Instruction s) {
-    for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op == null) continue;
       if (op.isRegister()) {
         if (op.asRegister().register.isPhysical()) {
