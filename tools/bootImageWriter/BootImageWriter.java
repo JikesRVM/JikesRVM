@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
+import java.util.HashSet;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
@@ -63,10 +64,10 @@ import org.vmmagic.unboxed.*;
  * @modified Ian Rogers To support knowing about fields we can't reflect upon
  */
 public class BootImageWriter extends BootImageWriterMessages
-  implements BootImageWriterConstants {
+ implements BootImageWriterConstants {
 
   /**
-   * Number of threads we should use for compilation 
+   * Number of threads we should use for compilation
    *  1:  work done in this thread
    *  >1: create these many threads
    *  <1: error
@@ -239,7 +240,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * to be reported as excessively long (when profiling is true)
    */
   private static final int classCompileThreshold = 5000;
-  
+
   /**
    * A wrapper around the calling context to aid in tracing.
    */
@@ -257,6 +258,11 @@ public class BootImageWriter extends BootImageWriterMessages
        field in ours.  */
     public void traceFieldNotStaticInHostJdk() {
       traceNulledWord(": field not static in host jdk");
+    }
+
+    /* Report a field that is a different type  in the host JDK.  */
+    public void traceFieldDifferentTypeInHostJdk() {
+      traceNulledWord(": field different type in host jdk");
     }
 
     /**
@@ -585,7 +591,7 @@ public class BootImageWriter extends BootImageWriterMessages
     try {
       createBootImageObjects(bootImageTypeNames, bootImageTypeNamesFile);
     } catch (Exception e) {
-      e.printStackTrace();
+      e.printStackTrace(System.out);
       fail("unable to create objects: "+e);
     }
     if (profile) {
@@ -770,14 +776,13 @@ public class BootImageWriter extends BootImageWriterMessages
       spaceReport();
     }
 
-
     //
     // Summarize status of types that were referenced by objects we put into
     // the bootimage but which are not, themselves, in the bootimage.  Any
     // such types had better not be needed to dynamically link in the
     // remainder of the virtual machine at run time!
     //
-    if (false) {
+    if (verbose >= 2) {
       VM_Type[] types = VM_Type.getTypes();
       for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
         VM_Type type = types[i];
@@ -995,7 +1000,7 @@ public class BootImageWriter extends BootImageWriterMessages
           VM_TypeReference tRef = VM_TypeReference.findOrCreate(typeName);
           type = tRef.resolve();
         } catch (NoClassDefFoundError ncdf) {
-          ncdf.printStackTrace();
+          ncdf.printStackTrace(System.out);
           fail(bootImageTypeNamesFile
                + " contains a class named \"" 
                + typeName + "\", but we can't find a class with that name: "
@@ -1005,7 +1010,7 @@ public class BootImageWriter extends BootImageWriterMessages
           /* We should've caught any illegal type names at the data validation
            * stage, when we read these in.  If not, though, 
            * VM_TypeReference.findOrCreate() will do its own sanity check.  */
-          ila.printStackTrace();
+          ila.printStackTrace(System.out);
           fail(bootImageTypeNamesFile
                + " is supposed to contain type names.  It contains \"" 
                + typeName + "\", which does not parse as a legal type name: "
@@ -1131,6 +1136,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (verbose >= 1) say("field info gathering");
       if (profile) startTime = System.currentTimeMillis();
       bootImageTypeFields = new HashMap<Key,FieldInfo>(bootImageTypes.size());
+      HashSet<String> invalidEntrys = new HashSet<String>();
 
       // First retrieve the jdk Field table for each class of interest
       for (VM_Type rvmType : bootImageTypes.values()) {
@@ -1303,6 +1309,7 @@ public class BootImageWriter extends BootImageWriterMessages
                 VM_Statics.setSlotContents(rvmFieldOffset, 0);
                 if (!VM.runningTool)
                   bootImage.countNulledReference();
+                invalidEntrys.add(jdkType.getName());
               }
             }
             else {
@@ -1316,6 +1323,7 @@ public class BootImageWriter extends BootImageWriterMessages
               VM_Statics.setSlotContents(rvmFieldOffset, 0);
               if (!VM.runningTool)
                 bootImage.countNulledReference();
+              invalidEntrys.add(rvmField.getDeclaringClass().toString());
             }
             continue;
           }
@@ -1328,17 +1336,29 @@ public class BootImageWriter extends BootImageWriterMessages
             VM_Statics.setSlotContents(rvmFieldOffset, 0);
             if (!VM.runningTool)
               bootImage.countNulledReference();
+            invalidEntrys.add(jdkType.getName());
             continue;
           }
 
-          if (verbose >= 2) 
+          if( !equalTypes(jdkFieldAcc.getType().getName(), rvmFieldType)) {
+            if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
+                                                jdkType.getName(), rvmFieldName);
+            if (verbose >= 2) traceContext.traceFieldDifferentTypeInHostJdk();
+            if (verbose >= 2) traceContext.pop();
+            VM_Statics.setSlotContents(rvmFieldOffset, 0);
+            if (!VM.runningTool)
+              bootImage.countNulledReference();
+            invalidEntrys.add(jdkType.getName());
+            continue;
+          }
+
+          if (verbose >= 2)
             say("    populating jtoc slot ", String.valueOf(VM_Statics.offsetAsSlot(rvmFieldOffset)), 
                 " with ", rvmField.toString());
           if (rvmFieldType.isPrimitiveType()) {
             // field is logical or numeric type
             if (rvmFieldType.isBooleanType()) {
-              VM_Statics.setSlotContents(rvmFieldOffset,
-                                         jdkFieldAcc.getBoolean(null) ? 1 : 0);
+              VM_Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getBoolean(null) ? 1 : 0);
             } else if (rvmFieldType.isByteType()) {
               VM_Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getByte(null));
             } else if (rvmFieldType.isCharType()) {
@@ -1346,13 +1366,7 @@ public class BootImageWriter extends BootImageWriterMessages
             } else if (rvmFieldType.isShortType()) {
               VM_Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getShort(null));
             } else if (rvmFieldType.isIntType()) {
-              try {
-                VM_Statics.setSlotContents(rvmFieldOffset,
-                                           jdkFieldAcc.getInt(null));
-              } catch (IllegalArgumentException ex) {
-                System.err.println( "type " + rvmType + ", field " + rvmField);
-                throw ex;
-              }
+                VM_Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getInt(null));
             } else if (rvmFieldType.isLongType()) {
               // note: Endian issues handled in setSlotContents.
               VM_Statics.setSlotContents(rvmFieldOffset,
@@ -1379,33 +1393,41 @@ public class BootImageWriter extends BootImageWriterMessages
             }
           } else {
             // field is reference type
-
-            /* Consistency check. */
-            if (jdkFieldAcc == null)
-              fail("internal inconistency: jdkFieldAcc == null");
-
-            int modifs = jdkFieldAcc.getModifiers();
-
-            /* This crash, realistically, should never occur. */
-            if (! Modifier.isStatic(modifs)) 
-              fail("Consistency failure: About to try to access an instance field (via jdkFieldAcc) as if it were a static one!  The culprit is the field " + jdkFieldAcc.toString());
-            Object o;
-            try {
-              o = jdkFieldAcc.get(null);
-            } catch (NullPointerException npe) {
-              fail("Got a NullPointerException while using reflection to retrieve the value of the field " + jdkFieldAcc.toString() + ": " + npe.toString());
-              o = null;         // Unreached
-            }
+            final Object o = jdkFieldAcc.get(null);
             if (verbose >= 3)
               say("       setting with ", VM.addressAsHexString(VM_Magic.objectAsAddress(o)));
             VM_Statics.setSlotContents(rvmFieldOffset, o);
           }
         }
       }
+      if (verbose >= 2) {
+        for (final String entry : invalidEntrys) {
+          say("Static fields of type are invalid: ", entry);
+        }
+      }
+
       if (profile) {
         stopTime = System.currentTimeMillis();
         System.out.println("PROF: \tinitializing jtoc "+(stopTime-startTime)+" ms");
       }
+  }
+
+  private static boolean equalTypes(final String name, final VM_TypeReference rvmFieldType) {
+    final String descriptor = rvmFieldType.getName().toString();
+    if (name.equals("int")) return descriptor.equals("I");
+    else if (name.equals("boolean")) return descriptor.equals("Z");
+    else if (name.equals("byte")) return descriptor.equals("B");
+    else if (name.equals("char")) return descriptor.equals("C");
+    else if (name.equals("double")) return descriptor.equals("D");
+    else if (name.equals("float")) return descriptor.equals("F");
+    else if (name.equals("long")) return descriptor.equals("J");
+    else if (name.equals("short")) return descriptor.equals("S");
+    else if (name.startsWith("[")) {
+      return name.replace('.','/').equals(descriptor);
+    }
+    else {
+      return ('L' + name.replace('.', '/') + ';').equals(descriptor);
+    }
   }
 
   private static final int LARGE_ARRAY_SIZE = 16*1024;
@@ -1722,7 +1744,7 @@ public class BootImageWriter extends BootImageWriterMessages
                 bootImage.setFullWord(rvmFieldAddress,
                                       jdkFieldAcc.getInt(jdkObject));
               } catch (IllegalArgumentException ex) {
-                System.err.println( "type " + rvmScalarType + ", field " + rvmField);
+                System.out.println( "type " + rvmScalarType + ", field " + rvmField);
                 throw ex;
               }
             } else if (rvmFieldType.isLongType()) {
