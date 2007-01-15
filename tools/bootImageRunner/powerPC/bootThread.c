@@ -37,8 +37,8 @@
 #endif
 #ifdef RVM_FOR_64_ADDR
        .text
-       .globl  .bootThread
-       .bootThread:
+       .globl  bootThread
+       bootThread:
 #endif
 #elif (defined __MACH__)
        .text

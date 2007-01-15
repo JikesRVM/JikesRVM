@@ -3697,7 +3697,7 @@ EOF
    ## libraries linked against the booter (see bug 1224191)
 
    ## Errors only generated when not cross-compiling
-   if [ ${RVM_HOST_CONFIG} == ${RVM_TARGET_CONFIG} ] && (( RVM_FOR_LINUX )); then
+   if [ ${RVM_HOST_CONFIG} == ${RVM_TARGET_CONFIG} ] && (( RVM_FOR_LINUX )) && [ ${RVM_FOR_32_ADDR} == 1 ]; then
       cat <<- EOF
 
       ## Report error when boot image load address conflicts with dynamic
