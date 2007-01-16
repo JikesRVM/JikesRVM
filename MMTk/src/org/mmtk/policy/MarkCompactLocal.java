@@ -97,7 +97,10 @@ import org.vmmagic.unboxed.ObjectReference;
               VM.assertions._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
             }
           }
+          int copySize = VM.objectModel.getSizeWhenCopied(current);
           Address newAllocCursor = VM.objectModel.copyTo(current, copyTo, allocCursor);
+          Address objectStart = newAllocCursor.minus(copySize);
+          fillAlignmentGap(allocCursor, objectStart);
           allocCursor = newAllocCursor;
           MarkCompactSpace.setForwardingPointer(copyTo, ObjectReference.nullReference());
         }
