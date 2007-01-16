@@ -81,13 +81,7 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       VM_Field f = VM_Entrypoints.framePointerField;
-      OPT_RegisterOperand pr = null;
-      if (VM.dedicatedESI) {
-        pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
-      } else {
-        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
-        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-      }
+      OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
       bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr.copy(),
                                               new OPT_AddressConstantOperand(f.getOffset()),
                                               new OPT_LocationOperand(f), 

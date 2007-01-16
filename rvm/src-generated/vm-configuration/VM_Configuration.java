@@ -252,13 +252,6 @@ public abstract class VM_Configuration {
   public final static boolean ForceFrequentGC = false;
   //-#endif
 
-  //-#if RVM_FOR_IA32
-  /**
-   * Is ESI dedicated to always hold the processor register?
-   */
-  public final static boolean dedicatedESI = true;
-  //-#endif
-
   /** Do we have the facilities to intercept blocking system calls? */
   public final static boolean withoutInterceptBlockingSystemCalls =
     //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
