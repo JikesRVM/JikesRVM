@@ -260,13 +260,6 @@ public abstract class VM_Configuration {
     false;
     //-#endif
 
-  public final static boolean defaultToSingleVirtualProcessor =
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    true;
-    //-#else
-    false;
-    //-#endif
-
   /*
    * We often need to slightly tweak the VM boot sequence and/or
    * the library/VM interface depending on the version of GNU classpath
