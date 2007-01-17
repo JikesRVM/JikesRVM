@@ -92,9 +92,6 @@
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
-    <condition property="ss_gcspy.filter" value="-DRVM_WITH_SEMI_SPACE_GC_SPY=1" else="">
-      <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gcspy.SSGCspy"/>
-    </condition>
     <condition property="assertions.filter" value="-DRVM_WITHOUT_ASSERTIONS=1">
       <equals arg1="${config.assertions}" arg2="none"/>
     </condition>
