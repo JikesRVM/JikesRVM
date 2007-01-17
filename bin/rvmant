@@ -28,4 +28,4 @@ fi
 export JAVACMD=$HOST_VM_RT
 export ANT_HOME=$JAL_ROOT/tools-external/apache-ant-1.6.5
 
-$ANT_HOME/bin/ant "$@"
+$ANT_HOME/bin/ant --noconfig "$@"
