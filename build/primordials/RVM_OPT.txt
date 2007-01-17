@@ -1,0 +1,6 @@
+[[C
+Ljava/io/StreamTokenizer;
+Ljava/io/LineNumberReader;
+Ljava/io/FileReader;
+Ljava/io/PushbackReader;
+[Lcom/ibm/jikesrvm/opt/OPT_Simplifier$DefUseEffect;

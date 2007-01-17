@@ -1,0 +1,212 @@
+<!--
+common build component for setting up and checking propertys.
+ jikesrvm.dir MUST be set to base directory before importing project.  
+-->
+<project name="propertys">
+
+  <property file="${jikesrvm.dir}/.ant.properties"/>
+
+  <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
+  <property name="components.file" location="${jikesrvm.dir}/build/components.properties"/>
+  <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
+
+  <!-- configuration data -->
+  <property file="${config.file}"/>
+  <property file="${components.file}"/>
+  <property file="${host.file}"/>
+  <property file="${target.file}"/>
+
+  <!-- default configuration values. May have already been set by above tasks -->
+  <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
+
+  <!-- default component versions. May have already been set by above tasks -->
+  <property name="rvm.version" value="2.4.6"/>
+  <property name="classpath.version" value="93"/>
+  <property name="gcspy.version" value="1_01"/>
+  <property name="jai.version" value="1_1_2_01"/>
+
+  <!-- by default not working on patch --> 
+  <property name="patch.name" value=""/>
+
+  <condition property="build.name" value="${config.name}_${target.name}" else="${config.name}_${target.name}_${patch.name}">
+    <equals arg1="${patch.name}" arg2=""/>
+  </condition>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *             Property initialization section of the build                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- recursive property expansion macro -->
+  <macrodef name="propertycopy">
+    <attribute name="name"/>
+    <attribute name="from"/>
+    <sequential>
+      <property name="@{name}" value="${@{from}}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- Macro to test target property is set -->
+  <macrodef name="test-property">
+    <attribute name="name"/>
+    <attribute name="location"/>
+    <sequential>
+      <fail unless="@{name}">
+        @{name} property not specified. Please specify property in @{location}.
+      </fail>
+    </sequential>
+  </macrodef>
+
+  <target name="check-config-properties">
+    <fail unless="config.name">
+      config.name property not specified. Please specify property on commandline or in ${jikesrvm.dir}/.ant.properties.
+    </fail>
+    <available property="host_config_present" file="${config.file}"/>
+    <fail unless="host_config_present">
+      Configuration file ${config.file} not present. Please set config.name to the name of file in ${jikesrvm.dir}/build/configs directory without the .properties suffix.
+    </fail>
+    <test-property name="config.mmtk.plan" location="${config.file}"/>
+    <condition property="is.svp" value="true">
+      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+    </condition>
+  </target>
+
+  <target name="check-target-properties">
+    <fail unless="target.name">
+      target.name property not specified. Please specify property on commandline or in ${jikesrvm.dir}/.ant.properties.
+    </fail>
+    <available property="target_config_present" file="${target.file}"/>
+    <fail unless="target_config_present">
+      Target file ${target.file} not present. Please set target.name to the name of file in ${jikesrvm.dir}/build/targets directory without the .properties suffix.
+    </fail>
+    <test-property name="target.arch" location="${target.file}"/>
+    <test-property name="target.os" location="${target.file}"/>
+    <test-property name="target.bootimage.code.address" location="${target.file}"/>
+    <test-property name="target.bootimage.data.address" location="${target.file}"/>
+    <test-property name="target.bootimage.rmap.address" location="${target.file}"/>
+    <test-property name="target.max-mappable.address" location="${target.file}"/>
+    <test-property name="target.address.size" location="${target.file}"/>
+    <test-property name="target.dll-prefix" location="${target.file}"/>
+    <test-property name="target.dll-ext" location="${target.file}"/>
+  </target>
+
+  <!-- Macro to test property set to name of executable -->
+  <macrodef name="test-file">
+    <attribute name="name"/>
+    <attribute name="location"/>
+    <attribute name="msg" default=""/>
+    <sequential>
+      <test-property name="@{name}" location="@{location}"/>
+      <condition property="@{name}_invalid" value="1">
+        <not>
+          <available file="${@{name}}"/>
+        </not>
+      </condition>
+      <fail if="@{name}_invalid">
+        Value of @{name} property is invalid. (${@{name}}).
+        @{msg}
+      </fail>
+    </sequential>
+  </macrodef>
+
+  <target name="check-host-properties">
+    <fail unless="host.name">
+      host.name property not specified. Please specify property on commandline or in ${jikesrvm.dir}/.ant.properties.
+    </fail>
+    <available property="host_file_present" file="${host.file}"/>
+    <fail unless="host_file_present">
+      Host file ${host.file} not present. Please set host.name to the name of file in ${jikesrvm.dir}/build/hosts directory without the .properties suffix.
+    </fail>
+    <test-file name="bison.exe" location="${host.file}"/>
+    <test-file name="c++.exe" location="${host.file}"/>
+    <test-file name="c.exe" location="${host.file}"/>
+    <test-file name="perl.exe" location="${host.file}"/>
+    <test-file name="bash.exe" location="${host.file}"/>
+    <test-property name="c++.args" location="${host.file}"/>
+    <test-property name="c.args" location="${host.file}"/>
+    <test-property name="shld.args" location="${host.file}"/>
+  </target>
+
+  <target name="check-components-properties">
+    <available property="components_config_present" file="${components.file}"/>
+    <fail unless="components_config_present">
+      Configuration file ${components.file} not present. Please copy ${jikesrvm.dir}/build/components.properties.example to ${components.file} and edit.
+    </fail>
+  </target>
+
+  <target name="check-classpath-properties" depends="check-components-properties">
+    <propertycopy name="classpath.lib.dir" from="${target.name}.classpath.lib.dir"/>
+    <property name="classpath.error"
+              value="The user can invoke build-classpath target to download and build classpath version ${classpath.version} from CVS or from the web."/>
+    <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
+  </target>
+
+  <target name="include-gcspy-check" depends="check-components-properties">
+    <condition property="include.gcspy" value="1">
+      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+  </target>
+
+  <target name="check-gcspy-properties" depends="include-gcspy-check,check-config-properties" if="include.gcspy">
+    <propertycopy name="gcspy.server.dir" from="${target.name}.gcspy.server.dir"/>
+    <propertycopy name="gcspy.client.dir" from="${target.name}.gcspy.client.dir"/>
+    <property name="gcspy.error"
+              value="The user can invoke build-gcspy target to download and build gcspy version ${gcspy.version} from the web."/>
+    <test-file name="gcspy.server.dir" msg="${gcspy.error}" location="${components.file}"/>
+    <test-file name="gcspy.client.dir" msg="${gcspy.error}" location="${components.file}"/>
+
+    <fail if="is_svp">GCSpy can not be combined with a single virtual processor.</fail>
+  </target>
+
+  <!--
+Check to make sure all required properties are specified. This includes properties that define the:
+ * host environment
+ * target platform
+ * configuration settings
+ * component properties for classpath, gcspy etc.
+  -->
+  <target name="check-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classpath-properties,check-gcspy-properties"
+          description="Check that all require properties are specified.">
+
+    <!-- setup properties for start of build. -->
+    <tstamp prefix="start">
+      <format property="time" pattern="DD MMMM yyyy HH:mm"/>
+    </tstamp>
+
+    <!-- set include.* properties if corresponding feature is in use. Properties used by if/unless guards. -->
+    <condition property="include.all" value="true">
+      <equals arg1="${config.include.all-classes}" arg2="1"/>
+    </condition>
+    <condition property="include.opt" value="true">
+      <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+    </condition>
+    <condition property="include.aos" value="true">
+      <and>
+        <equals arg1="${config.include.aos}" arg2="1"/>
+        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+      </and>
+    </condition>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *    Check host and target are identical when building native components   * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="check-host-and-target-match">
+    <attribute name="message"/>
+    <sequential>
+      <condition property="host_and_target_same" value="true">
+        <equals arg1="${host.name}" arg2="${target.name}"/>
+      </condition>
+      <fail unless="host_and_target_same">
+        Host and target are not the same and thus @{message}
+      </fail>
+    </sequential>
+  </macrodef>
+
+</project>

@@ -1,0 +1,4 @@
+[Lcom/ibm/jikesrvm/opt/OPT_OperatorClass;
+[Lcom/ibm/jikesrvm/opt/OPT_ResourceReservation;
+[Lcom/ibm/jikesrvm/opt/ir/OPT_Operator;
+[Lcom/ibm/jikesrvm/opt/ir/OPT_Register;

@@ -1,0 +1,30 @@
+# Select runtime compiler, either opt or base. Defaults to base.
+config.runtime.compiler=
+# Select bootimage compiler, either opt or base. Defaults to base.
+config.bootimage.compiler=
+# Specify class name of garbage collector plan.
+config.mmtk.plan=
+
+# 1 to include adaptive system. Must also have runtime compiler set to opt. Defaults to 0.
+config.include.aos=
+# 1 to include opt-compiler test harness. Must also have runtime compiler set to opt. Defaults to 0.
+config.include.opt-harness=
+
+# 1 to compile the RVM with GCSpy support. Default to 0.
+config.include.gcspy=
+
+# Include all reacable RVM classes in the bootimage. Defaults to 0.
+config.include.all-classes=
+
+# Either extreme, normal or none. Defaults to normal.
+config.assertions=
+
+# Default Initial heap size in MB. Defaults to 20.
+config.default-heapsize.initial=
+
+# Default Maximum heap size in MB. Defaults to 100.
+config.default-heapsize.maximum=
+
+# Any extra args to pass to bootimage compiler. Default to "".
+config.bootimage.compiler.args=
+

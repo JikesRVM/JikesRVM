@@ -1,0 +1,18 @@
+# Must be one of ia32 or ppc
+target.arch= 
+# Must be one of AIX, Linux or OSX
+target.os=
+# Must be 32 or 64
+target.address.size=
+
+target.bootimage.code.address=
+target.bootimage.data.address=
+target.bootimage.rmap.address=
+# 64 bit architectures should postfix max mappable address with L or else it will be invalid
+target.max-mappable.address=
+
+# suffix for shared libraries
+target.dll-ext=
+
+# prefix for shared libraries
+target.dll-prefix=

@@ -1,0 +1,13 @@
+# This file defines the default values for config properties
+config.runtime.compiler=base
+config.bootimage.compiler=base
+config.include.aos=0
+config.include.opt-harness=0
+config.include.gcspy=0
+config.include.all-classes=0
+config.assertions=normal
+config.default-heapsize.initial=20
+config.default-heapsize.maximum=100
+config.bootimage.compiler.args=
+config.single.virtual.processor=0
+config.intercept.blocking.system-calls=1

@@ -1,0 +1,319 @@
+<!--
+common build component for downloading and building required components.
+ jikesrvm.dir MUST be set to base directory before importing project.
+-->
+<project name="components">
+
+  <!-- location of components -->
+  <property name="components.dir" location="${jikesrvm.dir}/components"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing Classpath component             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- init properties for downloading classpath from cvs or from web -->
+  <target name="init-classpath-properties">
+    <check-host-and-target-match message="can not download and build Classpath."/>
+    <property name="classpath.component.dir" location="${components.dir}/classpath"/>
+    <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
+    <property name="classpath.dir" value="${classpath.package.dir}/classpath"/>
+
+    <condition property="classpath.from-web" value="true">
+      <and>
+        <not>
+          <isset property="classpath.from-cvs"/>
+        </not>
+        <not>
+          <isset property="classpath.from-web"/>
+        </not>
+        <or>
+          <not>
+            <available file="${classpath.package.dir}/classpath/README"/>
+          </not>
+          <isset property="classpath.force-download"/>
+        </or>
+      </and>
+    </condition>
+  </target>
+
+  <!-- download classpath from cvs -->
+  <target name="get-classpath-from-cvs" depends="init-classpath-properties" if="classpath.from-cvs">
+    <property name="classpath.tag" value="generics-0_${classpath.version}-release"/>
+    <test-file name="cvs.exe" location="${host.file}"/>
+    <mkdir dir="${classpath.package.dir}"/>
+    <delete dir="${classpath.package.dir}/classpath"/>
+    <exec executable="${cvs.exe}" failonerror="true" dir="${classpath.package.dir}">
+      <arg value="-q"/>
+      <arg value="-z3"/>
+      <arg value="-d:pserver:anonymous@cvs.savannah.gnu.org:/sources/classpath"/>
+      <arg value="co"/>
+      <arg value="-r"/>
+      <arg value="${classpath.tag}"/>
+      <arg value="classpath"/>
+    </exec>
+    <exec executable="${classpath.dir}/autogen.sh" failonerror="true" dir="${classpath.dir}"/>
+  </target>
+
+  <!-- download classpath from web -->
+  <target name="get-classpath-from-web" depends="init-classpath-properties" if="classpath.from-web">
+    <test-file name="tar.exe" location="${host.file}"/>
+    <property name="classpath.web-archive" value="classpath-0.${classpath.version}-generics.tar.gz"/>
+    <mkdir dir="${classpath.package.dir}"/>
+    <get src="ftp://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+         dest="${classpath.package.dir}/${classpath.web-archive}"/>
+    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
+    <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">
+      <arg value="xzf"/>
+      <arg value="${classpath.web-archive}"/>
+    </exec>
+    <move file="${classpath.package.dir}/classpath-0.${classpath.version}-generics"
+          tofile="${classpath.package.dir}/classpath"/>
+  </target>
+
+  <target name="get-classpath" depends="get-classpath-from-web,get-classpath-from-cvs"/>
+
+  <!-- build classpath in classpath.dir -->
+  <target name="build-classpath" depends="get-classpath" description="Download Classpath and build.">
+    <test-file name="ecj.exe" location="${host.file}"/>
+    <test-file name="make.exe" location="${host.file}"/>
+
+    <condition property="cp.enable.gtk-peer" value=" --enable-gtk-peer" else=" --disable-gtk-peer">
+      <and>
+        <not>
+          <or>
+            <equals arg1="${target.os}" arg2="AIX"/>
+            <equals arg1="${target.name}" arg2="x86_64-linux"/>
+            <equals arg1="${target.name}" arg2="ppc64-linux"/>
+          </or>
+        </not>
+        <or>
+          <available file="/usr/include/gtk-2.0/gtk/gtk.h"/>
+          <available file="/opt/gnome/include/gtk-2.0/gtk/gtk.h"/>
+        </or>
+      </and>
+    </condition>
+
+    <condition property="cp.disable.alsa" value=" --disable-alsa" else="">
+      <equals arg1="${target.name}" arg2="x86_64-linux"/>
+    </condition>
+
+    <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
+      <!-- need to pass thru compiler settings so if we are building on
+      64 bit system the libraries are created appropriately -->
+      <env key="CXX" value="${c++.exe} ${c++.args}"/>
+      <env key="CC" value="${c.exe} ${c.args}"/>
+      <!--<env key="FIND" value=""/>-->
+      <!--<env key="ZIP" value=""/>-->
+      <!--<env key="AR" value=""/>-->
+      <!--<env key="AR_FLAGS" value=""/> -->
+      <arg value="--enable-jni"/>
+      <arg value="--with-ecj=${ecj.exe}"/>
+      <arg value="--disable-plugin"/>
+      <arg value="--disable-gconf-peer"/>
+      <arg line="${cp.enable.gtk-peer}${cp.disable.alsa}"/>
+    </exec>
+    <!-- skiping AIX munging of build files as that should be pushed upstream! -->
+    <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}"/>
+
+    <mkdir dir="${classpath.package.dir}/${target.name}/lib"/>
+    <jar file="${classpath.package.dir}/${target.name}/lib/src.jar" basedir="${classpath.dir}">
+      <include name="java/**/*.java"/>
+      <include name="javax/**/*.java"/>
+      <include name="gnu/**/*.java"/>
+    </jar>
+    <copy file="${classpath.dir}/lib/glibj.zip" tofile="${classpath.package.dir}/${target.name}/lib/classpath.jar"/>
+
+    <condition property="library.suffix" value=".so">
+      <equals arg1="${target.os}" arg2="Linux"/>
+    </condition>
+    <condition property="library.suffix" value=".so.0">
+      <equals arg1="${target.os}" arg2="AIX"/>
+    </condition>
+    <condition property="library.suffix" value=".dylib">
+      <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+
+    <copy todir="${classpath.package.dir}/${target.name}/lib" flatten="true">
+      <regexpmapper from="^(.*${file.separator})lib([^${file.separator}]+)${library.suffix}$$"
+                    to="${target.dll-prefix}\2${target.dll-ext}"/>
+      <fileset dir="${classpath.dir}">
+        <include name="native/jni/**/.libs/*${library.suffix}"/>
+        <include name="native/jawt/.libs/*${library.suffix}"/>
+      </fileset>
+    </copy>
+
+    <echo>
+      Edit the components configuration file ${components.file} and set the following property:
+      ${target.name}.classpath.lib.dir=${classpath.package.dir}/${target.name}/lib
+    </echo>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *  Downloading and installing Java Advanced Imaging component (for GCSpy)  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-jai-properties">
+    <check-host-and-target-match message="can not download Java Advanced Imaging component."/>
+    <property name="jai.component.dir" location="${components.dir}/jai"/>
+    <property name="jai.package.dir" value="${jai.component.dir}/${jai.version}"/>
+    <property name="jai.dir" value="${jai.component.dir}/${jai.version}/jai-${jai.version}"/>
+    <condition property="jai.from-web" value="true">
+      <or>
+        <not>
+          <available file="${jai.dir}/lib/jai_core.jar"/>
+        </not>
+        <isset property="jai.force-download"/>
+      </or>
+    </condition>
+    <condition property="jai.from-web-for-linux-ia32" value="true">
+      <and>
+        <equals arg1="${jai.from-web}" arg2="true"/>
+        <equals arg1="${target.os}" arg2="Linux"/>
+        <equals arg1="${target.arch}" arg2="ia32"/>
+      </and>
+    </condition>
+    <condition property="invalid_jai_download" value="true">
+      <and>
+        <equals arg1="${jai.from-web}" arg2="true"/>
+        <not>
+          <equals arg1="${jai.from-web-for-linux-ia32}" arg2="true"/>
+        </not>
+      </and>
+    </condition>
+    <fail if="invalid_jai_download">
+      Unable to determine a location to automatically download JAI ${jai.version} from for the target
+      os and architecture. Please download JAI ${jai.version} manually, copy the jar and shared libraries
+      into a single directory and set the jai.lib.dir property to the directory location. i.e.
+      jai.lib.dir=${jai.package.dir}/lib
+    </fail>
+  </target>
+
+  <target name="get-jai-linux-ia32" depends="init-jai-properties" if="jai.from-web-for-linux-ia32">
+    <property name="jai.web-archive" value="jai-${jai.version}-lib-linux-i586.tar.gz"/>
+    <mkdir dir="${jai.package.dir}"/>
+    <get src="http://download.java.net/media/jai/builds/release/${jai.version}/${jai.web-archive}"
+         dest="${jai.package.dir}/${jai.web-archive}"/>
+    <untar src="${jai.package.dir}/${jai.web-archive}" dest="${jai.package.dir}" compression="gzip"/>
+
+    <mkdir dir="${jai.package.dir}/${target.name}/lib"/>
+    <copy todir="${jai.package.dir}/${target.name}/lib">
+      <fileset dir="${jai.dir}/lib">
+        <include name="*"/>
+      </fileset>
+    </copy>
+    <echo>
+      Edit the components configuration file ${components.file} and set the following property:
+      ${target.name}.jai.lib.dir=${jai.package.dir}/${target.name}/lib
+    </echo>
+  </target>
+
+  <target name="get-jai" depends="get-jai-linux-ia32"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing GCSpy component                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-gcspy-properties">
+    <check-host-and-target-match message="can not download and build GCSpy."/>
+    <propertycopy name="jai.lib.dir" from="${target.name}.jai.lib.dir"/>
+    <property name="jai.error"
+              value="The user can invoke get-jai target to download jai version ${jai.version} from the web."/>
+    <test-file name="jai.lib.dir" msg="${jai.error}" location="${components.file}"/>
+
+    <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
+    <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
+    <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
+    <condition property="gcspy.from-web" value="true">
+      <or>
+        <not>
+          <available file="${gcspy.package.dir}/gcspy/src/HISTORY"/>
+        </not>
+        <isset property="gcspy.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <!-- download gcspy from from web -->
+  <target name="get-gcspy" depends="init-gcspy-properties" if="gcspy.from-web">
+    <test-file name="tar.exe" location="${host.file}"/>
+
+    <property name="gcspy.web-archive" value="gcspy${gcspy.version}.tar.gz"/>
+    <mkdir dir="${gcspy.package.dir}"/>
+    <get src="http://www.cs.kent.ac.uk/projects/gc/gcspy/${gcspy.web-archive}"
+         dest="${gcspy.package.dir}/${gcspy.web-archive}"/>
+    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
+    <!-- TODO: determine how easy it is to use ant tar task -->
+    <exec executable="${tar.exe}" failonerror="true" dir="${gcspy.package.dir}">
+      <arg value="xzf"/>
+      <arg value="${gcspy.web-archive}"/>
+    </exec>
+
+    <replace file="${gcspy.dir}/src/src/java/GNUmakefile"
+             token="$$(JAI_ROOT)/lib/jai_core.jar"
+             value="${jai.lib.dir}/jai_core.jar"/>
+  </target>
+
+  <!-- build gcspy in gcspy.dir -->
+  <target name="build-gcspy" depends="get-gcspy" description="Download GCSpy and build.">
+    <test-file name="make.exe" location="${host.file}"/>
+
+    <!-- TODO: Separate client and server build so platforms without jai can still include server support -->
+
+    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/java">
+      <arg value="clean"/>
+      <arg value="all"/>
+      <arg value="install"/>
+    </exec>
+
+    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
+      <arg value="clean"/>
+      <arg value="all"/>
+      <arg value="install"/>
+    </exec>
+
+    <mkdir dir="${gcspy.package.dir}/${target.name}/client"/>
+    <jar destfile="${gcspy.package.dir}/${target.name}/client/gcspy-${gcspy.version}.jar" basedir="${gcspy.dir}/src/classes">
+      <include name="gcspy/**/*.class"/>
+      <include name="icons/**"/>
+    </jar>
+    <copy todir="${gcspy.package.dir}/${target.name}/client">
+      <fileset dir="${gcspy.dir}/src/classes">
+        <include name="plugins/**"/>
+      </fileset>
+    </copy>
+    <copy todir="${gcspy.package.dir}/${target.name}/client">
+      <fileset dir="${jai.lib.dir}">
+        <include name="*"/>
+      </fileset>
+    </copy>
+
+    <echo file="${gcspy.package.dir}/${target.name}/client/gcspy">#!/bin/bash
+      export GCSPY_DIR="`dirname "$$0"`"
+      export LD_LIBRARY_PATH=$$GCSPY_DIR:$$LD_LIBRARY_PATH
+      java -classpath $$GCSPY_DIR/gcspy-${gcspy.version}.jar:$$GCSPY_DIR/jai_core.jar gcspy.Main $*
+    </echo>
+    <chmod file="${gcspy.package.dir}/${target.name}/client/gcspy" perm="ugo+rx"/>
+
+    <mkdir dir="${gcspy.package.dir}/${target.name}/server"/>
+    <copy todir="${gcspy.package.dir}/${target.name}/server">
+      <fileset dir="${gcspy.dir}/src/src/c/lib">
+        <include name="*${target.dll-ext}"/>
+      </fileset>
+      <fileset dir="${gcspy.dir}/src/src/c">
+        <include name="include/*"/>
+      </fileset>
+    </copy>
+    <echo>
+      Edit the components configuration file ${components.file} and set the following properties:
+      ${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client
+      ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
+    </echo>
+  </target>
+
+</project>

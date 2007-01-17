@@ -1,0 +1,1098 @@
+<project name="JikesRVM" default="main" basedir=".">
+
+  <property name="jikesrvm.dir" location="${basedir}"/>
+  <import file="build/properties.xml"/>
+  <import file="build/components.xml"/>
+
+  <!-- location of resources -->
+  <property name="primordials.dir" location="build/primordials"/>
+  <property name="main.java" location="rvm/src"/>
+  <property name="mmtk.java" location="MMTk/src"/>
+  <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
+  <property name="vmmagic-stub.java" location="vmmagic/src"/>
+  <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
+  <property name="opt-test-harness.java" location="tools/optTestHarness"/>
+
+  <!-- Set the properties for intermediate directory -->
+  <property name="build.dir" location="target"/>
+  <property name="build.base" location="${build.dir}/${build.name}"/>
+
+  <property name="build.scratch" location="${build.dir}/scratch"/>
+
+  <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
+  <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
+  <property name="build.native" location="${build.base}/c"/>
+  <property name="build.objs" location="${build.base}/objs"/>
+  <property name="build.classes" location="${build.base}/classes"/>
+  <property name="build.rt.jar" location="${build.base}/rvmrt.jar"/>
+  <property name="build.vm.jar" location="${build.base}/jksvm.jar"/>
+  <property name="build.vmmagic.classes" location="${build.base}/vmmagic/classes"/>
+
+  <!-- Set the properties for directory of generated artifacts -->
+  <property name="generated.dir" location="generated"/>
+  <property name="generated.config.dir" location="${generated.dir}/configurations/${build.name}"/>
+  <property name="generated.config.native" location="${generated.config.dir}/native"/>
+  <property name="generated.config.java" location="${generated.config.dir}/java"/>
+
+  <property name="generated.java" location="${generated.dir}/main/java"/>
+  <property name="generated.ia32.java" location="${generated.dir}/ia32-32/main/java"/>
+  <property name="generated.arch.java" location="${generated.dir}/${target.arch}-${target.address.size}/main/java"/>
+  <property name="generated.vmmagic.arch.java" location="${generated.dir}/vmmagic/${target.address.size}/java"/>
+
+  <!-- Set the properties for distribution directory -->
+  <property name="dist.dir" location="dist"/>
+  <property name="dist.base" location="${dist.dir}/${build.name}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                         Setup filter properties                          * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="setup-filter-properties" depends="check-properties">
+    <condition property="arch.filter" value="-DRVM_FOR_IA32=1">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <condition property="os.filter" value="-DRVM_FOR_AIX=1">
+      <equals arg1="${target.os}" arg2="AIX"/>
+    </condition>
+    <condition property="os.filter" value="-DRVM_FOR_LINUX=1">
+      <equals arg1="${target.os}" arg2="Linux"/>
+    </condition>
+    <condition property="os.filter" value="-DRVM_FOR_OSX=1">
+      <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+
+    <condition property="runtime_compiler.filter" value="-DRVM_WITH_OPT_COMPILER=1">
+      <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+    </condition>
+    <condition property="runtime_compiler.filter" value="-DRVM_WITH_BASE_RUNTIME_COMPILER=1">
+      <equals arg1="${config.runtime.compiler}" arg2="base"/>
+    </condition>
+
+    <condition property="as.filter" value="-DRVM_WITH_ADAPTIVE_SYSTEM=1" else="">
+      <and>
+        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+        <equals arg1="${config.include.aos}" arg2="1"/>
+      </and>
+    </condition>
+    <condition property="base_compiler.filter" value="-DRVM_WITH_OPT_BOOTIMAGE_COMPILER=1">
+      <and>
+        <equals arg1="${config.bootimage.compiler}" arg2="opt"/>
+        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+      </and>
+    </condition>
+    <condition property="base_compiler.filter" value="-DRVM_WITH_BASE_BOOTIMAGE_COMPILER=1">
+      <equals arg1="${config.bootimage.compiler}" arg2="base"/>
+    </condition>
+    <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
+      <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
+    </condition>
+    <condition property="ss_gcspy.filter" value="-DRVM_WITH_SEMI_SPACE_GC_SPY=1" else="">
+      <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gcspy.SSGCspy"/>
+    </condition>
+    <condition property="assertions.filter" value="-DRVM_WITHOUT_ASSERTIONS=1">
+      <equals arg1="${config.assertions}" arg2="none"/>
+    </condition>
+    <condition property="assertions.filter" value="-DRVM_WITH_EXTREME_ASSERTIONS=1" else="">
+      <equals arg1="${config.assertions}" arg2="extreme"/>
+    </condition>
+    <condition property="allclasses.filter" value="-DRVM_WITH_ALL_CLASSES=1" else="">
+      <equals arg1="${config.include.all-classes}" arg2="1"/>
+    </condition>
+    <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
+      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+    <condition property="svp.filter" value="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1" else="">
+      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+    </condition>
+    <condition property="ipsc.filter" value="-DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1" else="">
+      <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
+    </condition>
+
+    <property name="ca.filter" value="-DBOOTIMAGE_CODE_ADDRESS=${target.bootimage.code.address}"/>
+    <property name="da.filter" value="-DBOOTIMAGE_DATA_ADDRESS=${target.bootimage.data.address}"/>
+    <property name="ra.filter" value="-DBOOTIMAGE_RMAP_ADDRESS=${target.bootimage.rmap.address}"/>
+    <property name="ma.filter" value="-DMAXIMUM_MAPPABLE_ADDRESS=${target.max-mappable.address}"/>
+    <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
+    <property name="cp.filter" value="-DRVM_WITH_CLASSPATH_0_${classpath.version}=1"/>
+    <property name="mtc.filter" value="-DRVM_WITH_MMTK_COLLECTORCONTEXT=${config.mmtk.plan}Collector"/>
+    <property name="mtx.filter" value="-DRVM_WITH_MMTK_MUTATORCONTEXT=${config.mmtk.plan}Mutator"/>
+    <property name="mtp.filter" value="-DRVM_WITH_MMTK_PLAN=${config.mmtk.plan}"/>
+    <property name="mts.filter" value="-DRVM_WITH_MMTK_PLANCONSTRAINTS=${config.mmtk.plan}Constraints"/>
+    <property name="ci.filter" value="-DRVM_BOOTIMAGE_CODE=${build.base}/RVM.code.image"/>
+    <property name="di.filter" value="-DRVM_BOOTIMAGE_DATA=${build.base}/RVM.data.image"/>
+    <property name="ri.filter" value="-DRVM_BOOTIMAGE_RMAP=${build.base}/RVM.rmap.image"/>
+
+    <property name="filter"
+              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ss_gcspy.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                    Building MMTk section of the build                    * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile-vmmagic-stub">
+    <mkdir dir="${build.vmmagic-stub.classes}"/>
+    <javac srcdir="${vmmagic-stub.java}" destdir="${build.vmmagic-stub.classes}" debug="true" debugLevel="lines,source"
+           source="1.5" target="1.5"/>
+  </target>
+
+  <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
+  <target name="compile-mmtk" depends="compile-vmmagic-stub" description="Compile MMTk toolkit.">
+    <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
+    <mkdir dir="${build.mmtk.classes}"/>
+    <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source" source="1.5"
+           target="1.5">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+      </classpath>
+    </javac>
+    <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                 Building and using the preprocessor.                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Macro to preprocess source files -->
+  <macrodef name="preprocess">
+    <attribute name="todir"/>
+    <attribute name="filelist"/>
+    <sequential>
+      <exec executable="${build.scratch.preprocessor}/preprocessor" failonerror="true">
+        <arg line="${filter}"/>
+        <arg value="--disable-modification-exit-status"/>
+        <arg value="@{todir}"/>
+        <arg line="@{filelist}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <target name="build-preprocessor" depends="check-properties,setup-filter-properties">
+    <property name="build.scratch.preprocessor" location="${build.dir}/scratch/preprocessor"/>
+    <mkdir dir="${build.scratch.preprocessor}"/>
+
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${c++.args}"/>
+      <arg value="-I${basedir}/include"/>
+      <arg value="${basedir}/tools/preprocessor/preprocessModifiedFiles.C"/>
+      <arg value="-o"/>
+      <arg value="${build.scratch.preprocessor}/preprocessor"/>
+    </exec>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                 Building and using the template-expander.                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Macro to preprocess source files -->
+  <macrodef name="GenerateFromTemplate">
+    <element name="args"/>
+    <sequential>
+      <java classname="GenerateFromTemplate" failonerror="true">
+        <classpath>
+          <pathelement location="${build.scratch.expander}"/>
+        </classpath>
+        <args/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <target name="build-template-expander" depends="check-properties">
+    <property name="build.scratch.expander" location="${build.dir}/scratch/expander"/>
+    <mkdir dir="${build.scratch.expander}"/>
+    <javac srcdir="${basedir}/tools/templateExpander" destdir="${build.scratch.expander}" debug="true"
+           debugLevel="lines,source" source="1.5" target="1.5"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *            Section for generating source prior to build occuring         * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- build baseclass for vmmagic -->
+  <target name="gen-vmmagic-word" depends="check-properties">
+    <mkdir dir="${generated.dir}/vmmagic/32/java/org/vmmagic/unboxed"/>
+    <mkdir dir="${generated.dir}/vmmagic/64/java/org/vmmagic/unboxed"/>
+    <copy file="${basedir}/tools/bootImageWriter/vmmagic/src/org/vmmagic/unboxed/ArchitecturalWord.template"
+          tofile="${generated.dir}/vmmagic/32/java/org/vmmagic/unboxed/ArchitecturalWord.java">
+      <filterset>
+        <filter token="32MASK" value=""/>
+        <filter token="64MASK" value="//"/>
+      </filterset>
+    </copy>
+    <copy file="${basedir}/tools/bootImageWriter/vmmagic/src/org/vmmagic/unboxed/ArchitecturalWord.template"
+          tofile="${generated.dir}/vmmagic/64/java/org/vmmagic/unboxed/ArchitecturalWord.java">
+      <filterset>
+        <filter token="32MASK" value="//"/>
+        <filter token="64MASK" value=""/>
+      </filterset>
+    </copy>
+  </target>
+
+  <!-- Macro to build IR and related artifacts (scheduler, burs) for opt compiler -->
+  <macrodef name="generate-ir">
+    <attribute name="arch"/>
+    <attribute name="addressSize"/>
+    <attribute name="operatorList"/>
+    <attribute name="rulesList"/>
+    <sequential>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir"/>
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${build.ir.dir}/OPT_Operator.template"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_Operator.java"/>
+          <arg value="ARCH_IR_DIR=@{arch}"/>
+          <arg value="ARCHITECTURE=@{arch}"/>
+          <arg value="ARCH_BITS=@{addressSize}"/>
+          <arg value="ARCH_OP_LIST=@{operatorList}"/>
+          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="ARCHPKG=@{arch}"/>
+        </args>
+      </GenerateFromTemplate>
+
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${build.ir.dir}/OPT_Operators.template"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_Operators.java"/>
+          <arg value="ARCH_IR_DIR=@{arch}"/>
+          <arg value="ARCHITECTURE=@{arch}"/>
+          <arg value="ARCH_BITS=@{addressSize}"/>
+          <arg value="ARCH_OP_LIST=@{operatorList}"/>
+          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="ARCHPKG=@{arch}"/>
+        </args>
+      </GenerateFromTemplate>
+
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${build.ir.dir}/OPT_OperatorNames.template"/>
+          <arg
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java"/>
+          <arg value="ARCH_IR_DIR=@{arch}"/>
+          <arg value="ARCHITECTURE=@{arch}"/>
+          <arg value="ARCH_BITS=@{addressSize}"/>
+          <arg value="ARCH_OP_LIST=@{operatorList}"/>
+          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="ARCHPKG=@{arch}"/>
+        </args>
+      </GenerateFromTemplate>
+
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${build.ir.dir}/InstructionFormats.template"/>
+          <arg
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW"/>
+          <arg value="ARCH_IR_DIR=@{arch}"/>
+          <arg value="ARCH_IF_LIST=${build.ir.dir}/@{arch}/InstructionFormatList.dat"/>
+          <arg value="ARCHITECTURE=@{arch}"/>
+          <arg value="ARCH_BITS=@{addressSize}"/>
+          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="ARCHPKG=@{arch}"/>
+        </args>
+      </GenerateFromTemplate>
+
+      <exec executable="${perl.exe}" failonerror="true">
+        <arg value="${build.ir.dir}/splitInstructionFormats.perl"/>
+        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir"/>
+        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW"/>
+      </exec>
+
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"/>
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${build.burs.dir}/ir.template"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/ir.brg"/>
+          <arg value="ARCHITECTURE_IR_DIR=${build.ir.dir}/@{arch}"/>
+          <arg value="ARCH_OP_LIST=@{operatorList}"/>
+          <arg value="THE_RULE_FILE=@{rulesList}"/>
+        </args>
+      </GenerateFromTemplate>
+
+      <exec executable="${build.scratch.jburg}/jburg"
+            dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+            failonerror="true">
+        <arg value="-a"/>
+        <arg value="@{arch}."/>
+        <arg value="-p"/>
+        <arg value="BURS"/>
+        <arg value="ir.brg"/>
+        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/jburg.out"/>
+      </exec>
+
+      <!-- FIXME when completely cut across to ant -->
+      <condition property="@{arch}-@{addressSize}.pp-filter" value="-DRVM_FOR_IA32=1" else="">
+        <equals arg1="@{arch}" arg2="ia32"/>
+      </condition>
+
+      <exec executable="${build.scratch.preprocessor}/preprocessor" failonerror="true">
+        <arg line="${@{arch}-@{addressSize}.pp-filter} --disable-modification-exit-status"/>
+        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java"/>
+        <arg line="${build.burs.dir}/OPT_BURS_TreeNode.template ${basedir}/tools-external/jburg/burg.template"/>
+      </exec>
+
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/OPT_BURS_TreeNode.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+                  files="OPT_BURS_TreeNode.template"/>
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+                  files="BURS_State.template"/>
+      </concat>
+
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/OPT_BURS_STATE.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt" files="burg.template"/>
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt" files="jburg.out"/>
+      </concat>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"/>
+      <GenerateFromTemplate>
+        <args>
+          <arg value="${basedir}/rvm/src-generated/opt-scheduler/OPT_OperatorClass.template"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/OPT_OperatorClass.java"/>
+          <arg value="ARCHITECTURE_IR_DIR=@{arch}"/>
+          <arg value="ADDRESS_MODE=@{addressSize}"/>
+        </args>
+      </GenerateFromTemplate>
+    </sequential>
+  </macrodef>
+
+  <!-- build tool used to create burs -->
+  <target name="build-jburg" depends="check-properties">
+    <property name="build.scratch.jburg" location="${build.dir}/scratch/jburg"/>
+    <mkdir dir="${build.scratch.jburg}"/>
+    <exec executable="${bison.exe}" failonerror="true">
+      <arg value="--output=${build.scratch.jburg}/gram.c"/>
+      <arg value="${basedir}/tools-external/jburg/gram.y"/>
+    </exec>
+    <exec executable="${c.exe}" failonerror="true">
+      <arg
+          line="-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes -Wno-undef"/>
+      <arg value="-I"/>
+      <arg value="${basedir}/tools-external/jburg"/>
+      <arg value="-o"/>
+      <arg value="${build.scratch.jburg}/jburg"/>
+      <arg value="${basedir}/tools-external/jburg/jburg.c"/>
+      <arg value="${build.scratch.jburg}/gram.c"/>
+    </exec>
+  </target>
+
+  <!-- build ir for target architecture -->
+  <target name="gen-opt-ir" depends="build-template-expander,build-jburg,build-preprocessor">
+    <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
+    <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
+
+    <!-- generate operator lists for ppc 32 bit -->
+    <concat destfile="${generated.dir}/PPC-32bit_OperatorList.dat">
+      <filelist dir="${build.ir.dir}/ppc"
+                files="OperatorList_Common.dat,OperatorList_Alu32.dat,OperatorList_Mem32.dat"/>
+    </concat>
+    <!-- generate operator lists for ppc 64 bit -->
+    <concat destfile="${generated.dir}/PPC-64bit_OperatorList.dat">
+      <filelist dir="${build.ir.dir}/ppc"
+                files="OperatorList_Common.dat,OperatorList_Alu64.dat,OperatorList_Mem64.dat"/>
+    </concat>
+    <!-- generate rule lists for ppc 32 bit -->
+    <concat destfile="${generated.dir}/PPC-32bit_RulesList.dat">
+      <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu32.rules,PPC_Mem32.rules"/>
+    </concat>
+    <!-- generate rule lists for ppc 64 bit -->
+    <concat destfile="${generated.dir}/PPC-64bit_RulesList.dat">
+      <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu64.rules,PPC_Mem64.rules"/>
+    </concat>
+
+    <generate-ir arch="ia32"
+                 addressSize="32"
+                 operatorList="${build.ir.dir}/ia32/OperatorList.dat"
+                 rulesList="${build.burs.dir}/ia32/IA32.rules"/>
+    <generate-ir arch="ppc"
+                 addressSize="32"
+                 operatorList="${generated.dir}/PPC-32bit_OperatorList.dat"
+                 rulesList="${generated.dir}/PPC-32bit_RulesList.dat"/>
+    <generate-ir arch="ppc"
+                 addressSize="64"
+                 operatorList="${generated.dir}/PPC-64bit_OperatorList.dat"
+                 rulesList="${generated.dir}/PPC-64bit_RulesList.dat"/>
+  </target>
+
+  <!-- build options -->
+  <target name="gen-options" depends="build-template-expander">
+    <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
+
+    <mkdir dir="${generated.java}/com/ibm/jikesrvm/opt"/>
+    <mkdir dir="${generated.java}/com/ibm/jikesrvm/adaptive"/>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${options.dir}/VM_Options.template"/>
+        <arg value="${generated.java}/com/ibm/jikesrvm/VM_Options.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.vm.dat"/>
+        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.vm.dat"/>
+      </args>
+    </GenerateFromTemplate>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${options.dir}/VM_BaselineOptions.template"/>
+        <arg value="${generated.java}/com/ibm/jikesrvm/VM_BaselineOptions.java"/>
+        <arg
+            value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.baseline.dat ${options.dir}/SharedBooleanOptions.dat"/>
+        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.baseline.dat ${options.dir}/SharedValueOptions.dat"/>
+        <arg value="MYTYPE=VM_BaselineOptions"/>
+      </args>
+    </GenerateFromTemplate>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${options.dir}/OPT_Options.template"/>
+        <arg value="${generated.java}/com/ibm/jikesrvm/opt/OPT_Options.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.opt.dat ${options.dir}/SharedBooleanOptions.dat"/>
+        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.opt.dat ${options.dir}/SharedValueOptions.dat"/>
+        <arg value="MYTYPE=OPT_Options"/>
+      </args>
+    </GenerateFromTemplate>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${options.dir}/VM_AOSOptions.template"/>
+        <arg value="${generated.java}/com/ibm/jikesrvm/adaptive/VM_AOSExternalOptions.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.aos.dat"/>
+        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.aos.dat"/>
+        <arg value="MYTYPE=VM_AOSExternalOptions"/>
+      </args>
+    </GenerateFromTemplate>
+  </target>
+
+  <target name="gen-ia32-assembler" depends="check-properties,build-template-expander,compile-vmmagic-stub">
+    <mkdir dir="${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
+    <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
+    <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
+      <arg value="genAssembler.sh"/>
+      <arg value="${generated.ia32.java}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
+      <arg value="VM_Assembler.in"/>
+    </exec>
+
+    <property name="build.scratch.ia32-assembler-opt" location="${build.dir}/scratch/ia32-assembler-opt"/>
+    <property name="build.ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
+
+    <mkdir dir="${build.scratch.ia32-assembler-opt}"/>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${build.ia32-assembler-opt.dir}/OPT_InstructionFormatTables.template"/>
+        <arg value="${build.scratch.ia32-assembler-opt}/OPT_InstructionFormatTables.java"/>
+        <arg value="FORMAT_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat"/>
+      </args>
+    </GenerateFromTemplate>
+    <GenerateFromTemplate>
+      <args>
+        <arg value="${build.ia32-assembler-opt.dir}/OPT_OperatorFormatTables.template"/>
+        <arg value="${build.scratch.ia32-assembler-opt}/OPT_OperatorFormatTables.java"/>
+        <arg value="OPERATOR_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/OperatorList.dat"/>
+      </args>
+    </GenerateFromTemplate>
+    <copy todir="${build.scratch.ia32-assembler-opt}">
+      <fileset dir="${main.java}">
+        <include name="com/ibm/jikesrvm/ia32/VM_RegisterConstants.java"/>
+        <include name="com/ibm/jikesrvm/ia32/VM_AssemblerConstants.java"/>
+      </fileset>
+    </copy>
+    <copy todir="${build.scratch.ia32-assembler-opt}">
+      <globmapper from="*.fake" to="*.java"/>
+      <fileset dir="${build.ia32-assembler-opt.dir}">
+        <include name="VM*.fake"/>
+        <include name="ArchitectureSpecific.fake"/>
+      </fileset>
+    </copy>
+    <copy file="${main.java}/com/ibm/jikesrvm/VM_ForwardReference.java"
+          tofile="${build.scratch.ia32-assembler-opt}/com/ibm/jikesrvm/VM_ForwardReference.java"/>
+    <copy file="${generated.ia32.java}/com/ibm/jikesrvm/ia32/VM_Assembler.java"
+          tofile="${build.scratch.ia32-assembler-opt}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
+
+    <javac srcdir="${build.scratch.ia32-assembler-opt}" destdir="${build.scratch.ia32-assembler-opt}" debug="true"
+           debugLevel="lines,source" source="1.5" target="1.5">
+      <src path="${build.ia32-assembler-opt.dir}"/>
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+      </classpath>
+    </javac>
+    <java classname="GenerateAssembler" failonerror="true" fork="true">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.scratch.ia32-assembler-opt}"/>
+      </classpath>
+      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
+    </java>
+  </target>
+
+  <target name="gen-config-source" depends="check-properties,build-preprocessor">
+    <mkdir dir="${generated.config.java}"/>
+    <preprocess todir="${generated.config.java}"
+                filelist="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.java"/>
+    <preprocess todir="${generated.config.java}"
+                filelist="${basedir}/rvm/src-generated/vm-configuration/VM_HeapLayoutConstants.java"/>
+    <preprocess todir="${generated.config.java}"
+                filelist="${basedir}/rvm/src-generated/vm-configuration/Selected.java"/>
+    <!-- TODO: this following should be moved into architecture part of generation. It is not atm as it relies on preprocessor and defines -->
+    <preprocess todir="${generated.config.java}"
+                filelist="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.java"/>
+
+    <mkdir dir="${generated.config.native}"/>
+    <echo file="${generated.config.native}/RunBootImage.h">
+      const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
+      const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
+      const char *rvm_version = "Jikes RVM ${rvm.version}";
+      const char *rvm_configuration = "${config.name}";
+      const char *rvm_host_configuration = "${config.file}";
+      const char *rvm_target_configuration = "${target.file}";
+    </echo>
+  </target>
+
+  <!-- Control targets for the source generation -->
+  <target name="do-gen-source"
+          depends="gen-vmmagic-word,gen-options,gen-opt-ir,gen-ia32-assembler,gen-config-source">
+    <touch file="${generated.dir}/SourceGenerated"/>
+  </target>
+
+  <target name="gen-source-check" depends="check-properties">
+    <condition property="generated-source.present" value="1">
+      <and>
+        <available file="${generated.dir}/SourceGenerated"/>
+        <not>
+          <isset property="force.generation"/>
+        </not>
+      </and>
+    </condition>
+  </target>
+
+  <target name="prepare-source" depends="gen-source-check" unless="generated-source.present"
+          description="Generate configuration independent source if required or force.generation is set.">
+    <antcall target="do-gen-source"/>
+  </target>
+
+  <target name="do-gen-config-source" depends="gen-config-source">
+    <touch file="${generated.config.dir}/SourceGenerated"/>
+  </target>
+
+  <target name="gen-config-source-check" depends="check-properties">
+    <condition property="generated-config-source.present" value="1">
+      <and>
+        <available file="${generated.config.dir}/SourceGenerated"/>
+        <not>
+          <isset property="force.generation"/>
+        </not>
+      </and>
+    </condition>
+  </target>
+
+  <target name="prepare-config-source" depends="gen-config-source-check" unless="generated-config-source.present"
+          description="Generate source for the current configuration if required or force.generation is set.">
+    <antcall target="do-gen-config-source"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *             Section for compiling and packaging VM and RT source         * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source"
+          description="Compile the main java source.">
+
+    <condition property="include.opt-test-harness" value="true">
+      <and>
+        <equals arg1="${config.include.opt-harness}" arg2="1"/>
+        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+      </and>
+    </condition>
+
+    <!--
+     FIXME: When we can capture the primordials based on reacability we will not need to delete class dir
+     here. We will also be able to compile ALL classes in one sweep.
+    -->
+    <delete dir="${build.classes}"/>
+    <mkdir dir="${build.classes}"/>
+    <javac destdir="${build.classes}"
+           debug="true"
+           debugLevel="lines,source"
+           source="1.5"
+           target="1.5"
+           srcdir="${main.java}"
+           sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${generated.java}:${main.java}:${mmtk-rvm.java}:${opt-test-harness.java}">
+      <bootclasspath>
+        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
+      </bootclasspath>
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+      </classpath>
+      <include name="Dummy.java"/>
+      <include name="OptDummy.java"/>
+      <include name="gnu/**/*.java"/>
+      <include name="java/**/*.java"/>
+      <include name="com/ibm/jikesrvm/mm/mmtk/**/*.java"/>
+      <include name="OptTestHarness.java" if="include.opt-test-harness"/>
+      <src path="${mmtk-rvm.java}"/>
+      <src path="${opt-test-harness.java}"/>
+    </javac>
+  </target>
+
+  <target name="compile-vmmagic" depends="compile">
+    <mkdir dir="${build.vmmagic.classes}"/>
+    <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="lines,source"
+           source="1.5" target="1.5">
+      <src path="${generated.vmmagic.arch.java}"/>
+      <classpath>
+        <pathelement location="${build.classes}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="package" depends="compile,compile-vmmagic" description="Package the runtime and virtual machine jars.">
+    <!-- create a rt.jar for the RVM -->
+    <copy file="${classpath.lib.dir}/classpath.jar" tofile="${build.rt.jar}"/>
+    <zip destfile="${build.rt.jar}" update="true" basedir="${build.classes}">
+      <include name="java/**"/>
+      <include name="gnu/**"/>
+    </zip>
+    <jar destfile="${build.vm.jar}" update="true">
+      <fileset dir="${build.classes}">
+        <exclude name="java/**"/>
+        <exclude name="gnu/**"/>
+      </fileset>
+      <fileset dir="${build.vmmagic.classes}"/>
+    </jar>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                Section for building the boot image                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="gen-primordial-list">
+
+    <fileset id="primordials.main" dir="${build.classes}">
+      <include name="**/VM*.class"/>
+      <include name="com/**/*.class" if="include.all"/>
+      <include name="com/ibm/jikesrvm/adaptive/**/*.class" if="include.aos"/>
+      <exclude name="com/ibm/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
+      <include name="com/ibm/jikesrvm/opt/**/*.class" if="include.opt"/>
+      <exclude name="com/ibm/jikesrvm/opt/**/*.class" unless="include.opt"/>
+      <exclude name="com/ibm/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
+      <include name="com/ibm/jikesrvm/osr/**/*.class" if="include.opt"/>
+      <exclude name="com/ibm/jikesrvm/osr/**/*.class" unless="include.opt"/>
+      <exclude name="com/ibm/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
+      <include name="com/ibm/jikesrvm/memorymanagers/**/*.class"/>
+      <include name="com/ibm/jikesrvm/mm/mmtk/**/*.class"/>
+      <include name="com/ibm/jikesrvm/${target.arch}/**/*.class"/>
+      <include name="com/ibm/jikesrvm/ArchitectureSpecific$VM*.class"/>
+      <include name="com/ibm/jikesrvm/ArchitectureSpecific$OSR*.class" if="include.opt"/>
+      <include name="com/ibm/jikesrvm/ArchitectureSpecific$OPT*.class" if="include.opt"/>
+      <exclude name="com/ibm/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
+      <include name="**/JikesRVMSupport.class"/>
+      <include name="org/mmtk/**/*.class"/>
+    </fileset>
+    <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
+      <include name="**/*.class"/>
+    </fileset>
+    <property name="primordials.main" refid="primordials.main"/>
+    <property name="primordials.vmmagic" refid="primordials.vmmagic"/>
+
+    <echo file="${build.base}/ClassesForImage.txt"
+          message="${primordials.main}${line.separator}${primordials.vmmagic}${line.separator}"/>
+    <replace file="${build.base}/ClassesForImage.txt" token=";" value="${line.separator}"/>
+    <replaceregexp file="${build.base}/ClassesForImage.txt" match="(.*).class" replace="L\1;" byline="true"/>
+
+    <condition property="primordials.aos" value=",RVM_AOS.txt" else="">
+      <isset property="include.aos"/>
+    </condition>
+    <condition property="primordials.opt" value=",RVM_OPT.txt" else="">
+      <isset property="include.opt"/>
+    </condition>
+    <condition property="primordials.opt-all" value=",RVM_OPT_ALL.txt" else="">
+      <and>
+        <isset property="include.opt"/>
+        <isset property="include.all"/>
+      </and>                              
+    </condition>
+    <condition property="primordials.ppc-all" value=",RVM_PPC_ALL.txt" else="">
+      <and>
+        <equals arg1="${target.arch}" arg2="ppc"/>
+        <isset property="include.all"/>
+      </and>
+    </condition>
+    <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <concat destfile="${build.base}/Primordials.txt">
+      <filelist dir="${build.base}" files="ClassesForImage.txt"/>
+      <filelist dir="${primordials.dir}"
+                files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.opt-all}${primordials.ppc-all}${primordials.arch}"/>
+    </concat>
+    <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
+  </target>
+
+  <target name="build-bootimage-writer" depends="build-preprocessor,package">
+    <property name="build.scratch.bootimage-writer" value="${build.scratch}/bootimage-writer"/>
+    <mkdir dir="${build.scratch.bootimage-writer}"/>
+
+    <property name="bti.dir" value="${basedir}/tools/bootImageWriter"/>
+    <preprocess todir="${build.scratch.bootimage-writer}"
+                filelist="${bti.dir}/BootImage.java ${bti.dir}/BootImageMap.java ${bti.dir}/BootImageWorker.java ${bti.dir}/BootImageWriter.java ${bti.dir}/BootImageWriterConstants.java ${bti.dir}/BootImageWriterMessages.java"/>
+    <javac srcdir="${build.scratch.bootimage-writer}" destdir="${build.scratch.bootimage-writer}" debug="true"
+           debugLevel="lines,source" source="1.5" target="1.5">
+      <classpath>
+        <pathelement location="${build.vm.jar}"/>
+        <pathelement location="${build.rt.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="build-bootimage" depends="build-bootimage-writer,gen-primordial-list">
+    <path id="rvm.class.path">
+      <pathelement location="${build.vm.jar}"/>
+      <pathelement location="${build.rt.jar}"/>
+    </path>
+    <property name="rvm.class.path" refid="rvm.class.path"/>
+
+    <condition property="endian_opt" value="-littleEndian" else="">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+
+    <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
+    <java classname="BootImageWriter" fork="yes"
+          maxmemory="500M"
+          failonerror="true"
+          dir="${basedir}/tools/bootImageWriter"
+          output="${build.base}/BootImageWriterOutput.txt">
+      <classpath>
+        <pathelement location="${build.scratch.bootimage-writer}"/>
+        <path refid="rvm.class.path"/>
+      </classpath>
+
+      <sysproperty key="mmtk.hostjvm" value="com.ibm.jikesrvm.mm.mmtk.Factory"/>
+      <sysproperty key="java.security.policy" value="rvm.security"/>
+      <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
+      <jvmarg value="-Xss2m"/>
+      <arg value="-classpath"/>
+      <arg value="${rvm.class.path}"/>
+      <arg value="-n"/>
+      <arg value="${build.base}/Primordials.txt"/>
+      <arg value="-oc"/>
+      <arg value="${build.base}/RVM.code.image"/>
+      <arg value="-od"/>
+      <arg value="${build.base}/RVM.data.image"/>
+      <arg value="-or"/>
+      <arg value="${build.base}/RVM.rmap.image"/>
+      <arg value="-demographics"/>
+      <arg value="-m"/>
+      <arg value="${build.base}/RVM.map"/>
+      <!-- -X:bc:verbose=true -->
+      <arg line="${config.bootimage.compiler.args} ${endian_opt} -da"/>
+      <arg value="${target.bootimage.data.address}"/>
+      <arg value="-ca"/>
+      <arg value="${target.bootimage.code.address}"/>
+      <arg value="-ra"/>
+      <arg value="${target.bootimage.rmap.address}"/>
+    </java>
+
+    <loadfile property="bootimage.warnings" srcFile="${build.base}/BootImageWriterOutput.txt">
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="^WARNING"/>
+        </linecontainsregexp>
+      </filterchain>
+    </loadfile>
+    <fail if="bootimage.warnings" message="${bootimage.warnings}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                Section for building the booter                           * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="build-interface-generator" depends="package,build-preprocessor">
+    <property name="build.scratch.interface-generator" value="${build.scratch}/interface-generator"/>
+    <mkdir dir="${build.scratch.interface-generator}"/>
+
+    <condition property="arch" value="IA">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arch" value="PPC">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <property name="bir.dir" location="${basedir}/tools/bootImageRunner"/>
+    <preprocess todir="${build.scratch.interface-generator}"
+                filelist="${bir.dir}/GenerateInterfaceDeclarations.java ${bir.dir}/GenArch.java ${bir.dir}/GenArch${arch}.java"/>
+    <javac srcdir="${build.scratch.interface-generator}" destdir="${build.scratch.interface-generator}" debug="true"
+           debugLevel="lines,source" source="1.5" target="1.5">
+      <classpath>
+        <pathelement location="${build.rt.jar}"/>
+        <pathelement location="${build.vm.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- Generate InterfaceDeclarations.h for booter -->
+  <target name="gen-interface" depends="build-interface-generator">
+    <mkdir dir="${build.native}"/>
+    <java classname="GenerateInterfaceDeclarations" fork="yes" maxmemory="200M" failonerror="true">
+      <classpath>
+        <pathelement location="${build.scratch.interface-generator}"/>
+        <pathelement location="${build.vm.jar}"/>
+        <pathelement location="${build.rt.jar}"/>
+      </classpath>
+      <sysproperty key="mmtk.hostjvm" value="com.ibm.jikesrvm.mm.mmtk.Factory"/>
+      <jvmarg value="-Xbootclasspath/a:${build.rt.jar}"/>
+      <arg value="-da"/>
+      <arg value="${target.bootimage.data.address}"/>
+      <arg value="-ca"/>
+      <arg value="${target.bootimage.code.address}"/>
+      <arg value="-ra"/>
+      <arg value="${target.bootimage.rmap.address}"/>
+      <arg value="-out"/>
+      <arg value="${build.native}/InterfaceDeclarations.h"/>
+    </java>
+  </target>
+
+  <!-- Generate JNI headers for booter -->
+  <target name="gen-jni-headers" depends="package">
+    <mkdir dir="${build.native}"/>
+    <javah destdir="${build.native}" classpath="${build.vm.jar}">
+      <class name="com.ibm.jikesrvm.VM_DynamicLibrary"/>
+      <class name="com.ibm.jikesrvm.VM_Process"/>
+    </javah>
+  </target>
+
+  <!-- generate all headers required when compiling bootloader -->
+  <target name="gen-booter-headers" depends="gen-jni-headers,gen-interface"/>
+
+  <!-- Setup any properties required during native compile of bootloader -->
+  <target name="check-bootloader-properties" depends="setup-filter-properties">
+    <check-host-and-target-match message="can not build the bootloader."/>
+    <property name="bl.dir" location="${basedir}/tools/bootImageRunner"/>
+
+    <condition property="gen-ppc-bootThread" value="true">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <condition property="include.syswrap" value="true">
+      <equals arg1="${config.intercept.blocking.system-calls}" arg2="1"/>
+    </condition>
+
+    <condition property="gcspy.includes.dir" value="-I${gcspy.server.dir}/include" else="">
+      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+    <condition property="gcspy.lib.dir" value="-L${gcspy.server.dir} -lgcspy" else="">
+      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+
+    <condition property="arch.includes" value="-I${basedir}/tools/ia32-disassembler">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arch.includes" value="-I${bl.dir}/powerPC">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <property name="rvm.includes"
+              value="-I${bl.dir} -I${basedir}/include -I${build.native} -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
+
+    <!-- TODO: -DHAVE_CXX_STRTOLD=1 should be configured -->
+    <echo file="${build.native}/config.h"></echo>
+    
+    <property name="rvm.defines" value="-D_REENTRANT ${filter} -DHAVE_CXX_STRTOLD=1 "/>
+
+    <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines}"/>
+    <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>
+
+    <condition property="pthread.lib" value="" else="-lpthread">
+      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+    </condition>
+
+    <condition property="rvm.arch.src"
+               value="${bl.dir}/IA32/initBootRecord.C ${bl.dir}/IA32/bootThread.S ${bl.dir}/IA32/libvm.C ${basedir}/tools/ia32-disassembler/disasm.C ${basedir}/tools/ia32-disassembler/ihnpdsm.C">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+
+    <condition property="rvm.arch.src"
+               value="${bl.dir}/powerPC/initBootRecord.C ${build.native}/bootThread.s ${bl.dir}/powerPC/libvm.C">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+
+    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src}"/>
+  </target>
+
+  <target name="build-syswrap" depends="check-bootloader-properties" if="include.syswrap">
+    <!-- create syswrap shared library -->
+    <property name="syswrap.dll" value="${target.dll-prefix}syswrap${target.dll-ext}"/>
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${rvm.c++.args}"/>
+      <arg line="-nostartfiles -Wl,--export-dynamic"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/${syswrap.dll}"/>
+      <arg value="${bl.dir}/syswrap.C"/>
+    </exec>
+  </target>
+
+  <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
+    <test-file name="cpp.exe" location="${host.file}"/>
+    <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
+      <arg line="${rvm.common.args}"/>
+      <arg value="-P"/>
+      <arg value="${basedir}/tools/bootImageRunner/powerPC/bootThread.c"/>
+    </exec>
+  </target>
+
+  <target name="build-bootloader" depends="build-syswrap,build-ppc-bootThread" description="Build the bootloader.">
+
+    <!-- create jvm shared library -->
+    <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${rvm.c++.args} -lpthread"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/${rvm.dll}"/>
+      <arg value="${bl.dir}/jvm.C"/>
+    </exec>
+
+    <!-- create rvmexec shared library -->
+    <property name="rvmexec.dll" value="${target.dll-prefix}rvmexec${target.dll-ext}"/>
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${rvm.c++.args}"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/${rvmexec.dll}"/>
+      <arg value="${bl.dir}/com_ibm_jikesrvm_VM_0005fProcess.C"/>
+    </exec>
+
+    <!-- create rvmdynlib shared library -->
+    <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.dll-ext}"/>
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${rvm.c++.args}"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/${rvmdynlib.dll}"/>
+      <arg value="${bl.dir}/com_ibm_jikesrvm_VM_0005fDynamicLibrary.C"/>
+    </exec>
+
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${pthread.lib} ${rvm.src} -lm -rdynamic -O2 -g"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/JikesRVM"/>
+      <arg value="-L${build.base}"/>
+      <arg value="-ldl"/>
+      <arg value="-lrvm"/>
+    </exec>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                       Section for building an image                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Setup image directory on host side -->
+  <target name="init-image-dir-on-host" depends="build-bootimage">
+    <mkdir dir="${dist.base}"/>
+    <copy todir="${dist.base}">
+      <fileset dir="${build.base}">
+        <include name="RVM.*.image"/>
+      </fileset>
+    </copy>
+    <condition property="preload"
+               value=""
+               else="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_DIR/${target.dll-prefix}syswrap${target.dll-ext}&quot;">
+      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+    </condition>
+
+    <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">
+      <filterset>
+        <filter token="PRELOAD" value="${preload}"/>
+      </filterset>
+    </copy>
+    <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
+    <copy file="${build.rt.jar}" todir="${dist.base}"/>
+    <copy file="${build.vm.jar}" todir="${dist.base}"/>
+  </target>
+
+  <!-- Setup distribution directory and copy all the classpath libraries to it -->
+  <target name="init-image-dir-on-target" depends="build-bootloader">
+    <mkdir dir="${dist.base}"/>
+    <copy todir="${dist.base}">
+      <fileset dir="${classpath.lib.dir}">
+        <include name="*${target.dll-ext}"/>
+      </fileset>
+    </copy>
+    <copy todir="${dist.base}">
+      <fileset dir="${build.base}">
+        <include name="*${target.dll-ext}"/>
+        <include name="JikesRVM"/>
+      </fileset>
+    </copy>
+    <chmod perm="ugo+rx">
+      <fileset dir="${dist.base}">
+        <include name="*${target.dll-ext}"/>
+        <include name="JikesRVM"/>
+      </fileset>
+    </chmod>
+  </target>
+
+  <target name="gcspy-to-image-dir" depends="init-image-dir-on-target" if="include.gcspy">
+    <copy todir="${dist.base}">
+      <fileset dir="${gcspy.server.dir}">
+        <include name="${target.dll-prefix}*${target.dll-ext}"/>
+      </fileset>
+    </copy>
+    <chmod perm="ugo+rx">
+      <fileset dir="${dist.base}">
+        <include name="*${target.dll-ext}"/>
+      </fileset>
+    </chmod>
+
+    <mkdir dir="${dist.base}/tools/gcspy"/>
+    <copy todir="${dist.base}/tools/gcspy">
+      <fileset dir="${gcspy.client.dir}"/>
+    </copy>
+    <chmod file="${dist.base}/tools/gcspy/gcspy" perm="ugo+rx"/>
+  </target>
+
+  <target name="setup-image" depends="gcspy-to-image-dir"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                                Meta targets                              * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="cross-compile-host" depends="gen-booter-headers,init-image-dir-on-host"
+          description="Cross compile host portion."/>
+  <target name="cross-compile-target" depends="setup-image" description="Cross compile target portion."/>
+
+  <target name="image" depends="cross-compile-host,cross-compile-target" description="Build an image."/>
+
+  <target name="main" depends="image" description="Build an image."/>
+
+  <target name="clean" description="Delete all the intermediate and image files.">
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.base}"/>
+  </target>
+
+  <target name="real-clean" depends="clean" description="Delete all the generated files.">
+    <delete dir="${generated.dir}"/>
+    <delete dir="${dist.dir}"/>
+    <delete>
+      <fileset dir="." includes="**/*~" defaultexcludes="false"/>
+    </delete>
+  </target>
+
+</project>
