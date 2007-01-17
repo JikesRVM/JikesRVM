@@ -126,7 +126,7 @@
     <property name="ri.filter" value="-DRVM_BOOTIMAGE_RMAP=${build.base}/RVM.rmap.image"/>
 
     <property name="filter"
-              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ss_gcspy.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
+              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
