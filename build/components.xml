@@ -221,10 +221,6 @@ common build component for downloading and building required components.
 
   <target name="init-gcspy-properties">
     <check-host-and-target-match message="can not download and build GCSpy."/>
-    <propertycopy name="jai.lib.dir" from="${target.name}.jai.lib.dir"/>
-    <property name="jai.error"
-              value="The user can invoke get-jai target to download jai version ${jai.version} from the web."/>
-    <test-file name="jai.lib.dir" msg="${jai.error}" location="${components.file}"/>
 
     <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
     <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
@@ -237,6 +233,12 @@ common build component for downloading and building required components.
         <isset property="gcspy.force-download"/>
       </or>
     </condition>
+    <condition property="include.gcspy-client" value="1">
+      <not>
+        <isset property="gcspy.skip-client"/>
+      </not>
+    </condition>
+    <test-file name="make.exe" location="${host.file}"/>
   </target>
 
   <!-- download gcspy from from web -->
@@ -253,25 +255,19 @@ common build component for downloading and building required components.
       <arg value="xzf"/>
       <arg value="${gcspy.web-archive}"/>
     </exec>
+  </target>
+
+  <target name="build-gcspy-client" depends="get-gcspy" if="include.gcspy-client">
+    <propertycopy name="gcspy.jai.lib.dir" from="${target.name}.jai.lib.dir"/>
+    <property name="jai.error"
+              value="The user can invoke get-jai target to download jai version ${jai.version} from the web. Alternatively the user can specify -Dgcspy.skip-client=1 when invoking the build-gcspy target to avoid building the gcspy client."/>
+    <test-file name="gcspy.jai.lib.dir" msg="${jai.error}" location="${components.file}"/>
 
     <replace file="${gcspy.dir}/src/src/java/GNUmakefile"
              token="$$(JAI_ROOT)/lib/jai_core.jar"
-             value="${jai.lib.dir}/jai_core.jar"/>
-  </target>
-
-  <!-- build gcspy in gcspy.dir -->
-  <target name="build-gcspy" depends="get-gcspy" description="Download GCSpy and build.">
-    <test-file name="make.exe" location="${host.file}"/>
-
-    <!-- TODO: Separate client and server build so platforms without jai can still include server support -->
+             value="${gcspy.jai.lib.dir}/jai_core.jar"/>
 
     <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/java">
-      <arg value="clean"/>
-      <arg value="all"/>
-      <arg value="install"/>
-    </exec>
-
-    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
       <arg value="clean"/>
       <arg value="all"/>
       <arg value="install"/>
@@ -299,6 +295,14 @@ common build component for downloading and building required components.
       java -classpath $$GCSPY_DIR/gcspy-${gcspy.version}.jar:$$GCSPY_DIR/jai_core.jar gcspy.Main $*
     </echo>
     <chmod file="${gcspy.package.dir}/${target.name}/client/gcspy" perm="ugo+rx"/>
+  </target>
+
+  <target name="build-gcspy" depends="build-gcspy-client" description="Download GCSpy and build.">
+    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
+      <arg value="clean"/>
+      <arg value="all"/>
+      <arg value="install"/>
+    </exec>
 
     <mkdir dir="${gcspy.package.dir}/${target.name}/server"/>
     <copy todir="${gcspy.package.dir}/${target.name}/server">
@@ -309,10 +313,15 @@ common build component for downloading and building required components.
         <include name="include/*"/>
       </fileset>
     </copy>
+    <condition property="gcspy.client.help"
+               value="      ${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client${line.separator}"
+               else="">
+      <isset property="include.gcspy-client"/>
+    </condition>
+
     <echo>
       Edit the components configuration file ${components.file} and set the following properties:
-      ${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client
-      ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
+${gcspy.client.help}      ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
     </echo>
   </target>
 

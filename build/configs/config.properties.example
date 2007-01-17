@@ -13,6 +13,9 @@ config.include.opt-harness=
 # 1 to compile the RVM with GCSpy support. Default to 0.
 config.include.gcspy=
 
+# 1 to include GCSpy client with rvm image. Default to 0.
+config.include.gcspy-client=
+
 # Include all reacable RVM classes in the bootimage. Defaults to 0.
 config.include.all-classes=
 

@@ -1044,7 +1044,15 @@
     </chmod>
   </target>
 
-  <target name="gcspy-to-image-dir" depends="init-image-dir-on-target" if="include.gcspy">
+  <target name="gcspy-client-to-image-dir" depends="init-image-dir-on-target" if="include.gcspy-client">
+    <mkdir dir="${dist.base}/tools/gcspy"/>
+    <copy todir="${dist.base}/tools/gcspy">
+      <fileset dir="${gcspy.client.dir}"/>
+    </copy>
+    <chmod file="${dist.base}/tools/gcspy/gcspy" perm="ugo+rx"/>
+  </target>
+
+  <target name="gcspy-to-image-dir" depends="gcspy-client-to-image-dir" if="include.gcspy">
     <copy todir="${dist.base}">
       <fileset dir="${gcspy.server.dir}">
         <include name="${target.dll-prefix}*${target.dll-ext}"/>
@@ -1055,12 +1063,6 @@
         <include name="*${target.dll-ext}"/>
       </fileset>
     </chmod>
-
-    <mkdir dir="${dist.base}/tools/gcspy"/>
-    <copy todir="${dist.base}/tools/gcspy">
-      <fileset dir="${gcspy.client.dir}"/>
-    </copy>
-    <chmod file="${dist.base}/tools/gcspy/gcspy" perm="ugo+rx"/>
   </target>
 
   <target name="setup-image" depends="gcspy-to-image-dir"/>

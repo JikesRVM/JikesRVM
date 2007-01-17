@@ -147,17 +147,34 @@ common build component for setting up and checking propertys.
     <condition property="include.gcspy" value="1">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
     </condition>
+    <condition property="include.gcspy-client" value="1">
+      <and>
+        <equals arg1="${config.include.gcspy}" arg2="1"/>
+        <equals arg1="${config.include.gcspy-client}" arg2="1"/>
+      </and>
+    </condition>
+
+    <condition property="gcspy-and-svp" value="1">
+      <and>
+        <isset property="include.gcspy"/>
+        <isset property="is.svp"/>
+      </and>
+    </condition>
+    <fail if="gcspy-and-svp">GCSpy can not be combined with a single virtual processor.</fail>
   </target>
 
-  <target name="check-gcspy-properties" depends="include-gcspy-check,check-config-properties" if="include.gcspy">
-    <propertycopy name="gcspy.server.dir" from="${target.name}.gcspy.server.dir"/>
+  <target name="check-gcspy-client-properties" depends="include-gcspy-check,check-config-properties" if="include.gcspy-client">
     <propertycopy name="gcspy.client.dir" from="${target.name}.gcspy.client.dir"/>
-    <property name="gcspy.error"
+    <property name="gcspy.client.error"
               value="The user can invoke build-gcspy target to download and build gcspy version ${gcspy.version} from the web."/>
-    <test-file name="gcspy.server.dir" msg="${gcspy.error}" location="${components.file}"/>
-    <test-file name="gcspy.client.dir" msg="${gcspy.error}" location="${components.file}"/>
+    <test-file name="gcspy.client.dir" msg="${gcspy.client.error}" location="${components.file}"/>
+  </target>
 
-    <fail if="is_svp">GCSpy can not be combined with a single virtual processor.</fail>
+  <target name="check-gcspy-properties" depends="check-gcspy-client-properties" if="include.gcspy">
+    <propertycopy name="gcspy.server.dir" from="${target.name}.gcspy.server.dir"/>
+    <property name="gcspy.server.error"
+              value="The user can invoke build-gcspy target to download and build gcspy version ${gcspy.version} from the web."/>
+    <test-file name="gcspy.server.dir" msg="${gcspy.server.error}" location="${components.file}"/>
   </target>
 
   <!--
