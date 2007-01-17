@@ -75,7 +75,7 @@ public class VM_ControllerThread extends VM_Thread {
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
       controllerInitDone();
-      VM.sysWrite("\nAOS: In non-adaptive mode; controller thread exiting.\n");
+      VM.sysWriteln("AOS: In non-adaptive mode; controller thread exiting.");
       return; // controller thread exits.
     }
 
@@ -100,7 +100,7 @@ public class VM_ControllerThread extends VM_Thread {
       // to have a fair comparison, we need to create the data structures 
       // of organizers
       createOrganizerThreads();
-      VM.sysWrite("\nAOS: In replay mode; controller thread only runs for OSR inlining.\n");
+      VM.sysWriteln("AOS: In replay mode; controller thread only runs for OSR inlining.");
       while (true) {
         if (VM_Controller.options.EARLY_EXIT &&
             VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {

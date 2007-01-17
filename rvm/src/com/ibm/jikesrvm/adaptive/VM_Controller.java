@@ -321,7 +321,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public static void stop() {
     if (!booted) return;
     
-    VM.sysWrite("\nAOS: Killing all adaptive system threads\n");
+    VM.sysWriteln("AOS: Killing all adaptive system threads");
     for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements(); ) {
       VM_Organizer organizer = e.nextElement();
       organizer.kill(new ThreadDeath(), true);
