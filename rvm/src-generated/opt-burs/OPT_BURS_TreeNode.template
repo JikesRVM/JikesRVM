@@ -23,7 +23,7 @@ import com.ibm.jikesrvm.opt.OPT_DepGraphNode;
  * as input to BURS.
  * Machine-generated, do not edit.
  * 
- * @see OPT_BURS
+ * @see com.ibm.jikesrvm.opt.OPT_BURS
  * @see OPT_BURS_STATE
  *
  * @author David Grove
