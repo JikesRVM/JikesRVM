@@ -288,14 +288,6 @@ public abstract class VM_Configuration {
     false;
    //-#endif
     
-    
-  public final static boolean BuildWithBumpAllocator =
-    //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
-    true;
-    //-#else
-    false;
-    //-#endif
-    
   public final static boolean BuildWithGCTrace = 
     //-#if RVM_WITH_GCTRACE
     true;
