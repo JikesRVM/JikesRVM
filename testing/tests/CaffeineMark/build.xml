@@ -1,0 +1,80 @@
+<project name="CaffeineMark" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="600" else="300">
+    <equals arg1="${test.performance.run}" arg2="true"/>
+  </condition>
+  <property name="test.max.heapsize" value="200"/>
+
+  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
+  <import file="${jikesrvm.dir}/build/properties.xml"/>
+  <import file="${jikesrvm.dir}/build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}"/>
+  <property name="build.classes" location="${build.dir}/classes"/>
+
+  <property name="CaffeineMark.dir" value="${external.lib.dir}/CaffeineMark-3.0"/>
+  <property name="test.class.path" value="${CaffeineMark.dir}:${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" classpath="${test.class.path}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="score">
+    <attribute name="name"/>
+    <attribute name="run"/>
+    <sequential>
+      <extractStatistic tag="CaffeineMark" key="@{name}.run@{run}" pattern="@{run} @{name} score:\t(.*)"/>
+    </sequential>
+  </macrodef>
+
+
+  <target name="test" depends="compile">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="CaffeineMark.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <rvm tag="CaffeineMark" class="RunCaffeine"/>
+
+    <startResults/>
+    <outputGroupStart/>
+    <outputTestStart tag="CaffeineMark"/>
+
+    <outputStatisticStart/>
+
+    <score run="1" name="Sieve"/>
+    <score run="1" name="Loop"/>
+    <score run="1" name="Logic"/>
+    <score run="1" name="String"/>
+    <score run="1" name="Float"/>
+    <score run="1" name="Method"/>
+
+    <score run="2" name="Sieve"/>
+    <score run="2" name="Loop"/>
+    <score run="2" name="Logic"/>
+    <score run="2" name="String"/>
+    <score run="2" name="Float"/>
+    <score run="2" name="Method"/>
+
+    <outputStatisticEnd/>
+
+    <outputTestResults tag="CaffeineMark"/>
+    <outputTestEnd/>
+    <displayTestResults tag="CaffeineMark"/>
+
+    <outputGroupEnd/>
+    <finishResults/>
+  </target>
+
+</project>

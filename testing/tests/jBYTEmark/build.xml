@@ -1,0 +1,74 @@
+<project name="jBYTEmark" default="test" basedir=".">
+
+  <property name="test.time.limit" value="900"/>
+  <property name="test.max.heapsize" value="150"/>
+
+  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
+  <import file="${jikesrvm.dir}/build/properties.xml"/>
+  <import file="${jikesrvm.dir}/build/tests.xml"/>
+
+  <property name="jBYTEmark.jar" value="${external.lib.dir}/jBYTEmark-0.9/jBYTEmark-0.9.jar"/>
+  <property name="test.class.path" value="${jBYTEmark.jar}"/>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                     Macros for outputting statistics                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="jbTestStat">
+    <attribute name="name"/>
+    <attribute name="key"/>
+    <sequential>
+      <property name="test.jBYTEmark.@{key}.pattern" value="Running: @{name}${line.separator}Avg: (.*)  Index: (.*)"/>
+      <extractStatistic tag="jBYTEmark" key="@{key}.average" pattern="${test.jBYTEmark.@{key}.pattern}" select="\1" />
+      <extractStatistic tag="jBYTEmark" key="@{key}.index" pattern="${test.jBYTEmark.@{key}.pattern}" select="\2" />
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-property name="jBYTEmark.jar" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <rvm tag="jBYTEmark" class="jBYTEmark"/>
+
+    <startResults/>
+    <outputGroupStart/>
+
+    <outputTestStart tag="jBYTEmark"/>
+
+    <outputStatisticStart/>
+
+    <jbTestStat name="Numeric Sort" key="NumericSort"/>
+    <jbTestStat name="String Sort" key="StringSort"/>
+    <jbTestStat name="Bitfield Operations" key="BitfieldOperations"/>
+    <jbTestStat name="FP Emulation" key="FPEmulation"/>
+    <jbTestStat name="Fourier" key="Fourier"/>
+    <jbTestStat name="Assignment" key="Assignment"/>
+    <jbTestStat name="IDEA Encryption" key="IDEAEncryption"/>
+    <jbTestStat name="Huffman Compression" key="HuffmanCompression"/>
+    <jbTestStat name="Neural Net" key="NeuralNet"/>
+    <jbTestStat name="LU Decomposition" key="LUDecomposition"/>
+
+    <extractStatistic tag="jBYTEmark" key="Integer.index" pattern="Integer Index: (.*)"/>
+    <extractStatistic tag="jBYTEmark" key="FP.index" pattern="FP Index: (.*)"/>
+
+    <outputStatisticEnd/>
+
+    <outputTestResults tag="jBYTEmark"/>
+    <outputTestEnd/>
+    <displayTestResults tag="jBYTEmark"/>
+
+    <outputGroupEnd/>
+    <finishResults/>
+
+  </target>
+
+</project>

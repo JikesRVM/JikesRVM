@@ -1,0 +1,276 @@
+**** START OF EXECUTION of fibo.run ()Z ****.
+Fibo returned: 17711
+**** RESULT: true
+**** START OF EXECUTION of tak_int.run ()Z ****.
+Tak_int returned: 7
+**** RESULT: true
+**** START OF EXECUTION of tak_long.run ()Z ****.
+Tak_long returned: 7
+**** RESULT: true
+**** START OF EXECUTION of tak_fp.run ()Z ****.
+Tak_fp returned: 7.0
+**** RESULT: true
+**** START OF EXECUTION of tak_db.run ()Z ****.
+Tak_db returned: 7.0
+**** RESULT: true
+**** START OF EXECUTION of table.run ()Z ****.
+Table returned: 4
+**** RESULT: true
+**** START OF EXECUTION of TestLookupSwitch.run ()Z ****.
+TestLookupSwitch returned: 1006
+**** RESULT: true
+**** START OF EXECUTION of DeBruijn.run ()Z ****.
+DeBruijn returned: 00000100011001010011101011011111
+**** RESULT: true
+**** START OF EXECUTION of hello.run ()Z ****.
+Hello returned: hello world
+**** RESULT: true
+**** START OF EXECUTION of virtual.run ()Z ****.
+Virtual returned: 5228
+**** RESULT: true
+**** START OF EXECUTION of sieve.run ()Z ****.
+Sieve returned: 3511
+**** RESULT: true
+**** START OF EXECUTION of hanoi.run ()Z ****.
+Hanoi returned: 1048575
+**** RESULT: true
+**** START OF EXECUTION of logic.run ()Z ****.
+15
+14
+15
+0
+268435200
+1048575
+-4096
+16777200
+-1
+-65536
+0
+8388592
+7
+5767168
+80
+86016
+**** RESULT: true
+**** START OF EXECUTION of unresolved.run ()Z ****.
+Unresolved returned: 120
+**** RESULT: true
+**** START OF EXECUTION of stPutGet.run ()Z ****.
+stPutGet returned: 7000
+**** RESULT: true
+**** START OF EXECUTION of virtUnPutGet.run ()Z ****.
+virtUnPutGet returned: 7000
+**** RESULT: true
+**** START OF EXECUTION of virtUnresolved.run ()Z ****.
+virtUnresolved returned: 120
+**** RESULT: true
+**** START OF EXECUTION of interf.run ()Z ****.
+Interf returned: 11000
+**** RESULT: true
+**** START OF EXECUTION of CheckStore.run ()Z ****.
+CheckStore prints: 
+ so1.
+ so2.
+**** RESULT: true
+**** START OF EXECUTION of TypeCheck.run ()Z ****.
+**** RESULT: true
+**** START OF EXECUTION of TestArithmetic.run ()Z ****.
+TestArithmetic5000000000
+-2
+-2
+2
+-20000000000
+-20000000000
+20000000000
+-2
+-2
+2
+ succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestArrayAccess.run ()Z ****.
+TestArrayAccess succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestCall.run ()Z ****.
+TestCall
+want: 5
+ got: 5
+want: -4
+ got: -4
+want: 3
+ got: 3
+want: 7.0
+ got: 7.0
+want: 211.0 
+ got: 211.0
+want: 7.0
+ got: 7.0
+**** RESULT: true
+**** START OF EXECUTION of TestCompare.run ()Z ****.
+TestCompare succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestConstants.run ()Z ****.
+TestConstants succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestConversions.run ()Z ****.
+TestConversions succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestFieldAccess.run ()Z ****.
+TestFieldAccess succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestInterfaceCall.run ()Z ****.
+TestInterfaceCall succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestMath.run ()Z ****.
+TestMath
+-- Math.floor --
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: 1.0 
+got:  1.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+
+want: -2.0 
+got:  -2.0
+-- Math.ceil --
+
+want: 2.0 
+got:  2.0
+
+want: 2.0 
+got:  2.0
+
+want: 2.0 
+got:  2.0
+
+want: 1.0 
+got:  1.0
+
+want: -2.0 
+got:  -2.0
+
+want: -1.0 
+got:  -1.0
+
+want: -1.0 
+got:  -1.0
+
+want: -1.0 
+got:  -1.0
+**** RESULT: true
+**** START OF EXECUTION of TestReturn.run ()Z ****.
+TestReturn succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestSpecialCall.run ()Z ****.
+TestSpecialCall
+want: A.init B.init C.init A.init B.foo C.bar C.foo
+ got: A.init B.init C.init A.init B.foo C.bar C.foo 
+**** RESULT: true
+**** START OF EXECUTION of TestStackAccess.run ()Z ****.
+TestStackAccess succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestSwitch.run ()Z ****.
+TestSwitch
+
+want: 99101199
+ got: 99101199
+
+want: 99102030405099
+ got: 99102030405099
+**** RESULT: true
+**** START OF EXECUTION of TestUnresolved.run ()Z ****.
+2
+1
+2
+1
+2
+1.0
+2.0
+2
+2
+2
+20
+1
+2
+**** RESULT: true
+**** START OF EXECUTION of TestInstanceOf.run ()Z ****.
+TestInstanceOf
+want: class cast exception
+ got: class cast exception
+ succeeded.
+**** RESULT: true
+**** START OF EXECUTION of TestExceptionThrow.run ()Z ****.
+run1
+TestExceptionThrow
+caught: MyError
+caught: class java.io.FileNotFoundException
+run2
+ IndexOutOfBoundsException: 'java.lang.IndexOutOfBoundsException: I was thrwon in run7()!!!', but caught in run()!!!
+ At End
+run3
+ NullPointerException
+ At End
+run4
+2
+run5
+ IndexOutOfBoundsException caught
+ At End
+run6
+5
+run7
+TestThrow
+caught: MyError
+caught: class java.io.FileNotFoundException
+run8
+ IndexOutOfBoundsException caught
+ At End
+run9
+does it work? 1   
+does it work? 2   
+does it work? 3   
+ IndexOutOfBoundsException with index = 3
+ NullPointerException caught.
+ Will throw again
+ so [0].
+does it work? 4   
+ IndexOutOfBoundsException with index = 4
+ NullPointerException caught.
+ Will throw again
+ so [2].
+ At End
+run10
+caught run12
+**** RESULT: true
+**** START OF EXECUTION of TestFinally.run ()Z ****.
+TestFinally
+2
+2
+false
+false
+10
+0
+3000
+hi
+bye
+**** RESULT: true
+**** START OF EXECUTION of inlineDeep.run ()Z ****.
+inlineDeep returned: -42
+**** RESULT: true
+**** START OF EXECUTION of inlineExcept.run ()Z ****.
+Caught IOOBE in foo
+**** RESULT: true

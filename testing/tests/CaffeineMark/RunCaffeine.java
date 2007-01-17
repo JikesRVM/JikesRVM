@@ -12,8 +12,12 @@
  */
 class RunCaffeine {
 
+  static int run;
+
   public static void main(String[] args) {
     BenchmarkUnit bu;
+
+    run = 1;
 
     bu = new BenchmarkUnit(new SieveAtom());
     runTest(bu);
@@ -32,6 +36,8 @@ class RunCaffeine {
 
     bu = new BenchmarkUnit(new MethodAtom());
     runTest(bu);
+
+    run = 2;
 
     bu = new BenchmarkUnit(new SieveAtom());
     runTest(bu);
@@ -56,7 +62,7 @@ class RunCaffeine {
 
   static void runTest(BenchmarkUnit benchmark) {
     try {
-      System.out.println(benchmark.testName()+" score:\t"+benchmark.testScore());
+      System.out.println(run + " " + benchmark.testName()+" score:\t"+benchmark.testScore());
     }
     catch (Throwable x) { x.printStackTrace(System.err); }
   }
