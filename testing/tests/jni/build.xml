@@ -61,7 +61,7 @@
     <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
       <exclude name="StackResize.java"/>
       <exclude name="NativeThreadsWorker.java"/>
-      <exclude name="NativeThreads.java"/>
+      <exclude name="tNativeThreads.java"/>
       <classpath>
         <pathelement path="${test.rvm.dir}/jksvm.jar"/>
         <pathelement path="${test.rvm.dir}/rvmrt.jar"/>
