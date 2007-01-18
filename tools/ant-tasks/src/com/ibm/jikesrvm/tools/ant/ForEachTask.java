@@ -8,10 +8,11 @@
  */
 package com.ibm.jikesrvm.tools.ant;
 
+import java.util.ArrayList;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.taskdefs.Property;
 import org.apache.tools.ant.taskdefs.CallTarget;
+import org.apache.tools.ant.taskdefs.Property;
 
 /**
  * A looping construct for ant. The task will accept a list of space separated
@@ -25,12 +26,19 @@ public class ForEachTask
   private String list;
   private String target;
   private String property;
+  private final ArrayList<Property> properties = new ArrayList<Property>();
 
   public void setProperty(final String property) { this.property = property; }
 
   public void setList(final String list) { this.list = list; }
 
   public void setTarget(final String target) { this.target = target; }
+
+  public Property createParam() {
+    final Property property = new Property();
+    properties.add(property);
+    return property;
+  }
 
   public void execute() {
     validate();
@@ -43,11 +51,18 @@ public class ForEachTask
       a.setTarget(target);
       a.setInheritAll(false);
       a.setInheritRefs(false);
-      final Property param = a.createParam();
-      param.setName(property);
-      param.setValue(value);
+      addParam(a, property, value);
+      for (final Property p : properties) {
+        addParam(a, p.getName(), p.getValue());
+      }
       a.execute();
     }
+  }
+
+  private void addParam(final CallTarget a, final String key, final String value) {
+    final Property param = a.createParam();
+    param.setName(key);
+    param.setValue(value);
   }
 
   private void validate() {
