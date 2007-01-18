@@ -160,14 +160,14 @@
 <test>
   <selector>${test.@{tag}.selector}</selector>
   <class>${test.@{tag}.class}</class>
-  <args>${test.@{tag}.args}</args>
+  <args><![CDATA[${test.@{tag}.args}]]]]><![CDATA[></args>
   <working-directory>${test.@{tag}.dir}</working-directory>
   <command><![CDATA[${test.@{tag}.command}]]]]><![CDATA[></command>
   <rvm-parameters>
     <parameter key="initial.heapsize" value="${test.@{tag}.initial.heapsize}"/>
     <parameter key="max.heapsize" value="${test.@{tag}.max.heapsize}"/>
     <parameter key="time.limit" value="${test.@{tag}.time.limit}"/>
-    <parameter key="extra.args" value="${test.@{tag}.extra.args}"/>
+    <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
 ]]></res>
