@@ -1,0 +1,172 @@
+<project name="TestDriver" default="sanity" basedir=".">
+
+  <property name="tests.name" value="sanity"/>
+
+  <property name="jikesrvm.dir" location=".."/>
+  <property file="${jikesrvm.dir}/build/testing/testsets.properties"/>
+  <property file="${jikesrvm.dir}/build/testing/${tests.name}.properties"/>
+
+  <property name="driver.scratch.dir" location="${jikesrvm.dir}/target/test-driver"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                      Macros for executing a Test Run                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="testRun">
+    <attribute name="tag"/>
+    <sequential>
+      <property name="test.run.@{tag}.configuration" value="@{tag}"/>
+      <property name="test.run.@{tag}.rvm.dir" location="../dist/@{tag}_ia32-linux"/>
+      <property name="test.run.@{tag}.name" value=""/>
+      <property name="test.run.@{tag}.test.performance.run" value=""/>
+      <property name="test.run.@{tag}.test.rvm.extra.args" value=""/>
+      <condition property="test.run.@{tag}.done" value="true" else="false">
+        <available file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
+      </condition>
+      <antcall target="build-configuration">
+        <param name="configuration.name" value="${test.run.@{tag}.configuration}"/>
+        <param name="configuration.done" value="${test.run.@{tag}.done}"/>
+      </antcall>
+      <touch file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
+      <echo message="Testing Run @{tag}"/>
+      <echo message="    rvm.dir:       ${test.run.@{tag}.rvm.dir}"/>
+      <echo message="    Tests:         ${test.run.@{tag}.tests}"/>
+      <echo message="    Run Name:      ${test.run.@{tag}.name}"/>
+      <echo message="    Performance?:  ${test.run.@{tag}.test.performance.run}"/>
+      <echo message="    Extra Flags?:  ${test.run.@{tag}.test.rvm.extra.args}"/>
+      <subant target="real-clean" failonerror="false" output="${driver.scratch.dir}/Clean-@{tag}.txt">
+        <filelist dir="tests" files="${test.run.@{tag}.tests}"/>
+        <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
+        <property name="test.run.name" value="${test.run.@{tag}.name}"/>
+        <property name="test.performance.run" value="${test.run.@{tag}.test.performance.run}"/>
+        <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+      </subant>
+      <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}.txt">
+        <filelist dir="tests" files="${test.run.@{tag}.tests}"/>
+        <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
+        <property name="test.run.name" value="${test.run.@{tag}.name}"/>
+        <property name="test.performance.run" value="${test.run.@{tag}.test.performance.run}"/>
+        <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+      </subant>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                          Task to actually run tests                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="sanity" depends="prepare-ant-tasks">
+    <delete dir="${driver.scratch.dir}"/>
+    <mkdir dir="${driver.scratch.dir}"/>
+    <forEach list="${test.runs}" target="doTestRun" property="tag"/>
+  </target>
+
+  <target name="doTestRun">
+    <testRun tag="${tag}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                         Targets for building images                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="check-build-configuration">
+    <condition property="do-configuration-build" value="true">
+      <not>
+        <equals arg1="${configuration.done}" arg2="true"/>
+      </not>
+    </condition>
+  </target>
+
+  <target name="do-build-configuration" depends="check-build-configuration" if="do-configuration-build">
+    <echo message="Building ${configuration.name}"/>
+    <ant antfile="${jikesrvm.dir}/build.xml"
+         inheritall="false"
+         output="${driver.scratch.dir}/Build-${configuration.name}.txt">
+      <property name="config.name" value="${configuration.name}"/>
+    </ant>
+  </target>
+
+  <target name="build-configuration" depends="do-build-configuration"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                          Build the ForEach task                          * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <property name="tasks.dir" location="${jikesrvm.dir}/target/tasks"/>
+  <property name="tasks.classes" location="${tasks.dir}/classes"/>
+  <property name="ant.jar" location="${jikesrvm.dir}/tools-external/apache-ant-1.6.5/lib/ant.jar"/>
+
+  <target name="prepare-ant-tasks">
+    <mkdir dir="${tasks.classes}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" classpath="${ant.jar}"/>
+    <taskdef name="forEach" classname="com.ibm.jikesrvm.tools.ant.ForEachTask" classpath="${tasks.classes}"/>
+  </target>
+
+
+</project>
+<project name="TestDriver" default="sanity" basedir=".">
+
+<!--
+  <property name="short-tests" value="basic gctest opttests jBYTEMark CaffeineMark javalex"/>
+  <property name="medium-tests"
+            value="${short-tests} jni xerces soot ipsixql dacapo SPECjvm98 SPECjbb2000 SPECjbb2005"/>
+  <property name="long-tests" value="${medium-tests}"/>
+  <property name="performance-tests" value="SPECjvm98 SPECjbb2000 gctest"/>
+-->
+
+  <property name="old.short-tests" value="basic/build.xml gctest/build.xml opttests/build.xml jBYTEmark/build.xml CaffeineMark/build.xml javalex/build.xml"/>
+  <property name="short-tests" value="gctest/build.xml opttests/build.xml jBYTEmark/build.xml CaffeineMark/build.xml javalex/build.xml"/>
+  <property name="medium-tests" value="${short-tests} jni/build.xml xerces/build.xml soot/build.xml dacapo/build.xml"/>
+  <property name="long-tests" value="${medium-tests}"/>
+  <property name="performance-tests" value=""/>
+  <property name="sanity-tests" value="${medium-tests}"/>
+
+  <property name="test.rvm.dir" location="../dist/prototype-opt_ia32-linux/"/>
+
+  <macrodef name="testRun">
+    <attribute name="tests"/>
+    <attribute name="target" default="test"/>
+    <attribute name="rvmDir" default="${test.rvm.dir}"/>
+    <element name="propertys" implicit="true" optional="true"/>
+    <sequential>
+      <subant target="@{target}">
+        <filelist dir="tests" files="@{tests}"/>
+        <property name="test.rvm.dir" location="@{rvmDir}"/>
+        <propertys/>
+      </subant>
+    </sequential>
+  </macrodef>
+
+  <target name="sanity">
+    <testRun tests="${sanity-tests}" target="real-clean"/>
+
+    <testRun tests="${sanity-tests}"/>
+    <testRun tests="${sanity-tests}">
+      <property name="test.performance.run" value="true"/>
+      <property name="test.run.name" value="O1_Opt"/>
+      <property name="test.rvm.extra.args"
+                value="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1"/>
+    </testRun>
+    <testRun tests="${sanity-tests}">
+      <property name="test.performance.run" value="true"/>
+      <property name="test.run.name" value="O2_Opt"/>
+      <property name="test.rvm.extra.args"
+                value="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2"/>
+    </testRun>
+    <testRun tests="${sanity-tests}">
+      <property name="test.performance.run" value="true"/>
+      <property name="test.run.name" value="O3_Opt"/>
+      <property name="test.rvm.extra.args"
+                value="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O3"/>
+    </testRun>
+  </target>
+
+</project>
