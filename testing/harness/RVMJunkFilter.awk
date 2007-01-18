@@ -44,6 +44,11 @@ BEGIN {
 /Number of threads found stuck in native code/ { next }
 
 #
+# GCSpy system messages
+#
+/^GCspy.startGCspyServer/ { next }
+
+#
 # GC system messages
 #
 /^polling caused gc - returning gc and retry$/ { next }
