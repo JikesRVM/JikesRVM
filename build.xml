@@ -821,7 +821,8 @@
   <!-- **************************************************************************** -->
 
   <target name="build-interface-generator" depends="package,build-preprocessor">
-    <property name="build.scratch.interface-generator" value="${build.scratch}/interface-generator"/>
+    <!-- need to include configuration name as the tool is configured using per configuration settings -->
+    <property name="build.scratch.interface-generator" value="${build.scratch}/${config.name}/interface-generator"/>
     <mkdir dir="${build.scratch.interface-generator}"/>
 
     <condition property="arch" value="IA">
