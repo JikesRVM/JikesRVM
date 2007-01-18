@@ -1,0 +1,166 @@
+Thread 0 Main: mailbox: notification received
+Thread 0 Main: 0 replied
+Thread 0 Main: 1 replied
+Thread 0 Main: 2 replied
+Thread 0 Main: 3 replied
+Thread 0 Main: 4 replied
+Thread 0 Main: 5 replied
+Thread 0 Main: 6 replied
+Thread 0 Main: 7 replied
+Thread 0 Main: 8 replied
+Thread 0 Main: 9 replied
+Thread 0 Main: 10 replied
+Thread 0 Main: 11 replied
+Thread 0 Main: 12 replied
+Thread 0 Main: 13 replied
+Thread 0 Main: 14 replied
+Thread 0 Main: 15 replied
+Thread 0 Main: 16 replied
+Thread 0 Main: 17 replied
+Thread 0 Main: 18 replied
+Thread 0 Main: 19 replied
+Thread 0 Main: sleeping
+Thread 0 Main: running
+Thread 0 Main: flag: notification sent
+Thread 0 Main: bye
+Thread 1 Task0: creating
+Thread 1 Task0: starting
+Thread 1 Task0: run starting
+Thread 1 Task0: waiting
+Thread 1 Task0: flag: notification received
+Thread 1 Task0: ending
+Thread 1 Task0: run finishing
+Thread 2 Task1: creating
+Thread 2 Task1: starting
+Thread 2 Task1: run starting
+Thread 2 Task1: waiting
+Thread 2 Task1: flag: notification received
+Thread 2 Task1: ending
+Thread 2 Task1: run finishing
+Thread 3 Task2: creating
+Thread 3 Task2: starting
+Thread 3 Task2: run starting
+Thread 3 Task2: waiting
+Thread 3 Task2: flag: notification received
+Thread 3 Task2: ending
+Thread 3 Task2: run finishing
+Thread 4 Task3: creating
+Thread 4 Task3: starting
+Thread 4 Task3: run starting
+Thread 4 Task3: waiting
+Thread 4 Task3: flag: notification received
+Thread 4 Task3: ending
+Thread 4 Task3: run finishing
+Thread 5 Task4: creating
+Thread 5 Task4: starting
+Thread 5 Task4: run starting
+Thread 5 Task4: waiting
+Thread 5 Task4: flag: notification received
+Thread 5 Task4: ending
+Thread 5 Task4: run finishing
+Thread 6 Task5: creating
+Thread 6 Task5: starting
+Thread 6 Task5: run starting
+Thread 6 Task5: waiting
+Thread 6 Task5: flag: notification received
+Thread 6 Task5: ending
+Thread 6 Task5: run finishing
+Thread 7 Task6: creating
+Thread 7 Task6: starting
+Thread 7 Task6: run starting
+Thread 7 Task6: waiting
+Thread 7 Task6: flag: notification received
+Thread 7 Task6: ending
+Thread 7 Task6: run finishing
+Thread 8 Task7: creating
+Thread 8 Task7: starting
+Thread 8 Task7: run starting
+Thread 8 Task7: waiting
+Thread 8 Task7: flag: notification received
+Thread 8 Task7: ending
+Thread 8 Task7: run finishing
+Thread 9 Task8: creating
+Thread 9 Task8: starting
+Thread 9 Task8: run starting
+Thread 9 Task8: waiting
+Thread 9 Task8: flag: notification received
+Thread 9 Task8: ending
+Thread 9 Task8: run finishing
+Thread 10 Task9: creating
+Thread 10 Task9: starting
+Thread 10 Task9: run starting
+Thread 10 Task9: waiting
+Thread 10 Task9: flag: notification received
+Thread 10 Task9: ending
+Thread 10 Task9: run finishing
+Thread 11 Task10: creating
+Thread 11 Task10: starting
+Thread 11 Task10: run starting
+Thread 11 Task10: waiting
+Thread 11 Task10: flag: notification received
+Thread 11 Task10: ending
+Thread 11 Task10: run finishing
+Thread 12 Task11: creating
+Thread 12 Task11: starting
+Thread 12 Task11: run starting
+Thread 12 Task11: waiting
+Thread 12 Task11: flag: notification received
+Thread 12 Task11: ending
+Thread 12 Task11: run finishing
+Thread 13 Task12: creating
+Thread 13 Task12: starting
+Thread 13 Task12: run starting
+Thread 13 Task12: waiting
+Thread 13 Task12: flag: notification received
+Thread 13 Task12: ending
+Thread 13 Task12: run finishing
+Thread 14 Task13: creating
+Thread 14 Task13: starting
+Thread 14 Task13: run starting
+Thread 14 Task13: waiting
+Thread 14 Task13: flag: notification received
+Thread 14 Task13: ending
+Thread 14 Task13: run finishing
+Thread 15 Task14: creating
+Thread 15 Task14: starting
+Thread 15 Task14: run starting
+Thread 15 Task14: waiting
+Thread 15 Task14: flag: notification received
+Thread 15 Task14: ending
+Thread 15 Task14: run finishing
+Thread 16 Task15: creating
+Thread 16 Task15: starting
+Thread 16 Task15: run starting
+Thread 16 Task15: waiting
+Thread 16 Task15: flag: notification received
+Thread 16 Task15: ending
+Thread 16 Task15: run finishing
+Thread 17 Task16: creating
+Thread 17 Task16: starting
+Thread 17 Task16: run starting
+Thread 17 Task16: waiting
+Thread 17 Task16: flag: notification received
+Thread 17 Task16: ending
+Thread 17 Task16: run finishing
+Thread 18 Task17: creating
+Thread 18 Task17: starting
+Thread 18 Task17: run starting
+Thread 18 Task17: waiting
+Thread 18 Task17: flag: notification received
+Thread 18 Task17: ending
+Thread 18 Task17: run finishing
+Thread 19 Task18: creating
+Thread 19 Task18: starting
+Thread 19 Task18: run starting
+Thread 19 Task18: waiting
+Thread 19 Task18: flag: notification received
+Thread 19 Task18: ending
+Thread 19 Task18: run finishing
+Thread 20 Task19: creating
+Thread 20 Task19: starting
+Thread 20 Task19: run starting
+Thread 20 Task19: mailbox: notification sent to tell main that mailbox is full
+Thread 20 Task19: waiting
+Thread 20 Task19: flag: notification received
+Thread 20 Task19: ending
+Thread 20 Task19: run finishing

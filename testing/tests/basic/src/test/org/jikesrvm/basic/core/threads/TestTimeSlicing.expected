@@ -1,0 +1,43 @@
+Thread 0 Main: bye
+Thread 1 Task 0: creating
+Thread 1 Task 0: starting
+Thread 1 Task 0: run starting
+Thread 1 Task 0: incremented to count: 1
+Thread 1 Task 0: incremented to count: 2
+Thread 1 Task 0: incremented to count: 3
+Thread 1 Task 0: incremented to count: 4
+Thread 1 Task 0: incremented to count: 5
+Thread 1 Task 0: incremented to count: 6
+Thread 1 Task 0: incremented to count: 7
+Thread 1 Task 0: incremented to count: 8
+Thread 1 Task 0: incremented to count: 9
+Thread 1 Task 0: incremented to count: 10
+Thread 1 Task 0: run finishing
+Thread 2 Task 1: creating
+Thread 2 Task 1: starting
+Thread 2 Task 1: run starting
+Thread 2 Task 1: incremented to count: 1
+Thread 2 Task 1: incremented to count: 2
+Thread 2 Task 1: incremented to count: 3
+Thread 2 Task 1: incremented to count: 4
+Thread 2 Task 1: incremented to count: 5
+Thread 2 Task 1: incremented to count: 6
+Thread 2 Task 1: incremented to count: 7
+Thread 2 Task 1: incremented to count: 8
+Thread 2 Task 1: incremented to count: 9
+Thread 2 Task 1: incremented to count: 10
+Thread 2 Task 1: run finishing
+Thread 3 Task 2: creating
+Thread 3 Task 2: starting
+Thread 3 Task 2: run starting
+Thread 3 Task 2: incremented to count: 1
+Thread 3 Task 2: incremented to count: 2
+Thread 3 Task 2: incremented to count: 3
+Thread 3 Task 2: incremented to count: 4
+Thread 3 Task 2: incremented to count: 5
+Thread 3 Task 2: incremented to count: 6
+Thread 3 Task 2: incremented to count: 7
+Thread 3 Task 2: incremented to count: 8
+Thread 3 Task 2: incremented to count: 9
+Thread 3 Task 2: incremented to count: 10
+Thread 3 Task 2: run finishing

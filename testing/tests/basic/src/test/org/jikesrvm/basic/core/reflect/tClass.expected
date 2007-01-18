@@ -1,0 +1,63 @@
+class test.org.jikesrvm.basic.core.reflect.tClass
+caught ClassNotFoundException
+class test.org.jikesrvm.basic.core.reflect.tClass is not an array...good
+class test.org.jikesrvm.basic.core.reflect.tClass has 1 visible constructors
+   0: public test.org.jikesrvm.basic.core.reflect.tClass(java.lang.String)
+class test.org.jikesrvm.basic.core.reflect.tClass has 2 declared constructors
+   0: private test.org.jikesrvm.basic.core.reflect.tClass()
+   1: public test.org.jikesrvm.basic.core.reflect.tClass(java.lang.String)
+class test.org.jikesrvm.basic.core.reflect.tClass has a total number of methods: 16
+ Number of declared methods: 7
+public java.lang.String test.org.jikesrvm.basic.core.reflect.tClass.vello(java.lang.String)
+public static int test.org.jikesrvm.basic.core.reflect.tClass.iello(java.lang.String,int)
+public static int test.org.jikesrvm.basic.core.reflect.tClass.jello(int,java.lang.String,int,int)
+public static java.lang.String test.org.jikesrvm.basic.core.reflect.tClass.hello(java.lang.String)
+public static long test.org.jikesrvm.basic.core.reflect.tClass.lello(java.lang.String,long)
+public static void test.org.jikesrvm.basic.core.reflect.tClass.gc()
+public static void test.org.jikesrvm.basic.core.reflect.tClass.main(java.lang.String[]) throws java.lang.Exception
+================= READY TO CALL: public static java.lang.String test.org.jikesrvm.basic.core.reflect.tClass.hello(java.lang.String)
+before gc arg=I Say Hello to You!
+after  gc arg=I Say Hello to You!
+And I Say Hello Back
+before gc arg=I Say Hello to You!
+after  gc arg=I Say Hello to You!
+And I Say Hello Back
+before gc arg=I Say Hello to You!
+after  gc arg=I Say Hello to You!
+And I Say Hello Back
+================= READY TO CALL: public static int test.org.jikesrvm.basic.core.reflect.tClass.iello(java.lang.String,int)
+before gc arg=I Say Iello to You!
+after  gc arg=I Say Iello to You!
+Does this>99< look like 99?
+before gc arg=I Say Iello to You!
+after  gc arg=I Say Iello to You!
+Does this>99< look like 99?
+before gc arg=I Say Iello to You!
+after  gc arg=I Say Iello to You!
+Does this>99< look like 99?
+================= READY TO CALL: public static long test.org.jikesrvm.basic.core.reflect.tClass.lello(java.lang.String,long)
+before gc arg=I Say Lello to You!
+after  gc arg=I Say Lello to You!
+Does this>99< look like 99?
+before gc arg=I Say Lello to You!
+after  gc arg=I Say Lello to You!
+Does this>99< look like 99?
+before gc arg=I Say Lello to You!
+after  gc arg=I Say Lello to You!
+Does this>99< look like 99?
+================= READY TO CALL: public static int test.org.jikesrvm.basic.core.reflect.tClass.jello(int,java.lang.String,int,int)
+before gc arg=I Say Jello to You!
+after  gc arg=I Say Jello to You!
+Does this>99< look like 99?
+before gc arg=I Say Jello to You!
+after  gc arg=I Say Jello to You!
+Does this>99< look like 99?
+before gc arg=I Say Jello to You!
+after  gc arg=I Say Jello to You!
+Does this>99< look like 99?
+tClass constructor called with Hi!
+tClass constructor called with I'm dynamic!
+================= READY TO CALL: public java.lang.String test.org.jikesrvm.basic.core.reflect.tClass.vello(java.lang.String)
+And I Say Vello Back
+And I Say Vello Back
+And I Say Vello Back

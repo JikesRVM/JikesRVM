@@ -1,0 +1,7 @@
+class test.org.jikesrvm.basic.core.reflect.tInstance
+================= READY TO CALL: public int test.org.jikesrvm.basic.core.reflect.tInstance.iuserFunction(int)
+================= READY TO CALL: public double test.org.jikesrvm.basic.core.reflect.tInstance.duserFunction(double)
+================= READY TO CALL: public boolean test.org.jikesrvm.basic.core.reflect.tInstance.buserFunction(boolean)
+================= READY TO CALL: public java.lang.Object test.org.jikesrvm.basic.core.reflect.tInstance.ouserFunction(java.lang.String)
+================= READY TO CALL: public void test.org.jikesrvm.basic.core.reflect.tInstance.vuserFunction(int,java.lang.Integer)
+Test success

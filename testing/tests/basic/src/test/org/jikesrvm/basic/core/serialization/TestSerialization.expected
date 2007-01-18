@@ -1,0 +1,50 @@
+Loading resource SerializationData.dat
+Loaded resource? = true
+Attemping read
+Existing serialization read
+Z:true
+B:1
+S:2
+I:3
+J:4
+F:5.0
+D:6.0
+Ljava/lang/String;:7
+Ljava/lang/Object;:SerializationData$Obj(42L)
+null:null
+[Z:true
+[B:1
+[S:2
+[I:3
+[J:4
+[F:5.0
+[D:6.0
+[Ljava/lang/String;:7
+[Ljava/lang/Object;:SerializationData$Obj(42L)
+
+Attemping write
+write success. Checking consistency of data written ...
+actual.length (846) vs expected.length (845
+data differs at 404
+Attemping read of output data
+Existing serialization read
+Z:false
+B:16
+S:-3
+I:43
+J:42
+F:52.3
+D:16.2222
+Ljava/lang/String;:88
+Ljava/lang/Object;:SerializationData$Obj(42L)
+null:null
+[Z:false
+[B:16
+[S:-3
+[I:43
+[J:42
+[F:52.3
+[D:16.2222
+[Ljava/lang/String;:88
+[Ljava/lang/Object;:SerializationData$Obj(42L)
+

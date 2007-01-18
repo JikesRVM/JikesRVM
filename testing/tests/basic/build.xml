@@ -1,0 +1,100 @@
+<project name="basic" default="test" basedir=".">
+
+  <property name="test.time.limit" value="400"/>
+  <property name="test.max.heapsize" value="150"/>
+
+  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
+  <import file="${jikesrvm.dir}/build/properties.xml"/>
+  <import file="${jikesrvm.dir}/build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+
+  <property name="build.classes" location="${build.dir}/classes"/>
+ 
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
+      <!-- need extra classpath for vmmagic -->
+      <classpath>
+        <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+      </classpath>
+    </javac>
+
+    <jar file="${build.dir}/AgentX.jar" basedir="${build.classes}" includes="**/AgentX.class">
+      <manifest>
+        <attribute name="Premain-Class" value="test.org.jikesrvm.basic.core.instrument.AgentX"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+    <outputGroupStart/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestArrayAccess"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestCompare"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestThrownException"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestSwitch"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestInvoke"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestClassInitializer"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestMiranda"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestInstanceOf"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestClone"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestFinally"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestReturn"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestFieldAccess"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.reflect.tClass"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.reflect.tArray"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.reflect.TestFieldReflection"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.reflect.tInstance"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.reflect.tNewInstance"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestDispatch"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestBackEdgeGC"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestNotification"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestTimedWait"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestInterruptAndSpin"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestStop"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestSuspend" timeLimit="20"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.threads.TestVolatiles"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.serialization.TestSerialization"
+        classpath="${build.classes}:${main.java}"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.classloading.TestUTF8"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.classloading.TestClassLoading"/>
+    <runCompareTest class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
+
+    <runCompareTest class="test.org.jikesrvm.basic.core.instrument.TestAgent"
+                    rvmArgs='-javaagent:${build.dir}/AgentX.jar="Option1"'/>    
+
+    <outputGroupEnd/>
+    <finishResults/>
+  </target>
+
+</project>

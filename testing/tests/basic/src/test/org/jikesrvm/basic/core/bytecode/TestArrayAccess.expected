@@ -1,0 +1,70 @@
+Boolean Array Expected: false,true  Actual: false,true
+Byte Array Expected: 127,-1  Actual: 127,-1
+Char Array Expected: c,$  Actual: c,$
+Short Array Expected: 32767,-1  Actual: 32767,-1
+Int Array Expected: 0,1  Actual: 0,1
+Long Array Expected: 0,1  Actual: 0,1
+Float Array Expected: 0,1  Actual: 0.0,1.0
+Double Array Expected: 0,1  Actual: 0.0,1.0
+Double Array Expected: null,s  Actual: null,s
+Double Array Expected: null,[Ljava.lang.Object;  Actual: null,[Ljava.lang.Object;
+Multi-dimensional Int Array
+ary[0][0][0]=0
+ary[0][0][1]=1
+ary[0][0][2]=2
+ary[0][0][3]=3
+ary[0][1][0]=4
+ary[0][1][1]=5
+ary[0][1][2]=6
+ary[0][1][3]=7
+ary[0][2][0]=8
+ary[0][2][1]=9
+ary[0][2][2]=10
+ary[0][2][3]=11
+ary[1][0][0]=12
+ary[1][0][1]=13
+ary[1][0][2]=14
+ary[1][0][3]=15
+ary[1][1][0]=16
+ary[1][1][1]=17
+ary[1][1][2]=18
+ary[1][1][3]=19
+ary[1][2][0]=20
+ary[1][2][1]=21
+ary[1][2][2]=22
+ary[1][2][3]=23
+
+Multi-dimensional Object Array
+ary[0][0][0]=0
+ary[0][0][1]=1
+ary[0][0][2]=2
+ary[0][0][3]=3
+ary[0][1][0]=4
+ary[0][1][1]=5
+ary[0][1][2]=6
+ary[0][1][3]=7
+ary[0][2][0]=8
+ary[0][2][1]=9
+ary[0][2][2]=10
+ary[0][2][3]=11
+ary[1][0][0]=12
+ary[1][0][1]=13
+ary[1][0][2]=14
+ary[1][0][3]=15
+ary[1][1][0]=16
+ary[1][1][1]=17
+ary[1][1][2]=18
+ary[1][1][3]=19
+ary[1][2][0]=20
+ary[1][2][1]=21
+ary[1][2][2]=22
+ary[1][2][3]=23
+
+Partial Multi-dimensional int Array
+ary[0][0]=null
+ary[0][1]=null
+ary[0][2]=null
+ary[1][0]=null
+ary[1][1]=null
+ary[1][2]=null
+

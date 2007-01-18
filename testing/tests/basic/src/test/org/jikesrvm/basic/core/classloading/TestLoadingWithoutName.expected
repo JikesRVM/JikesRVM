@@ -1,0 +1,4 @@
+Loading resource TestClassLoading.class
+Loaded resource? = true
+Defining class
+Class defined Expected: test.org.jikesrvm.basic.core.TestClassLoading Actual: test.org.jikesrvm.basic.core.classloading.TestClassLoading

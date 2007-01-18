@@ -1,0 +1,2 @@
+tableswitch Expected: 99101112 Actual: 99101112
+lookupswitch Expected: 99102030405099 Actual: 99102030405099

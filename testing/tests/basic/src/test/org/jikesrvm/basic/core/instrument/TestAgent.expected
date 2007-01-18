@@ -1,0 +1,8 @@
+Running premain with args: Option1
+Adding class transformer
+Array size ok: true
+Object size ok: true
+AgentX in initiated classes? true
+AgentX in all classes? true
+Transforming class: test/org/jikesrvm/basic/core/instrument/TestAgent
+TestAgent executed.

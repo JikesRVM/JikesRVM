@@ -1,0 +1,16 @@
+Class.forName(java.lang.String) found? true
+Class.forName(java.lang.String).newInstance() successful? true
+Class.forName(java.lang.Number) found? true
+Class.forName(java.lang.Number).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName(java.lang.Integer) found? true
+Class.forName(java.lang.Integer).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName([Ljava.lang.String;) found? true
+Class.forName([Ljava.lang.String;).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName([[Ljava.lang.String;) found? true
+Class.forName([[Ljava.lang.String;).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName([I) found? true
+Class.forName([I).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName([[I) found? true
+Class.forName([[I).newInstance() successful? false due to java.lang.InstantiationException
+Class.forName(I) found? false
+Class.forName(NoExist) found? false

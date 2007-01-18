@@ -1,0 +1,33 @@
+Thread 0 Main: bye
+Thread 1 worker 0: creating
+Thread 1 worker 0: starting
+Thread 1 worker 0: run starting
+Thread 1 worker 0: sleeping
+Thread 1 worker 0: running
+Thread 1 worker 0: gc completed
+Thread 1 worker 0: sleeping
+Thread 1 worker 0: running
+Thread 1 worker 0: gc completed
+Thread 1 worker 0: sleeping
+Thread 1 worker 0: running
+Thread 1 worker 0: gc completed
+Thread 1 worker 0: sleeping
+Thread 1 worker 0: running
+Thread 1 worker 0: gc completed
+Thread 1 worker 0: run finishing
+Thread 2 worker 1: creating
+Thread 2 worker 1: starting
+Thread 2 worker 1: run starting
+Thread 2 worker 1: sleeping
+Thread 2 worker 1: running
+Thread 2 worker 1: gc completed
+Thread 2 worker 1: sleeping
+Thread 2 worker 1: running
+Thread 2 worker 1: gc completed
+Thread 2 worker 1: sleeping
+Thread 2 worker 1: running
+Thread 2 worker 1: gc completed
+Thread 2 worker 1: sleeping
+Thread 2 worker 1: running
+Thread 2 worker 1: gc completed
+Thread 2 worker 1: run finishing
