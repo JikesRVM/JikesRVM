@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
-import java.io.FileOutputStream;
 
 /**
  * @author Peter Donald
@@ -24,7 +23,7 @@ class TestSerialization {
     //Uncomment when need to generate serialized data from jdk again
 /*
     try {
-      final ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream("MySerializationData.dat"));
+      final ObjectOutputStream output = new ObjectOutputStream(new java.io.FileOutputStream("MySerializationData.dat"));
       output.writeObject(new SerializationData());
       output.close();
     } catch (java.io.IOException e) {
