@@ -45,9 +45,10 @@
   <condition property="test.prefix" value="" else="${test.run.name}_">
     <equals arg1="${test.run.name}" arg2=""/>
   </condition>
+  <property name="test.run.id" value="${test.prefix}${test.suite.name}"/>
 
-  <property name="output.dir" location="${test.rvm.dir}/tests/${test.prefix}${test.suite.name}"/>
-  <property name="build.dir" location="${jikesrvm.dir}/target/tests/${test.prefix}${test.suite.name}"/>
+  <property name="output.dir" location="${test.rvm.dir}/tests/${test.run.id}"/>
+  <property name="build.dir" location="${jikesrvm.dir}/target/tests/${test.run.id}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
 
@@ -245,7 +246,7 @@
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
-      <echo message="Test Result for [${test.run.name}] [${test.suite.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+      <echo message="Test Result for [${config.name}|${test.run.id}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
     </sequential>
   </macrodef>
 
