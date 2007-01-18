@@ -33,9 +33,6 @@
 
   <property name="test.suite.name" value="${ant.project.name}"/>
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
-  <property name="output.dir" location="${test.rvm.dir}/tests/${test.suite.name}"/>
-
-  <property name="build.dir" location="${jikesrvm.dir}/target/tests/${test.suite.name}"/>
 
   <!-- Default values -->
   <property name="test.performance.run" value="false"/>
@@ -49,7 +46,10 @@
     <equals arg1="${test.run.name}" arg2=""/>
   </condition>
 
-  <property name="results.file" value="${output.dir}/${test.prefix}Results.xml"/>
+  <property name="output.dir" location="${test.rvm.dir}/tests/${test.prefix}${test.suite.name}"/>
+  <property name="build.dir" location="${jikesrvm.dir}/target/tests/${test.prefix}${test.suite.name}"/>
+
+  <property name="results.file" value="${output.dir}/Results.xml"/>
 
   <!-- propertys for setting up tasks to help with tests -->
   <property name="tasks.dir" location="${jikesrvm.dir}/target/tasks/"/>
@@ -326,8 +326,8 @@
       <property name="test.@{tag}.args" value="@{args}"/>
       <property name="test.@{tag}.dir" value="@{dir}"/>
 
-      <property name="test.@{tag}.output.file" value="${output.dir}/${test.prefix}@{tag}-output.txt"/>
-      <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/${test.prefix}@{tag}.txt"/>
+      <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
+      <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
