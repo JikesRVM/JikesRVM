@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 

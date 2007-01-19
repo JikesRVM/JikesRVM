@@ -185,9 +185,9 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock findColdPrev(OPT_BasicBlock bb) {
     OPT_BasicBlock cold = null;
-    for (java.util.Enumeration e = bb.getInNodes(); 
+    for (java.util.Enumeration<OPT_BasicBlock> e = bb.getInNodes(); 
          e.hasMoreElements();) {
-      OPT_BasicBlock p = (OPT_BasicBlock)e.nextElement();
+      OPT_BasicBlock p = e.nextElement();
       if (p.getInfrequent()) {
         if (cold != null) return null;
         cold = p;

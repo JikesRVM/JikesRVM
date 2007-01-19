@@ -55,6 +55,7 @@ public class VM_StackTrace implements VM_Constants {
    * The compiled methods that comprise the trace
    */
   private final VM_CompiledMethod[] compiledMethods;
+  //private final AddressArray framePointers;
 
   /**
    * The instruction offsets within those methods.
@@ -77,6 +78,7 @@ public class VM_StackTrace implements VM_Constants {
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
+    //framePointers = AddressArray.create(numFrames);
     offsets = new int[numFrames];
     walkFrames(true, skip+1);
     
@@ -104,7 +106,10 @@ public class VM_StackTrace implements VM_Constants {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
         VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (record) compiledMethods[stackFrameCount] = compiledMethod;
+        if (record) {
+          compiledMethods[stackFrameCount] = compiledMethod;
+          //framePointers.set(stackFrameCount,fp);
+        }
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
           if (record) {
             offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip).toInt();
@@ -338,6 +343,7 @@ public class VM_StackTrace implements VM_Constants {
             out.print(newIndex - oldIndex);
             out.println(" stackframes omitted.");
             // out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+            return;
           } catch (OutOfMemoryError e) {
             trigger.tallyOutOfMemoryError();
             if (out.isSysWrite()) {
@@ -352,6 +358,7 @@ public class VM_StackTrace implements VM_Constants {
         }
       }
       try {
+        //VM.sysWrite(framePointers.get(i));
         if (cm == null) {
           out.println("\tat <invisible method>");
           /* Commented out; Work in Progress: */

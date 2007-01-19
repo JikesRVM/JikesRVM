@@ -104,9 +104,9 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
         for ( ; e.hasMoreElements();) {
           OPT_ExceptionHandlerBasicBlock eBlock = 
             (OPT_ExceptionHandlerBasicBlock)e.nextElement();
-          for (java.util.Enumeration ets = eBlock.getExceptionTypes(); 
+          for (java.util.Enumeration<OPT_TypeOperand> ets = eBlock.getExceptionTypes(); 
                ets.hasMoreElements();) {
-            OPT_TypeOperand type = (OPT_TypeOperand)ets.nextElement();
+            OPT_TypeOperand type = ets.nextElement();
             int catchOffset = eBlock.firstInstruction().getmcOffset();
             eTable[index + TRY_START] = currStartOff;
             eTable[index + TRY_END] = currEndOff;

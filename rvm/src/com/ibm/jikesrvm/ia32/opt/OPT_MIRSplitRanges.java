@@ -9,13 +9,12 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
-import java.util.Enumeration;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_CompilerPhase;
 import com.ibm.jikesrvm.opt.ir.MIR_LowTableSwitch;
 import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
+import com.ibm.jikesrvm.opt.ir.OPT_BasicBlockEnumeration;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_InstructionEnumeration;
@@ -71,10 +70,11 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    */
   final public void perform (OPT_IR ir) {
 
-    java.util.HashMap newMap = new java.util.HashMap(5);
+    java.util.HashMap<OPT_Register, OPT_Register> newMap = 
+      new java.util.HashMap<OPT_Register, OPT_Register>(5);
 
-    for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)be.nextElement();
+    for (OPT_BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
+      OPT_BasicBlock bb = be.nextElement();
       for (OPT_InstructionEnumeration ie  = bb.forwardInstrEnumerator(); 
            ie.hasMoreElements(); ) {
         OPT_Instruction s = ie.next();
@@ -125,7 +125,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param rootOnly only consider root operands?
    */
   private static void splitAllLiveRanges(OPT_Instruction s, 
-                                         java.util.HashMap newMap,
+                                         java.util.HashMap<OPT_Register, OPT_Register> newMap,
                                          OPT_IR ir,
                                          boolean rootOnly) {
     // walk over each USE
@@ -156,7 +156,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
       if (op.isRegister()) {
         OPT_RegisterOperand rOp = op.asRegister();
         OPT_Register r = rOp.register;
-        OPT_Register newR = (OPT_Register)newMap.get(r); 
+        OPT_Register newR = newMap.get(r); 
         if (newR != null) {
           rOp.register = newR;
         }
@@ -172,9 +172,9 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param ir the governing IR
    */
   private static OPT_RegisterOperand findOrCreateTemp(OPT_RegisterOperand rOp,
-                                                      java.util.HashMap map,
+                                                      java.util.HashMap<OPT_Register, OPT_Register> map,
                                                       OPT_IR ir) {
-    OPT_Register tReg = (OPT_Register)map.get(rOp.register);
+    OPT_Register tReg = map.get(rOp.register);
     if (tReg == null) {
       OPT_RegisterOperand tOp = ir.regpool.makeTemp(rOp.type);
       map.put(rOp.register, tOp.register);

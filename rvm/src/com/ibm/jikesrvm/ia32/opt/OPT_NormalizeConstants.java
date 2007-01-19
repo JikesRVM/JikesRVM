@@ -11,8 +11,6 @@ package com.ibm.jikesrvm.ia32.opt;
 
 import com.ibm.jikesrvm.VM_Statics;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.opt.ir.Binary;
 import com.ibm.jikesrvm.opt.ir.Load;

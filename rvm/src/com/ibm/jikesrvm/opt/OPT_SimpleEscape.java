@@ -120,8 +120,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     // update the method summary to note whether the return value
     // may escape
     boolean foundEscapingReturn = false;
-    for (Iterator itr = iterateReturnValues(ir); itr.hasNext();) {
-      OPT_Operand op = (OPT_Operand)itr.next();
+    for (Iterator<OPT_Operand> itr = iterateReturnValues(ir); itr.hasNext();) {
+      OPT_Operand op = itr.next();
       if (op == null)
         continue;
       if (op.isRegister()) {

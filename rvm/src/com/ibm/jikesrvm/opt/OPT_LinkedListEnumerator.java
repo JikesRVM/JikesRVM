@@ -17,7 +17,7 @@ import  java.util.NoSuchElementException;
  * @author John Whaley
  */
 final class OPT_LinkedListEnumerator
-    implements Enumeration {
+    implements Enumeration<OPT_LinkedListElement> {
   OPT_LinkedListElement curr;
 
   OPT_LinkedListEnumerator(OPT_LinkedListElement start) {
@@ -28,7 +28,7 @@ final class OPT_LinkedListEnumerator
     return  curr != null;
   }
 
-  public Object nextElement() {
+  public OPT_LinkedListElement nextElement() {
     try {
       OPT_LinkedListElement e = curr;
       curr = curr.next;

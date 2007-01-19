@@ -9,33 +9,14 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt.ir;
 
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_MagicNames;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.opt.OPT_MagicNotImplementedException;
-import com.ibm.jikesrvm.opt.ir.Binary;
-import com.ibm.jikesrvm.opt.ir.CacheOp;
-import com.ibm.jikesrvm.opt.ir.Empty;
-import com.ibm.jikesrvm.opt.ir.GetField;
-import com.ibm.jikesrvm.opt.ir.Load;
-import com.ibm.jikesrvm.opt.ir.Move;
-import com.ibm.jikesrvm.opt.ir.Nullary;
-import com.ibm.jikesrvm.opt.ir.OPT_AddressConstantOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_BC2IR;
-import com.ibm.jikesrvm.opt.ir.OPT_GenerateMagic;
-import com.ibm.jikesrvm.opt.ir.OPT_GenerationContext;
-import com.ibm.jikesrvm.opt.ir.OPT_IntConstantOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_LocationOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_Operand;
-import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_TrueGuardOperand;
-import com.ibm.jikesrvm.opt.ir.Store;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.

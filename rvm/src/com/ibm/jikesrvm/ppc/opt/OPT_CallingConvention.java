@@ -36,8 +36,6 @@ import com.ibm.jikesrvm.opt.ir.OPT_Register;
 import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
 import com.ibm.jikesrvm.opt.ir.Prologue;
 import com.ibm.jikesrvm.opt.ir.Store;
-import com.ibm.jikesrvm.ppc.*;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 import org.vmmagic.unboxed.Offset;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
@@ -274,7 +272,6 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Instruction prev = s.prevInstructionInCodeOrder();
     OPT_Register FP = phys.getFP();
-    OPT_Register JTOC = phys.getJTOC();
     boolean isSysCall = ir.stackManager.isSysCall(s);
     boolean firstLongHalf = false;
 
@@ -361,7 +358,6 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     if (callSpillLoc != STACKFRAME_HEADER_SIZE)
       ir.stackManager.allocateParameterSpace(callSpillLoc);
     // (2) expand result
-    OPT_RegisterOperand callResult = null;
     OPT_Instruction lastCallSeqInstr = s;
     if (MIR_Call.hasResult2(s)) {
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
@@ -377,7 +373,6 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     }
     if (MIR_Call.hasResult(s)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(s);
-      callResult = result1;
       if (result1.type.isFloatType() || result1.type.isDoubleType()) {
         OPT_RegisterOperand physical = new 
           OPT_RegisterOperand(phys.get(FIRST_DOUBLE_RETURN), 

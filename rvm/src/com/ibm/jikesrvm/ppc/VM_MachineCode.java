@@ -13,11 +13,8 @@ import com.ibm.jikesrvm.ArchitectureSpecific;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Memory;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import java.util.ArrayList;
-
-import org.vmmagic.unboxed.*;
 
 /*
  * A block of machine code in the running virtual machine image.
@@ -126,13 +123,13 @@ public abstract class VM_MachineCode {
   private static final int shift = 8;
 
   private VM_CodeArray instructions;
-  private ArrayList     bundles;
+  private ArrayList<int[]> bundles;
   private int[]         current_bundle;
   private int           next;
   private int           next_bundle;
 
   public VM_MachineCode () {
-    bundles = new ArrayList();
+    bundles = new ArrayList<int[]>();
     current_bundle = new int[size];
     bundles.add(current_bundle);
     next_bundle++;

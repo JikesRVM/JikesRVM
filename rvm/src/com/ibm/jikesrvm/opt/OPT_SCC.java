@@ -29,7 +29,7 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
   /**
    *  A linked list of graph nodes in this SCC
    */
-  private OPT_LinkedListObjectElement nodes = null;
+  private OPT_LinkedListObjectElement<OPT_GraphNode> nodes = null;
 
   /**
    * Add a given graph node to this SCC
@@ -37,7 +37,7 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
    * @param n the node to add
    */
   public void add(OPT_GraphNode n) {
-    nodes = new OPT_LinkedListObjectElement(n, nodes);
+    nodes = new OPT_LinkedListObjectElement<OPT_GraphNode>(n, nodes);
   }
 
   /**
@@ -53,7 +53,7 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
    * @return an enumeration of all the nodes contained in this SCC
    */
   public OPT_GraphNodeEnumeration enumerateVertices() {
-    final Enumeration e = new OPT_LinkedListObjectEnumerator(nodes);
+    final Enumeration<OPT_GraphNode> e = new OPT_LinkedListObjectEnumerator<OPT_GraphNode>(nodes);
     return  new OPT_GraphNodeEnumeration() {
 
       public boolean hasMoreElements() {
@@ -64,11 +64,12 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
         return  (OPT_GraphNode)e.nextElement();
       }
 
-      public Object nextElement() {
+      public OPT_GraphNode nextElement() {
         return  next();
       }
     };
   }
+  private final static long serialVersionUID = 1L;
 }
 
 

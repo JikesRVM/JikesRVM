@@ -62,10 +62,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   // implementation //
   //----------------//
 
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray saveThreadStateInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray threadSwitchInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray invokeNativeFunctionInstructions;
    
   private static final Offset PARAMS_FP_OFFSET     = Offset.fromIntSignExtend(WORDSIZE * 2);

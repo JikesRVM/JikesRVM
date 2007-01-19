@@ -25,8 +25,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   /**
    * Does class <code>A</code> directly implement the interface <code>B</code>?
    */
-  public static boolean implementsInterface(Class A, Class B) {
-    Class[] interfaces = A.getInterfaces();
+  public static boolean implementsInterface(Class<?> A, Class<?> B) {
+    Class<?>[] interfaces = A.getInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
       if (interfaces[i] == B)
         return true;

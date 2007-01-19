@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.adaptive.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /** 
  * The following OPT phase inserts counters on all instructions in the
@@ -74,25 +73,20 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase {
      }
      
      // Iterate through the basic blocks
-     for (Iterator itr = bbList.iterator();
-          itr.hasNext(); ) {
-       OPT_BasicBlock bb = (OPT_BasicBlock) itr.next();
-       
+     for (OPT_BasicBlock bb : bbList) {
        // Add instructions to vector so enumeration doesn't mess
        // things up.  There is probably a better way to do this, but
        // it doesn't matter because this is a debugging phase.
-       ArrayList<OPT_Instruction> iList =
+       ArrayList<OPT_Instruction> iList = 
          new ArrayList<OPT_Instruction>();
-       OPT_Instruction i = bb.firstInstruction();
-       while (i!=null && i!=bb.lastInstruction()) {
-         iList.add(i);
-         i = i.nextInstructionInCodeOrder();
+       OPT_Instruction inst = bb.firstInstruction();
+       while (inst!=null && inst!=bb.lastInstruction()) {
+         iList.add(inst);
+         inst = inst.nextInstructionInCodeOrder();
        }
-       
+
        // Iterate through all the instructions in this block.
-       for (Iterator instructions = iList.iterator();
-            instructions.hasNext();) {
-         i = (OPT_Instruction) instructions.next();
+       for (OPT_Instruction i : iList) {
 
          // Skip dangerous instructions
          if (i.operator() == LABEL ||

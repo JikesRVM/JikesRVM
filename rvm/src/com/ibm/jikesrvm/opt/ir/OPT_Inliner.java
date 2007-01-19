@@ -68,7 +68,7 @@ public class OPT_Inliner {
     // original CFG.  So, create a new ExceptionHandlerBasicBlockBag
     // which will enforce this behavior.
     OPT_ExceptionHandlerBasicBlock[] catchBlocks = new OPT_ExceptionHandlerBasicBlock[bb.getNumberOfExceptionalOut()];
-    Enumeration e = bb.getExceptionalOut();
+    Enumeration<OPT_BasicBlock> e = bb.getExceptionalOut();
     for (int i=0; i<catchBlocks.length; i++) {
        catchBlocks[i] = (OPT_ExceptionHandlerBasicBlock)e.nextElement();
     }

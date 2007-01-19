@@ -17,6 +17,7 @@ import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import com.ibm.jikesrvm.ppc.jni.VM_JNIStackframeLayoutConstants;
 
 import org.vmmagic.unboxed.Offset;
 
@@ -42,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
-                                         com.ibm.jikesrvm.ppc.jni.VM_JNIStackframeLayoutConstants,
+                                         VM_JNIStackframeLayoutConstants,
                                          VM_AssemblerConstants {
   public static void init() {
     reflectiveMethodInvokerInstructions       = generateReflectiveMethodInvokerInstructions();
@@ -52,10 +53,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
   }
 
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray saveThreadStateInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray threadSwitchInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static VM_CodeArray invokeNativeFunctionInstructions;
    
   // Machine code for reflective method invocation.
@@ -114,7 +120,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     VM_ForwardReference setupFPRLoader = asm.emitForwardBL();
 
-    FPRLoader:
     for (int i = LAST_VOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
       asm.emitLFDU(i, BYTES_IN_DOUBLE, T2);                 // FPRi := fprs[i]
          
@@ -126,7 +131,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     VM_ForwardReference setupGPRLoader = asm.emitForwardBL();
 
-    GPRLoader:
     for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
       asm.emitLAddrU  (i, BYTES_IN_ADDRESS, S0);                 // GPRi := gprs[i]
       

@@ -13,38 +13,43 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-final class OPT_LinkedListObjectElement extends OPT_LinkedListElement {
-  Object value;
+final class OPT_LinkedListObjectElement<T> extends OPT_LinkedListElement {
+  T value;
 
-  Object getValue() {
+  T getValue() {
     return  value;
   }
 
-  OPT_LinkedListObjectElement(Object o) {
+  OPT_LinkedListObjectElement(T o) {
     value = o;
   }
 
-  OPT_LinkedListObjectElement(Object o, OPT_LinkedListObjectElement rest) {
+  OPT_LinkedListObjectElement(T o, OPT_LinkedListObjectElement<T> rest) {
     value = o;
     next = rest;
   }
-
-  static OPT_LinkedListObjectElement cons(Object o, 
-      OPT_LinkedListObjectElement rest) {
-    return  new OPT_LinkedListObjectElement(o, rest);
+  
+  @SuppressWarnings("unchecked")
+  OPT_LinkedListObjectElement<T> nextElement() {
+    return (OPT_LinkedListObjectElement<T>)next;
   }
 
-  OPT_LinkedListObjectElement copyFrom () {
-    OPT_LinkedListObjectElement from = this;
-    OPT_LinkedListObjectElement to = new 
-        OPT_LinkedListObjectElement(from.value);
-    OPT_LinkedListObjectElement to_curr = to;
+  static <U> OPT_LinkedListObjectElement<U> cons(U o, 
+      OPT_LinkedListObjectElement<U> rest) {
+    return  new OPT_LinkedListObjectElement<U>(o, rest);
+  }
+
+  OPT_LinkedListObjectElement<T> copyFrom () {
+    OPT_LinkedListObjectElement<T> from = this;
+    OPT_LinkedListObjectElement<T> to = 
+      new OPT_LinkedListObjectElement<T>(from.value);
+    OPT_LinkedListObjectElement<T> to_curr = to;
     for (;;) {
-      from = (OPT_LinkedListObjectElement)from.next;
+      from = from.nextElement();
       if (from == null)
         return  to;
-      OPT_LinkedListObjectElement to_next = 
-          new OPT_LinkedListObjectElement(from.value);
+      OPT_LinkedListObjectElement<T> to_next = 
+          new OPT_LinkedListObjectElement<T>(from.value);
       to_curr.next = to_next;
       to_curr = to_next;
     }

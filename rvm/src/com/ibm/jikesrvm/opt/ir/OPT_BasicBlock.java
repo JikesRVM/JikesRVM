@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.opt.ir;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.*;
-import java.util.Enumeration;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 import static com.ibm.jikesrvm.opt.OPT_Constants.*;
 import org.vmmagic.pragma.*;
@@ -570,6 +569,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     else   
       clearMayThrowUncaughtException();
   }
+  @SuppressWarnings("unused") // FIXME can this be deleted ??
   private final void setIsExceptionHandlerBasicBlock(boolean v) {
     if (v) 
       setExceptionHandlerBasicBlock();
@@ -1660,7 +1660,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     for (OPT_InstructionEnumeration e = forwardRealInstrEnumerator();
          e.hasMoreElements();){
       OPT_Instruction s = e.next();
-      Enumeration expOuts = getApplicableExceptionalOut(s);
+      OPT_BasicBlockEnumeration expOuts = getApplicableExceptionalOut(s);
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
         OPT_BasicBlock next = splitNodeWithLinksAt(s, ir);
         next.unfactor(ir);
@@ -1726,7 +1726,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    *
    * @return an enumeration of the in nodes
    */
-  public final Enumeration getInNodes() {
+  public final OPT_BasicBlockEnumeration getInNodes() {
     return new InEdgeEnum(this);
   }
 

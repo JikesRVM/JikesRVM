@@ -16,7 +16,6 @@ import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.osr.OSR_BytecodeTraverser;
@@ -24,7 +23,6 @@ import com.ibm.jikesrvm.osr.OSR_Constants;
 import com.ibm.jikesrvm.osr.OSR_ExecStateExtractor;
 import com.ibm.jikesrvm.osr.OSR_ExecutionState;
 import com.ibm.jikesrvm.osr.OSR_VariableElement;
-import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -75,7 +73,6 @@ public abstract class OSR_BaselineExecStateExtractor
       VM.sysWriteln("BASE execStateExtractor starting ...");    
     }
 
-    VM_Registers contextRegisters = thread.contextRegisters;
     byte[] stack = thread.stack;
 
     if (VM.VerifyAssertions) {

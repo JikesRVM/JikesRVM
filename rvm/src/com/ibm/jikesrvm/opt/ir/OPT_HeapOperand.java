@@ -69,7 +69,7 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
    * @return a new heap operand associated with the same heap variable as
    * this operand
    */
-  public OPT_Operand copy() {
+  public OPT_HeapOperand<T> copy() {
     return new OPT_HeapOperand<T>(value);
   }
 

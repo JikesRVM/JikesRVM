@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 /**
  * The driver that creates an annotated {@link OPT_AnnotatedLSTGraph}.

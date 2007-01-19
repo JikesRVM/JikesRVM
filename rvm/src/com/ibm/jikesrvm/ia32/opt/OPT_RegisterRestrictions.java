@@ -9,8 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
-import java.util.Iterator;
-
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
@@ -66,7 +64,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
-  public void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {
+  public void addArchRestrictions(OPT_BasicBlock bb, ArrayList<OPT_LiveIntervalElement> symbolics) {
     // If there are any registers used in catch blocks, we want to ensure
     // that these registers are not used or evicted from scratch registers
     // at a relevant PEI, so that the assumptions of register homes in the
@@ -78,8 +76,8 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
       OPT_Instruction s = ie.next();
       if (s.isPEI() && s.operator != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
-          for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-            OPT_Operand op = (OPT_Operand)e.nextElement();
+          for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+            OPT_Operand op = e.nextElement();
             if (op != null && op.isRegister()) {
               noteMustNotSpill(op.asRegister().register);
               handle8BitRestrictions(s);
@@ -123,8 +121,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
       OPT_Instruction s = ie.next();
       if (s.operator == IA32_FNINIT) {
         // No floating point register survives across an FNINIT
-        for (Iterator sym = symbolics.iterator(); sym.hasNext(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+        for (OPT_LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
             if (contains(symb,s.scratch)) {
               addRestrictions(symb.getRegister(),phys.getFPRs());
@@ -133,8 +130,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
         }
       } else if (s.operator == IA32_FCLEAR) {
         // Only some FPRs survive across an FCLEAR
-        for (Iterator sym = symbolics.iterator(); sym.hasNext(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+        for (OPT_LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
             if (contains(symb,s.scratch)) {
               int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;

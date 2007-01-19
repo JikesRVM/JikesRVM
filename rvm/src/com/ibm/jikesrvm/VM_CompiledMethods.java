@@ -69,10 +69,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-        if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
-            VM.sysWriteln(compiledMethodId);
-            VM._assert(false);
-        }
+      if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
+        VM.sysWriteln("WARNING: attempt to get compiled method #",compiledMethodId);
+        return null;
+      }
     }
 
     return compiledMethods[compiledMethodId];
@@ -236,7 +236,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Index of most recently allocated slot in compiledMethods[].
   //
-  private static int currentCompiledMethodId;
+  private static int currentCompiledMethodId = 0;
 
   // See usage above
   private static boolean scanForObsoleteMethods = false;

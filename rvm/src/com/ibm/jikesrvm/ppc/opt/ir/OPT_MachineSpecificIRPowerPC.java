@@ -10,7 +10,6 @@ package com.ibm.jikesrvm.ppc.opt.ir;
 
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.opt.ir.MIR_CondBranch;
 import com.ibm.jikesrvm.opt.ir.MIR_CondBranch2;
@@ -19,8 +18,6 @@ import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_IntConstantOperand;
 import com.ibm.jikesrvm.opt.ir.OPT_MachineSpecificIR;
 import com.ibm.jikesrvm.opt.ir.OPT_Operand;
-
-import org.vmmagic.pragma.*;
 
 /**
  * Wrappers around PowerPC-specific IR common to both 32 & 64 bit

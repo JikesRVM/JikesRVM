@@ -17,31 +17,11 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.OPT_Bits;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
-import com.ibm.jikesrvm.opt.ir.MIR_Binary;
-import com.ibm.jikesrvm.opt.ir.MIR_Branch;
-import com.ibm.jikesrvm.opt.ir.MIR_Call;
-import com.ibm.jikesrvm.opt.ir.MIR_CondBranch;
-import com.ibm.jikesrvm.opt.ir.MIR_CondBranch2;
-import com.ibm.jikesrvm.opt.ir.MIR_CondCall;
-import com.ibm.jikesrvm.opt.ir.MIR_DataLabel;
-import com.ibm.jikesrvm.opt.ir.MIR_Load;
-import com.ibm.jikesrvm.opt.ir.MIR_LoadUpdate;
-import com.ibm.jikesrvm.opt.ir.MIR_LowTableSwitch;
-import com.ibm.jikesrvm.opt.ir.MIR_Move;
-import com.ibm.jikesrvm.opt.ir.MIR_Unary;
-import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
-import com.ibm.jikesrvm.opt.ir.OPT_IR;
-import com.ibm.jikesrvm.opt.ir.OPT_IRTools;
-import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
-import com.ibm.jikesrvm.opt.ir.OPT_MethodOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
-import com.ibm.jikesrvm.ppc.*;
+import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 import org.vmmagic.unboxed.Offset;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
-import static com.ibm.jikesrvm.classloader.VM_BytecodeConstants.*;
 import static com.ibm.jikesrvm.ppc.opt.OPT_PhysicalRegisterConstants.*;
 
 /**
@@ -66,7 +46,6 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
     int instructionCount = 0;
     int conditionalBranchCount = 0;
     int machinecodeLength = 0;
-    boolean frameCreated = false;
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 

@@ -32,7 +32,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 @Uninterruptible public class VM_Scheduler implements VM_Constants {
   
   /** Toggle display of frame pointer address in stack dump */
-  private static final boolean SHOW_FP_IN_STACK_DUMP = false;
+  private static final boolean SHOW_FP_IN_STACK_DUMP = true;
 
   /** Index of initial processor in which "VM.boot()" runs. */
   public static final int PRIMORDIAL_PROCESSOR_ID = 1;

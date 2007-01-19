@@ -11,19 +11,7 @@ package com.ibm.jikesrvm.ia32.opt;
 
 import  java.util.ArrayList;
 
-import com.ibm.jikesrvm.opt.OPT_ConvertLIRtoMIR;
-import com.ibm.jikesrvm.opt.OPT_ConvertMIRtoMC;
-import com.ibm.jikesrvm.opt.OPT_ExpandCallingConvention;
-import com.ibm.jikesrvm.opt.OPT_IRPrinter;
-import com.ibm.jikesrvm.opt.OPT_LiveAnalysis;
-import com.ibm.jikesrvm.opt.OPT_MIRBranchOptimizations;
-import com.ibm.jikesrvm.opt.OPT_MutateSplits;
-import com.ibm.jikesrvm.opt.OPT_OptimizationPlanElement;
-import com.ibm.jikesrvm.opt.OPT_OptimizationPlanner;
-import com.ibm.jikesrvm.opt.OPT_Options;
-import com.ibm.jikesrvm.opt.OPT_PrologueEpilogueCreator;
-import com.ibm.jikesrvm.opt.OPT_RegisterAllocator;
-import com.ibm.jikesrvm.opt.OPT_SplitBasicBlock;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are
@@ -39,7 +27,7 @@ public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
   /**
    * Initialize the "master plan" for the IA32 backend of the opt compiler.
    */
-  public static void intializeMasterPlan(ArrayList temp) {
+  public static void intializeMasterPlan(ArrayList<OPT_OptimizationPlanElement> temp) {
     LIR2MIR(temp);
     MIROptimizations(temp);
     MIR2MC(temp);
@@ -81,7 +69,7 @@ public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIROptimizations(ArrayList p) {
+  private static void MIROptimizations(ArrayList<OPT_OptimizationPlanElement> p) {
     // Register Allocation
     composeComponents(p, "Register Mapping", new Object[] {
       new OPT_MIRSplitRanges(),
@@ -107,7 +95,7 @@ public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIR2MC(ArrayList p) {
+  private static void MIR2MC(ArrayList<OPT_OptimizationPlanElement> p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_ConvertMIRtoMC());
   }

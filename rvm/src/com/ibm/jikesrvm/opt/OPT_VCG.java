@@ -67,8 +67,8 @@ public final class OPT_VCG implements OPT_VCGConstants
     Hashtable<OPT_VisNode, String> nodeNames = new Hashtable<OPT_VisNode,String>();
     int nodenum = 0;
 
-    for (Enumeration nodes = g.nodes(); nodes.hasMoreElements();) {
-      OPT_VCGNode node = (OPT_VCGNode) nodes.nextElement();
+    for (Enumeration<OPT_VCGNode> nodes = g.nodes(); nodes.hasMoreElements();) {
+      OPT_VCGNode node = nodes.nextElement();
       OPT_VCGNode.NodeDesc nd = node.getVCGDescriptor();
       res.append(indent("node: {", 1));
       String name = (String) nodeNames.get(node);
@@ -98,8 +98,8 @@ public final class OPT_VCG implements OPT_VCGConstants
        * Process edges
        */
 
-      for (Enumeration edges = node.edges(); edges.hasMoreElements(); ) {
-        OPT_VCGEdge edge = (OPT_VCGEdge) edges.nextElement();
+      for (Enumeration<OPT_VisEdge> edges = node.edges(); edges.hasMoreElements(); ) {
+        OPT_VCGEdge edge = (OPT_VCGEdge)edges.nextElement();
         OPT_VCGEdge.EdgeDesc ed = edge.getVCGDescriptor();
         String eName = edge.backEdge()?"backedge":"edge";
         res.append(indent(eName+": {", 1));
@@ -200,6 +200,7 @@ public final class OPT_VCG implements OPT_VCGConstants
    * @param filename name of file
    * @param VCGOutput the string to write
    */
+  @SuppressWarnings("unused") // for debugging ??
   private static void writeToVCGFile(String filename, String VCGOutput) {
     writeToVCGFile(filename, VCGOutput, false);
   }
@@ -244,9 +245,6 @@ public final class OPT_VCG implements OPT_VCGConstants
   private static String pair(String name, int value, int indent) {
     return indents[indent]+name+":"+value+"\n";
   }
-  private static String pair(String name, Object value, int indent) {
-    return indents[indent]+name+":"+value+"\n";
-  }
   private static String pair(String name, boolean value, int indent) {
     return indents[indent]+name+":"+(value?"yes":"no")+"\n";
   }
@@ -262,12 +260,6 @@ public final class OPT_VCG implements OPT_VCGConstants
       sb.append(value.substring(s));
       value = sb.toString();
     }
-    return "\""+value+"\"";
-  }
-  private static String quote(int value) {
-    return "\""+value+"\"";
-  }
-  private static String quote(Object value) {
     return "\""+value+"\"";
   }
 

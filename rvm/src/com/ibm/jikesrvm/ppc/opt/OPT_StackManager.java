@@ -583,7 +583,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ptr.remove();
       ptr = next;
     }
-    
+
     // Buy stack frame, save LR, caller's FP 
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0),
                                      A(phys.getLR())));

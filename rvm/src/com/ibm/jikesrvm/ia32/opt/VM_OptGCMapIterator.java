@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.ia32.opt;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_SizeConstants;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.opt.VM_OptGenericGCMapIterator;
 
 import org.vmmagic.pragma.*;

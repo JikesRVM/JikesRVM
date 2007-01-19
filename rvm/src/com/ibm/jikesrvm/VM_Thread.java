@@ -11,7 +11,6 @@ package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread; // Used for Javadoc
 
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 
@@ -24,12 +23,13 @@ import com.ibm.jikesrvm.adaptive.VM_RuntimeMeasurements;
 import com.ibm.jikesrvm.adaptive.OSR_Listener;
 import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 
-import com.ibm.jikesrvm.ArchitectureSpecific.OSR_PostThreadSwitch;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 
 /**
  * A java thread's execution context.
+ * 
+ * @see com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread
  *  
  * @author Derek Lieber
  */
@@ -478,7 +478,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 
     VM_Thread myThread = getCurrentThread();
     if (VM.BuildForAdaptiveSystem && myThread.isWaitingForOsr) {
-      OSR_PostThreadSwitch.postProcess(myThread);
+      ArchitectureSpecific.OSR_PostThreadSwitch.postProcess(myThread);
     }
   }
 

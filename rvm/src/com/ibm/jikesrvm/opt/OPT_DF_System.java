@@ -93,13 +93,13 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    */
   public Enumeration<OPT_DF_Equation> getEquations() {
     return new OPT_FilterEnumerator<OPT_GraphNode,OPT_DF_Equation>(
-                                    equations.enumerateNodes(),
+        equations.enumerateNodes(),
         new OPT_FilterEnumerator.Filter<OPT_GraphNode,OPT_DF_Equation>() {
           public boolean isElement(OPT_GraphNode x) {
-                                    return x instanceof OPT_DF_Equation;
-                                    }
-                                    }
-                                   );
+            return x instanceof OPT_DF_Equation;
+          }
+        }
+    );
   }
 
   /** 

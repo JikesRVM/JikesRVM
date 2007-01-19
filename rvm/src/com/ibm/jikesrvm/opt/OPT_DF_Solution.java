@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * OPT_DF_Solution.java
@@ -28,7 +29,7 @@ public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
    */
   public String toString () {
     String result = "";
-    for (java.util.Iterator e = values().iterator(); e.hasNext();) {
+    for (Iterator<OPT_DF_LatticeCell> e = values().iterator(); e.hasNext();) {
       OPT_DF_LatticeCell cell = (OPT_DF_LatticeCell)e.next();
       result = result + cell + "\n";
     }

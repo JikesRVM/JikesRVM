@@ -23,8 +23,6 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 import com.ibm.jikesrvm.osr.OSR_ExecutionState;
-import com.ibm.jikesrvm.ppc.*;
-import com.ibm.jikesrvm.ppc.opt.*;
 import com.ibm.jikesrvm.adaptive.*;
 
 import org.vmmagic.unboxed.*;

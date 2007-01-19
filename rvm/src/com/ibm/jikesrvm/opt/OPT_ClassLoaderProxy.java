@@ -103,12 +103,12 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     VM_Class c2 = (VM_Class)t2.peekResolvedType();
     if (c1 != null && c2 != null) {
       // The ancestor hierarchy is available, so do this exactly
-      OPT_Stack s1 = new OPT_Stack();
+      OPT_Stack<VM_Class> s1 = new OPT_Stack<VM_Class>();
       do {
         s1.push(c1);
         c1 = c1.getSuperClass();
       } while (c1 != null);
-      OPT_Stack s2 = new OPT_Stack();
+      OPT_Stack<VM_Class> s2 = new OPT_Stack<VM_Class>();
       do {
         s2.push(c2);
         c2 = c2.getSuperClass();
@@ -349,7 +349,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   public static OPT_ClassConstantOperand getClassFromConstantPool (VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
-      Class val = klass.getClassForType();
+      Class<?> val = klass.getClassForType();
       return new OPT_ClassConstantOperand(val, offset);
     } catch (ClassCastException e) {
       throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);

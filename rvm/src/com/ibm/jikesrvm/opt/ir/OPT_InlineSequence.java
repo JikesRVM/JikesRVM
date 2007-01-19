@@ -170,11 +170,11 @@ public final class OPT_InlineSequence {
     return bcIndex;
   }
 
-  public java.util.Enumeration enumerateFromRoot()  {
-    return new java.util.Enumeration() {
-        OPT_Stack stack;
+  public java.util.Enumeration<OPT_InlineSequence> enumerateFromRoot()  {
+    return new java.util.Enumeration<OPT_InlineSequence>() {
+        OPT_Stack<OPT_InlineSequence> stack;
         {
-          stack = new OPT_Stack();
+          stack = new OPT_Stack<OPT_InlineSequence>();
           OPT_InlineSequence parent = OPT_InlineSequence.this;
           while (parent.caller != null) { 
             stack.push(parent);
@@ -184,7 +184,7 @@ public final class OPT_InlineSequence {
         public boolean hasMoreElements()  {
           return !stack.isEmpty();
         }
-        public Object nextElement() {
+        public OPT_InlineSequence nextElement() {
           return stack.pop();
         }
       };

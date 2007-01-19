@@ -11,19 +11,7 @@ package com.ibm.jikesrvm.ppc.opt;
 
 import  java.util.ArrayList;
 
-import com.ibm.jikesrvm.opt.OPT_ConvertLIRtoMIR;
-import com.ibm.jikesrvm.opt.OPT_ConvertMIRtoMC;
-import com.ibm.jikesrvm.opt.OPT_ExpandCallingConvention;
-import com.ibm.jikesrvm.opt.OPT_IRPrinter;
-import com.ibm.jikesrvm.opt.OPT_LiveAnalysis;
-import com.ibm.jikesrvm.opt.OPT_MIRBranchOptimizations;
-import com.ibm.jikesrvm.opt.OPT_MutateSplits;
-import com.ibm.jikesrvm.opt.OPT_OptimizationPlanner;
-import com.ibm.jikesrvm.opt.OPT_Options;
-import com.ibm.jikesrvm.opt.OPT_PrePassScheduler;
-import com.ibm.jikesrvm.opt.OPT_PrologueEpilogueCreator;
-import com.ibm.jikesrvm.opt.OPT_RegisterAllocator;
-import com.ibm.jikesrvm.opt.OPT_SplitBasicBlock;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are
@@ -41,7 +29,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
   /**
    * Initialize the "master plan" for the PowerPC backend of the opt compiler.
    */
-  public static void intializeMasterPlan(ArrayList temp) {
+  public static void intializeMasterPlan(ArrayList<OPT_OptimizationPlanElement> temp) {
     LIR2MIR(temp);
     MIROptimizations(temp);
     MIR2MC(temp);
@@ -53,7 +41,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
    *
    * @param p the plan under construction
    */
-  private static void LIR2MIR(ArrayList p) {
+  private static void LIR2MIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
@@ -82,7 +70,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
    *
    * @param p the plan under construction
    */
-  private static void MIROptimizations(ArrayList p) {
+  private static void MIROptimizations(ArrayList<OPT_OptimizationPlanElement> p) {
     ////////////////////
     // MIR OPTS(1) (before register allocation)
     ////////////////////
@@ -123,7 +111,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
    * 
    * @param p the plan under construction
    */
-  private static void MIR2MC(ArrayList p) {
+  private static void MIR2MC(ArrayList<OPT_OptimizationPlanElement> p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
         public boolean shouldPerform(OPT_Options options) {

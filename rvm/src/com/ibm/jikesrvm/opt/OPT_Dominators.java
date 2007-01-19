@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
+
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 
@@ -141,7 +143,7 @@ class OPT_Dominators {
    * @param solution the solution to the Dominators equations
    */
   public static void updateBlocks (OPT_DF_Solution solution) {
-    for (java.util.Iterator e = solution.values().iterator(); e.hasNext();) {
+    for (Iterator<OPT_DF_LatticeCell> e = solution.values().iterator(); e.hasNext();) {
       OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
       OPT_BasicBlock b = cell.block;
       b.scratchObject = new OPT_DominatorInfo(cell.dominators);
@@ -217,7 +219,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       OPT_BasicBlock exit = ir.cfg.exit();
       OPT_DominatorCell last = (OPT_DominatorCell)getCell(exit);
-      for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
+      for (Iterator<OPT_DF_LatticeCell> e = cells.values().iterator(); e.hasNext();) {
         OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
         if (cell == last)
           cell.addSingleBlock(cell.block); 
@@ -228,7 +230,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
     else {
       OPT_BasicBlock start = ir.cfg.entry();
       OPT_DominatorCell first = (OPT_DominatorCell)getCell(start);
-      for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
+      for (Iterator<OPT_DF_LatticeCell> e = cells.values().iterator(); e.hasNext();) {
         OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
         if (cell == first)
           cell.addSingleBlock(cell.block); 

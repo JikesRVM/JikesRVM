@@ -10,27 +10,11 @@
 package com.ibm.jikesrvm.ia32.opt;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_CompilerPhase;
 import com.ibm.jikesrvm.opt.OPT_DefUse;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.opt.OPT_Simplifier;
-import com.ibm.jikesrvm.opt.ir.Binary;
-import com.ibm.jikesrvm.opt.ir.BinaryAcc;
-import com.ibm.jikesrvm.opt.ir.CondMove;
-import com.ibm.jikesrvm.opt.ir.Move;
-import com.ibm.jikesrvm.opt.ir.OPT_IR;
-import com.ibm.jikesrvm.opt.ir.OPT_IRTools;
-import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
-import com.ibm.jikesrvm.opt.ir.OPT_InstructionEnumeration;
-import com.ibm.jikesrvm.opt.ir.OPT_Operand;
-import com.ibm.jikesrvm.opt.ir.OPT_OperandEnumeration;
-import com.ibm.jikesrvm.opt.ir.OPT_Operator;
-import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
-import com.ibm.jikesrvm.opt.ir.Unary;
-import com.ibm.jikesrvm.opt.ir.UnaryAcc;
+import com.ibm.jikesrvm.opt.ir.*;
 
 import org.vmmagic.pragma.*;
 
@@ -496,6 +480,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
   private static boolean isDead(OPT_Register r) {
     return r.scratch == 0;
   }
+  @SuppressWarnings("unused") // completes the set
   private static boolean isLive(OPT_Register r) {
     return r.scratch == 1;
   }

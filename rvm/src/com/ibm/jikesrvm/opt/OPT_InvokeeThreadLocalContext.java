@@ -34,7 +34,7 @@ public class OPT_InvokeeThreadLocalContext
   public OPT_SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source) {
     // first check if the specialization database contains
     // a specialized version from this context.
-    java.util.Iterator versions = 
+    java.util.Iterator<OPT_SpecializedMethod> versions = 
         OPT_SpecializationDatabase.getSpecialVersions(source);
     if (versions != null) {
       while (versions.hasNext()) {

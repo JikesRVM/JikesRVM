@@ -21,7 +21,6 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
 
 import org.vmmagic.unboxed.*;
 

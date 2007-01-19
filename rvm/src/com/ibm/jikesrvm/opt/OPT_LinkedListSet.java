@@ -9,14 +9,18 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
 import  java.util.NoSuchElementException;
+import  java.util.AbstractSet;
+import  java.util.Set;
+import  java.util.HashSet;
 
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_LinkedListSet extends java.util.AbstractSet {
-  OPT_LinkedListObjectElement tos;
+class OPT_LinkedListSet<T> extends AbstractSet<T> {
+  OPT_LinkedListObjectElement<T> tos;
   boolean no_duplicates;
 
   public OPT_LinkedListSet () {
@@ -24,42 +28,42 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
   }
 
   int eliminateDuplicates () {
-    java.util.Set s = new java.util.HashSet();
-    OPT_LinkedListObjectElement curr = tos;
-    OPT_LinkedListObjectElement prev = null;
+    Set<T> s = new HashSet<T>();
+    OPT_LinkedListObjectElement<T> curr = tos;
+    OPT_LinkedListObjectElement<T> prev = null;
     int size = 0;
     while (curr != null) {
-      Object v = curr.value;
+      T v = curr.value;
       if (!s.add(v))
         prev.next = curr.next; 
       else {
         prev = curr;
         ++size;
       }
-      curr = (OPT_LinkedListObjectElement)curr.next;
+      curr = curr.nextElement();
     }
     no_duplicates = true;
     return  size;
   }
 
-  public Object pull () {
+  public T pull () {
     if (tos == null)
       throw  new NoSuchElementException();
-    Object v = tos.value;
-    tos = (OPT_LinkedListObjectElement)tos.next;
+    T v = tos.value;
+    tos = tos.nextElement();
     return  v;
   }
 
-  public Object pullLast () {
+  public T pullLast () {
     if (tos == null)
       throw  new NoSuchElementException();
-    OPT_LinkedListElement e = tos;
-    OPT_LinkedListElement f = e;
+    OPT_LinkedListObjectElement<T> e = tos;
+    OPT_LinkedListObjectElement<T> f = e;
     while (e.next != null) {
       f = e;
-      e = e.next;
+      e = e.nextElement();
     }
-    Object v = ((OPT_LinkedListObjectElement)e).value;
+    T v = e.value;
     f.next = null;
     return  v;
   }
@@ -68,10 +72,10 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     if (!no_duplicates)
       return  eliminateDuplicates();
     int size = 0;
-    OPT_LinkedListObjectElement e = tos;
+    OPT_LinkedListObjectElement<T> e = tos;
     while (e != null) {
       ++size;
-      e = (OPT_LinkedListObjectElement)e.next;
+      e = e.nextElement();
     }
     return  size;
   }
@@ -81,28 +85,28 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
   }
 
   public boolean contains (Object o) {
-    OPT_LinkedListObjectElement e = tos;
+    OPT_LinkedListObjectElement<T> e = tos;
     while (e != null) {
       if (o.equals(e.value))
         return  true;
-      e = (OPT_LinkedListObjectElement)e.next;
+      e = e.nextElement();
     }
     return  false;
   }
 
-  public java.util.Iterator iterator () {
+  public Iterator<T> iterator () {
     if (!no_duplicates)
       eliminateDuplicates();
-    return  new OPT_LinkedListSetIterator(this);
+    return  new OPT_LinkedListSetIterator<T>(this);
   }
 
   public Object[] toArray () {
     int size = size();
     Object[] a = new Object[size];
-    OPT_LinkedListObjectElement e = tos;
+    OPT_LinkedListObjectElement<T> e = tos;
     for (int i = 0; i < size; ++i) {
       a[i] = e.value;
-      e = (OPT_LinkedListObjectElement)e.next;
+      e = e.nextElement();
     }
     return  a;
   }
@@ -111,8 +115,8 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
    * note: breaks java.util.Set spec, always returns true.
    * doesn't allow null.
    */
-  public boolean add (Object o) {
-    OPT_LinkedListObjectElement e = new OPT_LinkedListObjectElement(o);
+  public boolean add (T o) {
+    OPT_LinkedListObjectElement<T> e = new OPT_LinkedListObjectElement<T>(o);
     e.next = tos;
     no_duplicates = (tos == null);
     tos = e;
@@ -123,13 +127,13 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     if (no_duplicates) {
       if (tos == null)
         return  false;
-      Object v = tos.value;
+      T v = tos.value;
       if (o.equals(v)) {
-        tos = (OPT_LinkedListObjectElement)tos.next;
+        tos = tos.nextElement();
         return  true;
       }
-      OPT_LinkedListObjectElement prev = tos;
-      OPT_LinkedListObjectElement curr = (OPT_LinkedListObjectElement)prev.next;
+      OPT_LinkedListObjectElement<T> prev = tos;
+      OPT_LinkedListObjectElement<T> curr = prev.nextElement();
       while (curr != null) {
         v = curr.value;
         if (o.equals(v)) {
@@ -137,7 +141,7 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
           return  true;
         }
         prev = curr;
-        curr = (OPT_LinkedListObjectElement)curr.next;
+        curr = curr.nextElement();
       }
       return  false;
     } 
@@ -147,11 +151,11 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
       boolean result = false;
       Object v = tos.value;
       if (o.equals(v)) {
-        tos = (OPT_LinkedListObjectElement)tos.next;
+        tos = tos.nextElement();
         result = true;
       }
-      OPT_LinkedListObjectElement prev = tos;
-      OPT_LinkedListObjectElement curr = (OPT_LinkedListObjectElement)prev.next;
+      OPT_LinkedListObjectElement<T> prev = tos;
+      OPT_LinkedListObjectElement<T> curr = prev.nextElement();
       while (curr != null) {
         v = curr.value;
         if (o.equals(v)) {
@@ -159,7 +163,7 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
           result = true;
         }
         prev = curr;
-        curr = (OPT_LinkedListObjectElement)curr.next;
+        curr = curr.nextElement();
       }
       return  result;
     }
@@ -172,12 +176,12 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
 }
 
 
-class OPT_LinkedListSetIterator
-    implements java.util.Iterator {
-  OPT_LinkedListSet s;
-  OPT_LinkedListObjectElement n, npp;
+class OPT_LinkedListSetIterator<T>
+    implements Iterator<T> {
+  OPT_LinkedListSet<T> s;
+  OPT_LinkedListObjectElement<T> n, npp;
 
-  OPT_LinkedListSetIterator (OPT_LinkedListSet e) {
+  OPT_LinkedListSetIterator (OPT_LinkedListSet<T> e) {
     s = e;
     n = s.tos;
   }
@@ -186,10 +190,10 @@ class OPT_LinkedListSetIterator
     return  n == null;
   }
 
-  public Object next () {
+  public T next () {
     if (n == null)
       throw  new NoSuchElementException();
-    Object v = n.value;
+    T v = n.value;
     if (npp == null) {
       if (n == s.tos) {
       // returning first element
@@ -200,9 +204,9 @@ class OPT_LinkedListSetIterator
       }
     } 
     else {
-      npp = (OPT_LinkedListObjectElement)npp.next;
+      npp = npp.nextElement();
     }
-    n = (OPT_LinkedListObjectElement)n.next;
+    n = n.nextElement();
     return  v;
   }
 
@@ -214,7 +218,7 @@ class OPT_LinkedListSetIterator
       } 
       else {
         // next() called once
-        s.tos = (OPT_LinkedListObjectElement)s.tos.next;
+        s.tos = s.tos.nextElement();
         return;
       }
     }

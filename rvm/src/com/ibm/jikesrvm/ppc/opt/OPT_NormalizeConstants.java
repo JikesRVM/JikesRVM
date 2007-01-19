@@ -46,8 +46,6 @@ import com.ibm.jikesrvm.opt.ir.Prepare;
 import com.ibm.jikesrvm.opt.ir.Return;
 import com.ibm.jikesrvm.opt.ir.Store;
 import com.ibm.jikesrvm.opt.ir.Unary;
-import com.ibm.jikesrvm.ppc.*;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 import org.vmmagic.unboxed.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;

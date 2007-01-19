@@ -9,7 +9,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.opt.OPT_LiveIntervalElement;
+import com.ibm.jikesrvm.opt.*;
 
 /**
  * Generic wrappers around machine-specific IR

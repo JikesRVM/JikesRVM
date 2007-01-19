@@ -11,21 +11,9 @@ package com.ibm.jikesrvm.ia32.opt;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
-import java.util.Enumeration;
-
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_CompilerPhase;
 import com.ibm.jikesrvm.opt.OPT_Options;
-import com.ibm.jikesrvm.opt.ir.MIR_Nullary;
-import com.ibm.jikesrvm.opt.ir.MIR_UnaryNoRes;
-import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
-import com.ibm.jikesrvm.opt.ir.OPT_ExceptionHandlerBasicBlock;
-import com.ibm.jikesrvm.opt.ir.OPT_IR;
-import com.ibm.jikesrvm.opt.ir.OPT_IRTools;
-import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
-import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.opt.ir.OPT_Register;
+import com.ibm.jikesrvm.opt.ir.*;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -96,8 +84,8 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
   public final void perform(OPT_IR ir)  {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+    for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+      OPT_BasicBlock bb = b.nextElement();
       
       if (bb instanceof OPT_ExceptionHandlerBasicBlock) {
         // clear all floating-point state at the entry to a catch block
@@ -114,9 +102,9 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (Enumeration inst = bb.forwardInstrEnumerator(); 
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
            inst.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)inst.nextElement();
+        OPT_Instruction s = inst.nextElement();
         if (s.operator().isFpPop()) {
           // A pop instruction 'ends' a dummy live range.
           OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);

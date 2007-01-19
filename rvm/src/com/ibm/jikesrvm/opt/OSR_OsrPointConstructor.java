@@ -278,6 +278,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
     }
   }
 
+  @SuppressWarnings("unused") // it's a debugging tool
   private void verifyNoOsrBarriers(OPT_IR ir) {
     VM.sysWrite("Verifying no osr barriers");
     OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();

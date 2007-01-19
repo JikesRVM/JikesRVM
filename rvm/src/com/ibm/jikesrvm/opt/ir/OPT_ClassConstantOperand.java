@@ -26,7 +26,7 @@ public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
    * @param v the class constant
    * @param i JTOC offset of the class constant
    */
-  public OPT_ClassConstantOperand(Class v, Offset i) {
+  public OPT_ClassConstantOperand(Class<?> v, Offset i) {
     super(v, i);
   }
 
@@ -36,7 +36,7 @@ public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_ClassConstantOperand((Class)value, offset);
+    return new OPT_ClassConstantOperand((Class<?>)value, offset);
   }
 
   /**

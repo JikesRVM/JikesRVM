@@ -527,8 +527,8 @@ public abstract class OPT_IRTools {
    */
   public static boolean useDoublesAsDef(OPT_Operand u, 
                                         OPT_Instruction s) {
-    for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
-      OPT_Operand def = (OPT_Operand)d.nextElement();
+    for (Enumeration<OPT_Operand> d = s.getDefs(); d.hasMoreElements(); ) {
+      OPT_Operand def = d.nextElement();
       if (def != null) {
         if (def == u) return true;
       }
@@ -549,8 +549,8 @@ public abstract class OPT_IRTools {
    */
   public static boolean defDoublesAsUse(OPT_Operand d, 
                                         OPT_Instruction s) {
-    for (Enumeration u = s.getUses(); u.hasMoreElements(); ) {
-      OPT_Operand use = (OPT_Operand)u.nextElement();
+    for (Enumeration<OPT_Operand> u = s.getUses(); u.hasMoreElements(); ) {
+      OPT_Operand use = u.nextElement();
       if (use != null) {
         if (use.similar(d)) return true;
       }
@@ -562,8 +562,8 @@ public abstract class OPT_IRTools {
    * Does instruction s define register r?
    */
   public static boolean definedIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration e = s.getDefs(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {
           return true;
@@ -577,8 +577,8 @@ public abstract class OPT_IRTools {
    * Does instruction s use register r?
    */
   public static boolean usedIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration e = s.getUses(); e.hasMoreElements(); ) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+      OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {
           return true;

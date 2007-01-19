@@ -2612,6 +2612,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Also, this method is only called before generation of a call
    * to doubleToInt() or doubleToLong()
    */
+  @SuppressWarnings("unused")
   private final void genParameterRegisterLoad () {
     if (0 < NUM_PARAMETER_FPRS) {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);

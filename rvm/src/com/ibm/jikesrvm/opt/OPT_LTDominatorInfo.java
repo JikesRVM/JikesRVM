@@ -151,7 +151,7 @@ class OPT_LTDominatorInfo {
    * Returns an iterator over this block's bucket
    * @return an iterator over this block's bucket
    */
-  public Iterator getBucketIterator() {
+  public Iterator<OPT_BasicBlock> getBucketIterator() {
     return  bucket.iterator();
   }
 

@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

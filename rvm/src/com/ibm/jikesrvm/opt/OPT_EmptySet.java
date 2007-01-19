@@ -13,10 +13,10 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_EmptySet extends java.util.AbstractSet {
+class OPT_EmptySet extends java.util.AbstractSet<Object> {
   public static OPT_EmptySet INSTANCE = new OPT_EmptySet();
 
-  public java.util.Iterator iterator () {
+  public java.util.Iterator<Object> iterator () {
     return  OPT_EmptyIterator.INSTANCE;
   }
 

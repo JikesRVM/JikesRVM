@@ -497,6 +497,7 @@ final class OPT_NormalBURS extends OPT_BURS {
 
   // NOTE: assumes n has exactly 1 reg true parent (ie it is in
   //       an expression tree and is not the tree root).
+  @SuppressWarnings("unused")
   private OPT_SpaceEffGraphNode regTrueParent(OPT_SpaceEffGraphNode n) {
     for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
          out != null; 

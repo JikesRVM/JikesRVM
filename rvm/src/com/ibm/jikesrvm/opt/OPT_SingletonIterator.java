@@ -9,25 +9,26 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
+
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_SingletonIterator
-    implements java.util.Iterator {
+class OPT_SingletonIterator<T> implements Iterator<T> {
 
-  OPT_SingletonIterator (Object o) {
+  OPT_SingletonIterator (T o) {
     item = o;
     not_done = true;
   }
   boolean not_done;
-  Object item;
+  T item;
 
   public boolean hasNext () {
     return  not_done;
   }
 
-  public Object next () {
+  public T next () {
     if (not_done) {
       not_done = false;
       return  item;

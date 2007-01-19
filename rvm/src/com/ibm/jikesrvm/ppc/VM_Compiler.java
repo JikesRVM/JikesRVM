@@ -17,7 +17,6 @@ import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_EdgeCounts;
 import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.VM_ForwardReference;
-import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_MagicNames;
 import com.ibm.jikesrvm.VM_Memory;
 import com.ibm.jikesrvm.VM_ObjectModel;

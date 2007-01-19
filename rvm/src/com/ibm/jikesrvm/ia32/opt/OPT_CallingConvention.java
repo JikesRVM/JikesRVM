@@ -16,27 +16,9 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_StackManager;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_ConvertToLowLevelIR;
 import com.ibm.jikesrvm.opt.OPT_DefUse;
-import com.ibm.jikesrvm.opt.ir.Call;
-import com.ibm.jikesrvm.opt.ir.MIR_Call;
-import com.ibm.jikesrvm.opt.ir.MIR_Move;
-import com.ibm.jikesrvm.opt.ir.MIR_Return;
-import com.ibm.jikesrvm.opt.ir.MIR_UnaryNoRes;
-import com.ibm.jikesrvm.opt.ir.OPT_IR;
-import com.ibm.jikesrvm.opt.ir.OPT_IRTools;
-import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
-import com.ibm.jikesrvm.opt.ir.OPT_MemoryOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_MethodOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_Operand;
-import com.ibm.jikesrvm.opt.ir.OPT_OperandEnumeration;
-import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
-import com.ibm.jikesrvm.opt.ir.OPT_StackLocationOperand;
-import com.ibm.jikesrvm.opt.ir.Prologue;
+import com.ibm.jikesrvm.opt.ir.*;
 
 import java.util.Enumeration;
 
@@ -337,9 +319,9 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int location = sm.getOffsetForSysCall();
     
     // save each non-volatile
-    for (Enumeration e = phys.enumerateNonvolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       OPT_Operand M = 
         new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
       call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(r, VM_TypeReference.Int)));
@@ -373,9 +355,9 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int location = sm.getOffsetForSysCall();
     
     // restore each non-volatile
-    for (Enumeration e = phys.enumerateNonvolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       OPT_Operand M = 
         new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
       call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(r, VM_TypeReference.Int), M));

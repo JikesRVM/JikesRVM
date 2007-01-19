@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.ppc.opt;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.VM_OptGenericGCMapIterator;
-import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

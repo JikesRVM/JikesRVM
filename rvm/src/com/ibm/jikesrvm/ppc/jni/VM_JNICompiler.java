@@ -26,7 +26,6 @@ import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 
 /**
  * @author Ton Ngo 
@@ -176,7 +175,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // (currently, this is true when the JNIRefsTop index has been incremented from 0)
     asm.emitNativeStackOverflowCheck(frameSize + 14);   // add at least 14 for C frame (header + spill)
 
-    int parameterAreaSize = method.getParameterWords() << LOG_BYTES_IN_STACKSLOT;   // number of bytes of arguments
+    // FIXME Unused.  Delete ?? RJG
+    //int parameterAreaSize = method.getParameterWords() << LOG_BYTES_IN_STACKSLOT;   // number of bytes of arguments
 
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
@@ -338,9 +338,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     VM_MachineCode machineCode = asm.makeMachineCode();
     cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
     return cm;
-  } 
+  }
 
-  
+
   /**
    * Map the arguments from RVM convention to OS convention,
    * and replace all references with indexes into JNIRefs array.
@@ -746,7 +746,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
           }
         
           // For reference type, replace with handles before passing to native
-          int srcreg, dstreg;
+          int srcreg;
           if (nextVMArgReg <= LAST_VOLATILE_GPR) {
             srcreg = nextVMArgReg++;
           } else {

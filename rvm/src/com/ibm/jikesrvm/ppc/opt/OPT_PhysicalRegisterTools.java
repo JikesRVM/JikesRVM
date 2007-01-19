@@ -11,9 +11,7 @@ package com.ibm.jikesrvm.ppc.opt;
 
 import com.ibm.jikesrvm.opt.OPT_GenericPhysicalRegisterTools;
 import com.ibm.jikesrvm.opt.ir.OPT_RegisterOperand;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import java.util.Enumeration;
 
 /**
  * This abstract class provides a set of useful methods for

@@ -104,8 +104,8 @@ public class OPT_DominatorTree extends OPT_Tree {
 
     // allocate the tree and root node
     // Step 1: add all basic blocks to the tree as nodes
-    for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
+    for (Enumeration<OPT_BasicBlock> bbEnum = ir.cfg.basicBlocks(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = bbEnum.nextElement();
       // We treat the exit node as not being part of the CFG
       if (!forward || !block.isExit()) {
         addNode(block);
@@ -117,8 +117,8 @@ public class OPT_DominatorTree extends OPT_Tree {
 
     // Step 3: Walk the nodes, for each node create link with parent
     //   Leaf nodes have no links to add
-    for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
+    for (Enumeration<OPT_BasicBlock> bbEnum = ir.cfg.basicBlocks(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = bbEnum.nextElement();
       // skip the exit node
       if (forward && block.isExit()) {
         continue;
@@ -161,7 +161,7 @@ public class OPT_DominatorTree extends OPT_Tree {
    * @param bb the basic block
    * @return an Enumeration of bb's children
    */
-  public Enumeration getChildren(OPT_BasicBlock bb) {
+  public Enumeration<OPT_TreeNode> getChildren(OPT_BasicBlock bb) {
     OPT_DominatorTreeNode node = dominatorInfoMap[bb.getNumber()];
     return  node.getChildren();
   }

@@ -9,16 +9,15 @@
 //$Id$
 package com.ibm.jikesrvm.ppc.opt;
 
-import java.util.Enumeration;
 
 import com.ibm.jikesrvm.opt.OPT_GenericRegisterPreferences;
 import com.ibm.jikesrvm.opt.ir.MIR_Move;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
+import com.ibm.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import com.ibm.jikesrvm.opt.ir.OPT_Operand;
 import com.ibm.jikesrvm.opt.ir.OPT_Operators;
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 /**
  * An instance of this class provides a mapping from symbolic register to
@@ -48,9 +47,9 @@ implements OPT_Operators {
    * Set up register preferences based on instructions in an IR.
    */
   public void initialize(OPT_IR ir) {
-    for (Enumeration e = ir.forwardInstrEnumerator(); 
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
          e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case PPC_MOVE_opcode:
           // add affinities produced by MOVE instructions

@@ -28,11 +28,11 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
    * Calculate the estimated cost for each register.  
    */
   void calculate(OPT_IR ir) {
-    for (Enumeration blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)blocks.nextElement();
+    for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
+      OPT_BasicBlock bb = blocks.nextElement();
       float freq = bb.getExecutionFrequency();
-      for (Enumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements(); ) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements(); ) {
+        OPT_Instruction s = e.nextElement();
         double factor = freq;
 
         if (s.isMove()) factor *= OPT_SimpleSpillCost.MOVE_FACTOR;
@@ -42,8 +42,8 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
         }
 
         // first deal with non-memory operands
-        for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
-          OPT_Operand op = (OPT_Operand)e2.nextElement();
+        for (OPT_OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
+          OPT_Operand op = e2.nextElement();
           if (op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (r.isSymbolic()) {
@@ -53,7 +53,7 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
         }
         // now handle memory operands
         factor *= OPT_SimpleSpillCost.MEMORY_OPERAND_FACTOR;
-        for (Enumeration e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
+        for (OPT_OperandEnumeration e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
           OPT_MemoryOperand M = (OPT_MemoryOperand)e2.nextElement();
           if (M.base != null) {
             OPT_Register r = M.base.register;

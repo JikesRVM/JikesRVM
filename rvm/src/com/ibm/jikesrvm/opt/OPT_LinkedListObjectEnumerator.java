@@ -16,11 +16,11 @@ import  java.util.NoSuchElementException;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-final class OPT_LinkedListObjectEnumerator
-    implements Enumeration {
-  OPT_LinkedListElement curr;
+final class OPT_LinkedListObjectEnumerator<T>
+    implements Enumeration<T> {
+  OPT_LinkedListObjectElement<T> curr;
 
-  OPT_LinkedListObjectEnumerator(OPT_LinkedListObjectElement start) {
+  OPT_LinkedListObjectEnumerator(OPT_LinkedListObjectElement<T> start) {
     curr = start;
   }
 
@@ -28,14 +28,14 @@ final class OPT_LinkedListObjectEnumerator
     return  curr != null;
   }
 
-  public Object nextElement() {
+  public T nextElement() {
     return  next();
   }
 
-  public Object next() {
+  public T next() {
     try {
-      OPT_LinkedListObjectElement e = (OPT_LinkedListObjectElement)curr;
-      curr = curr.next;
+      OPT_LinkedListObjectElement<T> e = curr;
+      curr = curr.nextElement();
       return  e.value;
     } catch (NullPointerException e) {
       throw  new NoSuchElementException("OPT_LinkedListObjectEnumerator");

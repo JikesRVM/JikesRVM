@@ -146,6 +146,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   static private final int NON_VOLATILE = 0x02000000;
 
   static private final int EXTANT        = 0x04000000; // is this an extant object?
+  @SuppressWarnings("unused")  // here as doco
   static private final int UNUSED_BIT2   = 0x08000000; 
   // type of a RegisterOperand can be in one of three states:
   // a- declared: the type obtained from a getfield,getstatic,putfield,putstatic,array load

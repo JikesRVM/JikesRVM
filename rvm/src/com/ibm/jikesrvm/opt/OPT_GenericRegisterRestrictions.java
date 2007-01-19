@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.ir.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
@@ -71,8 +70,8 @@ public abstract class OPT_GenericRegisterRestrictions {
    */
   public final void init(OPT_IR ir) {
     // process each basic block
-    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
-      OPT_BasicBlock b = (OPT_BasicBlock)e.nextElement();
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock b = e.nextElement();
       processBlock(b);
     }
   }
@@ -93,8 +92,8 @@ public abstract class OPT_GenericRegisterRestrictions {
     
     // 1. walk through the live intervals and identify which correspond to
     // physical and symbolic registers
-    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
-      OPT_LiveIntervalElement li = (OPT_LiveIntervalElement)e.nextElement();
+    for (Enumeration<OPT_LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
+      OPT_LiveIntervalElement li = e.nextElement();
       OPT_Register r = li.getRegister();
       if (r.isPhysical()) {
         if (r.isVolatile() || r.isNonVolatile()) {
@@ -108,10 +107,8 @@ public abstract class OPT_GenericRegisterRestrictions {
     // 2. walk through the live intervals for physical registers.  For
     // each such interval, record the conflicts where the live range
     // overlaps a live range for a symbolic register.
-    for (Iterator p = physical.iterator(); p.hasNext(); ) {
-      OPT_LiveIntervalElement phys = (OPT_LiveIntervalElement)p.next();
-      for (Iterator s = symbolic.iterator(); s.hasNext(); ) {
-        OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)s.next();
+    for (OPT_LiveIntervalElement phys : physical) {
+      for (OPT_LiveIntervalElement symb : symbolic) {
         if (overlaps(phys,symb)) {
           addRestriction(symb.getRegister(),phys.getRegister());
         }
@@ -125,8 +122,7 @@ public abstract class OPT_GenericRegisterRestrictions {
          ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
-        for (Iterator sym = symbolic.iterator(); sym.hasNext(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)sym.next();
+        for (OPT_LiveIntervalElement symb : symbolic) {
           if (contains(symb,s.scratch)) {
             forbidAllVolatiles(symb.getRegister());
           }
@@ -138,8 +134,7 @@ public abstract class OPT_GenericRegisterRestrictions {
       // but not FPRS.
       //
       if (s.operator == YIELDPOINT_OSR) {
-        for (Iterator sym = symbolic.iterator(); sym.hasNext(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+        for (OPT_LiveIntervalElement symb : symbolic) {
           if (symb.getRegister().isFloatingPoint()) {
             if (contains(symb,s.scratch)) {
               forbidAllVolatiles(symb.getRegister());
@@ -161,7 +156,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
-  public void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {}
+  public void addArchRestrictions(OPT_BasicBlock bb, ArrayList<OPT_LiveIntervalElement> symbolics) {}
 
   /**
    * Does a live range R contain an instruction with number n?

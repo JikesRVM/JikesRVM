@@ -12,10 +12,7 @@ package com.ibm.jikesrvm.ppc.jni;
 import java.lang.reflect.*;
 
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
-import com.ibm.jikesrvm.jni.VM_JNIFunctions;
 import com.ibm.jikesrvm.jni.VM_JNIGenericHelpers;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.ppc.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.VM;
@@ -48,13 +45,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class cls, int methodID, Address argAddress, 
+  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, 
                                          boolean isJvalue, boolean isDotDotStyle) 
     throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    Constructor constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
+    Constructor<?> constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
     if (!mth.isPublic()) {
       constMethod.setAccessible(true);
     }

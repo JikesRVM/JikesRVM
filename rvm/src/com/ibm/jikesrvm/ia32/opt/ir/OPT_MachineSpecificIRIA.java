@@ -8,10 +8,7 @@
  */
 package com.ibm.jikesrvm.ia32.opt.ir;
 
-import java.util.Enumeration;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-
-import org.vmmagic.pragma.Inline;
 
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
@@ -22,6 +19,7 @@ import com.ibm.jikesrvm.opt.ir.MIR_CondBranch;
 import com.ibm.jikesrvm.opt.ir.MIR_CondBranch2;
 import com.ibm.jikesrvm.opt.ir.MIR_Move;
 import com.ibm.jikesrvm.opt.ir.OPT_BasicBlock;
+import com.ibm.jikesrvm.opt.ir.OPT_BasicBlockEnumeration;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_InstructionEnumeration;
@@ -180,8 +178,8 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
    */
   public void rewriteFPStack(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+    for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+      OPT_BasicBlock bb = b.nextElement();
 
       // The following holds the floating point stack offset from its
       // 'normal' position.

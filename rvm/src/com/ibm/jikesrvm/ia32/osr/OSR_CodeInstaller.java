@@ -21,8 +21,6 @@ import com.ibm.jikesrvm.VM_Statics;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.*;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 import com.ibm.jikesrvm.osr.OSR_ExecutionState;
 import com.ibm.jikesrvm.adaptive.*;

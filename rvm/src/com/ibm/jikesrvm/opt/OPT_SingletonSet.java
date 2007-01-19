@@ -13,10 +13,10 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_SingletonSet extends java.util.AbstractSet {
-  Object o;
+class OPT_SingletonSet<T> extends java.util.AbstractSet<T> {
+  T o;
 
-  OPT_SingletonSet (Object o) {
+  OPT_SingletonSet (T o) {
     this.o = o;
   }
 
@@ -28,17 +28,19 @@ class OPT_SingletonSet extends java.util.AbstractSet {
     return  this.o.hashCode();
   }
 
-  public java.util.Iterator iterator () {
-    return  new OPT_SingletonIterator(o);
+  public java.util.Iterator<T> iterator () {
+    return  new OPT_SingletonIterator<T>(o);
   }
 
   public int size () {
     return  1;
   }
 
-  public Object[] toArray() {
+  public T[] toArray() {
     Object[] a = new Object[1];
     a[0] = o;
-    return  a;
+    @SuppressWarnings("unchecked") // Well known problem of generic arrays
+    T[] result = (T[])a;
+    return  result;
   }
 }

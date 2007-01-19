@@ -80,8 +80,8 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
     // (3) Insert yieldpoints in loop heads based on the LST.
     OPT_LSTGraph lst = ir.HIRInfo.LoopStructureTree;
     if (lst != null) {
-      for (java.util.Enumeration e = lst.getRoot().getChildren(); e.hasMoreElements();) {
-        processLoopNest((OPT_LSTNode)e.nextElement());
+      for (java.util.Enumeration<OPT_LSTNode> e = lst.getRoot().getChildren(); e.hasMoreElements();) {
+        processLoopNest(e.nextElement());
       }
     }
   }
@@ -90,8 +90,8 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
    * Process all loop heads in a loop nest by inserting a backedge yieldpoint in each of them.
    */
   private void processLoopNest(OPT_LSTNode n) {
-    for (java.util.Enumeration e = n.getChildren(); e.hasMoreElements();) {
-      processLoopNest((OPT_LSTNode)e.nextElement());
+    for (java.util.Enumeration<OPT_LSTNode> e = n.getChildren(); e.hasMoreElements();) {
+      processLoopNest(e.nextElement());
     }
     OPT_Instruction dest = n.header.firstInstruction();
     if (dest.position.getMethod().isInterruptible()) {

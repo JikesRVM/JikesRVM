@@ -39,10 +39,10 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
    * Calculate the estimated cost for each register.  
    */
   void calculate(OPT_IR ir) {
-    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
-      for (Enumeration ie = bb.forwardInstrEnumerator();ie.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)ie.nextElement();
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = e.nextElement();
+      for (Enumeration<OPT_Instruction> ie = bb.forwardInstrEnumerator();ie.hasMoreElements();) {
+        OPT_Instruction s = ie.nextElement();
         double factor = (bb.getInfrequent()) ? 0.0 : 1.0;
         if (s.isMove()) {
           factor *= MOVE_FACTOR;
@@ -52,8 +52,8 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
           baseFactor *= MEMORY_OPERAND_FACTOR;
         }
         // first deal with non-memory operands
-        for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
-          OPT_Operand op = (OPT_Operand)e2.nextElement();
+        for (Enumeration<OPT_Operand> e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
+          OPT_Operand op = e2.nextElement();
           if (op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (r.isSymbolic()) {
@@ -63,7 +63,7 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
         }
         // now handle memory operands
         factor *= MEMORY_OPERAND_FACTOR;
-        for (Enumeration e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
+        for (Enumeration<OPT_Operand> e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
           OPT_MemoryOperand M = (OPT_MemoryOperand)e2.nextElement();
           if (M.base != null) {
             OPT_Register r = M.base.register;
@@ -87,7 +87,7 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
    * NOTE: This is pretty intel-specific.  Refactor to arch/ tree.
    */
   static boolean hasBadSizeMemoryOperand(OPT_Instruction s) {
-    for (Enumeration e = s.getMemoryOperands(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getMemoryOperands(); e.hasMoreElements(); ) {
       OPT_MemoryOperand M = (OPT_MemoryOperand)e.nextElement();
       if (M.size != 4) return true;
     }

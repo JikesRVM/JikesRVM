@@ -551,7 +551,7 @@ public final class OPT_GenerationContext
    * given register.
    */
   OPT_RegisterOperand makeNullCheckGuard(OPT_Register ref) {
-    OPT_RegisterOperand guard = (OPT_RegisterOperand)_ncGuards.get(ref);
+    OPT_RegisterOperand guard = _ncGuards.get(ref);
     if (guard == null) {
       guard = temps.makeTempValidation();
       _ncGuards.put(ref, guard.copyRO());
@@ -773,9 +773,9 @@ public final class OPT_GenerationContext
     for (OPT_Register r = temps.getFirstSymbolicRegister();
          r != null;  r = r.next) regPool.add (r);
     
-    Iterator i = _ncGuards.entrySet().iterator();
+    Iterator<Map.Entry<OPT_Register,OPT_RegisterOperand>> i = _ncGuards.entrySet().iterator();
     while (i.hasNext()) {
-      Map.Entry entry = (Map.Entry) i.next();
+      Map.Entry<OPT_Register,OPT_RegisterOperand> entry = i.next();
       if (!(regPool.contains (entry.getValue()))) i.remove();
     }
   }

@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.ppc.osr;
 
 import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
-import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.unboxed.*;
 

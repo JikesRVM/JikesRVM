@@ -28,7 +28,7 @@ public interface OPT_VisNode {
    * Each of the edges has to implement the OPT_VisEdge interface
    * @return the enumeration that would list the edges of the node
    */
-  public Enumeration edges();
+  public Enumeration<OPT_VisEdge> edges();
 
   /**
    * To be used for implementing edges() for graphs that don't

@@ -22,25 +22,16 @@ import com.ibm.jikesrvm.classloader.VM_NormalMethod;
  * @author Matthew Arnold
  */
 public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
-  /** 
-   * The method that this plan is for 
-   * 
-   * FIXME: This is unused - can it be deleted ?
-   */
-  private final VM_NormalMethod method;
-
   /**
    * Construct empty plan, must setup manually
    **/ 
   public VM_AOSInstrumentationPlan(VM_NormalMethod method) {
-    this.method = method;
   }
 
   /**
    * Construct based on options
    **/ 
   public VM_AOSInstrumentationPlan(VM_AOSOptions options, VM_NormalMethod method) {
-    this.method = method;
     // If we want to collect method invocation counts.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
     }

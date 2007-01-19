@@ -191,8 +191,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
     // (2) Build chains
     ir.cfg.clearCodeOrder();
-    for (Iterator edgesI = edges.iterator(); edgesI.hasNext();) {
-      Edge e = (Edge)edgesI.next();
+    for (Iterator<Edge> edgesI = edges.iterator(); edgesI.hasNext();) {
+      Edge e = edgesI.next();
       // If the source of the edge is the last block in its chain
       // and the target of the edge is the first block in its chain
       // then merge the chains.
@@ -228,15 +228,13 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
     if (DEBUG) VM.sysWriteln("Chains constructed ");
     HashMap<OPT_BasicBlock,ChainInfo> chainInfo = new HashMap<OPT_BasicBlock,ChainInfo>();
-    for (Iterator chainI = chainHeads.iterator(); chainI.hasNext();) {
-      OPT_BasicBlock head = (OPT_BasicBlock)chainI.next();
+    for (OPT_BasicBlock head : chainHeads) {
       if (DEBUG) dumpChain(head);
       chainInfo.put(head, new ChainInfo(head));
     }
       
     // (3) Summarize inter-chain edges.
-    for (Iterator edgesI = edges.iterator(); edgesI.hasNext();) {
-      Edge e = (Edge)edgesI.next();
+    for (Edge e : edges) {
       if (e.source.scratchObject != e.target.scratchObject) {
         Object sourceChain = e.source.scratchObject;
         Object targetChain = e.target.scratchObject;
@@ -281,8 +279,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       // update ChainInfo
       chainInfo.remove(nextChoice.head);
       if (chainInfo.isEmpty()) break; // no chains left to place.
-      for (Iterator i = nextChoice.outWeights.keySet().iterator(); i.hasNext();) {
-        ChainInfo target = (ChainInfo)i.next();
+      for (ChainInfo target : nextChoice.outWeights.keySet()) {
         if (DEBUG) VM.sysWrite("\toutedge "+target);
         float weight = ((Float)nextChoice.outWeights.get(target)).floatValue();
         if (DEBUG) VM.sysWriteln(" = "+weight);
@@ -294,8 +291,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
       // Find the next chain to append.
       nextChoice = null;
-      for (Iterator i = chainInfo.values().iterator(); i.hasNext();) {
-        ChainInfo cand = (ChainInfo)i.next();
+      for (ChainInfo cand : chainInfo.values()) {
         if (cand.placedWeight > 0f) {
           if (nextChoice == null) {
             if (DEBUG) VM.sysWriteln("First reachable candidate "+cand);
@@ -312,8 +308,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
       // All remaining chains are fluff (not reachable from entry).
       // Pick one with minimal inWeight and continue.
-      for (Iterator i = chainInfo.values().iterator(); i.hasNext();) {
-        ChainInfo cand = (ChainInfo)i.next();
+      for (ChainInfo cand : chainInfo.values()) {
         if (nextChoice == null) {
           if (DEBUG) VM.sysWriteln("First candidate "+cand);
           nextChoice = cand;
@@ -353,7 +348,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     }
   }
 
-  private static final class Edge implements Comparable {
+  private static final class Edge implements Comparable<Edge> {
     final OPT_BasicBlock source;
     final OPT_BasicBlock target;
     final float weight;
@@ -368,8 +363,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       return weight + ": "+ source.toString() + " -> " + target.toString();
     }
 
-    public int compareTo(Object other) {
-      Edge that = (Edge)other;
+    public int compareTo(Edge that) {
       if (weight < that.weight) {
         return 1;
       } else if (weight > that.weight) {

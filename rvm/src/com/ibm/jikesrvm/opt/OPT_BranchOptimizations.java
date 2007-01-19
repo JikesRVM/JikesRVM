@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import com.ibm.jikesrvm.classloader.VM_TypeReference;
 import java.util.HashMap;
-import java.util.Enumeration;
 import java.util.HashSet;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -735,11 +734,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    */
   private boolean hasFloatingPointDef(OPT_BasicBlock bb) {
     if (bb == null) return false;
-    for (Enumeration e = bb.forwardRealInstrEnumerator();
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
-        OPT_Operand def = (OPT_Operand)d.nextElement();
+      OPT_Instruction s = e.nextElement();
+      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
+        OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().register.isFloatingPoint()) return true;
         }
@@ -753,11 +752,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    */
   private boolean hasLongDef(OPT_BasicBlock bb) {
      if (bb == null) return false;
-     for (Enumeration e = bb.forwardRealInstrEnumerator();
+     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
-        OPT_Operand def = (OPT_Operand)d.nextElement();
+      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
+        OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().register.isLong()) return true;
         }
@@ -777,9 +776,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // block.
     HashSet<OPT_Register> defined = new HashSet<OPT_Register>();
 
-    for (Enumeration e = bb.forwardRealInstrEnumerator();
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       // for now, only the following opcodes are legal.
       switch (s.operator.opcode) {
@@ -816,8 +815,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       
       
       // make sure no register is defined more than once in this block.
-      for (Enumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
-        OPT_Operand def = (OPT_Operand)defs.nextElement();
+      for (OPT_OperandEnumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
+        OPT_Operand def = defs.nextElement();
         if (VM.VerifyAssertions) VM._assert(def.isRegister());
         OPT_Register r = def.asRegister().register;
         if (defined.contains(r)) return true;
@@ -832,9 +831,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    */
   private int evaluateCost(OPT_BasicBlock bb) {
     int result = 0;
-    for (Enumeration e = bb.forwardRealInstrEnumerator();
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       if (!s.isBranch()) result++;
     }
     return result;
@@ -853,18 +852,18 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
                 
     int count = 0;
     // first count the number of instructions
-    for (Enumeration e = bb.forwardRealInstrEnumerator();
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       count++;
     }
     // now copy.
     OPT_Instruction[] result = new OPT_Instruction[count];
     int i = 0;
-    for (Enumeration e = bb.forwardRealInstrEnumerator(); 
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); 
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       OPT_Instruction sprime = s.copyWithoutLinks();
       result[i++] = sprime;
@@ -887,8 +886,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_Instruction s = set[i];
 
       // rewrite the uses to use the new names
-      for (Enumeration e = s.getUses(); e.hasMoreElements(); ) {
-        OPT_Operand use = (OPT_Operand)e.nextElement();
+      for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements(); ) {
+        OPT_Operand use = e.nextElement();
         if (use != null && use.isRegister()) {
           OPT_Register r = use.asRegister().register;
           OPT_Register temp = (OPT_Register)map.get(r);
@@ -973,9 +972,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // Now insert conditional moves to replace each instruction in the diamond.
     // First handle the taken branch.
     if (taken != null) {
-      for (Enumeration e = taken.forwardRealInstrEnumerator(); 
+      for (OPT_InstructionEnumeration e = taken.forwardRealInstrEnumerator(); 
            e.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement(); 
+        OPT_Instruction s = e.nextElement(); 
         if (s.isBranch()) continue;
         OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
@@ -1003,9 +1002,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       new HashMap<OPT_Register,OPT_Instruction>();
     // Next handle the not taken branch.
     if (notTaken != null) {
-      for (Enumeration e = notTaken.forwardRealInstrEnumerator(); 
+      for (OPT_InstructionEnumeration e = notTaken.forwardRealInstrEnumerator(); 
            e.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement(); 
+        OPT_Instruction s = e.nextElement(); 
         if (s.isBranch()) continue;
         OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary

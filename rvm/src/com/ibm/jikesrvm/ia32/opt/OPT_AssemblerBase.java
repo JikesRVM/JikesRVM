@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
 import com.ibm.jikesrvm.opt.ir.MIR_BinaryAcc;

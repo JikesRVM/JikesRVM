@@ -17,12 +17,12 @@ import  java.util.NoSuchElementException;
  * @author John Whaley
  */
 final class OPT_DepthFirstEnumerator
-    implements Enumeration {
-  OPT_Stack stack;
+    implements Enumeration<OPT_GraphNode> {
+  OPT_Stack<OPT_GraphNode> stack;
   int mark;
 
   OPT_DepthFirstEnumerator (OPT_GraphNode start, int markNumber) {
-    stack = new OPT_Stack();
+    stack = new OPT_Stack<OPT_GraphNode>();
     stack.push(start);
     mark = markNumber;
   }
@@ -32,9 +32,9 @@ final class OPT_DepthFirstEnumerator
       return  false;
     /*Enumeration*/
 
-    OPT_LinkedListObjectEnumerator e = stack.elements();
+    OPT_LinkedListObjectEnumerator<OPT_GraphNode> e = stack.elements();
     while (e.hasMoreElements()) {
-      OPT_GraphNode node = (OPT_GraphNode)e.next
+      OPT_GraphNode node = e.next
       /*Element*/
       ();
       if (node.getScratch() != mark)
@@ -43,7 +43,7 @@ final class OPT_DepthFirstEnumerator
     return  false;
   }
 
-  public Object nextElement () {
+  public OPT_GraphNode nextElement () {
     return  next();
   }
 
@@ -53,7 +53,7 @@ final class OPT_DepthFirstEnumerator
     while (!stack.isEmpty()) {
       OPT_GraphNode node = (OPT_GraphNode)stack.pop();
       if (node.getScratch() != mark) {
-        for (Enumeration e = node.outNodes(); e.hasMoreElements();) {
+        for (Enumeration<OPT_GraphNode> e = node.outNodes(); e.hasMoreElements();) {
           OPT_GraphNode n = (OPT_GraphNode)e.nextElement();
           if (n != null)
             stack.push(n);

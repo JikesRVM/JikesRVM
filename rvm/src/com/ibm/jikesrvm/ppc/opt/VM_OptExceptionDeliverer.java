@@ -17,9 +17,7 @@ import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
-import com.ibm.jikesrvm.ppc.*;
 
-import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /** 

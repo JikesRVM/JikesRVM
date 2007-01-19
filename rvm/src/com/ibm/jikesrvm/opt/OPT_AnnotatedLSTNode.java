@@ -140,7 +140,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     this.ir = ir;
 
     // Process inner loops
-    Enumeration innerLoops = node.outNodes();
+    Enumeration<OPT_GraphNode> innerLoops = node.outNodes();
     // Iterate over loops contained within this loop annotating from the inside out
     while (innerLoops.hasMoreElements()) {
       OPT_AnnotatedLSTNode nestedLoop = new OPT_AnnotatedLSTNode(ir, (OPT_LSTNode)innerLoops.nextElement());

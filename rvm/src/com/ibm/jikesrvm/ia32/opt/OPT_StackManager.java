@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_GenericStackManager;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;
@@ -232,9 +231,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each volatile register to a spill location.
       int i = 0;
-      for (Enumeration e = phys.enumerateVolatileGPRs(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); 
            e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
@@ -242,9 +241,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each non-volatile register to a spill location.
       i=0;
-      for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); 
            e.hasMoreElements(); i++)  {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
         nonVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
@@ -258,9 +257,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // Count the number of nonvolatiles used. 
       int numGprNv = 0;
       int i = 0;
-      for (Enumeration e = phys.enumerateNonvolatileGPRs();
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
            e.hasMoreElements(); ) {
-        OPT_Register r = (OPT_Register)e.nextElement();
+        OPT_Register r = e.nextElement();
         if (r.isTouched() ) {
           // Note that as a side effect, the following call bumps up the
           // frame size.
@@ -484,9 +483,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Save each non-volatile GPR used by this method. 
     int n = nNonvolatileGPRS - 1;
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
          e.hasMoreElements() && n >= 0 ; n--) {
-      OPT_Register nv = (OPT_Register)e.nextElement();
+      OPT_Register nv = e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
       inst.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(nv, VM_TypeReference.Int)));
@@ -504,9 +503,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     int n = nNonvolatileGPRS - 1;
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
          e.hasMoreElements() && n >= 0 ; n--) {
-      OPT_Register nv = (OPT_Register)e.nextElement();
+      OPT_Register nv = e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
       inst.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(nv, VM_TypeReference.Int), M));
@@ -544,9 +543,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Save each GPR. 
     int i = 0;
-    for (Enumeration e = phys.enumerateVolatileGPRs();
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); i++) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
       inst.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(r, VM_TypeReference.Int)));
@@ -563,9 +562,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Restore every GPR
     int i = 0;
-    for (Enumeration e = phys.enumerateVolatileGPRs(); 
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); 
          e.hasMoreElements(); i++){
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
       inst.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(r, VM_TypeReference.Int), M));
@@ -905,8 +904,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
   public void restoreScratchRegistersBefore(OPT_Instruction s) {
-    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
-      ScratchRegister scratch = (ScratchRegister)i.next();
+    for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister scratch = i.next();
 
       if (scratch.currentContents == null) continue;
       if (verboseDebug) {

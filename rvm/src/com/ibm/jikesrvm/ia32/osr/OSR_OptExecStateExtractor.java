@@ -19,8 +19,6 @@ import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
-import com.ibm.jikesrvm.ia32.opt.*;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 import com.ibm.jikesrvm.osr.OSR_Constants;
 import com.ibm.jikesrvm.osr.OSR_EncodedOSRMap;
@@ -574,6 +572,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
+  @SuppressWarnings("unused")
   private static void dumpStackContent(byte[] stack, Offset fpOffset) {
     int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_OptCompiledMethod cm = 
@@ -598,6 +597,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
+  @SuppressWarnings("unused")
   private static void dumpRegisterContent(WordArray gprs) {
     for (int i=0, n=gprs.length(); i<n; i++) {
       VM.sysWriteln(GPR_NAMES[i] + " = " , gprs.get(i));

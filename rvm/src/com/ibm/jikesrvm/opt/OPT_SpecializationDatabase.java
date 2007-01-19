@@ -42,7 +42,7 @@ public final class OPT_SpecializationDatabase {
     specializationInProgress = true;
     Iterator<OPT_SpecializedMethod> methods = deferredMethods.iterator();
     while (methods.hasNext()) {
-      OPT_SpecializedMethod m = (OPT_SpecializedMethod)methods.next();
+      OPT_SpecializedMethod m = methods.next();
       if (m.getCompiledMethod() == null) {
         m.compile();
         registerCompiledMethod(m);

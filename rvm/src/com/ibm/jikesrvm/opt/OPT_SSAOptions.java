@@ -28,7 +28,7 @@ public class OPT_SSAOptions {
   private boolean insertUsePhis;      // constuct Heap SSA with uPhi functions?
   private boolean insertPEIDeps;      // constuct Heap SSA with PEI deps?
   private boolean excludeGuards;      // ignore guards (validation regs) ?
-  private java.util.Set heapTypes;    // restrict Heap SSA to this set of types?
+  private java.util.Set<Object> heapTypes;    // restrict Heap SSA to this set of types?
   private boolean heapValid;          // is Heap SSA info valid?
   private boolean scalarValid;        // is Scalar SSA info valid?
   private boolean abort;              // abort all ssa passes?
@@ -61,7 +61,7 @@ public class OPT_SSAOptions {
     return  excludeGuards;
   }
 
-  final java.util.Set getHeapTypes () {
+  final java.util.Set<Object> getHeapTypes () {
     return  heapTypes;
   }
 
@@ -93,7 +93,7 @@ public class OPT_SSAOptions {
     insertPEIDeps = b;
   }
 
-  final void setHeapTypes (java.util.Set s) {
+  final void setHeapTypes (java.util.Set<Object> s) {
     heapTypes = s;
   }
 
@@ -112,7 +112,7 @@ public class OPT_SSAOptions {
    * off
    */
   OPT_SSAOptions (boolean scalarsOnly, boolean backwards, boolean insertUsePhis, 
-      java.util.Set heapTypes) {
+      java.util.Set<Object> heapTypes) {
     this.scalarsOnly = scalarsOnly;
     this.backwards = backwards;
     this.insertUsePhis = insertUsePhis;

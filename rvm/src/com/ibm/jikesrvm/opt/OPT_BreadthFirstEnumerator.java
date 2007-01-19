@@ -18,19 +18,19 @@ import  java.util.NoSuchElementException;
  * @author John Whaley
  */
 final class OPT_BreadthFirstEnumerator
-    implements Enumeration {
-  OPT_Queue queue;
+    implements Enumeration<OPT_GraphNode> {
+  OPT_Queue<OPT_GraphNode> queue;
   int mark;
 
   OPT_BreadthFirstEnumerator(OPT_GraphNode start, int markNumber) {
-    queue = new OPT_Queue(start);
+    queue = new OPT_Queue<OPT_GraphNode>(start);
     mark = markNumber;
   }
 
   public boolean hasMoreElements() {
     if (queue == null)
       return  false;
-    OPT_LinkedListObjectEnumerator e = queue.elements();
+    OPT_LinkedListObjectEnumerator<OPT_GraphNode> e = queue.elements();
     while (e.hasMoreElements()) {
       OPT_GraphNode node = (OPT_GraphNode)e.next
       /*Element*/
@@ -41,7 +41,7 @@ final class OPT_BreadthFirstEnumerator
     return  false;
   }
 
-  public Object nextElement() {
+  public OPT_GraphNode nextElement() {
     return  next();
   }
 
@@ -52,8 +52,8 @@ final class OPT_BreadthFirstEnumerator
     while (!queue.isEmpty()) {
       OPT_GraphNode node = (OPT_GraphNode)queue.remove();
       if (node.getScratch() != mark) {
-        for (Enumeration e = node.outNodes(); e.hasMoreElements();) {
-          OPT_GraphNode n = (OPT_GraphNode)e.nextElement();
+        for (OPT_GraphNodeEnumeration e = node.outNodes(); e.hasMoreElements();) {
+          OPT_GraphNode n = e.nextElement();
           if (n != null)
             queue.insert(n);
         }

@@ -1030,7 +1030,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * @return the int value returned from the method invocation
    */
   private static int CallIntMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
 
     try {
       Object obj =  env.getJNIRef(objJREF);

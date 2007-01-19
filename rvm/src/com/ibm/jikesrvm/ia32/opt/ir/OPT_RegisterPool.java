@@ -11,14 +11,12 @@ package com.ibm.jikesrvm.ia32.opt.ir;
 
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.opt.ir.OPT_GenericRegisterPool;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_IntConstantOperand;
 import com.ibm.jikesrvm.opt.ir.OPT_Operand;
 import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.opt.ir.OPT_Register;
 
 import org.vmmagic.unboxed.*;
 

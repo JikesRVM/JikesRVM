@@ -71,13 +71,13 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LeaveSSA");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("com.ibm.jikesrvm.opt.OPT_LeaveSSA");
 
   /**
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
-  public Constructor getClassConstructor() {
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
@@ -221,7 +221,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
     }
 
     // insert copies in control children
-    Enumeration children = dom.getChildren(bb);
+    Enumeration<OPT_TreeNode> children = dom.getChildren(bb);
     while (children.hasMoreElements()) {
       OPT_BasicBlock c = ((OPT_DominatorTreeNode)children.nextElement()).getBlock();
       performRename(c, dom, s);
@@ -299,15 +299,15 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       new HashMap<OPT_Register,OPT_Register>(4);
     
     // copySet is a linked-list of copies we need to insert in this block.
-    OPT_LinkedListObjectElement copySet = null;
-    OPT_LinkedListObjectElement workList = null;
+    OPT_LinkedListObjectElement<Copy> copySet = null;
+    OPT_LinkedListObjectElement<Copy> workList = null;
    
     // collect copies required in this block.  These copies move
     // the appropriate rval into the lval of each phi node in
     // control children of the current block.
-    Enumeration e = bb.getOut();
+    Enumeration<OPT_BasicBlock> e = bb.getOut();
     while (e.hasMoreElements()) {
-      OPT_BasicBlock bbs = (OPT_BasicBlock)e.nextElement();
+      OPT_BasicBlock bbs = e.nextElement();
       if (bbs.isExit()) continue;
       for (OPT_Instruction phi = bbs.firstInstruction(); phi != bbs.lastInstruction(); phi = phi.nextInstructionInCodeOrder()) {
         if (phi.operator() != PHI) continue;
@@ -334,24 +334,24 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
     // initialize work list with all copies whose destination is not
     // the source for any other copy, and delete such copies from
     // the set of needed copies.
-    OPT_LinkedListObjectElement ptr = OPT_LinkedListObjectElement.cons(null, copySet);
-    OPT_LinkedListObjectElement head = ptr;
+    OPT_LinkedListObjectElement<Copy> ptr = OPT_LinkedListObjectElement.cons(null, copySet);
+    OPT_LinkedListObjectElement<Copy> head = ptr;
     while (ptr.getNext() != null) {
-      Copy c = (Copy)((OPT_LinkedListObjectElement)ptr.getNext()).getValue();
+      Copy c = ptr.nextElement().getValue();
       if (!usedByAnother.contains(c.destination.register)) {
         workList = OPT_LinkedListObjectElement.cons(c, workList);
         ptr.setNext(ptr.getNext().getNext());
       } 
       else 
-        ptr = (OPT_LinkedListObjectElement)ptr.getNext();
+        ptr = ptr.nextElement();
     }
-    copySet = (OPT_LinkedListObjectElement)head.getNext();
+    copySet = head.nextElement();
     // while there is any more work to do.
     while (workList != null || copySet != null) {
       // while there are copies that can be correctly inserted.
       while (workList != null) {
-        Copy c = (Copy)workList.getValue();
-        workList = (OPT_LinkedListObjectElement)workList.getNext();
+        Copy c = workList.getValue();
+        workList = workList.nextElement();
         OPT_Register r = c.destination.register;
         VM_TypeReference tt = c.destination.type;
         if (VM.VerifyAssertions && tt == null) {
@@ -470,20 +470,19 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
           // current copy to the work list.
           if (c.source instanceof OPT_RegisterOperand) {
             OPT_Register saved = c.source.asRegister().register;
-            OPT_LinkedListObjectElement ptr1 = OPT_LinkedListObjectElement.cons(
+            OPT_LinkedListObjectElement<Copy> ptr1 = OPT_LinkedListObjectElement.cons(
                                                                                 null, copySet);
-            OPT_LinkedListObjectElement head1 = ptr1;
+            OPT_LinkedListObjectElement<Copy> head1 = ptr1;
             while (ptr1.getNext() != null) {
-              Copy cc = (Copy)((OPT_LinkedListObjectElement)ptr1.getNext()).
-                getValue();
+              Copy cc = ptr1.nextElement().getValue();
               if (cc.destination.asRegister().register == saved) {
                 workList = OPT_LinkedListObjectElement.cons(cc, workList);
                 ptr1.setNext(ptr1.getNext().getNext());
               } 
               else 
-                ptr1 = (OPT_LinkedListObjectElement)ptr1.getNext();
+                ptr1 = ptr1.nextElement();
             }
-            copySet = (OPT_LinkedListObjectElement)head1.getNext();
+            copySet = head1.nextElement();
           }
       }
       // an empty work list with work remaining in the copy set
@@ -493,8 +492,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       // this destination has thus been saved, and can now be
       // safely overwritten.  so, add that copy to the work list.
       if (copySet != null) {
-        Copy c = (Copy)copySet.getValue();
-        copySet = (OPT_LinkedListObjectElement)copySet.getNext();
+        Copy c = copySet.getValue();
+        copySet = copySet.nextElement();
         OPT_Register tt = ir.regpool.getReg(c.destination.register);
         OPT_SSA.addAtEnd(ir, bb, OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register, 
                                                              c.destination.type), 
@@ -522,7 +521,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
     scheduleCopies(bb, live);
 
     // insert copies in control children
-    Enumeration children = dom.getChildren(bb);
+    Enumeration<OPT_TreeNode> children = dom.getChildren(bb);
     while (children.hasMoreElements()) {
       OPT_BasicBlock c = ((OPT_DominatorTreeNode)children.nextElement()).getBlock();
       insertCopies(c, dom, live);

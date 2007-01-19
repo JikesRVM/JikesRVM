@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt;
 import com.ibm.jikesrvm.*;
 
-import  java.util.*;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -105,7 +104,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
    * deal with a sub tree of the loop structure tree
    */
   private static boolean turnLoopTreeIntoUntils(OPT_LSTNode t, OPT_IR ir) {
-    Enumeration e = t.outNodes();
+    OPT_GraphNodeEnumeration e = t.outNodes();
     while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
       if (turnLoopTreeIntoUntils(n, ir))
@@ -129,7 +128,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
    * deal with a sub tree of the loop structure tree
    */
   private static void ensureLandingPads (OPT_LSTNode t, OPT_IR ir) {
-    Enumeration e = t.outNodes();
+    OPT_GraphNodeEnumeration e = t.outNodes();
     while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
       ensureLandingPads(n, ir);

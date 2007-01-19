@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 

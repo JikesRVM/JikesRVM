@@ -1109,14 +1109,14 @@ public class PPC_Disassembler implements VM_Constants {
   
   static String decode_Mform(int inst, int opcode)
   {
-    int RS, RA, RB, SH;
+    int RS, RA;
     int MB, ME, Rc;
     int SH_RB;
     String asm_mnemonic;
     
     RS = bits(inst,6,10);
     RA = bits(inst,11,15);
-    SH_RB = RB = SH = bits(inst,16,20);
+    SH_RB = bits(inst,16,20);
     MB = bits(inst,21,25);
     ME = bits(inst,26,30);
     Rc = inst & 1;
@@ -1163,7 +1163,6 @@ public class PPC_Disassembler implements VM_Constants {
   static String decode_opcode30(int inst)
   {
     opcodeXX search_results;
-    int format;
     String mnemonic;
 
     int testkey = bits(inst,27,30);
@@ -1174,7 +1173,6 @@ public class PPC_Disassembler implements VM_Constants {
     }
     
     mnemonic = search_results.mnemonic;
-    format = search_results.format;
 
     switch(search_results.form) 
       {
@@ -1251,9 +1249,9 @@ public class PPC_Disassembler implements VM_Constants {
   
   static String decode_Xform(int inst, String mnemonic, int format, int ext_op)
   {
-    int rt,RA,RB,NB,SH,FRS,SPR,FRT,FXM;
+    int rt,RA,RB,NB,SH,FRS,SPR,FRT;
     int BF,BFA,I,BT,SR,FRA,FRB,TO;
-    String asm_mnemonic, common_opt, mn;
+    String asm_mnemonic, common_opt;
     
     FRS = FRT = TO = BT = rt = bits(inst,6,10);
     FRB = NB  = SH = RB = I = bits(inst,16,20);
@@ -1423,7 +1421,7 @@ public class PPC_Disassembler implements VM_Constants {
   
   static String decode_opcode59(int inst)
   {
-    opcodeXX opcode, search_results;
+    opcodeXX search_results;
     String mnemonic;
     
     int testkey = bits(inst,26,31);
@@ -1451,7 +1449,7 @@ public class PPC_Disassembler implements VM_Constants {
   
   static String decode_opcode63(int inst)
   {
-    opcodeXX opcode, search_results;
+    opcodeXX search_results;
     String mnemonic;
     
     int testkey = bits(inst,21,31);
@@ -1630,7 +1628,7 @@ public class PPC_Disassembler implements VM_Constants {
   /* static int branch_for_yieldpoint(inst) */
   public static boolean isBranchForYieldpoint(int inst)
   {
-    int opcode, ext_op;
+    int opcode;
     int link;
     
     opcode = bits(inst,0,5);

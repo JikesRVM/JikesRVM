@@ -62,7 +62,6 @@ import com.ibm.jikesrvm.opt.ir.Prologue;
 import com.ibm.jikesrvm.opt.ir.Trap;
 import com.ibm.jikesrvm.opt.ir.TrapIf;
 import com.ibm.jikesrvm.opt.ir.Unary;
-import com.ibm.jikesrvm.ppc.*;
 import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 import org.vmmagic.unboxed.*;
@@ -2227,21 +2226,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), IC(VM_TrapConstants.CHECKCAST_TRAP & 0xffff), tc));
+                             I(12), IC(VM_TrapConstants.CHECKCAST_TRAP & 0xffff), tc));
       }
       break;
     case VM_Runtime.TRAP_MUST_IMPLEMENT:
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), IC(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
+                             I(12), IC(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
       }
       break;
     case VM_Runtime.TRAP_STORE_CHECK:
       {
         EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                              OPT_PowerPCTrapOperand.ALWAYS(),
-                             R(12), IC(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff), tc));
+                             I(12), IC(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff), tc));
       }
       break;
     default:

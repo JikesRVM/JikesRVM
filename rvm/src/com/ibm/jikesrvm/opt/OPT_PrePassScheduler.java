@@ -9,9 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import  java.io.*;
-import  java.util.Enumeration;
-
 /**
  * Pre-pass Instruction Scheduling Phase
  *

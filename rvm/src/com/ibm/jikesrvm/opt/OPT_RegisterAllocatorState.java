@@ -29,8 +29,8 @@ public class OPT_RegisterAllocatorState {
    */
   static void resetPhysicalRegisters(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (Enumeration e = phys.enumerateAll(); e.hasMoreElements(); ) {
-      OPT_Register reg = (OPT_Register)e.nextElement();
+    for (Enumeration<OPT_Register> e = phys.enumerateAll(); e.hasMoreElements(); ) {
+      OPT_Register reg = e.nextElement();
       reg.deallocateRegister();
       reg.mapsToRegister = null;  // mapping from real to symbolic
   //    putPhysicalRegResurrectList(reg, null);

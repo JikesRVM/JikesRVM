@@ -113,18 +113,18 @@ class OPT_DFS extends OPT_Stack<VertexInfo> {
     }
   }
 }
-   
-  /** Class that holds information for the DFS */
+
+/** Class that holds information for the DFS */
 class VertexInfo {
-    int discover;
-    int finish;
+  int discover;
+  int finish;
   int color = OPT_DFS.WHITE;
-    final OPT_GraphNode node;
-    final OPT_GraphNodeEnumeration pendingChildren;
-    
-    VertexInfo(OPT_GraphNode n, HashMap<OPT_GraphNode, VertexInfo> info) {
+  final OPT_GraphNode node;
+  final OPT_GraphNodeEnumeration pendingChildren;
+  
+  VertexInfo(OPT_GraphNode n, HashMap<OPT_GraphNode, VertexInfo> info) {
     pendingChildren = OPT_DFS.getConnected( n );
-      node = n;
-      info.put(n, this);
-    }
+    node = n;
+    info.put(n, this);
   }
+}

@@ -8,9 +8,8 @@
  */
 //$Id$
 package com.ibm.jikesrvm.ppc.opt;
+
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import com.ibm.jikesrvm.opt.OPT_RegisterAllocator;
-import com.ibm.jikesrvm.ppc.*;
 
 /**
  * This class holds constants that describe PowerPC register set.

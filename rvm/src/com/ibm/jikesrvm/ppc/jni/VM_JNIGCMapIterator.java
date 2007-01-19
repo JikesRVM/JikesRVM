@@ -12,7 +12,6 @@ package com.ibm.jikesrvm.ppc.jni;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.jni.VM_JNIEnvironment;
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
-import com.ibm.jikesrvm.ppc.*;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_Magic;

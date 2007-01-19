@@ -339,10 +339,11 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         VM_Method[] methods = new VM_Method[methodsNeedGuard.size()];
         byte[] guards = new byte[methods.length];
         int idx = 0;
-        for (Iterator methodIterator = methodsToInline.iterator(), guardIterator = methodsNeedGuard.iterator();
-             methodIterator.hasNext();) {
-          VM_Method target = (VM_Method)methodIterator.next();
-          boolean needsGuard = ((Boolean)guardIterator.next()).booleanValue();
+        Iterator<VM_Method> methodIterator = methodsToInline.iterator();
+        Iterator<Boolean> guardIterator = methodsNeedGuard.iterator();
+        while (methodIterator.hasNext()) {
+          VM_Method target = methodIterator.next();
+          boolean needsGuard = guardIterator.next();
           if (VM.VerifyAssertions) VM._assert(needsGuard);
           methods[idx] = target;
           guards[idx] = chooseGuard(caller, target, staticCallee, state, false);

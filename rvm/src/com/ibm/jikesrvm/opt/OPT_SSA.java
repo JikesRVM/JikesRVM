@@ -129,13 +129,13 @@ class OPT_SSA {
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
       // print the explicit instructions for basic block bb
-      for (Enumeration e = dictionary.getAllInstructions(bb); 
+      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb); 
           e.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        OPT_Instruction s = e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
         if (dictionary.defsHeapVariable(s) && s.operator!=PHI) {
           System.out.print("  (Implicit Defs: ");
-          OPT_HeapOperand[] defs = dictionary.getHeapDefs(s);
+          OPT_HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
           if (defs != null)
             for (int i = 0; i < defs.length; i++)
               System.out.print(defs[i] + " ");
@@ -143,7 +143,7 @@ class OPT_SSA {
         }
         if (dictionary.usesHeapVariable(s) && s.operator!=PHI) {
           System.out.print("  (Implicit Uses: ");
-          OPT_HeapOperand[] uses = dictionary.getHeapUses(s);
+          OPT_HeapOperand<?>[] uses = dictionary.getHeapUses(s);
           if (uses != null)
             for (int i = 0; i < uses.length; i++)
               System.out.print(uses[i] + " ");

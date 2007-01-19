@@ -9,13 +9,11 @@
 //$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
-import java.util.Enumeration;
-
-import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_GenericRegisterPreferences;
 import com.ibm.jikesrvm.opt.ir.MIR_Move;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
+import com.ibm.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import com.ibm.jikesrvm.opt.ir.OPT_Operand;
 import com.ibm.jikesrvm.opt.ir.OPT_Operators;
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
@@ -31,9 +29,9 @@ implements OPT_Operators {
    */
   public void initialize(OPT_IR ir) {
 
-    for (Enumeration e = ir.forwardInstrEnumerator(); 
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
          e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case IA32_MOV_opcode:
           // add affinities produced by MOVE instructions

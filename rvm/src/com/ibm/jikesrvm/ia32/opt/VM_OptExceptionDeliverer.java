@@ -16,7 +16,6 @@ import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 
 import org.vmmagic.unboxed.*;

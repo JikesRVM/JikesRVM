@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.opt.OPT_CompilerPhase;
 import com.ibm.jikesrvm.opt.OPT_Options;
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
 import com.ibm.jikesrvm.opt.ir.OPT_Operators;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 /**
  * Nothing to do on PowerPC.

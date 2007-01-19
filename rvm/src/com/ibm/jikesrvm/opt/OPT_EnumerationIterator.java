@@ -16,11 +16,11 @@ package com.ibm.jikesrvm.opt;
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-public class OPT_EnumerationIterator
-    implements java.util.Iterator {
-  private final java.util.Enumeration e;
+public class OPT_EnumerationIterator<T>
+    implements java.util.Iterator<T> {
+  private final java.util.Enumeration<T> e;
 
-  public OPT_EnumerationIterator (java.util.Enumeration e) {
+  public OPT_EnumerationIterator (java.util.Enumeration<T> e) {
     this.e = e;
   }
 
@@ -28,7 +28,7 @@ public class OPT_EnumerationIterator
     return  e.hasMoreElements();
   }
 
-  public Object next () {
+  public T next () {
     return  e.nextElement();
   }
 

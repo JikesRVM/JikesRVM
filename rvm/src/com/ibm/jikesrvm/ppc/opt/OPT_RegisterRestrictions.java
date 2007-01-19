@@ -13,7 +13,6 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import com.ibm.jikesrvm.opt.OPT_GenericRegisterRestrictions;
 import com.ibm.jikesrvm.opt.ir.OPT_Instruction;
 import com.ibm.jikesrvm.opt.ir.OPT_Register;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
 
 /**
  * An instance of this class encapsulates restrictions on register

@@ -18,18 +18,18 @@ package com.ibm.jikesrvm.opt;
  * @date  3/18/98
  */
 public class OPT_Stack<T> {
-  OPT_LinkedListObjectElement head;
+  OPT_LinkedListObjectElement<T> head;
 
   public OPT_Stack() {
     head = null;
   }
 
   public OPT_Stack(T e) {
-    head = new OPT_LinkedListObjectElement(e);
+    head = new OPT_LinkedListObjectElement<T>(e);
   }
 
-  public final Object push(T e) {
-    OPT_LinkedListObjectElement el = new OPT_LinkedListObjectElement(e);
+  public final T push(T e) {
+    OPT_LinkedListObjectElement<T> el = new OPT_LinkedListObjectElement<T>(e);
     if (head != null)
       head.insertBefore(el);
     head = el;
@@ -37,13 +37,13 @@ public class OPT_Stack<T> {
   }
 
   public final T pop() {
-    OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
-    head = (OPT_LinkedListObjectElement)head.getNext();
+    OPT_LinkedListObjectElement<T> el = head;
+    head = head.nextElement();
     return  (T)el.getValue();
   }
 
   public final T getTOS() {
-    return  (T)((OPT_LinkedListObjectElement)head).getValue();
+    return  head.getValue();
   }
 
   public final T peek() {
@@ -59,9 +59,9 @@ public class OPT_Stack<T> {
   }
 
   public final int search(T obj) {
-    OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
+    OPT_LinkedListObjectElement<T> el = head;
     for (int i = 0; el != null; ++i, 
-        el = (OPT_LinkedListObjectElement)el.getNext()) {
+        el = el.nextElement()) {
       if (el.getValue() == obj)
         return  i;
     }
@@ -69,8 +69,8 @@ public class OPT_Stack<T> {
   }
 
   public final boolean compare(OPT_Stack<T> s2) {
-    OPT_LinkedListObjectElement p1 = this.head;
-    OPT_LinkedListObjectElement p2 = s2.head;
+    OPT_LinkedListObjectElement<T> p1 = this.head;
+    OPT_LinkedListObjectElement<T> p2 = s2.head;
     for (;;) {
       if (p1 == null)
         return  (p2 == null);
@@ -78,8 +78,8 @@ public class OPT_Stack<T> {
         return  false;
       if (p1.getValue() != p2.getValue())
         return  false;
-      p1 = (OPT_LinkedListObjectElement)p1.getNext();
-      p2 = (OPT_LinkedListObjectElement)p2.getNext();
+      p1 = p1.nextElement();
+      p2 = p2.nextElement();
     }
   }
 
@@ -97,14 +97,14 @@ public class OPT_Stack<T> {
     return  s;
   }
 
-  public final OPT_LinkedListObjectEnumerator elements() {
-    return  new OPT_LinkedListObjectEnumerator((OPT_LinkedListObjectElement)head);
+  public final OPT_LinkedListObjectEnumerator<T> elements() {
+    return  new OPT_LinkedListObjectEnumerator<T>(head);
   }
 
   public String toString() {
     StringBuffer sb = new StringBuffer(" --> ");
-    OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
-    for (; el != null; el = (OPT_LinkedListObjectElement)el.getNext()) {
+    OPT_LinkedListObjectElement<T> el = head;
+    for (; el != null; el = el.nextElement()) {
       sb.append(el.getValue().toString());
       sb.append(' ');
     }

@@ -9,11 +9,13 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
+
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley
  */
-class OPT_EmptyIterator implements java.util.Iterator {
+class OPT_EmptyIterator implements Iterator<Object> {
 
   public boolean hasNext () {
     return  false;
@@ -27,7 +29,7 @@ class OPT_EmptyIterator implements java.util.Iterator {
     throw new OPT_OptimizingCompilerException("EmptyIterator.remove called");
   }
 
-  public static OPT_EmptyIterator INSTANCE = new OPT_EmptyIterator();
+  public static final OPT_EmptyIterator INSTANCE = new OPT_EmptyIterator();
 }
 
 

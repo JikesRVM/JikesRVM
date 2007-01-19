@@ -25,7 +25,7 @@ abstract class OPT_ListPriority extends OPT_Priority {
    * Instruction list.
    * Subclasses should fill.
    */
-  protected final Vector instructionList = new Vector();
+  protected final Vector<OPT_Instruction> instructionList = new Vector<OPT_Instruction>();
   // Current enumeration index.
   private int currIndex = 0;
 
@@ -51,7 +51,7 @@ abstract class OPT_ListPriority extends OPT_Priority {
    * @return the next instruction in sequence
    */
   public final OPT_Instruction next () {
-    return  (OPT_Instruction)instructionList.elementAt(currIndex++);
+    return  instructionList.elementAt(currIndex++);
   }
 
   /**

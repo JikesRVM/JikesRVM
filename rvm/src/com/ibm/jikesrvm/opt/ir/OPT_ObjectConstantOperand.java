@@ -65,7 +65,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
       return java.lang.JikesRVMSupport.getTypeForClass(value.getClass()).getTypeRef();
     }
     else {
-      Class rc = value.getClass();
+      Class<?> rc = value.getClass();
       String className = rc.getName();
       VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
       if (className.startsWith("[")) {

@@ -16,23 +16,23 @@ package com.ibm.jikesrvm.opt;
 final class OPT_Queue<T> {
   OPT_LinkedListElement head;
   OPT_LinkedListElement tail;
-  OPT_LinkedListObjectElement free;
+  OPT_LinkedListObjectElement<T> free;
 
   OPT_Queue() {
     // head = tail = free = null;
   }
 
   OPT_Queue(T e) {
-    head = tail = new OPT_LinkedListObjectElement(e);
+    head = tail = new OPT_LinkedListObjectElement<T>(e);
   }
 
   final T insert(T e) {
-    OPT_LinkedListObjectElement el;
+    OPT_LinkedListObjectElement<T> el;
     if (free == null)
-      el = new OPT_LinkedListObjectElement(e); 
+      el = new OPT_LinkedListObjectElement<T>(e); 
     else {
       el = free;
-      free = (OPT_LinkedListObjectElement)el.next;
+      free = el.nextElement();
       el.next = null;
       el.value = e;
     }
@@ -47,11 +47,12 @@ final class OPT_Queue<T> {
   }
 
   final T remove() {
-    OPT_LinkedListObjectElement el = (OPT_LinkedListObjectElement)head;
+    @SuppressWarnings("unchecked") // This data structure should be re-thought
+    OPT_LinkedListObjectElement<T> el = (OPT_LinkedListObjectElement)head;
     head = head.next;
     el.next = free;
     free = el;
-    Object result = el.value;
+    T result = el.value;
     el.value = null;
     return (T) result;
   }
@@ -60,8 +61,9 @@ final class OPT_Queue<T> {
     return  (head == null);
   }
 
-  final OPT_LinkedListObjectEnumerator elements() {
-    return  new OPT_LinkedListObjectEnumerator
-        ((OPT_LinkedListObjectElement)head);
+  @SuppressWarnings("unchecked") // This data structure should be re-thought
+  final OPT_LinkedListObjectEnumerator<T> elements() {
+    return  new OPT_LinkedListObjectEnumerator<T>
+        ((OPT_LinkedListObjectElement<T>)head);
   }
 }

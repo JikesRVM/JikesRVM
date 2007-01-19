@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.ia32.opt;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_DefUse;
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;

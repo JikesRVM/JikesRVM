@@ -174,10 +174,9 @@ public final class OPT_InlineDecision {
    */
   private OPT_InlineDecision (VM_Method[] targets, byte[] guards,
                               short code, String reason) {
+    this(code,reason);
     this.targets = targets;
     this.guards = guards;
-    this.code = code;
-    this.rationale = reason;
   }
 
   /** 

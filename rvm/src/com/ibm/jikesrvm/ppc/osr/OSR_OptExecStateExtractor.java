@@ -18,17 +18,12 @@ import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
-import com.ibm.jikesrvm.opt.VM_OptMachineCodeMap;
 import com.ibm.jikesrvm.osr.OSR_Constants;
 import com.ibm.jikesrvm.osr.OSR_EncodedOSRMap;
 import com.ibm.jikesrvm.osr.OSR_ExecStateExtractor;
 import com.ibm.jikesrvm.osr.OSR_ExecutionState;
 import com.ibm.jikesrvm.osr.OSR_MapIterator;
 import com.ibm.jikesrvm.osr.OSR_VariableElement;
-import com.ibm.jikesrvm.ppc.*;
-import com.ibm.jikesrvm.ppc.opt.*;
-
-import java.util.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -106,8 +101,6 @@ public abstract class OSR_OptExecStateExtractor
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
-    VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
-    
     OSR_EncodedOSRMap fooOSRMap = fooCM.getOSRMap();
 
     /* get register reference map from OSR map
@@ -577,6 +570,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
+  @SuppressWarnings("unused")
   private static void dumpStackContent(byte[] stack, Offset fpOffset) {
     VM.disableGC();
     Address upper = VM_Magic.objectAsAddress(stack).loadAddress(fpOffset);

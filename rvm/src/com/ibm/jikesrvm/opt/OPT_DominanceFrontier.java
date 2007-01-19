@@ -96,7 +96,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
       return;
     // for each X in a bottom-up traversal of the dominator tree do
     OPT_DominatorTree tree = ir.HIRInfo.dominatorTree;
-    for (Enumeration x = tree.getBottomUpEnumerator(); x.hasMoreElements();) {
+    for (Enumeration<OPT_TreeNode> x = tree.getBottomUpEnumerator(); x.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)x.nextElement();
       OPT_BasicBlock X = v.getBlock();
       if (DEBUG)
@@ -116,7 +116,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
       if (DEBUG)
         System.out.println("After local " + DF);
       //        for each Z in {idom(z) = X} do
-      for (Enumeration z = tree.getChildren(X); z.hasMoreElements();) {
+      for (Enumeration<OPT_TreeNode> z = tree.getChildren(X); z.hasMoreElements();) {
         OPT_DominatorTreeNode zVertex = (OPT_DominatorTreeNode)z.nextElement();
         OPT_BasicBlock Z = zVertex.getBlock();
         if (DEBUG)
@@ -134,8 +134,8 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
         System.out.println("After up " + DF);
     }
     if (DEBUG) {
-      for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
-        OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
+      for (Enumeration<OPT_BasicBlock> bbEnum = ir.cfg.basicBlocks(); bbEnum.hasMoreElements();) {
+        OPT_BasicBlock block = bbEnum.nextElement();
         if (block.isExit())
           continue;
         System.out.println(block + " DF: " + tree.getDominanceFrontier(block));

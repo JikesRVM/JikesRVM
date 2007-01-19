@@ -102,7 +102,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
     VM_CodeArray machinecodes = ir.MIRInfo.machinecode;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
-    boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
+    //boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
          p != null; 
          p = p.nextInstructionInCodeOrder()) {
@@ -1203,7 +1203,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 
           // resolve the target instruction, in LABEL_opcode, 
           // add one case for IG_PATCH_POINT
-          int targetOffset = resolveBranch(p, target, mi);
+          /* int targetOffset = */ resolveBranch(p, target, mi);
 
           machinecodes.set(mi++, NOPtemplate);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);

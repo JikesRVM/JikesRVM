@@ -322,10 +322,6 @@ public class VM_Lister implements VM_Constants {
     return s; 
   }
 
-  private final static String left (int i, int w) {
-    return left(decimal(i), w); 
-  }
-
   private final static String right (String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(n-w);
@@ -333,10 +329,6 @@ public class VM_Lister implements VM_Constants {
       s = " " + s;
     } 
     return s; 
-  }
-
-  private final static String right (int i, int w) {
-    return right(decimal(i), w); 
   }
 
   private final static String decimal (Offset o) {

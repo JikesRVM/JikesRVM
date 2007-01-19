@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
-import java.util.Enumeration;
 import java.util.Iterator;
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
@@ -88,8 +87,8 @@ class OPT_Coalesce {
   private static boolean isLiveAtDef(OPT_Register r1, OPT_Register r2,
                                      OPT_LiveAnalysis live) {
 
-    for (Iterator e = live.iterateLiveIntervals(r1); e.hasNext(); ) {
-      OPT_LiveIntervalElement elem = (OPT_LiveIntervalElement)e.next();
+    for (Iterator<OPT_LiveIntervalElement> e = live.iterateLiveIntervals(r1); e.hasNext(); ) {
+      OPT_LiveIntervalElement elem = e.next();
       OPT_BasicBlock bb = elem.getBasicBlock();
       OPT_Instruction begin = (elem.getBegin() == null) ?  
         bb.firstInstruction() : elem.getBegin();
@@ -97,8 +96,8 @@ class OPT_Coalesce {
         bb.lastInstruction() : elem.getEnd();
       int low = begin.scratch;
       int high = end.scratch;
-      for (Enumeration defs = OPT_DefUse.defs(r2); defs.hasMoreElements(); ) {
-        OPT_Operand def = (OPT_Operand)defs.nextElement();
+      for (OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(r2); defs.hasMoreElements(); ) {
+        OPT_Operand def = defs.nextElement();
         int n = def.instruction.scratch;
         if (n >= low && n < high) {
           return true;

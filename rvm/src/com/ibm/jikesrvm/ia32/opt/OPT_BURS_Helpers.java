@@ -14,7 +14,6 @@ import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.ia32.opt.ir.*;
 import com.ibm.jikesrvm.opt.OPT_BURS;
 import com.ibm.jikesrvm.opt.OPT_BURS_MemOp_Helpers;
