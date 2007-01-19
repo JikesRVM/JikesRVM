@@ -3,14 +3,12 @@
   <property name="test.max.heapsize" value="64"/>
   <property name="test.time.limit" value="180"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="main.java" location="${basedir}/src"/>
 
-  <property name="build.classes" location="${build.dir}/classes"/>
-  <property name="build.native" location="${build.dir}/native"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="build.native" location="${build.tests.dir}/native"/>
 
   <property name="test.class.path" value="${build.classes}"/>
 
@@ -31,10 +29,10 @@
         <arg value="-I${build.native}"/>
         <arg value="-I${jikesrvm.dir}/include"/>
         <arg value="-o"/>
-        <arg value="${build.dir}/${target.dll-prefix}@{class}${target.dll-ext}"/>
+        <arg value="${build.tests.dir}/${target.dll-prefix}@{class}${target.dll-ext}"/>
         <arg value="${main.java}/@{class}.c"/>
       </exec>
-      <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.dir}"/>
+      <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.tests.dir}"/>
       <selectRegex property="test.@{class}.pass"
                    select=""
                    file="${test.@{class}.sanitized.output.file}"

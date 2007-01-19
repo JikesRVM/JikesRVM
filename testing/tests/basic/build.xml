@@ -3,13 +3,11 @@
   <property name="test.time.limit" value="400"/>
   <property name="test.max.heapsize" value="150"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="main.java" location="${basedir}/src"/>
 
-  <property name="build.classes" location="${build.dir}/classes"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
  
   <property name="test.class.path" value="${build.classes}"/>
 
@@ -28,7 +26,7 @@
       </classpath>
     </javac>
 
-    <jar file="${build.dir}/AgentX.jar" basedir="${build.classes}" includes="**/AgentX.class">
+    <jar file="${build.tests.dir}/AgentX.jar" basedir="${build.classes}" includes="**/AgentX.class">
       <manifest>
         <attribute name="Premain-Class" value="test.org.jikesrvm.basic.core.instrument.AgentX"/>
       </manifest>
@@ -91,7 +89,7 @@
     <runCompareTest class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 
     <runCompareTest class="test.org.jikesrvm.basic.core.instrument.TestAgent"
-                    rvmArgs='-javaagent:${build.dir}/AgentX.jar="Option1"'/>    
+                    rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>    
 
     <outputGroupEnd/>
     <finishResults/>

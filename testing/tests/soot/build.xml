@@ -5,12 +5,10 @@
   </condition>
   <property name="test.max.heapsize" value="200"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="main.java" location="${basedir}"/>
-  <property name="build.classes" location="${build.dir}/classes"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
   <property name="soot.dir" location="${external.lib.dir}/soot-2.2.3"/>
@@ -49,7 +47,7 @@
     <outputGroupStart/>
     <rvm tag="soot.Main"
          class="soot.Main"
-         args="-O --app -time -d ${build.dir} --soot-classpath ${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${soot.class.path} ${soot.class} -f J"/>
+         args="-O --app -time -d ${build.tests.dir} --soot-classpath ${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${soot.class.path} ${soot.class} -f J"/>
     <outputSingleStatisticResults tag="soot.Main" key="time" pattern="totalTime:(.*)s \(100.0\%\)"/>
     <outputGroupEnd/>
     <finishResults/>

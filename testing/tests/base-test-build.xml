@@ -1,0 +1,6 @@
+<project name="base-test-build">
+  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
+  <import file="${jikesrvm.dir}/build/base.xml"/>
+  <import file="${jikesrvm.dir}/build/properties.xml"/>
+  <import file="${jikesrvm.dir}/build/tests.xml"/>
+</project>

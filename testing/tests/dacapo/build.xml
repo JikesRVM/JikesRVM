@@ -5,9 +5,7 @@
   </condition>
   <property name="test.max.heapsize" value="150"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
   <property name="test.class.path" value="${dacapo.jar}"/>

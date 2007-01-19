@@ -1,6 +1,7 @@
 <project name="JikesRVM" default="main" basedir=".">
 
   <property name="jikesrvm.dir" location="${basedir}"/>
+  <import file="build/base.xml"/>
   <import file="build/properties.xml"/>
   <import file="build/components.xml"/>
 
@@ -40,7 +41,6 @@
   <property name="generated.vmmagic.arch.java" location="${generated.dir}/vmmagic/${target.address.size}/java"/>
 
   <!-- Set the properties for distribution directory -->
-  <property name="dist.dir" location="dist"/>
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
   <!-- **************************************************************************** -->

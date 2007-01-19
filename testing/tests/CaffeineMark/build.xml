@@ -5,12 +5,10 @@
   </condition>
   <property name="test.max.heapsize" value="200"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="main.java" location="${basedir}"/>
-  <property name="build.classes" location="${build.dir}/classes"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="CaffeineMark.dir" value="${external.lib.dir}/CaffeineMark-3.0"/>
   <property name="test.class.path" value="${CaffeineMark.dir}:${build.classes}"/>

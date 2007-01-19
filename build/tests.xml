@@ -31,6 +31,8 @@
 -->
 <project name="tests">
 
+  <import file="${jikesrvm.dir}/build/tasks.xml"/>
+
   <property name="test.suite.name" value="${ant.project.name}"/>
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
@@ -48,14 +50,9 @@
   <property name="test.run.id" value="${test.prefix}${test.suite.name}"/>
 
   <property name="output.dir" location="${test.rvm.dir}/tests/${test.run.id}"/>
-  <property name="build.dir" location="${jikesrvm.dir}/target/tests/${test.run.id}"/>
+  <property name="build.tests.dir" location="${build.dir}/tests/${test.run.id}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
-
-  <!-- propertys for setting up tasks to help with tests -->
-  <property name="tasks.dir" location="${jikesrvm.dir}/target/tasks/"/>
-  <property name="tasks.classes" location="${tasks.dir}/classes/"/>
-  <property name="ant.jar" location="${jikesrvm.dir}/tools-external/apache-ant-1.6.5/lib/ant.jar"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -305,7 +302,7 @@
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
     <attribute name="exitCode" default="0"/>
-    <attribute name="dir" default="${build.dir}"/>
+    <attribute name="dir" default="${build.tests.dir}"/>
     <sequential>
       <condition property="test.@{tag}.max.heapsize" value="${test.max.heapsize}" else="@{maxHeapSize}">
         <equals arg1="@{maxHeapSize}" arg2=""/>
@@ -400,9 +397,9 @@
            rvmArgs="@{rvmArgs}"
            timeLimit="@{timeLimit}"/>
 
-      <echo message="@{class}" file="${build.dir}/deleteme.txt"/>
-      <replace file="${build.dir}/deleteme.txt" token="." value="${file.separator}"/>
-      <loadfile property="test.@{class}@{selector}.expected.output.file" srcFile="${build.dir}/deleteme.txt"/>
+      <echo message="@{class}" file="${build.tests.dir}/deleteme.txt"/>
+      <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
+      <loadfile property="test.@{class}@{selector}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
 
       <diffCompareFiles tag="@{class}@{selector}"
                         expected="${main.java}/${test.@{class}@{selector}.expected.output.file}.expected"
@@ -414,24 +411,11 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                   Compile and setup SelectRegex task                     * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="prepare-tasks" depends="check-properties">
-    <test-file name="ant.jar" location="${jikesrvm.dir}/.ant.properties"/>
-    <mkdir dir="${tasks.classes}"/>
-    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" classpath="${ant.jar}"/>
-    <taskdef name="selectRegex" classname="com.ibm.jikesrvm.tools.ant.SelectRegexTask" classpath="${tasks.classes}"/>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
   <!-- *                          Initialize properties                           * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="init" depends="check-properties,prepare-tasks">
+  <target name="init" depends="check-properties,prepare-ant-tasks">
     <fail unless="test.rvm.dir" message="test.rvm.dir must be set to directory containing rvm image."/>
     <available property="rvm.exe_present" file="${rvm.exe}"/>
     <fail unless="rvm.exe_present" message="${test.rvm.dir} is not a valid rvm image. Missing rvm program."/>
@@ -440,7 +424,7 @@
 
     <test-file name="awk.exe" location="${host.file}"/>
 
-    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.tests.dir}"/>
     <mkdir dir="${output.dir}"/>
   </target>
 
@@ -451,7 +435,7 @@
   <!-- **************************************************************************** -->
 
   <target name="clean" depends="init">
-    <delete dir="${build.dir}"/>
+    <delete dir="${build.tests.dir}"/>
   </target>
 
   <target name="real-clean" depends="clean">

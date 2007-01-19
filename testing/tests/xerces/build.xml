@@ -6,9 +6,7 @@
   <!-- TODO: when in performance run Use iteration driver and execute twice -->
   <property name="test.max.heapsize" value="200"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="xerces.dir" location="${external.lib.dir}/xerces-2_8_1"/>
   <property name="shakespeare.dir" location="${external.lib.dir}/xmlFiles/shakespeare.1.10.xml"/>
@@ -102,9 +100,9 @@
       <include name="*.xml"/>
     </fileset>
     <property name="xml.files" refid="xml.files"/>
-    <echo file="${build.dir}/FileList.txt">input.xml.files=${xml.files}</echo>
-    <replace file="${build.dir}/FileList.txt" token=";" value=" "/>
-    <property file="${build.dir}/FileList.txt"/>
+    <echo file="${build.tests.dir}/FileList.txt">input.xml.files=${xml.files}</echo>
+    <replace file="${build.tests.dir}/FileList.txt" token=";" value=" "/>
+    <property file="${build.tests.dir}/FileList.txt"/>
 
     <startResults/>
     <outputGroupStart/>

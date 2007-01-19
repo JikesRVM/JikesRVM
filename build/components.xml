@@ -4,9 +4,6 @@ common build component for downloading and building required components.
 -->
 <project name="components">
 
-  <!-- location of components -->
-  <property name="components.dir" location="${jikesrvm.dir}/components"/>
-
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Classpath component             * -->

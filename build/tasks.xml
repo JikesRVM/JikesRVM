@@ -1,0 +1,22 @@
+<project name="tasks">
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                           Build the ant tasks                            * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <property name="tasks.dir" location="${build.dir}/tasks"/>
+  <property name="tasks.classes" location="${tasks.dir}/classes"/>
+  <property name="ant.jar" location="${jikesrvm.dir}/tools-external/apache-ant-1.6.5/lib/ant.jar"/>
+
+  <target name="prepare-ant-tasks">
+    <mkdir dir="${tasks.classes}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" classpath="${ant.jar}"/>
+    <!-- forEach is used in the test harness -->
+    <taskdef name="forEach" classname="com.ibm.jikesrvm.tools.ant.ForEachTask" classpath="${tasks.classes}"/>
+    <!-- selectRegex is used to get results from some benchmark tests -->
+    <taskdef name="selectRegex" classname="com.ibm.jikesrvm.tools.ant.SelectRegexTask" classpath="${tasks.classes}"/>
+  </target>
+
+</project>

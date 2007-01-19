@@ -3,12 +3,10 @@
   <property name="test.time.limit" value="600"/>
   <property name="test.max.heapsize" value="200"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="main.java" location="${basedir}"/>
-  <property name="build.classes" location="${build.dir}/classes"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="jlex.dir" value="${external.lib.dir}/JLex-1.2.6/classes"/>
   <property name="qbjc.dir" location="${external.lib.dir}/QBJC"/>
@@ -27,11 +25,11 @@
 
     <startResults/>
     <outputGroupStart/>
-    <copy file="${qbjc.dir}/qb1.lex" tofile="${build.dir}/qb1.lex"/>
-    <rvm tag="JLex.Main" class="JLex.Main" args="${build.dir}/qb1.lex"/>
+    <copy file="${qbjc.dir}/qb1.lex" tofile="${build.tests.dir}/qb1.lex"/>
+    <rvm tag="JLex.Main" class="JLex.Main" args="${build.tests.dir}/qb1.lex"/>
     <diffCompareFiles tag="JLex.Main"
                       expected="qb1.lex.ref.classpath"
-                      actual="${build.dir}/qb1.lex.java"/>
+                      actual="${build.tests.dir}/qb1.lex.java"/>
     <outputResults tag="JLex.Main"/>
     <outputGroupEnd/>
     <finishResults/>

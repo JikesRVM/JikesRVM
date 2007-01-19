@@ -3,9 +3,7 @@
   <property name="test.time.limit" value="900"/>
   <property name="test.max.heapsize" value="150"/>
 
-  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
-  <import file="${jikesrvm.dir}/build/properties.xml"/>
-  <import file="${jikesrvm.dir}/build/tests.xml"/>
+  <import file="../base-test-build.xml"/>
 
   <property name="jBYTEmark.jar" value="${external.lib.dir}/jBYTEmark-0.9/jBYTEmark-0.9.jar"/>
   <property name="test.class.path" value="${jBYTEmark.jar}"/>
