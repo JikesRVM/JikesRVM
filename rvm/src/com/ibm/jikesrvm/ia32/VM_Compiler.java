@@ -1870,17 +1870,42 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);              // S0 is object reference
-      asm.emitMOV_Reg_RegIdx(S0, S0, T0, VM_Assembler.BYTE, NO_SLOT); // S0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, S0);              // replace reference with value on stack
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);                     // S0 is object reference
-      asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.BYTE, ONE_SLOT); // T1 is high part of field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);                     // replace reference with value on stack
-      asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.BYTE, NO_SLOT);               // push the low part of field value
+    if (fieldType.isReferenceType()) {
+      // 32bit reference load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit signed load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else if (fieldType.isShortType()) {
+      // 16bit signed load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else if (fieldType.isCharType()) {
+      // 16bit unsigned load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else {
+      // 64bit load
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      // NB this is a 64bit copy from memory to the stack so implement
+      // as a slightly optimized Intel memory copy using the FPU
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
+      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
+      asm.emitFLD_Reg_RegIdx_Quad(FP0, S0, T0, VM_Assembler.BYTE, NO_SLOT); // FP0 is field value
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
     }
   }
 
@@ -1889,81 +1914,147 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);           // T0 is object reference
-      asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);           // replace reference with value on stack
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                    // T0 is object reference
-      asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset.plus(WORDSIZE)); // T1 is high part of field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);                    // replace reference with high part of value on stack
-      asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
+    if (fieldType.isReferenceType()) {
+      // 32bit reference load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit signed load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVSX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else if (fieldType.isShortType()) {
+      // 16bit signed load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVSX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else if (fieldType.isCharType()) {
+      // 16bit unsigned load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVZX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else {
+      // 64bit load
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      // NB this is a 64bit copy from memory to the stack so implement
+      // as a slightly optimized Intel memory copy using the FPU
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
+      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, fieldOffset); // FP0 is field value
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
     }
   }
-
 
   /**
    * Emit code to implement a dynamically linked putfield
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
-      emitDynamicLinkingSequence(T0, fieldRef, false);
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
-    } else {
-      if (fieldRef.getSize() == BYTES_IN_INT) {// field is one word
-        asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);               // T1 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);               // S0 is the object reference
+    if (fieldType.isReferenceType()) {
+      // 32bit reference store
+      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+        VM_Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
+        emitDynamicLinkingSequence(T0, fieldRef, false);
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      } else {
+        asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
         asm.emitMOV_RegIdx_Reg (S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
-      } else { // field is two words (double or long)
-        if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-        asm.emitMOV_Reg_RegDisp(JTOC, SP, NO_SLOT);                          // JTOC is low part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT);                            // T1 is high part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                            // S0 is the object reference
-        asm.emitMOV_RegIdx_Reg (S0, T0, VM_Assembler.BYTE, NO_SLOT, JTOC);            // [S0+T0] <- JTOC
-        asm.emitMOV_RegIdx_Reg (S0, T0, VM_Assembler.BYTE, ONE_SLOT, T1);       // [S0+T0+4] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
-        // restore JTOC
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
       }
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit store
+      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      asm.emitMOV_RegIdx_Reg_Byte (S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
+    } else if (fieldType.isShortType() || fieldType.isCharType()) {
+      // 16bit store
+      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      asm.emitMOV_RegIdx_Reg_Word (S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit store
+      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      asm.emitMOV_RegIdx_Reg (S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
+    } else {
+      // 64bit store
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      // NB this is a 64bit copy from the stack to memory so implement
+      // as a slightly optimized Intel memory copy using the FPU
+      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the object reference
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*3); // complete popping the values and reference
+      asm.emitFSTP_RegIdx_Reg_Quad(S0, T0, VM_Assembler.BYTE, NO_SLOT, FP0); // [S0+T0] <- FP0
     }
   }
-
 
   /**
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
-    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
-    } else {
-      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);           // T0 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);           // S0 is the object reference
-        asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
-      } else { // field is two words (double or long)
-        if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-        // TODO!! use 8-byte move if possible
-        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                    // T0 is low part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT);                    // T1 is high part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                    // S0 is the object reference
-        asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
-        asm.emitMOV_RegDisp_Reg(S0, fieldOffset.plus(WORDSIZE), T1); // store high part
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
+    if (fieldType.isReferenceType()) {
+      // 32bit reference store
+      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+        VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      } else {
+        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+        // [S0+fieldOffset] <- T0
+        asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);
       }
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit store
+      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      // [S0+fieldOffset] <- T0
+      asm.emitMOV_RegDisp_Reg_Byte (S0, fieldOffset, T0);
+    } else if (fieldType.isShortType() || fieldType.isCharType()) {
+      // 16bit store
+      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      // [S0+fieldOffset] <- T0
+      asm.emitMOV_RegDisp_Reg_Word (S0, fieldOffset, T0);
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit store
+      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the value and reference
+      // [S0+fieldOffset] <- T0
+      asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);
+    } else {
+      // 64bit store
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType(), "What type is this?" + fieldType);
+      // NB this is a 64bit copy from the stack to memory so implement
+      // as a slightly optimized Intel memory copy using the FPU
+      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the object reference
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*3); // complete popping the values and reference
+      // [S0+fieldOffset] <- FP0
+      asm.emitFSTP_RegDisp_Reg_Quad(S0, fieldOffset, FP0);
     }
   }
-
 
   /*
    * method invocation
