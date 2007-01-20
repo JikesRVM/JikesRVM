@@ -3,7 +3,7 @@
   <property name="jikesrvm.dir" location=".."/>
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
-  
+
   <property name="tests.name" value="sanity"/>
 
   <property file="${jikesrvm.dir}/build/testing/testsets.properties"/>
@@ -13,6 +13,12 @@
   <property name="build.results.dir" location="${driver.scratch.dir}/results"/>
 
   <property name="results.dir" location="${jikesrvm.dir}/results"/>
+
+  <!-- properties defining mailer properties-->
+  <property name="mail.from" value="jikesrvm-core@lists.sourceforge.net"/>
+  <property name="mail.to" value="jikesrvm-regression@lists.sourceforge.net"/>
+  <property name="mail.host" value="localhost"/>
+  <property name="mail.port" value="25"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -116,13 +122,15 @@
 
   <target name="aggregate" depends="test">
     <mkdir dir="${build.results.dir}"/>
-    <echo file="${build.results.dir}/Results.xml" append="false"><![CDATA[<master-results name="${tests.name}">]]></echo>
+    <echo file="${build.results.dir}/Results.xml" append="false">
+      <![CDATA[<master-results name="${tests.name}">]]></echo>
     <forEach list="${test.runs}" target="collect-test-run-results" property="tag"/>
     <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</master-results>]]></echo>
 
     <tstamp prefix="report"/>
     <mkdir dir="${results.dir}"/>
-    <gzip src="${build.results.dir}/Results.xml" destfile="${results.dir}/${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
+    <gzip src="${build.results.dir}/Results.xml"
+          destfile="${results.dir}/Results-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
   </target>
 
   <macrodef name="aggregateTestRun">
@@ -146,7 +154,7 @@
     <aggregateTestRun tag="${tag}"/>
     <concat destfile="${build.results.dir}/Results.xml" append="true">
       <fileset dir="${build.results.dir}" includes="${tag}.xml"/>
-    </concat>    
+    </concat>
   </target>
 
   <target name="collect-test-suite-results">
@@ -157,12 +165,60 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                       Targets for aggregating results                    * -->
+  <!-- *                  Targets for generating a simple report                  * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="report" depends="aggregate">
+  <target name="gen-report" depends="aggregate">
+    <xslt in="${build.results.dir}/Results.xml"
+          out="${build.results.dir}/Report.html"
+          style="${jikesrvm.dir}/build/testing/simple-report.xsl">
+      <outputproperty name="method" value="html"/>
+      <outputproperty name="standalone" value="yes"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+    </xslt>
   </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                  Targets for archiving results and report                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="archive" depends="gen-report" if="archive.tests">
+    <tstamp prefix="report"/>
+    <mkdir dir="${results.dir}"/>
+    <gzip src="${build.results.dir}/Results.xml"
+          destfile="${results.dir}/Results-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
+    <gzip src="${build.results.dir}/Report.html"
+          destfile="${results.dir}/Report-${tests.name}-${report.DSTAMP}${report.TSTAMP}.html.gz"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                          Targets for sending report                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="send-report" depends="archive" if="send.reports">
+    <mail mailhost="${mail.host}"
+          mailport="${mail.port}"
+          subject="Test Results for ${tests.name} on ${target.name}"
+          messagefile="${build.results.dir}/Report.html">
+      <from address="${mail.from}"/>
+      <replyto address="jikesrvm-core@lists.sourceforge.net"/>
+      <to address="${mail.to}"/>
+    </mail>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                          Meta-target for reporting                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="report" depends="archive,send-report"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
