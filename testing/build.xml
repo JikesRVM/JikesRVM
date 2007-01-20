@@ -204,6 +204,7 @@
   <target name="send-report" depends="archive" if="send.reports">
     <mail mailhost="${mail.host}"
           mailport="${mail.port}"
+	  messagemimetype="text/html"
           subject="Test Results for ${tests.name} on ${target.name}"
           messagefile="${build.results.dir}/Report.html">
       <from address="${mail.from}"/>
