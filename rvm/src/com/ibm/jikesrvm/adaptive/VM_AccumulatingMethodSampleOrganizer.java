@@ -55,7 +55,7 @@ final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
    * Method that is called when the sampling threshold is reached
    */
   void thresholdReached() {
-    if (VM.LogAOSEvents) VM_AOSLogging.organizerThresholdReached();
+    VM_AOSLogging.organizerThresholdReached();
     int numSamples = ((VM_MethodListener)listener).getNumSamples();
     int[] samples = ((VM_MethodListener)listener).getSamples();
     data.update(samples, numSamples);

@@ -340,7 +340,7 @@ public abstract class VM_RuntimeMeasurements {
    */
   static void decayDecayableObjects() {
     decayEventCounter++;
-    if (VM.LogAOSEvents) VM_AOSLogging.decayingCounters();
+    VM_AOSLogging.decayingCounters();
     
     for (VM_Decayable obj : decayObjects) {
       obj.decay();
@@ -386,15 +386,13 @@ public abstract class VM_RuntimeMeasurements {
    */
   static void report() {
     reportReportableObjects();
-    
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.decayStatistics(decayEventCounter);
 
-      for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-        VM_Thread t = VM_Scheduler.threads[i];
-        if (t != null) {
-          VM_AOSLogging.threadExiting(t);
-        }
+    VM_AOSLogging.decayStatistics(decayEventCounter);
+
+    for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
+      VM_Thread t = VM_Scheduler.threads[i];
+      if (t != null) {
+        VM_AOSLogging.threadExiting(t);
       }
     }
   }
@@ -415,7 +413,7 @@ public abstract class VM_RuntimeMeasurements {
    * Called from VM_Thread.terminate.
    */
   public static void monitorThreadExit() {
-    if (VM.LogAOSEvents) VM_AOSLogging.threadExiting(VM_Thread.getCurrentThread());
+    VM_AOSLogging.threadExiting(VM_Thread.getCurrentThread());
   }
   
   /**

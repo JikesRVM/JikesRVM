@@ -81,7 +81,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
    * Initialization: set up data structures and sampling objects.
    */
   public void initialize() {
-    if (VM.LogAOSEvents) VM_AOSLogging.DCGOrganizerThreadStarted();
+    VM_AOSLogging.DCGOrganizerThreadStarted();
 
     if (VM_Controller.options.cgCBS()) {
       numberOfBufferTriples = VM_Controller.options.DCG_SAMPLE_SIZE * VM.CBSCallSamplesPerTick;

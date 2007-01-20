@@ -61,10 +61,10 @@ public class VM_ControllerThread extends VM_Thread {
     VM_Controller.controllerThread = this;
 
     // Bring up the logging system
-    if (VM.LogAOSEvents) VM_AOSLogging.boot();
+    VM_AOSLogging.boot();
     if (VM_Controller.options.ENABLE_ADVICE_GENERATION) 
       VM_AOSGenerator.boot();
-    if (VM.LogAOSEvents) VM_AOSLogging.controllerStarted();
+    VM_AOSLogging.controllerStarted();
 
     // Create measurement entities that are NOT related to 
     // adaptive recompilation
@@ -181,7 +181,7 @@ public class VM_ControllerThread extends VM_Thread {
    * VM_Controller.controllerInputQueue
    */
   public void doneWaiting() {
-    if (VM.LogAOSEvents) VM_ControllerMemory.incrementNumAwoken();
+    VM_ControllerMemory.incrementNumAwoken();
   }
 
 
@@ -258,7 +258,7 @@ public class VM_ControllerThread extends VM_Thread {
    * Final report
    */
   public static void report() {
-    if (VM.LogAOSEvents) VM_AOSLogging.controllerCompleted();
+    VM_AOSLogging.controllerCompleted();
   }
 
 } 

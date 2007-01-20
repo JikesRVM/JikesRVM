@@ -92,15 +92,15 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
             if (VM_Controller.options.counters()) {
               // for invocation counter, we only use one optimization level
               compPlan = VM_InvocationCounts.createCompilationPlan((VM_NormalMethod)method);
-              if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
+              VM_AOSLogging.recompilationStarted(compPlan);
               VM_RuntimeCompiler.recompileWithOpt(compPlan);
-              if (VM.LogAOSEvents) VM_AOSLogging.recompilationCompleted(compPlan); 
+              VM_AOSLogging.recompilationCompleted(compPlan); 
             } else if (VM_Controller.options.sampling()) {
               // Create our set of standard optimization plans.
               compPlan = VM_Controller.recompilationStrategy.createCompilationPlan((VM_NormalMethod)method, value.getOptLevel(), null);
-              if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
+              VM_AOSLogging.recompilationStarted(compPlan);
               VM_RuntimeCompiler.recompileWithOpt(compPlan);
-              if (VM.LogAOSEvents) VM_AOSLogging.recompilationCompleted(compPlan); 
+              VM_AOSLogging.recompilationCompleted(compPlan); 
             } else {
               VM.sysWriteln("Compiler advice file is not followed  ");
               ((VM_NormalMethod)method).compile();
@@ -109,13 +109,6 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
         }
       }
     }
-    if (VM.LogAOSEvents) VM_AOSLogging.compileAllMethodsCompleted(); 
-
+    VM_AOSLogging.compileAllMethodsCompleted();
   }
-
-
 }
-
-
-
-

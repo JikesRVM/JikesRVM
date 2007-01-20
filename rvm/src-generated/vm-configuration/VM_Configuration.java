@@ -227,14 +227,6 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  /** Adaptive compilation. */
-  public static final boolean LogAOSEvents =
-      //-#if RVM_WITHOUT_AOS_LOG 
-        false;
-      //-#else
-        true;
-      //-#endif
-
   /** The following configuration objects are final when disabled, but
       non-final when enabled. */
   

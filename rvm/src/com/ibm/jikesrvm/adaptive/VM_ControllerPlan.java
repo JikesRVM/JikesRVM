@@ -152,7 +152,7 @@ public final class VM_ControllerPlan {
     if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
         getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       VM_Controller.compilationQueue.insert(getPriority(), this);
-      if (VM.LogAOSEvents) VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
       return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
@@ -173,7 +173,7 @@ public final class VM_ControllerPlan {
     OPT_CompilationPlan cp = getCompPlan();
 
     setTimeInitiated(VM_Controller.controllerClock);
-    if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(cp); 
+    VM_AOSLogging.recompilationStarted(cp); 
 
     if (cp.options.PRINT_METHOD) {
       VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
@@ -206,13 +206,11 @@ public final class VM_ControllerPlan {
     setCMID(newCMID);
     setTimeCompleted(VM_Controller.controllerClock);
     VM_CompiledMethod cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
-    if (VM.LogAOSEvents) {
-      if (newCMID == -1) {
-        VM_AOSLogging.recompilationAborted(cp);
-      } else {
-        VM_AOSLogging.recompilationCompleted(cp);
-        VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
-      }
+    if (newCMID == -1) {
+      VM_AOSLogging.recompilationAborted(cp);
+    } else {
+      VM_AOSLogging.recompilationCompleted(cp);
+      VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
     }
     if (VM_Controller.options.ENABLE_ADVICE_GENERATION && (newCMID != -1)) {
         VM_AOSGenerator.reCompilationWithOpt(cp);

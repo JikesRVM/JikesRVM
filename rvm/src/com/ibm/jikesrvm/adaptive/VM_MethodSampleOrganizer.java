@@ -47,8 +47,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
    * Initialization: set up data structures and sampling objects.
    */
   public void initialize() {
-    if (VM.LogAOSEvents) 
-      VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
+    VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
 
     int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
     if (VM_Controller.options.mlCBS()) {
@@ -71,7 +70,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
    * Method that is called when the sampling threshold is reached
    */
   void thresholdReached() {
-    if (VM.LogAOSEvents) VM_AOSLogging.organizerThresholdReached();
+    VM_AOSLogging.organizerThresholdReached();
 
     int numSamples = ((VM_MethodListener)listener).getNumSamples();
     int[] samples = ((VM_MethodListener)listener).getSamples();
@@ -114,7 +113,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
           VM_HotMethodRecompilationEvent event = 
             new VM_HotMethodRecompilationEvent(cm, ns);
           VM_Controller.controllerInputQueue.insert(ns, event);
-          if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+          VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
         }
       }
     }

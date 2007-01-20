@@ -52,7 +52,7 @@ public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent
     VM_ControllerPlan plan =
       VM_Controller.recompilationStrategy.considerHotMethod(getCompiledMethod(), this);
 
-    if (VM.LogAOSEvents) VM_ControllerMemory.incrementNumMethodsConsidered();
+    VM_ControllerMemory.incrementNumMethodsConsidered();
 
     // If plan is still null we decided not to recompile.
     if (plan != null) {

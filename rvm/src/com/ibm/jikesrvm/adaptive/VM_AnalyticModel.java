@@ -119,12 +119,10 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     double bestActionTime = futureTimeForMethod;
     double bestCost = 0.0;
     
-    if (VM.LogAOSEvents) { 
-      VM_AOSLogging.recordControllerEstimateCostDoNothing
+    VM_AOSLogging.recordControllerEstimateCostDoNothing
         (cmpMethod.getMethod(),
          VM_CompilerDNA.getOptLevel(prevCompiler),
          bestActionTime);
-    }
     
     // Get a vector of optimization choices to consider
     VM_RecompilationChoice[] recompilationChoices =
@@ -142,13 +140,11 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       
       double curActionTime = cost + futureExecutionTime;
       
-      if (VM.LogAOSEvents) { 
-        VM_AOSLogging.recordControllerEstimateCostOpt
-          (cmpMethod.getMethod(),
-           choice.toString(),
-           cost,
-           curActionTime);
-      }
+      VM_AOSLogging.recordControllerEstimateCostOpt
+        (cmpMethod.getMethod(),
+         choice.toString(),
+         cost,
+         curActionTime);
       
       if (curActionTime < bestActionTime) {
         bestActionTime = curActionTime;
@@ -183,7 +179,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       outdatedBaseline = VM_ControllerMemory.planWithStatus(cmpMethod.getMethod(), 
                                                             VM_ControllerPlan.COMPLETED)
         && cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE;
-      if (VM.LogAOSEvents && outdatedBaseline)
+      if (outdatedBaseline)
         VM_AOSLogging.debug("outdated Baseline " +  cmpMethod.getMethod() + 
                             "(" + cmpMethod.getId() + ")");
     }
@@ -195,7 +191,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
         // associated with the cmid.
         hme.getCompiledMethod().setSamplesReset();
         VM_Controller.methodSamples.reset(hme.getCMID());
-        if (VM.LogAOSEvents) VM_AOSLogging.debug(" Resetting method samples " + hme); 
+        VM_AOSLogging.debug(" Resetting method samples " + hme); 
         return true;
       } else {
         plan = chooseOSRRecompilation(hme);
@@ -224,12 +220,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   private VM_ControllerPlan chooseOSRRecompilation(VM_HotMethodEvent hme) { 
     if (!VM_Controller.options.OSR_PROMOTION) return null;
 
-    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Consider OSR for " + hme); 
+    VM_AOSLogging.debug(" Consider OSR for " + hme); 
 
     VM_ControllerPlan prev = VM_ControllerMemory.findLatestPlan(hme.getMethod());
 
     if (prev.getStatus() == VM_ControllerPlan.OSR_BASE_2_OPT) {
-      if (VM.LogAOSEvents) VM_AOSLogging.debug(" Already have an OSR promotion plan for this method");
+      VM_AOSLogging.debug(" Already have an OSR promotion plan for this method");
       return null;
     }
     
@@ -239,10 +235,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     double futureTimeOptimized = futureTimeForMethod / speedup;
 
-    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Estimated future time for method " + hme + " is " +
-                                             futureTimeForMethod); 
-    if (VM.LogAOSEvents) VM_AOSLogging.debug(" Estimated future time optimized " + hme + " is " +
-                                             (futureTimeOptimized+millis)); 
+    VM_AOSLogging.debug(" Estimated future time for method " + hme + " is " + futureTimeForMethod);
+    VM_AOSLogging.debug(" Estimated future time optimized " + hme + " is " + (futureTimeOptimized+millis)); 
 
     if (futureTimeForMethod > futureTimeOptimized + millis) {
       VM_AOSLogging.recordOSRRecompilationDecision(prev);
@@ -285,17 +279,15 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     double futureTimeForMethod = futureTimeForMethod(event);
     double futureTimeForFDOMethod = 
       prevCompileTime + (futureTimeForMethod/event.getBoostFactor());
-    
-    if (VM.LogAOSEvents) { 
-      int prevOptLevel = VM_CompilerDNA.getOptLevel(prevCompiler);
-      VM_AOSLogging.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(),
-                                                          prevOptLevel,
-                                                          futureTimeForMethod);
-      VM_AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
-                                                    "O"+prevOptLevel+"AI",
-                                                    prevCompileTime,
-                                                    futureTimeForFDOMethod);
-    }
+
+    int prevOptLevel = VM_CompilerDNA.getOptLevel(prevCompiler);
+    VM_AOSLogging.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(),
+                                                        prevOptLevel,
+                                                        futureTimeForMethod);
+    VM_AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
+                                                  "O"+prevOptLevel+"AI",
+                                                  prevCompileTime,
+                                                  futureTimeForFDOMethod);
 
     if (futureTimeForFDOMethod < futureTimeForMethod) {
       // Profitable to recompile with FDO, so do it.

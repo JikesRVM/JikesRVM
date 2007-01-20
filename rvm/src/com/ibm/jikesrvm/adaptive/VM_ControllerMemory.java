@@ -90,18 +90,16 @@ public final class VM_ControllerMemory implements VM_Constants {
    */
   static synchronized void insert(VM_ControllerPlan plan) {
 
-    if (VM.LogAOSEvents) {
-      numMethodsScheduledForRecomp++;
-      int optLevel = plan.getCompPlan().options.getOptLevel();
-      switch (optLevel) {
-      case 0:  numOpt0++; break;
-      case 1:  numOpt1++; break;
-      case 2:  numOpt2++; break;
-      case 3:  numOpt3++; break;
-      case 4:  numOpt4++; break; 
-      default:
-        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
-      }
+    numMethodsScheduledForRecomp++;
+    int optLevel = plan.getCompPlan().options.getOptLevel();
+    switch (optLevel) {
+    case 0:  numOpt0++; break;
+    case 1:  numOpt1++; break;
+    case 2:  numOpt2++; break;
+    case 3:  numOpt3++; break;
+    case 4:  numOpt4++; break;
+    default:
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
     }
 
     // first check to see if there is a plan list for this method

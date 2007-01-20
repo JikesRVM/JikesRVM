@@ -161,7 +161,7 @@ public abstract class VM_RecompilationStrategy {
   }
 
   private void transferSamplesToNewPlan(VM_HotMethodEvent hme) {
-    if (VM.LogAOSEvents) VM_AOSLogging.oldVersionStillHot(hme); 
+    VM_AOSLogging.oldVersionStillHot(hme); 
     double oldNumSamples = VM_Controller.methodSamples.getData(hme.getCMID());
     VM_ControllerPlan activePlan = VM_ControllerMemory.findLatestPlan(hme.getMethod());
     if (activePlan == null) return; // shouldn't happen.

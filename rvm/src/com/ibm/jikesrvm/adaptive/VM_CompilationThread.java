@@ -44,7 +44,7 @@ class VM_CompilationThread extends VM_Thread {
    * them.
    */
   public void run() {
-    if (VM.LogAOSEvents) VM_AOSLogging.compilationThreadStarted();
+    VM_AOSLogging.compilationThreadStarted();
 
     // Make a blocking call to deleteMin to get a plan and then execute it. 
     // Repeat...

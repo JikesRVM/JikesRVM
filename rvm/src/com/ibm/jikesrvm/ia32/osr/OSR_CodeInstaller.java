@@ -151,9 +151,7 @@ public abstract class OSR_CodeInstaller implements VM_Constants, VM_BaselineCons
     VM_Memory.sync(bridgeaddr,
                    thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
-    }
+    VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
 
     return true;
   }

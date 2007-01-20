@@ -166,13 +166,11 @@ public class VM_CompilerDNA implements VM_Constants {
     benefitRatio = new double[numCompilers][numCompilers];
     compileTimeRatio = new double[numCompilers][numCompilers];
 
-    if (VM.LogAOSEvents) {
-      for (int i=0; i < compilationRates.length; i++) {
-        VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
-      }
-      for (int i=0; i < speedupRates.length; i++) {
-        VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
-      }
+    for (int i=0; i < compilationRates.length; i++) {
+      VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
+    }
+    for (int i=0; i < speedupRates.length; i++) {
+      VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
     }
 
     // fill in the upper triangular matrices
@@ -193,16 +191,13 @@ public class VM_CompilerDNA implements VM_Constants {
           //  we invert the division.
           compileTimeRatio[prevCompiler][nextCompiler] = 
             compilationRates[prevCompiler] / compilationRates[nextCompiler];  
-        if (VM.LogAOSEvents) {
-          VM_AOSLogging.reportBenefitRatio(
-                           prevCompiler, nextCompiler,
-                           benefitRatio[prevCompiler][nextCompiler]);
+        VM_AOSLogging.reportBenefitRatio(
+                         prevCompiler, nextCompiler,
+                         benefitRatio[prevCompiler][nextCompiler]);
 
-          VM_AOSLogging.reportCompileTimeRatio(
-                           prevCompiler, nextCompiler,
-                           compileTimeRatio[prevCompiler][nextCompiler]);
-        }
-        
+        VM_AOSLogging.reportCompileTimeRatio(
+                         prevCompiler, nextCompiler,
+                         compileTimeRatio[prevCompiler][nextCompiler]);
       }
     }
 

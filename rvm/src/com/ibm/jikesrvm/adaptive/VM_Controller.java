@@ -189,10 +189,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * @param app the application name
    */
   public void notifyAppStart(String app) {
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.appStart(app);
-      VM_AOSLogging.recordRecompAndThreadStats();
-    }
+    VM_AOSLogging.appStart(app);
+    VM_AOSLogging.recordRecompAndThreadStats();
   }
 
   /**
@@ -200,10 +198,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * @param app the application name
    */
   public void notifyAppComplete(String app) {
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.appComplete(app);
-      VM_AOSLogging.recordRecompAndThreadStats();
-    }
+    VM_AOSLogging.appComplete(app);
+    VM_AOSLogging.recordRecompAndThreadStats();
   }
 
   /**
@@ -212,10 +208,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * @param run the run number, i.e. what iteration of the app we have started
    */
   public void notifyAppRunStart(String app, int run) {
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.appRunStart(app, run);
-      VM_AOSLogging.recordRecompAndThreadStats();
-    }
+    VM_AOSLogging.appRunStart(app, run);
+    VM_AOSLogging.recordRecompAndThreadStats();
   }
 
   /**
@@ -224,10 +218,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * @param run the run number, i.e. what iteration of the app we have completed
    */
   public void notifyAppRunComplete(String app, int run) {
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.appRunComplete(app, run);
-      VM_AOSLogging.recordRecompAndThreadStats();
-    }
+    VM_AOSLogging.appRunComplete(app, run);
+    VM_AOSLogging.recordRecompAndThreadStats();
   }
 
   /**
@@ -235,9 +227,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    *  loaded methods.  This can be expensive!
    */
   public void notifyRecompileAll() {
-    if (VM.LogAOSEvents) {
-      VM_AOSLogging.recompilingAllDynamicallyLoadedMethods();
-    }
+    VM_AOSLogging.recompilingAllDynamicallyLoadedMethods();
     VM_RecompilationManager.recompileAllDynamicallyLoadedMethods(false);
   }
 
@@ -308,7 +298,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM.sysWriteln("\tNumber of method samples taken ",(int)methodSamples.getTotalNumberOfSamples());
     }
 
-    if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
+    VM_AOSLogging.systemExiting();
   }
 
 

@@ -119,7 +119,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
                       compiledMethod.numberOfInstructions(),
                       compiledMethod.getCompilationTime());
 
-    if (VM.BuildForAdaptiveSystem && VM.LogAOSEvents) {
+    if (VM.BuildForAdaptiveSystem) {
       if (VM_AOSLogging.booted()) {
         VM_AOSLogging.recordUpdatedCompilationRates(compiler, 
                                                     method,
@@ -662,9 +662,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
                 VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
               if (attr.getCompiler() != VM_CompiledMethod.OPT) {
                 cm=fallback(method);
-                if (VM.LogAOSEvents) {
-                  VM_AOSLogging.recordCompileTime(cm, 0.0);
-                }
+                VM_AOSLogging.recordCompileTime(cm, 0.0);
                 return cm;
               }
               int newCMID = -2;
@@ -677,15 +675,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
                 // we don't have to use: if (VM_Controller.options.sampling())
                 compPlan = VM_Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
               }
-              if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
+              VM_AOSLogging.recompilationStarted(compPlan);
               newCMID = recompileWithOpt(compPlan);
               cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
-              if (VM.LogAOSEvents) {
-                if (newCMID == -1) {
-                  VM_AOSLogging.recompilationAborted(compPlan);
-                } else if (newCMID > 0) {
-                  VM_AOSLogging.recompilationCompleted(compPlan);
-                }
+              if (newCMID == -1) {
+                VM_AOSLogging.recompilationAborted(compPlan);
+              } else if (newCMID > 0) {
+                VM_AOSLogging.recompilationCompleted(compPlan);
               }    
               if (cm == null) { // if recompilation is aborted
                 cm = baselineCompile(method);
@@ -714,9 +710,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
           && VM_Controller.enabled) {
         VM_AOSGenerator.baseCompilationCompleted(cm);
       }
-      if (VM.LogAOSEvents) {
-        VM_AOSLogging.recordCompileTime(cm, 0.0);
-      }
+      VM_AOSLogging.recordCompileTime(cm, 0.0);
       return cm;
     } else {
       return baselineCompile(method);

@@ -78,9 +78,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     // 3. install the code
     // 4. reschedule the thread to new code.
 
-    if (VM.LogAOSEvents)  {
-      VM_AOSLogging.logOsrEvent("OSR compiling "+compPlan.method);
-    }
+    VM_AOSLogging.logOsrEvent("OSR compiling "+compPlan.method);
 
     VM_Thread cpThread = VM_Thread.getCurrentThread();
 
@@ -129,15 +127,13 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
       if (newCM == null) {
         setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.logOsrEvent("OSR compilation failed!");
+        VM_AOSLogging.logOsrEvent("OSR compilation failed!");
       } else {
         setStatus(VM_ControllerPlan.COMPLETED);
         // now let OSR_CodeInstaller generate a code stub, 
         // and OSR_PostThreadSwitch will install the stub to run.      
         OSR_CodeInstaller.install(state, newCM);
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
+        VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
       }
     }
 
