@@ -87,8 +87,8 @@
     <score name="Section2:SOR:Kernel:SizeA"/>
     <score name="Section2:SparseMatmult:Kernel:SizeA"/>
 
-    <score name="Section3:MolDyn:Run:SizeA"/>
-    <score name="Section3:MolDyn:Total:SizeA"/>
+    <score2 name="Section3:MolDyn:Run:SizeA"/>
+    <score2 name="Section3:MolDyn:Total:SizeA"/>
     <score2 name="Section3:MonteCarlo:Run:SizeA"/>
     <score2 name="Section3:MonteCarlo:Total:SizeA"/>
     <score2 name="Section3:RayTracer:Init:SizeA"/>
