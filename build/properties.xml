@@ -6,7 +6,7 @@ common build component for setting up and checking propertys.
 
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
   <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
-  <property name="components.file" location="${jikesrvm.dir}/build/components.properties"/>
+  <property name="components.file" location="${components.dir}/components.properties"/>
   <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
 
   <!-- configuration data -->
@@ -80,9 +80,9 @@ common build component for setting up and checking propertys.
   </target>
 
   <target name="check-components-properties">
-    <available property="components_config_present" file="${components.file}"/>
-    <fail unless="components_config_present">
-      Configuration file ${components.file} not present. Please copy ${jikesrvm.dir}/build/components.properties.example to ${components.file} and edit.
+    <available property="components_file_present" file="${components.file}"/>
+    <fail unless="components_file_present">
+      Components file ${components.file} not present. Please copy ${jikesrvm.dir}/build/components.properties.example to ${components.file} and edit.
     </fail>
   </target>
 
