@@ -110,6 +110,9 @@
     <condition property="ipsc.filter" value="-DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1" else="">
       <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
     </condition>
+    <condition property="stressgc.filter" value="-DRVM_FOR_STRESSGC=1" else="">
+      <equals arg1="${config.stress-gc}" arg2="1"/>
+    </condition>
 
     <property name="ca.filter" value="-DBOOTIMAGE_CODE_ADDRESS=${target.bootimage.code.address}"/>
     <property name="da.filter" value="-DBOOTIMAGE_DATA_ADDRESS=${target.bootimage.data.address}"/>
@@ -126,7 +129,7 @@
     <property name="ri.filter" value="-DRVM_BOOTIMAGE_RMAP=${build.base}/RVM.rmap.image"/>
 
     <property name="filter"
-              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
+              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter} ${stressgc.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->

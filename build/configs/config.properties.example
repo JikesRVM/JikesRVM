@@ -5,15 +5,15 @@ config.bootimage.compiler=
 # Specify class name of garbage collector plan.
 config.mmtk.plan=
 
-# 1 to include adaptive system. Must also have runtime compiler set to opt. Defaults to 0.
+# Set to 1 to include adaptive system. Must also have runtime compiler set to opt. Defaults to 0.
 config.include.aos=
-# 1 to include opt-compiler test harness. Must also have runtime compiler set to opt. Defaults to 0.
+# Set to 1 to include opt-compiler test harness. Must also have runtime compiler set to opt. Defaults to 0.
 config.include.opt-harness=
 
-# 1 to compile the RVM with GCSpy support. Default to 0.
+# Set to 1 to compile the RVM with GCSpy support. Defaults to 0.
 config.include.gcspy=
 
-# 1 to include GCSpy client with rvm image. Default to 0.
+# Set to 1 to include GCSpy client with rvm image. Defaults to 0.
 config.include.gcspy-client=
 
 # Include all reacable RVM classes in the bootimage. Defaults to 0.
@@ -31,3 +31,8 @@ config.default-heapsize.maximum=
 # Any extra args to pass to bootimage compiler. Default to "".
 config.bootimage.compiler.args=
 
+# Set to 1 to intercept blocking system calls and replace with non-blocking equivs. Defaults to 1.
+config.intercept.blocking.system-calls=
+
+# Set to 1 to stress test the GC subsystem. Defaults to 0.
+config.stress-gc=
