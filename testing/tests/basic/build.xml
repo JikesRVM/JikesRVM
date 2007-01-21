@@ -89,7 +89,20 @@
     <runCompareTest class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 
     <runCompareTest class="test.org.jikesrvm.basic.core.instrument.TestAgent"
-                    rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>    
+                    rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>
+
+    <rvm tag="ImageSizes" class="test.org.jikesrvm.basic.stats.JikesImageSizes"
+         args="${test.rvm.dir}/RVM.code.image ${test.rvm.dir}/RVM.data.image ${test.rvm.dir}/RVM.rmap.image"/>
+    <outputTestStart tag="ImageSizes"/>
+    <outputStatisticStart/>
+    <extractStatistic tag="ImageSizes" key="code.size" pattern="Code Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="data.size" pattern="Data Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="rmap.size" pattern="Rmap Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="total.size" pattern="Total Size: (.*)"/>
+    <outputStatisticEnd/>
+    <outputTestResults tag="ImageSizes"/>
+    <outputTestEnd/>
+    <displayTestResults tag="ImageSizes"/>
 
     <outputGroupEnd/>
     <finishResults/>

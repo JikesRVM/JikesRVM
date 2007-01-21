@@ -13,6 +13,7 @@
   <property name="build.results.dir" location="${driver.scratch.dir}/results"/>
 
   <property name="results.dir" location="${jikesrvm.dir}/results"/>
+  <property name="weeklys.dir" location="${results.dir}/weekly"/>
 
   <!-- properties defining mailer properties-->
   <property name="mail.from" value="jikesrvm-core@lists.sourceforge.net"/>
@@ -116,21 +117,51 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *                      Targets for retrieving svn version                  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="check-svn-present">
+    <available property="svn.present" file=".svn" type="dir"/>
+    <property name="svn.exe" value="svn"/>
+  </target>
+
+  <target name="extract-svn-version" depends="check-svn-present" if="svn.present">
+    <exec executable="${svn.exe}">
+      <arg value="info"/>
+      <redirector outputproperty="svn.revision">
+        <outputfilterchain>
+          <linecontains>
+            <contains value="Revision: "/>
+          </linecontains>
+          <tokenfilter>
+            <replacestring from="Revision: " to=""/>
+          </tokenfilter>
+        </outputfilterchain>
+      </redirector>
+    </exec>
+  </target>
+
+  <target name="get-svn-version" depends="extract-svn-version">
+    <!-- set property if not already set -->
+    <property name="svn.revision" value="1"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                       Targets for aggregating results                    * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="aggregate" depends="test">
+  <target name="aggregate" depends="test,get-svn-version">
+<!--  <target name="aggregate" depends="get-svn-version,prepare-ant-tasks">-->
     <mkdir dir="${build.results.dir}"/>
     <echo file="${build.results.dir}/Results.xml" append="false">
-      <![CDATA[<master-results name="${tests.name}">]]></echo>
+<![CDATA[<master-results name="${tests.name}">
+  <revision>${svn.revision}</revision>
+]]></echo>
     <forEach list="${test.runs}" target="collect-test-run-results" property="tag"/>
     <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</master-results>]]></echo>
-
-    <tstamp prefix="report"/>
-    <mkdir dir="${results.dir}"/>
-    <gzip src="${build.results.dir}/Results.xml"
-          destfile="${results.dir}/Results-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
   </target>
 
   <macrodef name="aggregateTestRun">
@@ -171,13 +202,66 @@
 
   <target name="gen-report" depends="aggregate">
     <xslt in="${build.results.dir}/Results.xml"
+          out="${build.results.dir}/Report.xml"
+          style="${jikesrvm.dir}/build/testing/results2report.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="standalone" value="yes"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+      <outputproperty name="omit-xml-declaration" value="yes"/>
+    </xslt>
+    <xslt in="${build.results.dir}/Report.xml"
           out="${build.results.dir}/Report.html"
-          style="${jikesrvm.dir}/build/testing/simple-report.xsl">
+          style="${jikesrvm.dir}/build/testing/report2html.xsl"
+          force="true">
       <outputproperty name="method" value="html"/>
       <outputproperty name="standalone" value="yes"/>
       <outputproperty name="encoding" value="US-ASCII"/>
       <outputproperty name="indent" value="yes"/>
     </xslt>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                  Targets for generating a simple report                  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="gen-weekly-report" depends="gen-report">
+    <tstamp prefix="day0">
+      <format property="DAY" pattern="EEEE" offset="-0" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day1">
+      <format property="DAY" pattern="EEEE" offset="-1" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day2">
+      <format property="DAY" pattern="EEEE" offset="-2" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day3">
+      <format property="DAY" pattern="EEEE" offset="-3" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day4">
+      <format property="DAY" pattern="EEEE" offset="-4" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day5">
+      <format property="DAY" pattern="EEEE" offset="-5" unit="day"/>
+    </tstamp>
+
+    <mkdir dir="${weeklys.dir}"/>
+    <copy file="${build.results.dir}/Report.xml"
+          tofile="${weeklys.dir}/Report-${tests.name}-${day0.DAY}.xml"/>
+
+    <echo file="${build.results.dir}/WeeklyReport.xml" append="false"><![CDATA[<weekly-report>]]></echo>
+    <concat destfile="${build.results.dir}/WeeklyReport.xml" append="true">
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day0.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day1.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day2.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day3.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day4.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day5.DAY}.xml"/>
+    </concat>
+    <echo file="${build.results.dir}/WeeklyReport.xml" append="true"><![CDATA[</weekly-report>]]></echo>
   </target>
 
   <!-- **************************************************************************** -->
@@ -191,6 +275,8 @@
     <mkdir dir="${results.dir}"/>
     <gzip src="${build.results.dir}/Results.xml"
           destfile="${results.dir}/Results-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
+    <gzip src="${build.results.dir}/Report.xml"
+          destfile="${results.dir}/Report-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
     <gzip src="${build.results.dir}/Report.html"
           destfile="${results.dir}/Report-${tests.name}-${report.DSTAMP}${report.TSTAMP}.html.gz"/>
   </target>
@@ -204,7 +290,7 @@
   <target name="send-report" depends="archive" if="send.reports">
     <mail mailhost="${mail.host}"
           mailport="${mail.port}"
-	  messagemimetype="text/html"
+          messagemimetype="text/html"
           subject="Test Results for ${tests.name} on ${target.name}"
           messagefile="${build.results.dir}/Report.html">
       <from address="${mail.from}"/>
