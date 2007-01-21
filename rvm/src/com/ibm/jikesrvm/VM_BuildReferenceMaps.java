@@ -26,7 +26,7 @@ import com.ibm.jikesrvm.classloader.*;
  * 
  * @author Janice and Tony
  */
-final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
+final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstants {
   
   static final byte NON_REFERENCE = 0;
   static final byte REFERENCE = 1;
@@ -52,6 +52,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    */
   public void buildReferenceMaps(VM_NormalMethod method, 
                                  int[] stackHeights,
+                                 byte[] localTypes,
                                  VM_ReferenceMaps referenceMaps, 
                                  VM_BuildBB buildBB) {
 
@@ -75,7 +76,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
     int     currBBStkEmpty;        // Level when stack is empty - value depends on number of locals
     int     paramCount;            // Number of parameters to the method being processed
-   
+  
     // Variables for processing JSR instructions, RET instructions and JSR subroutines
     VM_PendingRETInfo        bbPendingRETs[] = null;
     VM_PendingRETInfo        currPendingRET;
@@ -129,6 +130,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     if (!method.isStatic()) paramCount++;
 
     currBBStkEmpty = method.getLocalWords()-1;   // -1 to locate the last "local" index
+
     if (debug) VM.sysWrite("getLocalWords() : " + method.getLocalWords() + "\n");
 
     // Get information from the method being processed
@@ -191,6 +193,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     int paramStart;
     if (!method.isStatic()) {
       currBBMap[0] = REFERENCE; // implicit "this" object
+      localTypes[0] = ADDRESS_TYPE;
       paramStart = 1;
     } else {
       paramStart = 0;
@@ -198,9 +201,21 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
     for (int i=0; i<parameterTypes.length; i++, paramStart++) {
       VM_TypeReference parameterType = parameterTypes[i];
-      currBBMap[paramStart] = parameterType.isReferenceType() ? REFERENCE : NON_REFERENCE;
-      if (parameterType.getStackWords() == DOUBLEWORD)
-        paramStart++;
+      if (parameterType.isReferenceType()) {
+        localTypes[paramStart] = ADDRESS_TYPE;
+        currBBMap[paramStart] = REFERENCE;
+      } else {
+        currBBMap[paramStart] = NON_REFERENCE;
+        
+        if (parameterType.getStackWords() == DOUBLEWORD) {
+          if (parameterType.isLongType()) localTypes[paramStart] = LONG_TYPE;
+          else localTypes[paramStart] = DOUBLE_TYPE;
+          paramStart++;
+        } 
+        else if (parameterType.isFloatType()) localTypes[paramStart] = FLOAT_TYPE;
+        else if (parameterType.isIntLikeType()) localTypes[paramStart] = INT_TYPE;
+        else localTypes[paramStart] = ADDRESS_TYPE;
+      }
     }
 
     // The map for the start of the first block, is stack empty, with none
@@ -419,7 +434,20 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
           break;
         }
 
-        case JBC_istore:
+        case JBC_istore: {
+          int index = bcodes.getLocalNumber();
+          if (!inJSRSub) 
+            currBBMap[index] = NON_REFERENCE;
+          else
+            currBBMap[index] = SET_TO_NONREFERENCE;
+          if (inTryBlock) 
+            setHandlersMapsNonRef(index,ONEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop--;
+            localTypes[index] |= INT_TYPE;
+          break;
+        }
+        
         case JBC_fstore: {
           int index = bcodes.getLocalNumber();
           if (!inJSRSub) 
@@ -430,10 +458,28 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(index,ONEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop--;
+            localTypes[index] |= FLOAT_TYPE;
           break;
         }
 
-        case JBC_lstore:
+        case JBC_lstore: {
+          int index = bcodes.getLocalNumber();
+          if (!inJSRSub) {
+            currBBMap[index]   = NON_REFERENCE;
+            currBBMap[index+1] = NON_REFERENCE;
+          } else {
+            currBBMap[index]   = SET_TO_NONREFERENCE;
+            currBBMap[index+1] = SET_TO_NONREFERENCE;
+          }
+
+          if (inTryBlock) 
+            setHandlersMapsNonRef(index, DOUBLEWORD, reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop = currBBStkTop - 2;
+            localTypes[index] |= LONG_TYPE;
+          break;
+        }
+                         
         case JBC_dstore: {
           int index = bcodes.getLocalNumber();
           if (!inJSRSub) {
@@ -448,6 +494,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(index, DOUBLEWORD, reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop = currBBStkTop - 2;
+            localTypes[index] |= DOUBLE_TYPE;
           break;
         }
 
@@ -467,10 +514,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             }
           }
           currBBStkTop--;
+            localTypes[index] |= ADDRESS_TYPE;
           break;
         }
 
-        case JBC_istore_0:
+        case JBC_istore_0: {
+          if (!inJSRSub)
+            currBBMap[0] = NON_REFERENCE;
+          else 
+            currBBMap[0] = SET_TO_NONREFERENCE;
+          if (inTryBlock) 
+            setHandlersMapsNonRef(0,ONEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop--;
+            localTypes[0] |= INT_TYPE;
+          break;
+        }
+
         case JBC_fstore_0: {
           if (!inJSRSub)
             currBBMap[0] = NON_REFERENCE;
@@ -480,10 +540,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(0,ONEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop--;
+            localTypes[0] |= FLOAT_TYPE;
           break;
         }
 
-        case JBC_istore_1:
+        case JBC_istore_1: {
+          if (!inJSRSub)
+            currBBMap[1] = NON_REFERENCE;
+          else 
+            currBBMap[1] = SET_TO_NONREFERENCE;
+          if (inTryBlock) 
+            setHandlersMapsNonRef(1,ONEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount,inJSRSub, bbMaps);
+          currBBStkTop--;
+            localTypes[1] |= INT_TYPE;
+          break;
+        }
+                           
         case JBC_fstore_1: {
           if (!inJSRSub)
             currBBMap[1] = NON_REFERENCE;
@@ -493,10 +566,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(1,ONEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount,inJSRSub, bbMaps);
           currBBStkTop--;
+            localTypes[1] |= FLOAT_TYPE;
           break;
         }
 
-        case JBC_istore_2:
+        case JBC_istore_2: {
+          if (!inJSRSub)
+            currBBMap[2] = NON_REFERENCE;
+          else
+            currBBMap[2] = SET_TO_NONREFERENCE;
+          if (inTryBlock) 
+            setHandlersMapsNonRef(2,ONEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop--;
+            localTypes[2] |= INT_TYPE;
+          break;
+        }
+
         case JBC_fstore_2: {
           if (!inJSRSub)
             currBBMap[2] = NON_REFERENCE;
@@ -506,9 +592,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(2,ONEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop--;
+            localTypes[2] |= FLOAT_TYPE;
           break;
         }
-        case JBC_istore_3:
+
+        case JBC_istore_3: {
+          if (!inJSRSub)
+            currBBMap[3] = NON_REFERENCE;
+          else
+            currBBMap[3] = SET_TO_NONREFERENCE;
+          if (inTryBlock) 
+            setHandlersMapsNonRef(3,ONEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop--;
+            localTypes[3] |= INT_TYPE;
+          break;
+        }
+
         case JBC_fstore_3: {
           if (!inJSRSub)
             currBBMap[3] = NON_REFERENCE;
@@ -518,10 +618,25 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(3,ONEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop--;
+            localTypes[3] |= FLOAT_TYPE;
           break;
         }
 
-        case JBC_lstore_0:
+        case JBC_lstore_0: {
+          if (inJSRSub) {
+            currBBMap[0] = NON_REFERENCE;
+            currBBMap[1] = NON_REFERENCE;
+          } else {
+            currBBMap[0] = SET_TO_NONREFERENCE;
+            currBBMap[1] = SET_TO_NONREFERENCE;
+          }
+          if (inTryBlock) 
+            setHandlersMapsNonRef(0,DOUBLEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop = currBBStkTop - 2;
+            localTypes[0] |= LONG_TYPE;
+          break;
+        }
         case JBC_dstore_0: {
           if (inJSRSub) {
             currBBMap[0] = NON_REFERENCE;
@@ -534,9 +649,26 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(0,DOUBLEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop = currBBStkTop - 2;
+            localTypes[0] |= DOUBLE_TYPE;
           break;
         }
-        case JBC_lstore_1:
+                           
+        case JBC_lstore_1: {
+          if (!inJSRSub) {
+            currBBMap[1]=NON_REFERENCE;
+            currBBMap[2]=NON_REFERENCE;
+          } else {
+            currBBMap[1]=SET_TO_NONREFERENCE;
+            currBBMap[2]=SET_TO_NONREFERENCE;
+          }
+          if (inTryBlock) 
+            setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop = currBBStkTop - 2;
+            localTypes[1] |= LONG_TYPE;
+          break;
+        }
+
         case JBC_dstore_1: {
           if (!inJSRSub) {
             currBBMap[1]=NON_REFERENCE;
@@ -549,10 +681,26 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop = currBBStkTop - 2;
+            localTypes[1] |= DOUBLE_TYPE;
           break;
         }
 
-        case JBC_lstore_2:
+        case JBC_lstore_2: {
+          if (!inJSRSub) {
+            currBBMap[2]=NON_REFERENCE;
+            currBBMap[3]=NON_REFERENCE;
+          } else {
+            currBBMap[2]=SET_TO_NONREFERENCE;
+            currBBMap[3]=SET_TO_NONREFERENCE;
+          }
+          if (inTryBlock) 
+            setHandlersMapsNonRef(2,DOUBLEWORD,reachableHandlerBBNums, 
+                                  reachableHandlersCount, inJSRSub, bbMaps);
+          currBBStkTop = currBBStkTop - 2;
+            localTypes[2] |= LONG_TYPE;
+          break;
+        }
+
         case JBC_dstore_2: {
           if (!inJSRSub) {
             currBBMap[2]=NON_REFERENCE;
@@ -565,10 +713,26 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(2,DOUBLEWORD,reachableHandlerBBNums, 
                                   reachableHandlersCount, inJSRSub, bbMaps);
           currBBStkTop = currBBStkTop - 2;
+            localTypes[2] |= DOUBLE_TYPE;
           break;
         }
 
-        case JBC_lstore_3:
+        case JBC_lstore_3: {
+          if (!inJSRSub) {
+            currBBMap[3]=NON_REFERENCE;
+            currBBMap[4]=NON_REFERENCE;
+          } else {
+            currBBMap[3]=SET_TO_NONREFERENCE;
+            currBBMap[4]=SET_TO_NONREFERENCE;
+          }
+          if (inTryBlock) 
+            setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums,
+                                  reachableHandlersCount,inJSRSub, bbMaps);
+          currBBStkTop = currBBStkTop - 2;
+            localTypes[3] |= LONG_TYPE;
+          break;
+        }
+
         case JBC_dstore_3: {
           if (!inJSRSub) {
             currBBMap[3]=NON_REFERENCE;
@@ -581,6 +745,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums,
                                   reachableHandlersCount,inJSRSub, bbMaps);
           currBBStkTop = currBBStkTop - 2;
+            localTypes[3] |= DOUBLE_TYPE;
           break;
         }
 
@@ -599,6 +764,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             }
           }
           currBBStkTop--;
+            localTypes[0] |= ADDRESS_TYPE;
           break;
         }
 
@@ -617,6 +783,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             }
           }
           currBBStkTop--;
+            localTypes[1] |= ADDRESS_TYPE;
           break;
         }
 
@@ -635,6 +802,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             }
           }
           currBBStkTop--;
+            localTypes[2] |= ADDRESS_TYPE;
           break;
         }
         case JBC_astore_3: {
@@ -652,6 +820,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             }      
           }
           currBBStkTop--;
+            localTypes[3] |= ADDRESS_TYPE;
           break;
         }
 
@@ -1361,17 +1530,39 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
             break;
           }
 
-          case JBC_istore:
+          case JBC_istore: {
+            if (!inJSRSub)
+              currBBMap[index]=NON_REFERENCE;
+            else
+              currBBMap[index]=SET_TO_NONREFERENCE;
+            currBBStkTop--;
+            localTypes[index] |= INT_TYPE;
+            break;
+          }
+
           case JBC_fstore: {
             if (!inJSRSub)
               currBBMap[index]=NON_REFERENCE;
             else
               currBBMap[index]=SET_TO_NONREFERENCE;
             currBBStkTop--;
+            localTypes[index] |= FLOAT_TYPE;
             break;
           }
 
-          case JBC_lstore:
+          case JBC_lstore: {
+            if (!inJSRSub) {
+              currBBMap[index]=NON_REFERENCE;
+              currBBMap[index+1]=NON_REFERENCE;
+            } else {
+              currBBMap[index]=SET_TO_NONREFERENCE;
+              currBBMap[index+1]=SET_TO_NONREFERENCE;
+            }
+            currBBStkTop = currBBStkTop - 2;
+            localTypes[index] |= LONG_TYPE;
+            break;
+          }
+
           case JBC_dstore: {
             if (!inJSRSub) {
               currBBMap[index]=NON_REFERENCE;
@@ -1381,12 +1572,14 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
               currBBMap[index+1]=SET_TO_NONREFERENCE;
             }
             currBBStkTop = currBBStkTop - 2;
+            localTypes[index] |= DOUBLE_TYPE;
             break;
           }
 
           case JBC_astore: {
             currBBMap[index]=currBBMap[currBBStkTop];
             currBBStkTop--;
+            localTypes[index] |= ADDRESS_TYPE;
             break;
           }
 
@@ -1498,7 +1691,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
       }
 
     }  // while workStk not empty
-
+    
     // Indicate that any temporaries can be freed
     referenceMaps.recordingComplete();
 

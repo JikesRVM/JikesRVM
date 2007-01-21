@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
 
   // Iterator state for mapping any stackframe.
   //
-  private   int              mapOffset; // current offset in current map
+  private   int              mapIndex; // current offset in current map
   private   int              mapId;     // id of current map out of all maps
   private   VM_ReferenceMaps maps;      // set of maps for this method
 
@@ -50,6 +50,8 @@ import org.vmmagic.unboxed.*;
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
   private VM_NormalMethod currentMethod;                  // method for the frame
+  private VM_BaselineCompiledMethod currentCompiledMethod;                  // compiled method for the frame
+  private int currentNumLocals;
   private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
@@ -85,21 +87,41 @@ import org.vmmagic.unboxed.*;
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
   public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
+    currentCompiledMethod = (VM_BaselineCompiledMethod) compiledMethod;
     currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
-
+    currentNumLocals = currentMethod.getLocalWords();
     // setup superclass
     //
     framePtr = fp;
       
     // setup stackframe mapping
     //
-    maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
+    maps      = currentCompiledMethod.referenceMaps;
     mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
-    mapOffset = 0;
+    mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
       VM_ReferenceMaps.jsrLock.lock();
-      maps.setupJSRSubroutineMap( framePtr, mapId, compiledMethod);
+      int JSRindex  = maps.setupJSRSubroutineMap(mapId);
+      while (JSRindex != 0) {
+        Address nextCallerAddress;
+        int location = convertIndexToLocation(JSRindex);
+        if (VM_Compiler.isRegister(location))
+          nextCallerAddress = registerLocations.get(location).toAddress();
+        else
+          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        nextCallerAddress = nextCallerAddress.loadAddress();
+        Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
+        if (VM.TraceStkMaps) {
+          VM.sysWriteln("     setupJSRsubroutineMap- nested jsrs end of loop- = ");
+          VM.sysWriteln("      next jsraddress offset = ", JSRindex);
+          VM.sysWriteln("      next callers address = ", nextCallerAddress);
+          VM.sysWriteln("      next machinecodeoffset = ", nextMachineCodeOffset);
+          if (nextMachineCodeOffset.sLT(Offset.zero()))
+            VM.sysWriteln("BAD MACHINE CODE OFFSET");
+        }
+        JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
+      }
     }
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_BaselineGCMapIterator setupIterator mapId = ");
@@ -141,7 +163,7 @@ import org.vmmagic.unboxed.*;
   //
   public void reset() {
 
-    mapOffset = 0;
+    mapIndex = 0;
     finishedWithRegularMap = false;
 
     if (bridgeTarget != null) {
@@ -159,6 +181,21 @@ import org.vmmagic.unboxed.*;
     }
   }
 
+  /**
+   * given a index in the local area (biased : local0 has index 1)
+   *   this routine determines the correspondig offset in the stack
+   */
+  public int convertIndexToLocation(int index)   {
+    if (index == 0) return 0;
+
+    if (index <= currentNumLocals) { //index is biased by 1;
+      return currentCompiledMethod.getGeneralLocalLocation(index-1); //register (positive value) or stacklocation (negative value)
+    } else {
+      return currentCompiledMethod.getGeneralStackLocation(index-1-currentNumLocals);
+        //(VM_Compiler.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
+    }
+  } 
+  
   // Get location of next reference.
   // A zero return indicates that no more references exist.
   //
@@ -166,22 +203,38 @@ import org.vmmagic.unboxed.*;
 
     if (!finishedWithRegularMap) {
       if (mapId < 0) {
-        mapOffset = maps.getNextJSRRef(mapOffset);
+        mapIndex = maps.getNextJSRRefIndex(mapIndex);
       } else {
-        mapOffset = maps.getNextRef(mapOffset, mapId);
+        mapIndex = maps.getNextRefIndex(mapIndex, mapId);
       }
 
       if (VM.TraceStkMaps) {
-        VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = ");
-        VM.sysWrite(mapOffset);
+        VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceIndex = ");
+        VM.sysWrite(mapIndex);
         VM.sysWrite(".\n");
         if (mapId < 0) {
-          VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+          VM.sysWrite("Index is a JSR return address ie internal pointer.\n");
         }
       }
 
-      if (mapOffset != 0) {
-        return (framePtr.plus(mapOffset));
+      if (mapIndex != 0) {
+        int location = convertIndexToLocation(mapIndex);
+        if (VM.TraceStkMaps) {
+          VM.sysWrite("VM_BaselineGCMapIterator getNextReference location = ");
+          VM.sysWrite(location);
+          VM.sysWriteln();
+        }
+
+        Address nextCallerAddress;
+        if (VM_Compiler.isRegister(location))
+          nextCallerAddress = registerLocations.get(location).toAddress();
+        else
+          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        nextCallerAddress = nextCallerAddress.loadAddress();
+        if (VM_Compiler.isRegister(location))
+          return registerLocations.get(location).toAddress();
+        else
+          return framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
       } else {
         // remember that we are done with the map for future calls, and then
         //   drop down to the code below 
@@ -193,7 +246,7 @@ import org.vmmagic.unboxed.*;
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        Address location = framePtr.plus(VM_Compiler.getFrameSize(currentMethod));
+        Address location = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
         location = location.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
@@ -293,13 +346,31 @@ import org.vmmagic.unboxed.*;
       }
       return Address.zero();
     }
-    mapOffset = maps.getNextJSRReturnAddr(mapOffset);
+    mapIndex = maps.getNextJSRReturnAddrIndex(mapIndex);
     if (VM.TraceStkMaps) {
-      VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddressOffset = ");
-      VM.sysWrite(mapOffset);
+      VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddressIndex = ");
+      VM.sysWrite(mapIndex);
       VM.sysWrite(".\n");
     }
-    return (mapOffset == 0) ? Address.zero() : framePtr.plus(mapOffset);
+    
+    if (mapIndex == 0) return Address.zero();
+    
+    int location = convertIndexToLocation(mapIndex);
+    if (VM.TraceStkMaps) {
+      VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddress location = ");
+      VM.sysWrite(location);
+      VM.sysWrite(".\n");
+    }
+        Address nextCallerAddress;
+        if (VM_Compiler.isRegister(location))
+          nextCallerAddress = registerLocations.get(location).toAddress();
+        else
+          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        nextCallerAddress = nextCallerAddress.loadAddress();
+    if (VM_Compiler.isRegister(location))
+      return registerLocations.get(location).toAddress();
+    else
+      return framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
   }
 
   // cleanup pointers - used with method maps to release data structures
@@ -307,6 +378,12 @@ import org.vmmagic.unboxed.*;
   //    during garbage collection
   //
   public void cleanupPointers() {
+    // Make sure that the registerLocation array is updated with the
+    // locations where this method cached its callers registers.
+    // [[Yuck. I hate having to do this here, but it seems to be the
+    // only safe way to do this...]]
+    updateCallerRegisterLocations();
+
     maps.cleanupPointers();
     maps = null;
     if (mapId < 0) 
@@ -317,6 +394,20 @@ import org.vmmagic.unboxed.*;
        
   public int getType() {
     return VM_CompiledMethod.BASELINE;
+  }
+  
+  private void updateCallerRegisterLocations() {
+    //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
+    if (!currentMethod.getDeclaringClass().isDynamicBridge()) {
+      if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
+      Address addr = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
+      addr = addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER +1 ) << LOG_BYTES_IN_DOUBLE); //skip float registers
+    
+      for (int i = currentCompiledMethod.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
+        addr = addr.minus(BYTES_IN_ADDRESS);
+        registerLocations.set(i,addr.toWord());
+      }
+    }
   }
 
   // For debugging (used with checkRefMap)

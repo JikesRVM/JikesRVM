@@ -18,6 +18,7 @@ import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Thread;
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.ia32.*;
 import com.ibm.jikesrvm.osr.OSR_BytecodeTraverser;
 import com.ibm.jikesrvm.osr.OSR_Constants;
 import com.ibm.jikesrvm.osr.OSR_ExecStateExtractor;
@@ -174,7 +175,7 @@ public abstract class OSR_BaselineExecStateExtractor
     
     // adjust local offset and stack offset
     // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)     
-    Offset startLocalOffset = methFPoff.plus(fooCM.getStartLocalOffset());
+    Offset startLocalOffset = methFPoff.plus(VM_Compiler.locationToOffset(fooCM.getGeneralLocalLocation(0)));
 
     Offset stackOffset = methFPoff.plus(fooCM.getEmptyStackOffset());
 

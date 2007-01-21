@@ -52,30 +52,80 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    */
   private int[] eTable;
 
-  /* To make a compiled method's local/stack offset independ of
-   * original method, we move 'getStartLocalOffset' and 'getEmptyStackOffset'
+  /* To make a compiled method's stack offset independ of
+   * original method, we move 'getEmptyStackOffset'
    * here.
    *
    * TODO: redesign this.  There has to be a cleaner way!
    */
-  private int startLocalOffset;
+  //private int startLocalOffset;
   private int emptyStackOffset;
+  private int lastFixedStackRegister;
+  private int lastFloatStackRegister;
+
+  private int[] localFixedLocations; 
+  private int[] localFloatLocations; 
  
-  public int getStartLocalOffset() {
-    return startLocalOffset;
-  }
+//  public int getStartLocalOffset() {
+//    return startLocalOffset;
+//  }
  
   public int getEmptyStackOffset() {
     return emptyStackOffset;
   }
 
+  //These Locations are positioned at the top of the stackslot that contains the value
+  //before accessing, substract size of value you want to access
+  //e.g. to load int: load at VM_Compiler.locationToOffset(location) - BYTES_IN_INT 
+  //e.g. to load double: load at VM_Compiler.locationToOffset(location) - BYTES_IN_DOUBLE
+  @Uninterruptible
+  public final int getGeneralLocalLocation(int localIndex) {
+    return VM_Compiler.getGeneralLocalLocation(localIndex, localFixedLocations, (VM_NormalMethod) method);
+  }
+
+  @Uninterruptible
+  public final int getFloatLocalLocation(int localIndex) {
+    return VM_Compiler.getFloatLocalLocation(localIndex, localFloatLocations, (VM_NormalMethod) method);
+  }
+
+  @Uninterruptible
+  public final int getGeneralStackLocation(int stackIndex) {
+    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
+  }
+
+  @Uninterruptible
+  public final int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
+    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
+  }
+
+  @Uninterruptible
+  public final int getLastFixedStackRegister() {
+    return lastFixedStackRegister;
+  }
+
+  @Uninterruptible
+  public final int getLastFloatStackRegister() {
+    return lastFloatStackRegister;
+  }
+
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
     VM_NormalMethod nm = (VM_NormalMethod)m;
-    this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
+    //this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
+    this.localFixedLocations = new int[nm.getLocalWords()]; 
+    this.localFloatLocations = new int[nm.getLocalWords()]; 
+    this.lastFixedStackRegister = -1;
+    this.lastFloatStackRegister = -1;
   }
 
+  public final void compile() {
+    VM_Compiler comp = new VM_Compiler(this, localFixedLocations, localFloatLocations);
+    comp.compile();
+    this.lastFixedStackRegister = comp.getLastFixedStackRegister();
+    this.lastFloatStackRegister = comp.getLastFloatStackRegister();
+  }
+  
   @Uninterruptible
   public final int getCompilerType () { 
     return BASELINE;

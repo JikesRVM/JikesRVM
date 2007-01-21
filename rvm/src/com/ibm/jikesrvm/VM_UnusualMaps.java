@@ -22,17 +22,17 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible final class VM_UnusualMaps {
 
-  // set the offset in the stack frame of the return address for this map
+  // set the index in the stack frame of the return address for this map
   //
-  void setReturnAddressOffset(int offset) {
-    returnAddressOffset = offset;
+  void setReturnAddressIndex(int index) {
+    returnAddressIndex = index;
     return;
   }
 
-  // provide the offset in the stack frame of the return address for this map
+  // provide the index in the stack frame of the return address for this map
   //
-  int getReturnAddressOffset() {
-    return returnAddressOffset;
+  int getReturnAddressIndex() {
+    return returnAddressIndex;
   }
 
   // set the  offset of the reference map in the stackmap list of maps
@@ -88,16 +88,9 @@ import org.vmmagic.pragma.*;
     return;
   }
 
-  // deep copy of a UnusualMap
-  //
-  void copy(VM_UnusualMaps that) {
-    that.returnAddressOffset = this.returnAddressOffset;
-  }
-
-
 
   // For maps of JSR subroutine locations
-  int returnAddressOffset;   // index into the normal reference map of where the
+  int returnAddressIndex;   // index into the normal reference map of where the
   // return address can be located
   int referenceMapIndex;     // index into the map table of the references set map
   int nonReferenceMapIndex;  // index into the map table of the non-reference set map
@@ -107,8 +100,8 @@ import org.vmmagic.pragma.*;
   public void showInfo() {
     VM.sysWrite("  UnusualMap showInfo- ");
 
-    VM.sysWrite("    return address offsetbyte = ");
-    VM.sysWrite(returnAddressOffset);
+    VM.sysWrite("    return address index = ");
+    VM.sysWrite(returnAddressIndex);
     VM.sysWrite("\n    referenceMapIndex = ");
     VM.sysWrite(referenceMapIndex);
     VM.sysWrite("\n    nonReferenceMapIndex = ");

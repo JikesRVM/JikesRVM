@@ -11,6 +11,7 @@
 package com.ibm.jikesrvm.ppc.osr;
 
 import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.VM_BaselineCompiledMethod;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_CompiledMethods;
 import com.ibm.jikesrvm.VM_Magic;
@@ -23,6 +24,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.opt.VM_OptCompiledMethod;
 import com.ibm.jikesrvm.osr.OSR_ExecutionState;
+import com.ibm.jikesrvm.ppc.*;
 import com.ibm.jikesrvm.adaptive.*;
 
 import org.vmmagic.unboxed.*;
@@ -54,12 +56,22 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     int cType = foo.getCompilerType();
 
     VM_Assembler asm = new VM_Assembler(0, VM.TraceOnStackReplacement);
+    
+    /////////////////////////////////////
+    ////// recover saved registers.
+    /////////////////////////////////////         
     if (cType == VM_CompiledMethod.BASELINE) {
-      // do nothing 
+      VM_BaselineCompiledMethod  bcm = (VM_BaselineCompiledMethod)foo;
+      int offset = VM_Compiler.getFrameSize(bcm);
+      for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {    
+        offset -= BYTES_IN_DOUBLE;
+        asm.emitLFD(i, offset, FP);
+      }
+      for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {    
+        offset -= BYTES_IN_ADDRESS;
+        asm.emitLAddr(i, offset, FP);
+      }
     } else if (cType == VM_CompiledMethod.OPT) {
-      /////////////////////////////////////
-      ////// recover saved registers.
-      /////////////////////////////////////         
       VM_OptCompiledMethod  fooOpt = (VM_OptCompiledMethod)foo;
         
       // foo definitely not save volatile.
@@ -81,9 +93,6 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
         }
       }
 
-      // it may have a padding before FPRs.
-      offset = VM_Memory.alignUp(offset,  BYTES_IN_STACKSLOT) ;
-        
       // recover nonvolatile FPRs
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
       if (firstFPR != -1) {
@@ -91,7 +100,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
              i <= LAST_NONVOLATILE_FPR;
              i++) {
           asm.emitLFD(i, offset, FP);
-          offset += 2*BYTES_IN_STACKSLOT;
+          offset += BYTES_IN_DOUBLE;
         }
       }
     }

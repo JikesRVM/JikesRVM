@@ -194,7 +194,7 @@ LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
 #####
 # LONG_CMP
 #####
-stm:	LONG_CMP(r,r)
+r:	LONG_CMP(r,r)
 40
 EMIT_INSTRUCTION
 EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion

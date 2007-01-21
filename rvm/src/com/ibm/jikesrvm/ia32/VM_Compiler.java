@@ -59,7 +59,35 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
   }
-
+  
+   protected void initializeCompiler() {
+     //nothing to do for intel
+   }
+ 
+   public final int getLastFixedStackRegister() {
+     return -1; //doesn't dedicate registers to stack;
+   }
+ 
+   public final int getLastFloatStackRegister() {
+     return -1; //doesn't dedicate registers to stack;
+   }
+ 
+   public static final int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+     return offsetToLocation(getStartLocalOffset(m) - (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
+   }
+   
+   public static final int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+     return offsetToLocation(getStartLocalOffset(m) - (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
+   }
+ 
+   public final static int locationToOffset(int location) {
+     return -location;
+   }
+   
+   public final static int offsetToLocation(int offset) {
+     return -offset;
+   }
+   
   /**
    * The last true local
    */
@@ -72,14 +100,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * It will not work as a base to access true locals.
    * TODO!! make sure it is not being used incorrectly
    */
-  public static int getFirstLocalOffset (VM_NormalMethod method) {
+  private static int getFirstLocalOffset (VM_NormalMethod method) {
     if (method.getDeclaringClass().isBridgeFromNative())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     else
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
   }
   
-  public static int getStartLocalOffset (VM_NormalMethod method) {
+  private static int getStartLocalOffset (VM_NormalMethod method) {
     return getFirstLocalOffset(method) + WORDSIZE;
   }
 

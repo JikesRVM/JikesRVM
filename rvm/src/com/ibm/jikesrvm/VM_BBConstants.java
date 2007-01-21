@@ -24,22 +24,13 @@ public interface VM_BBConstants {
   // entity 
   static final byte LENGTH_MASK      = 0x03;
   
-  static final byte SINGLE_WORD_     = 0x01; 
-  static final byte DOUBLE_WORD_     = 0x02; 
-  static final byte FLOATING_POINT_  = 0x04;
-  static final byte ARRAY_           = 0x08;
-  static final byte RETURN_          = 0x10;
-  static final byte OBJECT_          = 0x20;
-  static final byte TWO_REGISTERS_   = 0x40;
-  
   static final byte VOID_TYPE            = 0x00;
-  static final byte WORD_TYPE            = SINGLE_WORD_;
-  static final byte LONG_TYPE            = TWO_REGISTERS_|DOUBLE_WORD_;
-  static final byte FLOAT_TYPE           = FLOATING_POINT_|SINGLE_WORD_;
-  static final byte DOUBLE_TYPE          = FLOATING_POINT_|DOUBLE_WORD_;
-  static final byte OBJECT_TYPE          = OBJECT_|SINGLE_WORD_;
-  static final byte ARRAY_TYPE           = OBJECT_TYPE|ARRAY_;
-  static final byte RETURN_ADDRESS_TYPE  = OBJECT_TYPE|RETURN_;
+  static final byte INT_TYPE             = 0x01;
+  static final byte ADDRESS_TYPE         = 0x02;
+  static final byte LONG_TYPE            = 0x04;
+  static final byte FLOAT_TYPE           = 0x08;
+  static final byte DOUBLE_TYPE          = 0x10;
+  static final byte LONGHALF_TYPE        = 0x20;
 
   static final short DUMMYBLOCK         = -1;
   static final short STARTBLOCK         =  1;

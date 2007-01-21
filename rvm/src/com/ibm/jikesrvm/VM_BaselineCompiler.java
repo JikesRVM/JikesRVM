@@ -52,6 +52,16 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
   }
 
+  /** 
+   * The types that locals can take.
+   * There are two types of locals. First the parameters of the method, they only have one type
+   * Second, the other locals, numbers get reused when stack shrinks and grows again.
+   * Therefore, these can have more than one type assigned.
+   * The compiler can use this information to assign registers to locals
+   * See the VM_Compiler constructor.
+   */
+  protected final byte[] localTypes;
+
 
   /**
    * Construct a VM_Compiler
@@ -70,6 +80,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       }
     }
     asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
+    localTypes = new byte[method.getLocalWords()];
   }
 
   /**
@@ -159,11 +170,11 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
    */
   public static VM_CompiledMethod compile (VM_NormalMethod method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
-    new VM_Compiler(cm).compile();
+    cm.compile();
     return cm;
   }
 
-
+  protected abstract void initializeCompiler(); 
   /**
    * Top level driver for baseline compilation of a method.
    */
@@ -173,7 +184,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     // Phase 1: GC map computation
     long start = 0;
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
-    VM_ReferenceMaps refMaps = new VM_ReferenceMaps((VM_BaselineCompiledMethod)compiledMethod, stackHeights);
+    VM_ReferenceMaps refMaps = new VM_ReferenceMaps((VM_BaselineCompiledMethod)compiledMethod, stackHeights, localTypes);
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       gcMapCycles += end - start;
@@ -212,7 +223,11 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
         (method.hasCondBranch() || method.hasSwitch())) {
       ((VM_BaselineCompiledMethod)compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
     }
-
+    
+    //do platform specific tasks before generating code;
+    initializeCompiler();
+    
+    
     VM_MachineCode  machineCode  = genCode();
     VM_CodeArray    instructions = (VM_CodeArray) machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();

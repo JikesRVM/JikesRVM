@@ -95,7 +95,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
         if (method.isStatic()) {
           lock = method.getDeclaringClass().getClassForType();
         } else {
-          lock = VM_Magic.addressAsObject(fp.plus(VM_Compiler.getFirstLocalOffset(method)).loadAddress());
+          lock = VM_Magic.addressAsObject(fp.plus(VM_Compiler.locationToOffset(((VM_BaselineCompiledMethod)compiledMethod).getGeneralLocalLocation(0)) - BYTES_IN_ADDRESS).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }

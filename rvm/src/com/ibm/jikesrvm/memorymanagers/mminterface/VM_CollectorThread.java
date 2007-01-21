@@ -293,6 +293,8 @@ public class VM_CollectorThread extends VM_Thread {
    */
    @LogicallyUninterruptible // due to call to snipObsoleteCompiledMethods
    @NoOptCompile // refs stored in registers by opt compiler will not be relocated by GC
+   @BaselineNoRegisters // refs stored in registers by baseline compiler will not be relocated by GC, so use stack only
+   @BaselineSaveLSRegisters // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
    @Uninterruptible
    public void run() { 
 

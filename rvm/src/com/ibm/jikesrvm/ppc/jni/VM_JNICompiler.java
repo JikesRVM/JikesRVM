@@ -16,6 +16,7 @@ import com.ibm.jikesrvm.VM_Constants;
 import com.ibm.jikesrvm.VM_Entrypoints;
 import com.ibm.jikesrvm.VM_ForwardReference;
 import com.ibm.jikesrvm.VM_JNICompiledMethod;
+import com.ibm.jikesrvm.VM_Memory;
 import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
@@ -131,7 +132,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   |------------|
    *   | fp         | <- Java to C glue frame (2)
    *   | lr         |
-   *   | 0          | <- spill area, see VM_Compiler.getFrameSize
+   *   | 0          | <- spill area, see getFrameSize
    *   | 1          |
    *   | .......    |
    *   |------------| 
@@ -159,7 +160,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm    = new VM_Assembler(0);
-    int frameSize       = VM_Compiler.getFrameSize(method);
+    int frameSize       = getFrameSize(method);
     VM_Class klass      = method.getDeclaringClass();
 
     /* initialization */
@@ -338,6 +339,22 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     VM_MachineCode machineCode = asm.makeMachineCode();
     cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
     return cm;
+  }
+
+  public static int getFrameSize (VM_NativeMethod m) { 
+    // space for:
+    //   -NATIVE header (AIX 6 words, LINUX 2 words)
+    //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
+    //   -JNI_SAVE_AREA_OFFSET; see VM_JNIStackframeLayoutConstants
+    int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords()+ 2);
+    if (argSpace < 32)
+      argSpace = 32;
+    int size = NATIVE_FRAME_HEADER_SIZE + argSpace +
+      JNI_SAVE_AREA_SIZE;
+    if (VM.BuildFor32Addr) {
+      size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
+    }
+    return size;
   }
 
 

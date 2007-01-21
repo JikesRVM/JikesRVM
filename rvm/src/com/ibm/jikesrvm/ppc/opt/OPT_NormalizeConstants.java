@@ -280,6 +280,11 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
         BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, !BooleanCmp.getCond(s).isUNSIGNED()));
         break;
 
+      case LONG_CMP_opcode:
+        Binary.setVal1(s, asRegPolymorphic(Binary.getVal1(s), s, ir));
+        Binary.setVal2(s, asRegPolymorphic(Binary.getVal2(s), s, ir));
+        break;
+      
         //////////
         // INT ALU OPS
         //////////

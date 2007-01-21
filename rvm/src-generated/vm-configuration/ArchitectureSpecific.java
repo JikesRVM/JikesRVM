@@ -35,7 +35,7 @@ public class ArchitectureSpecific {
     }
   }
   public static final class VM_Compiler extends com.ibm.jikesrvm.ia32.VM_Compiler {
-    public VM_Compiler(VM_BaselineCompiledMethod cm) {
+    public VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
       super(cm);
     }}
   public static final class VM_DynamicLinkerHelper extends com.ibm.jikesrvm.ia32.VM_DynamicLinkerHelper {}
@@ -139,8 +139,8 @@ public class ArchitectureSpecific {
     }
   }
   public static final class VM_Compiler extends com.ibm.jikesrvm.ppc.VM_Compiler {
-    public VM_Compiler(VM_BaselineCompiledMethod cm) {
-      super(cm);
+    public VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+      super(cm, genLocLoc, floatLocLoc);
     }}
   public static final class VM_DynamicLinkerHelper extends com.ibm.jikesrvm.ppc.VM_DynamicLinkerHelper {}
   public static final class VM_InterfaceMethodConflictResolver extends com.ibm.jikesrvm.ppc.VM_InterfaceMethodConflictResolver {}

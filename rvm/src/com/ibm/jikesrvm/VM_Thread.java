@@ -294,14 +294,22 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   // to handle all the cases at reasonable runtime-cost. 
   /**
    * Yieldpoint taken in prologue
-   */ 
+   */
+  @BaselineSaveLSRegisters //Save all non-volatile registers in prologue  
+  @NoOptCompile //We should also have a pragma that saves all non-volatiles in opt compiler, 
+    // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+    //todo fix this -- related to SaveVolatile
   public static void yieldpointFromPrologue() {
     yieldpoint(PROLOGUE);
   }
 
   /**
    * Yieldpoint taken on backedge
-   */ 
+   */
+  @BaselineSaveLSRegisters //Save all non-volatile registers in prologue  
+  @NoOptCompile //We should also have a pragma that saves all non-volatiles in opt compiler, 
+    // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+    //todo fix this -- related to SaveVolatile
   public static void yieldpointFromBackedge() {
     yieldpoint(BACKEDGE);
   }
@@ -309,6 +317,10 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /**
    * Yieldpoint taken in epilogue
    */ 
+  @BaselineSaveLSRegisters //Save all non-volatile registers in prologue  
+  @NoOptCompile //We should also have a pragma that saves all non-volatiles in opt compiler, 
+    // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+    //todo fix this -- related to SaveVolatile
   public static void yieldpointFromEpilogue() {
     yieldpoint(EPILOGUE);
   }
@@ -820,6 +832,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   }
 
   @NoInline
+  @BaselineNoRegisters //this method does not a normal return and hence does not execute epilogue --> non-volatiles not restored!
   private static void transferExecutionToNewStack(byte[] newStack, 
                                                   VM_Registers 
                                                   exceptionRegisters) { 

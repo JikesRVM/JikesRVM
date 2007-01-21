@@ -13,6 +13,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_BaselineCompiledMethod;
 import com.ibm.jikesrvm.VM_BaselineCompiler;
+import com.ibm.jikesrvm.VM_BBConstants;
 import com.ibm.jikesrvm.VM_CompiledMethod;
 import com.ibm.jikesrvm.VM_EdgeCounts;
 import com.ibm.jikesrvm.VM_Entrypoints;
@@ -46,6 +47,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
              VM_JNIStackframeLayoutConstants, 
+             VM_BBConstants, 
              VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
@@ -61,86 +63,243 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // this number of bytecodes, then we can always use a short-form
   // conditional branch (don't have to emit a nop & bc).
   private static final int SHORT_FORWARD_LIMIT = 500;
-
+  
+  private static final boolean USE_NONVOLATILE_REGISTERS = true;
+   
+  private int firstFixedStackRegister; //after the fixed local registers !!
+  private int firstFloatStackRegister; //after the float local registers !!
+   
+  private int lastFixedStackRegister;
+  private int lastFloatStackRegister;
+   
+  private final int[] localFixedLocations;
+  private final int[] localFloatLocations;
+  
+  private final boolean use_nonvolatile_registers; 
+ 
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  protected VM_Compiler(VM_BaselineCompiledMethod cm) {
+  protected VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
     super(cm);
+    localFixedLocations = genLocLoc;
+    localFloatLocations = floatLocLoc;
+    use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.isAnnotationPresent(BaselineNoRegisters.class);
+ 
     if (VM.VerifyAssertions) VM._assert(T6 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
     if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
     stackHeights = new int[bcodes.length()];
-    frameSize        = getFrameSize(method);
-    startLocalOffset = getStartLocalOffset(method);
+    startLocalOffset = getInternalStartLocalOffset(method);
     emptyStackOffset = getEmptyStackOffset(method);
   }
 
+  protected void initializeCompiler() {
+    defineStackAndLocalLocations(); //alters framesize, this can only be performed after localTypes are filled in by buildReferenceMaps
+    
+    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod) compiledMethod; 
+    frameSize = getInternalFrameSize(); //after defineStackAndLocalLocations !!
+  } 
 
   //----------------//
   // more interface //
   //----------------//
   
-  // position of spill area within method's stackframe.
-  @Uninterruptible
-  public static int getMaxSpillOffset (VM_NormalMethod m) { 
-    int params = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum parameter area
-    int spill  = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
-    if (spill < 0) spill = 0;
-    return STACKFRAME_HEADER_SIZE + spill - BYTES_IN_STACKSLOT;
-  }
-  
   // position of operand stack within method's stackframe.
   @Uninterruptible
   public static int getEmptyStackOffset (VM_NormalMethod m) { 
+    int params = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum parameter area
+    int spill  = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
+    if (spill < 0) spill = 0;
     int stack = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum stack size
-    return getMaxSpillOffset(m) + stack + BYTES_IN_STACKSLOT; // last local
-  }
-  
-  // position of locals within method's stackframe.
-  @Uninterruptible
-  public static int getFirstLocalOffset (VM_NormalMethod m) { 
-    return getStartLocalOffset(m) - BYTES_IN_STACKSLOT;
+    return STACKFRAME_HEADER_SIZE + spill + stack;
   }
   
   // start position of locals within method's stackframe.
   @Uninterruptible
-  public static int getStartLocalOffset (VM_NormalMethod m) { 
+  private static int getInternalStartLocalOffset (VM_NormalMethod m) { 
     int locals = m.getLocalWords()<<LOG_BYTES_IN_STACKSLOT;       // input param words + pure locals
     return getEmptyStackOffset(m) + locals; // bottom-most local
   }
   
   // size of method's stackframe.
   @Uninterruptible
-  public static int getFrameSize (VM_NormalMethod m) { 
-    int size = getStartLocalOffset(m);
+  private int getInternalFrameSize () {
+    int size = startLocalOffset;
+    if (method.getDeclaringClass().isDynamicBridge()) {
+      size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
+      size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) << LOG_BYTES_IN_ADDRESS;
+    } else {
+      size += (lastFloatStackRegister - FIRST_FLOAT_LOCAL_REGISTER + 1) << LOG_BYTES_IN_DOUBLE;
+      size += (lastFixedStackRegister - FIRST_FIXED_LOCAL_REGISTER + 1) << LOG_BYTES_IN_ADDRESS;
+    }
+    if (VM.BuildFor32Addr) {
+      size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
+    }
+    return size;
+  }
+
+  // size of method's stackframe.
+  // only valid on compiled methods
+  @Uninterruptible
+  public static int getFrameSize (VM_BaselineCompiledMethod bcm) {
+    VM_NormalMethod m = (VM_NormalMethod)bcm.getMethod();
+    int size = getInternalStartLocalOffset(m);
     if (m.getDeclaringClass().isDynamicBridge()) {
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
       size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) << LOG_BYTES_IN_ADDRESS;
+    } else {
+      int num_fpr = bcm.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER + 1;
+      int num_gpr = bcm.getLastFixedStackRegister() - FIRST_FIXED_LOCAL_REGISTER + 1;
+      if (num_gpr > 0) size += (num_fpr << LOG_BYTES_IN_DOUBLE);
+      size += (num_gpr << LOG_BYTES_IN_ADDRESS);
     }
     if (VM.BuildFor32Addr) {
       size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
     }
     return size;
+  }
+ 
+  private void defineStackAndLocalLocations() {
+
+    int nextFixedLocalRegister =  FIRST_FIXED_LOCAL_REGISTER;
+    int nextFloatLocalRegister =  FIRST_FLOAT_LOCAL_REGISTER;
+  
+   //define local registers 
+    int nparam = method.getParameterWords(); 
+    VM_TypeReference [] types = method.getParameterTypes();
+    int localIndex=0;
+    if (!method.isStatic()) {
+      if (localTypes[0] != ADDRESS_TYPE) VM._assert(false);
+      if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+      else localFixedLocations[localIndex]=nextFixedLocalRegister++;
+      localIndex++;
+      nparam++;
+    }
+    for (int i=0; i<types.length; i++, localIndex++) {
+      VM_TypeReference t = types[i];
+      if (t.isLongType()) {
+        if (VM.BuildFor64Addr) { 
+          if ( !use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+          else localFixedLocations[localIndex]= nextFixedLocalRegister++;
+        } else {
+          if ( !use_nonvolatile_registers || (nextFixedLocalRegister >= LAST_FIXED_LOCAL_REGISTER)) {
+           localFixedLocations[localIndex] = offsetToLocation(localOffset(localIndex)); // lo mem := lo register (== hi word)
+           //we don't fill in the second location !! Every access is through te location of the first half
+          } else {
+            localFixedLocations[localIndex]= nextFixedLocalRegister++;
+            localFixedLocations[localIndex+1]= nextFixedLocalRegister++;
+          }
+        }
+        localIndex++;
+      } else if (t.isFloatType()) {
+        if (!use_nonvolatile_registers || (nextFloatLocalRegister > LAST_FLOAT_LOCAL_REGISTER)) localFloatLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else localFloatLocations[localIndex]= nextFloatLocalRegister++;
+      } else if (t.isDoubleType()) {
+        if (!use_nonvolatile_registers || (nextFloatLocalRegister > LAST_FLOAT_LOCAL_REGISTER)) localFloatLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else localFloatLocations[localIndex]= nextFloatLocalRegister++;
+        localIndex++;
+      } else if (t.isIntLikeType()) { 
+        if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else localFixedLocations[localIndex]= nextFixedLocalRegister++;
+      } else { // t is object 
+        if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else localFixedLocations[localIndex]= nextFixedLocalRegister++;
+      }
+    }
+
+    if (VM.VerifyAssertions) VM._assert(localIndex == nparam);
+    //rest of locals, non parameters, could be reused for different types
+    int nLocalWords = method.getLocalWords();
+    for (; localIndex < nLocalWords; localIndex++) {
+      byte currentLocal = localTypes[localIndex];
+
+      if (needsFloatRegister(currentLocal)){//float or double
+        if (!use_nonvolatile_registers || (nextFloatLocalRegister > LAST_FLOAT_LOCAL_REGISTER)) 
+          localFloatLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else
+          localFloatLocations[localIndex]= nextFloatLocalRegister++;
+      } 
+      
+      currentLocal = stripFloatRegisters(currentLocal); 
+      if (currentLocal != VOID_TYPE) { //object or intlike
+        if (VM.BuildFor32Addr && containsLongType(currentLocal)) { //long
+          if (!use_nonvolatile_registers || (nextFixedLocalRegister >= LAST_FIXED_LOCAL_REGISTER)) { 
+            localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+            //two longs next to each other, overlapping one location, last long can't be stored in registers anymore :
+            if (use_nonvolatile_registers && (nextFixedLocalRegister == LAST_FIXED_LOCAL_REGISTER) && containsLongType(localTypes[localIndex - 1])) nextFixedLocalRegister++; //if only 1 reg left, but already reserved by previous long, count it here !!
+          } else { 
+            localFixedLocations[localIndex]= nextFixedLocalRegister++;
+          }
+          localTypes[localIndex+1] |= INT_TYPE; //there is at least one more, since this is long; mark so that we certainly assign a location to the second half
+        } 
+      
+        else if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) 
+          localFixedLocations[localIndex]= offsetToLocation(localOffset(localIndex));
+        else 
+          localFixedLocations[localIndex]= nextFixedLocalRegister++;
+      } 
+      //else unused, assign nothing, can be the case after long or double
+    }
+
+    
+    firstFixedStackRegister =  nextFixedLocalRegister;
+    firstFloatStackRegister =  nextFloatLocalRegister;
+    
+    
+    //define stack registers 
+    //KV: TODO 
+    lastFixedStackRegister =  firstFixedStackRegister -1;
+    lastFloatStackRegister =  firstFloatStackRegister -1;
+   
+    if(USE_NONVOLATILE_REGISTERS && method.isAnnotationPresent(BaselineSaveLSRegisters.class)) {
+      //methods with SaveLSRegisters pragma need to save/restore ALL registers in their prolog/epilog
+      lastFixedStackRegister =  LAST_FIXED_STACK_REGISTER;
+      lastFloatStackRegister =  LAST_FLOAT_STACK_REGISTER;
+    }
+  }
+  
+  public final int getLastFixedStackRegister() {
+    return lastFixedStackRegister;
+  }
+
+  public final int getLastFloatStackRegister() {
+    return lastFloatStackRegister;
+  }
+
+  private final static boolean needsFloatRegister(byte type) {
+    return 0 != (type & (FLOAT_TYPE | DOUBLE_TYPE));
+  }
+
+  private final static byte stripFloatRegisters(byte type) {
+    return (byte) (type & (~(FLOAT_TYPE | DOUBLE_TYPE)));
+  }
+
+  private final static boolean containsLongType(byte type) {
+    return 0 != (type & (LONG_TYPE));
+  }
+
+  private final int getGeneralLocalLocation(int index) {
+    return localFixedLocations[index];
+  }
+
+  private final int getFloatLocalLocation(int index) {
+    return localFloatLocations[index];
   }
 
   @Uninterruptible
-  public static int getFrameSize (VM_NativeMethod m) { 
-    // space for:
-    //   -NATIVE header (AIX 6 words, LINUX 2 words)
-    //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
-    //   -JNI_SAVE_AREA_OFFSET; see VM_JNIStackframeLayoutConstants
-    int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords()+ 2);
-    if (argSpace < 32)
-      argSpace = 32;
-    int size = NATIVE_FRAME_HEADER_SIZE + argSpace +
-      com.ibm.jikesrvm.ppc.jni.VM_JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
-    if (VM.BuildFor32Addr) {
-      size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
-    }
-    return size;
+  @Inline
+  public static final int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+    return localloc[index];
+  }
+  
+  @Uninterruptible
+  @Inline
+  public static final int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+    return localloc[index];
   }
 
+ 
   /*
    * implementation of abstract methods of VM_BaselineCompiler
    */
@@ -149,6 +308,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * Misc routines not directly tied to a particular bytecode
    */
 
+
+  private final int getSingleStackLocation(int index) {
+    return offsetToLocation(spTopOffset + BYTES_IN_STACKSLOT + (index<<LOG_BYTES_IN_STACKSLOT));
+  }
+
+  private final int getDoubleStackLocation(int index) {
+    return offsetToLocation(spTopOffset + 2*BYTES_IN_STACKSLOT + (index<<LOG_BYTES_IN_STACKSLOT));
+  }
+
+  private final int getTopOfStackLocationForPush() {
+    return offsetToLocation(spTopOffset);
+  }
   /**
    * About to start generating code for bytecode biStart.
    * Perform any platform specific setup
@@ -442,127 +613,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   
-  /* 
-   * Helper functions for manipulating local variables
-   */
-
-  /**
-   * Emit the code to store an intlike (boolean, byte, char, short, int) value 
-   * from 'reg' into local number 'index'
-   * @param reg the register containing the value to store
-   * @param index the local index in which to store it.
-   */
-  private final void storeIntLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_INT;
-    asm.emitSTW(reg, offset, FP);
-  }    
-
-  /**
-   * Emit the code to store a float value
-   * from 'reg' into local number 'index'
-   * @param reg the register containing the value to store
-   * @param index the local index in which to store it.
-   */
-  private final void storeFloatLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_FLOAT;
-    asm.emitSTFS(reg, offset, FP);
-  }    
-
-  /**
-   * Emit the code to store a double value
-   * from 'reg' into local number 'index'
-   * @param reg the register containing the value to store
-   * @param index the local index in which to store it.
-   */
-  private final void storeDoubleLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_DOUBLE;
-    asm.emitSTFD(reg, offset, FP);
-  }    
-
-  /**
-   * Emit the code to store a long value
-   * from 'reg' into local number 'index'
-   * NOTE: in 32 bit mode, reg is actually a FP register and
-   * we are treating the long value as if it were an FP value to do this in
-   * one instruction!!!
-   * @param reg the register containing the value to store
-   * @param index the local index in which to store it.
-   */
-  private final void storeLongLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_LONG;
-    asm.emitSTFD(reg, offset, FP);
-  }    
-
-  /**
-   * Emit the code to store a reference/address value
-   * from 'reg' into local number 'index'
-   * @param reg the register containing the value to store
-   * @param index the local index in which to store it.
-   */
-  private final void storeAddrLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_ADDRESS;
-    asm.emitSTAddr(reg, offset, FP);
-  }    
-  
-  /**
-   * Emit the code to load an intlike (boolean, byte, char, short, int) value 
-   * from local number 'index' into 'reg'
-   * @param reg the register to load the value into
-   * @param index the local index from which to load it.
-   */
-  private final void loadIntLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_INT;
-    asm.emitLInt(reg, offset, FP);
-  }
-
-  /**
-   * Emit the code to load a float value
-   * from local number 'index' into 'reg'
-   * @param reg the register to load the value into
-   * @param index the local index from which to load it.
-   */
-  private final void loadFloatLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_FLOAT;
-    asm.emitLFS(reg, offset, FP);
-  }
-
-  /**
-   * Emit the code to load an double value
-   * from local number 'index' into 'reg'
-   * @param reg the register to load the value into
-   * @param index the local index from which to load it.
-   */
-  private final void loadDoubleLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_DOUBLE;
-    asm.emitLFD  (reg, offset, FP);
-  }
-
-  /**
-   * Emit the code to load a long value
-   * from local number 'index' into 'reg'
-   * NOTE: in 32 bit mode, reg is actually a FP register and
-   * we are treating the long value as if it were an FP value to do this in
-   * one instruction!!!
-   * @param reg the register to load the value into
-   * @param index the local index from which to load it.
-   */
-  private final void loadLongLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_LONG;
-    asm.emitLFD  (reg, offset, FP);
-  }
-
-  /**
-   * Emit the code to load a reference/address
-   * from local number 'index' into 'reg'
-   * @param reg the register to load the value into
-   * @param index the local index from which to load it.
-   */
-  private final void loadAddrLocal(int reg, int index) {
-    int offset = localOffset(index) - BYTES_IN_ADDRESS;
-    asm.emitLAddr(reg, offset, FP);
-  }
-
-
   /*
    * Loading constants
    */
@@ -676,8 +726,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_iload(int index) {
-    loadIntLocal(T0, index);
-    pushInt(T0);
+    int dstLoc = getTopOfStackLocationForPush();
+    copyByLocation(INT_TYPE, getGeneralLocalLocation(index), INT_TYPE, dstLoc);
+    spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
   /**
@@ -685,8 +736,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_lload(int index) {
-    loadLongLocal(F0, index);
-    pushLongAsDouble(F0);
+    int dstLoc = getTopOfStackLocationForPush();
+    copyByLocation(LONG_TYPE, getGeneralLocalLocation(index), LONG_TYPE, dstLoc);
+    spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
 
   /**
@@ -694,8 +746,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_fload(int index) {
-    loadFloatLocal(F0, index);
-    pushFloat(F0);
+    int dstLoc = getTopOfStackLocationForPush();
+    copyByLocation(FLOAT_TYPE, getFloatLocalLocation(index), FLOAT_TYPE, dstLoc);
+    spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
   /**
@@ -703,8 +756,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_dload(int index) {
-    loadDoubleLocal(F0, index);
-    pushDouble(F0);
+    int dstLoc = getTopOfStackLocationForPush();
+    copyByLocation(DOUBLE_TYPE, getFloatLocalLocation(index), DOUBLE_TYPE, dstLoc);
+    spTopOffset -= 2*BYTES_IN_STACKSLOT;
   }
 
   /**
@@ -712,8 +766,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_aload(int index) {
-    loadAddrLocal(T0, index);
-    pushAddr(T0);
+    int dstLoc = getTopOfStackLocationForPush();
+    copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(index), ADDRESS_TYPE, dstLoc);
+    spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
 
@@ -727,8 +782,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_istore(int index) {
-    popInt(T0);
-    storeIntLocal(T0, index);
+    int srcLoc = getSingleStackLocation(0);
+    copyByLocation(INT_TYPE, srcLoc, INT_TYPE, getGeneralLocalLocation(index));
+    discardSlot();
   }
 
   /**
@@ -736,8 +792,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_lstore(int index) {
-    popLongAsDouble(F0);
-    storeLongLocal(F0, index);
+    copyByLocation(LONG_TYPE, getDoubleStackLocation(0), LONG_TYPE, getGeneralLocalLocation(index));
+    discardSlots(2);
   }
 
   /**
@@ -745,8 +801,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_fstore(int index) {
-    popFloat(F0);
-    storeFloatLocal(F0, index);
+    int srcLoc = getSingleStackLocation(0);
+    copyByLocation(FLOAT_TYPE, srcLoc, FLOAT_TYPE, getFloatLocalLocation(index));
+    discardSlot();
   }
 
   /**
@@ -754,8 +811,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_dstore(int index) {
-    popDouble(F0);
-    storeDoubleLocal(F0, index);
+    int srcLoc = getDoubleStackLocation(0);
+    copyByLocation(DOUBLE_TYPE, srcLoc, DOUBLE_TYPE, getFloatLocalLocation(index));
+    discardSlots(2);
   }
 
   /**
@@ -763,8 +821,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_astore(int index) {
-    popAddr(T0);
-    storeAddrLocal(T0, index);
+    int srcLoc = getSingleStackLocation(0);
+    copyByLocation(ADDRESS_TYPE, srcLoc, ADDRESS_TYPE, getGeneralLocalLocation(index));
+    discardSlot();
   }
 
 
@@ -1189,9 +1248,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param val value to increment it by
    */
   protected final void emit_iinc(int index, int val) {
-    loadIntLocal(T0, index);
-    asm.emitADDI(T0, val, T0);
-    storeIntLocal(T0, index);
+    int loc = getGeneralLocalLocation(index);
+    if (isRegister(loc)) {
+      asm.emitADDI(loc, val, loc);
+    } else {
+      copyMemToReg(INT_TYPE, locationToOffset(loc), T0);
+      asm.emitADDI(T0, val, T0);
+      copyRegToMem(INT_TYPE, T0, locationToOffset(loc));
+    }
   }
 
 
@@ -2078,8 +2142,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param index local variable containing the return address
    */
   protected final void emit_ret(int index) {
-    loadAddrLocal(T0, index);
-    asm.emitMTLR(T0);
+    int location = getGeneralLocalLocation(index);
+
+    if (!isRegister(location)) {
+      copyMemToReg(ADDRESS_TYPE, locationToOffset(location), T0);
+      location = T0;
+    }
+    asm.emitMTLR(location);
     asm.emitBCLR ();
   }
 
@@ -2877,6 +2946,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the monitorenter bytecode
    */
   protected final void emit_monitorenter() {
+    peekAddr(T0, 0);
     asm.emitLAddrOffset(S0, JTOC, VM_Entrypoints.lockMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitBCCTRL();
@@ -2902,6 +2972,183 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     return offset;
   }
 
+  @Uninterruptible
+  public final static boolean isRegister(int location) {
+    return location > 0;
+  }
+      
+  @Uninterruptible
+  public final static int locationToOffset(int location) {
+    return -location;
+  }
+  
+  @Uninterruptible
+  public final static int offsetToLocation(int offset) {
+    return -offset;
+  }
+  
+  @Inline
+  private void copyRegToReg(byte srcType, int src, int dest) {
+    if ((srcType == FLOAT_TYPE) || (srcType == DOUBLE_TYPE)) {
+      asm.emitFMR(dest, src);
+    } else {
+      asm.emitMR(dest, src);
+      if ((VM.BuildFor32Addr) && (srcType == LONG_TYPE)) {
+       asm.emitMR(dest+1, src+1);
+      }
+    }
+  }
+  
+  @Inline
+  private void copyRegToMem(byte srcType, int src, int dest) {
+          if (srcType == FLOAT_TYPE) {
+            asm.emitSTFS(src, dest - BYTES_IN_FLOAT, FP);
+          } else if (srcType == DOUBLE_TYPE) {
+            asm.emitSTFD(src, dest - BYTES_IN_DOUBLE, FP);
+          } else if (srcType == INT_TYPE) {
+            asm.emitSTW(src, dest - BYTES_IN_INT, FP);
+          } else if ((VM.BuildFor32Addr) && (srcType == LONG_TYPE)) {
+            asm.emitSTW(src, dest - BYTES_IN_LONG, FP);
+            asm.emitSTW(src+1, dest - BYTES_IN_LONG +4, FP);
+          }
+          else {//default
+            asm.emitSTAddr(src, dest - BYTES_IN_ADDRESS, FP);
+          }
+  }
+  
+  @Inline
+  private void copyMemToReg(byte srcType, int src, int dest) {
+          if (srcType == FLOAT_TYPE) {
+            asm.emitLFS(dest, src - BYTES_IN_FLOAT, FP);
+          } else if (srcType == DOUBLE_TYPE) {
+            asm.emitLFD(dest, src - BYTES_IN_DOUBLE, FP);
+          } else if (srcType == INT_TYPE) {
+            asm.emitLInt(dest, src - BYTES_IN_INT, FP); //KV SignExtend!!!
+          } else if ((VM.BuildFor32Addr) && (srcType == LONG_TYPE)) {
+            asm.emitLWZ(dest, src - BYTES_IN_LONG, FP);
+            asm.emitLWZ(dest+1, src - BYTES_IN_LONG +4, FP);
+          }
+          else {//default
+            asm.emitLAddr(dest, src - BYTES_IN_ADDRESS, FP);
+          }
+  }
+  
+  @Inline
+  private void copyMemToMem(byte srcType, int src, int dest) {
+          if (VM.BuildFor64Addr) {
+            if ((srcType == FLOAT_TYPE) || (srcType == INT_TYPE)) { 
+              //32-bit value
+              asm.emitLWZ(0, src - BYTES_IN_INT, FP);
+              asm.emitSTW(0, dest - BYTES_IN_INT, FP);
+            } else {
+              //64-bit value
+              asm.emitLAddr(0, src - BYTES_IN_ADDRESS, FP);
+              asm.emitSTAddr(0, dest - BYTES_IN_ADDRESS, FP);
+            }
+          } else { //BuildFor32Addr
+            if ((srcType == DOUBLE_TYPE) || (srcType == LONG_TYPE)) {
+              //64-bit value
+              asm.emitLFD(FIRST_SCRATCH_FPR, src - BYTES_IN_DOUBLE, FP);
+              asm.emitSTFD(FIRST_SCRATCH_FPR, dest - BYTES_IN_DOUBLE, FP);
+            } else { 
+              //32-bit value
+              asm.emitLWZ(0, src - BYTES_IN_INT, FP);
+              asm.emitSTW(0, dest - BYTES_IN_INT, FP);
+            }
+          }
+  }
+  /**
+   *
+   The workhorse routine that is responsible for copying values from
+   one slot to another. Every value is in a <i>location</i> that
+   represents either a numbered register or an offset from the frame
+   pointer (registers are positive numbers and offsets are
+   negative). This method will generate register moves, memory stores,
+   or memory loads as needed to get the value from its source location
+   to its target. This method also understands how to do a few conversions
+   from one type of value to another (for instance float to word).
+   *
+   * @param srcType the type of the source (e.g. <code>INT_TYPE</code>)
+   * @param src the source location
+   * @param destType the type of the destination
+   * @param dest the destination location
+   */
+  @Inline
+  private void copyByLocation(byte srcType, int src, byte destType, int dest) {
+    if (src == dest && srcType == destType)
+      return;
+    
+    boolean srcIsRegister = isRegister(src);
+    boolean destIsRegister = isRegister(dest);
+    
+    if (!srcIsRegister) src = locationToOffset(src);
+    if (!destIsRegister) dest = locationToOffset(dest);
+
+    if (srcType == destType) {
+      if (srcIsRegister) {
+        if (destIsRegister) {
+          // register to register move
+          copyRegToReg(srcType, src, dest); 
+        } else {
+          // register to memory move
+          copyRegToMem(srcType, src, dest); 
+        }
+      } else {
+        if (destIsRegister) {
+          // memory to register move
+          copyMemToReg(srcType, src, dest); 
+        } else {
+          // memory to memory move
+          copyMemToMem(srcType, src, dest); 
+        }
+      }
+
+    } else {// no matching types
+      if ((srcType == DOUBLE_TYPE) && (destType == LONG_TYPE) && srcIsRegister && !destIsRegister) {
+        asm.emitSTFD(src, dest - BYTES_IN_DOUBLE, FP); 
+      } 
+      else if ((srcType == LONG_TYPE) && (destType == DOUBLE_TYPE) && destIsRegister && !srcIsRegister) {
+        asm.emitLFD(dest, src - BYTES_IN_LONG, FP);
+      } 
+      else if ((srcType == INT_TYPE) && (destType == LONGHALF_TYPE) && srcIsRegister && VM.BuildFor32Addr) {
+        //Used as Hack if 1 half of long is spilled
+        if (destIsRegister) {
+          asm.emitMR(dest, src);
+        } else {
+          asm.emitSTW(src, dest - BYTES_IN_LONG, FP); // lo mem := lo register (== hi word)
+        } 
+      } 
+      else if ((srcType == LONGHALF_TYPE) && (destType == INT_TYPE) && !srcIsRegister && VM.BuildFor32Addr) {
+        //Used as Hack if 1 half of long is spilled
+        if (destIsRegister) {
+          asm.emitLWZ(dest+1, src - BYTES_IN_INT, FP);
+        } else {
+          asm.emitLWZ(0, src - BYTES_IN_INT, FP);
+          asm.emitSTW(0, dest - BYTES_IN_INT, FP);
+        }
+      } 
+      else 
+         // implement me
+      if (VM.VerifyAssertions) 
+      {
+        VM.sysWrite("copyByLocation error. src=");
+        VM.sysWrite(src);
+        VM.sysWrite(", srcType=");
+        VM.sysWrite(srcType);
+        VM.sysWrite(", dest=");
+        VM.sysWrite(dest);
+        VM.sysWrite(", destType=");
+        VM.sysWrite(destType);
+        VM.sysWriteln();
+        VM._assert(NOT_REACHED);
+      }
+    }
+  }
+    
+
+
+
+  
   private void emitDynamicLinkingSequence(int reg, VM_MemberReference ref, boolean couldBeZero) {
     int memberId = ref.getId();
     Offset memberOffset = Offset.fromIntZeroExtend(memberId << LOG_BYTES_IN_INT);
@@ -2976,6 +3223,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
       for (int i = LAST_SCRATCH_GPR; i >= FIRST_SCRATCH_GPR; --i)
         asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
+    } else {
+      // Restore non-volatile registers.
+      int offset = frameSize;
+      for (int i = lastFloatStackRegister; i >= FIRST_FLOAT_LOCAL_REGISTER; --i)
+        asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
+      for (int i = lastFixedStackRegister; i >= FIRST_FIXED_LOCAL_REGISTER; --i)
+        asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
     }
     
     // Fill in frame header.
@@ -3027,7 +3281,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitLAddr(T0, 0, T0);
       asm.emitLAddrOffset(T0, T0, VM_Entrypoints.classForTypeField.getOffset()); 
     } else { // first local is "this" pointer
-      asm.emitLAddr(T0, startLocalOffset - BYTES_IN_ADDRESS, FP);  
+      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, T0);
     }
     asm.emitLAddrOffset(S0, JTOC, VM_Entrypoints.lockMethod.getOffset()); // call out...
     asm.emitMTCTR  (S0);                                  // ...of line lock
@@ -3044,7 +3298,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitLAddr(T0, 0, T0);
       asm.emitLAddrOffset(T0, T0, VM_Entrypoints.classForTypeField.getOffset()); 
     } else { // first local is "this" pointer
-      asm.emitLAddr(T0, startLocalOffset - BYTES_IN_ADDRESS, FP); //!!TODO: think about this - can anybody store into local 0 (ie. change the value of "this")?
+      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, T0);
     }
     asm.emitLAddrOffset(S0, JTOC, VM_Entrypoints.unlockMethod.getOffset());  // call out...
     asm.emitMTCTR(S0);                                     // ...of line lock
@@ -3058,6 +3312,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // we never return from a DynamicBridge frame
       asm.emitTAddrWI(-1);
     } else {
+      // Restore non-volatile registers.
+      int offset = frameSize;
+      for (int i = lastFloatStackRegister; i >= FIRST_FLOAT_LOCAL_REGISTER; --i)
+        asm.emitLFD(i, offset -= BYTES_IN_DOUBLE, FP);
+      for (int i = lastFixedStackRegister; i >= FIRST_FIXED_LOCAL_REGISTER; --i)
+        asm.emitLAddr(i, offset -= BYTES_IN_ADDRESS, FP);
+
       if (frameSize <= 0x8000) {
         asm.emitADDI(FP, frameSize, FP); // discard current frame
       } else {
@@ -3174,46 +3435,91 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // store parameters from registers into local variables of current method.
   private void genMoveParametersToLocals () {
     // AIX computation will differ
-    spillOffset = getFrameSize(method) + STACKFRAME_HEADER_SIZE;
+    int spillOff = frameSize + STACKFRAME_HEADER_SIZE;
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
  
     int localIndex = 0;
+    int srcLocation;
+    int dstLocation;
+    byte type;
+
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex++);
-      else asm.emitSTAddr(gp++, localOffset(localIndex++) - BYTES_IN_ADDRESS, FP);
+      if (gp > LAST_VOLATILE_GPR) {
+        spillOff += BYTES_IN_STACKSLOT;
+        srcLocation = offsetToLocation(spillOff);
+      } else {
+        srcLocation = gp++;
+      }
+      type= ADDRESS_TYPE;
+      dstLocation = getGeneralLocalLocation(localIndex++);
+      copyByLocation(type, srcLocation, type, dstLocation); 
     }
+
     VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++, localIndex++) {
       VM_TypeReference t = types[i];
       if (t.isLongType()) {
+        type= LONG_TYPE;
+        dstLocation = getGeneralLocalLocation(localIndex++);
         if (gp > LAST_VOLATILE_GPR) {
-          genUnspillDoubleSlot(localIndex++);
+          spillOff += (VM.BuildFor64Addr?BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT);
+          srcLocation = offsetToLocation(spillOff);
+          copyByLocation(type, srcLocation, type, dstLocation); 
         } else {
-          if (VM.BuildFor64Addr) { 
-            asm.emitSTD(gp++, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
-          } else {
-            asm.emitSTW(gp++, localOffset(localIndex + 1) - BYTES_IN_INT, FP); // lo mem := lo register (== hi word)
-            if (gp > LAST_VOLATILE_GPR) {
-              genUnspillSlot(localIndex);
-            } else {
-              asm.emitSTW(gp++, localOffset(localIndex) - BYTES_IN_INT, FP);// hi mem := hi register (== lo word)
+          srcLocation = gp++;
+          if (VM.BuildFor32Addr) { 
+            gp++;
+            if (srcLocation == LAST_VOLATILE_GPR) {
+              copyByLocation(INT_TYPE, srcLocation, LONGHALF_TYPE, dstLocation); //low memory, low reg
+              spillOff += BYTES_IN_STACKSLOT;
+              copyByLocation(LONGHALF_TYPE, offsetToLocation(spillOff), INT_TYPE, dstLocation); //high mem, high reg
+              continue; 
             }
           }
-          localIndex += 1;
+          copyByLocation(type, srcLocation, type, dstLocation); 
         }
       } else if (t.isFloatType()) {
-        if (fp > LAST_VOLATILE_FPR) genUnspillSlot(localIndex);
-        else asm.emitSTFS(fp++, localOffset(localIndex) - BYTES_IN_FLOAT, FP);
+        type= FLOAT_TYPE;
+        dstLocation = getFloatLocalLocation(localIndex);
+        if (fp > LAST_VOLATILE_FPR) {
+          spillOff += BYTES_IN_STACKSLOT;
+          srcLocation = offsetToLocation(spillOff);
+        } else {
+          srcLocation = fp++;
+        }
+        copyByLocation(type, srcLocation, type, dstLocation); 
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) genUnspillDoubleSlot(localIndex++);
-        else asm.emitSTFD(fp++, localOffset(localIndex++) - BYTES_IN_DOUBLE, FP);
+        type= DOUBLE_TYPE;
+        dstLocation = getFloatLocalLocation(localIndex++);
+        if (fp > LAST_VOLATILE_FPR) {
+          spillOff += (VM.BuildFor64Addr?BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT);
+          srcLocation = offsetToLocation(spillOff);
+        } else {
+          srcLocation = fp++;
+        }
+        copyByLocation(type, srcLocation, type, dstLocation); 
       } else if (t.isIntLikeType()) {
-        if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex);
-        else asm.emitSTW(gp++, localOffset(localIndex) - BYTES_IN_INT, FP);
+        type= INT_TYPE;
+        dstLocation = getGeneralLocalLocation(localIndex);
+        if (gp > LAST_VOLATILE_GPR) {
+          spillOff += BYTES_IN_STACKSLOT;
+          srcLocation = offsetToLocation(spillOff);
+        } else {
+          srcLocation = gp++;
+        }
+        copyByLocation(type, srcLocation, type, dstLocation); 
       } else { // t is object
-        if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex);
-        else asm.emitSTAddr(gp++, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
+        type= ADDRESS_TYPE;
+        dstLocation = getGeneralLocalLocation(localIndex);
+        if (gp > LAST_VOLATILE_GPR) {
+          spillOff += BYTES_IN_STACKSLOT;
+          srcLocation = offsetToLocation(spillOff);
+        }
+        else {
+          srcLocation = gp++;
+        }
+        copyByLocation(type, srcLocation, type, dstLocation); 
       }
     }
   }
@@ -3320,23 +3626,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
      }
   }
                
-  private void genUnspillSlot (int localIndex) {
-     asm.emitLAddr(0, spillOffset, FP);
-     asm.emitSTAddr(0, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
-     spillOffset += BYTES_IN_STACKSLOT;
-  }
-                      
-  private void genUnspillDoubleSlot (int localIndex) {
-     asm.emitLFD (0, spillOffset, FP);
-     asm.emitSTFD(0, localOffset(localIndex) - BYTES_IN_DOUBLE , FP);
-     if (VM.BuildFor64Addr) {
-       spillOffset += BYTES_IN_STACKSLOT;
-     } else {
-       spillOffset += 2*BYTES_IN_STACKSLOT;
-     }
-  }
-
-
   protected final void emit_loadretaddrconst(int bcIndex) {
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0
