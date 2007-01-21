@@ -184,8 +184,8 @@ common build component for downloading and building required components.
     <fail if="invalid_jai_download">
       Unable to determine a location to automatically download JAI ${jai.version} from for the target
       os and architecture. Please download JAI ${jai.version} manually, copy the jar and shared libraries
-      into a single directory and set the jai.lib.dir property to the directory location. i.e.
-      jai.lib.dir=${jai.package.dir}/lib
+      into a single directory and set the ${target.name}.jai.lib.dir property to the directory location. i.e.
+      ${target.name}.jai.lib.dir=${jai.package.dir}/lib
     </fail>
   </target>
 
@@ -281,7 +281,7 @@ common build component for downloading and building required components.
       </fileset>
     </copy>
     <copy todir="${gcspy.package.dir}/${target.name}/client">
-      <fileset dir="${jai.lib.dir}">
+      <fileset dir="${gcspy.jai.lib.dir}">
         <include name="*"/>
       </fileset>
     </copy>
