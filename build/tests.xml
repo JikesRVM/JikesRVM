@@ -82,6 +82,7 @@
     <parameter key="config.default-heapsize.initial" value="${config.default-heapsize.initial}"/>
     <parameter key="config.default-heapsize.maximum" value="${config.default-heapsize.maximum}"/>
     <parameter key="config.bootimage.compiler.args" value="${config.bootimage.compiler.args}"/>
+    <parameter key="config.stress-gc" value="${config.stress-gc}"/>
     <parameter key="target.name" value="${target.name}"/>
     <parameter key="target.arch" value="${target.arch}"/>
     <parameter key="target.os" value="${target.os}"/>
