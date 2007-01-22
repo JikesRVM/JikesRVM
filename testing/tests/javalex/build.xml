@@ -5,12 +5,23 @@
 
   <import file="../base-test-build.xml"/>
 
-  <property name="main.java" location="${basedir}"/>
   <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="jlex.dir" value="${external.lib.dir}/JLex-1.2.6/classes"/>
   <property name="qbjc.dir" location="${external.lib.dir}/QBJC"/>
-  <property name="test.class.path" value="${jlex.dir}"/>
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${jlex.dir}" destdir="${build.classes}" debug="true"/>
+  </target>
+
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -18,7 +29,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="test" depends="init">
+  <target name="test" depends="compile">
     <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
     <test-file name="jlex.dir" location="${jikesrvm.dir}/.ant.properties"/>
     <test-file name="qbjc.dir" location="${jikesrvm.dir}/.ant.properties"/>
