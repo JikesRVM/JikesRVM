@@ -272,7 +272,7 @@ class OptTestHarness {
           VM_NormalMethod method = (VM_NormalMethod)findDeclaredOrFirstMethod(klass, name, desc);
           VM_CompiledMethod cm = null;
           if (BASELINE) 
-            cm = VM_Compiler.compile(method);
+            cm = VM_BaselineCompiler.compile(method);
           else {
             OPT_CompilationPlan cp = 
               new OPT_CompilationPlan(method, 
