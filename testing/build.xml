@@ -323,11 +323,10 @@
 
   <target name="do-build-configuration" depends="check-build-configuration" if="do-configuration-build">
     <echo message="Building ${configuration.name}"/>
-    <ant antfile="${jikesrvm.dir}/build.xml"
-         inheritall="false"
-         output="${driver.scratch.dir}/Build-${configuration.name}.txt">
+    <subant failonerror="false" output="${driver.scratch.dir}/Build-${configuration.name}.txt">
+      <filelist dir="${jikesrvm.dir}" files="build.xml"/>
       <property name="config.name" value="${configuration.name}"/>
-    </ant>
+    </subant>
   </target>
 
   <target name="build-configuration" depends="do-build-configuration"/>
