@@ -156,7 +156,7 @@
     <sequential>
             <res><![CDATA[
 <test>
-  <selector>${test.@{tag}.selector}</selector>
+  <tag>@{tag}</tag>
   <class>${test.@{tag}.class}</class>
   <args><![CDATA[${test.@{tag}.args}]]]]><![CDATA[></args>
   <working-directory>${test.@{tag}.dir}</working-directory>

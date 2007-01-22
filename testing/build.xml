@@ -168,7 +168,7 @@
     <attribute name="tag"/>
     <sequential>
       <testRunPropertyInit tag="@{tag}"/>
-      <echo file="${build.results.dir}/@{tag}.xml" append="false"><![CDATA[<test-run tag="@{tag}">]]></echo>
+      <echo file="${build.results.dir}/@{tag}.xml" append="false"><![CDATA[<test-run tag="@{tag}" name="${test.run.@{tag}.name}">]]></echo>
       <condition property="test.prefix" value="" else="${test.run.@{tag}.name}_">
         <equals arg1="${test.run.@{tag}.name}" arg2=""/>
       </condition>

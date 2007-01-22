@@ -32,6 +32,7 @@
           <tr>
             <th>Result</th>
             <th>Configuration</th>
+            <th>Run</th>
             <th>Test</th>
             <th>Reason</th>
           </tr>
@@ -44,8 +45,9 @@
   <xsl:template match="test/result">
     <tr>
       <xsl:call-template name="alternated-row"/>
-      <td><xsl:value-of select="../result"/></td>
-      <td><xsl:value-of select="../../../../parameters/parameter[@key='config.name']/@value"/></td>
+      <td><xsl:value-of select="."/></td>
+      <td><xsl:value-of select="../../../../../id"/></td>
+      <td><xsl:value-of select="../../../id"/></td>
       <td><xsl:value-of select="../id"/></td>
       <td><xsl:value-of select="../result-explanation"/></td>
     </tr>
