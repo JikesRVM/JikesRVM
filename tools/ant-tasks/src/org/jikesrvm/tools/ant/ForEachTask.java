@@ -6,7 +6,7 @@
  *
  * (C) Copyright Peter Donald. 2007
  */
-package com.ibm.jikesrvm.tools.ant;
+package org.jikesrvm.tools.ant;
 
 import java.util.ArrayList;
 import org.apache.tools.ant.BuildException;
