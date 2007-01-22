@@ -34,7 +34,7 @@ class InvokeReflect {
                          methodToRun + " " + signatureToPrintOut + " ****.");
       Class  klass = Class.forName(arg);
       Method method = klass.getDeclaredMethod(methodToRun, noparams);
-      Object result = method.invoke(null, noparams);
+      Object result = method.invoke(null, (Object[])noparams);
       System.out.println("**** RESULT: " + result);
     }
   }
