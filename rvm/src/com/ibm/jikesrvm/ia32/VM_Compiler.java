@@ -30,6 +30,8 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Inline;
 
 /**
  * VM_Compiler is the baseline compiler class for the IA32 architecture.
@@ -72,18 +74,26 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
      return -1; //doesn't dedicate registers to stack;
    }
  
+   @Uninterruptible
+   @Inline
    public static final int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
      return offsetToLocation(getStartLocalOffset(m) - (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
    }
    
-   public static final int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+  @Uninterruptible
+  @Inline
+  public static final int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
      return offsetToLocation(getStartLocalOffset(m) - (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
    }
  
+   @Uninterruptible
+   @Inline
    public final static int locationToOffset(int location) {
      return -location;
    }
    
+   @Uninterruptible
+   @Inline
    public final static int offsetToLocation(int offset) {
      return -offset;
    }
@@ -100,6 +110,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * It will not work as a base to access true locals.
    * TODO!! make sure it is not being used incorrectly
    */
+  @Uninterruptible
+  @Inline
   private static int getFirstLocalOffset (VM_NormalMethod method) {
     if (method.getDeclaringClass().isBridgeFromNative())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
@@ -107,6 +119,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
   }
   
+  @Uninterruptible
+  @Inline
   private static int getStartLocalOffset (VM_NormalMethod method) {
     return getFirstLocalOffset(method) + WORDSIZE;
   }
