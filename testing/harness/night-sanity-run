@@ -384,7 +384,7 @@ $RVM_ROOT/testing/harness/nightlyreport.pl $RVM_ROOT
 ##
 ## Generate the summary email (just on one machine for now)
 ##
-if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
+if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.i686.32' ]]; then
   $RVM_ROOT/testing/harness/regressionsummary.pl $RESULT_MAILING_LIST ${NS_OS}.${NS_ARCH}.${NS_BITS}
 #  $RVM_ROOT/testing/harness/regressionsummary.pl Steve.Blackburn@anu.edu.au ${NS_OS}.${NS_ARCH}.${NS_BITS}
 fi
