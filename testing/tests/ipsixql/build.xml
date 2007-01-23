@@ -1,0 +1,49 @@
+<project name="ipsixql" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="600" else="300">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <property name="test.max.heapsize" value="50"/>
+
+  <import file="../base-test-build.xml"/>
+
+  <property name="ipsixql.dir" location="${external.lib.dir}/ipsixql-1_0_2"/>
+  <property name="test.class.path" value="${ipsixql.dir}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Prepare dirs for tests                        * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="prepare-dirs" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="ipsixql.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <copy file="${ipsixql.dir}/william.pdom" todir="${build.tests.dir}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="prepare-dirs">
+    <startResults/>
+    <outputGroupStart/>
+
+    <property name="args" value="1 7"/>
+    <condition property="args" value="1 7" else="1 1">
+      <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+
+    <rvm tag="Ipsixql" class="IpsixqlHarness" args="${args}"/>
+    <findStatistic tag="Ipsixql" pattern="Normal completion." key="completion"/>
+    <extractStatistic tag="Ipsixql" pattern="Run 0 completed, (.*) ms" key="time"/>
+    <outputResults tag="Ipsixql"/>
+
+    <outputGroupEnd/>
+    <finishResults/>
+  </target>
+</project>
