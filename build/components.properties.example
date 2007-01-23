@@ -1,43 +1,27 @@
 # The components file lists all the components combined with the RVM
 
-# GCSpy must be built on the target platform.
-# You can either set the propertys with target name prefixed or by setting base property.
 #
-
-# Example using target specific properties
+# GCSpy must be built on the target platform.
+#
 # ${target.name}.gcspy.client.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/client
 # ${target.name}.gcspy.server.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/server
+#
+# e.g.
 # ia32-linux.gcspy.client.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/client
 # ia32-linux.gcspy.server.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/server
 
-# Example using base property
-# gcspy.client.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/client
-# gcspy.server.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/server
-# gcspy.client.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/client
-# gcspy.server.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/server
-
 #
 # classpath must be built on the target platform.
-# You can either set the propertys with target name prefixed or by setting base property.
 #
-
-# Example using target specific properties
 # ${target.name}.classpath.lib.dir=${jikesrvm.dir}/components/classpath/${classpath.version}/${target.name}/lib
+#
+# e.g.
 # ia32-linux.classpath.lib.dir=${jikesrvm.dir}/components/classpath/93/ia32-linux/lib
-
-# Example using base property
-# classpath.lib.dir=${jikesrvm.dir}/components/classpath/${classpath.version}/${target.name}/lib
-# classpath.lib.dir=${jikesrvm.dir}/components/classpath/93/ia32-linux/lib
 
 #
 # Jai must be installed for the target platform.
-# You can either set the propertys with target name prefixed or by setting base property.
 #
-
-# Example using target specific properties
 # ${target.name}.jai.lib.dir=${jikesrvm.dir}/components/jai/${jai.version}/${target.name}/lib
+#
+# e.g.
 # ia32-linux.jai.lib.dir=${jikesrvm.dir}/components/jai/1_1_2_01/ia32-linux/lib
-
-# Example using base property
-# jai.lib.dir=${jikesrvm.dir}/components/jai/${jai.version}/lib
-# jai.lib.dir=${jikesrvm.dir}/components/jai/1_1_2_01/ia32-linux/lib
