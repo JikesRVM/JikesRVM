@@ -247,6 +247,12 @@
     <tstamp prefix="day5">
       <format property="DAY" pattern="EEEE" offset="-5" unit="day"/>
     </tstamp>
+    <tstamp prefix="day6">
+      <format property="DAY" pattern="EEEE" offset="-6" unit="day"/>
+    </tstamp>
+    <tstamp prefix="day7">
+      <format property="DAY" pattern="EEEE" offset="-7" unit="day"/>
+    </tstamp>
 
     <mkdir dir="${weeklys.dir}"/>
     <copy file="${build.results.dir}/Report.xml"
@@ -260,6 +266,8 @@
       <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day3.DAY}.xml"/>
       <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day4.DAY}.xml"/>
       <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day5.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day6.DAY}.xml"/>
+      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day7.DAY}.xml"/>
     </concat>
     <echo file="${build.results.dir}/WeeklyReport.xml" append="true"><![CDATA[</weekly-report>]]></echo>
   </target>
@@ -274,11 +282,11 @@
     <tstamp prefix="report"/>
     <mkdir dir="${results.dir}"/>
     <gzip src="${build.results.dir}/Results.xml"
-          destfile="${results.dir}/Results-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
+          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Results.xml.gz"/>
     <gzip src="${build.results.dir}/Report.xml"
-          destfile="${results.dir}/Report-${tests.name}-${report.DSTAMP}${report.TSTAMP}.xml.gz"/>
+          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
     <gzip src="${build.results.dir}/Report.html"
-          destfile="${results.dir}/Report-${tests.name}-${report.DSTAMP}${report.TSTAMP}.html.gz"/>
+          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Report.html.gz"/>
   </target>
 
   <!-- **************************************************************************** -->
