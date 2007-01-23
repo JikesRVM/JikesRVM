@@ -6,7 +6,6 @@
 
   <property name="tests.name" value="sanity"/>
 
-  <property file="${jikesrvm.dir}/build/testing/testsets.properties"/>
   <property file="${jikesrvm.dir}/build/testing/${tests.name}.properties"/>
 
   <property name="driver.scratch.dir" location="${build.dir}/test-driver"/>
