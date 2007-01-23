@@ -440,7 +440,7 @@ import org.vmmagic.unboxed.*;
 
     int sz1 = bytes - 1;
 
-    if (BYTES_IN_ADDRESS == 32) { // 32-bit
+    if (BYTES_IN_ADDRESS == 4) { // 32-bit
       if (COMPACT_SIZE_CLASSES)
         return ((sz1 <= 31) ? (sz1 >> 2) : // 4 bytes apart
             (sz1 <= 63) ? 4 + (sz1 >> 3) : // 8 bytes apart
@@ -486,7 +486,7 @@ import org.vmmagic.unboxed.*;
   protected static final int getBaseCellSize(int sc) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    if (BYTES_IN_ADDRESS == 32) { // 32-bit
+    if (BYTES_IN_ADDRESS == 4) { // 32-bit
       if (COMPACT_SIZE_CLASSES)
         return ((sc <  8) ? (sc +  1) <<  2:
                 (sc < 12) ? (sc -  3) <<  3:
