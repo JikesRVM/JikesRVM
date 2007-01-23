@@ -1,0 +1,117 @@
+<project name="SPECjvm98" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="3000" else="600">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.max.heapsize" value="512" else="200">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.initial.heapsize" value="256">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="spec.args" value="-m20 -M20 -s100">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="spec.args" value="-m1 -M1 -s10">
+    <equals arg1="${test.mode}" arg2="measure-compilation"/>
+  </condition>
+  <property name="spec.args" value="-d3000 -m2 -M4 -s10"/>
+
+  <property name="spec.tests"
+            value="_200_check _201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack"/>
+
+  <import file="../base-test-build.xml"/>
+
+  <property name="specjvm98.dir" location="${external.lib.dir}/SPECjvm98"/>
+  <property name="test.class.path" value="${specjvm98.dir}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Prepare dirs for tests                        * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="prepare-dirs" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="specjvm98.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <copy todir="${build.tests.dir}">
+      <fileset dir="${specjvm98.dir}">
+        <include name="spec/**"/>
+        <include name="props/**"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                     Macros for outputing statistics                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="score">
+    <attribute name="key"/>
+    <sequential>
+      <property name="test.SPECjvm98.@{key}.pattern" value="@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*).*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}\s*@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*)"/>
+      <extractStatistic tag="SPECjvm98"
+                        key="@{key}.best.time"
+                        pattern="${test.SPECjvm98.@{key}.pattern}"
+                        select="\1"
+                        file="${build.tests.dir}/derived_results.txt"/>
+      <extractStatistic tag="SPECjvm98"
+                        key="@{key}.best.ratio"
+                        pattern="${test.SPECjvm98.@{key}.pattern}"
+                        select="\2"
+                        file="${build.tests.dir}/derived_results.txt"/>
+      <extractStatistic tag="SPECjvm98"
+                        key="@{key}.first.time"
+                        pattern="${test.SPECjvm98.@{key}.pattern}"
+                        select="\3"
+                        file="${build.tests.dir}/derived_results.txt"/>
+      <extractStatistic tag="SPECjvm98"
+                        key="@{key}.first.ratio"
+                        pattern="${test.SPECjvm98.@{key}.pattern}"
+                        select="\4"
+                        file="${build.tests.dir}/derived_results.txt"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="prepare-dirs">
+
+    <startResults/>
+    <outputGroupStart/>
+    <rvm tag="SPECjvm98" class="SpecApplication" args="-a -g ${spec.args} ${spec.tests}"/>
+
+    <outputTestStart tag="SPECjvm98"/>
+    <outputStatisticStart/>
+
+    <exec executable="${jikesrvm.dir}/testing/tests/SPECjvm98/parseSPECmark"
+          failonerror="true"
+          output="${build.tests.dir}/derived_results.txt">
+      <arg value="${test.SPECjvm98.sanitized.output.file}"/>
+    </exec>
+
+    <score key="compress"/>
+    <score key="jess"/>
+    <score key="db"/>
+    <score key="javac"/>
+    <score key="mpegaudio"/>
+    <score key="mtrt"/>
+    <score key="jack"/>
+
+    <outputStatisticEnd/>
+    <outputTestResults tag="SPECjvm98"/>
+    <outputTestEnd/>
+    <displayTestResults tag="SPECjvm98"/>
+
+    <outputGroupEnd/>
+    <finishResults/>
+  </target>
+
+</project>
