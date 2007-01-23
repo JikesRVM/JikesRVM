@@ -58,7 +58,7 @@
         <xsl:value-of select="/master-results/test-run[@tag=$tag-name]/@name"/>
       </id>
       <xsl:for-each
-          select="/master-results/test-run[@tag=$tag-name]/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">
+          select="/master-results/test-run[@tag=$tag-name][1]/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">
         <test-group>
           <name>
             <xsl:value-of select="../../group/@name"/>
