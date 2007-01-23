@@ -68,7 +68,7 @@
               <id>
                 <xsl:value-of select="tag"/>
               </id>
-              <xsl:copy-of select="result"/>
+              <xsl:copy-of select="result|duration"/>
               <xsl:if test="result[text()='SUCCESS']">
                 <xsl:copy-of select="statistics"/>
               </xsl:if>

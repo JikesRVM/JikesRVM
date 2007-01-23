@@ -168,6 +168,7 @@
     <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
+  <duration>${test.@{tag}.time.duration}</duration>
 ]]></res>
     </sequential>
   </macrodef>
@@ -349,6 +350,7 @@
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
+      <timer property="test.@{tag}.time"/>
       <exec executable="${rvm.exe}"
             failonerror="false"
             dir="@{dir}"
@@ -360,6 +362,7 @@
         <arg value="${test.@{tag}.class.path}"/>
         <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
       </exec>
+      <timer property="test.@{tag}.time" stop="true"/>
       <cleanOutput file="${test.@{tag}.output.file}" tofile="${test.@{tag}.sanitized.output.file}"/>
 
       <!-- check exit codes is valid. Set exitCode to empty string to disable check -->
