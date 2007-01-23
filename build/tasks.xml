@@ -17,7 +17,10 @@
     <taskdef name="forEach" classname="org.jikesrvm.tools.ant.ForEachTask" classpath="${tasks.classes}"/>
     <!-- selectRegex is used to get results from some benchmark tests -->
     <taskdef name="selectRegex" classname="org.jikesrvm.tools.ant.SelectRegexTask" classpath="${tasks.classes}"/>
+    <!-- timer used recording the duration of rvm run -->
     <taskdef name="timer" classname="org.jikesrvm.tools.ant.TimerTask" classpath="${tasks.classes}"/>
+    <!-- custom exec task will store value in property when timeout occurs. Used in running rvm. -->
+    <taskdef name="texec" classname="org.jikesrvm.tools.ant.TimeoutRecordingExecTask" classpath="${tasks.classes}"/>
   </target>
 
 </project>

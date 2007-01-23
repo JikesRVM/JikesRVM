@@ -351,19 +351,26 @@
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
       <timer property="test.@{tag}.time"/>
-      <exec executable="${rvm.exe}"
+      <texec executable="${rvm.exe}"
             failonerror="false"
             dir="@{dir}"
             timeout="${test.@{tag}.time.limit}000"
+            timeoutProperty="test.@{tag}.timeout"
             output="${test.@{tag}.output.file}"
             resultproperty="test.@{tag}.exit.code">
         <arg line="${test.@{tag}.rvm.args}"/>
         <arg value="-classpath"/>
         <arg value="${test.@{tag}.class.path}"/>
         <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
-      </exec>
+      </texec>
       <timer property="test.@{tag}.time" stop="true"/>
       <cleanOutput file="${test.@{tag}.output.file}" tofile="${test.@{tag}.sanitized.output.file}"/>
+
+      <!-- If we run overtime then record result -->
+      <condition property="test.@{tag}.result" value="OVERTIME">
+        <isset property="test.@{tag}.timeout"/>
+      </condition>
+      <explainResult tag="@{tag}" message="Test exceeded time limit."/>
 
       <!-- check exit codes is valid. Set exitCode to empty string to disable check -->
       <condition property="test.@{tag}.result" value="FAILURE">
