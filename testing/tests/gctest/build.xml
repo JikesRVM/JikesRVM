@@ -29,16 +29,7 @@
     <attribute name="initialHeapSize" default="60"/>
     <sequential>
       <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}"/>
-      <selectRegex property="test.@{class}.overall"
-                   select=""
-                   file="${test.@{class}.sanitized.output.file}"
-                   pattern="Overall:"/>
-      <condition property="test.@{class}.result" value="FAILURE">
-        <not>
-          <isset property="test.@{class}.overall"/>
-        </not>
-      </condition>
-      <explainResult tag="@{class}" message="Missing 'Overall:' string in output"/>
+      <findStatistic tag="@{class}" pattern="Overall:" key="overall"/>
       <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>

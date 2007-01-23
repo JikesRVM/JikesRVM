@@ -33,16 +33,7 @@
         <arg value="${main.java}/@{class}.c"/>
       </exec>
       <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.tests.dir}"/>
-      <selectRegex property="test.@{class}.pass"
-                   select=""
-                   file="${test.@{class}.sanitized.output.file}"
-                   pattern="PASS:"/>
-      <condition property="test.@{class}.result" value="FAILURE">
-        <not>
-          <isset property="test.@{class}.pass"/>
-        </not>
-      </condition>
-      <explainResult tag="@{class}" message="Missing 'PASS:' in output"/>
+      <findStatistic tag="@{class}" pattern="PASS:" key="pass"/>
       <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>

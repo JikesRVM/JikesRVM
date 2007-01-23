@@ -204,6 +204,23 @@
     <attribute name="select" default="\1"/>
     <attribute name="file" default=""/>
     <sequential>
+      <findStatistic tag="@{tag}" pattern="@{pattern}" key="@{key}" select="@{select}" file="@{file}"/>
+      <!-- set property if it has not been set -->
+      <property name="test.@{tag}.statistic.@{key}" value=""/>
+      <outputStatistic key="@{key}" value="${test.@{tag}.statistic.@{key}}"/>
+    </sequential>
+  </macrodef>
+
+  <!--
+      Macro to look for pattern in file and fail if unable to find pattern.
+  -->
+  <macrodef name="findStatistic">
+    <attribute name="tag"/>
+    <attribute name="pattern"/>
+    <attribute name="key"/>
+    <attribute name="select" default="\0"/>
+    <attribute name="file" default=""/>
+    <sequential>
       <condition property="test.@{tag}.@{key}.input.file"
                  value="${test.@{tag}.sanitized.output.file}"
                  else="@{file}">
@@ -218,10 +235,7 @@
           <isset property="test.@{tag}.statistic.@{key}"/>
         </not>
       </condition>
-      <explainResult tag="@{tag}" message="Failed to extract statistic @{key} using pattern @{pattern}"/>
-      <!-- set property if it has not been set -->
-      <property name="test.@{tag}.statistic.@{key}" value=""/>
-      <outputStatistic key="@{key}" value="${test.@{tag}.statistic.@{key}}"/>
+      <explainResult tag="@{tag}" message="Failed to extract @{key} using pattern @{pattern}"/>
     </sequential>
   </macrodef>
 
