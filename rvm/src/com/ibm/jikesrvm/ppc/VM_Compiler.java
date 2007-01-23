@@ -97,7 +97,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   protected void initializeCompiler() {
     defineStackAndLocalLocations(); //alters framesize, this can only be performed after localTypes are filled in by buildReferenceMaps
     
-    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod) compiledMethod; 
     frameSize = getInternalFrameSize(); //after defineStackAndLocalLocations !!
   } 
 
