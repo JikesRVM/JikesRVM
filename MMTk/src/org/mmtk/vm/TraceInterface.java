@@ -12,6 +12,7 @@
 package org.mmtk.vm;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning Objects or Arrays for references
@@ -21,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class TraceInterface {
+@Uninterruptible public abstract class TraceInterface {
 
 
   /***********************************************************************
@@ -60,6 +61,7 @@ public abstract class TraceInterface {
    *@param typeRef The type reference (tib) of the object just allocated
    * @return The frame pointer address for the method that allocated the object
    */
+  @Interruptible
   public abstract Address skipOwnFramesAndDump(ObjectReference typeRef);
 
   /***********************************************************************
