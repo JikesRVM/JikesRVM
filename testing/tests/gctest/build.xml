@@ -1,13 +1,13 @@
 <project name="gctest" default="test" basedir=".">
 
   <condition property="arg" value="perf" else="base">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <condition property="test.max.heapsize" value="300" else="150">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <condition property="test.time.limit" value="1200" else="300">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
 
   <import file="../base-test-build.xml"/>

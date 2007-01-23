@@ -37,7 +37,7 @@
       </condition>
       <property name="test.run.@{tag}.rvm.dir" location="${dist.dir}/${test.run.@{tag}.build.name}"/>
       <property name="test.run.@{tag}.name" value=""/>
-      <property name="test.run.@{tag}.test.performance.run" value=""/>
+      <property name="test.run.@{tag}.test.mode" value=""/>
       <property name="test.run.@{tag}.test.rvm.extra.args" value=""/>
     </sequential>
   </macrodef>
@@ -50,7 +50,7 @@
       <echo message="    Configuration:  ${test.run.@{tag}.configuration}"/>
       <echo message="    Tests:          ${test.run.@{tag}.tests}"/>
       <echo message="    Run Name:       ${test.run.@{tag}.name}"/>
-      <echo message="    Performance?:   ${test.run.@{tag}.test.performance.run}"/>
+      <echo message="    Mode:           ${test.run.@{tag}.test.mode}"/>
       <echo message="    Extra Flags?:   ${test.run.@{tag}.test.rvm.extra.args}"/>
     </sequential>
   </macrodef>
@@ -73,7 +73,7 @@
         <param name="config.name" value="${test.run.@{tag}.configuration}"/>
         <param name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
         <param name="test.run.name" value="${test.run.@{tag}.name}"/>
-        <param name="test.performance.run" value="${test.run.@{tag}.test.performance.run}"/>
+        <param name="test.mode" value="${test.run.@{tag}.test.mode}"/>
         <param name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
       </forEach>
     </sequential>
@@ -101,7 +101,7 @@
       <property name="config.name" value="${config.name}"/>
       <property name="test.rvm.dir" location="${test.rvm.dir}"/>
       <property name="test.run.name" value="${test.run.name}"/>
-      <property name="test.performance.run" value="${test.performance.run}"/>
+      <property name="test.mode" value="${test.mode}"/>
       <property name="test.rvm.extra.args" value="${test.rvm.extra.args}"/>
     </subant>
     <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-${tag}-${test}.txt">
@@ -109,7 +109,7 @@
       <property name="config.name" value="${config.name}"/>
       <property name="test.rvm.dir" location="${test.rvm.dir}"/>
       <property name="test.run.name" value="${test.run.name}"/>
-      <property name="test.performance.run" value="${test.performance.run}"/>
+      <property name="test.mode" value="${test.mode}"/>
       <property name="test.rvm.extra.args" value="${test.rvm.extra.args}"/>
     </subant>
   </target>

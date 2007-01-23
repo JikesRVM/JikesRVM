@@ -1,11 +1,11 @@
 <project name="jgf-threads" default="test" basedir=".">
 
   <condition property="test.time.limit" value="14400" else="7200">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
 
   <condition property="test.size" value="1" else="0">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
 
   <property name="test.thread-count" value="100"/>

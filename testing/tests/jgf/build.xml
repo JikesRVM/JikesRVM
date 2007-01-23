@@ -1,7 +1,7 @@
 <project name="jgf" default="test" basedir=".">
 
   <condition property="test.time.limit" value="7200" else="3600">
-    <equals arg1="${test.performance.run}" arg2="true"/>
+    <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <property name="test.size" value="0"/>
 

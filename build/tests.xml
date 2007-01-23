@@ -37,7 +37,7 @@
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
   <!-- Default values -->
-  <property name="test.performance.run" value="false"/>
+  <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
   <property name="test.run.name" value=""/>
   <property name="test.rvm.extra.args" value=""/>
@@ -202,10 +202,16 @@
     <attribute name="pattern"/>
     <attribute name="key"/>
     <attribute name="select" default="\1"/>
+    <attribute name="file" default=""/>
     <sequential>
+      <condition property="test.@{tag}.@{key}.input.file"
+                 value="${test.@{tag}.sanitized.output.file}"
+                 else="@{file}">
+        <equals arg1="@{file}" arg2=""/>
+      </condition>
       <selectRegex property="test.@{tag}.statistic.@{key}"
                    select="@{select}"
-                   file="${test.@{tag}.sanitized.output.file}"
+                   file="${test.@{tag}.@{key}.input.file}"
                    pattern="@{pattern}"/>
       <condition property="test.@{tag}.result" value="FAILURE">
         <not>
