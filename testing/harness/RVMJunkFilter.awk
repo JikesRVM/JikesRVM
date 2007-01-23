@@ -47,6 +47,8 @@ BEGIN {
 # GCSpy system messages
 #
 /^GCspy.startGCspyServer/ { next }
+/^GCspy server on port [0-9]*/ { next }
+/^GCspy safepoint for event [0-9]*/ { next }
 
 #
 # GC system messages
