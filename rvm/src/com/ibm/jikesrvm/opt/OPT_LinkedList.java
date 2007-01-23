@@ -54,9 +54,21 @@ public class OPT_LinkedList {
     } else {      // empty list
       if (VM.VerifyAssertions) VM._assert(end == null); // empty list!
       end = e;
+      e.next = null;
     }
     // in either case, e is the first node on the list
     start = e;
+  }
+
+  /**
+   *  Insert into the list after the given element
+   */
+  final public void insertAfter(OPT_LinkedListElement old, OPT_LinkedListElement e) {
+    old.insertAfter(e);
+    if (old == end) {
+      end = e;
+      e.next = null;
+    }
   }
 
   /**

@@ -204,7 +204,7 @@ public final class OPT_GCIRMap {
          ptr  = (OPT_GCIRMapElement)ptr.getNext()) {
       if (ptr.getInstruction() == inst) {
         numInstructionMaps++;
-        ptr.insertAfter(ptr.createTwin(twin));
+        list.insertAfter(ptr,ptr.createTwin(twin));
         return;
       }
     }           
