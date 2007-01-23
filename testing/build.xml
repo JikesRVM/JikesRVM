@@ -22,7 +22,7 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                      Macros for executing a Test Run                     * -->
+  <!-- *                      Macro for setup test properties                     * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
@@ -42,43 +42,6 @@
     </sequential>
   </macrodef>
 
-  <macrodef name="testRunDisplayProperties">
-    <attribute name="tag"/>
-    <sequential>
-      <echo message="Testing Run @{tag}"/>
-      <echo message="    rvm.dir:        ${test.run.@{tag}.rvm.dir}"/>
-      <echo message="    Configuration:  ${test.run.@{tag}.configuration}"/>
-      <echo message="    Tests:          ${test.run.@{tag}.tests}"/>
-      <echo message="    Run Name:       ${test.run.@{tag}.name}"/>
-      <echo message="    Mode:           ${test.run.@{tag}.test.mode}"/>
-      <echo message="    Extra Flags?:   ${test.run.@{tag}.test.rvm.extra.args}"/>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="testRun">
-    <attribute name="tag"/>
-    <sequential>
-      <testRunPropertyInit tag="@{tag}"/>
-      <condition property="test.run.@{tag}.done" value="true" else="false">
-        <available file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
-      </condition>
-      <antcall target="build-configuration">
-        <param name="configuration.name" value="${test.run.@{tag}.configuration}"/>
-        <param name="configuration.done" value="${test.run.@{tag}.done}"/>
-      </antcall>
-      <touch file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
-      <testRunDisplayProperties tag="@{tag}"/>
-      <forEach list="${test.run.@{tag}.tests}" target="run-test-suite" property="test">
-        <param name="tag" value="@{tag}"/>
-        <param name="config.name" value="${test.run.@{tag}.configuration}"/>
-        <param name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
-        <param name="test.run.name" value="${test.run.@{tag}.name}"/>
-        <param name="test.mode" value="${test.run.@{tag}.test.mode}"/>
-        <param name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
-      </forEach>
-    </sequential>
-  </macrodef>
-
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                          Task to actually run tests                      * -->
@@ -88,30 +51,46 @@
   <target name="test" depends="prepare-ant-tasks">
     <delete dir="${driver.scratch.dir}"/>
     <mkdir dir="${driver.scratch.dir}"/>
-    <forEach list="${test.runs}" target="do-test-run" property="tag"/>
-  </target>
-
-  <target name="do-test-run">
-    <testRun tag="${tag}"/>
-  </target>
-
-  <target name="run-test-suite">
-    <subant target="clean" failonerror="false" output="${driver.scratch.dir}/Clean-${tag}-${test}.txt">
-      <filelist dir="tests" files="${test}/build.xml"/>
-      <property name="config.name" value="${config.name}"/>
-      <property name="test.rvm.dir" location="${test.rvm.dir}"/>
-      <property name="test.run.name" value="${test.run.name}"/>
-      <property name="test.mode" value="${test.mode}"/>
-      <property name="test.rvm.extra.args" value="${test.rvm.extra.args}"/>
-    </subant>
-    <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-${tag}-${test}.txt">
-      <filelist dir="tests" files="${test}/build.xml"/>
-      <property name="config.name" value="${config.name}"/>
-      <property name="test.rvm.dir" location="${test.rvm.dir}"/>
-      <property name="test.run.name" value="${test.run.name}"/>
-      <property name="test.mode" value="${test.mode}"/>
-      <property name="test.rvm.extra.args" value="${test.rvm.extra.args}"/>
-    </subant>
+    <forEach list="${test.runs}" property="tag">
+      <sequential>
+        <testRunPropertyInit tag="@{tag}"/>
+        <condition property="test.run.@{tag}.done" value="true" else="false">
+          <available file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
+        </condition>
+        <antcall target="build-configuration">
+          <param name="configuration.name" value="${test.run.@{tag}.configuration}"/>
+          <param name="configuration.done" value="${test.run.@{tag}.done}"/>
+        </antcall>
+        <touch file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
+        <echo message="Testing Run @{tag}"/>
+        <echo message="    rvm.dir:        ${test.run.@{tag}.rvm.dir}"/>
+        <echo message="    Configuration:  ${test.run.@{tag}.configuration}"/>
+        <echo message="    Tests:          ${test.run.@{tag}.tests}"/>
+        <echo message="    Run Name:       ${test.run.@{tag}.name}"/>
+        <echo message="    Mode:           ${test.run.@{tag}.test.mode}"/>
+        <echo message="    Extra Flags?:   ${test.run.@{tag}.test.rvm.extra.args}"/>
+        <forEach list="${test.run.@{tag}.tests}" property="test">
+          <sequential>
+            <subant target="clean" failonerror="false" output="${driver.scratch.dir}/Clean-@{tag}-@{test}.txt">
+              <filelist dir="tests" files="@{test}/build.xml"/>
+              <property name="config.name" value="${test.run.@{tag}.configuration}"/>
+              <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
+              <property name="test.run.name" value="${test.run.@{tag}.name}"/>
+              <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
+              <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+            </subant>
+            <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
+              <filelist dir="tests" files="@{test}/build.xml"/>
+              <property name="config.name" value="${test.run.@{tag}.configuration}"/>
+              <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
+              <property name="test.run.name" value="${test.run.@{tag}.name}"/>
+              <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
+              <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+            </subant>
+          </sequential>
+        </forEach>
+      </sequential>
+    </forEach>
   </target>
 
   <!-- **************************************************************************** -->
@@ -152,45 +131,37 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+<!--
   <target name="aggregate" depends="test,get-svn-version">
-<!--  <target name="aggregate" depends="get-svn-version,prepare-ant-tasks">-->
+-->
+      <target name="aggregate" depends="get-svn-version,prepare-ant-tasks">
     <mkdir dir="${build.results.dir}"/>
     <echo file="${build.results.dir}/Results.xml" append="false">
-<![CDATA[<master-results name="${tests.name}">
+      <![CDATA[<master-results name="${tests.name}">
   <revision>${svn.revision}</revision>
 ]]></echo>
-    <forEach list="${test.runs}" target="collect-test-run-results" property="tag"/>
+    <forEach list="${test.runs}" property="tag">
+      <sequential>
+        <testRunPropertyInit tag="@{tag}"/>
+        <echo file="${build.results.dir}/@{tag}.xml" append="false">
+          <![CDATA[<test-run tag="@{tag}" name="${test.run.@{tag}.name}">]]></echo>
+        <condition property="test.run.@{tag}.prefix" value="" else="${test.run.@{tag}.name}_">
+          <equals arg1="${test.run.@{tag}.name}" arg2=""/>
+        </condition>
+        <forEach list="${test.run.@{tag}.tests}" property="test">
+          <sequential >
+            <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
+              <fileset dir="${test.run.@{tag}.rvm.dir}/tests" includes="${test.run.@{tag}.prefix}@{test}/Results.xml"/>
+            </concat>
+          </sequential>
+        </forEach>
+        <echo file="${build.results.dir}/@{tag}.xml" append="true"><![CDATA[</test-run>]]></echo>
+        <concat destfile="${build.results.dir}/Results.xml" append="true">
+          <fileset dir="${build.results.dir}" includes="@{tag}.xml"/>
+        </concat>
+      </sequential>
+    </forEach>
     <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</master-results>]]></echo>
-  </target>
-
-  <macrodef name="aggregateTestRun">
-    <attribute name="tag"/>
-    <sequential>
-      <testRunPropertyInit tag="@{tag}"/>
-      <echo file="${build.results.dir}/@{tag}.xml" append="false"><![CDATA[<test-run tag="@{tag}" name="${test.run.@{tag}.name}">]]></echo>
-      <condition property="test.prefix" value="" else="${test.run.@{tag}.name}_">
-        <equals arg1="${test.run.@{tag}.name}" arg2=""/>
-      </condition>
-      <forEach list="${test.run.@{tag}.tests}" target="collect-test-suite-results" property="test">
-        <param name="tag" value="@{tag}"/>
-        <param name="test.prefix" value="${test.prefix}"/>
-        <param name="test.suite.dir" location="${test.run.@{tag}.rvm.dir}/tests"/>
-      </forEach>
-      <echo file="${build.results.dir}/@{tag}.xml" append="true"><![CDATA[</test-run>]]></echo>
-    </sequential>
-  </macrodef>
-
-  <target name="collect-test-run-results">
-    <aggregateTestRun tag="${tag}"/>
-    <concat destfile="${build.results.dir}/Results.xml" append="true">
-      <fileset dir="${build.results.dir}" includes="${tag}.xml"/>
-    </concat>
-  </target>
-
-  <target name="collect-test-suite-results">
-    <concat destfile="${build.results.dir}/${tag}.xml" append="true">
-      <fileset dir="${test.suite.dir}" includes="${test.prefix}${test}/Results.xml"/>
-    </concat>
   </target>
 
   <!-- **************************************************************************** -->
