@@ -44,6 +44,69 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  *
+ * FIXME This seems to have changed
+ * The order of phases and GCspy actions is important here. It is:
+ *   PREPARE_MUTATOR phase
+ * 	SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
+ * 	SSMutator.PREPARE_MUTATOR // FIXME DOES NOT ss.rebind(SS.toSpace());
+ *
+ *   PREPARE phase
+ * 	SS.PREPARE // flip semispaces
+ *	gcspySpace.prepare();
+ * 	SSGCspyCollector.gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
+ * 	SSCollector.PREPARE // ss.rebind(SS.toSpace());
+ *
+ *
+ *   FORWARD_FINALIZABLE phase
+ * 	SSCollector.FORWARD_FINALIZABLE
+ *	SSGCspyCollector.gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+ *
+ *   RELEASE_MUTATOR phase
+ *	SSGCspyMutator.gcspyGatherData(SSGCspy.SEMISPACE_COPIED); // safepoint
+ *	SSMutator.RELEASE_MUTATOR // FIXME ss.rebind(SS.toSpace());
+ *	SSGCspyMutator.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ *
+ *   RELEASE phase
+ *	SSCollector.RELEASE
+ *	SSGCspyCollector.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ * 	SS.RELEASE
+ *	gcspySpace.release();
+ *	SSGCspy.gcspyGatherData(); // safepoint
+ *
+ * Note that SSMutator has changed the point at which it rebinds toSpace
+ * from PREPARE_MUTATOR (2.4.6) to after RELEASE_MUTATOR (3.x.x).
+ *
+ --Phase Collector.initiate
+ --Phase Mutator.initiate-mutator
+ --Phase Mutator.prepare-mutator
+     SSGCspyMutator.gcspyGatherData, event=0
+ --Phase Plan.prepare
+ --Phase Collector.prepare
+     SSGCspyCollector.gcspyGatherData, event=0
+ --Phase Collector.precopy
+ --Phase Collector.bootimage-root
+ --Phase Collector.root
+ --Phase Plan.root
+ --Phase Collector.start-closure
+ --Phase Collector.soft-ref
+ --Phase Collector.complete-closure
+ --Phase Collector.weak-ref
+ --Phase Collector.finalize
+ --Phase Collector.complete-closure
+ --Phase Collector.phantom-ref
+ --Phase Collector.forward-ref
+ --Phase Collector.forward-finalize
+     SSGCspyCollector.gcspyGatherData, event=1
+ --Phase Mutator.release-mutator
+     SSGCspyMutator.gcspyGatherData, event=1
+     SSGCspyMutator.gcspyGatherData, event=2
+ --Phase Collector.release
+     SSGCspyCollector.gcspyGatherData, event=2
+ --Phase Plan.release
+     SSGCspy.gcspyGatherData, event=2
+ --Phase Collector.complete
+ --Phase Plan.complete
+ *
  * $Id$
  * 
  * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>

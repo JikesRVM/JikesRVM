@@ -117,7 +117,7 @@ import org.vmmagic.pragma.*;
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
-  public final Space getSpaceFromAllocator(Allocator a) {
+  public Space getSpaceFromAllocator(Allocator a) {
     if (a == ss) return SS.toSpace();
     return super.getSpaceFromAllocator(a);
   }
@@ -133,7 +133,7 @@ import org.vmmagic.pragma.*;
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
-  public final Allocator getAllocatorFromSpace(Space space) {
+  public Allocator getAllocatorFromSpace(Space space) {
     if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
     return super.getAllocatorFromSpace(space);
   }

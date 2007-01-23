@@ -123,6 +123,9 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public static void postBoot() { 
     Selected.Plan.get().postBoot();
+    if (VM.BuildWithGCSpy) // start the GCSpy interpreter server
+      MM_Interface.startGCspyServer();
+
   }
 
   /**

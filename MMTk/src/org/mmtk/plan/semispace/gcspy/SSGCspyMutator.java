@@ -15,9 +15,11 @@ package org.mmtk.plan.semispace.gcspy;
 import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.BumpPointer;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 
@@ -52,6 +54,9 @@ import org.vmmagic.unboxed.*;
    */
 
   private static final boolean DEBUG = false;
+
+  private static final boolean LOS_TOSPACE = true;    // gather from tospace
+  private static final boolean LOS_FROMSPACE = false; // gather from fromspace
 
   /** Per-mutator allocator into GCspy's space */
   private BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
@@ -97,6 +102,40 @@ import org.vmmagic.unboxed.*;
     else
       super.postAlloc(object, typeRef, bytes, allocator);
   }
+  
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
+   * 
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   *         <code>null</code> if there is no space associated with
+   *         <code>a</code>.
+   */
+  public final Space getSpaceFromAllocator(Allocator a) {
+    if (a == gcspy) return SSGCspy.gcspySpace;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
+   * 
+   * @see MutatorContext#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  public Allocator getAllocatorFromSpace(Space space) {
+    if (space == SSGCspy.gcspySpace) return gcspy;
+    return super.getAllocatorFromSpace(space);
+  }
 
   /*****************************************************************************
    * 
@@ -126,17 +165,17 @@ import org.vmmagic.unboxed.*;
     // TODO do we need to worry any longer about primary??
     if (phaseId == SSGCspy.PREPARE_MUTATOR) {
       //if (primary) 
-        gcspyGatherData(SSGCspy.BEFORE_COLLECTION, true);
+        gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
     }
 
     if (phaseId == SSGCspy.RELEASE_MUTATOR) {
       //if (primary) 
-        gcspyGatherData(SSGCspy.SEMISPACE_COPIED, true);
+        gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
       super.collectionPhase(phaseId, primary);
       //if (primary) 
-        gcspyGatherData(SSGCspy.AFTER_COLLECTION, true);
+        gcspyGatherData(SSGCspy.AFTER_COLLECTION);
       return;
     }
 
@@ -159,7 +198,7 @@ import org.vmmagic.unboxed.*;
    *          AFTER_COLLECTION
    * @param fullHeap full heap collection
    */
-  private void gcspyGatherData(int event, boolean fullHeap) {
+  private void gcspyGatherData(int event) {
     if(DEBUG) {
       Log.writeln("SSGCspyMutator.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyMutator.gcspyGatherData, port=", GCspy.getGCspyPort());
@@ -184,16 +223,21 @@ import org.vmmagic.unboxed.*;
       }
       
       if (event == SSGCspy.BEFORE_COLLECTION) {       
+	// Before the flip
+	// Mutator has not rebound toSpace yet
         GCspy.server.startCompensationTimer();
         
         // -- Handle the semispaces
         // Here I need to scan newly allocated objects      
         if (DEBUG) {
-          debugSpaces(SSGCspy.fromSpace());
+          //debugSpaces(SSGCspy.fromSpace());
+          debugSpaces(SSGCspy.toSpace());
           Log.write("SSGCspyMutator.gcspyGatherData reset, gather and transmit driver ");
-          Log.writeln(SSGCspy.fromSpace().getName());
+          //Log.writeln(SSGCspy.fromSpace().getName());
+          Log.writeln(SSGCspy.toSpace().getName());
         }       
-        ss.gcspyGatherData(fromSpaceDriver(), SSGCspy.fromSpace());
+        //ss.gcspyGatherData(fromSpaceDriver(), SSGCspy.fromSpace());
+        ss.gcspyGatherData(toSpaceDriver(), SSGCspy.toSpace());
         
         // -- Handle the immortal space --
         gatherImmortal(event);
@@ -204,17 +248,18 @@ import org.vmmagic.unboxed.*;
         SSGCspy.losNurseryDriver.resetData();
         los.gcspyGatherData(event, SSGCspy.losNurseryDriver); 
         SSGCspy.losDriver.resetData();
-        los.gcspyGatherData(event, SSGCspy.losDriver, true); 
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE); 
         
         // reset, collect and scan plos data for the nursery and tospace
         SSGCspy.plosNurseryDriver.resetData();
         plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver); 
         SSGCspy.plosDriver.resetData();
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true); 
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE); 
         
         // transmit the data
         GCspy.server.stopCompensationTimer();
-        fromSpaceDriver().transmit(event);
+        //fromSpaceDriver().transmit(event);
+        toSpaceDriver().transmit(event);
         SSGCspy.immortalDriver.transmit(event);
         SSGCspy.losNurseryDriver.transmit(event);
         SSGCspy.losDriver.transmit(event);
@@ -229,9 +274,13 @@ import org.vmmagic.unboxed.*;
       
       
       else if (event == SSGCspy.SEMISPACE_COPIED) {
+        // We have flipped
+	// toSpace still has not been rebound
+	
         // -- Handle the semispaces
         if (DEBUG) {
-          debugSpaces(SSGCspy.toSpace());
+          //debugSpaces(SSGCspy.toSpace());
+          debugSpaces(SSGCspy.fromSpace());
           Log.writeln("SSGCspyMutator.gcspyGatherData: do nothing");
         }
         
@@ -244,18 +293,16 @@ import org.vmmagic.unboxed.*;
         SSGCspy.losNurseryDriver.resetData();
         los.gcspyGatherData(event, SSGCspy.losNurseryDriver); 
         SSGCspy.losDriver.resetData();
-        if (fullHeap)
-          los.gcspyGatherData(event, SSGCspy.losDriver, false);
-        los.gcspyGatherData(event, SSGCspy.losDriver, true);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_FROMSPACE);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
         
         // reset, scan and send the plos for the nursery and tospace
         // and fromspace as well if full heap collection
         SSGCspy.plosNurseryDriver.resetData();
         plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver); 
         SSGCspy.plosDriver.resetData();
-        if (fullHeap)
-          plos.gcspyGatherData(event, SSGCspy.plosDriver, false);
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_FROMSPACE);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
         
         // transmit
         GCspy.server.stopCompensationTimer();
@@ -272,6 +319,9 @@ import org.vmmagic.unboxed.*;
       }
       
       else if (event == SSGCspy.AFTER_COLLECTION) {
+        // We have flipped
+	// And toSpace has been rebound
+	
         GCspy.server.startCompensationTimer();
         
         // -- Handle the semispaces
@@ -286,13 +336,13 @@ import org.vmmagic.unboxed.*;
         SSGCspy.losNurseryDriver.resetData();
         SSGCspy.losDriver.resetData();
         // no need to scan empty nursery
-        los.gcspyGatherData(event, SSGCspy.losDriver, true);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
         
         // reset, scan and send the plos
         SSGCspy.plosNurseryDriver.resetData();
         SSGCspy.plosDriver.resetData();
         // no need to scan empty nursery
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
         
         //transmit
         GCspy.server.stopCompensationTimer();
@@ -347,6 +397,11 @@ import org.vmmagic.unboxed.*;
   /** @return the driver for fromSpace */
   private LinearSpaceDriver fromSpaceDriver() { 
     return SSGCspy.hi ? SSGCspy.ss0Driver : SSGCspy.ss1Driver;
+  }
+
+  /** @return the driver for toSpace */
+  private LinearSpaceDriver toSpaceDriver() { 
+    return SSGCspy.hi ? SSGCspy.ss1Driver : SSGCspy.ss0Driver;
   }
 
 }

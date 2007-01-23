@@ -135,8 +135,6 @@ class MainThread extends Thread {
   public void run () {
 
     if (dbg) VM.sysWriteln("MainThread.run() starting ");
-    if (VM.BuildWithGCSpy) // start the GCSpy interpreter server
-      MM_Interface.startGCspyServer();
 
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();

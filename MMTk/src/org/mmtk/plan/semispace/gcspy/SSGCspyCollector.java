@@ -16,7 +16,6 @@ import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SS;
 import org.mmtk.plan.semispace.SSCollector;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
@@ -247,17 +246,9 @@ import org.vmmagic.pragma.*;
    * @param addr The Address of the object to be checked
    */
   protected void checkAllDriversForRootAddress(Address addr) {
-    // Is root in the boot image?
-	if (Space.isInSpace(SSGCspy.VM_SPACE, addr.toObjectReference()))
-	  return;
-    /*
-     if (addr.GE(Plan.vmSpace.getStart()) 
-        && addr.LE(Plan.vmSpace.getStart().plus(Plan.vmSpace.getExtent()))) 
-      return;
-    */
-    
     if(addr.isZero()) 
       return;
+    
     SSGCspy.ss0Driver.handleRoot(addr);
     SSGCspy.ss1Driver.handleRoot(addr);
     SSGCspy.immortalDriver.handleRoot(addr);
