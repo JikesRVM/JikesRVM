@@ -5,10 +5,10 @@
   be assigned once and passing all the parameters around in macros is unwieldy.
 
   Every test has a "tag" that uniquely identifies it. Usually the tag is the name of class file
-  optionally appended with a "selector". The selector identifies a particular run of the class file.
+  optionally appended with a "selector". The tag identifies a particular run of a test.
 
   The following properties are either derived from input parameters or set from defaults.
-   - test.@{tag}.selector                 (Name of the "selector")
+   - test.@{tag}.tag                      (Name of the test)
    - test.@{tag}.class                    (Name of class to run)
    - test.@{tag}.args                     (Arguments passed to class)
    - test.@{tag}.class.path               (Classpath test run with)
@@ -314,7 +314,6 @@
   -->
   <macrodef name="rvm">
     <attribute name="tag" default=""/>
-    <attribute name="selector" default=""/>
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
@@ -340,7 +339,7 @@
       <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
       <property name="test.@{tag}.rvm.args"
                 value="-Xmx${test.@{tag}.max.heapsize}M -Xms${test.@{tag}.initial.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
-      <property name="test.@{tag}.selector" value="@{selector}"/>
+      <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
       <property name="test.@{tag}.dir" value="@{dir}"/>
@@ -399,7 +398,6 @@
 
   <!-- run test then compare output to expected value in file named @{class}@{name}.expected and output results -->
   <macrodef name="runCompareTest">
-    <attribute name="selector" default=""/>
     <attribute name="class"/>
     <attribute name="classpath" default=""/>
     <attribute name="args" default=""/>
@@ -408,8 +406,7 @@
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
     <sequential>
-      <rvm tag="@{class}@{selector}"
-           selector="@{selector}"
+      <rvm tag="@{class}"
            class="@{class}"
            args="@{args}"
            classpath="@{classpath}"
@@ -420,13 +417,13 @@
 
       <echo message="@{class}" file="${build.tests.dir}/deleteme.txt"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
-      <loadfile property="test.@{class}@{selector}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
+      <loadfile property="test.@{class}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
 
-      <diffCompareFiles tag="@{class}@{selector}"
-                        expected="${main.java}/${test.@{class}@{selector}.expected.output.file}.expected"
-                        actual="${test.@{class}@{selector}.sanitized.output.file}"/>
+      <diffCompareFiles tag="@{class}"
+                        expected="${main.java}/${test.@{class}.expected.output.file}.expected"
+                        actual="${test.@{class}.sanitized.output.file}"/>
 
-      <outputResults tag="@{class}@{selector}"/>
+      <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>
 
