@@ -4,6 +4,7 @@
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <property name="test.size" value="0"/>
+  <property name="test.max.heapsize" value="600"/>
 
   <import file="../base-test-build.xml"/>
 

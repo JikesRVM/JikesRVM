@@ -10,6 +10,7 @@
 
   <property name="test.thread-count" value="100"/>
   <property name="test.initial.heapsize" value="200"/>
+  <property name="test.max.heapsize" value="600"/>
 
   <import file="../base-test-build.xml"/>
 
