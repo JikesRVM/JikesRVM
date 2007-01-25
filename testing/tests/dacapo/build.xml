@@ -42,9 +42,7 @@
     <dacapo name="lusearch"/>
     <dacapo name="pmd"/>
     <dacapo name="xalan"/>
-
-    <!-- eclipse does not work so time limit it but still let it run -->
-    <dacapo name="eclipse" timeLimit="30"/>
+    <dacapo name="eclipse"/>
 
     <outputGroupEnd/>
     <finishResults/>

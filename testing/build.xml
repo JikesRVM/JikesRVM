@@ -78,6 +78,9 @@
               <property name="test.run.name" value="${test.run.@{tag}.name}"/>
               <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
               <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+              <propertyset>
+                <propertyref prefix="exclude."/>
+              </propertyset>
             </subant>
             <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
               <filelist dir="tests" files="@{test}/build.xml"/>
@@ -86,6 +89,9 @@
               <property name="test.run.name" value="${test.run.@{tag}.name}"/>
               <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
               <property name="test.rvm.extra.args" value="${test.run.@{tag}.test.rvm.extra.args}"/>
+              <propertyset>
+                <propertyref prefix="exclude."/>
+              </propertyset>
             </subant>
           </sequential>
         </forEach>

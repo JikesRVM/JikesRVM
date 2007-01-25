@@ -348,21 +348,56 @@
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
 
+      <condition property="test.@{tag}.exclude" value="true" else="false">
+        <or>
+          <!-- check whether we have disabled test altogether, in configuration, target or configuration+target -->
+          <isset property="exclude.test.${test.suite.name}.@{tag}"/>
+          <isset property="exclude.test.${config.name}.${test.suite.name}.@{tag}"/>
+          <isset property="exclude.test.${target.name}.${test.suite.name}.@{tag}"/>
+          <isset property="exclude.test.${config.name}.${target.name}.${test.suite.name}.@{tag}"/>
+
+          <!-- check whether we have disabled suite altogether, in configuration, target or configuration+target -->
+          <isset property="exclude.suite..${test.suite.name}"/>
+          <isset property="exclude.suite.${config.name}.${test.suite.name}"/>
+          <isset property="exclude.suite.${target.name}.${test.suite.name}"/>
+          <isset property="exclude.suite.${config.name}.${target.name}.${test.suite.name}"/>
+
+          <!-- check whether we have disabled testing altogether, in configuration, target or configuration+target -->
+          <isset property="exclude.tests.${config.name}"/>
+          <isset property="exclude.tests.${target.name}"/>
+          <isset property="exclude.tests.${config.name}.${target.name}"/>
+        </or>
+      </condition>
+
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
+      <if>
+        <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
+        <sequential>
+          <!-- If we run are excluded then record result -->
+          <property name="test.@{tag}.result" value="EXCLUDED"/>
+          <explainResult tag="@{tag}" message="Test excluded."/>
+          <touch file="${test.@{tag}.output.file}"/>
+        </sequential>
+      </if>
       <timer property="test.@{tag}.time"/>
-      <texec executable="${rvm.exe}"
-            failonerror="false"
-            dir="@{dir}"
-            timeout="${test.@{tag}.time.limit}000"
-            timeoutProperty="test.@{tag}.timeout"
-            output="${test.@{tag}.output.file}"
-            resultproperty="test.@{tag}.exit.code">
-        <arg line="${test.@{tag}.rvm.args}"/>
-        <arg value="-classpath"/>
-        <arg value="${test.@{tag}.class.path}"/>
-        <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
-      </texec>
+      <if>
+        <equals arg1="${test.@{tag}.exclude}" arg2="false"/>
+        <sequential>
+          <texec executable="${rvm.exe}"
+                 failonerror="false"
+                 dir="@{dir}"
+                 timeout="${test.@{tag}.time.limit}000"
+                 timeoutProperty="test.@{tag}.timeout"
+                 output="${test.@{tag}.output.file}"
+                 resultproperty="test.@{tag}.exit.code">
+            <arg line="${test.@{tag}.rvm.args}"/>
+            <arg value="-classpath"/>
+            <arg value="${test.@{tag}.class.path}"/>
+            <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
+          </texec>
+        </sequential>
+      </if>
       <timer property="test.@{tag}.time" stop="true"/>
       <cleanOutput file="${test.@{tag}.output.file}" tofile="${test.@{tag}.sanitized.output.file}"/>
 
