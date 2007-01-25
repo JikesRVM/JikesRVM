@@ -131,8 +131,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="aggregate" depends="test,get-svn-version">
-<!-- <target name="aggregate" depends="get-svn-version,prepare-ant-tasks"> -->
+  <target name="aggregate" depends="prepare-ant-tasks,get-svn-version">
     <mkdir dir="${build.results.dir}"/>
     <echo file="${build.results.dir}/Results.xml" append="false">
       <![CDATA[<master-results name="${tests.name}">
@@ -281,7 +280,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="report" depends="archive,send-report"/>
+  <target name="report" depends="test,archive,send-report"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
