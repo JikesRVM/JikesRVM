@@ -26,17 +26,19 @@
       <body>
         <xsl:variable name="total-tests" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test)"/>
         <xsl:variable name="total-successes" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='SUCCESS'])"/>
+        <xsl:variable name="total-excluded" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='EXCLUDED'])"/>
 
-        <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/></h2>
+        <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
         <table class="errors">
           <tr>
             <th>Result</th>
             <th>Configuration</th>
             <th>Run</th>
+            <th>Suite</th>
             <th>Test</th>
             <th>Reason</th>
           </tr>
-          <xsl:apply-templates select="/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()!='SUCCESS']"/>
+          <xsl:apply-templates select="/report/configurations/configuration/test-runs/test-run/test-group/test/result[not(text()='SUCCESS') or text()='EXCLUDED']"/>
         </table>
       </body>
     </html>
@@ -48,6 +50,7 @@
       <td><xsl:value-of select="."/></td>
       <td><xsl:value-of select="../../../../../id"/></td>
       <td><xsl:value-of select="../../../id"/></td>
+      <td><xsl:value-of select="../../id"/></td>
       <td><xsl:value-of select="../id"/></td>
       <td><xsl:value-of select="../result-explanation"/></td>
     </tr>

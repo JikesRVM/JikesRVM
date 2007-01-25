@@ -60,9 +60,9 @@
       <xsl:for-each
           select="/master-results/test-run[@tag=$tag-name][1]/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">
         <test-group>
-          <name>
+          <id>
             <xsl:value-of select="../../group/@name"/>
-          </name>
+          </id>
           <xsl:for-each select="../../group/test">
             <test>
               <id>
@@ -72,7 +72,7 @@
               <xsl:if test="result[text()='SUCCESS']">
                 <xsl:copy-of select="statistics"/>
               </xsl:if>
-              <xsl:if test="not(result[text()='SUCCESS'])">
+              <xsl:if test="not(result[text()='SUCCESS'] or result[text()='EXCLUDED'])">
                 <xsl:copy-of select="result-explanation|exit-code|working-directory|command|output"/>
               </xsl:if>
             </test>
