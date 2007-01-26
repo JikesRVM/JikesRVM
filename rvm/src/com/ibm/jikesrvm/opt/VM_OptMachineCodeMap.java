@@ -282,10 +282,8 @@ import java.util.ArrayList;
     
     // (1) Count how many entries we are going to have and
     //     construct and encode the inlining information for those entries.
-    for (OPT_GCIRMapEnumerator irMapEnum = irMap.enumerator(); 
-         irMapEnum.hasMoreElements(); numEntries++) {
-      OPT_GCIRMapElement irMapElem = 
-        (OPT_GCIRMapElement)irMapEnum.nextElement();
+    for (OPT_GCIRMapElement irMapElem : irMap) {
+      numEntries++;
       OPT_Instruction instr = irMapElem.getInstruction();
       if (instr.position == null && instr.bcIndex != INSTRUMENTATION_BCI) {
         if (MIR_Call.conforms(instr) && MIR_Call.hasMethod(instr)) {
@@ -305,10 +303,7 @@ import java.util.ArrayList;
     VM_OptGCMap gcMapBuilder = new VM_OptGCMap();
     int[] tmpMC = new int[numEntries*SIZEOF_HUGE_ENTRY];
     int lastMCInfoEntry = 0;
-    for (OPT_GCIRMapEnumerator irMapEnum = irMap.enumerator(); 
-        irMapEnum.hasMoreElements();) {
-      OPT_GCIRMapElement irMapElem = 
-        (OPT_GCIRMapElement)irMapEnum.nextElement();
+    for (OPT_GCIRMapElement irMapElem : irMap) {
       OPT_Instruction instr = irMapElem.getInstruction();
       if (DUMP_MAPS) VM.sysWrite("IR Map for " + instr + "\n\t" + irMapElem);
 

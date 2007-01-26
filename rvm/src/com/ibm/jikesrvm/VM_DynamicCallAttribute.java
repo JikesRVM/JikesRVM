@@ -150,8 +150,7 @@ class VM_DynamicCallAttribute {
     tempAttr.callerName = method.getName();
     tempAttr.callerSig  = method.getDescriptor();
     tempAttr.bci = bci;
-    VM_DynamicCallAttribute value =
-      (VM_DynamicCallAttribute)attribMap.get(tempAttr);
+    VM_DynamicCallAttribute value = attribMap.get(tempAttr);
 
     return value;
   }

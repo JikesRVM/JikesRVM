@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import com.ibm.jikesrvm.osr.*;
 import static com.ibm.jikesrvm.osr.OSR_Constants.*;
 
+import java.util.List;
 import java.util.Stack;
 import java.util.Enumeration;
 import java.util.ArrayList;
@@ -830,7 +831,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
           // make deep copy (and translate to regList) because we reuse
           // local above.
           // NOTE: this translation does some screening, see OPT_GCIRMap.java
-          OPT_LinkedList regList = map.createDU(local);
+          List<OPT_RegSpillListElement> regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
           if (verbose) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made
@@ -863,7 +864,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         if (createGCMaps && OsrPoint.conforms(inst)) {
           // delayed gc map generation for Osr instruction, 
           // see comments before processing uses -- Feng, July 15, 2003
-          OPT_LinkedList regList = map.createDU(local);
+          List<OPT_RegSpillListElement> regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
 
           // collect osr info using live set
@@ -1179,7 +1180,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * @param inst 
      * @param list
      */
-    public MapElement(OPT_Instruction inst, OPT_LinkedList list) {
+    public MapElement(OPT_Instruction inst, List<OPT_RegSpillListElement> list) {
       this.inst = inst;
       this.list = list;
     }
@@ -1196,11 +1197,11 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * returns the list
      * @return the list 
      */
-    public final OPT_LinkedList getList() {
+    public final List<OPT_RegSpillListElement> getList() {
       return  list;
     }
     private OPT_Instruction inst;
-    private OPT_LinkedList list;
+    private List<OPT_RegSpillListElement> list;
   }
 
   /* collect osr info according to live information */

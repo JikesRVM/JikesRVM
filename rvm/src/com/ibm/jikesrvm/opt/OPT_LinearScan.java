@@ -295,11 +295,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         ir.MIRInfo.linearScanState.active = active;
 
         // Intervals sorted by increasing start point
-        ArrayList<BasicInterval> intervals =
-          ir.MIRInfo.linearScanState.intervals;
-        for (Iterator<BasicInterval> e = intervals.iterator(); e.hasNext(); ) {
+        for (BasicInterval b : ir.MIRInfo.linearScanState.intervals) {
 
-          MappedBasicInterval bi = (MappedBasicInterval)e.next();
+          MappedBasicInterval bi = (MappedBasicInterval)b;
           CompoundInterval ci = bi.container;
 
           active.expireOldIntervals(bi);
@@ -2309,17 +2307,12 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     public void perform(OPT_IR ir) {
 
-      for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
-           GCenum.hasMoreElements(); ) {
-        OPT_GCIRMapElement GCelement = GCenum.next();
+      for (OPT_GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
         if (gcdebug) { 
           VM.sysWrite("GCelement " + GCelement);
         }
 
-        for (OPT_RegSpillListEnumerator regEnum = 
-             GCelement.regSpillListEnumerator();
-             regEnum.hasMoreElements(); ) {
-          OPT_RegSpillListElement elem = regEnum.next();
+        for (OPT_RegSpillListElement elem : GCelement.regSpillList()) {
           OPT_Register symbolic = elem.getSymbolicReg();
 
           if (gcdebug) { 
@@ -2383,10 +2376,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       if (scratchMap.isEmpty()) return;
 
       // Walk over each instruction that has a GC point.
-      for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
-           GCenum.hasMoreElements(); ) {
-        OPT_GCIRMapElement GCelement = GCenum.next();
-
+      for (OPT_GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
         // new elements to add to the gc map
         HashSet<OPT_RegSpillListElement> newElements = new HashSet<OPT_RegSpillListElement>();
 
@@ -2404,10 +2394,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           new HashSet<OPT_RegSpillListElement>(3);
 
         // For each element in the GC Map ...
-        for (OPT_RegSpillListEnumerator regEnum = 
-             GCelement.regSpillListEnumerator();
-             regEnum.hasMoreElements(); ) {
-          OPT_RegSpillListElement elem = regEnum.next();
+        for (OPT_RegSpillListElement elem : GCelement.regSpillList()) {
           if (gcdebug) { 
             VM.sysWrite("Update " + elem + "\n");
           }
@@ -2586,22 +2573,23 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.ir = ir;
 
       // list of OsrVariableMapElement
-      LinkedList<OSR_VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
-
-      // for each osr instruction
-      for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
-        OSR_VariableMapElement elm = 
-          (OSR_VariableMapElement)mapList.get(numOsrs);
+      //LinkedList<OSR_VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
+      //for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
+      //  OSR_VariableMapElement elm = mapList.get(numOsrs);
+      /* for each osr instruction */
+      for (OSR_VariableMapElement elm : ir.MIRInfo.osrVarMap.list) {
 
         // for each inlined method
-        LinkedList<OSR_MethodVariables> mvarsList = elm.mvars;
-        for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
-          OSR_MethodVariables mvar = mvarsList.get(numMvars);
+        //LinkedList<OSR_MethodVariables> mvarsList = elm.mvars;                   XXX Remove once proven correct
+        //for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
+        //  OSR_MethodVariables mvar = mvarsList.get(numMvars);
+        for (OSR_MethodVariables mvar : elm.mvars) {
 
           // for each tuple
-          LinkedList<OSR_LocalRegPair> tupleList = mvar.tupleList;
-          for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
-            OSR_LocalRegPair tuple = tupleList.get(numTuple);
+          //LinkedList<OSR_LocalRegPair> tupleList = mvar.tupleList;
+          //for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
+            //OSR_LocalRegPair tuple = tupleList.get(numTuple);
+          for (OSR_LocalRegPair tuple : mvar.tupleList) {
 
             OPT_Operand op = tuple.operand;
             if (op.isRegister()) {

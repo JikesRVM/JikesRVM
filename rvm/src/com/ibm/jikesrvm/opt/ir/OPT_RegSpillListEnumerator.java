@@ -9,7 +9,6 @@
 // $Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.opt.OPT_LinkedList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
@@ -28,9 +27,9 @@ public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListE
    * constructor
    * @param list the list to enumerate over
    */
-  OPT_RegSpillListEnumerator(OPT_LinkedList list) {
-    nextElementToReturn = (OPT_RegSpillListElement)list.first();
-  }
+//  OPT_RegSpillListEnumerator(OPT_LinkedList list) {
+//    nextElementToReturn = (OPT_RegSpillListElement)list.first();
+//  }
 
   /**
    * Any elements left?
@@ -59,7 +58,7 @@ public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListE
    */
   public final OPT_RegSpillListElement next() {
     OPT_RegSpillListElement ret = nextElementToReturn;
-    nextElementToReturn = (OPT_RegSpillListElement)ret.getNext();
+//    nextElementToReturn = (OPT_RegSpillListElement)ret.getNext();
     return  ret;
   }
 }

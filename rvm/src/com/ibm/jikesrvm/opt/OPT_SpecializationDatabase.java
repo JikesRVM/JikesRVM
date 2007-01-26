@@ -70,11 +70,10 @@ public final class OPT_SpecializationDatabase {
    * @return null if no specialized versions
    */
   static synchronized Iterator<OPT_SpecializedMethod> getSpecialVersions(VM_Method m) {
-    MethodSet s = (MethodSet)specialVersionsHash.get(m);
+    MethodSet<VM_Method> s = specialVersionsHash.get(m);
     if (s == null) {
       return  null;
-    } 
-    else {
+    } else {
       return  s.iterator();
     }
   }
@@ -97,21 +96,21 @@ public final class OPT_SpecializationDatabase {
    */
   static synchronized  void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
     VM_Method source = spMethod.getMethod();
-    MethodSet s = findOrCreateMethodSet(specialVersionsHash, source);
+    MethodSet<VM_Method> s = findOrCreateMethodSet(specialVersionsHash, source);
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }
-  private static VM_HashMap<VM_Method,MethodSet> specialVersionsHash = 
-    new VM_HashMap<VM_Method,MethodSet>();
+  private static VM_HashMap<VM_Method,MethodSet<VM_Method>> specialVersionsHash = 
+    new VM_HashMap<VM_Method,MethodSet<VM_Method>>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static <T> MethodSet findOrCreateMethodSet(VM_HashMap<T,MethodSet> hash, T key) {
-    MethodSet result = hash.get(key);
+  private static <T> MethodSet<T> findOrCreateMethodSet(VM_HashMap<T,MethodSet<T>> hash, T key) {
+    MethodSet<T> result = hash.get(key);
     if (result == null) {
-      result = new MethodSet(key);
+      result = new MethodSet<T>(key);
       hash.put(key, result);
     }
     return  result;
@@ -120,15 +119,15 @@ public final class OPT_SpecializationDatabase {
   /**
    * The following defines a set of methods that share a common "key"
    */
-  static class MethodSet {
-    Object key;
+  static class MethodSet<T> {
+    T key;
 
     /**
      * a set of OPT_SpecializedMethod
      */
     VM_HashSet<OPT_SpecializedMethod> methods = new VM_HashSet<OPT_SpecializedMethod>();
 
-    MethodSet(Object key) {
+    MethodSet(T key) {
       this.key = key;
     }
 

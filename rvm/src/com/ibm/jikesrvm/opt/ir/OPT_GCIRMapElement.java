@@ -9,13 +9,13 @@
 // $Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.opt.*;
+import java.util.List;
 
 /**
  *  This class holds each element in the OPT_GCIRMap
  *  @author Michael Hind
  */
-public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
+public final class OPT_GCIRMapElement {
 
   /**
    *  The instruction, i.e., GC point
@@ -25,7 +25,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   /**
    *  The list of references (either symbolic regs or physical regs & spills)
    */
-  private final OPT_LinkedList regSpillList;
+  private final List<OPT_RegSpillListElement> regSpillList;
 
   /**
    * Constructor
@@ -34,7 +34,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    *                or physical/spill location (after regalloc)
    */
   public OPT_GCIRMapElement(OPT_Instruction inst, 
-                           OPT_LinkedList regSpillList) {
+                           List<OPT_RegSpillListElement> regSpillList) {
     this.inst = inst;
     this.regSpillList = regSpillList;
   }
@@ -60,15 +60,15 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    * returns an enumerator to access the registers/spills for this entry
    * @return an enumerator to access the registers/spills for this entry
    */
-  public final OPT_RegSpillListEnumerator regSpillListEnumerator() {
-    return new OPT_RegSpillListEnumerator(regSpillList);
+  public final List<OPT_RegSpillListElement> regSpillList() {
+    return regSpillList;
   }
 
   /**
    * Add a new spill list element for this map element
    */
   public final void addRegSpillElement(OPT_RegSpillListElement e) {
-    regSpillList.append(e);
+    regSpillList.add(e);
   }
 
   /**
@@ -83,15 +83,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    * @return the number of references, either regs or spills for this map
    */
   public final int countNumElements() {
-    int count = 0;
-
-    // traverse the list and compute how many regs exist
-    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
-    while (rslEnum.hasMoreElements()) {
-      rslEnum.nextElement();
-      count++;
-    }
-    return count;
+    return regSpillList.size();
   }
 
   /**
@@ -102,11 +94,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   public final int countNumRegElements() {
     int count = 0;
 
-    // traverse the list and compute how many regs exist
-    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
-    while (rslEnum.hasMoreElements()) {
-      OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) rslEnum.nextElement();
+    for (OPT_RegSpillListElement elem : regSpillList) {
       if (!elem.isSpill()) {
         count++;
       }
@@ -121,10 +109,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   public final int countNumSpillElements() {
     int count = 0;
     // traverse the list and compute how many spills exist
-    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
-    while (rslEnum.hasMoreElements()) {
-      OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) rslEnum.nextElement();
+    for (OPT_RegSpillListElement elem : regSpillList) {
       if (elem.isSpill()) {
         count++;
       }
@@ -139,10 +124,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   public String toString() {
     StringBuffer buf = new StringBuffer("");
     buf.append(" Instruction: " + inst.bcIndex + ", " + inst);
-    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
-    while (rslEnum.hasMoreElements()) {
-      OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-          rslEnum.nextElement();
+    for (OPT_RegSpillListElement elem : regSpillList) {
       buf.append(elem + "  ");
     }
     buf.append("\n");

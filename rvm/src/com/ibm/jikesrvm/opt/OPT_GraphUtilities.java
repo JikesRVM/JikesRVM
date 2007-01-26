@@ -47,7 +47,7 @@ class OPT_GraphUtilities {
 
       final int i1 = i;
 
-      return  new OPT_GraphNodeEnumeration() {
+      return  new OPT_GraphNodeEnumerator() {
         private int top = i1;
 
         public boolean hasMoreElements() {
@@ -56,10 +56,6 @@ class OPT_GraphUtilities {
 
         public OPT_GraphNode next() {
           return elts[--top];
-        }
-
-        public OPT_GraphNode nextElement() {
-          return next();
         }
       };
     }
@@ -110,7 +106,21 @@ class OPT_GraphUtilities {
    */
   public static boolean isTopologicalOrder(Enumeration<OPT_GraphNode> sorted, boolean forward) {
     while (sorted.hasMoreElements()) {
-      OPT_GraphNode cur = (OPT_GraphNode)sorted.nextElement();
+      OPT_GraphNode cur = sorted.nextElement();
+      HashSet<OPT_GraphNode> s = new HashSet<OPT_GraphNode>();
+      if (!s.add(cur))
+        return  false;
+      Enumeration<OPT_GraphNode> e = cur.outNodes();
+      while (e.hasMoreElements()) {
+        OPT_GraphNode out = (OPT_GraphNode)e.nextElement();
+        if (forward == s.contains(out))
+          return  false;
+      }
+    }
+    return  true;
+  }
+  public static boolean isTopologicalOrder(Iterable<OPT_GraphNode> sorted, boolean forward) {
+    for (OPT_GraphNode cur : sorted) {
       HashSet<OPT_GraphNode> s = new HashSet<OPT_GraphNode>();
       if (!s.add(cur))
         return  false;
@@ -141,22 +151,8 @@ class OPT_GraphUtilities {
     OPT_GraphNodeEnumeration e = new OPT_DFSenumerateByFinish(G);
     while (e.hasMoreElements())
       order.push(e.nextElement());
-    if (isTopologicalOrder(order.elements(), true)) {
-      final Enumeration<OPT_GraphNode> e1 = order.elements();
-      return  new OPT_GraphNodeEnumeration() {
-
-        public boolean hasMoreElements() {
-          return  e1.hasMoreElements();
-        }
-
-        public OPT_GraphNode next() {
-          return  (OPT_GraphNode)e1.nextElement();
-        }
-
-        public OPT_GraphNode nextElement() {
-          return  next();
-        }
-      };
+    if (isTopologicalOrder(order, true)) {
+      return  OPT_GraphNodeEnumerator.create(order);
     } 
     else 
       return  null;

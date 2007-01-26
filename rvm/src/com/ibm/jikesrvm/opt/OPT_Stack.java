@@ -9,6 +9,9 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
+import java.util.ArrayList;
+
 /**
  * OPT_Stack
  * OPT_Stack is a smaller implementation of java.util.Stack, that uses a linked
@@ -17,33 +20,27 @@ package com.ibm.jikesrvm.opt;
  * @author John Whaley
  * @date  3/18/98
  */
-public class OPT_Stack<T> {
-  OPT_LinkedListObjectElement<T> head;
+public class OPT_Stack<T> implements Iterable<T> {
+  private final ArrayList<T> stack = new ArrayList<T>();
 
   public OPT_Stack() {
-    head = null;
   }
 
   public OPT_Stack(T e) {
-    head = new OPT_LinkedListObjectElement<T>(e);
+    push(e);
   }
 
   public final T push(T e) {
-    OPT_LinkedListObjectElement<T> el = new OPT_LinkedListObjectElement<T>(e);
-    if (head != null)
-      head.insertBefore(el);
-    head = el;
+    stack.add(e);
     return  e;
   }
 
   public final T pop() {
-    OPT_LinkedListObjectElement<T> el = head;
-    head = head.nextElement();
-    return  (T)el.getValue();
+    return stack.remove(stack.size()-1);
   }
 
   public final T getTOS() {
-    return  head.getValue();
+    return stack.get(stack.size()-1);
   }
 
   public final T peek() {
@@ -51,61 +48,55 @@ public class OPT_Stack<T> {
   }
 
   public final boolean isEmpty() {
-    return  (head == null);
+    return stack.size() == 0;
   }
 
   public final boolean empty() {
     return  isEmpty();
   }
 
-  public final int search(T obj) {
-    OPT_LinkedListObjectElement<T> el = head;
-    for (int i = 0; el != null; ++i, 
-        el = el.nextElement()) {
-      if (el.getValue() == obj)
-        return  i;
-    }
-    return  -1;
-  }
+//  public final int search(T obj) {
+//    return stack.indexOf(obj);
+//  }
 
   public final boolean compare(OPT_Stack<T> s2) {
-    OPT_LinkedListObjectElement<T> p1 = this.head;
-    OPT_LinkedListObjectElement<T> p2 = s2.head;
-    for (;;) {
-      if (p1 == null)
-        return  (p2 == null);
-      if (p2 == null)
-        return  false;
-      if (p1.getValue() != p2.getValue())
-        return  false;
-      p1 = p1.nextElement();
-      p2 = p2.nextElement();
+    Iterator<T> i1 = iterator();
+    Iterator<T> i2 = s2.iterator();
+    if (isEmpty() && s2.isEmpty())
+      return true;
+    else if (isEmpty() || s2.isEmpty())
+      return false;
+    for (T t1 = i1.next(), t2 = i2.next();
+         i1.hasNext() && i2.hasNext(); ) {
+      if (t1 != t2)
+        return false;
     }
+    if (i1.hasNext() || i2.hasNext())
+      return false;
+    else
+      return true;
   }
 
   public final OPT_Stack<T> copy() {
     OPT_Stack<T> s = new OPT_Stack<T>();
-    if (head == null)
-      return  s;
-    s.head = head.copyFrom();
+    s.stack.addAll(stack);
     return  s;
   }
 
   public final OPT_Stack<T> shallowCopy() {
     OPT_Stack<T> s = new OPT_Stack<T>();
-    s.head = head;
+    s.stack.addAll(stack);
     return  s;
   }
 
-  public final OPT_LinkedListObjectEnumerator<T> elements() {
-    return  new OPT_LinkedListObjectEnumerator<T>(head);
+  public final Iterator<T> iterator() {
+    return  stack.iterator();
   }
 
   public String toString() {
     StringBuffer sb = new StringBuffer(" --> ");
-    OPT_LinkedListObjectElement<T> el = head;
-    for (; el != null; el = el.nextElement()) {
-      sb.append(el.getValue().toString());
+    for (T t : stack) {
+      sb.append(t.toString());
       sb.append(' ');
     }
     return  sb.toString();

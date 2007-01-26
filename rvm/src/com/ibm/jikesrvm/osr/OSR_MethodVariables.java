@@ -11,7 +11,6 @@
 package com.ibm.jikesrvm.osr;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.*;
 import java.util.*;
 
 /**
@@ -19,7 +18,7 @@ import java.util.*;
  *
  * @author Feng Qian
  */
-public final class OSR_MethodVariables extends OPT_LinkedListElement {
+public final class OSR_MethodVariables {
   
   /* which method */
   public int methId;

@@ -272,7 +272,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
     OPT_LiveSet out = new OPT_LiveSet();
     for (Enumeration<OPT_BasicBlock> outBlocks = bb.getOut();
          outBlocks.hasMoreElements(); ) {
-      OPT_BasicBlock ob = (OPT_BasicBlock)outBlocks.nextElement();
+      OPT_BasicBlock ob = outBlocks.nextElement();
       OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(ob);
       out.add(le.in());
     }
@@ -299,8 +299,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       new HashMap<OPT_Register,OPT_Register>(4);
     
     // copySet is a linked-list of copies we need to insert in this block.
-    OPT_LinkedListObjectElement<Copy> copySet = null;
-    OPT_LinkedListObjectElement<Copy> workList = null;
+    final LinkedList<Copy> copySet = new LinkedList<Copy>();
+    
+     /* Worklist is actually used like a stack - should we make this an OPT_Stack ?? */
+    final LinkedList<Copy> workList = new LinkedList<Copy>();
    
     // collect copies required in this block.  These copies move
     // the appropriate rval into the lval of each phi node in
@@ -318,7 +320,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
             continue;
           }
           Copy c = new Copy(phi, index);
-          copySet = OPT_LinkedListObjectElement.cons(c, copySet);
+          copySet.add(0,c);
           if (c.source instanceof OPT_RegisterOperand) {
             OPT_Register r = c.source.asRegister().register;
             usedByAnother.add(r);
@@ -334,24 +336,18 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
     // initialize work list with all copies whose destination is not
     // the source for any other copy, and delete such copies from
     // the set of needed copies.
-    OPT_LinkedListObjectElement<Copy> ptr = OPT_LinkedListObjectElement.cons(null, copySet);
-    OPT_LinkedListObjectElement<Copy> head = ptr;
-    while (ptr.getNext() != null) {
-      Copy c = ptr.nextElement().getValue();
+    for (Iterator<Copy> copySetIter = copySet.iterator(); copySetIter.hasNext(); ) {
+      Copy c = copySetIter.next();
       if (!usedByAnother.contains(c.destination.register)) {
-        workList = OPT_LinkedListObjectElement.cons(c, workList);
-        ptr.setNext(ptr.getNext().getNext());
+        workList.add(0,c);
+        copySetIter.remove();
       } 
-      else 
-        ptr = ptr.nextElement();
     }
-    copySet = head.nextElement();
     // while there is any more work to do.
-    while (workList != null || copySet != null) {
+    while (workList.size() > 0 || copySet.size() > 0) {
       // while there are copies that can be correctly inserted.
-      while (workList != null) {
-        Copy c = workList.getValue();
-        workList = workList.nextElement();
+      while (workList.size() > 0) {
+        Copy c = workList.remove(0);
         OPT_Register r = c.destination.register;
         VM_TypeReference tt = c.destination.type;
         if (VM.VerifyAssertions && tt == null) {
@@ -402,7 +398,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
         else if (c.source instanceof OPT_RegisterOperand) {
           if (shouldSplitBlock) {
             if (DEBUG) VM.sysWriteln("splitting edge: " + bb + "->" + c.phi.getBasicBlock());
-            OPT_BasicBlock criticalBlock = (OPT_BasicBlock)criticalBlocks.get(c.phi.getBasicBlock());
+            OPT_BasicBlock criticalBlock = criticalBlocks.get(c.phi.getBasicBlock());
             if (criticalBlock == null) {
               criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
               if (c.phi.getBasicBlock().getInfrequent()) {
@@ -417,7 +413,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
             OPT_Register sr = c.source.asRegister().register;
             HashMap<OPT_Register,OPT_Register> criticalBlockNames =
               currentNames.get(criticalBlock);
-            OPT_Register nameForSR = (OPT_Register)criticalBlockNames.get(sr);
+            OPT_Register nameForSR = criticalBlockNames.get(sr);
             if (nameForSR == null) {
               nameForSR = (OPT_Register)bbNames.get(sr);
               if (nameForSR == null) nameForSR = sr;
@@ -448,7 +444,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
         if (ci != null)
           if (shouldSplitBlock) {
             if (DEBUG) VM.sysWriteln("splitting edge: " + bb + "->" + c.phi.getBasicBlock());
-            OPT_BasicBlock criticalBlock = (OPT_BasicBlock)criticalBlocks.get(c.phi.getBasicBlock());
+            OPT_BasicBlock criticalBlock = criticalBlocks.get(c.phi.getBasicBlock());
             if (criticalBlock == null) {
               criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
               if (c.phi.getBasicBlock().getInfrequent()) {
@@ -470,19 +466,14 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
           // current copy to the work list.
           if (c.source instanceof OPT_RegisterOperand) {
             OPT_Register saved = c.source.asRegister().register;
-            OPT_LinkedListObjectElement<Copy> ptr1 = OPT_LinkedListObjectElement.cons(
-                                                                                null, copySet);
-            OPT_LinkedListObjectElement<Copy> head1 = ptr1;
-            while (ptr1.getNext() != null) {
-              Copy cc = ptr1.nextElement().getValue();
+            Iterator<Copy> copySetIter = copySet.iterator();
+            while (copySetIter.hasNext()) {
+              Copy cc = copySetIter.next(); 
               if (cc.destination.asRegister().register == saved) {
-                workList = OPT_LinkedListObjectElement.cons(cc, workList);
-                ptr1.setNext(ptr1.getNext().getNext());
+                workList.add(0,cc);
+                copySetIter.remove();
               } 
-              else 
-                ptr1 = ptr1.nextElement();
             }
-            copySet = head1.nextElement();
           }
       }
       // an empty work list with work remaining in the copy set
@@ -491,15 +482,14 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       // of an arbitrary member of the copy set into a temporary.
       // this destination has thus been saved, and can now be
       // safely overwritten.  so, add that copy to the work list.
-      if (copySet != null) {
-        Copy c = copySet.getValue();
-        copySet = copySet.nextElement();
+      if (copySet.size() > 0) {
+        Copy c = copySet.remove(0);
         OPT_Register tt = ir.regpool.getReg(c.destination.register);
         OPT_SSA.addAtEnd(ir, bb, OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register, 
                                                              c.destination.type), 
                                                              c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
         bbNames.put(c.destination.register, tt);
-        workList = OPT_LinkedListObjectElement.cons(c, workList);
+        workList.add(0,c);
       }
     }
   }

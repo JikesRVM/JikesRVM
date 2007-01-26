@@ -30,13 +30,8 @@ final class OPT_DepthFirstEnumerator
   public boolean hasMoreElements () {
     if (stack == null)
       return  false;
-    /*Enumeration*/
 
-    OPT_LinkedListObjectEnumerator<OPT_GraphNode> e = stack.elements();
-    while (e.hasMoreElements()) {
-      OPT_GraphNode node = e.next
-      /*Element*/
-      ();
+    for (OPT_GraphNode node : stack) {
       if (node.getScratch() != mark)
         return  true;
     }

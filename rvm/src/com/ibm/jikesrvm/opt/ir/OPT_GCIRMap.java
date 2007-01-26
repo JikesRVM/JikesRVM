@@ -9,7 +9,13 @@
 // $Id$
 package com.ibm.jikesrvm.opt.ir;
 
+import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.*;
+import com.ibm.jikesrvm.util.VM_LinkedList;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  *
@@ -19,8 +25,7 @@ import com.ibm.jikesrvm.opt.*;
  *
  *  @author Michael Hind
  */
-public final class OPT_GCIRMap {
-
+public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
   /**
    *  This is the list of maps
    *   Each element on the list is an OPT_GCIRMapElement, which is a pair
@@ -30,13 +35,7 @@ public final class OPT_GCIRMap {
    *               (these are expanded to either physical regs or spills
    *                by the register allocator)
    */
-  private OPT_LinkedList list = new OPT_LinkedList();
-
-  /**
-   *  The number of GC points in the map, i.e., the number of instructions
-   *  we have maps for. 
-   */
-  private int numInstructionMaps;
+  private VM_LinkedList<OPT_GCIRMapElement> list = new VM_LinkedList<OPT_GCIRMapElement>();
 
   /**
    *  Used for class-wide debugging
@@ -49,7 +48,7 @@ public final class OPT_GCIRMap {
    * @return the number of GC points in this map
    */
   public final int getNumInstructionMaps() {
-    return numInstructionMaps;
+    return list.size();
   }
 
   /**
@@ -64,26 +63,25 @@ public final class OPT_GCIRMap {
     // IR-based maps are created, we actually count the
     // number of spills.
     int count = 0;
-    OPT_GCIRMapEnumerator GCIRMEnum = enumerator();
-    while (GCIRMEnum.hasMoreElements()) {
-      OPT_GCIRMapElement elem = (OPT_GCIRMapElement)GCIRMEnum.nextElement();
+    for (OPT_GCIRMapElement elem : this)
       count += elem.countNumSpillElements();
-    }
     return count;
   }
 
   /**
+   * TODO What is this method doing in this class ?? RJG
+   * 
    * This method creates a regSpillList from the passed live set.
    * @param set the set of registers, encoded as a OPT_LiveSet object 
    * @return a list corresponding to the set passed
    */
-  public OPT_LinkedList createDU(OPT_LiveSet set) {
+  public List<OPT_RegSpillListElement> createDU(OPT_LiveSet set) {
     if (DEBUG) {
       System.out.println("creating a RegList for " + set);
     }
 
     // construct register list
-    OPT_LinkedList regList = new OPT_LinkedList();
+    List<OPT_RegSpillListElement> regList = new VM_LinkedList<OPT_RegSpillListElement>();
     OPT_LiveSetEnumerator lsEnum = set.enumerator();
     while (lsEnum.hasMoreElements()) {
       OPT_RegisterOperand regOp = (OPT_RegisterOperand)lsEnum.nextElement();
@@ -93,7 +91,7 @@ public final class OPT_GCIRMap {
       if (regOp.type.isReferenceType() && !regOp.register.isPhysical()) {
         OPT_RegSpillListElement elem = 
           new OPT_RegSpillListElement(regOp.register);
-        regList.append(elem);
+        regList.add(elem);
       }
     }
     return regList;
@@ -104,7 +102,7 @@ public final class OPT_GCIRMap {
    * @param inst    the IR instruction we care about
    * @param regList the set of symbolic registers as a list
    */
-  public void insert(OPT_Instruction inst, OPT_LinkedList regList) {
+  public void insert(OPT_Instruction inst, List<OPT_RegSpillListElement> regList) {
 
     // make a GCIRMapElement and put it on the big list
     OPT_GCIRMapElement item = new OPT_GCIRMapElement(inst, regList);
@@ -113,8 +111,7 @@ public final class OPT_GCIRMap {
       System.out.println("Inserting new item: "+ item);
     }
 
-    list.append(item);
-    numInstructionMaps++;
+    list.add(item);
   }
 
   /**
@@ -125,35 +122,16 @@ public final class OPT_GCIRMap {
    */
   public void delete(OPT_Instruction inst) {
 
-    boolean instructionInList = false;
-    // make sure list is not null
-    if (list.first() != null) {
-
-      OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-      // is it at the head of the list
+    Iterator<OPT_GCIRMapElement> iter = list.iterator();
+    while (iter.hasNext()) {
+      OPT_GCIRMapElement ptr = iter.next();
       if (ptr.getInstruction() == inst) {
-        numInstructionMaps--;
-        instructionInList = true;
-        list.removeHead();
-      } else {
-        // is it in the list
-        for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
-             ptr_next != null; 
-             ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
-          
-          if (ptr_next.getInstruction() == inst) {
-            numInstructionMaps--;
-            instructionInList = true;
-            list.removeNext(ptr);
-            break;
-          }
-        }
+        iter.remove();
+        return;
       }
     }
-    if (! instructionInList) {
-      throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete("+inst+
-                                                ") did not delete instruction from GC Map ");
-    }
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete("+inst+
+                                              ") did not delete instruction from GC Map ");
   }
 
   /**
@@ -163,33 +141,19 @@ public final class OPT_GCIRMap {
    * @param inst    the IR instruction we want to remove
    */
   public void moveToEnd(OPT_Instruction inst) {
-    boolean instructionInList = false;
-    if (list.first() != null) {
-      OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-      if (ptr.getInstruction() == inst) {
-        // it is at the head of the list
-        instructionInList = true;
-        list.removeHead();
-        list.append(ptr);
-      } else {
-        // is it in the list
-        for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
-             ptr_next != null; 
-             ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
-          if (ptr_next.getInstruction() == inst) {
-            instructionInList = true;
-            list.removeNext(ptr);
-            list.append(ptr_next);
-            break;
-          }
-        }
+    Iterator<OPT_GCIRMapElement> iter = list.iterator();
+    while (iter.hasNext()) {
+      OPT_GCIRMapElement newPtr = iter.next();
+      if (newPtr.getInstruction() == inst) {
+        iter.remove();
+        list.add(newPtr);
+        return;
       }
     }
-    if (!instructionInList) {
-      throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd("+inst+
-                                                ") did not delete instruction from GC Map ");
-    }
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd("+inst+
+                                              ") did not delete instruction from GC Map ");
   }
+
 
   /**
    * This method inserts an entry for a "twin" instruction immediately after the 
@@ -199,24 +163,19 @@ public final class OPT_GCIRMap {
    * @param twin    the new twin IR instruction 
    */
   public void insertTwin(OPT_Instruction inst, OPT_Instruction twin) {
-    for (OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-         ptr != null; 
-         ptr  = (OPT_GCIRMapElement)ptr.getNext()) {
-      if (ptr.getInstruction() == inst) {
-        numInstructionMaps++;
-        list.insertAfter(ptr,ptr.createTwin(twin));
+    ListIterator<OPT_GCIRMapElement> iter = list.listIterator();
+    while (iter.hasNext()) {
+      OPT_GCIRMapElement newPtr = iter.next();
+      if (newPtr.getInstruction() == inst) {
+        iter.add(newPtr.createTwin(twin));
         return;
       }
     }           
     throw new OPT_OptimizingCompilerException("OPT_GCIRMap.createTwin: "+inst+" not found");
   }
-
-  /**
-   * creates and returns an enumerator for this object
-   * @return an enumerator for this object
-   */
-  public OPT_GCIRMapEnumerator enumerator() {
-    return  new OPT_GCIRMapEnumerator(list);
+  
+  public Iterator<OPT_GCIRMapElement> iterator() {
+    return list.iterator();
   }
 
   /**
@@ -231,11 +190,10 @@ public final class OPT_GCIRMap {
    */
   public String toString() {
     StringBuffer buf = new StringBuffer("");
-    if (list.first() == null) {
+    if (list.size() == 0) {
       buf.append("empty"); 
     } else {
-      for (OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-           ptr != null; ptr = (OPT_GCIRMapElement)ptr.getNext()) {
+      for (OPT_GCIRMapElement ptr : list) {
         buf.append(ptr);
       }
     }

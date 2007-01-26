@@ -15,7 +15,7 @@ import com.ibm.jikesrvm.*;
  * A class to hold each element in the GCIRMap
  * @author Michael Hind
  */
-public class OPT_RegSpillListElement extends com.ibm.jikesrvm.opt.OPT_LinkedListElement {
+public class OPT_RegSpillListElement {
 
   /**
    * this should be a symbolic register

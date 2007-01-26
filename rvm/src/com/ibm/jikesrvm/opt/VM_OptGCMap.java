@@ -9,6 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.List;
+
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import com.ibm.jikesrvm.opt.ir.*;
@@ -104,8 +106,8 @@ import org.vmmagic.pragma.*;
     // Before requesting the (first) map entry, lets make sure we
     // will need it.  If the reg/spill list is empty, we don't
     // need a map slot, i.e., no references are live at this instruction
-    OPT_RegSpillListEnumerator rslEnum = irMapElem.regSpillListEnumerator();
-    if (rslEnum.hasMoreElements()) {
+    List<OPT_RegSpillListElement> regSpillList = irMapElem.regSpillList();
+    if (regSpillList.size() > 0) {
 
       // For efficiency we create our own bit map and then set the
       // appropriate array value
@@ -119,9 +121,7 @@ import org.vmmagic.pragma.*;
       // the first time we get the register mask, the 2nd time we get
       // the spills
       // process the register
-      while (rslEnum.hasMoreElements()) {
-        OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-            rslEnum.nextElement();
+      for (OPT_RegSpillListElement elem : regSpillList) {
         if (elem.isSpill()) {
           numSpills++;
         } else {
@@ -149,10 +149,7 @@ import org.vmmagic.pragma.*;
       int spillIndex = 0;
       // Now we need to walk the list again to process the spills.
       // first, get a fresh enumerator
-      rslEnum = irMapElem.regSpillListEnumerator();
-      while (rslEnum.hasMoreElements()) {
-        OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-            rslEnum.nextElement();
+      for (OPT_RegSpillListElement elem : regSpillList) {
         if (elem.isSpill()) {
           spillArray[spillIndex++] = elem.getSpill();
         }

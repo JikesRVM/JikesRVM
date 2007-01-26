@@ -9,61 +9,37 @@
 //$Id$
 package com.ibm.jikesrvm.opt;
 
+import java.util.Iterator;
+import com.ibm.jikesrvm.util.VM_LinkedList;
+
 /**
  * @author Mauricio J. Serrano
  * @author John Whaley
+ * @author Robin Garner
  */
-final class OPT_Queue<T> {
-  OPT_LinkedListElement head;
-  OPT_LinkedListElement tail;
-  OPT_LinkedListObjectElement<T> free;
+final class OPT_Queue<T> implements Iterable<T> {
+  private final VM_LinkedList<T> elements = new VM_LinkedList<T>();
 
-  OPT_Queue() {
-    // head = tail = free = null;
-  }
+  OPT_Queue() { }
 
   OPT_Queue(T e) {
-    head = tail = new OPT_LinkedListObjectElement<T>(e);
+    elements.add(e);
   }
 
   final T insert(T e) {
-    OPT_LinkedListObjectElement<T> el;
-    if (free == null)
-      el = new OPT_LinkedListObjectElement<T>(e); 
-    else {
-      el = free;
-      free = el.nextElement();
-      el.next = null;
-      el.value = e;
-    }
-    if (head == null) {
-      head = tail = el;
-    } 
-    else {
-      tail.insertAfter(el);
-      tail = el;
-    }
-    return  e;
+    elements.add(e);            // Insert at tail
+    return e;
   }
 
   final T remove() {
-    @SuppressWarnings("unchecked") // This data structure should be re-thought
-    OPT_LinkedListObjectElement<T> el = (OPT_LinkedListObjectElement)head;
-    head = head.next;
-    el.next = free;
-    free = el;
-    T result = el.value;
-    el.value = null;
-    return (T) result;
+    return elements.remove(0);  // Remove from head
   }
 
   final boolean isEmpty() {
-    return  (head == null);
+    return elements.size() == 0;
   }
 
-  @SuppressWarnings("unchecked") // This data structure should be re-thought
-  final OPT_LinkedListObjectEnumerator<T> elements() {
-    return  new OPT_LinkedListObjectEnumerator<T>
-        ((OPT_LinkedListObjectElement<T>)head);
+  public final Iterator<T> iterator() {
+    return elements.iterator();
   }
 }
