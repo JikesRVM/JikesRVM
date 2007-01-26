@@ -29,6 +29,7 @@
         <xsl:variable name="total-excluded" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='EXCLUDED'])"/>
 
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
+        <xsl:if test="($total-tests - $total-successes - $total-excluded) != 0">
         <table class="errors">
           <tr>
             <th>Result</th>
@@ -38,8 +39,9 @@
             <th>Test</th>
             <th>Reason</th>
           </tr>
-          <xsl:apply-templates select="/report/configurations/configuration/test-runs/test-run/test-group/test/result[not(text()='SUCCESS') or text()='EXCLUDED']"/>
+          <xsl:apply-templates select="/report/configurations/configuration/test-runs/test-run/test-group/test/result[not(text()='SUCCESS' or text()='EXCLUDED')]"/>
         </table>
+        </xsl:if>
       </body>
     </html>
   </xsl:template>
