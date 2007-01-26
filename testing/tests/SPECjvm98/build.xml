@@ -94,6 +94,7 @@
     <exec executable="${jikesrvm.dir}/testing/tests/SPECjvm98/parseSPECmark"
           failonerror="true"
           output="${build.tests.dir}/derived_results.txt">
+      <env key="RVM_ROOT" value="${jikesrvm.dir}"/>
       <arg value="${test.SPECjvm98.sanitized.output.file}"/>
     </exec>
 
