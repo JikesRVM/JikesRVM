@@ -29,6 +29,39 @@
         <xsl:variable name="total-excluded" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='EXCLUDED'])"/>
 
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
+        <xsl:if test="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics">
+          <h3>SPECjvm98 Performance</h3>
+          <table class="performance">
+            <tr>
+              <th>Name</th>
+              <th>Best Time</th>
+              <th>Best Ratio</th>
+              <th>First Time</th>
+              <th>First Ratio</th>
+            </tr>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'compress'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'jess'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'db'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'javac'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'mpegaudio'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'mtrt'"/>
+            </xsl:call-template>
+            <xsl:call-template name="spec98-row">
+              <xsl:with-param name="name" select="'jack'"/>
+            </xsl:call-template>
+          </table>
+        </xsl:if>
         <xsl:if test="($total-tests - $total-successes - $total-excluded) != 0">
         <table class="errors">
           <tr>
@@ -55,6 +88,17 @@
       <td><xsl:value-of select="../../id"/></td>
       <td><xsl:value-of select="../id"/></td>
       <td><xsl:value-of select="../result-explanation"/></td>
+    </tr>
+  </xsl:template>
+
+  <xsl:template name="spec98-row">
+    <xsl:param name="name"/>
+    <tr>
+      <td><xsl:value-of select="$name"/></td>
+      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.time')]/@value"/></td>
+      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.ratio')]/@value"/></td>
+      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.time')]/@value"/></td>
+      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.ratio')]/@value"/></td>
     </tr>
   </xsl:template>
 
