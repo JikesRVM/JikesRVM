@@ -31,6 +31,7 @@
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
         <xsl:if test="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics">
           <h3>SPECjvm98 Performance</h3>
+          <p>Aggregate Score: <xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key='aggregate.best.score']/@value"/></p>
           <table class="performance">
             <tr>
               <th>Name</th>
