@@ -105,6 +105,15 @@
     <score key="mtrt"/>
     <score key="jack"/>
 
+    <extractStatistic tag="SPECjvm98"
+                      key="aggregate.best.score"
+                      pattern="Bottom Line: Result:\s*(\S*)"
+                      file="${build.tests.dir}/derived_results.txt"/>
+    <extractStatistic tag="SPECjvm98"
+                      key="aggregate.first.score"
+                      pattern="First Run Result:\s*(\S*)"
+                      file="${build.tests.dir}/derived_results.txt"/>
+
     <outputStatisticEnd/>
     <outputTestResults tag="SPECjvm98"/>
     <outputTestEnd/>
