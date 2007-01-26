@@ -29,6 +29,7 @@
         <xsl:variable name="total-excluded" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='EXCLUDED'])"/>
 
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
+        <p>Subversion Revision: <xsl:value-of select="revision"/></p>
         <xsl:if test="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics">
           <h3>SPECjvm98 Performance</h3>
           <p>Aggregate Score: <xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key='aggregate.best.score']/@value"/></p>
