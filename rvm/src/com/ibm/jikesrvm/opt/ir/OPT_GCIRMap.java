@@ -9,7 +9,6 @@
 // $Id$
 package com.ibm.jikesrvm.opt.ir;
 
-import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.*;
 import com.ibm.jikesrvm.util.VM_LinkedList;
 

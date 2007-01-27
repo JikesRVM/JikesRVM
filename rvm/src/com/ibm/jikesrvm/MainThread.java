@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
