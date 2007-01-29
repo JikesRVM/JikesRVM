@@ -31,8 +31,6 @@
 -->
 <project name="tests">
 
-  <import file="${jikesrvm.dir}/build/tasks.xml"/>
-
   <property name="test.suite.name" value="${ant.project.name}"/>
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
@@ -478,14 +476,19 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="init" depends="check-properties,prepare-ant-tasks">
+  <target name="init" depends="check-host-name,prepare-ant-tasks">
+    <available property="host_file_present" file="${host.file}"/>
+    <fail unless="host_file_present">
+      Host file ${host.file} not present. Please set host.name to the name of file in ${jikesrvm.dir}/build/hosts
+      directory without the .properties suffix.
+    </fail>
+    <test-file name="awk.exe" location="${host.file}"/>
+    
     <fail unless="test.rvm.dir" message="test.rvm.dir must be set to directory containing rvm image."/>
     <available property="rvm.exe_present" file="${rvm.exe}"/>
     <fail unless="rvm.exe_present" message="${test.rvm.dir} is not a valid rvm image. Missing rvm program."/>
 
     <fail unless="test.class.path" message="test.class.path needs to be set."/>
-
-    <test-file name="awk.exe" location="${host.file}"/>
 
     <mkdir dir="${build.tests.dir}"/>
     <mkdir dir="${output.dir}"/>

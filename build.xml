@@ -1023,6 +1023,33 @@
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
+    <echo file="${dist.base}/constants.properties"><![CDATA[# Build time constants used when building image.
+config.name=${config.name}
+config.runtime.compiler=${config.runtime.compiler}
+config.bootimage.compiler=${config.bootimage.compiler}
+config.mmtk.plan=${config.mmtk.plan}
+config.include.aos=${config.include.aos}
+config.include.opt-harness=${config.include.opt-harness}
+config.include.gcspy=${config.include.gcspy}
+config.include.gcspy-client=${config.include.gcspy-client}
+config.include.all-classes=${config.include.all-classes}
+config.assertions=${config.assertions}
+config.default-heapsize.initial=${config.default-heapsize.initial}
+config.default-heapsize.maximum=${config.default-heapsize.maximum}
+config.bootimage.compiler.args=${config.bootimage.compiler.args}
+config.intercept.blocking.system-calls=${config.intercept.blocking.system-calls}
+config.stress-gc=${config.stress-gc}
+target.name=${target.name} 
+target.arch=${target.arch}
+target.os=${target.os}
+target.address.size=${target.address.size}
+target.bootimage.code.address=${target.bootimage.code.address}
+target.bootimage.data.address=${target.bootimage.data.address}
+target.bootimage.rmap.address=${target.bootimage.rmap.address}
+target.max-mappable.address=${target.max-mappable.address}
+target.dll-ext=${target.dll-ext}
+target.dll-prefix=${target.dll-prefix}
+]]></echo>
   </target>
 
   <!-- Setup runtime directory and copy all the classpath libraries to it -->

@@ -6,6 +6,13 @@ common build component for setting up and checking propertys that common across 
 
   <property file="${jikesrvm.dir}/.ant.properties"/>
 
+  <!-- If not set, default the target.name to the host.name -->
+  <property name="target.name" value="${host.name}"/>
+
+  <!-- load host specific properties -->
+  <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
+  <property file="${host.file}"/>
+
   <!-- location of components -->
   <property name="components.dir" location="${jikesrvm.dir}/components"/>
 

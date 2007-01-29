@@ -10,12 +10,10 @@ common build component for setting up and checking propertys.
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
   <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
   <property name="components.file" location="${components.dir}/components.properties"/>
-  <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
   <property file="${components.file}"/>
-  <property file="${host.file}"/>
   <property file="${target.file}"/>
 
   <!-- default configuration values. May have already been set by above tasks -->
