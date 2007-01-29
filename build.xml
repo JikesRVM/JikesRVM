@@ -605,8 +605,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source"
-          description="Compile the main java source.">
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source">
 
     <condition property="include.opt-test-harness" value="true">
       <and>
@@ -656,7 +655,7 @@
     </javac>
   </target>
 
-  <target name="package" depends="compile,compile-vmmagic" description="Package the runtime and virtual machine jars.">
+  <target name="package" depends="compile,compile-vmmagic">
     <!-- create a rt.jar for the RVM -->
     <copy file="${classpath.lib.dir}/classpath.jar" tofile="${build.rt.jar}"/>
     <zip destfile="${build.rt.jar}" update="true" basedir="${build.classes}">
@@ -957,7 +956,7 @@
     </exec>
   </target>
 
-  <target name="build-bootloader" depends="build-syswrap,build-ppc-bootThread" description="Build the bootloader.">
+  <target name="build-bootloader" depends="build-syswrap,build-ppc-bootThread">
 
     <!-- create jvm shared library -->
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
@@ -1026,8 +1025,8 @@
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
   </target>
 
-  <!-- Setup distribution directory and copy all the classpath libraries to it -->
-  <target name="init-image-dir-on-target" depends="build-bootloader">
+  <!-- Setup runtime directory and copy all the classpath libraries to it -->
+  <target name="init-runtime-dir-on-target" depends="build-bootloader">
     <mkdir dir="${dist.base}"/>
     <copy todir="${dist.base}">
       <fileset dir="${classpath.lib.dir}">
@@ -1048,7 +1047,7 @@
     </chmod>
   </target>
 
-  <target name="gcspy-client-to-image-dir" depends="init-image-dir-on-target" if="include.gcspy-client">
+  <target name="gcspy-client-to-runtime-dir" depends="init-runtime-dir-on-target" if="include.gcspy-client">
     <mkdir dir="${dist.base}/tools/gcspy"/>
     <copy todir="${dist.base}/tools/gcspy">
       <fileset dir="${gcspy.client.dir}"/>
@@ -1056,7 +1055,7 @@
     <chmod file="${dist.base}/tools/gcspy/gcspy" perm="ugo+rx"/>
   </target>
 
-  <target name="gcspy-to-image-dir" depends="gcspy-client-to-image-dir" if="include.gcspy">
+  <target name="gcspy-to-runtime-dir" depends="gcspy-client-to-runtime-dir" if="include.gcspy">
     <copy todir="${dist.base}">
       <fileset dir="${gcspy.server.dir}">
         <include name="${target.dll-prefix}*${target.dll-ext}"/>
@@ -1069,7 +1068,7 @@
     </chmod>
   </target>
 
-  <target name="setup-image" depends="gcspy-to-image-dir"/>
+  <target name="setup-runtime" depends="gcspy-to-runtime-dir"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -1079,11 +1078,11 @@
 
   <target name="cross-compile-host" depends="gen-booter-headers,init-image-dir-on-host"
           description="Cross compile host portion."/>
-  <target name="cross-compile-target" depends="setup-image" description="Cross compile target portion."/>
+  <target name="cross-compile-target" depends="setup-runtime" description="Cross compile target portion."/>
 
-  <target name="image" depends="cross-compile-host,cross-compile-target" description="Build an image."/>
+  <target name="runtime" depends="cross-compile-host,cross-compile-target" description="Build the runtime."/>
 
-  <target name="main" depends="image" description="Build an image."/>
+  <target name="main" depends="runtime"/>
 
   <target name="clean" description="Delete all the intermediate and image files.">
     <delete dir="${build.dir}"/>
