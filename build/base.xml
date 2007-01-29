@@ -21,6 +21,9 @@ common build component for setting up and checking propertys that common across 
 
   <!-- location for image directory -->
   <property name="dist.dir" location="${jikesrvm.dir}/dist"/>
+
+  <!-- base location for all test results -->
+  <property name="results.dir" location="${jikesrvm.dir}/results"/>
   
   <!-- by default not working on patch -->
   <property name="patch.name" value=""/>

@@ -6,12 +6,16 @@
 
   <property name="tests.name" value="sanity"/>
 
+  <property name="test.results.dir" value="${results.dir}/tests/${tests.name}"/>
+
   <property file="${jikesrvm.dir}/build/testing/${tests.name}.properties"/>
 
   <property name="driver.scratch.dir" location="${build.dir}/test-driver"/>
   <property name="build.results.dir" location="${driver.scratch.dir}/results"/>
 
   <property name="results.dir" location="${jikesrvm.dir}/results"/>
+  <property name="results.archive" location="${results.dir}/archive"/>
+  <property name="results.weekly" location="${results.dir}/archive"/>
   <property name="weeklys.dir" location="${results.dir}/weekly"/>
 
   <!-- properties defining mailer properties-->
@@ -50,6 +54,7 @@
 
   <target name="test" depends="prepare-ant-tasks">
     <delete dir="${driver.scratch.dir}"/>
+    <delete dir="${test.results.dir}"/>
     <mkdir dir="${driver.scratch.dir}"/>
     <forEach list="${test.runs}" property="tag">
       <sequential>
@@ -74,6 +79,7 @@
             <subant target="clean" failonerror="false" output="${driver.scratch.dir}/Clean-@{tag}-@{test}.txt">
               <filelist dir="tests" files="@{test}/build.xml"/>
               <property name="config.name" value="${test.run.@{tag}.configuration}"/>
+              <property name="test.results.dir" value="${test.results.dir}"/>
               <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
               <property name="test.run.name" value="${test.run.@{tag}.name}"/>
               <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
@@ -85,6 +91,7 @@
             <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
               <filelist dir="tests" files="@{test}/build.xml"/>
               <property name="config.name" value="${test.run.@{tag}.configuration}"/>
+              <property name="test.results.dir" value="${test.results.dir}"/>
               <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
               <property name="test.run.name" value="${test.run.@{tag}.name}"/>
               <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
@@ -227,20 +234,20 @@
       <format property="DAY" pattern="EEEE" offset="-7" unit="day"/>
     </tstamp>
 
-    <mkdir dir="${weeklys.dir}"/>
+    <mkdir dir="${results.weekly}"/>
     <copy file="${build.results.dir}/Report.xml"
-          tofile="${weeklys.dir}/Report-${tests.name}-${day0.DAY}.xml"/>
+          tofile="${results.weekly}/Report-${tests.name}-${day0.DAY}.xml"/>
 
     <echo file="${build.results.dir}/WeeklyReport.xml" append="false"><![CDATA[<weekly-report>]]></echo>
     <concat destfile="${build.results.dir}/WeeklyReport.xml" append="true">
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day0.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day1.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day2.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day3.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day4.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day5.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day6.DAY}.xml"/>
-      <fileset dir="${weeklys.dir}" includes="Report-${tests.name}-${day7.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day0.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day1.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day2.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day3.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day4.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day5.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day6.DAY}.xml"/>
+      <fileset dir="${results.weekly}" includes="Report-${tests.name}-${day7.DAY}.xml"/>
     </concat>
     <echo file="${build.results.dir}/WeeklyReport.xml" append="true"><![CDATA[</weekly-report>]]></echo>
   </target>
@@ -253,13 +260,13 @@
 
   <target name="archive" depends="gen-report" if="archive.tests">
     <tstamp prefix="report"/>
-    <mkdir dir="${results.dir}"/>
+    <mkdir dir="${results.archive}"/>
     <gzip src="${build.results.dir}/Results.xml"
-          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Results.xml.gz"/>
+          destfile="${results.archive}/${tests.name}_r${svn.revision}_${target.name}_Results.xml.gz"/>
     <gzip src="${build.results.dir}/Report.xml"
-          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
+          destfile="${results.archive}/${tests.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
     <gzip src="${build.results.dir}/Report.html"
-          destfile="${results.dir}/${tests.name}_r${svn.revision}_${target.name}_Report.html.gz"/>
+          destfile="${results.archive}/${tests.name}_r${svn.revision}_${target.name}_Report.html.gz"/>
   </target>
 
   <!-- **************************************************************************** -->

@@ -47,7 +47,7 @@
   </condition>
   <property name="test.run.id" value="${test.prefix}${test.suite.name}"/>
 
-  <property name="output.dir" location="${test.rvm.dir}/tests/${test.run.id}"/>
+  <property name="output.dir" location="${test.results.dir}/${test.run.id}"/>
   <property name="build.tests.dir" location="${build.dir}/tests/${test.run.id}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
@@ -483,7 +483,9 @@
       directory without the .properties suffix.
     </fail>
     <test-file name="awk.exe" location="${host.file}"/>
-    
+
+    <fail unless="test.results.dir" message="test.results.dir must be set to directory to contain results."/>
+
     <fail unless="test.rvm.dir" message="test.rvm.dir must be set to directory containing rvm image."/>
     <available property="rvm.exe_present" file="${rvm.exe}"/>
     <fail unless="rvm.exe_present" message="${test.rvm.dir} is not a valid rvm image. Missing rvm program."/>
