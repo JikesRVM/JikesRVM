@@ -59,14 +59,20 @@
     <forEach list="${test.runs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
-        <condition property="test.run.@{tag}.done" value="true" else="false">
-          <available file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
-        </condition>
-        <antcall target="build-configuration">
-          <param name="configuration.name" value="${test.run.@{tag}.configuration}"/>
-          <param name="configuration.done" value="${test.run.@{tag}.done}"/>
-        </antcall>
-        <touch file="${driver.scratch.dir}/${test.run.@{tag}.configuration}"/>
+        <propertycopy name="test.run.@{tag}.done" from="${test.run.@{tag}.configuration}.done"/>
+        <if>
+          <not>
+            <equals arg1="${test.run.@{tag}.done}" arg2="true"/>
+          </not>
+          <sequential>
+            <echo message="Building ${test.run.@{tag}.configuration}"/>
+            <subant failonerror="false" output="${driver.scratch.dir}/Build-${test.run.@{tag}.configuration}.txt">
+              <filelist dir="${jikesrvm.dir}" files="build.xml"/>
+              <property name="config.name" value="${test.run.@{tag}.configuration}"/>
+            </subant>
+            <property name="${test.run.@{tag}.configuration}.done" value="true"/>
+          </sequential>
+        </if>
         <echo message="Testing Run @{tag}"/>
         <echo message="    rvm.dir:        ${test.run.@{tag}.rvm.dir}"/>
         <echo message="    Configuration:  ${test.run.@{tag}.configuration}"/>
@@ -294,29 +300,5 @@
   <!-- **************************************************************************** -->
 
   <target name="report" depends="test,archive,send-report"/>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                         Targets for building images                      * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="check-build-configuration">
-    <condition property="do-configuration-build" value="true">
-      <not>
-        <equals arg1="${configuration.done}" arg2="true"/>
-      </not>
-    </condition>
-  </target>
-
-  <target name="do-build-configuration" depends="check-build-configuration" if="do-configuration-build">
-    <echo message="Building ${configuration.name}"/>
-    <subant failonerror="false" output="${driver.scratch.dir}/Build-${configuration.name}.txt">
-      <filelist dir="${jikesrvm.dir}" files="build.xml"/>
-      <property name="config.name" value="${configuration.name}"/>
-    </subant>
-  </target>
-
-  <target name="build-configuration" depends="do-build-configuration"/>
 
 </project>
