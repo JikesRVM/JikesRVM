@@ -6,7 +6,7 @@
 
   <property name="test.max.heapsize" value="50"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="ipsixql.dir" location="${external.lib.dir}/ipsixql-1_0_2"/>
   <property name="test.class.path" value="${ipsixql.dir}"/>

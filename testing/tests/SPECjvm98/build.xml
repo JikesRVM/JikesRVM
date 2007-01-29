@@ -20,7 +20,7 @@
   <property name="spec.tests"
             value="_200_check _201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="specjvm98.dir" location="${external.lib.dir}/SPECjvm98"/>
   <property name="test.class.path" value="${specjvm98.dir}"/>

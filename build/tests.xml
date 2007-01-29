@@ -31,6 +31,13 @@
 -->
 <project name="tests">
 
+  <property name="jikesrvm.dir" location="${basedir}/../../.."/>
+  <!-- configuration data -->
+  <property file="${test.rvm.dir}/constants.properties"/>
+
+  <import file="${jikesrvm.dir}/build/base.xml"/>
+  <import file="${jikesrvm.dir}/build/tasks.xml"/>
+  
   <property name="test.suite.name" value="${ant.project.name}"/>
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 

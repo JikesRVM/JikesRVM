@@ -13,7 +13,7 @@
 
   <property name="spec.args" value="-propfile SPECjbb.sanity.props"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="specjbb2000.dir" location="${external.lib.dir}/SPECjbb2000"/>
   <property name="test.class.path" value="${specjbb2000.dir}/jbb.jar:${specjbb2000.dir}/jbb_no_precompile.jar:${specjbb2000.dir}/check.jar:${specjbb2000.dir}/reporter.jar"/>

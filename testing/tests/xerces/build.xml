@@ -6,7 +6,7 @@
   <!-- TODO: when in performance run Use iteration driver and execute twice -->
   <property name="test.max.heapsize" value="200"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="xerces.dir" location="${external.lib.dir}/xerces-2_8_1"/>
   <property name="shakespeare.dir" location="${external.lib.dir}/xmlFiles/shakespeare.1.10.xml"/>

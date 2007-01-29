@@ -2,7 +2,7 @@
 
   <property name="test.time.limit" value="600"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="main.java" location="src"/>
 

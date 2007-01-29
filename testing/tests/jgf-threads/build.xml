@@ -12,7 +12,7 @@
   <property name="test.initial.heapsize" value="200"/>
   <property name="test.max.heapsize" value="600"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="main.java" location="${basedir}"/>
   <property name="build.classes" location="${build.tests.dir}/classes"/>

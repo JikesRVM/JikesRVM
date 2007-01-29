@@ -3,7 +3,7 @@
   <property name="test.time.limit" value="900"/>
   <property name="test.max.heapsize" value="150"/>
 
-  <import file="../base-test-build.xml"/>
+  <import file="../../../build/tests.xml"/>
 
   <property name="jBYTEmark.jar" value="${external.lib.dir}/jBYTEmark-0.9/jBYTEmark-0.9.jar"/>
   <property name="test.class.path" value="${jBYTEmark.jar}"/>
