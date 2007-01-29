@@ -48,7 +48,7 @@
   <property name="test.run.id" value="${test.prefix}${test.suite.name}"/>
 
   <property name="output.dir" location="${test.results.dir}/${test.run.id}"/>
-  <property name="build.tests.dir" location="${build.dir}/tests/${test.run.id}"/>
+  <property name="build.tests.dir" location="${test.build.dir}/${test.run.id}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
 
@@ -484,6 +484,8 @@
     </fail>
     <test-file name="awk.exe" location="${host.file}"/>
 
+    <fail unless="test.build.dir"
+          message="test.build.dir must be set to directory to contain intermediate build artifacts."/>
     <fail unless="test.results.dir" message="test.results.dir must be set to directory to contain results."/>
 
     <fail unless="test.rvm.dir" message="test.rvm.dir must be set to directory containing rvm image."/>
