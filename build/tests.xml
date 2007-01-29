@@ -498,18 +498,4 @@
     <mkdir dir="${output.dir}"/>
   </target>
 
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                                 Meta-tasks                               * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="clean" depends="init">
-    <delete dir="${build.tests.dir}"/>
-  </target>
-
-  <target name="real-clean" depends="clean">
-    <delete dir="${output.dir}"/>
-  </target>
-
 </project>
