@@ -71,8 +71,12 @@
 
   <macrodef name="startResults">
     <sequential>
+      <tstamp prefix="test.start">
+        <format property="time" pattern="MM/dd/yyyy hh:mm aa"/>
+      </tstamp>
       <res append="false"><![CDATA[
 <results>
+  <time>${test.start.time}</time>
   <build-parameters>
     <parameter key="patch.name" value="${patch.name}"/>
     <parameter key="config.name" value="${config.name}"/>
@@ -100,10 +104,9 @@
     <parameter key="target.dll-ext" value="${target.dll-ext}"/>
   </build-parameters>
   <run-parameters>
-    <parameter key="test.run.name" value="${test.run.name}"/>
-    <parameter key="test.rvm.dir" value="${test.rvm.dir}"/>
-    <parameter key="test.rvm.extra.args" value="${test.rvm.extra.args}"/>
-    <parameter key="test.start.time" value="${start.time}"/>
+    <parameter key="run.name" value="${test.run.name}"/>
+    <parameter key="mode" value="${test.mode}"/>
+    <parameter key="extra.args" value="${test.rvm.extra.args}"/>
   </run-parameters>
 ]]></res>
     </sequential>

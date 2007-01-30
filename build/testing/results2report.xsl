@@ -14,14 +14,12 @@
           <xsl:copy-of select="test-run[1]/results[1]/build-parameters/parameter[starts-with(@key,'target.')]"/>
         </parameters>
       </target>
-      <configurations>
-        <xsl:for-each
-            select="test-run/results[generate-id() = generate-id(key('configurations',build-parameters/parameter[@key='config.name']/@value))]">
-          <xsl:call-template name="configuration">
-            <xsl:with-param name="config-name" select="build-parameters/parameter[@key='config.name']/@value"/>
-          </xsl:call-template>
-        </xsl:for-each>
-      </configurations>
+      <xsl:for-each
+          select="test-run/results[generate-id() = generate-id(key('configurations',build-parameters/parameter[@key='config.name']/@value))]">
+        <xsl:call-template name="configuration">
+          <xsl:with-param name="config-name" select="build-parameters/parameter[@key='config.name']/@value"/>
+        </xsl:call-template>
+      </xsl:for-each>
     </report>
   </xsl:template>
 
@@ -35,14 +33,12 @@
         <xsl:copy-of
             select="/master-results/test-run/results[generate-id() = generate-id(key('configurations',$config-name))]/build-parameters/parameter[starts-with(@key,'config.')]"/>
       </parameters>
-      <test-runs>
-        <xsl:call-template name="do-test-run">
-          <xsl:with-param name="excludes" select="'|'"/>
-          <xsl:with-param name="config-name" select="$config-name"/>
-          <xsl:with-param name="tag-name"
-                          select="/master-results/test-run/results/build-parameters/parameter[@key='config.name' and @value=$config-name]/../../../@tag"/>
-        </xsl:call-template>
-      </test-runs>
+      <xsl:call-template name="do-test-run">
+        <xsl:with-param name="excludes" select="'|'"/>
+        <xsl:with-param name="config-name" select="$config-name"/>
+        <xsl:with-param name="tag-name"
+                        select="/master-results/test-run/results/build-parameters/parameter[@key='config.name' and @value=$config-name]/../../../@tag"/>
+      </xsl:call-template>
     </configuration>
   </xsl:template>
 
@@ -53,10 +49,14 @@
 
     <xsl:variable name="test-excludes" select="concat($excludes,$tag-name,'|')"/>
 
-    <test-run>
+    <runtime-configuration>
       <id>
         <xsl:value-of select="/master-results/test-run[@tag=$tag-name]/@name"/>
       </id>
+      <parameters>
+        <xsl:copy-of
+            select="/master-results/test-run[@tag=$tag-name][1]/results[1]/run-parameters/parameter[@key='extra.args' or @key='mode']"/>
+      </parameters>
       <xsl:for-each
           select="/master-results/test-run[@tag=$tag-name][1]/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">
         <test-group>
@@ -79,7 +79,7 @@
           </xsl:for-each>
         </test-group>
       </xsl:for-each>
-    </test-run>
+    </runtime-configuration>
 
     <xsl:if
         test="/master-results/test-run[not(contains($test-excludes,concat(@tag,'|')))]/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">

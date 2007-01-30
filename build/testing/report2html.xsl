@@ -24,15 +24,15 @@
         </style>
       </head>
       <body>
-        <xsl:variable name="total-tests" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test)"/>
-        <xsl:variable name="total-successes" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='SUCCESS'])"/>
-        <xsl:variable name="total-excluded" select="count(/report/configurations/configuration/test-runs/test-run/test-group/test/result[text()='EXCLUDED'])"/>
+        <xsl:variable name="total-tests" select="count(/report/configuration/runtime-configuration/test-group/test)"/>
+        <xsl:variable name="total-successes" select="count(/report/configuration/runtime-configuration/test-group/test/result[text()='SUCCESS'])"/>
+        <xsl:variable name="total-excluded" select="count(/report/configuration/runtime-configuration/test-group/test/result[text()='EXCLUDED'])"/>
 
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
         <p>Subversion Revision: <xsl:value-of select="revision"/></p>
-        <xsl:if test="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics">
+        <xsl:if test="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics">
           <h3>SPECjvm98 Performance</h3>
-          <p>Aggregate Score: <xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key='aggregate.best.score']/@value"/></p>
+          <p>Aggregate Score: <xsl:value-of select="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key='aggregate.best.score']/@value"/></p>
           <table class="performance">
             <tr>
               <th>Name</th>
@@ -74,7 +74,7 @@
             <th>Test</th>
             <th>Reason</th>
           </tr>
-          <xsl:apply-templates select="/report/configurations/configuration/test-runs/test-run/test-group/test/result[not(text()='SUCCESS' or text()='EXCLUDED')]"/>
+          <xsl:apply-templates select="/report/configuration/runtime-configuration/test-group/test/result[not(text()='SUCCESS' or text()='EXCLUDED')]"/>
         </table>
         </xsl:if>
       </body>
@@ -85,7 +85,7 @@
     <tr>
       <xsl:call-template name="alternated-row"/>
       <td><xsl:value-of select="."/></td>
-      <td><xsl:value-of select="../../../../../id"/></td>
+      <td><xsl:value-of select="../../../../id"/></td>
       <td><xsl:value-of select="../../../id"/></td>
       <td><xsl:value-of select="../../id"/></td>
       <td><xsl:value-of select="../id"/></td>
@@ -97,10 +97,10 @@
     <xsl:param name="name"/>
     <tr>
       <td><xsl:value-of select="$name"/></td>
-      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.time')]/@value"/></td>
-      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.ratio')]/@value"/></td>
-      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.time')]/@value"/></td>
-      <td><xsl:value-of select="/report/configurations/configuration/id[text()='production']/../test-runs/test-run/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.ratio')]/@value"/></td>
+      <td><xsl:value-of select="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.time')]/@value"/></td>
+      <td><xsl:value-of select="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.best.ratio')]/@value"/></td>
+      <td><xsl:value-of select="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.time')]/@value"/></td>
+      <td><xsl:value-of select="/report/configuration/id[text()='production']/../runtime-configuration/test-group/id[text()='SPECjvm98']/../test/result[text()='SUCCESS']/../statistics/statistic[@key=concat($name,'.first.ratio')]/@value"/></td>
     </tr>
   </xsl:template>
 

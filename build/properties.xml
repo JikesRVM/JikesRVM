@@ -4,9 +4,6 @@ common build component for setting up and checking propertys.
 -->
 <project name="propertys">
 
-  <!-- If not set, default the target.name to the host.name -->  
-  <property name="target.name" value="${host.name}"/>
-
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
   <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
   <property name="components.file" location="${components.dir}/components.properties"/>
@@ -49,7 +46,7 @@ common build component for setting up and checking propertys.
     </condition>
   </target>
 
-  <target name="check-target-properties" depends="check-target-name">
+  <target name="check-target-properties">
     <available property="target_config_present" file="${target.file}"/>
     <fail unless="target_config_present">
       Target file ${target.file} not present. Please set target.name to the name of file in ${jikesrvm.dir}/build/targets directory without the .properties suffix.

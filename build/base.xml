@@ -79,12 +79,6 @@ common build component for setting up and checking propertys that common across 
     </fail>
   </target>
 
-  <target name="check-target-name">
-    <fail unless="target.name">
-      target.name property not specified. Please specify property on commandline or in ${jikesrvm.dir}/.ant.properties.
-    </fail>
-  </target>
-
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *    Check host and target are identical when building native components   * -->

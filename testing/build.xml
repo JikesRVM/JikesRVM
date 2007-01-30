@@ -86,8 +86,8 @@
             <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
               <filelist dir="tests" files="@{test}/build.xml"/>
               <property name="config.name" value="${test.run.@{tag}.configuration}"/>
-              <property name="test.results.dir" value="${test.results.dir}"/>
-              <property name="test.build.dir" value="${test.build.dir}"/>
+              <property name="test.results.dir" value="${test.results.dir}/${test.run.@{tag}.configuration}"/>
+              <property name="test.build.dir" value="${test.build.dir}/${test.run.@{tag}.configuration}"/>
               <property name="test.rvm.dir" location="${test.run.@{tag}.rvm.dir}"/>
               <property name="test.run.name" value="${test.run.@{tag}.name}"/>
               <property name="test.mode" value="${test.run.@{tag}.test.mode}"/>
@@ -157,7 +157,7 @@
         <forEach list="${test.run.@{tag}.tests}" property="test">
           <sequential >
             <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
-              <fileset dir="${test.run.@{tag}.rvm.dir}/tests" includes="${test.run.@{tag}.prefix}@{test}/Results.xml"/>
+              <fileset dir="${test.results.dir}" includes="${test.run.@{tag}.configuration}/${test.run.@{tag}.prefix}@{test}/Results.xml"/>
             </concat>
           </sequential>
         </forEach>
