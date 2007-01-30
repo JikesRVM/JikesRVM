@@ -87,11 +87,11 @@ class InlineAllocation {
    */
   public static void main(String[] args) throws Exception {
     Class clazz = Class.forName("InlineAllocation");
-    Method trivialJ = clazz.getDeclaredMethod("trivial", clazz);
+    Method trivialJ = clazz.getDeclaredMethod("trivial", new Class[] {clazz});
     Method alloc1J = clazz.getDeclaredMethod("alloc1", (Class[])null);
     Method alloc2J = clazz.getDeclaredMethod("alloc2", (Class[])null);
     Method alloc3J = clazz.getDeclaredMethod("alloc3", (Class[])null);
-    Method alloc4J = clazz.getDeclaredMethod("alloc4", Integer.TYPE);
+    Method alloc4J = clazz.getDeclaredMethod("alloc4", new Class[] {Integer.TYPE});
 
     VM_Method trivial = java.lang.reflect.JikesRVMSupport.getMethodOf(trivialJ);
     VM_Method alloc1 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc1J);
