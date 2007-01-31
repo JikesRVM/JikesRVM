@@ -5,7 +5,6 @@
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/properties.xml"/>
-  <import file="build/components.xml"/>
 
   <!-- location of resources -->
   <property name="primordials.dir" location="build/primordials"/>
@@ -44,6 +43,24 @@
 
   <!-- Set the properties for distribution directory -->
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *              Targets for retrieving external components                  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="build-classpath" description="Download and build Classpath.">
+    <ant antfile="${jikesrvm.dir}/build/components/classpath.xml" inheritall="false" inheritrefs="false"/>
+  </target>
+
+  <target name="build-gcspy" description="Download and build GCSpy.">
+    <ant antfile="${jikesrvm.dir}/build/components/gcspy.xml" inheritall="false" inheritrefs="false"/>
+  </target>
+
+  <target name="build-jai" description="Download and build JAI.">
+    <ant antfile="${jikesrvm.dir}/build/components/jai.xml" inheritall="false" inheritrefs="false"/>
+  </target>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->

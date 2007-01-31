@@ -1,0 +1,77 @@
+<project name="jai" default="build" basedir=".">
+
+  <property name="jikesrvm.dir" location="${basedir}/../../"/>
+  <import file="${jikesrvm.dir}/build/base.xml"/>
+
+  <property name="jai.version" value="1_1_2_01"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *  Downloading and installing Java Advanced Imaging component (for GCSpy)  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-jai-properties">
+    <check-host-and-target-match message="can not download Java Advanced Imaging component."/>
+    <property name="jai.component.dir" location="${components.dir}/jai"/>
+    <property name="jai.package.dir" value="${jai.component.dir}/${jai.version}"/>
+    <property name="jai.dir" value="${jai.component.dir}/${jai.version}/jai-${jai.version}"/>
+    <condition property="jai.from-web" value="true">
+      <or>
+        <not>
+          <available file="${jai.dir}/lib/jai_core.jar"/>
+        </not>
+        <isset property="jai.force-download"/>
+      </or>
+    </condition>
+    <condition property="jai.from-web-for-linux-ia32" value="true">
+      <and>
+        <equals arg1="${jai.from-web}" arg2="true"/>
+        <equals arg1="${target.os}" arg2="Linux"/>
+        <equals arg1="${target.arch}" arg2="ia32"/>
+      </and>
+    </condition>
+    <condition property="invalid_jai_download" value="true">
+      <and>
+        <equals arg1="${jai.from-web}" arg2="true"/>
+        <not>
+          <equals arg1="${jai.from-web-for-linux-ia32}" arg2="true"/>
+        </not>
+      </and>
+    </condition>
+    <fail if="invalid_jai_download">
+      Unable to determine a location to automatically download JAI ${jai.version} from for the target
+      os and architecture. Please download JAI ${jai.version} manually, copy the jar and shared libraries
+      into a single directory and set the ${target.name}.jai.lib.dir property to the directory location. i.e.
+      ${target.name}.jai.lib.dir=${jai.package.dir}/lib
+    </fail>
+  </target>
+
+  <target name="get-jai-linux-ia32" depends="init-jai-properties" if="jai.from-web-for-linux-ia32">
+    <property name="jai.web-archive" value="jai-${jai.version}-lib-linux-i586.tar.gz"/>
+    <mkdir dir="${jai.package.dir}"/>
+    <get src="http://download.java.net/media/jai/builds/release/${jai.version}/${jai.web-archive}"
+         dest="${jai.package.dir}/${jai.web-archive}"/>
+    <untar src="${jai.package.dir}/${jai.web-archive}" dest="${jai.package.dir}" compression="gzip"/>
+
+    <mkdir dir="${jai.package.dir}/${target.name}/lib"/>
+    <copy todir="${jai.package.dir}/${target.name}/lib">
+      <fileset dir="${jai.dir}/lib">
+        <include name="*"/>
+      </fileset>
+    </copy>
+    <echo file="${jai.package.dir}/${target.name}/lib/constants.properties"><![CDATA[
+jai.version=${jai.version}
+jai.description=Java Advanced Imaging Toolkit
+]]></echo>
+    <echo>
+      Edit the components configuration file ${components.file} and set the following property:
+      ${target.name}.jai.lib.dir=${jai.package.dir}/${target.name}/lib
+    </echo>
+  </target>
+
+  <target name="fetch" depends="get-jai-linux-ia32"/>
+
+  <target name="build" depends="fetch"/>
+
+</project>
