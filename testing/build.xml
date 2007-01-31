@@ -33,11 +33,7 @@
     <attribute name="tag"/>
     <sequential>
       <property name="test.run.@{tag}.configuration" value="@{tag}"/>
-      <condition property="test.run.@{tag}.build.name"
-                 value="${test.run.@{tag}.configuration}_${target.name}"
-                 else="${test.run.@{tag}.configuration}_${target.name}_${patch.name}">
-        <equals arg1="${patch.name}" arg2=""/>
-      </condition>
+      <setBuildName property="test.run.@{tag}.build.name" config="${test.run.@{tag}.configuration}"/>
       <property name="test.run.@{tag}.rvm.dir" location="${dist.dir}/${test.run.@{tag}.build.name}"/>
       <property name="test.run.@{tag}.name" value=""/>
       <property name="test.run.@{tag}.test.mode" value=""/>

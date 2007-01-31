@@ -17,9 +17,7 @@
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
 
-  <condition property="build.name" value="${config.name}_${target.name}" else="${config.name}_${target.name}_${patch.name}">
-    <equals arg1="${patch.name}" arg2=""/>
-  </condition>
+  <setBuildName property="build.name" config="${config.name}"/>
 
   <!-- location of resources -->
   <property name="primordials.dir" location="build/primordials"/>

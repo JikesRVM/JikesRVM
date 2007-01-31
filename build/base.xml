@@ -30,9 +30,22 @@ common build component for setting up and checking propertys that common across 
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *             Property initialization section of the build                 * -->
+  <!-- *      Utility macros common across testing and building infrastructure.   * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
+
+  <!-- Macro to setup build name -->
+  <macrodef name="setBuildName">
+    <attribute name="property"/>
+    <attribute name="config"/>
+    <sequential>
+      <condition property="@{property}"
+                 value="@{config}_${target.name}"
+                 else="@{config}_${target.name}_${patch.name}">
+        <equals arg1="${patch.name}" arg2=""/>
+      </condition>
+    </sequential>
+  </macrodef>
 
   <!-- recursive property expansion macro -->
   <macrodef name="propertycopy">
