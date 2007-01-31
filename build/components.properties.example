@@ -3,25 +3,25 @@
 #
 # GCSpy must be built on the target platform.
 #
-# ${target.name}.gcspy.client.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/client
-# ${target.name}.gcspy.server.dir=${jikesrvm.dir}/components/gcspy/${gcspy.version}/${target.name}/server
+# ${target.name}.gcspy.client.dir=${components.dir}/gcspy/${gcspy.version}/${target.name}/client
+# ${target.name}.gcspy.server.dir=${components.dir}/gcspy/${gcspy.version}/${target.name}/server
 #
 # e.g.
-# ia32-linux.gcspy.client.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/client
-# ia32-linux.gcspy.server.dir=${jikesrvm.dir}/components/gcspy/1_01/ia32-linux/server
+# ia32-linux.gcspy.client.dir=${components.dir}/gcspy/1_01/ia32-linux/client
+# ia32-linux.gcspy.server.dir=${components.dir}/gcspy/1_01/ia32-linux/server
 
 #
 # classpath must be built on the target platform.
 #
-# ${target.name}.classpath.lib.dir=${jikesrvm.dir}/components/classpath/${classpath.version}/${target.name}/lib
+# ${target.name}.classpath.lib.dir=${components.dir}/classpath/${classpath.version}/${target.name}/lib
 #
 # e.g.
-# ia32-linux.classpath.lib.dir=${jikesrvm.dir}/components/classpath/93/ia32-linux/lib
+# ia32-linux.classpath.lib.dir=${components.dir}/classpath/93/ia32-linux/lib
 
 #
 # Jai must be installed for the target platform.
 #
-# ${target.name}.jai.lib.dir=${jikesrvm.dir}/components/jai/${jai.version}/${target.name}/lib
+# ${target.name}.jai.lib.dir=${components.dir}/jai/${jai.version}/${target.name}/lib
 #
 # e.g.
-# ia32-linux.jai.lib.dir=${jikesrvm.dir}/components/jai/1_1_2_01/ia32-linux/lib
+# ia32-linux.jai.lib.dir=${components.dir}/jai/1_1_2_01/ia32-linux/lib
