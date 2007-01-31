@@ -7,7 +7,7 @@ common build component for downloading and building required components.
   <property name="classpath.version" value="93"/>
   <property name="gcspy.version" value="1_01"/>
   <property name="jai.version" value="1_1_2_01"/>
-  
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Classpath component             * -->
@@ -144,6 +144,10 @@ common build component for downloading and building required components.
         <include name="native/jawt/.libs/*${library.suffix}"/>
       </fileset>
     </copy>
+    <echo file="${classpath.package.dir}/${target.name}/lib/constants.properties"><![CDATA[
+classpath.version=${classpath.version}
+classpath.description=GNU Classpath (Generics Branch)
+]]></echo>
 
     <echo>
       Edit the components configuration file ${components.file} and set the following property:
@@ -206,6 +210,10 @@ common build component for downloading and building required components.
         <include name="*"/>
       </fileset>
     </copy>
+    <echo file="${jai.package.dir}/${target.name}/lib/constants.properties"><![CDATA[
+jai.version=${jai.version}
+jai.description=Java Advanced Imaging Toolkit
+]]></echo>
     <echo>
       Edit the components configuration file ${components.file} and set the following property:
       ${target.name}.jai.lib.dir=${jai.package.dir}/${target.name}/lib
@@ -268,7 +276,8 @@ common build component for downloading and building required components.
     </exec>
 
     <mkdir dir="${gcspy.package.dir}/${target.name}/client"/>
-    <jar destfile="${gcspy.package.dir}/${target.name}/client/gcspy-${gcspy.version}.jar" basedir="${gcspy.dir}/src/classes">
+    <jar destfile="${gcspy.package.dir}/${target.name}/client/gcspy-${gcspy.version}.jar"
+         basedir="${gcspy.dir}/src/classes">
       <include name="gcspy/**/*.class"/>
       <include name="icons/**"/>
     </jar>
@@ -307,6 +316,10 @@ common build component for downloading and building required components.
         <include name="include/*"/>
       </fileset>
     </copy>
+    <echo file="${gcspy.package.dir}/${target.name}/server/constants.properties"><![CDATA[
+gcspy.version=${gcspy.version}
+gcspy.description=GCSpy Heap Visualisation Framework
+]]></echo>
     <condition property="gcspy.client.help"
                value="      ${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client${line.separator}"
                else="">
@@ -315,7 +328,7 @@ common build component for downloading and building required components.
 
     <echo>
       Edit the components configuration file ${components.file} and set the following properties:
-${gcspy.client.help}      ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
+      ${gcspy.client.help} ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
     </echo>
   </target>
 

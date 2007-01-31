@@ -83,6 +83,7 @@ common build component for setting up and checking propertys.
     <property name="classpath.error"
               value="The user can invoke build-classpath target to download and build classpath from CVS or from the web."/>
     <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
+    <property file="${classpath.lib.dir}/constants.properties"/>
   </target>
 
   <target name="include-gcspy-check" depends="check-components-properties">
@@ -117,6 +118,7 @@ common build component for setting up and checking propertys.
     <property name="gcspy.server.error"
               value="The user can invoke build-gcspy target to download and build gcspy from the web."/>
     <test-file name="gcspy.server.dir" msg="${gcspy.server.error}" location="${components.file}"/>
+    <property file="${gcspy.server.dir}/constants.properties"/>
   </target>
 
   <!--
