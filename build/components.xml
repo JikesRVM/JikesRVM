@@ -244,18 +244,11 @@ common build component for downloading and building required components.
 
   <!-- download gcspy from from web -->
   <target name="get-gcspy" depends="init-gcspy-properties" if="gcspy.from-web">
-    <test-file name="tar.exe" location="${host.file}"/>
-
     <property name="gcspy.web-archive" value="gcspy${gcspy.version}.tar.gz"/>
     <mkdir dir="${gcspy.package.dir}"/>
     <get src="http://www.cs.kent.ac.uk/projects/gc/gcspy/${gcspy.web-archive}"
          dest="${gcspy.package.dir}/${gcspy.web-archive}"/>
-    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
-    <!-- TODO: determine how easy it is to use ant tar task -->
-    <exec executable="${tar.exe}" failonerror="true" dir="${gcspy.package.dir}">
-      <arg value="xzf"/>
-      <arg value="${gcspy.web-archive}"/>
-    </exec>
+    <untar src="${gcspy.package.dir}/${gcspy.web-archive}" compression="gzip" dest="${gcspy.package.dir}"/>
   </target>
 
   <target name="build-gcspy-client" depends="get-gcspy" if="include.gcspy-client">
