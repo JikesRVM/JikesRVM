@@ -16,12 +16,6 @@ common build component for setting up and checking propertys.
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
 
-  <!-- default component versions. May have already been set by above tasks -->
-  <property name="rvm.version" value="2.4.6"/>
-  <property name="classpath.version" value="93"/>
-  <property name="gcspy.version" value="1_01"/>
-  <property name="jai.version" value="1_1_2_01"/>
-
   <condition property="build.name" value="${config.name}_${target.name}" else="${config.name}_${target.name}_${patch.name}">
     <equals arg1="${patch.name}" arg2=""/>
   </condition>
@@ -87,7 +81,7 @@ common build component for setting up and checking propertys.
   <target name="check-classpath-properties" depends="check-components-properties">
     <propertycopy name="classpath.lib.dir" from="${target.name}.classpath.lib.dir"/>
     <property name="classpath.error"
-              value="The user can invoke build-classpath target to download and build classpath version ${classpath.version} from CVS or from the web."/>
+              value="The user can invoke build-classpath target to download and build classpath from CVS or from the web."/>
     <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
   </target>
 
@@ -114,14 +108,14 @@ common build component for setting up and checking propertys.
   <target name="check-gcspy-client-properties" depends="include-gcspy-check,check-config-properties" if="include.gcspy-client">
     <propertycopy name="gcspy.client.dir" from="${target.name}.gcspy.client.dir"/>
     <property name="gcspy.client.error"
-              value="The user can invoke build-gcspy target to download and build gcspy version ${gcspy.version} from the web."/>
+              value="The user can invoke build-gcspy target to download and build gcspy from the web."/>
     <test-file name="gcspy.client.dir" msg="${gcspy.client.error}" location="${components.file}"/>
   </target>
 
   <target name="check-gcspy-properties" depends="check-gcspy-client-properties" if="include.gcspy">
     <propertycopy name="gcspy.server.dir" from="${target.name}.gcspy.server.dir"/>
     <property name="gcspy.server.error"
-              value="The user can invoke build-gcspy target to download and build gcspy version ${gcspy.version} from the web."/>
+              value="The user can invoke build-gcspy target to download and build gcspy from the web."/>
     <test-file name="gcspy.server.dir" msg="${gcspy.server.error}" location="${components.file}"/>
   </target>
 

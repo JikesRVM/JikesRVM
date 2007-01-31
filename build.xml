@@ -1,5 +1,7 @@
 <project name="JikesRVM" default="main" basedir=".">
 
+  <property name="rvm.version" value="2.4.6"/>
+
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/properties.xml"/>

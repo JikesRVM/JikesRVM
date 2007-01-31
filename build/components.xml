@@ -4,6 +4,10 @@ common build component for downloading and building required components.
 -->
 <project name="components">
 
+  <property name="classpath.version" value="93"/>
+  <property name="gcspy.version" value="1_01"/>
+  <property name="jai.version" value="1_1_2_01"/>
+  
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Classpath component             * -->
