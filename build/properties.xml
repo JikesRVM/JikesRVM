@@ -74,7 +74,7 @@ common build component for setting up and checking propertys.
   <target name="check-components-properties">
     <available property="components_file_present" file="${components.file}"/>
     <fail unless="components_file_present">
-      Components file ${components.file} not present. Please copy ${jikesrvm.dir}/build/components.properties.example to ${components.file} and edit.
+      Components file ${components.file} not present. Please create ${components.file} and edit.
     </fail>
   </target>
 
