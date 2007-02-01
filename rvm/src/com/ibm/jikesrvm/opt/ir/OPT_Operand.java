@@ -850,6 +850,23 @@ public abstract class OPT_Operand {
         }
         return op1;
       } else {
+        /*
+         * XXX Opt compiler guru please check :)
+         * 
+         * Protect this code from crashing if op2 is DUMMY.  As I understand
+         * the calling code this shouldn't happen, but the case for RegisterOperand
+         * handles it so I guess it's not too bad for a NullConstantOperand 
+         * to do so.
+         * 
+         * -- Robin Garner 1 Feb 7
+         */
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || 
+            op2 == OPT_BC2IR.DUMMY) {
+          if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
+            VM.sysWrite("Incompatabily typed operands");
+          }
+          return null; // bottom
+        }
         VM_TypeReference type2 = op2.getType();
         if (type2.isReferenceType()) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
