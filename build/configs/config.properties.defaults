@@ -4,6 +4,7 @@ config.bootimage.compiler=base
 config.include.aos=0
 config.include.opt-harness=0
 config.include.gcspy=0
+config.include.gcspy-stub=0
 config.include.gcspy-client=0
 config.include.all-classes=0
 config.assertions=normal

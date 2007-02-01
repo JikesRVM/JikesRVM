@@ -86,6 +86,8 @@
     <parameter key="config.include.aos" value="${config.include.aos}"/>
     <parameter key="config.include.opt-harness" value="${config.include.opt-harness}"/>
     <parameter key="config.include.gcspy" value="${config.include.gcspy}"/>
+    <parameter key="config.include.gcspy-stub" value="${config.include.gcspy-stub}"/>
+    <parameter key="config.include.gcspy-client" value="${config.include.gcspy-client}"/>
     <parameter key="config.include.all-classes" value="${config.include.all-classes}"/>
     <parameter key="config.assertions" value="${config.assertions}"/>
     <parameter key="config.default-heapsize.initial" value="${config.default-heapsize.initial}"/>

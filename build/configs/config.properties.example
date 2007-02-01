@@ -16,6 +16,9 @@ config.include.gcspy=
 # Set to 1 to include GCSpy client with rvm image. Defaults to 0.
 config.include.gcspy-client=
 
+# Set to 1 to use GCSpy stub rather than "real" GCSpy. Defaults to 0.
+config.include.gcspy-stub=
+
 # Include all reacable RVM classes in the bootimage. Defaults to 0.
 config.include.all-classes=
 

@@ -142,13 +142,30 @@
   </target>
 
   <target name="include-gcspy-check" depends="check-components-properties">
-    <condition property="include.gcspy" value="1">
+    <condition property="include.gcspy-java" value="1">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+    <condition property="include.gcspy-stub" value="1">
+      <and>
+        <equals arg1="${config.include.gcspy}" arg2="1"/>
+        <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+      </and>
+    </condition>
+    <condition property="include.gcspy" value="1">
+      <and>
+        <equals arg1="${config.include.gcspy}" arg2="1"/>
+        <not>
+          <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+        </not>
+      </and>
     </condition>
     <condition property="include.gcspy-client" value="1">
       <and>
         <equals arg1="${config.include.gcspy}" arg2="1"/>
         <equals arg1="${config.include.gcspy-client}" arg2="1"/>
+        <not>
+          <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+        </not>
       </and>
     </condition>
 
@@ -1057,8 +1074,14 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.intercept.blocking.system-calls}" arg2="1"/>
     </condition>
 
+    <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
+      <isset property="include.gcspy-stub"/>
+    </condition>
     <condition property="gcspy.includes.dir" value="-I${gcspy.server.dir}/include" else="">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+    <condition property="gcspy.lib.dir" value="-L${build.native} -lgcspy">
+      <isset property="include.gcspy-stub"/>
     </condition>
     <condition property="gcspy.lib.dir" value="-L${gcspy.server.dir} -lgcspy" else="">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
@@ -1120,7 +1143,16 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
   </target>
 
-  <target name="build-bootloader" depends="build-syswrap,build-ppc-bootThread">
+  <target name="build-gcspy-stub" depends="check-bootloader-properties" if="include.gcspy-stub">
+    <exec executable="${c.exe}" failonerror="true">
+      <arg line="${shld.args}"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/${target.dll-prefix}gcspy${target.dll-ext}"/>
+      <arg value="${jikesrvm.dir}/tools/gcspy-stub/src/gcspy_main_server.c"/>
+    </exec>
+  </target>
+
+  <target name="build-bootloader" depends="build-gcspy-stub,build-syswrap,build-ppc-bootThread">
 
     <!-- create jvm shared library -->
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
@@ -1150,7 +1182,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${pthread.lib} ${rvm.src} -lm -rdynamic -O2 -g"/>
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${pthread.lib} ${rvm.src} -rdynamic -O2 -g"/>
       <arg value="-o"/>
       <arg value="${build.base}/JikesRVM"/>
       <arg value="-L${build.base}"/>
@@ -1238,6 +1270,14 @@ target.dll-prefix=${target.dll-prefix}
     </chmod>
   </target>
 
+  <target name="gcspy-stub-to-runtime-dir" depends="build-gcspy-stub" if="include.gcspy-stub">
+    <copy todir="${dist.base}">
+      <fileset dir="${build.native}">
+        <include name="${target.dll-prefix}gcspy${target.dll-ext}"/>
+      </fileset>
+    </copy>
+  </target>
+
   <target name="gcspy-client-to-runtime-dir" depends="init-runtime-dir-on-target" if="include.gcspy-client">
     <mkdir dir="${dist.base}/tools/gcspy"/>
     <copy todir="${dist.base}/tools/gcspy">
@@ -1246,7 +1286,9 @@ target.dll-prefix=${target.dll-prefix}
     <chmod file="${dist.base}/tools/gcspy/gcspy" perm="ugo+rx"/>
   </target>
 
-  <target name="gcspy-to-runtime-dir" depends="gcspy-client-to-runtime-dir" if="include.gcspy">
+  <target name="gcspy-to-runtime-dir"
+          depends="gcspy-stub-to-runtime-dir,gcspy-client-to-runtime-dir"
+          if="include.gcspy">
     <copy todir="${dist.base}">
       <fileset dir="${gcspy.server.dir}">
         <include name="${target.dll-prefix}*${target.dll-ext}"/>
