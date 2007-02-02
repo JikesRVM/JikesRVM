@@ -85,7 +85,6 @@
   <target name="test" depends="prepare-dirs">
 
     <startResults/>
-    <outputGroupStart/>
     <rvm tag="SPECjvm98" class="SpecApplication" args="-a -g ${spec.args} ${spec.tests}"/>
 
     <outputTestStart tag="SPECjvm98"/>
@@ -120,7 +119,6 @@
     <outputTestEnd/>
     <displayTestResults tag="SPECjvm98"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

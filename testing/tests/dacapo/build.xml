@@ -30,7 +30,6 @@
     <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
 
     <startResults/>
-    <outputGroupStart/>
 
     <dacapo name="antlr"/>
     <dacapo name="bloat"/>
@@ -44,7 +43,6 @@
     <dacapo name="xalan"/>
     <dacapo name="eclipse"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

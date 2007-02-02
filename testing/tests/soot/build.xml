@@ -44,12 +44,10 @@
     </condition>
 
     <startResults/>
-    <outputGroupStart/>
     <rvm tag="soot.Main"
          class="soot.Main"
          args="-O --app -time -d ${build.tests.dir} --soot-classpath ${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${soot.class.path} ${soot.class} -f J"/>
     <outputSingleStatisticResults tag="soot.Main" key="time" pattern="totalTime:(.*)s \(100.0\%\)"/>
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

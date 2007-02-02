@@ -38,7 +38,6 @@
     <rvm tag="jBYTEmark" class="jBYTEmark"/>
 
     <startResults/>
-    <outputGroupStart/>
 
     <outputTestStart tag="jBYTEmark"/>
 
@@ -64,7 +63,6 @@
     <outputTestEnd/>
     <displayTestResults tag="jBYTEmark"/>
 
-    <outputGroupEnd/>
     <finishResults/>
 
   </target>

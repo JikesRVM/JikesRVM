@@ -69,7 +69,6 @@
          dir="${jgf-threads.dir}/section3"/>
 
     <startResults/>
-    <outputGroupStart/>
     <outputTestStart tag="JGF_MultithreadedBenchmark"/>
 
     <outputStatisticStart/>
@@ -102,7 +101,6 @@
     <outputTestEnd/>
     <displayTestResults tag="JGF_MultithreadedBenchmark"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

@@ -58,7 +58,6 @@
 
   <target name="test" depends="compile">
     <startResults/>
-    <outputGroupStart/>
 
     <gcTest class="InlineAllocation"/>
     <gcTest class="ReferenceTest"/>
@@ -66,7 +65,6 @@
     <gcTest class="LargeAlloc"/>
     <gcTest class="Exhaust" initialHeapSize="50"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

@@ -46,7 +46,6 @@
     <rvm tag="CaffeineMark" class="RunCaffeine"/>
 
     <startResults/>
-    <outputGroupStart/>
     <outputTestStart tag="CaffeineMark"/>
 
     <outputStatisticStart/>
@@ -71,7 +70,6 @@
     <outputTestEnd/>
     <displayTestResults tag="CaffeineMark"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

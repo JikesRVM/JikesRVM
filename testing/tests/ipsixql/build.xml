@@ -31,7 +31,6 @@
 
   <target name="test" depends="prepare-dirs">
     <startResults/>
-    <outputGroupStart/>
 
     <property name="args" value="1 7"/>
     <condition property="args" value="1 7" else="1 1">
@@ -43,7 +42,6 @@
     <extractStatistic tag="Ipsixql" pattern="Run 0 completed, (.*) ms" key="time"/>
     <outputResults tag="Ipsixql"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 </project>

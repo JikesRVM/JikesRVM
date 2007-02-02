@@ -44,18 +44,18 @@
   <!-- Default values -->
   <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
-  <property name="test.run.name" value=""/>
+  <property name="test.config.name" value=""/>
   <property name="test.rvm.extra.args" value=""/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
-  <condition property="test.prefix" value="" else="${test.run.name}_">
-    <equals arg1="${test.run.name}" arg2=""/>
+  <condition property="test.prefix" value="" else="${test.config.name}_">
+    <equals arg1="${test.config.name}" arg2=""/>
   </condition>
-  <property name="test.run.id" value="${test.prefix}${test.suite.name}"/>
+  <property name="test.config.id" value="${test.prefix}${test.suite.name}"/>
 
-  <property name="output.dir" location="${test.results.dir}/${test.run.id}"/>
-  <property name="build.tests.dir" location="${test.build.dir}/${test.run.id}"/>
+  <property name="output.dir" location="${test.results.dir}/${test.config.id}"/>
+  <property name="build.tests.dir" location="${test.build.dir}/${test.config.id}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
 
@@ -77,6 +77,7 @@
       <res append="false"><![CDATA[
 <results>
   <time>${test.start.time}</time>
+  <group>${test.suite.name}</group>
   <build-parameters>
     <parameter key="patch.name" value="${patch.name}"/>
     <parameter key="config.name" value="${config.name}"/>
@@ -105,11 +106,11 @@
     <parameter key="target.dll-prefix" value="${target.dll-prefix}"/>
     <parameter key="target.dll-ext" value="${target.dll-ext}"/>
   </build-parameters>
-  <run-parameters>
-    <parameter key="run.name" value="${test.run.name}"/>
+  <test-parameters>
+    <parameter key="test.config.name" value="${test.config.name}"/>
     <parameter key="mode" value="${test.mode}"/>
     <parameter key="extra.args" value="${test.rvm.extra.args}"/>
-  </run-parameters>
+  </test-parameters>
 ]]></res>
     </sequential>
   </macrodef>
@@ -117,18 +118,6 @@
   <macrodef name="finishResults">
     <sequential>
       <res><![CDATA[</results>]]></res>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="outputGroupStart">
-    <sequential>
-      <res><![CDATA[<group name="${test.suite.name}">]]></res>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="outputGroupEnd">
-    <sequential>
-      <res><![CDATA[</group>]]></res>
     </sequential>
   </macrodef>
 
@@ -275,7 +264,7 @@
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
-      <echo message="Test Result for [${config.name}|${test.run.id}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+      <echo message="Test Result for [${config.name}|${test.config.id}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
     </sequential>
   </macrodef>
 
@@ -305,7 +294,7 @@
     <attribute name="file"/>
     <attribute name="tofile"/>
     <sequential>
-      <!-- can be replaced by line filtering copy in ant 1.7 -->
+      <!-- TODO: can be replaced by line filtering copy in ant 1.7 -->
       <exec executable="${awk.exe}" failonerror="true" input="@{file}" output="@{tofile}">
         <arg value="-f"/>
         <arg value="${jikesrvm.dir}/testing/harness/RVMJunkFilter.awk"/>

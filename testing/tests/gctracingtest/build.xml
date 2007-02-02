@@ -29,13 +29,11 @@
 
   <target name="test" depends="compile">
     <startResults/>
-    <outputGroupStart/>
 
     <rvm tag="TracingTest" class="TracingTest" rvmArgs="-X:sysLogfile=/dev/null"/>
     <findStatistic tag="TracingTest" pattern="TracingTest Finished" key="finished"/>
     <outputResults tag="TracingTest"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

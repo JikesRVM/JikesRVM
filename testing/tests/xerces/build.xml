@@ -105,12 +105,10 @@
     <property file="${build.tests.dir}/FileList.txt"/>
 
     <startResults/>
-    <outputGroupStart/>
 
     <xercesTest class="dom.Counter"/>
     <xercesTest class="sax.Counter"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

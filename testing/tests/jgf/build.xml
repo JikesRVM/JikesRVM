@@ -61,7 +61,6 @@
     <!--<property name="test.JGF_SerialBenchmark.sanitized.output.file" value="${output.dir}/JGF_SerialBenchmark.txt"/>-->
 
     <startResults/>
-    <outputGroupStart/>
     <outputTestStart tag="JGF_SerialBenchmark"/>
 
     <outputStatisticStart/>
@@ -214,7 +213,6 @@
     <outputTestEnd/>
     <displayTestResults tag="JGF_SerialBenchmark"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

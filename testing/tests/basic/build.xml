@@ -41,7 +41,6 @@
 
   <target name="test" depends="compile">
     <startResults/>
-    <outputGroupStart/>
 
     <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
     <runCompareTest class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>
@@ -104,7 +103,6 @@
     <outputTestEnd/>
     <displayTestResults tag="ImageSizes"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 

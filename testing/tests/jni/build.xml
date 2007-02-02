@@ -66,7 +66,6 @@
 
   <target name="test" depends="compile">
     <startResults/>
-    <outputGroupStart/>
 
     <!-- JNI 1.1 -->
     <jniTest class="Allocation"/>
@@ -91,7 +90,6 @@
     <!-- JNI 1.4 -->
     <jniTest class="TestJNIDirectBuffers"/>
 
-    <outputGroupEnd/>
     <finishResults/>
   </target>
 
