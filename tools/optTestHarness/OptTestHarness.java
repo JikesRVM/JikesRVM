@@ -10,6 +10,7 @@
 
 import java.util.*;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.io.*;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.classloader.*;
@@ -60,15 +61,15 @@ class OptTestHarness {
 
   // Keep baseline and opt methods separate in list of methods 
   // to be compiled
-  static Vector optMethodVector = null;
-  static Vector optOptionsVector = null;
-  static Vector baselineMethodVector = null;
+  static Vector<VM_Method> optMethodVector = null;
+  static Vector<OPT_Options> optOptionsVector = null;
+  static Vector<VM_Method> baselineMethodVector = null;
 
   static java.lang.reflect.Method reflectoid;
   static Object[]  reflectMethodArgs;
-  static Vector reflectoidVector;
-  static Vector reflectMethodVector;
-  static Vector reflectMethodArgsVector;
+  static Vector<Method> reflectoidVector;
+  static Vector<VM_Method> reflectMethodVector;
+  static Vector<Object[]> reflectMethodArgsVector;
 
 
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
@@ -186,7 +187,6 @@ class OptTestHarness {
       // Method to be opt compiled
       optMethodVector.addElement(method);
       optOptionsVector.addElement(opts);
-      VM_Class klass = method.getDeclaringClass() ;
     }
   }
 
@@ -386,12 +386,12 @@ class OptTestHarness {
            IOException,
            IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
-    optMethodVector = new Vector(50);
-    optOptionsVector = new Vector(50);
-    baselineMethodVector = new Vector(50);
-    reflectoidVector = new Vector(10);
-    reflectMethodVector = new Vector(10);
-    reflectMethodArgsVector = new Vector(10);
+    optMethodVector = new Vector<VM_Method>(50);
+    optOptionsVector = new Vector<OPT_Options>(50);
+    baselineMethodVector = new Vector<VM_Method>(50);
+    reflectoidVector = new Vector<Method>(10);
+    reflectMethodVector = new Vector<VM_Method>(10);
+    reflectMethodArgsVector = new Vector<Object[]>(10);
     if (!OPT_Compiler.isInitialized()) {
       OPT_Compiler.init(options);
     }
