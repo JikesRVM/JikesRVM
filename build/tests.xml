@@ -38,24 +38,17 @@
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
   
-  <property name="test.suite.name" value="${ant.project.name}"/>
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
   <!-- Default values -->
   <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
-  <property name="test.config.name" value=""/>
   <property name="test.rvm.extra.args" value=""/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
-  <condition property="test.prefix" value="" else="${test.config.name}_">
-    <equals arg1="${test.config.name}" arg2=""/>
-  </condition>
-  <property name="test.config.id" value="${test.prefix}${test.suite.name}"/>
-
-  <property name="output.dir" location="${test.results.dir}/${test.config.id}"/>
-  <property name="build.tests.dir" location="${test.build.dir}/${test.config.id}"/>
+  <property name="output.dir" location="${test.results.dir}/${test.group.name}"/>
+  <property name="build.tests.dir" location="${test.build.dir}/${test.group.name}"/>
 
   <property name="results.file" value="${output.dir}/Results.xml"/>
 
@@ -75,9 +68,9 @@
         <format property="time" pattern="MM/dd/yyyy hh:mm aa"/>
       </tstamp>
       <res append="false"><![CDATA[
-<results>
+<results version="1.0">
   <time>${test.start.time}</time>
-  <group>${test.suite.name}</group>
+  <group>${test.group.name}</group>
   <build-parameters>
     <parameter key="patch.name" value="${patch.name}"/>
     <parameter key="config.name" value="${config.name}"/>
@@ -107,7 +100,6 @@
     <parameter key="target.dll-ext" value="${target.dll-ext}"/>
   </build-parameters>
   <test-parameters>
-    <parameter key="test-config.name" value="${test.config.name}"/>
     <parameter key="mode" value="${test.mode}"/>
     <parameter key="extra.args" value="${test.rvm.extra.args}"/>
   </test-parameters>
@@ -167,7 +159,7 @@
     <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
-  <duration>${test.@{tag}.time.duration}</duration>
+  <time>${test.@{tag}.time.duration}</time>
 ]]></res>
     </sequential>
   </macrodef>
@@ -264,7 +256,7 @@
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
-      <echo message="Test Result for [${config.name}|${test.config.id}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+      <echo message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
     </sequential>
   </macrodef>
 
@@ -338,7 +330,7 @@
       </condition>
       <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
       <property name="test.@{tag}.rvm.args"
-                value="-Xmx${test.@{tag}.max.heapsize}M -Xms${test.@{tag}.initial.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
+                value="-Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
@@ -350,16 +342,16 @@
       <condition property="test.@{tag}.exclude" value="true" else="false">
         <or>
           <!-- check whether we have disabled test altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.test.${test.suite.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${test.suite.name}.@{tag}"/>
-          <isset property="exclude.test.${target.name}.${test.suite.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${target.name}.${test.suite.name}.@{tag}"/>
+          <isset property="exclude.test.${test.group.name}.@{tag}"/>
+          <isset property="exclude.test.${config.name}.${test.group.name}.@{tag}"/>
+          <isset property="exclude.test.${target.name}.${test.group.name}.@{tag}"/>
+          <isset property="exclude.test.${config.name}.${target.name}.${test.group.name}.@{tag}"/>
 
           <!-- check whether we have disabled suite altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.group.${test.suite.name}"/>
-          <isset property="exclude.group.${config.name}.${test.suite.name}"/>
-          <isset property="exclude.group.${target.name}.${test.suite.name}"/>
-          <isset property="exclude.group.${config.name}.${target.name}.${test.suite.name}"/>
+          <isset property="exclude.group.${test.group.name}"/>
+          <isset property="exclude.group.${config.name}.${test.group.name}"/>
+          <isset property="exclude.group.${target.name}.${test.group.name}"/>
+          <isset property="exclude.group.${config.name}.${target.name}.${test.group.name}"/>
 
           <!-- check whether we have disabled testing altogether, in configuration, target or configuration+target -->
           <isset property="exclude.${config.name}"/>
@@ -484,6 +476,8 @@
       directory without the .properties suffix.
     </fail>
     <test-file name="awk.exe" location="${host.file}"/>
+
+    <fail unless="test.group.name" message="test.group.name must be set to name of test group."/>
 
     <fail unless="test.build.dir"
           message="test.build.dir must be set to directory to contain intermediate build artifacts."/>

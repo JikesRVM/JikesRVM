@@ -84,12 +84,12 @@
             <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
               <filelist dir="${test.scripts.dir}" files="@{test}/build.xml"/>
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
-              <property name="test.results.dir" value="${test.results.dir}/${test.config.@{tag}.configuration}"/>
-              <property name="test.build.dir" value="${test.build.dir}/${test.config.@{tag}.configuration}"/>
+              <property name="test.results.dir" value="${test.results.dir}/@{tag}"/>
+              <property name="test.build.dir" value="${test.build.dir}/@{tag}"/>
               <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
-              <property name="test.config.name" value="${test.config.@{tag}.name}"/>
               <property name="test.mode" value="${test.config.@{tag}.mode}"/>
               <property name="test.rvm.extra.args" value="${test.config.@{tag}.extra.args}"/>
+              <property name="test.group.name" value="@{test}"/>
               <propertyset>
                 <propertyref prefix="exclude."/>
               </propertyset>
@@ -160,7 +160,7 @@
         <forEach list="${test.config.@{tag}.tests}" property="test">
           <sequential>
             <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
-              <fileset dir="${test.results.dir}" includes="${test.config.@{tag}.configuration}/${test.config.@{tag}.prefix}@{test}/Results.xml"/>
+              <fileset dir="${test.results.dir}" includes="@{tag}/@{test}/Results.xml"/>
             </concat>
           </sequential>
         </forEach>
@@ -210,12 +210,8 @@
   <target name="archive" depends="gen-report" if="archive.results">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
-    <gzip src="${build.results.dir}/Results.xml"
-          destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Results.xml.gz"/>
     <gzip src="${build.results.dir}/Report.xml"
           destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
-    <gzip src="${build.results.dir}/Report.html"
-          destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.html.gz"/>
   </target>
 
   <!-- **************************************************************************** -->

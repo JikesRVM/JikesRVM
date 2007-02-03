@@ -4,7 +4,7 @@
   <xsl:key name="tags" match="test-configuration" use="@tag"/>
 
   <xsl:template match="test-run">
-    <report>
+    <report version="1.0">
       <id>
         <xsl:value-of select="@name"/>
       </id>
@@ -51,8 +51,11 @@
 
     <test-configuration>
       <id>
-        <xsl:value-of select="/test-run/test-configuration[@tag=$tag-name]/@name"/>
+        <xsl:value-of select="$tag-name"/>
       </id>
+      <name>
+        <xsl:value-of select="/test-run/test-configuration[@tag=$tag-name]/@name"/>
+      </name>
       <parameters>
         <xsl:copy-of
             select="/test-run/test-configuration[@tag=$tag-name][1]/results[1]/test-parameters/parameter[@key='extra.args' or @key='mode']"/>
@@ -68,13 +71,7 @@
               <id>
                 <xsl:value-of select="tag"/>
               </id>
-              <xsl:copy-of select="result|duration"/>
-              <xsl:if test="result[text()='SUCCESS']">
-                <xsl:copy-of select="statistics"/>
-              </xsl:if>
-              <xsl:if test="not(result[text()='SUCCESS'] or result[text()='EXCLUDED'])">
-                <xsl:copy-of select="result-explanation|exit-code|working-directory|command|output"/>
-              </xsl:if>
+              <xsl:copy-of select="*[not(local-name()='tag')]"/>
             </test>
           </xsl:for-each>
         </test-group>
