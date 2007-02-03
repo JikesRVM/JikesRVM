@@ -1,18 +1,21 @@
 <project name="TestDriver" default="report" basedir=".">
 
-  <property name="jikesrvm.dir" location=".."/>
+  <property name="jikesrvm.dir" location="."/>
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
 
   <property name="test-run.name" value="sanity"/>
 
-  <property file="${jikesrvm.dir}/build/testing/${test-run.name}.properties"/>
+  <property name="test-run.file" value="${jikesrvm.dir}/build/testing/${test-run.name}.properties"/>
+  <property file="${test-run.file}"/>
 
   <property name="driver.scratch.dir" location="${build.dir}/test-driver"/>
   <property name="build.results.dir" location="${driver.scratch.dir}/results"/>
 
   <property name="test.results.dir" value="${results.dir}/tests/${test-run.name}"/>
   <property name="test.build.dir" value="${build.dir}/tests/${test-run.name}"/>
+
+  <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
 
   <property name="results.archive" location="${results.dir}/archive"/>
   <property name="results.weekly" location="${results.dir}/weekly"/>
@@ -80,7 +83,7 @@
         <forEach list="${test.config.@{tag}.tests}" property="test">
           <sequential>
             <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
-              <filelist dir="tests" files="@{test}/build.xml"/>
+              <filelist dir="${test.scripts.dir}" files="@{test}/build.xml"/>
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
               <property name="test.results.dir" value="${test.results.dir}/${test.config.@{tag}.configuration}"/>
               <property name="test.build.dir" value="${test.build.dir}/${test.config.@{tag}.configuration}"/>
