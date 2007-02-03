@@ -356,15 +356,15 @@
           <isset property="exclude.test.${config.name}.${target.name}.${test.suite.name}.@{tag}"/>
 
           <!-- check whether we have disabled suite altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.suite..${test.suite.name}"/>
-          <isset property="exclude.suite.${config.name}.${test.suite.name}"/>
-          <isset property="exclude.suite.${target.name}.${test.suite.name}"/>
-          <isset property="exclude.suite.${config.name}.${target.name}.${test.suite.name}"/>
+          <isset property="exclude.group.${test.suite.name}"/>
+          <isset property="exclude.group.${config.name}.${test.suite.name}"/>
+          <isset property="exclude.group.${target.name}.${test.suite.name}"/>
+          <isset property="exclude.group.${config.name}.${target.name}.${test.suite.name}"/>
 
           <!-- check whether we have disabled testing altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.tests.${config.name}"/>
-          <isset property="exclude.tests.${target.name}"/>
-          <isset property="exclude.tests.${config.name}.${target.name}"/>
+          <isset property="exclude.${config.name}"/>
+          <isset property="exclude.${target.name}"/>
+          <isset property="exclude.${config.name}.${target.name}"/>
         </or>
       </condition>
 
