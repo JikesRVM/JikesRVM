@@ -10,7 +10,6 @@
 package test.org.jikesrvm.basic.core.reflect;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -37,6 +36,7 @@ class TestFieldReflection {
     public double mdouble = 1.0;
   }
 
+  @SuppressWarnings({"UnusedDeclaration"})
   static class TypeWithDifferentAccessModifiers {
     public static boolean sboolean = true;
     protected static byte sbyte = 127;
@@ -120,120 +120,110 @@ class TestFieldReflection {
   }
 
   private static void printFields(final Object object, final Field[] fields) throws Exception {
-    System.out.println();
-    System.out.println("** Current value of fields is **");
-    System.out.println();
-    for (int i = 0; i < fields.length; i++) {
+    System.out.print("Values:");
+    for (final Field field : fields) {
       String value = "";
-      final Field field = fields[i];
       try {
         value = String.valueOf(field.get(object));
       } catch (IllegalArgumentException e) {
-        value = "<unknown> IllegalArgumentException when getting field.";
+        value = "!";
       } catch (IllegalAccessException e) {
-        value = "<unknown> IllegalAccessException when getting field.";
+        value = "-";
       }
-      final String message = i + "  " + describeField(field) + " = " + value;
-      System.out.println(message);
+      System.out.printf(" %5s",value);
     }
+    System.out.println();
   }
 
   private static void testBoolean(final Object object, final Field[] fields) throws Exception {
     banner("boolean", "false");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setBoolean(object, false);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testByte(final Object object, final Field[] fields) throws Exception {
     banner("byte", "12");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setByte(object, (byte) 12);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testShort(final Object object, final Field[] fields) throws Exception {
     banner("short", "2");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setShort(object, (short) 2);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testInt(final Object object, final Field[] fields) throws Exception {
     banner("int", "3");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setInt(object, 3);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testLong(final Object object, final Field[] fields) throws Exception {
     banner("long", "4");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setLong(object, 4);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testFloat(final Object object, Field[] fields) throws Exception {
     banner("float", "5");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setFloat(object, 5.0F);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void testDouble(final Object object, Field[] fields) throws Exception {
     banner("double", "6.0");
-    for (int i = 0; i < fields.length; i++) {
-      final Field field = fields[i];
+    for (final Field field : fields) {
       try {
         field.setDouble(object, 6.0);
-        changeSuccess(field, object);
-      } catch (Exception e) { changeError(field, e); }
+        changeSuccess();
+      } catch (Exception e) { changeError(e); }
     }
+    System.out.println();
   }
 
   private static void banner(final String typename, final Object value) {
-    System.out.println();
-    System.out.println("** Set " + typename + "s to " + value + " **");
-    System.out.println();
+    System.out.print("Set " + typename + "s to " + value + " ");
   }
 
-  private static void changeSuccess(final Field field, final Object object) throws IllegalAccessException {
-    System.out.println("OK: " + describeField(field) + " = " + field.get(object));
-  }
+  private static void changeSuccess() { System.out.print("+"); }
 
-  private static void changeError(final Field field, final Exception e) {
-    System.out.println("ERR: " + describeField(field) + " due to " + e.getClass().getName());
-  }
-
-  //Classpath and JDK differ in how they display fields with package access thus this is used to display fields
-  private static String describeField(final Field field) {
-    final int modifiers = field.getModifiers();
-    return (((modifiers == 0) ? "" : (Modifier.toString(modifiers) + " ")) +
-        field.getType().getName() + " " + field.getDeclaringClass().getName() + "." + field.getName());
+  private static void changeError(final Exception e) {
+    if (e instanceof IllegalAccessException) {
+      System.out.print("-");
+    } else {
+      System.out.print("!");
+    }
   }
 
   private static class StringComparator implements Comparator<Object> {
