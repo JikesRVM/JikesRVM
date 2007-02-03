@@ -1,125 +1,15 @@
-Testing new Magic()
-instanceof java.lang.Object = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic = true
-instanceof [Ljava.lang.Object; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [[Ljava.lang.Object; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [I = false
-instanceof java.io.Serializable = false
-instanceof java.lang.Cloneable = false
-Cast to Object: Succeeded
-Cast to Science: Succeeded
-Cast to Magic: Succeeded
-Cast to Object[]: Failed
-Cast to Magic[]: Failed
-Cast to Science[]: Failed
-Cast to Object[][]: Failed
-Cast to Magic[][]: Failed
-Cast to Science[][]: Failed
-Cast to int[]: Failed
-Cast to Serializable: Failed
-Cast to Cloneable: Failed
-Testing new Magic[2]
-instanceof java.lang.Object = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science = false
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic = false
-instanceof [Ljava.lang.Object; = true
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = true
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = true
-instanceof [[Ljava.lang.Object; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [I = false
-instanceof java.io.Serializable = true
-instanceof java.lang.Cloneable = true
-Cast to Object: Succeeded
-Cast to Science: Failed
-Cast to Magic: Failed
-Cast to Object[]: Succeeded
-Cast to Magic[]: Succeeded
-Cast to Science[]: Succeeded
-Cast to Object[][]: Failed
-Cast to Magic[][]: Failed
-Cast to Science[][]: Failed
-Cast to int[]: Failed
-Cast to Serializable: Succeeded
-Cast to Cloneable: Succeeded
-Testing new Object[][]{new Magic[4],new Magic[4]}
-instanceof java.lang.Object = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science = false
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic = false
-instanceof [Ljava.lang.Object; = true
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [[Ljava.lang.Object; = true
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [I = false
-instanceof java.io.Serializable = true
-instanceof java.lang.Cloneable = true
-Cast to Object: Succeeded
-Cast to Science: Failed
-Cast to Magic: Failed
-Cast to Object[]: Succeeded
-Cast to Magic[]: Failed
-Cast to Science[]: Failed
-Cast to Object[][]: Succeeded
-Cast to Magic[][]: Failed
-Cast to Science[][]: Failed
-Cast to int[]: Failed
-Cast to Serializable: Succeeded
-Cast to Cloneable: Succeeded
-Testing new Magic[][]{new Magic[4],new Magic[4]}
-instanceof java.lang.Object = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science = false
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic = false
-instanceof [Ljava.lang.Object; = true
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [[Ljava.lang.Object; = true
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = true
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = true
-instanceof [I = false
-instanceof java.io.Serializable = true
-instanceof java.lang.Cloneable = true
-Cast to Object: Succeeded
-Cast to Science: Failed
-Cast to Magic: Failed
-Cast to Object[]: Succeeded
-Cast to Magic[]: Failed
-Cast to Science[]: Failed
-Cast to Object[][]: Succeeded
-Cast to Magic[][]: Succeeded
-Cast to Science[][]: Succeeded
-Cast to int[]: Failed
-Cast to Serializable: Succeeded
-Cast to Cloneable: Succeeded
-Testing new int[2]
-instanceof java.lang.Object = true
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science = false
-instanceof test.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic = false
-instanceof [Ljava.lang.Object; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [[Ljava.lang.Object; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Science; = false
-instanceof [[Ltest.org.jikesrvm.basic.core.bytecode.TestInstanceOf$Magic; = false
-instanceof [I = true
-instanceof java.io.Serializable = true
-instanceof java.lang.Cloneable = true
-Cast to Object: Succeeded
-Cast to Science: Failed
-Cast to Magic: Failed
-Cast to Object[]: Failed
-Cast to Magic[]: Failed
-Cast to Science[]: Failed
-Cast to Object[][]: Failed
-Cast to Magic[][]: Failed
-Cast to Science[][]: Failed
-Cast to int[]: Succeeded
-Cast to Serializable: Succeeded
-Cast to Cloneable: Succeeded
+Testing Magic() - instanceof: 
+111000000000 casts: 
+111000000000
+Testing Magic[2] - instanceof: 
+100111000011 casts: 
+100111000011
+Testing Object[][]{new Magic[4],new Magic[4]} - instanceof: 
+100100100011 casts: 
+100100100011
+Testing Magic[][]{new Magic[4],new Magic[4]} - instanceof: 
+100100111011 casts: 
+100100111011
+Testing int[2] - instanceof: 
+100000000111 casts: 
+100000000111
