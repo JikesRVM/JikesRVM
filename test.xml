@@ -18,7 +18,6 @@
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
 
   <property name="results.archive" location="${results.dir}/archive"/>
-  <property name="results.weekly" location="${results.dir}/weekly"/>
 
   <!-- properties defining mailer properties-->
   <property name="mail.from" value="jikesrvm-core@lists.sourceforge.net"/>
@@ -199,56 +198,6 @@
       <outputproperty name="encoding" value="US-ASCII"/>
       <outputproperty name="indent" value="yes"/>
     </xslt>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                  Targets for generating a simple report                  * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="gen-weekly-report" depends="gen-report">
-    <tstamp prefix="day0">
-      <format property="DAY" pattern="EEEE" offset="-0" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day1">
-      <format property="DAY" pattern="EEEE" offset="-1" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day2">
-      <format property="DAY" pattern="EEEE" offset="-2" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day3">
-      <format property="DAY" pattern="EEEE" offset="-3" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day4">
-      <format property="DAY" pattern="EEEE" offset="-4" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day5">
-      <format property="DAY" pattern="EEEE" offset="-5" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day6">
-      <format property="DAY" pattern="EEEE" offset="-6" unit="day"/>
-    </tstamp>
-    <tstamp prefix="day7">
-      <format property="DAY" pattern="EEEE" offset="-7" unit="day"/>
-    </tstamp>
-
-    <mkdir dir="${results.weekly}"/>
-    <copy file="${build.results.dir}/Report.xml"
-          tofile="${results.weekly}/Report-${test-run.name}-${day0.DAY}.xml"/>
-
-    <echo file="${build.results.dir}/WeeklyReport.xml" append="false"><![CDATA[<weekly-report>]]></echo>
-    <concat destfile="${build.results.dir}/WeeklyReport.xml" append="true">
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day0.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day1.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day2.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day3.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day4.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day5.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day6.DAY}.xml"/>
-      <fileset dir="${results.weekly}" includes="Report-${test-run.name}-${day7.DAY}.xml"/>
-    </concat>
-    <echo file="${build.results.dir}/WeeklyReport.xml" append="true"><![CDATA[</weekly-report>]]></echo>
   </target>
 
   <!-- **************************************************************************** -->
