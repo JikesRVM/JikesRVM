@@ -18,43 +18,43 @@ public class TestClassHierarchy {
   public interface Magic { void magic(); }
 
   static protected class A implements Magic {
-    public void magic() { System.out.println("invoke magic A"); }
+    public void magic() { System.out.print("A"); }
   }
 
   static protected class B extends A {
-    public void magic() { System.out.println("invoke magic B"); }
+    public void magic() { System.out.print("B"); }
   }
 
   static protected class C extends B {
-    public void magic() { System.out.println("invoke magic C"); }
+    public void magic() { System.out.print("C"); }
   }
 
   static protected class D extends A {
-    public void magic() { System.out.println("invoke magic D"); }
+    public void magic() { System.out.print("D"); }
   }
 
   protected class E extends D {
-    public void magic() { System.out.println("invoke magic E"); }
+    public void magic() { System.out.print("E"); }
   }
 
   protected class F extends A {
-    public void magic() { System.out.println("invoke magic F"); }
+    public void magic() { System.out.print("F"); }
   }
 
   protected class G extends F {
-    public void magic() { System.out.println("invoke magic G"); }
+    public void magic() { System.out.print("G"); }
   }
 
   protected class H implements Magic {
-    public void magic() { System.out.println("invoke magic H"); }
+    public void magic() { System.out.print("H"); }
   }
 
   protected class I extends H {
-    public void magic() { System.out.println("invoke magic I"); }
+    public void magic() { System.out.print("I"); }
   }
 
   protected class J extends I {
-    public void magic() { System.out.println("invoke magic J"); }
+    public void magic() { System.out.print("J"); }
   }
 
 /*
@@ -103,35 +103,35 @@ In class SubSubClass extends SubClassInDifferentPackage:
   static class SubSubClass extends test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage {
 
     static class O_C1 extends P_B {
-      public void magic() { System.out.println("invoke magic O_C1"); }
+      public void magic() { System.out.print("O_C1"); }
     }
 
     class O_C2 extends P_B {
-      public void magic() { System.out.println("invoke magic O_C2"); }
+      public void magic() { System.out.print("O_C2"); }
     }
 
     class O_E extends P_D {
-      public void magic() { System.out.println("invoke magic O_E"); }
+      public void magic() { System.out.print("O_E"); }
     }
 
     class O_G extends SubClassInDifferentPackage.P_F {
-      public void magic() { System.out.println("invoke magic O_G"); }
+      public void magic() { System.out.print("O_G"); }
     }
 
     class O_I1 extends H {
-      public void magic() { System.out.println("invoke magic O_I1"); }
+      public void magic() { System.out.print("O_I1"); }
     }
 
     class O_I2 extends P_H {
-      public void magic() { System.out.println("invoke magic O_I2"); }
+      public void magic() { System.out.print("O_I2"); }
     }
 
     class O_J1 extends P_I1 {
-      public void magic() { System.out.println("invoke magic O_J1"); }
+      public void magic() { System.out.print("O_J1"); }
     }
 
     class O_J2 extends P_I2 {
-      public void magic() { System.out.println("invoke magic O_J2"); }
+      public void magic() { System.out.print("O_J2"); }
     }
 
     private void runTests() {
@@ -173,118 +173,88 @@ In class SubSubClass extends SubClassInDifferentPackage:
   }
 
   private static void runTest(final String name, final Magic x3) {
-    System.out.println("Testing new " + name);
+    System.out.print("Testing " + name + " instanceOf: ");
     testInstanceOf(x3);
+    System.out.print(" casts: ");
     testCasts(x3);
+    System.out.print(" magic: ");
     x3.magic();
+    System.out.println();
   }
 
   @SuppressWarnings({"UnusedDeclaration"})
   private static void testCasts(final Object x) {
-    System.out.print("Cast to A: ");
     try { final A o = (A) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to B: ");
     try { final B o = (B) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to C: ");
     try { final C o = (C) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to D: ");
     try { final D o = (D) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to E: ");
     try { final E o = (E) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to F: ");
     try { final F o = (F) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to G: ");
     try { final G o = (G) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to H: ");
     try { final H o = (H) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to I: ");
     try { final I o = (I) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to J: ");
     try { final J o = (J) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_B: ");
     try { final P_B o = (P_B) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_C1: ");
     try { final P_C1 o = (P_C1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_C2: ");
     try { final P_C2 o = (P_C2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_D: ");
     try { final P_D o = (P_D) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_E1: ");
     try { final SubClassInDifferentPackage.P_E1 o = (SubClassInDifferentPackage.P_E1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_E2: ");
     try { final SubClassInDifferentPackage.P_E2 o = (SubClassInDifferentPackage.P_E2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_F: ");
     try { final SubClassInDifferentPackage.P_F o = (SubClassInDifferentPackage.P_F) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_G1: ");
     try { final SubClassInDifferentPackage.P_G1 o = (SubClassInDifferentPackage.P_G1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_G2: ");
     try { final SubClassInDifferentPackage.P_G2 o = (SubClassInDifferentPackage.P_G2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_H: ");
     try { final SubClassInDifferentPackage.P_H o = (SubClassInDifferentPackage.P_H) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_I1: ");
     try { final SubClassInDifferentPackage.P_I1 o = (SubClassInDifferentPackage.P_I1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_I2: ");
     try { final SubClassInDifferentPackage.P_I2 o = (SubClassInDifferentPackage.P_I2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_J1: ");
     try { final SubClassInDifferentPackage.P_J1 o = (SubClassInDifferentPackage.P_J1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_J2: ");
     try { final SubClassInDifferentPackage.P_J2 o = (SubClassInDifferentPackage.P_J2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to P_J3: ");
     try { final SubClassInDifferentPackage.P_J3 o = (SubClassInDifferentPackage.P_J3) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_C1: ");
     try { final O_C1 o = (O_C1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_C2: ");
     try { final O_C2 o = (O_C2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_E: ");
     try { final O_E o = (O_E) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_G: ");
     try { final O_G o = (O_G) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_I1: ");
     try { final O_I1 o = (O_I1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_I2: ");
     try { final O_I2 o = (O_I2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_J1: ");
     try { final O_J1 o = (O_J1) x; success(); }
     catch (final ClassCastException cce) { failure(); }
-    System.out.print("Cast to O_J2: ");
     try { final O_J2 o = (O_J2) x; success(); }
     catch (final ClassCastException cce) { failure(); }
   }
 
-  private static void failure() {System.out.println("Failed");}
+  private static void failure() {System.out.print("0");}
 
-  private static void success() {System.out.println("Succeeded");}
+  private static void success() {System.out.print("1");}
 
   private static void testInstanceOf(final Object x) {
     io(A.class, (x instanceof A));
@@ -322,8 +292,9 @@ In class SubSubClass extends SubClassInDifferentPackage:
     io(O_J2.class, (x instanceof O_J2));
   }
 
+  @SuppressWarnings({"UnusedDeclaration"})
   private static void io(final Class type, final boolean test) {
-    System.out.println("instanceof " + type.getName() + " = " + test);
+    System.out.print(test?"1":"0");
   }
   }
   public static void main(String args[]) {
