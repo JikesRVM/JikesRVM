@@ -148,6 +148,7 @@
   <revision>${svn.revision}</revision>
   <time>${test-run.start.time}</time>
 ]]></echo>
+    <mkdir dir="${test.results.dir}"/>
     <forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
@@ -157,7 +158,7 @@
           <equals arg1="${test.config.@{tag}.name}" arg2=""/>
         </condition>
         <forEach list="${test.config.@{tag}.tests}" property="test">
-          <sequential >
+          <sequential>
             <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
               <fileset dir="${test.results.dir}" includes="${test.config.@{tag}.configuration}/${test.config.@{tag}.prefix}@{test}/Results.xml"/>
             </concat>
