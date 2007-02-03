@@ -107,7 +107,7 @@
     <parameter key="target.dll-ext" value="${target.dll-ext}"/>
   </build-parameters>
   <test-parameters>
-    <parameter key="test.config.name" value="${test.config.name}"/>
+    <parameter key="test-config.name" value="${test.config.name}"/>
     <parameter key="mode" value="${test.mode}"/>
     <parameter key="extra.args" value="${test.rvm.extra.args}"/>
   </test-parameters>
