@@ -58,10 +58,13 @@
     <forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
-        <propertycopy name="test.config.@{tag}.done" from="${test.config.@{tag}.configuration}.done"/>
+        <propertycopy name="test.config.@{tag}.done" from="${test.config.@{tag}.configuration}.built"/>
         <if>
           <not>
-            <equals arg1="${test.config.@{tag}.done}" arg2="true"/>
+            <or>
+              <equals arg1="${test.config.@{tag}.done}" arg2="true"/>
+              <isset property="skip.build"/>
+            </or>
           </not>
           <sequential>
             <echo message="Building ${test.config.@{tag}.configuration}"/>
@@ -69,7 +72,7 @@
               <filelist dir="${jikesrvm.dir}" files="build.xml"/>
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
             </subant>
-            <property name="${test.config.@{tag}.configuration}.done" value="true"/>
+            <property name="${test.config.@{tag}.configuration}.built" value="true"/>
           </sequential>
         </if>
         <echo message="Testing Run @{tag}"/>
