@@ -206,7 +206,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="archive" depends="gen-report" if="archive.tests">
+  <target name="archive" depends="gen-report" if="archive.results">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
     <gzip src="${build.results.dir}/Results.xml"
