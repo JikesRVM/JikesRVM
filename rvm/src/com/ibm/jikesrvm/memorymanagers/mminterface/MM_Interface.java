@@ -760,6 +760,13 @@ import org.vmmagic.pragma.*;
     return new VM_CompiledMethod[n];
   }
 
+  /*
+ *  Will this object move (allows us to optimize some JNI calls)
+ *  */
+  public static final boolean objectCanMove(Object obj) {
+    return Selected.Plan.get().objectCanMove(ObjectReference.fromObject(obj));
+  }
+
   /***********************************************************************
    *
    * Finalizers

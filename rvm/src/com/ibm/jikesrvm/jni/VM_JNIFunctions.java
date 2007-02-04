@@ -13,9 +13,11 @@ package com.ibm.jikesrvm.jni;
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
 import com.ibm.jikesrvm.classloader.*;
+import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.lang.reflect.*;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 import org.vmmagic.unboxed.*;
 
@@ -4240,21 +4242,27 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size);
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size);
 
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
+
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
+
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+           address */
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+
+        return copyBuffer;
+      } else {
+         /* return a direct pointer */
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
       }
-
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
-
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
-         address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-
-      return copyBuffer;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4279,20 +4287,25 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_CHAR);
-      if (copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_CHAR);
+        if (copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
 
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_CHAR);
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_CHAR);
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4316,20 +4329,25 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_SHORT);
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_SHORT);
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
 
-      VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_SHORT );
+        VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_SHORT );
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4353,19 +4371,24 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of array contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_INT);
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_INT);
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of array contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_INT);
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_INT);
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4389,19 +4412,24 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_LONG);
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_LONG);
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4425,20 +4453,25 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
 
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_FLOAT);
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_FLOAT);
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4462,19 +4495,24 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
-      if(copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_DOUBLE);
+      if (MM_Interface.objectCanMove(sourceArray)) {
+        // alloc non moving buffer in C heap for a copy of string contents
+        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
+        if(copyBuffer.isZero()) {
+          env.recordException(new OutOfMemoryError());
+          return Address.zero();
+        }
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_DOUBLE);
 
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
+        /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      return copyBuffer;
+        return copyBuffer;
+      } else {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4553,14 +4591,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    */  
   private static void ReleaseByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
                                                int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  releaseMode=",releaseMode);
 
     try {
       byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
+        if (traceJNI) VM.sysWrite(" size=",size);
 
         // mode 0 and mode 1:  copy back the buffer
         if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
@@ -4571,11 +4610,14 @@ public class VM_JNIFunctions implements VM_NativeBridge,
         if (releaseMode== 0 || releaseMode== 2) {
           VM_SysCall.sysFree(copyBufferAddress);
         }
+      } else {
+        // Nothing to be done
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
+    if (traceJNI) VM.sysWrite("\n");
   }
 
   /**
@@ -4596,7 +4638,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -4633,7 +4675,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -4670,7 +4712,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -4708,7 +4750,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -4745,7 +4787,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -4782,7 +4824,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
-      if (VM_Magic.objectAsAddress(sourceArray) != copyBufferAddress) {
+      if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
@@ -5784,7 +5826,14 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");   
     try {
       Buffer buffer = (Buffer)env.getJNIRef(bufJREF);
-      return java.nio.JikesRVMSupport.getDirectBufferAddress(buffer);
+      //if (buffer instanceof ByteBuffer) {
+      //  VM.sysWrite("ByteBuffer, ");
+      //  if (((ByteBuffer)buffer).isDirect())
+      //    VM.sysWrite("Direct, ");
+      //}
+      Address result = java.nio.JikesRVMSupport.getDirectBufferAddress(buffer);
+      //VM.sysWriteln("Direct buffer address = ",result);
+      return result;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
