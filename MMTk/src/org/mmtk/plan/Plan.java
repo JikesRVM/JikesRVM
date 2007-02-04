@@ -98,6 +98,7 @@ import org.vmmagic.unboxed.*;
 
   /* Miscellaneous Constants */
   public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
+  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE >> 1;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
@@ -120,8 +121,8 @@ import org.vmmagic.unboxed.*;
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
 
-  /** Primitive (non-ref) large objects are allocated into a special primitiv\
-      e large object space. */
+  /** Primitive (non-ref) large objects are allocated into a special primitive
+      large object space. */
   public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);    
 
   /* Space descriptors */
@@ -681,6 +682,32 @@ import org.vmmagic.unboxed.*;
   @Interruptible
   public void startGCspyServer(int port, boolean wait) { 
     VM.assertions.fail("startGCspyServer called on non GCspy plan");
+  }
+
+  /**
+   * Can this object ever move.  Used by the VM to make decisions about
+   * whether it needs to copy IO buffers etc.
+   * 
+   * @param object The object in question
+   * @return True if it is possible that the object will ever move
+   */
+  public boolean objectCanMove(ObjectReference object) {
+    if (!VM.activePlan.constraints().movesObjects())
+      return false;
+    if (Space.isInSpace(LOS, object))
+      return false;
+    if (Space.isInSpace(PLOS,object))
+      return false;
+    if (Space.isInSpace(IMMORTAL, object))
+      return false;
+    if (Space.isInSpace(VM_SPACE, object))
+      return false;
+    
+    /*
+     * Default to true - this preserves correctness over efficiency.
+     * Individual plans should override for non-moving spaces they define.
+     */
+    return true;
   }
 
 }

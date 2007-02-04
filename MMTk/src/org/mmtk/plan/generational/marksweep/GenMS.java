@@ -15,6 +15,7 @@ import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the functionality of a two-generation copying
@@ -80,6 +81,7 @@ import org.vmmagic.pragma.*;
    * Perform a (global) collection phase.
    */
   @Inline
+  @Override
   public final void collectionPhase(int phaseId) { 
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
@@ -112,6 +114,7 @@ import org.vmmagic.pragma.*;
    * allocation, excluding space reserved for copying.
    */
   @Inline
+  @Override
   public int getPagesUsed() { 
     return msSpace.reservedPages() + super.getPagesUsed();
   }
@@ -131,4 +134,18 @@ import org.vmmagic.pragma.*;
   protected final Space activeMatureSpace() { 
     return msSpace;
   }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MS, object))
+      return false;
+    return super.objectCanMove(object);
+  }
+
 }

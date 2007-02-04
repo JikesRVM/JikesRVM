@@ -336,4 +336,17 @@ import org.vmmagic.unboxed.*;
   public final boolean isLastGCFull() {
     return gcFullHeap;
   }
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object
+   * @return
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(NURSERY, object))
+      return true;
+    return super.objectCanMove(object);
+  }
+
 }

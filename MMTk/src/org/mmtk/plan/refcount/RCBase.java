@@ -237,4 +237,17 @@ import org.vmmagic.unboxed.*;
     VM.assertions.fail("No cycle detector instance found.");
     return null;
   }
+  
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(REF_COUNT, object))
+      return false;
+    return super.objectCanMove(object);
+  }
 }

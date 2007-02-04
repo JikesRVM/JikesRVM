@@ -140,7 +140,7 @@ import org.vmmagic.unboxed.*;
         Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD) 
       return Plan.ALLOC_LOS;
     else if (allocator == Plan.ALLOC_NON_REFERENCE) {
-        if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
+        if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.PLOS_SIZE_THRESHOLD)
           return Plan.ALLOC_PRIMITIVE_LOS;
     else
           return Plan.ALLOC_DEFAULT;

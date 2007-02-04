@@ -184,4 +184,18 @@ import org.vmmagic.pragma.*;
   public final int getPagesUsed() {
     return super.getPagesUsed() + nurserySpace.reservedPages();
   }
+  
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(NS, object))
+      return true;
+    return super.objectCanMove(object);
+  }
+
 }

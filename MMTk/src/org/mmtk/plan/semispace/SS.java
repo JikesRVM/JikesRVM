@@ -225,5 +225,17 @@ import org.vmmagic.pragma.*;
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
 
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object))
+      return true;
+    return super.objectCanMove(object);
+  }
 
 }

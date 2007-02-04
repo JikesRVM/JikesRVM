@@ -17,6 +17,7 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the global state of a simple mark-sweep collector.
@@ -177,4 +178,18 @@ import org.vmmagic.pragma.*;
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MARK_SWEEP, object))
+      return false;
+    return super.objectCanMove(object);
+  }
+
 }
