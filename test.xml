@@ -6,7 +6,7 @@
 
   <property name="test-run.name" value="sanity"/>
 
-  <property name="test-run.file" value="${jikesrvm.dir}/build/testing/${test-run.name}.properties"/>
+  <property name="test-run.file" value="${jikesrvm.dir}/build/test-runs/${test-run.name}.properties"/>
   <property file="${test-run.file}"/>
 
   <property name="driver.scratch.dir" location="${build.dir}/test-driver"/>
