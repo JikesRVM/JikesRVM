@@ -184,7 +184,7 @@
 
   <target name="gen-report" depends="aggregate">
     <xslt in="${build.results.dir}/Results.xml"
-          out="${build.results.dir}/Report.xml"
+          out="${test.results.dir}/Report.xml"
           style="${jikesrvm.dir}/build/testing/results2report.xsl"
           force="true">
       <outputproperty name="method" value="xml"/>
@@ -193,7 +193,7 @@
       <outputproperty name="indent" value="yes"/>
       <outputproperty name="omit-xml-declaration" value="yes"/>
     </xslt>
-    <xslt in="${build.results.dir}/Report.xml"
+    <xslt in="${test.results.dir}/Report.xml"
           out="${build.results.dir}/Report.html"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"
           force="true">
@@ -213,7 +213,7 @@
   <target name="archive" depends="gen-report" if="archive.results">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
-    <gzip src="${build.results.dir}/Report.xml"
+    <gzip src="${test.results.dir}/Report.xml"
           destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
   </target>
 
