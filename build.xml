@@ -6,8 +6,6 @@
   <import file="build/base.xml"/>
   
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
-  <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
-  <property name="components.file" location="${components.dir}/components.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>

@@ -8,6 +8,7 @@ common build component for setting up and checking propertys that common across 
 
   <!-- If not set, default the target.name to the host.name -->
   <property name="target.name" value="${host.name}"/>
+  <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
 
   <!-- load host specific properties -->
   <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
@@ -15,6 +16,7 @@ common build component for setting up and checking propertys that common across 
 
   <!-- location of components -->
   <property name="components.dir" location="${jikesrvm.dir}/components"/>
+  <property name="components.file" location="${components.dir}/components.properties"/>
 
   <!-- location of intermediate directory -->
   <property name="build.dir" location="${jikesrvm.dir}/target"/>

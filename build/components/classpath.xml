@@ -3,6 +3,8 @@
   <property name="jikesrvm.dir" location="${basedir}/../../"/>
   <import file="${jikesrvm.dir}/build/base.xml"/>
 
+  <property file="${target.file}"/>
+
   <property name="classpath.version" value="93"/>
 
   <!-- **************************************************************************** -->
