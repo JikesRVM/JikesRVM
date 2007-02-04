@@ -502,7 +502,25 @@ public abstract class OPT_IRTools {
     if (out != next) {
       // if there's already a GOTO, there's no fall through
       if (!foundGoto) {
-        s = Goto.create(GOTO, next.makeJumpTarget());
+        /*
+         * TODO: come up with a better fix (?).
+         * 
+         * This is a fix to a particular problem in dacapo xalan.  
+         * 
+         * We have a loop inside an exception handler, and the exception handler 
+         * is empty.  The loop termination condition simply falls through the
+         * exception handler to the next block.  This works fine until LeaveSSA,
+         * when we split the final block and insert a GOTO to the exception handler 
+         * block.  When we reassemble the IR afterwards, kaboom.
+         * 
+         * I would have though it better not to fall through empty exception handlers 
+         * at all, and explicitly GOTO past them from the get go.   RJG 4/2/7
+         */
+        OPT_BasicBlock jumpTarget = next;
+        while (jumpTarget.isEmpty() && jumpTarget.isExceptionHandlerBasicBlock()) {
+          jumpTarget = jumpTarget.nextBasicBlockInCodeOrder();
+        }
+        s = Goto.create(GOTO, jumpTarget.makeJumpTarget());
         in.appendInstruction(s);
       }
     }
