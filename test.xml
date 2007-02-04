@@ -185,7 +185,7 @@
   <target name="gen-report" depends="aggregate">
     <xslt in="${build.results.dir}/Results.xml"
           out="${test.results.dir}/Report.xml"
-          style="${jikesrvm.dir}/build/testing/results2report.xsl"
+          style="${jikesrvm.dir}/build/results2report.xsl"
           force="true">
       <outputproperty name="method" value="xml"/>
       <outputproperty name="standalone" value="yes"/>
