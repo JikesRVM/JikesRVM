@@ -16,6 +16,7 @@ import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a simple semi-space collector. See the Jones

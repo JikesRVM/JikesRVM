@@ -17,6 +17,7 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the global state of a simple reference counting
