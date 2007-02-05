@@ -90,14 +90,12 @@
     <parameter key="config.stress-gc" value="${config.stress-gc}"/>
     <parameter key="target.name" value="${target.name}"/>
     <parameter key="target.arch" value="${target.arch}"/>
+    <parameter key="target.address.size" value="${target.address.size}"/>
     <parameter key="target.os" value="${target.os}"/>
     <parameter key="target.bootimage.code.address" value="${target.bootimage.code.address}"/>
     <parameter key="target.bootimage.data.address" value="${target.bootimage.data.address}"/>
     <parameter key="target.bootimage.rmap.address" value="${target.bootimage.rmap.address}"/>
     <parameter key="target.max-mappable.address" value="${target.max-mappable.address}"/>
-    <parameter key="target.address.size" value="${target.address.size}"/>
-    <parameter key="target.dll-prefix" value="${target.dll-prefix}"/>
-    <parameter key="target.dll-ext" value="${target.dll-ext}"/>
   </build-parameters>
   <test-parameters>
     <parameter key="mode" value="${test.mode}"/>
