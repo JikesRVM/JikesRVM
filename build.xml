@@ -9,7 +9,6 @@
 
   <!-- configuration data -->
   <property file="${config.file}"/>
-  <property file="${components.file}"/>
   <property file="${target.file}"/>
 
   <!-- default configuration values. May have already been set by above tasks -->
