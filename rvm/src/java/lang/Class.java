@@ -12,10 +12,13 @@ package java.lang;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 
 import java.lang.annotation.Annotation;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -1043,4 +1046,17 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return false;
     }
   }
+  
+  /**
+   * Utility method for use by classes in this package.
+   */
+  static void setAccessible(final AccessibleObject obj) {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        public Object run() {
+            obj.setAccessible(true);
+            return null;
+          }
+      });
+  }
+
 }
