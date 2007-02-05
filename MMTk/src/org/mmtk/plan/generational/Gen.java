@@ -14,6 +14,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
@@ -195,7 +196,7 @@ import org.vmmagic.unboxed.*;
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean mustCollect, Space space) { 
+  public final boolean poll(boolean mustCollect, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
@@ -203,12 +204,13 @@ import org.vmmagic.unboxed.*;
       mustCollect = true;
       nextGCFullHeap = true;
     }
+    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() >
                           Options.nurserySize.getMaxNursery();
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
-    if (mustCollect || heapFull || nurseryFull || metaDataFull) {
+    if (mustCollect || heapFull || nurseryFull || metaDataFull || spaceFull) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since 
          * this is not, in general, in a GC safe point.  Instead we initiate
@@ -223,7 +225,7 @@ import org.vmmagic.unboxed.*;
         required = required << 1; // must account for copy reserve
       int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
       int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
-      nextGCFullHeap |= nurseryYield < required;
+      nextGCFullHeap |= nurseryYield < required || (space != nurserySpace);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
