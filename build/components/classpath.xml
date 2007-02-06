@@ -1,9 +1,6 @@
 <project name="classpath" default="build" basedir=".">
 
-  <property name="jikesrvm.dir" location="${basedir}/../../"/>
-  <import file="${jikesrvm.dir}/build/base.xml"/>
-
-  <property file="${target.file}"/>
+  <import file="base.xml"/>
 
   <property name="classpath.version" value="93"/>
 
@@ -14,7 +11,7 @@
   <!-- **************************************************************************** -->
 
   <!-- init properties for downloading classpath from cvs or from web -->
-  <target name="init-classpath-properties">
+  <target name="init-classpath-properties" depends="prepare-ant-tasks">
     <check-host-and-target-match message="can not download and build Classpath."/>
     <property name="classpath.component.dir" location="${components.dir}/classpath"/>
     <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
@@ -147,11 +144,7 @@
 classpath.version=${classpath.version}
 classpath.description=GNU Classpath (Generics Branch)
 ]]></echo>
-
-    <echo>
-      Edit the components configuration file ${components.file} and set the following property:
-      ${target.name}.classpath.lib.dir=${classpath.package.dir}/${target.name}/lib
-    </echo>
+    <setupComponentsConfig>${target.name}.classpath.lib.dir=${classpath.package.dir}/${target.name}/lib</setupComponentsConfig>
   </target>
 
 </project>

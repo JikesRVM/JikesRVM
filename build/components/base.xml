@@ -1,0 +1,29 @@
+<project name="base-components">
+
+  <property name="jikesrvm.dir" location="${basedir}/../../"/>
+  <import file="${jikesrvm.dir}/build/base.xml"/>
+  <import file="${jikesrvm.dir}/build/tasks.xml"/>
+
+  <property file="${target.file}"/>
+
+  <macrodef name="setupComponentsConfig">
+    <text name="props"/>
+    <sequential>
+      <if>
+        <isset property="protect.config-files"/>
+        <sequential>
+          <echo><![CDATA[Edit the components configuration file ${components.file} and add the following lines(s):${line.separator}@{props}]]></echo>
+        </sequential>
+      </if>
+      <if>
+        <not>
+          <isset property="protect.config-files"/>
+        </not>
+        <sequential>
+          <echo file="${components.file}" append="true"><![CDATA[@{props}]]></echo>
+        </sequential>
+      </if>
+    </sequential>
+  </macrodef>
+
+</project>

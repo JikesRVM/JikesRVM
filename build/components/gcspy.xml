@@ -1,9 +1,6 @@
 <project name="gcspy" default="build" basedir=".">
 
-  <property name="jikesrvm.dir" location="${basedir}/../../"/>
-  <import file="${jikesrvm.dir}/build/base.xml"/>
-
-  <property file="${target.file}"/>
+  <import file="base.xml"/>
 
   <property name="gcspy.version" value="1_01"/>
 
@@ -13,7 +10,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="init-gcspy-properties">
+  <target name="init-gcspy-properties" depends="prepare-ant-tasks">
     <check-host-and-target-match message="can not download and build GCSpy."/>
 
     <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
@@ -105,16 +102,13 @@
 gcspy.version=${gcspy.version}
 gcspy.description=GCSpy Heap Visualisation Framework
 ]]></echo>
-    <condition property="gcspy.client.help"
-               value="      ${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client${line.separator}"
+    <condition property="gcspy.client.property"
+               value="${target.name}.gcspy.client.dir=${gcspy.package.dir}/${target.name}/client${line.separator}"
                else="">
       <isset property="include.gcspy-client"/>
     </condition>
 
-    <echo>
-      Edit the components configuration file ${components.file} and set the following properties:
-      ${gcspy.client.help} ${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server
-    </echo>
+    <setupComponentsConfig><![CDATA[${gcspy.client.property}${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server]]></setupComponentsConfig>
   </target>
 
 </project>
