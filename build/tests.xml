@@ -363,7 +363,7 @@
       <if>
         <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
         <sequential>
-          <!-- If we run are excluded then record result -->
+          <!-- If excluded then record result -->
           <property name="test.@{tag}.result" value="EXCLUDED"/>
           <explainResult tag="@{tag}" message="Test excluded."/>
           <touch file="${test.@{tag}.output.file}"/>
