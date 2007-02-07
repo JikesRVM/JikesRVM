@@ -432,6 +432,7 @@
 
   <!-- run test then compare output to expected value in file named @{class}@{name}.expected and output results -->
   <macrodef name="runCompareTest">
+    <attribute name="tag"/>
     <attribute name="class"/>
     <attribute name="classpath" default=""/>
     <attribute name="args" default=""/>
@@ -440,7 +441,7 @@
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
     <sequential>
-      <rvm tag="@{class}"
+      <rvm tag="@{tag}"
            class="@{class}"
            args="@{args}"
            classpath="@{classpath}"
@@ -451,13 +452,13 @@
 
       <echo message="@{class}" file="${build.tests.dir}/deleteme.txt"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
-      <loadfile property="test.@{class}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
+      <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
 
-      <diffCompareFiles tag="@{class}"
-                        expected="${main.java}/${test.@{class}.expected.output.file}.expected"
-                        actual="${test.@{class}.sanitized.output.file}"/>
+      <diffCompareFiles tag="@{tag}"
+                        expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
+                        actual="${test.@{tag}.sanitized.output.file}"/>
 
-      <outputResults tag="@{class}"/>
+      <outputResults tag="@{tag}"/>
     </sequential>
   </macrodef>
 

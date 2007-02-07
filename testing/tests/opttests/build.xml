@@ -41,7 +41,8 @@
   <target name="test" depends="compile">
     <startResults/>
 
-    <runCompareTest class="InvokeReflect"
+    <runCompareTest tag="InvokeReflect"
+                    class="InvokeReflect"
                     args="fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch DeBruijn hello virtual sieve hanoi logic unresolved stPutGet virtUnPutGet virtUnresolved interf CheckStore TypeCheck TestArithmetic TestArrayAccess TestCall TestCompare TestConstants TestConversions TestFieldAccess TestInterfaceCall TestMath TestReturn TestSpecialCall TestStackAccess TestSwitch TestUnresolved TestInstanceOf TestExceptionThrow TestFinally inlineDeep inlineExcept"/>
 
     <finishResults/>
