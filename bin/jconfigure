@@ -1291,6 +1291,7 @@ EOF
 
 	$RVM_ROOT/rvm/src/gnu/classpath
 	$RVM_ROOT/rvm/src/gnu/java/lang
+	$RVM_ROOT/rvm/src/gnu/java/nio
 EOF
 
     # Add the configuration specific directories
