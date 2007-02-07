@@ -52,7 +52,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <presetdef name="res">
+  <presetdef name="bres">
     <echo file="${build.results.file}" append="true"/>
   </presetdef>
 
@@ -62,7 +62,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="init">
+  <target name="init" depends="prepare-ant-tasks">
     <tstamp prefix="test-run.start">
       <format property="time" pattern="MM/dd/yyyy hh:mm aa"/>
     </tstamp>
@@ -74,7 +74,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="test" depends="init,prepare-ant-tasks">
+  <target name="test" depends="init">
     <delete dir="${driver.scratch.dir}"/>
     <delete dir="${test.build.dir}"/>
     <delete dir="${test.results.dir}"/>
@@ -82,7 +82,7 @@
     <mkdir dir="${driver.scratch.dir}"/>
 
     <mkdir dir="${test.results.dir}"/>
-    <res append="false"><![CDATA[<builds>]]></res>
+    <bres append="false"><![CDATA[<builds>]]></bres>
 
     <forEach list="${test.configs}" property="tag">
       <sequential>
@@ -97,24 +97,27 @@
           </not>
           <sequential>
             <echo message="Building ${test.config.@{tag}.configuration}"/>
+            <timer property="${test.config.@{tag}.configuration}.build.time"/>
             <erant antfile="${jikesrvm.dir}/build.xml"
                    failonerror="false"
                    failonerrorProperty="${test.config.@{tag}.configuration}.build.error"
                    output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
             </erant>
+            <timer property="${test.config.@{tag}.configuration}.build.time" stop="true"/>
             <property name="${test.config.@{tag}.configuration}.built" value="true"/>
 
+            <propertycopy name="test.config.@{tag}.build.time" from="${test.config.@{tag}.configuration}.build.time.duration"/>
             <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
             <condition property="test.config.@{tag}.build.status" value="FAILURE" else="SUCCESS">
               <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
             </condition>
 
-            <res><![CDATA[<build><configuration>${test.config.@{tag}.configuration}</configuration><result>${test.config.@{tag}.build.status}</result><output><![CDATA[]]></res>
+            <bres><![CDATA[<build><configuration>${test.config.@{tag}.configuration}</configuration><time>${test.config.@{tag}.build.time}</time><result>${test.config.@{tag}.build.status}</result><output><![CDATA[]]></bres>
             <concat destfile="${build.results.file}" append="true">
               <path path="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt"/>
             </concat>
-            <res>]<![CDATA[]></output></build>]]></res>
+            <bres>]<![CDATA[]></output></build>]]></bres>
           </sequential>
         </if>
         <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
@@ -152,7 +155,7 @@
       </sequential>
     </forEach>
 
-    <res><![CDATA[</builds>]]></res>
+    <bres><![CDATA[</builds>]]></bres>
   </target>
 
   <!-- **************************************************************************** -->
@@ -193,7 +196,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="aggregate" depends="init,prepare-ant-tasks,get-svn-version">
+  <target name="aggregate" depends="init,get-svn-version">
     <mkdir dir="${build.results.dir}"/>
     <echo file="${build.results.dir}/Results.xml" append="false">
       <![CDATA[<test-run name="${test-run.name}">
