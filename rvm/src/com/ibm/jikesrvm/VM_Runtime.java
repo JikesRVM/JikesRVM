@@ -623,6 +623,10 @@ public class VM_Runtime implements VM_Constants {
    *           onto the stack immediately above this frame, for use by 
    *           VM_HardwareTrapGCMapIterator during garbage collection.
    */
+  // Force baseline compilation so calls to exception constructors aren't inlined,
+  // since inlining confuses VM_StackTrace when it searches for the exception on the stack.
+  // TODO: Modify VM_StackTrace so it understands inlined calls 
+  @NoOptCompile
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
     VM_Thread    myThread           = VM_Thread.getCurrentThread();
