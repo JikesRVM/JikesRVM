@@ -58,11 +58,23 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *                          Setup test-run start time                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init">
+    <tstamp prefix="test-run.start">
+      <format property="time" pattern="MM/dd/yyyy hh:mm aa"/>
+    </tstamp>
+  </target>
+
+    <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                          Task to actually run tests                      * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="test" depends="prepare-ant-tasks">
+  <target name="test" depends="init,prepare-ant-tasks">
     <delete dir="${driver.scratch.dir}"/>
     <delete dir="${test.build.dir}"/>
     <delete dir="${test.results.dir}"/>
@@ -181,11 +193,8 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="aggregate" depends="prepare-ant-tasks,get-svn-version">
+  <target name="aggregate" depends="init,prepare-ant-tasks,get-svn-version">
     <mkdir dir="${build.results.dir}"/>
-    <tstamp prefix="test-run.start">
-      <format property="time" pattern="MM/dd/yyyy hh:mm aa"/>
-    </tstamp>
     <echo file="${build.results.dir}/Results.xml" append="false">
       <![CDATA[<test-run name="${test-run.name}">
   <revision>${svn.revision}</revision>
