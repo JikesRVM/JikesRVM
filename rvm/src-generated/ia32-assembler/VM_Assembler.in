@@ -387,7 +387,11 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    */
   public final void writeLastInstruction(int start) {
     for (int j=start; j<mi; j++) {
-      VM.sysWrite(VM_Lister.hex(machineCodes[j]));
+      if (j < machineCodes.length) {
+        VM.sysWrite(VM_Lister.hex(machineCodes[j]));
+      } else {
+        VM.sysWrite(VM_Lister.hex((byte)0x0));
+      }
     }
   }
 
