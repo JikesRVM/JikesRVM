@@ -23,6 +23,8 @@
     <taskdef name="texec" classname="org.jikesrvm.tools.ant.TimeoutRecordingExecTask" classpath="${tasks.classes}"/>
     <!-- Task that makes it easier for conditional task execution within macros. -->
     <taskdef name="if" classname="org.jikesrvm.tools.ant.IfTask" classpath="${tasks.classes}"/>
+    <!-- Task that makes determining whether an ant build failed easier. Used in test infrastructure. -->
+    <taskdef name="erant" classname="org.jikesrvm.tools.ant.ErrorRecordingAntTask" classpath="${tasks.classes}"/>
   </target>
 
 </project>

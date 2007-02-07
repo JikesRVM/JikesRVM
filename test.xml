@@ -15,6 +15,8 @@
   <property name="test.results.dir" value="${results.dir}/tests/${test-run.name}"/>
   <property name="test.build.dir" value="${build.dir}/tests/${test-run.name}"/>
 
+  <property name="build.results.file" value="${test.results.dir}/BuildResults.xml"/>
+
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
 
   <property name="results.archive" location="${results.dir}/archive"/>
@@ -43,6 +45,17 @@
     </sequential>
   </macrodef>
 
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                      Macro for setup test properties                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <presetdef name="res">
+    <echo file="${build.results.file}" append="true"/>
+  </presetdef>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                          Task to actually run tests                      * -->
@@ -55,52 +68,79 @@
     <delete dir="${test.results.dir}"/>
 
     <mkdir dir="${driver.scratch.dir}"/>
+
+    <mkdir dir="${test.results.dir}"/>
+    <res append="false"><![CDATA[<builds>]]></res>
+
     <forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
-        <propertycopy name="test.config.@{tag}.done" from="${test.config.@{tag}.configuration}.built"/>
+        <propertycopy name="test.config.@{tag}.build.done" from="${test.config.@{tag}.configuration}.built"/>
         <if>
           <not>
             <or>
-              <equals arg1="${test.config.@{tag}.done}" arg2="true"/>
+              <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
               <isset property="skip.build"/>
             </or>
           </not>
           <sequential>
             <echo message="Building ${test.config.@{tag}.configuration}"/>
-            <subant failonerror="false" output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
-              <filelist dir="${jikesrvm.dir}" files="build.xml"/>
+            <erant antfile="${jikesrvm.dir}/build.xml"
+                   failonerror="false"
+                   failonerrorProperty="${test.config.@{tag}.configuration}.build.error"
+                   output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
-            </subant>
+            </erant>
             <property name="${test.config.@{tag}.configuration}.built" value="true"/>
+
+            <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
+            <condition property="test.config.@{tag}.build.status" value="FAILURE" else="SUCCESS">
+              <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
+            </condition>
+
+            <res><![CDATA[<build><configuration>${test.config.@{tag}.configuration}</configuration><result>${test.config.@{tag}.build.status}</result><output><![CDATA[]]></res>
+            <concat destfile="${build.results.file}" append="true">
+              <path path="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt"/>
+            </concat>
+            <res>]<![CDATA[]></output></build>]]></res>
           </sequential>
         </if>
-        <echo message="Testing Run @{tag}"/>
-        <echo message="    rvm.dir:        ${test.config.@{tag}.rvm.dir}"/>
-        <echo message="    Configuration:  ${test.config.@{tag}.configuration}"/>
-        <echo message="    Tests:          ${test.config.@{tag}.tests}"/>
-        <echo message="    Run Name:       ${test.config.@{tag}.name}"/>
-        <echo message="    Mode:           ${test.config.@{tag}.mode}"/>
-        <echo message="    Extra Flags?:   ${test.config.@{tag}.extra.args}"/>
-        <forEach list="${test.config.@{tag}.tests}" property="test">
+        <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
+        <if>
+          <not>
+            <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
+          </not>
           <sequential>
-            <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
-              <filelist dir="${test.scripts.dir}" files="@{test}/build.xml"/>
-              <property name="config.name" value="${test.config.@{tag}.configuration}"/>
-              <property name="test.results.dir" value="${test.results.dir}/@{tag}"/>
-              <property name="test.build.dir" value="${test.build.dir}/@{tag}"/>
-              <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
-              <property name="test.mode" value="${test.config.@{tag}.mode}"/>
-              <property name="test.rvm.extra.args" value="${test.config.@{tag}.extra.args}"/>
-              <property name="test.group.name" value="@{test}"/>
-              <propertyset>
-                <propertyref prefix="exclude."/>
-              </propertyset>
-            </subant>
+            <echo message="Testing Run @{tag}"/>
+            <echo message="    rvm.dir:        ${test.config.@{tag}.rvm.dir}"/>
+            <echo message="    Configuration:  ${test.config.@{tag}.configuration}"/>
+            <echo message="    Tests:          ${test.config.@{tag}.tests}"/>
+            <echo message="    Run Name:       ${test.config.@{tag}.name}"/>
+            <echo message="    Mode:           ${test.config.@{tag}.mode}"/>
+            <echo message="    Extra Flags?:   ${test.config.@{tag}.extra.args}"/>
+            <forEach list="${test.config.@{tag}.tests}" property="test">
+              <sequential>
+                <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
+                  <filelist dir="${test.scripts.dir}" files="@{test}/build.xml"/>
+                  <property name="config.name" value="${test.config.@{tag}.configuration}"/>
+                  <property name="test.results.dir" value="${test.results.dir}/@{tag}"/>
+                  <property name="test.build.dir" value="${test.build.dir}/@{tag}"/>
+                  <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
+                  <property name="test.mode" value="${test.config.@{tag}.mode}"/>
+                  <property name="test.rvm.extra.args" value="${test.config.@{tag}.extra.args}"/>
+                  <property name="test.group.name" value="@{test}"/>
+                  <propertyset>
+                    <propertyref prefix="exclude."/>
+                  </propertyset>
+                </subant>
+              </sequential>
+            </forEach>
           </sequential>
-        </forEach>
+        </if>
       </sequential>
     </forEach>
+
+    <res><![CDATA[</builds>]]></res>
   </target>
 
   <!-- **************************************************************************** -->
@@ -151,6 +191,9 @@
   <revision>${svn.revision}</revision>
   <time>${test-run.start.time}</time>
 ]]></echo>
+    <concat destfile="${build.results.dir}/Results.xml" append="true">
+      <path path="${build.results.file}"/>
+    </concat>
     <mkdir dir="${test.results.dir}"/>
     <forEach list="${test.configs}" property="tag">
       <sequential>
