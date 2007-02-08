@@ -11,14 +11,13 @@
 #
 # Parse the various nightly sanity logs and produce a html summary.
 #
+# usage: nightlyreport.pl [-x <input xml>|-r <input root>] [-o <outputfile>] [-s <scp target directory>]
+#
 use Sys::Hostname;
-
-my $host = hostname();
-my $root = shift(@ARGV);
-if (!(-e $root)) {
-  $root = `pwd`;
-  ($root) = $root =~ /^(.+)\s*$/;
-}
+require "getopts.pl";
+&Getopts('x:r:o:s:');
+die "Need to specify an input with either -x or -r" unless ($opt_x ne "" || $opt_r ne "");
+die "Need to specify an output file to use -s" unless ($opt_s eq "" || $opt_o ne "");
 
 # constants etc
 my @shortmonths = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
@@ -32,7 +31,7 @@ my $normalfont = "font-weight:normal;";
 my $boldfont = "font-weight:bold;";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 my $basesfcodeurl = "http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk";
-my $regressionhost = $host;
+my $host = hostname();
 
 # key variables
 my @sanity = ();
@@ -53,20 +52,38 @@ my $perfconfig;
 my $ran = 0;
 my $passed = 0;
 
-# dig out the data from the various log files...
 #
-getsanity($root, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed);
-getperf($root, \%perf, \%jvm98details);
-getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sanityconfig, \$perfconfig);
-getimagesize($root, \%imagesize);
+# dig out the data
+#
+if ($opt_x ne "") {
+  # use an xml report as input
+  getxml($opt_x, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed, \%perf, \%jvm98details, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \%imagesize);
+} else {
+  # dig it out of unstructured data within the specified root directory
+  my $root = $opt_r;
+  if (!(-e $root)) {
+    $root = `pwd`;
+    ($root) = $root =~ /^(.+)\s*$/;
+  }
+  getsanity($root, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed);
+  getperf($root, \%perf, \%jvm98details);
+  getdetails($root, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \$sanityconfig, \$perfconfig);
+  getimagesize($root, \%imagesize);
+}
 
+#
 # produce the html summary
 #
+
+# determine the output stream
 my $html;
-my $outputfile = "$root/results/report.html";
-my $webtarget = "steveb\@littleblue.anu.edu.au:public_html/jikesrvm/$host/".getdatestr($svnstamp).".html";
-#open($html, ">$root/results/".getdatestr($svnstamp).".html");
-open($html, ">$outputfile");
+if ($opt_o ne "") {
+  open($html, ">$opt_o");
+} else {
+  $html = STDOUT;
+}
+
+# create the html
 printhtmlhdr($html);
 gensummary($html, \%perf, \%imagesize, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
 genbuildfailures($html, \@sanity, \@error, \@stackid);
@@ -77,10 +94,26 @@ genjavadoc($html, \@javadocerrs);
 genoptdetails($html, \@optdetails);
 gentestsuccesses($html, \@sanity, \@error);
 printhtmlftr($html);
-close($html);
-$cmd = "scp $outputfile $webtarget";
-#print "$cmd\n";
-system($cmd);
+
+# close the output file, if any
+if ($opt_o ne "") {
+  close($html);
+}
+
+#
+# propogate result file via scp if requested
+#
+if ($opt_s ne "") {
+#  my $webtarget = "steveb\@littleblue.anu.edu.au:public_html/jikesrvm/$host/".getdatestr($svnstamp).".html";
+  my $webtarget = "$opt_s/".getdatestr($svnstamp).".html";
+  $cmd = "scp $opt_o $webtarget";
+#  print "$cmd\n";
+  system($cmd);
+}
+
+#
+# we're done
+#
 exit(0);
 
 #
@@ -381,6 +414,111 @@ sub getdatestr {
 }
 
 #
+# read in data from the xml report
+#
+sub getxml {
+  my ($reportfilename, $sanity, $error, $results, $cmd, $stackidx, $stacks, $ran, $passed, $perf, $jvm98details, $javadocerrs, $optdetails, $svnstamp, $svnrevision, $imagesize) = @_;
+  if ($reportfilename =~ /[.]gz/) {
+    open(XML, "zcat $reportfilename |") or die "Could not open $reportfilename";
+  } else {
+    open(XML, "$reportfilename") or die "Could not open $reportfilename";
+  }
+  my ($intest, $thistest, $test, $result, $output, $command, $time, $configuration);
+  $intest = $thistest = $time = 0;
+  while (<XML>) {
+    if (/<revision>/) {
+      (${$svnrevision}) = /<revision>(\d+)<\/revision>/;
+    } elsif (/<test-configuration>/) {
+      $_ = <XML>;
+      while (!/<id>/) { $_ = <XML>; }
+      ($configuration) = /<id>(.+)<\/id>/;
+    } elsif (/<test>/) {
+      ${$stackidx}[$thistest] = -1;
+      $intest = 1;
+    } elsif (/<\/test>/) {
+      ${$sanity}[$thistest] = "$configuration:$test";
+      ${$ran}++;
+      if ($result ne "EXCLUDED") {
+	${$cmd}[${$ran}] = $command;
+	if ($result eq "SUCCESS") {
+	  ${$passed}++;
+	} else {
+	  my $stackid = -1;
+	  my $errmsg = getxmlerrmsg($result, $time, $output, \$stackid, $stacks);
+	  ${$error}[$thistest] = $errmsg;
+	  ${$stackidx}[$thistest] = $stackid;
+#	  print "$test $configuration $result $errmsg $stackid\n";
+	}
+      } else {
+	${$error}[$thistest] = $result;
+      }
+      $intest = 0;
+      $thistest++;
+    } elsif (/<id>/ && $intest) {
+      ($test) = /<id>(.+)<\/id>/;
+    } elsif (/<command>/ && $intest) {
+      ($command) = /<command>(.+)<\/command>/;
+    } elsif (/<time>/ && $intest) {
+      ($time) = /<time>(.+)<\/time>/;
+    } elsif (/<result>/ && $intest) {
+      ($result) = /<result>(.+)<\/result>/;
+ #     print "$test $configuration $result\n";
+    } elsif (/<output>/ && $intest) {
+      ($output) = /<output>(.+)$/;
+      $output .= "\n";
+      $_ = <XML>;
+      while (!(/<\/output>/)) {
+	$output .= "$_\n";
+	$_ = <XML>;
+      }
+    } elsif ($test eq "ImageSizes" && $configuration eq "production" && /<statistics>/) {
+      $_ = <XML>;
+      while (!(/<\/statistics>/)) {
+	my ($part, $value) = /<statistic key=\"(.+).size\" value=\"(.+)\"/;
+	${$imagesize}{$part} = $value/1024;
+	$_ = <XML>;
+      }
+    } elsif ($test eq "SPECjbb2000" && $configuration eq "production" && /<statistics>/) {
+      $_ = <XML>;
+      while (!(/<\/statistics>/)) {
+	my ($value) = /<statistic key="score" value="(.+)"/;
+	${$perf}{"jbb2000"} = $value;
+	$_ = <XML>;
+      }
+    } elsif ($test eq "SPECjvm98" && $configuration eq "production" && /<statistics>/) {
+     my ($score, $time, $ratio, $bm, $count);
+      $_ = <XML>;
+      $ratio = $time = -1;
+      $count = 0;
+      while (!(/<\/statistics>/)) {
+	my ($bm, $run, $metric, $value) = /<statistic key="([^.]+).([^.]+).([^.]+)" value="(.+)"/;
+	if ($bm eq "aggregate") {
+	  if ($run eq "first") {
+	    ${$perf}{"jvm98-firstrun"} = $value;
+	  } else {
+	    ${$perf}{"jvm98-bottomline"} = $value;
+	  }
+	} else {
+	  if ($metric eq "time") { 
+	    $time = $value; 
+	  } elsif ($metric eq "ratio") {
+	    $ratio = $value;
+	  }
+	  if ($ratio != -1 && $time != -1) {
+	    $value = "$bm Time: $time Ratio: $ratio";
+	    ${$jvm98details}{"$run:$count"} = $value;
+	    $ratio = $time = -1;
+	    $count++;
+	  }
+	}
+	$_ = <XML>;
+      }
+     }
+  }
+  close(XML);
+}
+
+#
 # read in sanity details from run.log
 #
 sub getsanity {
@@ -490,6 +628,16 @@ sub getperf {
   close(IN);
 }
 
+sub getxmlerrmsg {
+  my ($result, $time, $output, $stackid, $stacks) = @_;
+  my $error = scanerrorstring($output, $stackid, $stacks);
+  if ($result =~ /OVERTIME/ && $error eq "") {
+    $error = sprintf("OVERTIME: %2.2f sec", $time/1000);
+  } else {
+    $error = "Error: ".$error;
+  }
+  return $error;
+}
 #
 # Dig out the error message and stack trace (if any) for a given 
 # regression failure
@@ -516,25 +664,38 @@ sub getbuilderr {
   return "FAILED to build $build:$error";
 }
 
-
 #
 # Scan an error log and extract a stack trace if possible.
 #
 sub scanerrorlog {
   my ($logfile, $stackid, $stacks) = @_;
   open(ERR, "$logfile");
+  my $error = "";
+  while (<ERR>) {
+    $error .= $_;
+  }
+  close(ERR);
+  return scanerrorstring($error, $stackid, $stacks);
+}
+
+#
+# Scan an error string and extract a stack trace if possible.
+#
+sub scanerrorstring {
+  my ($errstr, $stackid, $stacks) = @_;
   my $inerror = 0;
   my $error = "";
   my $stack = "";
   my $linesleft = 100;  # max stack dump depth
-  while (<ERR>) {
+  foreach $line (split('\n', $errstr)) {
+    $_ = $line."\n";
     if (!$inerror) {
       if (/Exception in thread/) {
         $inerror = 1;
         if (/Exception in thread \".+\":/) {
-          ($error) = /Exception in thread .+[:] (.+)$/;
-        } else {
           ($error) = /Exception in thread \".+\" (.+)[:]/;
+        } else {
+          ($error) = /Exception in thread .+[:] (.+)$/;
         }
         $stack = $_;
       } elsif (/java.lang.NullPointerException/) {
