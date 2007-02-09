@@ -142,18 +142,24 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /** fields distinct for each instance of class */
   private VM_Field[]   instanceFields;
 
-  /** total size of per-instance data, in bytes  */
-  private int          instanceSize;
-
   /** offsets of reference-containing instance fields */
   private int[]        referenceOffsets;
 
-  /** offset of hole due to alignment, zero if none */
-  private int emptySlot;
+  /** Total size of per-instance data, in bytes  */
+  private int instanceSize;
 
   /** The desired alignment for instances of this type. */
   private int alignment;
-  
+
+  /**
+   * A long containing the field layout. 0 implies a byte is
+   * available, 1 implies a byte is occupied. Subclasses can occupy
+   * empty field locations obtained from their parents. NB when space
+   * in this long is occupied we can't pack subclass fields into
+   * parent classes.
+   */
+  private long fieldLayout;
+
   // --- Method-dispatching information --- //
 
   /** static methods of class */
@@ -228,11 +234,20 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Stack space requirement.
+   * Stack space requirement in words.
    */
   @Uninterruptible
   public final int getStackWords() { 
     return 1;
+  }
+
+
+  /**
+   * Space required in memory in bytes.
+   */ 
+  @Uninterruptible
+  public int getMemoryBytes() { 
+    return BYTES_IN_ADDRESS;
   }
 
   /**
@@ -941,12 +956,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Add a field to the object; only meant to be called from VM_ObjectModel et al.
-   * must be called when lock on class object is already held (ie from resolve).
+   * Set the size of the instance. Only meant to be called from
+   * VM_ObjectModel et al. must be called when lock on class object
+   * is already held (ie from resolve).
    */
   @Uninterruptible
-  public final void increaseInstanceSize(int numBytes) { 
-    instanceSize += numBytes;
+  public final void setInstanceSizeInternal(int size) { 
+    instanceSize = size;
   }
 
   /**
@@ -960,21 +976,17 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Offset of hole, due to alignment; 
-   * returns zero if none.
+   * Return long representing available holes in the field layout
    */
-  public final Offset getEmptySlot() {
-    return Offset.fromIntSignExtend(emptySlot);
+  public final long getFieldLayout() {
+    return fieldLayout;
   }
 
   /**
-   * Set the offset of a hole.
+   * Set long representing available holes in the field layout
    */
-  public final void setEmptySlot(Offset off) {
-    if (VM.VerifyAssertions) {
-      VM._assert(off.isZero() || (emptySlot == 0));
-    }
-    emptySlot = off.toInt();
+  public final void setFieldLayout(long newLayout) {
+    fieldLayout = newLayout;
   }
 
   /**
@@ -982,15 +994,21 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   @Uninterruptible
   public final int getAlignment() { 
-    return alignment;
+    if(BYTES_IN_ADDRESS == BYTES_IN_DOUBLE) {
+      return BYTES_IN_ADDRESS;
+    } else {
+      return alignment;
+    }
   }
 
   /**
    * Set the alignment for instances of this class type
    */
   public final void setAlignment(int align) {
-    if (VM.VerifyAssertions) VM._assert(align >= alignment);
-    alignment = align;
+    if(BYTES_IN_ADDRESS != BYTES_IN_DOUBLE) {
+      if (VM.VerifyAssertions) VM._assert(align >= alignment);
+      alignment = align;
+    }
   }
 
   /**
@@ -1111,6 +1129,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param typeRef the type reference that was resolved to this class
    * @param constantPool array of ints encoding constant value
    * @param modifiers {@link VM_ClassLoaderConstants}
+   * @param superClass parent of this class
    * @param declaredInterfaces array of interfaces this class implements
    * @param declaredFields fields of the class
    * @param declaredMethods methods of the class
@@ -1527,17 +1546,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (isInterface()) {
       if (VM.VerifyAssertions) VM._assert(superClass == null);
       depth = 1; 
-    } else if (isJavaLangObjectType()) {
-      if (VM.VerifyAssertions) VM._assert(superClass == null);
+    } else if (superClass == null) {
+      if (VM.VerifyAssertions) VM._assert(isJavaLangObjectType());
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
       thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
     } else {
-      if (VM.VerifyAssertions) VM._assert(superClass != null);
       depth = superClass.depth + 1;
       thinLockOffset = superClass.thinLockOffset;
       instanceSize = superClass.instanceSize;
-      emptySlot = superClass.emptySlot;
+      fieldLayout = superClass.fieldLayout;
       alignment= superClass.alignment;
     }
 
@@ -1684,10 +1702,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_TypeReference fieldType = field.getType();
       if (fieldType.isReferenceType())
         field.setOffset(VM_Statics.allocateReferenceSlot());
-      else if (fieldType.getSize() == BYTES_IN_LONG)
-        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG));
-      else
+      else if (field.getType().getMemoryBytes() <= BYTES_IN_INT)
         field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_INT));
+      else
+        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG));
 
       // (SJF): Serialization nastily accesses even final private static
       //           fields via pseudo-reflection! So, we must shove the
@@ -1841,7 +1859,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.runningVM && VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
       Object obj = VM_Statics.getSlotContentsAsObject(literalOffset);
       VM_Statics.setSlotContents(fieldOffset,obj);
-    } else if (field.getType().getSize() == BYTES_IN_INT) {
+    } else if (field.getType().getMemoryBytes() <= BYTES_IN_INT) {
       // copy one word from constant pool to JTOC
       int value = VM_Statics.getSlotContentsAsInt(literalOffset);
       VM_Statics.setSlotContents(fieldOffset,value);

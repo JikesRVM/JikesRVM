@@ -48,9 +48,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private final int parameterWords;
   private int firstLocalOffset;
 
-  private static final Offset NO_SLOT  = Offset.zero(); 
-  private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE); 
-  private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
+  private static final Offset NO_SLOT     = Offset.zero(); 
+  private static final Offset ONE_SLOT    = NO_SLOT.plus(WORDSIZE); 
+  private static final Offset TWO_SLOTS   = ONE_SLOT.plus(WORDSIZE);
   private static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
 
   /**
@@ -1842,7 +1842,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true); 
-    if (fieldRef.getSize() == BYTES_IN_INT) { 
+    if (fieldRef.getSize() <= BYTES_IN_INT) { 
       asm.emitPUSH_RegIdx (JTOC, T0, VM_Assembler.BYTE, NO_SLOT);        // get static field
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
@@ -1857,7 +1857,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
@@ -1878,7 +1878,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 //       VM_Barriers.compilePutstaticBarrier(asm, T0);
 //       emitDynamicLinkingSequence(T0, fieldRef, false);
 //     }
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, VM_Assembler.BYTE, NO_SLOT);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
@@ -1897,7 +1897,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 //     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
 //     }
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
@@ -1919,7 +1919,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
       asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
       asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
-    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+    } else if (fieldType.isBooleanType()) {
+      // 8bit unsigned load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVZX_Reg_RegIdx_Byte(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+    } else if (fieldType.isByteType()) {
       // 8bit signed load
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
       asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // T1 is field value
@@ -1963,7 +1968,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
       asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
-    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+    } else if (fieldType.isBooleanType()) {
+      // 8bit unsigned load
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitMOVZX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+    } else if (fieldType.isByteType()) {
       // 8bit signed load
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
       asm.emitMOVSX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
@@ -3250,7 +3260,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       fr.resolve(asm);
       return true;
     }
-    
+
     if (methodName == VM_MagicNames.saveThreadState) {
       Offset offset = VM_Entrypoints.saveThreadStateInstructionsField.getOffset();
       genParameterRegisterLoad(1); // pass 1 parameter word
@@ -3423,10 +3433,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
     
-    if (methodName == VM_MagicNames.getByteAtOffset) {
+    if (methodName == VM_MagicNames.getUnsignedByteAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
+      asm.emitPUSH_Reg (T0);
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.getByteAtOffset) {
+      asm.emitPOP_Reg (T0);                  // object ref
+      asm.emitPOP_Reg (S0);                  // offset
+      asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
       asm.emitPUSH_Reg (T0);
       return true;
     }
@@ -3435,6 +3453,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend char [T0+S0]
+      asm.emitPUSH_Reg (T0);
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.getShortAtOffset) {
+      asm.emitPOP_Reg (T0);                  // object ref
+      asm.emitPOP_Reg (S0);                  // offset
+      asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend char [T0+S0]
       asm.emitPUSH_Reg (T0);
       return true;
     }

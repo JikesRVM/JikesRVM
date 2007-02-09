@@ -462,21 +462,29 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public final int getStackWords() { 
-    if (this == Long || this == Double) return 2;
-    if (this == Void) return 0;
-    return 1;
+    if(isResolved()) {
+      // all primitive and magic types are resolved immediately
+      return resolvedType.getStackWords();
+    }
+    else {
+      // anything remaining must be a reference
+      return 1;
+    }
   }
     
   /**
-   * How many bytes of memory words do value of this type take?
+   * How many bytes do values of this type take?
    */
   @Uninterruptible
-  public final int getSize() { 
-    if (isReferenceType() || isWordType()) return BYTES_IN_ADDRESS; 
-    if (this == Long || this == Double) return BYTES_IN_LONG;
-    if (this == Void) return 0;
-    if (this == Code) return VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
-    return BYTES_IN_INT; //all int like types 
+  public final int getMemoryBytes() {
+    if(isResolved()) {
+      // all primitive and magic types are resolved immediately
+      return resolvedType.getMemoryBytes();
+    }
+    else {
+      // anything remaining must be a reference
+      return BYTES_IN_ADDRESS; 
+    }
   }
     
   /**

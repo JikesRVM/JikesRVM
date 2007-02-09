@@ -755,6 +755,12 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public abstract int getStackWords(); 
 
   /**
+   * Number of bytes in memory required to represent the type
+   */ 
+  @Uninterruptible
+  public abstract int getMemoryBytes (); 
+
+  /**
    * Cause resolution to take place.
    * This will cause slots to be allocated in the jtoc.
    */ 

@@ -760,8 +760,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         =  (VM_Word  *)((char *)registers + VM_Registers_ip_offset);
     VM_Word *lrLoc
         =  (VM_Word  *)((char *)registers + VM_Registers_lr_offset);
-    unsigned *inuse
-        =  (unsigned  *)((char *)registers + VM_Registers_inuse_offset);
+    unsigned char *inuse
+        =  (unsigned  char*)((char *)registers + VM_Registers_inuse_offset);
     
     if (*inuse) {
         fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers (exiting)\n", Me);

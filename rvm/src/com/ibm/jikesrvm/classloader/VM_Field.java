@@ -130,7 +130,7 @@ public final class VM_Field extends VM_Member {
    * How many bytes of memory words do value of this type take?
    */
   public final int getSize() {
-    return getType().getSize();  
+    return getType().getMemoryBytes();  
   }
     
   /**
@@ -233,21 +233,37 @@ public final class VM_Field extends VM_Member {
   }
 
   public final boolean getBooleanValueUnchecked(Object obj) {
-    int bits = get32Bits(obj);
+    byte bits;
+    if (isStatic()) {
+      bits = (byte)VM_Statics.getSlotContentsAsInt(getOffset());
+    } else {
+      bits = VM_Magic.getUnsignedByteAtOffset(obj, getOffset());
+    }
     return (bits == 0) ? false : true;
   }
 
   public final byte getByteValueUnchecked(Object obj) {
-    int bits = get32Bits(obj);
-    return (byte)bits;
+    if (isStatic()) {
+      return (byte)VM_Statics.getSlotContentsAsInt(getOffset());
+    } else {
+      return VM_Magic.getByteAtOffset(obj, getOffset());
+    }
   }
 
   public final char getCharValueUnchecked(Object obj) {
-    return (char)get32Bits(obj);
+    if (isStatic()) {
+      return (char)VM_Statics.getSlotContentsAsInt(getOffset());
+    } else {
+      return VM_Magic.getCharAtOffset(obj, getOffset());
+    }
   }
 
   public final short getShortValueUnchecked(Object obj) {
-    return (short)get32Bits(obj);
+    if (isStatic()) {
+      return (short)VM_Statics.getSlotContentsAsInt(getOffset());
+    } else {
+      return VM_Magic.getShortAtOffset(obj, getOffset());
+    }
   }
 
   public final int getIntValueUnchecked(Object obj) {
@@ -302,19 +318,35 @@ public final class VM_Field extends VM_Member {
   }
   
   public final void setBooleanValueUnchecked(Object obj, boolean b) {
-    put32(obj, b ? 1 : 0);
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), b ? 1 : 0);
+    } else {
+      VM_Magic.setByteAtOffset(obj, getOffset(), b ? (byte)1 : (byte)0);
+    }
   }
 
   public final void setByteValueUnchecked(Object obj, byte b) {
-    put32(obj, (int)b);
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), b);
+    } else {
+      VM_Magic.setByteAtOffset(obj, getOffset(), b);
+    }
   }
 
   public final void setCharValueUnchecked(Object obj, char c) {
-    put32(obj, (int)c);
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), c);
+    } else {
+      VM_Magic.setCharAtOffset(obj, getOffset(), c);
+    }
   }
 
   public final void setShortValueUnchecked(Object obj, short i) {
-    put32(obj, (int)i);
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), i);
+    } else {
+      VM_Magic.setCharAtOffset(obj, getOffset(), (char)i);
+    }
   }
 
   public final void setIntValueUnchecked(Object obj, int i) {

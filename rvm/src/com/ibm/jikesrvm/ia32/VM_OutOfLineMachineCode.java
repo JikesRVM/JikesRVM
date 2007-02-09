@@ -298,7 +298,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     }
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedField.getOffset(), 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
+    asm.emitMOV_RegDisp_Imm_Byte(T0, VM_Entrypoints.beingDispatchedField.getOffset(), 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
     
     // (3) Restore hardware state of thread we are switching to.
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp

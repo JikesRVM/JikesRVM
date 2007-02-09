@@ -61,7 +61,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */ 
   @Uninterruptible
   public final int getSize() { 
-    return fieldContentsType.getSize();
+    return fieldContentsType.getMemoryBytes();
   }
 
   /**

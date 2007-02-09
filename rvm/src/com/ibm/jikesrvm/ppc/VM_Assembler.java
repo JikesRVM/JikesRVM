@@ -46,30 +46,34 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @modified Dave Grove
  * @modified Kris Venstermans
- * @modified Daniel Frampton 
+ * @modified Daniel Frampton
+ * @modified Ian Rogers
  */
 public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_BaselineConstants,
                                     VM_AssemblerConstants {
 
-
-  private VM_MachineCode mc;
-  private int mIP; // current machine code instruction
-  private boolean shouldPrint;
-  VM_Compiler compiler; // VM_Baseline compiler instance for this assembler.  May be null.
-
+  /** Machine code being assembled */
+  private final VM_MachineCode mc;
+  /** Debug output? */
+  private final boolean shouldPrint;
+  /**  // VM_Baseline compiler instance for this assembler.  May be null. */
+  final VM_Compiler compiler;
+  /** current machine code instruction */
+  private int mIP;
+  
   public VM_Assembler (int length) {
-    this(length, false);
+    this(length, false, null);
   }
 
   public VM_Assembler (int length, boolean sp, VM_Compiler comp) {
-    this(length, sp);
+    mc = new VM_MachineCode();
+    shouldPrint = sp;
     compiler = comp;
+    mIP = 0;
   }
 
   public VM_Assembler (int length, boolean sp) {
-    mc = new VM_MachineCode();
-    mIP = 0;
-    shouldPrint = sp;
+    this(length, sp, null);
   }
 
   private final static int maskLower16 (Offset val) {
@@ -786,6 +790,13 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     mc.addInstruction(mi);
   }
 
+  public final void emitLBZoffset (int RT, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = LBZtemplate | RT<<21 | RA<<16 | maskLower16(D);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int LBZXtemplate = 31<<26 | 87<<1;
 
   public final void emitLBZX (int RT, int RA, int RB) {
@@ -803,11 +814,25 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     mc.addInstruction(mi);
   }
 
+  public final void emitLHAoffset (int RT, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = LHAtemplate | RT<<21 | RA<<16 | maskLower16(D);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int LHZtemplate = 40<<26;
 
   public final void emitLHZ (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     int mi = LHZtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitLHZoffset (int RT, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = LHZtemplate | RT<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1179,6 +1204,29 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   public final void emitSTB (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     int mi = STBtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitSTBoffset (int RS, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STBtemplate | RS<<21 | RA<<16 | maskLower16(D);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STHtemplate = 44<<26;
+
+  public final void emitSTH (int RS, int D, int RA) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STHtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitSTHoffset (int RS, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STHtemplate | RS<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1589,7 +1637,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     }
   }
 
-  // new PowerPC instuctions
+  // new PowerPC instructions
     
   // The "sync" on Power 4 architectures are expensive and so we use "lwsync" instead to
   //   implement SYNC.  On older arhictectures, there is no problem but the weaker semantics

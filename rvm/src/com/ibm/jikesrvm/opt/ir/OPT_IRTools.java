@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
+import com.ibm.jikesrvm.VM_Configuration;
 import com.ibm.jikesrvm.classloader.*;
 import java.util.Enumeration;
 import org.vmmagic.unboxed.*;
@@ -274,28 +275,32 @@ public abstract class OPT_IRTools {
    * Returns the correct operator for loading from the given field
    *
    * @param field field to load from
+   * @param isStatic is the field static
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_FieldReference field) {
-    return getLoadOp(field.getFieldContentsType());
+  public static final OPT_Operator getLoadOp(VM_FieldReference field, boolean isStatic) {
+    return getLoadOp(field.getFieldContentsType(), isStatic);
   }
 
   /**
    * Returns the correct operator for loading a value of the given type
    *
    * @param type type of value to load
+   * @param isStatic is the field static
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_TypeReference type) {
-    // TODO: Until we pack subword fields, there is no reason to
-    //       use the sub-word load operators because it only forces us 
-    //       into doing useless sign extension.
-    if (false) {
-      if (type.isByteType())      return BYTE_LOAD;
-      if (type.isBooleanType())   return UBYTE_LOAD;
-      if (type.isCharType())      return USHORT_LOAD;
-      if (type.isShortType())     return SHORT_LOAD;
-    }
+  public static final OPT_Operator getLoadOp(VM_TypeReference type, boolean isStatic) {
+    if (!VM_Configuration.LittleEndian && isStatic) {
+      // Handle the statics table hold subword values in ints
+      if (type.isByteType())      return INT_LOAD;
+      if (type.isBooleanType())   return INT_LOAD;
+      if (type.isCharType())      return INT_LOAD;
+      if (type.isShortType())     return INT_LOAD;
+    }      
+    if (type.isByteType())      return BYTE_LOAD;
+    if (type.isBooleanType())   return UBYTE_LOAD;
+    if (type.isCharType())      return USHORT_LOAD;
+    if (type.isShortType())     return SHORT_LOAD;
     if (type.isLongType())      return LONG_LOAD;
     if (type.isFloatType())     return FLOAT_LOAD;
     if (type.isDoubleType())    return DOUBLE_LOAD;
@@ -308,28 +313,32 @@ public abstract class OPT_IRTools {
    * Returns the correct operator for storing to the given field.
    *
    * @param field  The field we're asking about
+   * @param isStatic is the field static
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_FieldReference field) {
-    return getStoreOp(field.getFieldContentsType());
+  public static final OPT_Operator getStoreOp(VM_FieldReference field, boolean isStatic) {
+    return getStoreOp(field.getFieldContentsType(), isStatic);
   }
 
   /**
    * Returns the correct operator for storing a value of the given type
    *
    * @param type desired type to store
+   * @param isStatic is the field static
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_TypeReference type) {
-    // TODO: Until we pack subword fields, there is no reason to
-    //       use the sub-word load operators because it only forces us 
-    //       into doing useless sign extension.
-    if (false) {
-      if (type.isByteType())      return BYTE_STORE;
-      if (type.isBooleanType())   return BYTE_STORE;
-      if (type.isCharType())      return SHORT_STORE;
-      if (type.isShortType())     return SHORT_STORE;
+  public static final OPT_Operator getStoreOp(VM_TypeReference type, boolean isStatic) {
+    if (!VM_Configuration.LittleEndian && isStatic) {
+      // Handle the statics table hold subword values in ints
+      if (type.isByteType())      return INT_STORE;
+      if (type.isBooleanType())   return INT_STORE;
+      if (type.isCharType())      return INT_STORE;
+      if (type.isShortType())     return INT_STORE;
     }
+    if (type.isByteType())      return BYTE_STORE;
+    if (type.isBooleanType())   return BYTE_STORE;
+    if (type.isCharType())      return SHORT_STORE;
+    if (type.isShortType())     return SHORT_STORE;
     if (type.isLongType())       return LONG_STORE;
     if (type.isFloatType())      return FLOAT_STORE;
     if (type.isDoubleType())     return DOUBLE_STORE;

@@ -64,8 +64,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           OPT_RegisterOperand result = GetStatic.getClearResult(s);
           OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
           OPT_Operand offset = GetStatic.getClearOffset(s);
-          Load.mutate(s, OPT_IRTools.getLoadOp(loc.getFieldRef()), result, 
-                      address, offset, loc);
+          Load.mutate(s, OPT_IRTools.getLoadOp(loc.getFieldRef(), true),
+                      result, address, offset, loc);
         }
       break;
 
@@ -75,8 +75,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           OPT_Operand value = PutStatic.getClearValue(s);
           OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
           OPT_Operand offset = PutStatic.getClearOffset(s);
-          Store.mutate(s, OPT_IRTools.getStoreOp(loc.getFieldRef()), value, 
-                       address, offset, loc);
+          Store.mutate(s, OPT_IRTools.getStoreOp(loc.getFieldRef(), true),
+                       value, address, offset, loc);
         }
       break;
 
@@ -86,8 +86,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           OPT_Operand value = PutField.getClearValue(s);
           OPT_Operand address = PutField.getClearRef(s);
           OPT_Operand offset = PutField.getClearOffset(s);
-          Store.mutate(s, OPT_IRTools.getStoreOp(loc.getFieldRef()), value, 
-                       address, offset, loc, PutField.getClearGuard(s));
+          Store.mutate(s, OPT_IRTools.getStoreOp(loc.getFieldRef(), false),
+                       value, address, offset, loc, PutField.getClearGuard(s));
         }
       break;
 
@@ -97,8 +97,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           OPT_RegisterOperand result = GetField.getClearResult(s);
           OPT_Operand address = GetField.getClearRef(s);
           OPT_Operand offset = GetField.getClearOffset(s);
-          Load.mutate(s, OPT_IRTools.getLoadOp(loc.getFieldRef()), result, 
-                      address, offset, loc, GetField.getClearGuard(s));
+          Load.mutate(s, OPT_IRTools.getLoadOp(loc.getFieldRef(), false),
+                      result, address, offset, loc, GetField.getClearGuard(s));
         }
       break;
 
@@ -1174,7 +1174,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
   static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
                                        OPT_RegisterOperand obj, 
                                        VM_Field field, OPT_Operand guard) {
-    return InsertLoadOffset(s, ir, OPT_IRTools.getLoadOp(field.getType()),
+    return InsertLoadOffset(s, ir, OPT_IRTools.getLoadOp(field.getType(),
+                                                         field.isStatic()),
                             field.getType(), obj, field.getOffset(), 
                             new OPT_LocationOperand(field), guard);
   }
@@ -1207,7 +1208,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
   public static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
                                                VM_Field field) {
     return InsertLoadOffsetJTOC(s, ir, 
-                                OPT_IRTools.getLoadOp(field.getType()), 
+                                OPT_IRTools.getLoadOp(field.getType(),
+                                                      field.isStatic()), 
                                 field.getType(), field.getOffset());
   }
 }

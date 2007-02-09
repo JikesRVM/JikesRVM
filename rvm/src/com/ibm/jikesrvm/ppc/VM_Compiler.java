@@ -2329,7 +2329,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true); 
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntX (T0, T1, JTOC);
       pushInt(T0);
     } else { // field is two words (double or long ( or address on PPC64))
@@ -2352,7 +2352,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntToc(T0, fieldOffset);
       pushInt(T0);
     } else { // field is two words (double or long ( or address on PPC64))
@@ -2381,7 +2381,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 //       VM_Barriers.compilePutstaticBarrier(this); // NOTE: offset is in T1 from emitDynamicLinkingSequence
 //       emitDynamicLinkingSequence(T1, fieldRef, false);
 //     }
-      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
         popInt(T0);
         asm.emitSTWX(T0, T1, JTOC);
       } else { // field is two words (double or long (or address on PPC64))
@@ -2408,7 +2408,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 //     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(this, fieldOffset);
 //     }
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       popInt(T0);
       asm.emitSTWtoc(T0, fieldOffset, T1);
     } else { // field is two words (double or long (or address on PPC64))
@@ -2431,22 +2431,41 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
+    // T2 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T2, fieldRef, true);
-    popAddr(T1); 
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitLIntX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
+    // T1 = object reference
+    popAddr(T1);
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+    if (fieldType.isReferenceType()) {
+      // 32/64bit reference load
+      asm.emitLAddrX(T0, T2, T1);
+      pushAddr(T0);
+    } else if (fieldType.isBooleanType()) {
+      // 8bit unsigned load
+      asm.emitLBZX(T0, T2, T1);
       pushInt(T0);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr){
-        if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-          asm.emitLDX(T0, T2, T1);
-          pushAddr(T0);
-          return;
-        }
-      }
-      asm.emitLFDX (F0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
+    } else if (fieldType.isByteType()) {
+      // 8bit signed load
+      asm.emitLBZX(T0, T2, T1);
+      asm.emitEXTSB(T0,T0);
+      pushInt(T0);
+    } else if (fieldType.isShortType()) {
+      // 16bit signed load
+      asm.emitLHAX(T0, T2, T1);
+      pushInt(T0);
+    } else if (fieldType.isCharType()) {
+      // 16bit unsigned load
+      asm.emitLHZX(T0, T2, T1);
+      pushInt(T0);
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit load
+      asm.emitLIntX(T0, T2, T1);
+      pushInt(T0);
+    } else {
+      // 64bit load
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      asm.emitLFDX (F0, T2, T1);
       pushDouble(F0);
     }
   }
@@ -2456,59 +2475,89 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     popAddr(T1); // T1 = object reference
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+    if (fieldType.isReferenceType()) {
+      // 32/64bit reference load
+      asm.emitLAddrOffset(T0, T1, fieldOffset);
+      pushAddr(T0);
+    } else if (fieldType.isBooleanType()) {
+      // 8bit unsigned load
+      asm.emitLBZoffset(T0, T1, fieldOffset);
+      pushInt(T0);
+    } else if (fieldType.isByteType()) {
+      // 8bit signed load
+      asm.emitLBZoffset(T0, T1, fieldOffset);
+      asm.emitEXTSB(T0,T0); // sign extend
+      pushInt(T0);
+    } else if (fieldType.isShortType()) {
+      // 16bit signed load
+      asm.emitLHAoffset(T0, T1, fieldOffset);
+      pushInt(T0);
+    } else if (fieldType.isCharType()) {
+      // 16bit unsigned load
+      asm.emitLHZoffset(T0, T1, fieldOffset);
+      pushInt(T0);
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit load
       asm.emitLIntOffset(T0, T1, fieldOffset);
       pushInt(T0);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr){
-        if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-          asm.emitLAddrOffset(T0, T1, fieldOffset);
-          pushAddr(T0);
-          return;
-        }
-      }
-      asm.emitLFDoffset  (F0, T1, fieldOffset);
+    } else {
+      // 64bit load
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      asm.emitLFDoffset (F0, T1, fieldOffset);
       pushDouble(F0);
     }
   }
-
 
   /**
    * Emit code to implement a dynamically linked putfield
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
+    // T1 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier((ArchitectureSpecific.VM_Compiler) this, fieldRef.getId()); // NOTE: offset is in T1 from emitDynamicLinkingSequence
-      emitDynamicLinkingSequence(T1, fieldRef, false);  
-      discardSlots(2);
-    } else {
-      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-        popInt(T0); // T0 = value
-        popAddr(T2); // T2 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
-        asm.emitSTWX(T0, T2, T1);
-      } else { // field is two words (double or long)
-        if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-        if (VM.BuildFor64Addr){
-          if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-            popAddr(T0);                // T0 = address value
-            popAddr(T2);                // T2 = object reference
-            if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-            asm.emitSTDX(T0, T2, T1);
-            return;
-          }
-        }
-        popDouble(F0);     // F0 = doubleword value
-        popAddr(T2);       // T2 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
-        asm.emitSTFDX(F0, T2, T1);
+    if (fieldType.isReferenceType()) {
+      // 32/64bit reference store
+      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+        // NOTE: offset is in T1 from emitDynamicLinkingSequence
+        VM_Barriers.compilePutfieldBarrier((ArchitectureSpecific.VM_Compiler) this, fieldRef.getId());
+        emitDynamicLinkingSequence(T1, fieldRef, false);  
+        discardSlots(2);
+      } else {
+        popAddr(T0);                // T0 = address value
+        popAddr(T2);                // T2 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
+        asm.emitSTAddrX(T0, T2, T1);
       }
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit store
+      popInt(T0); // T0 = value
+      popAddr(T2); // T2 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
+      asm.emitSTBX(T0, T2, T1);
+    } else if (fieldType.isShortType() || fieldType.isCharType()) {
+      // 16bit store
+      popInt(T0); // T0 = value
+      popAddr(T2); // T2 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
+      asm.emitSTHX(T0, T2, T1);
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit store
+      popInt(T0); // T0 = value
+      popAddr(T2); // T2 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
+      asm.emitSTWX(T0, T2, T1);
+    } else {
+      // 64bit store
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      popDouble(F0);     // F0 = doubleword value
+      popAddr(T2);       // T2 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
+      asm.emitSTFDX(F0, T2, T1);
     }
   }
 
@@ -2518,29 +2567,41 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (MM_Constants.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm((ArchitectureSpecific.VM_Compiler) this, fieldOffset, fieldRef.getId());
-    }
-    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-        popInt(T0);        // T0 = value
-        popAddr(T1);       // T1 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
-        asm.emitSTWoffset(T0, T1, fieldOffset);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-        if (VM.BuildFor64Addr){
-          if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-            popAddr(T0);                // T0 = address value
-            popAddr(T1);                // T1 = object reference
-            if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);          
-            asm.emitSTAddrOffset(T0, T1, fieldOffset);
-            return;
-          }
-        }
-        popDouble(F0);     // F0 = doubleword value
-        popAddr(T1);       // T1 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
-        asm.emitSTFDoffset(F0, T1, fieldOffset);
+    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
+    if (fieldType.isReferenceType()) {
+      // 32/64bit reference store
+      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+        VM_Barriers.compilePutfieldBarrierImm((ArchitectureSpecific.VM_Compiler) this, fieldOffset, fieldRef.getId());
+      }
+      popAddr(T0); // T0 = address value
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
+      asm.emitSTAddrOffset(T0, T1, fieldOffset);
+    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+      // 8bit store
+      popInt(T0); // T0 = value
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
+      asm.emitSTBoffset(T0, T1, fieldOffset);
+    } else if (fieldType.isShortType() || fieldType.isCharType()) {
+      // 16bit store
+      popInt(T0); // T0 = value
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
+      asm.emitSTHoffset(T0, T1, fieldOffset);
+    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+      // 32bit store
+      popInt(T0); // T0 = value
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
+      asm.emitSTWoffset(T0, T1, fieldOffset);
+    } else {
+      // 64bit store
+      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+      popDouble(F0);     // F0 = doubleword value
+      popAddr(T1);       // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
+      asm.emitSTFDoffset(F0, T1, fieldOffset);
     }
   }
 
@@ -4202,15 +4263,26 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0); // pop object
       asm.emitLAddrX(T0, T1, T0); // *(object+offset)
       pushAddr(T0); // push *(object+offset)
+    } else if (methodName == VM_MagicNames.getUnsignedByteAtOffset) {
+      popInt(T1);   // pop offset
+      popAddr(T0);   // pop object
+      asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
+      pushInt(T0);    // push *(object+offset) 
     } else if (methodName == VM_MagicNames.getByteAtOffset) {
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
+      asm.emitEXTSB(T0,T0); // sign extend
       pushInt(T0);    // push *(object+offset) 
     } else if (methodName == VM_MagicNames.getCharAtOffset) {
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLHZX(T0, T1, T0);   // load char with zero extension.
+      pushInt(T0);    // push *(object+offset) 
+    } else if (methodName == VM_MagicNames.getShortAtOffset) {
+      popInt(T1);   // pop offset
+      popAddr(T0);   // pop object
+      asm.emitLHAX(T0, T1, T0);   // load short with sign extension.
       pushInt(T0);    // push *(object+offset) 
     } else if (methodName == VM_MagicNames.setIntAtOffset){
       popInt(T2); // pop newvalue

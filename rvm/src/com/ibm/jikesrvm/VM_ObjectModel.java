@@ -113,6 +113,7 @@ import org.vmmagic.pragma.*;
  * @author Dave Grove
  * @author Derek Lieber
  * @author Kris Venstermans
+ * @author Ian Rogers
  */
 @Uninterruptible public class VM_ObjectModel implements VM_JavaHeaderConstants,
                                              VM_SizeConstants {
@@ -127,49 +128,132 @@ import org.vmmagic.pragma.*;
   public static int hashTransition2 = 0; 
 
   /**
+   * Mask to compute whether an offset is double aligned (NB using
+   * remainder can't be simplified in Java as remainder on a negative
+   * number gives a negative answer).
+   */
+  private static final int BYTES_IN_DOUBLE_MASK = BYTES_IN_DOUBLE - 1;
+
+  /** Generate debug information */
+  private static final boolean DEBUG=false;
+
+  /**
+   * Minimum of two integers - uninterruptible version
+   */
+  private static int min (int x, int y) {
+    return (x < y) ? x : y;
+  }
+
+  /**
+   * Maximum of two integers - uninterruptible version
+   */
+  private static int max (int x, int y) {
+    return (x > y) ? x : y;
+  }
+
+  /**
+   * Attempt to allocate space for a field in the field layout long
+   * @param size size of field, must be a power of 2
+   * @param fieldLayout representation of allocated field spaces
+   * @param fieldSize size of fields so far
+   * @return offset of bytes allocated or -1
+   */
+  private static int attemptAllocateFieldInFieldLayout(int size, long fieldLayout, int fieldSize) {
+    if (fieldLayout == -1L) {
+      // All slots occupied
+      return -1;
+    } else {
+      // Search for space for field in unoccupied slots in fieldLayout
+      int fieldLayoutEnd = min(63, fieldSize & ~(size - 1));
+      for (int i=0; i < fieldLayoutEnd; i+=size) {
+        if ((fieldLayout & (((long)((1 << size) - 1)) << i)) == 0L) {
+          // We found a suitable hole 
+          return i;
+        }
+      }
+      // No slots found
+      return -1;
+    }
+  }
+  
+  /**
    * Layout the instance fields declared in this class.
-   * TODO: If we allocate a 4-byte and then an 8-byte field on a 32 bit architecture
-   *       we can possibly waste 4 bytes.  
    */
   @Interruptible
   public static void layoutInstanceFields(VM_Class klass) { 
-    Offset fieldOffset = VM_JavaHeader.objectEndOffset(klass);
-    int doubleAlign = Math.abs(VM_JavaHeader.objectStartOffset(klass) % BYTES_IN_DOUBLE);
+    // Get available field slots from parent classes
+    long fieldLayout = klass.getFieldLayout();
+    
+    // Current size of object including object header
+    final int startInstanceSize = klass.getInstanceSizeInternal();
+    
+    // Size of header
+    final int headerSize = VM_ObjectModel.computeScalarHeaderSize(klass);
+
+    // Size of all fields
+    int totalFieldSize = startInstanceSize - headerSize;
+      
+    // Prefered alignment of object
+    int alignment = klass.getAlignment();
+
+    // New fields to be allocated for this object
     VM_Field fields[] = klass.getDeclaredFields();
-    for (int i = 0, n = fields.length; i < n; ++i) {
-      VM_Field field = fields[i];
-      if (!field.isStatic()) {
-        int fieldSize = field.getType().getSize();
-        if (fieldSize == BYTES_IN_INT) {
-          Offset emptySlot = klass.getEmptySlot();
-          if (!emptySlot.isZero()) {
-            field.setOffset(emptySlot);
-            klass.setEmptySlot(Offset.zero());
+
+    if (DEBUG) {
+      VM.sysWrite("Laying out: ");
+      VM.sysWriteln(klass.toString());
+    }
+    // For every field size
+    for (int desiredFieldSize = BYTES_IN_DOUBLE; desiredFieldSize > 0; desiredFieldSize >>= 1) {
+      // For every field
+      for (int i=0; i < fields.length; i++) {
+        VM_Field field = fields[i];
+        // Should we allocate space this iteration?
+        if (!field.isStatic() &&
+            (field.getType().getMemoryBytes() == desiredFieldSize)) {
+          // Adjust alignment
+          alignment = max(desiredFieldSize, alignment);
+          
+          // Try to use unused bytes in object
+          int offset = attemptAllocateFieldInFieldLayout(desiredFieldSize, fieldLayout, totalFieldSize);
+          if (offset != -1) {
+            // Mark bits in fieldLayout as occupied
+            fieldLayout |= ((long)((1 << desiredFieldSize) - 1)) << offset;
           } else {
-            field.setOffset(fieldOffset);
-            fieldOffset = fieldOffset.plus(BYTES_IN_INT);
-            klass.increaseInstanceSize(BYTES_IN_INT);
+            // no space to use so allocate at end up of object
+            
+            // align up the instance size
+            if ((totalFieldSize & (desiredFieldSize - 1)) != 0) {
+              totalFieldSize = (totalFieldSize | (desiredFieldSize - 1)) + 1;
+            }
+            offset = totalFieldSize;
+            // Mark space in field layout occupied
+            if (offset < 63) {
+              fieldLayout |= ((long)((1 << desiredFieldSize) - 1)) << offset;
+            }
+            // Increase instance size
+            totalFieldSize += desiredFieldSize;
           }
-        } else {
-          if (VM.VerifyAssertions) {
-            VM._assert(fieldSize == BYTES_IN_DOUBLE); // (or ADDRESS in 64 bit mode)
-          }
-          klass.setAlignment(BYTES_IN_DOUBLE);
-          if (Math.abs(fieldOffset.toInt() % BYTES_IN_DOUBLE) == doubleAlign) {
-            field.setOffset(fieldOffset);
-            fieldOffset = fieldOffset.plus(BYTES_IN_DOUBLE);
-            klass.increaseInstanceSize(BYTES_IN_DOUBLE);
-          } else {
-            if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot().isZero());
-            klass.setEmptySlot(fieldOffset);
-            fieldOffset = fieldOffset.plus(BYTES_IN_INT);
-            field.setOffset(fieldOffset);
-            fieldOffset = fieldOffset.plus(BYTES_IN_DOUBLE);
-            klass.increaseInstanceSize(BYTES_IN_INT+BYTES_IN_DOUBLE);
+          // Compute offset from beginning of object
+          Offset fieldOffset = Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) + headerSize + offset);
+          field.setOffset(fieldOffset);
+          if (DEBUG) {
+            VM.sysWrite("  field: ");
+            VM.sysWrite(field.toString());
+            VM.sysWrite(" offset ");
+            VM.sysWriteln(fieldOffset.toInt());
           }
         }
       }
     }
+    // VM_JavaHeader requires objects to be int sized/aligned
+    if ((totalFieldSize & (BYTES_IN_INT - 1)) != 0) {
+      totalFieldSize = (totalFieldSize | (BYTES_IN_INT - 1)) + 1;
+    }
+    // Update class to reflect changes
+    klass.setFieldLayout(fieldLayout);
+    klass.setInstanceSizeInternal(headerSize + totalFieldSize);
+    klass.setAlignment(alignment);
   }
 
   /**

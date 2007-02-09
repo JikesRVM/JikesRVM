@@ -26,28 +26,44 @@ import org.vmmagic.unboxed.*;
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
+  /** Number of bytes in object's TIB pointer */
   static final int TIB_BYTES         = BYTES_IN_ADDRESS;
+  /** Number of bytes indicating an object's status */
   static final int STATUS_BYTES      = BYTES_IN_ADDRESS;
 
   static final int ALIGNMENT_MASK    = 0x00000001;
   static final int ALIGNMENT_VALUE   = 0xdeadbeef;
   static final int LOG_MIN_ALIGNMENT = LOG_BYTES_IN_INT;
 
-  /* we use 64 bits for the length on a 64 bit architecture as this makes 
-     the other words 8-byte aligned, and the header has to be 8-byte aligned. */
+  /**
+   * Number of bytes used to store the array length. We use 64 bits
+   * for the length on a 64 bit architecture as this makes the other
+   * words 8-byte aligned, and the header has to be 8-byte aligned.
+   */
   static final int ARRAY_LENGTH_BYTES = VM.BuildFor64Addr 
                                         ? BYTES_IN_ADDRESS
                                         : BYTES_IN_INT;
 
+  /** Number of bytes used by the Java Header */
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
+  /** Number of bytes used by the GC Header */
   static final int GC_HEADER_BYTES = MM_Constants.GC_HEADER_BYTES;
+  /** Number of bytes used by the miscellaneous header */
   static final int MISC_HEADER_BYTES = VM_MiscHeaderConstants.NUM_BYTES_HEADER;
+  /** Size of GC and miscellaneous headers */
   static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
+  /** Offset of array length from object reference */
   static final Offset ARRAY_LENGTH_OFFSET = Offset.fromIntSignExtend(-ARRAY_LENGTH_BYTES);
+  /** Offset of the first field from object reference */
+  static final Offset FIELD_ZERO_OFFSET = ARRAY_LENGTH_OFFSET;
+  /** Offset of the Java header from the object reference */
   static final Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
+  /** Offset of the miscellaneous header from the object reference */
   static final Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
+  /** Offset of the garbage collection header from the object reference */
   static final Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
+  /** Offset of first element of an array */
   static final Offset ARRAY_BASE_OFFSET   = Offset.zero();  
 
   /**

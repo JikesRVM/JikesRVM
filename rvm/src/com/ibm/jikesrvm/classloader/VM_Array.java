@@ -139,12 +139,20 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   /** 
    * @return java Expression stack space requirement. 
-  */
+   */
   @Uninterruptible
   public final int getStackWords() { 
     return 1;
   }
-      
+
+  /**
+   * Space required in memory in bytes.
+   */ 
+  @Uninterruptible
+  public int getMemoryBytes() { 
+    return BYTES_IN_ADDRESS;
+  }
+
   /** 
    * @return element type.
    */
@@ -414,10 +422,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     } else {
       innermostElementType = elementType;
     }
-    if (elementType.isDoubleType() || elementType.isLongType()) {
-      this.alignment = BYTES_IN_DOUBLE;
+    if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
+      // Desired alignment on 32bit architectures
+      if (elementType.isDoubleType() || elementType.isLongType()) {
+        this.alignment = BYTES_IN_DOUBLE;
+      } else {
+        this.alignment = BYTES_IN_ADDRESS;
+      }
     } else {
-      this.alignment = BYTES_IN_ADDRESS;
+      this.alignment = BYTES_IN_DOUBLE;
     }
     
     // RCGC: Array is acyclic if its references are acyclic

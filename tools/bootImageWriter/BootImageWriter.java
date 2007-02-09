@@ -1712,9 +1712,11 @@ public class BootImageWriter extends BootImageWriterMessages
               if (verbose >= 2) traceContext.traceFieldNotInHostJdk();
               if (verbose >= 2) traceContext.pop();
               if (rvmFieldType.isPrimitiveType()) {
-                switch (rvmField.getType().getSize()) {
-                case 4: bootImage.setFullWord(rvmFieldAddress, 0);       break;
-                case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);    break;
+                switch (rvmField.getType().getMemoryBytes()) {
+                case 1: bootImage.setByte(rvmFieldAddress, 0);          break;
+                case 2: bootImage.setHalfWord(rvmFieldAddress, 0);      break;
+                case 4: bootImage.setFullWord(rvmFieldAddress, 0);      break;
+                case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);   break;
                 default:fail("unexpected field type: " + rvmFieldType); break;
                 }
               }
@@ -1728,16 +1730,16 @@ public class BootImageWriter extends BootImageWriterMessages
           if (rvmFieldType.isPrimitiveType()) {
             // field is logical or numeric type
             if (rvmFieldType.isBooleanType()) {
-              bootImage.setFullWord(rvmFieldAddress,
-                                    jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
+              bootImage.setByte(rvmFieldAddress,
+                                jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
             } else if (rvmFieldType.isByteType()) {
-              bootImage.setFullWord(rvmFieldAddress,
-                                    jdkFieldAcc.getByte(jdkObject));
+              bootImage.setByte(rvmFieldAddress,
+                                jdkFieldAcc.getByte(jdkObject));
             } else if (rvmFieldType.isCharType()) {
-              bootImage.setFullWord(rvmFieldAddress,
+              bootImage.setHalfWord(rvmFieldAddress,
                                     jdkFieldAcc.getChar(jdkObject));
             } else if (rvmFieldType.isShortType()) {
-              bootImage.setFullWord(rvmFieldAddress,
+              bootImage.setHalfWord(rvmFieldAddress,
                                     jdkFieldAcc.getShort(jdkObject));
             } else if (rvmFieldType.isIntType()) {
               try {
@@ -2366,13 +2368,13 @@ public class BootImageWriter extends BootImageWriterMessages
             if (jdkFieldType.isPrimitive()) {
               // field is logical or numeric type
               if (jdkFieldType == Boolean.TYPE)
-                size += 4;
+                size += 1;
               else if (jdkFieldType == Byte.TYPE)
-                size += 4;
+                size += 1;
               else if (jdkFieldType == Character.TYPE)
-                size += 4;
+                size += 2;
               else if (jdkFieldType == Short.TYPE)
-                size += 4;
+                size += 2;
               else if (jdkFieldType == Integer.TYPE)
                 size += 4;
               else if (jdkFieldType == Long.TYPE)

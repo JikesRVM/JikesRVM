@@ -51,6 +51,12 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * to hold a value of this primitive type?
    */
   private final int stackWords;
+
+  /**
+   * How many bytes in memory does it take to hold a value of this
+   * primitive type?
+   */
+  private final int memoryBytes;
    
   /**
    * Name - something like "int".
@@ -65,9 +71,10 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * @param classForType The java.lang.Class representation
    * @param name The name for this primitive
    * @param stackWords The stack slots used by this primitive
+   * @param memoryBytes The bytes in memory used by this primitive
    */
   private VM_Primitive(VM_TypeReference tr, Class<?> classForType,
-                       VM_Atom name, int stackWords) {
+                       VM_Atom name, int stackWords, int memoryBytes) {
     super(tr,    // type reference
           classForType, // j.l.Class representation
           -1,    // dimensionality
@@ -75,6 +82,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
           null); // runtime invisible annotations
     this.name = name;
     this.stackWords = stackWords;
+    this.memoryBytes = memoryBytes;
     this.depth = 0;
   }
 
@@ -85,50 +93,60 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   static VM_Primitive createPrimitive(VM_TypeReference tr) {
     VM_Atom name;
     int stackWords;
+    int memoryBytes;
     Class<?> classForType;
     switch (tr.getName().parseForTypeCode()) {
     case VoidTypeCode:
       stackWords = 0;
+      memoryBytes = 0;
       name = VM_Atom.findOrCreateAsciiAtom("void");
       classForType = Void.TYPE;
       break;
     case BooleanTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_BOOLEAN;
       name = VM_Atom.findOrCreateAsciiAtom("boolean");
       classForType = Boolean.TYPE;
       break;
     case ByteTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_BYTE;
       name = VM_Atom.findOrCreateAsciiAtom("byte");
       classForType = Byte.TYPE;
       break;
     case CharTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_CHAR;
       name = VM_Atom.findOrCreateAsciiAtom("char");
       classForType = Character.TYPE;
       break;
     case ShortTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_SHORT;
       name = VM_Atom.findOrCreateAsciiAtom("short");
       classForType = Short.TYPE;
       break;
     case IntTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_INT;
       name = VM_Atom.findOrCreateAsciiAtom("int");
       classForType = Integer.TYPE;
       break;
     case LongTypeCode:
       stackWords = 2;
+      memoryBytes = BYTES_IN_LONG;
       name = VM_Atom.findOrCreateAsciiAtom("long");
       classForType = Long.TYPE;
       break;
     case FloatTypeCode:
       stackWords = 1;
+      memoryBytes = BYTES_IN_FLOAT;
       name = VM_Atom.findOrCreateAsciiAtom("float");
       classForType = Float.TYPE;
       break;
     case DoubleTypeCode:
       stackWords = 2;
+      memoryBytes = BYTES_IN_DOUBLE;
       name = VM_Atom.findOrCreateAsciiAtom("double");
       classForType = Double.TYPE;
       break;
@@ -136,16 +154,21 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
       if (tr == VM_TypeReference.Address ||
           tr == VM_TypeReference.Word ||
           tr == VM_TypeReference.Offset ||
-          tr == VM_TypeReference.Extent ||
-          tr == VM_TypeReference.Code) {
+          tr == VM_TypeReference.Extent) {
         stackWords = 1;
+        memoryBytes = BYTES_IN_ADDRESS;
+        name = tr.getName();
+        classForType = null;
+      } else if (tr == VM_TypeReference.Code) {
+        stackWords = 1;
+        memoryBytes = VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
         name = tr.getName();
         classForType = null;
       } else {
         throw new Error("Unknown primitive type " + tr.getName());
       }
     }
-    return new VM_Primitive(tr, classForType, name, stackWords);
+    return new VM_Primitive(tr, classForType, name, stackWords, memoryBytes);
   }
 
   /**
@@ -272,11 +295,19 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
    
   /**
-   * Stack space requirement.
+   * Stack space requirement in words.
    */ 
   @Uninterruptible
   public int getStackWords() { 
     return stackWords;
+  }
+
+  /**
+   * Space required in memory in bytes.
+   */ 
+  @Uninterruptible
+  public int getMemoryBytes() { 
+    return memoryBytes;
   }
 
   /**

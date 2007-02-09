@@ -181,9 +181,18 @@ public class VM_Magic {
   //---------------------------------------//
 
   /**
-   * Get byte at arbitrary (byte) offset from object. 
-   * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
-   * (In other words, mask off all but the lower 8 bits before using the value).
+   * Get unsigned byte at arbitrary (byte) offset from object. The
+   * most significant 24bits of the result will be 0.
+   */
+  public static byte getUnsignedByteAtOffset(Object object, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /**
+   * Get byte at arbitrary (byte) offset from object. The most
+   * significant 24bits of the result will be the same as the most
+   * significant bit in the byte.
    */
   public static byte getByteAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -191,10 +200,18 @@ public class VM_Magic {
   }
 
   /**
-   * Get char at arbitrary (byte) offset from object.  Clients must
-   * not depend on whether or not the char is zero or sign extended as
-   * it is loaded.  (In other words, mask off all but the lower 16
-   * bits before using the value).
+   * Get short at arbitrary (byte) offset from object. The most
+   * significant 16bits will be the same as the most significant bit
+   * in the short.
+   */
+  public static short getShortAtOffset(Object object, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return (short)-1;
+  }
+
+  /**
+   * Get char at arbitrary (byte) offset from object. The most
+   * significant 16bits will be 0.
    */
   public static char getCharAtOffset(Object object, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

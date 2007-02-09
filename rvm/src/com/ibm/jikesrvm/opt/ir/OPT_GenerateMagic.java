@@ -283,12 +283,26 @@ public class OPT_GenerateMagic {
       bc2ir.appendInstruction(Load.create(BYTE_LOAD, val, object, offset, 
                                           null));
       bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.getUnsignedByteAtOffset) {
+      OPT_Operand offset = bc2ir.popAddress();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Byte);
+      bc2ir.appendInstruction(Load.create(UBYTE_LOAD, val, object, offset, 
+                                          null));
+      bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setByteAtOffset) {
       OPT_Operand val = bc2ir.popInt();
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, 
                                            null));
+    } else if (methodName == VM_MagicNames.getShortAtOffset) {
+      OPT_Operand offset = bc2ir.popAddress();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Char);
+      bc2ir.appendInstruction(Load.create(SHORT_LOAD, val, object, offset, 
+                                          null));
+      bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getCharAtOffset) {
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();

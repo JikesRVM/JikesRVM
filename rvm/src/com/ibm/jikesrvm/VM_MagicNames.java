@@ -62,7 +62,9 @@ public class VM_MagicNames {
   public static final VM_Atom loadObjectReference           = VM_Atom.findOrCreateAsciiAtom("loadObjectReference");
   public static final VM_Atom store                         = VM_Atom.findOrCreateAsciiAtom("store");
 
+  public static final VM_Atom getUnsignedByteAtOffset       = VM_Atom.findOrCreateAsciiAtom("getUnsignedByteAtOffset");
   public static final VM_Atom getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
+  public static final VM_Atom getShortAtOffset              = VM_Atom.findOrCreateAsciiAtom("getShortAtOffset");
   public static final VM_Atom getCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("getCharAtOffset");
   public static final VM_Atom getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
   public static final VM_Atom getWordAtOffset               = VM_Atom.findOrCreateAsciiAtom("getWordAtOffset");
