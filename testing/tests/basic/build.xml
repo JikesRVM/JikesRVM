@@ -102,6 +102,8 @@
     <outputTestResults tag="ImageSizes"/>
     <outputTestEnd/>
     <displayTestResults tag="ImageSizes"/>
+    <runCompareTest tag="R1644460" class="test.org.jikesrvm.basic.bugs.R1644460"/>
+    <runCompareTest tag="R1644460_B" class="test.org.jikesrvm.basic.bugs.R1644460_B"/>
 
     <finishResults/>
   </target>
