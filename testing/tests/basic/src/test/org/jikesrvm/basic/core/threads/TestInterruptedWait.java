@@ -15,6 +15,9 @@ package test.org.jikesrvm.basic.core.threads;
  * @author David Hovemeyer
  */
 public class TestInterruptedWait {
+  private static volatile boolean started;
+  private static volatile boolean locking;
+
   public static void main(String[] argv) {
     final Object lock = new Object();
 
@@ -22,6 +25,8 @@ public class TestInterruptedWait {
 
     new Thread() {
       public void run() {
+        started = true;
+        while (!locking) Thread.yield();
         try {
           Thread.sleep(1000);
         }
@@ -32,7 +37,9 @@ public class TestInterruptedWait {
       }
     }.start();
 
+    while (!started) Thread.yield();
     synchronized (lock) {
+      locking = true;
       try {
         lock.wait(2000);
       }
