@@ -273,11 +273,11 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param data the byte data value to write
    */
   final protected void setMachineCodes(int index, byte data) {
-      try {
-	  machineCodes[index] = data;
-      } catch (ArrayIndexOutOfBoundsException e) {
-	growMachineCodes(index, data);
-      }
+    if(index >= machineCodes.length) {
+      growMachineCodes(index, data);
+    } else {
+      machineCodes[index] = data;
+    }
   }
     
   @NoInline
