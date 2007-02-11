@@ -1,0 +1,4 @@
+Registering transformer
+Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInstanceof
+Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInstanceof$A
+false

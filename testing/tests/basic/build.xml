@@ -66,6 +66,16 @@
     <runCompareTest tag="TestFloatingRem" class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
     <runCompareTest tag="TestConstants" class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
 
+    <runCompareTest tag="TestResolveOnInvokeVirtual"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+    <runCompareTest tag="TestResolveOnCheckcast"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnCheckcast"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+    <runCompareTest tag="TestResolveOnInstanceof"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInstanceof"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+
     <runCompareTest tag="tClass" class="test.org.jikesrvm.basic.core.reflect.tClass"/>
     <runCompareTest tag="tArray" class="test.org.jikesrvm.basic.core.reflect.tArray"/>
     <runCompareTest tag="TestFieldReflection" class="test.org.jikesrvm.basic.core.reflect.TestFieldReflection"/>
