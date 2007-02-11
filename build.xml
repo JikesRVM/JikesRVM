@@ -1231,6 +1231,7 @@ config.default-heapsize.initial=${config.default-heapsize.initial}
 config.default-heapsize.maximum=${config.default-heapsize.maximum}
 config.bootimage.compiler.args=${config.bootimage.compiler.args}
 config.intercept.blocking.system-calls=${config.intercept.blocking.system-calls}
+config.single.virtual.processor=${config.single.virtual.processor}
 config.stress-gc=${config.stress-gc}
 target.name=${target.name}
 target.arch=${target.arch}
