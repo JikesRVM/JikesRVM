@@ -31,6 +31,13 @@
         <attribute name="Premain-Class" value="test.org.jikesrvm.basic.core.instrument.AgentX"/>
       </manifest>
     </jar>
+    <jar file="${build.tests.dir}/IdentityAgent.jar"
+         basedir="${build.classes}"
+         includes="**/IdentityClassFileTransformer.class">
+      <manifest>
+        <attribute name="Premain-Class" value="test.org.jikesrvm.basic.util.IdentityClassFileTransformer"/>
+      </manifest>
+    </jar>
   </target>
 
   <!-- **************************************************************************** -->
