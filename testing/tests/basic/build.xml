@@ -122,6 +122,7 @@
     <runCompareTest tag="R1644460" class="test.org.jikesrvm.basic.bugs.R1644460"/>
     <runCompareTest tag="R1644460_B" class="test.org.jikesrvm.basic.bugs.R1644460_B"/>
     <runCompareTest tag="R1644449" class="test.org.jikesrvm.basic.bugs.R1644449"/>
+    <runCompareTest tag="R1657236" class="test.org.jikesrvm.basic.bugs.R1657236"/>
 
     <finishResults/>
   </target>
