@@ -52,7 +52,7 @@ class ArrayFunctions {
   static native long[]    accessNewLongArray(int length);
   static native double[]  accessNewDoubleArray(int length);
   static native float[]   accessNewFloatArray(int length);
-  static native Object[]  accessNewObjectArray(int length, Class cls, Object initElement);
+  static native Object[]  accessNewObjectArray(int length, Class<?> cls, Object initElement);
 
   static native int[]     testIntArrayRegion(int[] sourceArray);
   static native boolean[] testBooleanArrayRegion(boolean[] sourceArray);
@@ -74,7 +74,7 @@ class ArrayFunctions {
   static native Object    testObjectArrayElement(Object[] sourceArray, Object toAssign, int index);
   
   static native int testArrayLength(int[] sourceArray);
-
+  static native boolean lastGetArrayElementsWasCopy();
 
   /*******************************************************/
   public static boolean testObjectArray () {
@@ -98,33 +98,42 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testBooleanArray () {
     boolean arrayFlag = true;
+    boolean updateSucceeded, wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<booleanArray.length; i++) 
       booleanArray[i] = false;
-    boolean [] returnArray = testBooleanArrayElements(booleanArray, 0);      
-    if (! (returnArray[0] && !returnArray[1] && returnArray[2] && !returnArray[3] &&
+    boolean [] returnArray = testBooleanArrayElements(booleanArray, 0);
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose) System.out.println("INFO: GetBooleanArrayElements "+
+          (wasCopied ? "copied" : "did not copy")+" the array");
+    updateSucceeded = (returnArray[0] && !returnArray[1] && returnArray[2] && !returnArray[3] &&
            returnArray[4] && !returnArray[5] && returnArray[6] && !returnArray[7] &&
-           returnArray[8] && !returnArray[9]))
-      arrayFlag = false;
+           returnArray[8] && !returnArray[9]);
+    if (verbose) System.out.println("INFO: update(1) "+(updateSucceeded ? "succeeded" : "failed"));
+    arrayFlag &= updateSucceeded;
 
     // second part: update and release the copy
     for (int i=0; i<booleanArray.length; i++) 
       booleanArray[i] = false;
     returnArray = testBooleanArrayElements(booleanArray, 1);
-    if (! (!returnArray[0] && returnArray[1] && !returnArray[2] && returnArray[3] &&
-           !returnArray[4] && returnArray[5] && !returnArray[6] && returnArray[7] &&
-           !returnArray[8] && returnArray[9]))
-      arrayFlag = false;
-
+    updateSucceeded = (!returnArray[0] && returnArray[1] && !returnArray[2] && returnArray[3] &&
+        !returnArray[4] && returnArray[5] && !returnArray[6] && returnArray[7] &&
+        !returnArray[8] && returnArray[9]);
+    // Should always succeed
+    if (verbose) System.out.println("INFO: update(2) "+(updateSucceeded ? "succeeded" : "failed"));
+    arrayFlag &= updateSucceeded;
+    
     // third part: release the copy with no update
     for (int i=0; i<booleanArray.length; i++) 
       booleanArray[i] = true;
     returnArray = testBooleanArrayElements(booleanArray, 2);      
-    if (! (returnArray[0] && returnArray[1] && returnArray[2] && returnArray[3] &&
+    wasCopied = lastGetArrayElementsWasCopy();
+    updateSucceeded = !(returnArray[0] && returnArray[1] && returnArray[2] && returnArray[3] &&
            returnArray[4] && returnArray[5] && returnArray[6] && returnArray[7] &&
-           returnArray[8] && returnArray[9]))
-      arrayFlag = false;
+           returnArray[8] && returnArray[9]);
+    if (verbose) System.out.println("INFO: update(3) "+(updateSucceeded ? "succeeded" : "failed"));
+    arrayFlag &= updateSucceeded != wasCopied;
 
     return arrayFlag;
 
@@ -133,24 +142,29 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testByteArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<byteArray.length; i++) 
       byteArray[i] = (byte) i;
-    byte [] returnArray = testByteArrayElements(byteArray, 0);      
+    byte [] returnArray = testByteArrayElements(byteArray, 0);  
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose) System.out.println("INFO: GetByteArrayElements "+
+          (wasCopied ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
-      // System.out.println(" first:  " + i + " = " + returnArray[i]);
+      //if (verbose) System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((byte) (i+4))) 
         arrayFlag = false;
     }
 
     // second part: update and release the copy
+    /* If the array is copied, this will have no effect */
     for (int i=0; i<byteArray.length; i++) 
       byteArray[i] = (byte) i;
     returnArray = testByteArrayElements(byteArray, 1);
     for (int i=0; i<returnArray.length; i++) {
-      // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((byte) (i+9)))
+      //if (verbose) System.out.println(" second:  " + i + " = " + returnArray[i]);
+      if (returnArray[i]!=((byte) (i+(wasCopied ? 9 : 5))))
         arrayFlag = false;
     }
 
@@ -158,9 +172,10 @@ class ArrayFunctions {
     for (int i=0; i<byteArray.length; i++) 
       byteArray[i] = (byte) i;
     returnArray = testByteArrayElements(byteArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
-      // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=(byte) i ) 
+      //if (verbose) System.out.println(" third:  " + i + " = " + returnArray[i]);
+      if (returnArray[i]!=(byte) i + (wasCopied ? 0 : 6)) 
         arrayFlag = false;
     }
 
@@ -171,11 +186,15 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testIntArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<intArray.length; i++) 
       intArray[i] = i;
     int [] returnIntArray = testIntArrayElements(intArray, 0); 
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose) System.out.println("INFO: GetIntArrayElements "+
+          (wasCopied ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnIntArray[i]);
       if (returnIntArray[i]!=i+1) 
@@ -188,7 +207,7 @@ class ArrayFunctions {
     returnIntArray = testIntArrayElements(intArray, 1);
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnIntArray[i]);
-      if (returnIntArray[i]!=i+3) 
+      if (returnIntArray[i]!=i+(wasCopied ? 3 : 2)) 
         arrayFlag = false;
     }
 
@@ -196,9 +215,10 @@ class ArrayFunctions {
     for (int i=0; i<intArray.length; i++) 
       intArray[i] = i;
     returnIntArray = testIntArrayElements(intArray, 2); 
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnIntArray[i]);
-      if (returnIntArray[i]!=i) 
+      if (returnIntArray[i]!= i + (wasCopied ? 0 : 3)) 
         arrayFlag = false;
     }
 
@@ -209,11 +229,16 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testShortArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<shortArray.length; i++) 
       shortArray[i] = (short) i;
     short [] returnArray = testShortArrayElements(shortArray, 0);      
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose)
+      System.out.println("INFO: GetShortArrayElements "+
+          (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=i+7) 
@@ -226,7 +251,7 @@ class ArrayFunctions {
     returnArray = testShortArrayElements(shortArray, 1);
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=i+15) 
+      if (returnArray[i]!=i+(wasCopied ? 15 : 8)) 
         arrayFlag = false;
     }
 
@@ -234,9 +259,10 @@ class ArrayFunctions {
     for (int i=0; i<shortArray.length; i++) 
       shortArray[i] = (short) i;
     returnArray = testShortArrayElements(shortArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=i) 
+      if (returnArray[i]!=i + (wasCopied ? 0 : 9)) 
         arrayFlag = false;
     }
 
@@ -247,11 +273,16 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testCharArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<charArray.length; i++) 
       charArray[i] = 'a';
     char [] returnArray = testCharArrayElements(charArray, 0);      
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose)
+      System.out.println("INFO: GetCharArrayElements "+
+          (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     if (returnArray[0]!='a' || returnArray[1]!='b' || returnArray[2]!='c' || returnArray[3]!='d' ||
         returnArray[4]!='e' || returnArray[5]!='f' || returnArray[6]!='g' || returnArray[7]!='h' ||
         returnArray[8]!='i' || returnArray[9]!='j' )
@@ -270,9 +301,10 @@ class ArrayFunctions {
     for (int i=0; i<charArray.length; i++) 
       charArray[i] = 'c';
     returnArray = testCharArrayElements(charArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!='c') 
+      if (returnArray[i]!= (wasCopied ? 'c' : 'x')) 
         arrayFlag = false;
     }
 
@@ -283,11 +315,16 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testLongArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<longArray.length; i++) 
       longArray[i] = (long) i;
     long [] returnArray = testLongArrayElements(longArray, 0);      
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose)
+      System.out.println("INFO: GetLongArrayElements "+
+          (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((long) i + 10) )
@@ -300,7 +337,7 @@ class ArrayFunctions {
     returnArray = testLongArrayElements(longArray, 1);
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((long) i + 21)) 
+      if (returnArray[i]!=((long) i + (wasCopied ? 21 : 11))) 
         arrayFlag = false;
     }
 
@@ -308,9 +345,10 @@ class ArrayFunctions {
     for (int i=0; i<longArray.length; i++) 
       longArray[i] = (long) i;
     returnArray = testLongArrayElements(longArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((long) i) )
+      if (returnArray[i]!=((long) i) + (wasCopied ? 0 : 12))
         arrayFlag = false;
     }
 
@@ -321,14 +359,19 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testFloatArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<floatArray.length; i++) 
       floatArray[i] = i;
     float [] returnArray = testFloatArrayElements(floatArray, 0);      
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose)
+      System.out.println("INFO: GetFloatArrayElements "+
+          (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((float)i + (float)16.0)) 
+      if (returnArray[i]!=((float)i + 16.0f)) 
         arrayFlag = false;
     }
 
@@ -338,7 +381,7 @@ class ArrayFunctions {
     returnArray = testFloatArrayElements(floatArray, 1);
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((float)i + (float)33.0)) 
+      if (returnArray[i]!=((float)i + (wasCopied ? 33.0f : 17.0f))) 
         arrayFlag = false;
     }
 
@@ -346,9 +389,10 @@ class ArrayFunctions {
     for (int i=0; i<floatArray.length; i++) 
       floatArray[i] = i;
     returnArray = testFloatArrayElements(floatArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=(float) i )
+      if (returnArray[i]!=(float) i + (wasCopied ? 0f : 18f))
         arrayFlag = false;
     }
 
@@ -359,11 +403,16 @@ class ArrayFunctions {
   /*******************************************************/
   public static boolean testDoubleArray () {
     boolean arrayFlag = true;
+    boolean wasCopied;
 
     // first part: update but don't release the copy
     for (int i=0; i<doubleArray.length; i++) 
       doubleArray[i] = (double) i;
     double [] returnArray = testDoubleArrayElements(doubleArray, 0);      
+    wasCopied = lastGetArrayElementsWasCopy();
+    if (verbose)
+      System.out.println("INFO: GetDoubleArrayElements "+
+          (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((double) i + 13.0)) 
@@ -376,7 +425,7 @@ class ArrayFunctions {
     returnArray = testDoubleArrayElements(doubleArray, 1);
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((double) i + 27.0) )
+      if (returnArray[i]!=((double) i + (wasCopied ? 27.0 : 14.0)) )
         arrayFlag = false;
     }
 
@@ -384,9 +433,10 @@ class ArrayFunctions {
     for (int i=0; i<shortArray.length; i++) 
       doubleArray[i] = (double) i;
     returnArray = testDoubleArrayElements(doubleArray, 2);      
+    wasCopied = lastGetArrayElementsWasCopy();
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!= (double) i ) 
+      if (returnArray[i]!= (double) i + (wasCopied ? 0.0 : 15.0)) 
         arrayFlag = false;
     }
 

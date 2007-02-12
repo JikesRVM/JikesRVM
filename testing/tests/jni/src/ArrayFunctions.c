@@ -365,6 +365,22 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayRegion
 }
 
 /*
+ * Flag to say whether last Get<Type>ArrayElements returned a copy
+ * or a direct pointer
+ */
+static jboolean lastGetArrayElementsWasCopy = JNI_FALSE;
+
+/*
+ * Class:     ArrayFunctions
+ * Method:    lastGetArrayElementsWasCopy
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_ArrayFunctions_lastGetArrayElementsWasCopy
+  (JNIEnv *env, jclass cls) {
+  return lastGetArrayElementsWasCopy;
+}
+
+/*
  * Class:     ArrayFunctions
  * Method:    testIntArrayElements
  * Signature: ([II)[I
@@ -381,10 +397,8 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetIntArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetIntArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    buf = (*env) -> GetIntArrayElements(env, sourceArray, &isCopy);
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 1;
@@ -408,9 +422,7 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetIntArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetIntArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 3;
     }    
@@ -442,9 +454,7 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetBooleanArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     buf[0] = JNI_TRUE; buf[1] = JNI_FALSE; buf[2] = JNI_TRUE; buf[3] = JNI_FALSE; 
     buf[4] = JNI_TRUE; buf[5] = JNI_FALSE; buf[6] = JNI_TRUE; buf[7] = JNI_FALSE; 
@@ -468,15 +478,10 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);    
+    lastGetArrayElementsWasCopy = isCopy;
     buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE; 
     buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE; 
     buf[8] = JNI_FALSE; buf[9] = JNI_TRUE; 
-    if (isCopy==JNI_FALSE) {
-      printf("> GetBooleanArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
-    for (i = 0; i<size; i++) {
-      buf[i] = buf[i] + 3;
-    }    
     /* free the buffer without copying back */
     (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_ABORT);    
     break;
@@ -506,9 +511,7 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetByteArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 4;
@@ -532,9 +535,7 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetByteArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 6;
     }    
@@ -566,9 +567,7 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetShortArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 7;
@@ -592,9 +591,7 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetShortArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 9;
     }    
@@ -626,9 +623,7 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetCharArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     buf[0] = 'a'; buf[1] = 'b'; buf[2] = 'c'; buf[3] = 'd'; 
     buf[4] = 'e'; buf[5] = 'f'; buf[6] = 'g'; buf[7] = 'h'; 
@@ -652,9 +647,7 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetCharArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = 'x';
     }    
@@ -685,9 +678,7 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetLongArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 10;
@@ -711,9 +702,7 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetLongArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 12;
     }    
@@ -744,9 +733,7 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetDoubletArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 13.0;
@@ -770,9 +757,7 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetDoubleArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 15.0;
     }    
@@ -803,9 +788,7 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
   case 0:
     /* first time, get the array copy, update and save the pointer */
     buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetFloatArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + (float) 16.0;
@@ -829,9 +812,7 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
   default:
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);    
-    if (isCopy==JNI_FALSE) {
-      printf("> GetFloatArrayElements:  expect to get a copy of the array, got a direct pointer instead.");
-    }
+    lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + (float) 18.0;
     }    
