@@ -257,6 +257,14 @@
       <outputproperty name="encoding" value="US-ASCII"/>
       <outputproperty name="indent" value="yes"/>
     </xslt>
+
+    <exec executable="${perl.exe}" failonerror="true">
+      <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
+      <arg value="-x"/>
+      <arg value="${test.results.dir}/Report.xml"/>
+      <arg value="-o"/>
+      <arg value="${build.results.dir}/ReportNG.html"/>
+    </exec>
   </target>
 
   <!-- **************************************************************************** -->
@@ -284,6 +292,15 @@
           messagemimetype="text/html"
           subject="Test Results for ${test-run.name} on ${target.name}"
           messagefile="${build.results.dir}/Report.html">
+      <from address="${mail.from}"/>
+      <replyto address="jikesrvm-core@lists.sourceforge.net"/>
+      <to address="${mail.to}"/>
+    </mail>
+    <mail mailhost="${mail.host}"
+          mailport="${mail.port}"
+          messagemimetype="text/html"
+          subject="Test Results for ${test-run.name} on ${target.name}"
+          messagefile="${build.results.dir}/ReportNG.html">
       <from address="${mail.from}"/>
       <replyto address="jikesrvm-core@lists.sourceforge.net"/>
       <to address="${mail.to}"/>
