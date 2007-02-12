@@ -152,13 +152,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   private int alignment;
 
   /**
-   * A long containing the field layout. 0 implies a byte is
-   * available, 1 implies a byte is occupied. Subclasses can occupy
-   * empty field locations obtained from their parents. NB when space
-   * in this long is occupied we can't pack subclass fields into
-   * parent classes.
+   * An int containing the field layout as defined in VM_ObjectModel.
    */
-  private long fieldLayout;
+  private int fieldLayout;
 
   // --- Method-dispatching information --- //
 
@@ -976,16 +972,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Return long representing available holes in the field layout
+   * Return int representing available holes in the field layout
    */
-  public final long getFieldLayout() {
+  public final int getFieldLayout() {
     return fieldLayout;
   }
 
   /**
-   * Set long representing available holes in the field layout
+   * Set int representing available holes in the field layout
    */
-  public final void setFieldLayout(long newLayout) {
+  public final void setFieldLayout(int newLayout) {
     fieldLayout = newLayout;
   }
 

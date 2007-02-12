@@ -134,15 +134,11 @@ import org.vmmagic.pragma.*;
    */
   private static final int BYTES_IN_DOUBLE_MASK = BYTES_IN_DOUBLE - 1;
 
+  /** Whether to pack bytes and shorts into 32bit fields*/
+  private static final boolean PACKED=true;
+
   /** Generate debug information */
   private static final boolean DEBUG=false;
-
-  /**
-   * Minimum of two integers - uninterruptible version
-   */
-  private static int min (int x, int y) {
-    return (x < y) ? x : y;
-  }
 
   /**
    * Maximum of two integers - uninterruptible version
@@ -152,37 +148,30 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Attempt to allocate space for a field in the field layout long
-   * @param size size of field, must be a power of 2
-   * @param fieldLayout representation of allocated field spaces
-   * @param fieldSize size of fields so far
-   * @return offset of bytes allocated or -1
+   * Layout the instance fields declared in this class.
+   * @param klass the class to layout
    */
-  private static int attemptAllocateFieldInFieldLayout(int size, long fieldLayout, int fieldSize) {
-    if (fieldLayout == -1L) {
-      // All slots occupied
-      return -1;
+  @Interruptible
+  public static void layoutInstanceFields(VM_Class klass) {
+    if (!PACKED) {
+      layoutInstanceFieldsUnpacked(klass);
     } else {
-      // Search for space for field in unoccupied slots in fieldLayout
-      int fieldLayoutEnd = min(63, fieldSize & ~(size - 1));
-      for (int i=0; i < fieldLayoutEnd; i+=size) {
-        if ((fieldLayout & (((long)((1 << size) - 1)) << i)) == 0L) {
-          // We found a suitable hole 
-          return i;
-        }
-      }
-      // No slots found
-      return -1;
+      layoutInstanceFieldsPackingBytesAndShorts(klass);
     }
   }
   
   /**
-   * Layout the instance fields declared in this class.
+   * Layout the instance fields declared in this class not packing
+   * bytes and shorts into ints
+   * @param klass the class to layout
    */
   @Interruptible
-  public static void layoutInstanceFields(VM_Class klass) { 
-    // Get available field slots from parent classes
-    long fieldLayout = klass.getFieldLayout();
+  private static void layoutInstanceFieldsUnpacked(VM_Class klass) { 
+    // Determine available field slots from parent classes
+    final int origFieldLayout = klass.getFieldLayout();
+    // A hole where an int can be allocated - 0 means none available,
+    // modified as we add new fields.
+    int intHoleOffset   = origFieldLayout;
     
     // Current size of object including object header
     final int startInstanceSize = klass.getInstanceSizeInternal();
@@ -190,68 +179,226 @@ import org.vmmagic.pragma.*;
     // Size of header
     final int headerSize = VM_ObjectModel.computeScalarHeaderSize(klass);
 
-    // Size of all fields
+    // Size of all fields - modified as we add new fields
     int totalFieldSize = startInstanceSize - headerSize;
       
-    // Prefered alignment of object
+    // Prefered alignment of object - modified to reflect added fields
     int alignment = klass.getAlignment();
 
     // New fields to be allocated for this object
     VM_Field fields[] = klass.getDeclaredFields();
-
+    
     if (DEBUG) {
       VM.sysWrite("Laying out: ");
       VM.sysWriteln(klass.toString());
     }
-    // For every field size
-    for (int desiredFieldSize = BYTES_IN_DOUBLE; desiredFieldSize > 0; desiredFieldSize >>= 1) {
-      // For every field
-      for (int i=0; i < fields.length; i++) {
-        VM_Field field = fields[i];
-        // Should we allocate space this iteration?
-        if (!field.isStatic() &&
-            (field.getType().getMemoryBytes() == desiredFieldSize)) {
-          // Adjust alignment
-          alignment = max(desiredFieldSize, alignment);
-          
-          // Try to use unused bytes in object
-          int offset = attemptAllocateFieldInFieldLayout(desiredFieldSize, fieldLayout, totalFieldSize);
-          if (offset != -1) {
-            // Mark bits in fieldLayout as occupied
-            fieldLayout |= ((long)((1 << desiredFieldSize) - 1)) << offset;
-          } else {
-            // no space to use so allocate at end up of object
-            
-            // align up the instance size
-            if ((totalFieldSize & (desiredFieldSize - 1)) != 0) {
-              totalFieldSize = (totalFieldSize | (desiredFieldSize - 1)) + 1;
-            }
+    // For every field
+    for (int i=0; i < fields.length; i++) {
+      VM_Field field = fields[i];
+      // Should we allocate space in the object?
+      if (!field.isStatic()) {
+        // size of field
+        int fieldSize = field.getType().getMemoryBytes();
+        // where it will reside
+        int offset;
+        // Adjust alignment
+        alignment = max(fieldSize, alignment);
+        if (fieldSize <= BYTES_IN_INT) {
+          // Try to pack either into a int hole otherwise place at end
+          // of object
+          if (intHoleOffset != 0) { // use saved int hole
+            offset = intHoleOffset;
+            intHoleOffset = 0;
+          }
+          else { // allocate at end of object
             offset = totalFieldSize;
-            // Mark space in field layout occupied
-            if (offset < 63) {
-              fieldLayout |= ((long)((1 << desiredFieldSize) - 1)) << offset;
-            }
-            // Increase instance size
-            totalFieldSize += desiredFieldSize;
+            totalFieldSize += 4;
           }
-          // Compute offset from beginning of object
-          Offset fieldOffset = Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) + headerSize + offset);
-          field.setOffset(fieldOffset);
-          if (DEBUG) {
-            VM.sysWrite("  field: ");
-            VM.sysWrite(field.toString());
-            VM.sysWrite(" offset ");
-            VM.sysWriteln(fieldOffset.toInt());
+        }
+        else {
+          if(VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
+          // check alignment
+          if ((totalFieldSize & 0x7) == 0) {
+            // aligned - allocate at end of object
+            offset = totalFieldSize;
+            totalFieldSize += 8;
           }
+          else {
+            // create hole and allocate at end of object
+            intHoleOffset = totalFieldSize;
+            offset = totalFieldSize + 4;
+            totalFieldSize += 12;
+          }
+        }
+        // Compute offset from beginning of object
+        Offset fieldOffset = Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) + headerSize + offset);
+        field.setOffset(fieldOffset);
+        if (DEBUG) {
+          VM.sysWrite("  field: ");
+          VM.sysWrite(field.toString());
+          VM.sysWrite(" offset ");
+          VM.sysWriteln(fieldOffset.toInt());
         }
       }
     }
     // VM_JavaHeader requires objects to be int sized/aligned
-    if ((totalFieldSize & (BYTES_IN_INT - 1)) != 0) {
-      totalFieldSize = (totalFieldSize | (BYTES_IN_INT - 1)) + 1;
-    }
+    if(VM.VerifyAssertions) VM._assert((totalFieldSize & 0x3) == 0);
+
+    // Compute new field layout int
+    final int newFieldLayout = intHoleOffset;
+
     // Update class to reflect changes
-    klass.setFieldLayout(fieldLayout);
+    klass.setFieldLayout(newFieldLayout);
+    klass.setInstanceSizeInternal(headerSize + totalFieldSize);
+    klass.setAlignment(alignment);
+  }
+  
+  /**
+   * Layout the instance fields declared in this class packing bytes
+   * and shorts into ints
+   * @param klass the class to layout
+   */
+  @Interruptible
+  private static void layoutInstanceFieldsPackingBytesAndShorts(VM_Class klass) { 
+    // Determine available field slots from parent classes
+    final int origFieldLayout = klass.getFieldLayout();
+    // A hole where a byte can be allocated - 0 means none available,
+    // modified as we add new fields. NB we use 11 bits in the field
+    // layout int to store the byte hole offset
+    int byteHoleOffset  = origFieldLayout & 0x7FF;
+    // A hole where a short can be allocated - 0 means none available,
+    // modified as we add new fields. NB we use 10 bits in the field
+    // layout int to store the short hole offset
+    int shortHoleOffset = (origFieldLayout >> 11) & 0x3FF;
+    // A hole where an int can be allocated - 0 means none available,
+    // modified as we add new fields. NB we use 11 bits in the field
+    // layout int to store the int hole offset
+    int intHoleOffset   = (origFieldLayout >> 21) & 0x7FF;
+    
+    // Current size of object including object header
+    final int startInstanceSize = klass.getInstanceSizeInternal();
+    
+    // Size of header
+    final int headerSize = VM_ObjectModel.computeScalarHeaderSize(klass);
+
+    // Size of all fields - modified as we add new fields
+    int totalFieldSize = startInstanceSize - headerSize;
+      
+    // Prefered alignment of object - modified to reflect added fields
+    int alignment = klass.getAlignment();
+
+    // New fields to be allocated for this object
+    VM_Field fields[] = klass.getDeclaredFields();
+    
+    if (DEBUG) {
+      VM.sysWrite("Laying out: ");
+      VM.sysWriteln(klass.toString());
+    }
+    // For every field
+    for (int i=0; i < fields.length; i++) {
+      VM_Field field = fields[i];
+      // Should we allocate space in the object?
+      if (!field.isStatic()) {
+        // size of field
+        int fieldSize = field.getType().getMemoryBytes();
+        // where it will reside
+        int offset;
+        // Adjust alignment
+        alignment = max(fieldSize, alignment);
+        if(fieldSize == BYTES_IN_BYTE) {
+          // Try to pack either into a byte hole, short hole or int
+          // hole, otherwise place at end of object
+          if (byteHoleOffset != 0) { // use saved byte hole
+            offset = byteHoleOffset;
+            byteHoleOffset = 0;           
+          }
+          else if (shortHoleOffset != 0) { // use saved short hole
+            offset = shortHoleOffset;
+            byteHoleOffset = offset + 1; // save upper byte for later
+            shortHoleOffset = 0;
+          }
+          else if (intHoleOffset != 0) { // use saved int hole
+            offset = intHoleOffset;
+            byteHoleOffset  = offset + 1; // save upper byte for later
+            shortHoleOffset = offset + 2; // save upper 16bits for later
+            intHoleOffset = 0;
+          }
+          else { // allocate at end of object
+            offset = totalFieldSize;
+            byteHoleOffset  = offset + 1; // save upper byte for later
+            shortHoleOffset = offset + 2; // save upper 16bits for later
+            totalFieldSize += 4;
+          }
+        }
+        else if (fieldSize == BYTES_IN_SHORT) {
+          // Try to pack either into a short hole or int hole,
+          // otherwise place at end of object
+          if (shortHoleOffset != 0) { // use saved short hole
+            offset = shortHoleOffset;
+            shortHoleOffset = 0;
+          }
+          else if (intHoleOffset != 0) { // use saved int hole
+            offset = intHoleOffset;
+            shortHoleOffset = offset + 2; // save upper 16bits for later
+            intHoleOffset = 0;
+          }
+          else { // allocate at end of object
+            offset = totalFieldSize;
+            shortHoleOffset = offset + 2; // save upper 16bits for later
+            totalFieldSize += 4;
+          }
+        }
+        else if (fieldSize == BYTES_IN_INT) {
+          // Try to pack either into a int hole otherwise place at end
+          // of object
+          if (intHoleOffset != 0) { // use saved int hole
+            offset = intHoleOffset;
+            intHoleOffset = 0;
+          }
+          else { // allocate at end of object
+            offset = totalFieldSize;
+            totalFieldSize += 4;
+          }
+        }
+        else {
+          if(VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
+          // check alignment
+          if ((totalFieldSize & 0x7) == 0) {
+            // aligned - allocate at end of object
+            offset = totalFieldSize;
+            totalFieldSize += 8;
+          }
+          else {
+            // create hole and allocate at end of object
+            intHoleOffset = totalFieldSize;
+            offset = totalFieldSize + 4;
+            totalFieldSize += 12;
+          }
+        }
+        // Compute offset from beginning of object
+        Offset fieldOffset = Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) + headerSize + offset);
+        field.setOffset(fieldOffset);
+        if (DEBUG) {
+          VM.sysWrite("  field: ");
+          VM.sysWrite(field.toString());
+          VM.sysWrite(" offset ");
+          VM.sysWriteln(fieldOffset.toInt());
+        }
+      }
+    }
+    // VM_JavaHeader requires objects to be int sized/aligned
+    if(VM.VerifyAssertions) VM._assert((totalFieldSize & 0x3) == 0);
+
+    // Compute new field layout int - NB if a hole offset is too big
+    // to pack into the field layout int then we get rid of that hole
+    // offset
+    final int newFieldLayout =
+      ((byteHoleOffset  > 0x7FF) ? 0 : byteHoleOffset) |
+      ((shortHoleOffset > 0x3FF) ? 0 : shortHoleOffset << 11) |
+      ((intHoleOffset   > 0x7FF) ? 0 : intHoleOffset << 21);
+
+    // Update class to reflect changes
+    klass.setFieldLayout(newFieldLayout);
     klass.setInstanceSizeInternal(headerSize + totalFieldSize);
     klass.setAlignment(alignment);
   }
