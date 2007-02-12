@@ -123,16 +123,25 @@ public interface VM_TIBLayoutConstants {
    static final int TIB_FIRST_VIRTUAL_METHOD_INDEX = 
      TIB_FIRST_INTERFACE_METHOD_INDEX + TIB_INTERFACE_METHOD_SLOTS;
 
-   // Special value returned by VM_ClassLoader.getFieldOffset() or VM_ClassLoader.getMethodOffset()
-   // to indicate fields or methods that must be accessed via dynamic linking code because their 
-   // offset is not yet known or the class's static initializer has not yet been run.
-   //
-   // We choose a value that will never match a valid jtoc-, instance-, 
-   // or virtual method table- offset. -1 is a good value:
-   //      the jtoc uses offsets over 0
-   //      instance field offsets are always more than 1 byte aligned w.r.t. object pointer
-   //      virtual method offsets are always positive w.r.t. TIB pointer
-   //
-   public static final int NEEDS_DYNAMIC_LINK = -1;
+  /**
+   * Special value returned by VM_ClassLoader.getFieldOffset() or
+   * VM_ClassLoader.getMethodOffset() to indicate fields or methods
+   * that must be accessed via dynamic linking code because their
+   * offset is not yet known or the class's static initializer has not
+   * yet been run.
+   *
+   *  We choose a value that will never match a valid jtoc-,
+   *  instance-, or virtual method table- offset. Short.MIN_VALUE+1 is
+   *  a good value:
+   *  
+   *  <ul>
+   *  <li>the jtoc offsets are aligned and this value should be
+   *  too huge to address the table</li>
+   *  <li>instance field offsets are always &gte; -4</li>
+   *  <li>virtual method offsets are always positive w.r.t. TIB pointer</li>
+   *  <li>fits into a PowerPC 16bit immediate operand</li>
+   *   </ul>
+   */
+  public static final int NEEDS_DYNAMIC_LINK = Short.MIN_VALUE+1;
 }
 
