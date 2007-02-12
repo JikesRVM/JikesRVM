@@ -99,6 +99,7 @@ class MainThread extends Thread {
       VM.sysWriteln("The jar file is missing the Premain-Class manifest entry for the agent class: ", agentJar);
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
+    //TODO: By this stage all agent jars and classes they reference via their manifest
     try {
       Class<?> agentClass = cl.loadClass(agentClassName);
       Method agentPremainMethod = agentClass.getMethod("premain", new Class<?>[]{String.class, Instrumentation.class});
@@ -107,6 +108,7 @@ class MainThread extends Thread {
       // According to the spec, exceptions from premain() can be ignored
     } catch (Throwable e) { 
       VM.sysWriteln("Failed to run the agent's premain: " + e.getMessage());
+      e.printStackTrace();
       System.exit(0);
       return;
     }
