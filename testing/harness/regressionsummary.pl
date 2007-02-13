@@ -12,10 +12,16 @@
 # Produce an email which summarizes a nightly regression run.
 #
 
-my $reportrecipient = shift(@ARGV);
-my $platform = shift(@ARGV);
-
-#"Linux.x86_64.32";
+require "getopts.pl";
+&Getopts('a:e:p:r:');
+die "Need to specify an email address with -e" unless ($opt_e ne "");
+my $reportrecipient = $opt_e;
+die "Need to specify an archive path with -a" unless ($opt_a ne "");
+my $archivepath = $opt_a;
+die "Need to specify a platform with -p" unless ($opt_p ne "");
+my $platform = $opt_p;
+die "Need to specify a report (for today) -r" unless ($opt_r ne "");
+my $report = $opt_r;
 
 # constants etc
 my @DAYS = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
@@ -55,9 +61,9 @@ my @javadocerrors = ();
 my $datestring = "";
 
 # grab the data and process it
-$today = getdata(\%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout, \@javadocerrors);
+$today = getdata($report, $archivepath, \%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout, \@javadocerrors);
 $datestring = getdatestringfromcheckout($checkout);
-updatebestperf($today, \%allperf, \%bestperf);
+updatebestperf($archivepath, $today, \%allperf, \%bestperf);
 
 # produce the html
 printemailhdr($out, getpasses(-1, $today, \%allsanity), $platform);
@@ -190,8 +196,8 @@ sub printfailures {
 # update performance bests
 #
 sub updatebestperf {
-  my ($today, $allperf, $bestperf) = @_;
-  getbestperf(($today - 1) % 7, $bestperf);
+  my ($archivepath, $today, $allperf, $bestperf) = @_;
+  getbestperf($archivepath, ($today - 1) % 7, $bestperf);
   my $key;
   foreach $key (sort keys %{$allperf}) {
     my ($day,$bm) = split(/:/, $key);
@@ -212,8 +218,8 @@ sub updatebestperf {
 # extract performance bests from a particular day's archive
 #
 sub getbestperf {
-  my ($day, $bestperf) = @_;
-  open(IN, "tar Oxzf ../archive/$DAYS[$day].$platform.tar.gz results/best.txt |");
+  my ($archivepath, $day, $bestperf) = @_;
+  open(IN, "tar Oxzf $archivepath/$DAYS[$day].$platform.tar.gz results/best.txt |");
   my ($bm, $score);
   while (<IN>) {
     if (($bm, $score) = /(\S+)\s+([0-9.]+)/) {
@@ -543,14 +549,13 @@ sub printonesanitytable {
 # read in all data from the respective sources
 #
 sub getdata {
-  my ($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $javadocerrors) = @_;
-  my $source = "results/report.html";
+  my ($source, $archivepath, $allsanity, $allperf, $allerrors, $allrevisions, $checkout, $javadocerrors) = @_;
   my $today = gettodayfromsvn($source, $checkout);
   my @errors = "";
   getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source,$javadocerrors);
   for ($day = 0; $day < 7; $day++) {
     if ($day != $today) {
-      $source = "tar Oxzf ../archive/$DAYS[$day].$platform.tar.gz results/report.html |";
+      $source = "tar Oxzf $archivepath/$DAYS[$day].$platform.tar.gz results/report.html |";
       getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
     }
   }
