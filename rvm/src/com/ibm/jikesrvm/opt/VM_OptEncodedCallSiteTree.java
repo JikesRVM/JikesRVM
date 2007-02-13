@@ -18,11 +18,11 @@ import org.vmmagic.pragma.*;
 /**
  * Suppose the following inlining actions have been taken 
  * <pre>
- * (<callerMID, bcIndex, calleeMID>):
+ * (&lt;callerMID, bcIndex, calleeMID&gt;):
  * 
- * <A, 12, B>, <A,14,C>, <A,16,D>, < B,3,E>, < B,5,F >, <C,10,G>, <G,20,H>, 
- * <H,30,I>
- * <pre>
+ * &lt;A, 12, B&gt;, &lt;A,14,C&gt;, &lt;A,16,D&gt;, &lt; B,3,E&gt;, &lt; B,5,F &gt;, &lt;C,10,G&gt;, &lt;G,20,H&gt;,
+ * &lt;H,30,I&gt;
+ * </pre>
  *
  * Then the <code>VM_OptEncodedCallSiteTree </code> would be:
  *
