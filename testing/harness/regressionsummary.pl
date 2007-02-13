@@ -88,7 +88,11 @@ sub printemailhdr {
   my $subject = ($failures == 0) ? "SUCCEEDED" : "Failed $failures tests";
   $platform =~ s/[.]/\//g;
   $subject .= " [$platform]";
-  print $out "From: regression\@$regressionhost.$regressiondomain\n";
+  if ($regressiondomain eq "anu.edu.au") {
+    print $out "From: rvm-regression\@cs.anu.edu.au\n";
+  } else {
+    print $out "From: regression\@$regressionhost.$regressiondomain\n";
+  }
   print $out "To: $reportrecipient\n";
   print $out "MIME-Version: 1.0\n";
   print $out "Subject: $subject\n";
@@ -197,7 +201,7 @@ sub printfailures {
 #
 sub updatebestperf {
   my ($archivepath, $today, $allperf, $bestperf) = @_;
-  getbestperf($archivepath, ($today - 1) % 7, $bestperf);
+  getbestperf($archivepath, $bestperf);
   my $key;
   foreach $key (sort keys %{$allperf}) {
     my ($day,$bm) = split(/:/, $key);
@@ -207,26 +211,28 @@ sub updatebestperf {
       }
     }
   }
-  open(OUT, ">results/best.txt");
+  open(XML, ">$archivepath/best.xml");
+  print XML "<statistics>\n";
   foreach $bm (sort keys %{$bestperf}) {
-    print OUT "$bm ".${$bestperf}{$bm}."\n";
+    print XML "<statistic key=\"$bm\" value=\"".${$bestperf}{$bm}."\"/>\n";
   }
-  close(OUT);
+  print XML "</statistics>\n";
+  close(XML);
 }
 
 #
 # extract performance bests from a particular day's archive
 #
 sub getbestperf {
-  my ($archivepath, $day, $bestperf) = @_;
-  open(IN, "tar Oxzf $archivepath/$DAYS[$day].$platform.tar.gz results/best.txt |");
+  my ($archivepath, $bestperf) = @_;
   my ($bm, $score);
-  while (<IN>) {
-    if (($bm, $score) = /(\S+)\s+([0-9.]+)/) {
+  open(XML, "$archivepath/best.xml");
+  while (<XML>) {
+    if (($bm, $score) = /<statistic key="(\S+)"\s+value="([0-9.]+)"\/>/) {
       ${$bestperf}{$bm} = $score;
     }
   }
-  close(IN);
+  close(XML);
 }
 
 #
