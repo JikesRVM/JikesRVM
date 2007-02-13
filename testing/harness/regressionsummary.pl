@@ -11,17 +11,23 @@
 #
 # Produce an email which summarizes a nightly regression run.
 #
+use Time::Local;
 
 require "getopts.pl";
-&Getopts('a:e:p:r:');
+&Getopts('a:e:p:r:s:h:');
 die "Need to specify an email address with -e" unless ($opt_e ne "");
 my $reportrecipient = $opt_e;
 die "Need to specify an archive path with -a" unless ($opt_a ne "");
 my $archivepath = $opt_a;
 die "Need to specify a platform with -p" unless ($opt_p ne "");
 my $platform = $opt_p;
+die "Need to specify a regression host -h" unless ($opt_h ne "");
+my $regressionhost = $opt_h;
 die "Need to specify a report (for today) -r" unless ($opt_r ne "");
 my $report = $opt_r;
+die "Need to specify an xml to html conversion script -s" unless (!($report =~ /xml.gz/) || $opt_s ne "");
+my $nightlyreport = $opt_s;
+
 
 # constants etc
 my @DAYS = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
@@ -41,11 +47,7 @@ my $short = 1;
 
 # these will need to change
 my $regressiondomain = "anu.edu.au";
-my $regressionhost = "rvmx86lnx64";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
-#my $reportrecipient = "Steve.Blackburn\@anu.edu.au";
-#my $reportrecipient = "Steve.Blackburn\@anu.edu.au, groved\@us.ibm.com, hindm\@us.ibm.com";
-
 
 # initialize things
 #open($out, ">summary.eml");
@@ -61,7 +63,7 @@ my @javadocerrors = ();
 my $datestring = "";
 
 # grab the data and process it
-$today = getdata($report, $archivepath, \%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout, \@javadocerrors);
+$today = getdata($report, $archivepath, \%allsanity, \%allperf, \%allerrors, \@allrevisions, \$checkout, \@javadocerrors, $nightlyreport);
 $datestring = getdatestringfromcheckout($checkout);
 updatebestperf($archivepath, $today, \%allperf, \%bestperf);
 
@@ -555,17 +557,57 @@ sub printonesanitytable {
 # read in all data from the respective sources
 #
 sub getdata {
-  my ($source, $archivepath, $allsanity, $allperf, $allerrors, $allrevisions, $checkout, $javadocerrors) = @_;
-  my $today = gettodayfromsvn($source, $checkout);
+  my ($source, $archivepath, $allsanity, $allperf, $allerrors, $allrevisions, $checkout, $javadocerrors, $nightlyreport) = @_;
+  my $xml = $source =~ /xml.gz/;
+  my $today = gettodayfromsvn(($xml ? "zcat $source|" : $source), $checkout);
   my @errors = "";
+  if ($xml) {
+    $source = "$nightlyreport -x $source |";
+  }
   getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $today, $source,$javadocerrors);
-  for ($day = 0; $day < 7; $day++) {
-    if ($day != $today) {
+  my $checkouttime = gettimefromsvnstr(${$checkout});
+  $DAYSECS = 24*60*60;
+  for ($d = 1; $d < 7; $d++) {
+    my $day = ($today - $d) % 7;
+    if ($xml) {
+      my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime ($checkouttime - ($d*$DAYSECS));
+      my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday); 
+      $source = "$nightlyreport -x $archivepath/$datestr.xml.gz |";
+    } else {
       $source = "tar Oxzf $archivepath/$DAYS[$day].$platform.tar.gz results/report.html |";
-      getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
     }
+    getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
   }
   return $today;
+}
+
+
+#
+# produce a date string for the file name, given the svn checkout stamp
+#
+sub getdatestr {
+  my ($svnstamp) = @_;
+  $svnstamp =~ s/\s\s/ /g;
+  ($day, $mon, $mday, $time, $tz, $year) = split(/ /, $svnstamp);
+  for ($m = 0; $m < @shortmonths && $shortmonths[$m] ne $mon; $m++) {}
+  my $today = sprintf("%04d%02d%02d", $year, $m+1, $mday);
+  if ($today eq "") {
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime time;
+    $today = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday);
+  }
+  return $today;
+}
+
+#
+# produce a date string for the file name, given the svn checkout stamp
+#
+sub gettimefromsvnstr {
+  my ($svnstamp) = @_;
+  $svnstamp =~ s/\s\s/ /g;
+  my ($day, $mon, $mday, $time, $tz, $year) = split(/ /, $svnstamp);
+  my ($hr, $min, $sec) = split(/:/,$time);
+  for ($m = 0; $m < @shortmonths && $shortmonths[$m] ne $mon; $m++) {}
+  return timelocal($sec, $min, $hr, $mday, $m+1, $year);
 }
 
 #
@@ -589,7 +631,8 @@ sub gettodayfromsvn {
   open (IN, "$source");
   my $value;
   while (<IN>) {
-    if (($value) = /Checkout at:<td>(.+)<\/tr>/) {
+    if ((($value) = /Checkout at:<td>(.+)<\/tr>/) ||
+	(($value) = />Checkout at: (.+)<\//)) {
       ${$checkout} = $value;
       my ($dayname) = $value =~ /^\s*([A-Z][a-z]+)\s.+\s\d+/;
       my $day;
@@ -620,9 +663,8 @@ sub getdaydata {
   while (<IN>) {
     if ($day == -1 && (($value) = /Checkout at:<td>(.+)<\/tr>/)) {
       ${$checkout} = $value;
-      $day = getdayfromsvn($value);
+      $day = gettodayfromsvn($value);
     } elsif (($value, $valueb) = /Regression tests:<td><b>.+Failed (\d+)<\/font>\/(\d+)<\/b>/) {
-#      print "--->$value/$valueb<---\n";
     } elsif (($value) = /Regression tests:<td><b>.+PASSED (\d+)\//) {
 #      print "--->$value/$value<---\n";
     } elsif (($value) = /Revision:<td><b>.+>(\d+)<\/a><\/b>/) {
