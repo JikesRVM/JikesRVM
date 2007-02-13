@@ -1328,4 +1328,68 @@ target.dll-prefix=${target.dll-prefix}
     </delete>
   </target>
 
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                                Doc                                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile-for-apidocs" depends="prepare-source">
+    <mkdir dir="${build.dir}/javadoc/classes-ia32"/>
+    <javac destdir="${build.dir}/javadoc/classes-ia32"
+           debug="true"
+           debugLevel="lines,source"
+           source="1.5"
+           target="1.5">
+      <bootclasspath>
+        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
+      </bootclasspath>
+      <exclude name="**/ppc/**"/>
+      <src path="${main.java}"/>
+      <src path="${vmmagic-stub.java}"/>
+      <src path="${mmtk.java}"/>
+      <src path="${mmtk-rvm.java}"/>
+      <src path="${generated.dir}/main/java"/>
+      <src path="${generated.dir}/ia32-32/main/java"/>
+      <src path="${generated.dir}/configurations/prototype-opt_ia32-linux/java"/>
+      <src path="${generated.dir}/vmmagic/32/java"/>
+    </javac>
+  </target>
+
+  <target name="apidoc" depends="compile-for-apidocs" description="Generate the javadoc.">
+
+    <javadoc
+        destdir="${build.dir}/javadoc/docs/api"
+        author="true"
+        version="true"
+        use="true"
+        breakiterator="true"
+        maxmemory="200M"
+        source="1.5"
+        private="true"
+        windowtitle="Jikes RVM API">
+      <classpath>
+        <pathelement location="${build.dir}/javadoc/classes-ia32"/>
+      </classpath>
+      <tag name="date" description="Last (significant) modification:"/>
+      <tag name="author" description="Author:"/>
+      <tag name="modified" description="Modified by:"/>
+      <tag name="todo" scope="all" description="To do:"/>
+      <group title="MMTk Packages" packages="org.mmtk.*"/>
+      <group title="VM Magic Packages" packages="org.vmmmagic.*"/>
+      <group title="RVM Packages" packages="com.ibm.jikesrvm*"/>
+
+      <packageset dir="${main.java}" defaultexcludes="yes" includes="com/**,org/**" excludes="**/ppc/**"/>
+      <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="com/**"/>
+      <packageset dir="${generated.dir}/main/java" includes="com/**"/>
+      <packageset dir="${generated.dir}/ia32-32/main/java" includes="com/**"/>
+      <packageset dir="${generated.dir}/configurations/prototype-opt_ia32-linux/java" includes="com/**"/>
+      <packageset dir="${generated.dir}/vmmagic/32/java/" includes="org/**"/>
+
+      <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+    </javadoc>
+  </target>
+
 </project>
