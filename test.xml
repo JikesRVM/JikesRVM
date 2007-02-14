@@ -276,8 +276,11 @@
   <target name="archive" depends="gen-report" if="archive.results">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
+<!--
     <gzip src="${test.results.dir}/Report.xml"
           destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
+-->
+    <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${report.DSTAMP}.xml.gz"/>
   </target>
 
   <!-- **************************************************************************** -->
