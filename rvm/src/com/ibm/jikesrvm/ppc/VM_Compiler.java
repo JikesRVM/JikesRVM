@@ -2437,8 +2437,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     // T1 = object reference
     popAddr(T1);
     if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-    if (fieldType.isReferenceType()) {
-      // 32/64bit reference load
+    if (fieldType.isReferenceType() || fieldType.isWordType()) {
+      // 32/64bit reference/word load
       asm.emitLAddrX(T0, T2, T1);
       pushAddr(T0);
     } else if (fieldType.isBooleanType()) {
@@ -2458,7 +2458,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // 16bit unsigned load
       asm.emitLHZX(T0, T2, T1);
       pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit load
       asm.emitLIntX(T0, T2, T1);
       pushInt(T0);
@@ -2479,8 +2479,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     popAddr(T1); // T1 = object reference
     if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-    if (fieldType.isReferenceType()) {
-      // 32/64bit reference load
+    if (fieldType.isReferenceType()  || fieldType.isWordType()) {
+      // 32/64bit reference/word load
       asm.emitLAddrOffset(T0, T1, fieldOffset);
       pushAddr(T0);
     } else if (fieldType.isBooleanType()) {
@@ -2500,7 +2500,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // 16bit unsigned load
       asm.emitLHZoffset(T0, T1, fieldOffset);
       pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit load
       asm.emitLIntOffset(T0, T1, fieldOffset);
       pushInt(T0);
@@ -2533,6 +2533,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
         asm.emitSTAddrX(T0, T2, T1);
       }
+    } else if (fieldType.isWordType()) {
+      // 32/64bit word store      
+      popAddr(T0);                // T0 = value
+      popAddr(T2);                // T2 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
+      asm.emitSTAddrX(T0, T2, T1);
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
       popInt(T0); // T0 = value
@@ -2545,7 +2551,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T2); // T2 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
       asm.emitSTHX(T0, T2, T1);
-    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit store
       popInt(T0); // T0 = value
       popAddr(T2); // T2 = object reference
@@ -2577,6 +2583,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1); // T1 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
       asm.emitSTAddrOffset(T0, T1, fieldOffset);
+    } else if (fieldType.isWordType()) {
+      // 32/64bit word store      
+      popAddr(T0);                // T0 = value
+      popAddr(T1);                // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      asm.emitSTAddrOffset(T0, T1, fieldOffset);
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
       popInt(T0); // T0 = value
@@ -2589,7 +2601,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1); // T1 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
       asm.emitSTHoffset(T0, T1, fieldOffset);
-    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
