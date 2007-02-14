@@ -119,9 +119,9 @@ import org.vmmagic.unboxed.*;
    */
   public static Address getObjectEndAddress(Object obj, VM_Array type, int numElements) {
     int size = type.getInstanceSize(numElements);
-    if (ADDRESS_BASED_HASHING) {
+    if (ADDRESS_BASED_HASHING && DYNAMIC_HASH_OFFSET) {
       Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
-      if (hashState.NE(HASH_STATE_UNHASHED)) {
+      if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
         size += HASHCODE_BYTES;
       }
     }
@@ -343,11 +343,11 @@ import org.vmmagic.unboxed.*;
 
   @Inline
   protected static Object getReferenceWhenCopiedTo(Object obj, Address to) { 
-    if (ADDRESS_BASED_HASHING) {
+    if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
       // Read the hash state (used below)
       Word statusWord = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET);
       Word hashState = statusWord.and(HASH_STATE_MASK);
-      if (hashState.EQ(HASH_STATE_HASHED) && !DYNAMIC_HASH_OFFSET) {
+      if (hashState.EQ(HASH_STATE_HASHED)) {
         to = to.plus(HASHCODE_BYTES);
       }
     }
