@@ -1335,6 +1335,10 @@ target.dll-prefix=${target.dll-prefix}
   <!-- **************************************************************************** -->
 
   <target name="compile-for-apidocs" depends="prepare-source">
+    <condition property="toexclude" value="ppc" else="ia32">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+
     <mkdir dir="${build.dir}/javadoc/classes-ia32"/>
     <javac destdir="${build.dir}/javadoc/classes-ia32"
            debug="true"
@@ -1344,15 +1348,15 @@ target.dll-prefix=${target.dll-prefix}
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </bootclasspath>
-      <exclude name="**/ppc/**"/>
+      <exclude name="**/${toexclude}/**"/>
       <src path="${main.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-rvm.java}"/>
-      <src path="${generated.dir}/main/java"/>
-      <src path="${generated.dir}/ia32-32/main/java"/>
-      <src path="${generated.dir}/configurations/prototype-opt_ia32-linux/java"/>
-      <src path="${generated.dir}/vmmagic/32/java"/>
+      <src path="${generated.java}"/>
+      <src path="${generated.arch.java}"/>
+      <src path="${generated.config.java}"/>
+      <src path="${generated.vmmagic.arch.java}"/>
     </javac>
   </target>
 
@@ -1383,10 +1387,10 @@ target.dll-prefix=${target.dll-prefix}
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="com/**"/>
-      <packageset dir="${generated.dir}/main/java" includes="com/**"/>
-      <packageset dir="${generated.dir}/ia32-32/main/java" includes="com/**"/>
-      <packageset dir="${generated.dir}/configurations/prototype-opt_ia32-linux/java" includes="com/**"/>
-      <packageset dir="${generated.dir}/vmmagic/32/java/" includes="org/**"/>
+      <packageset dir="${generated.java}" includes="com/**"/>
+      <packageset dir="${generated.arch.java}" includes="com/**"/>
+      <packageset dir="${generated.config.java}" includes="com/**"/>
+      <packageset dir="${generated.vmmagic.arch.java}" includes="org/**"/>
 
       <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
     </javadoc>
