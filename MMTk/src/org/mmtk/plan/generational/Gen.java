@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       if (!traceFullHeap()) {
-    	nurseryTrace.prepare();
+        nurseryTrace.prepare();
         ploSpace.prepare(false);
       } else {
         if (gcFullHeap) {
@@ -173,8 +173,8 @@ import org.vmmagic.unboxed.*;
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {
-      	nurseryTrace.release();
-        ploSpace.release();
+        nurseryTrace.release();
+        ploSpace.release(false);
       } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();

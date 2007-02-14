@@ -54,8 +54,7 @@ import org.vmmagic.unboxed.*;
    */
   private Address head;
   private final Lock lock;
-  private final Object owner;
-  private final int log_granularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
+  private final int logGranularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
 
   /****************************************************************************
    * 
@@ -65,14 +64,13 @@ import org.vmmagic.unboxed.*;
   /**
    * Constructor
    */
-  public DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
-    owner = owner_;
+  public DoublyLinkedList(int logGranularity, boolean shared) {
     head = Address.zero();
     lock = shared ? VM.newLock("DoublyLinkedList") : null;
-    log_granularity = log_granularity_;
+    this.logGranularity = logGranularity;
 
     // ensure that granularity is big enough for midPayloadToNode to work
-    Word tmp = Word.one().lsh(log_granularity);
+    Word tmp = Word.one().lsh(logGranularity);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
@@ -80,8 +78,7 @@ import org.vmmagic.unboxed.*;
   //
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(0 * BYTES_IN_ADDRESS);
   private static Offset NEXT_OFFSET = Offset.fromIntSignExtend(1 * BYTES_IN_ADDRESS);
-  private static Offset LIST_OFFSET = Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS);
-  private static Offset HEADER_SIZE = Offset.fromIntSignExtend(3 * BYTES_IN_ADDRESS);
+  private static Offset HEADER_SIZE = Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS);
 
   private static final Word nodeMask;
   static {
@@ -90,21 +87,13 @@ import org.vmmagic.unboxed.*;
     nodeMask = mask.minus(Word.one()).not();
   }
 
-  public final Object getOwner() {
-    return owner;
-  }
-
-  static public final Object getOwner(Address node) {
-    return node.loadObjectReference(LIST_OFFSET).toObject();
-  }
-
   @Inline
   static public final int headerSize() { 
     return HEADER_SIZE.toInt();
   }
 
   public final boolean isNode(Address node) {
-    return node.toWord().rshl(log_granularity).lsh(log_granularity).EQ(node.toWord());
+    return node.toWord().rshl(logGranularity).lsh(logGranularity).EQ(node.toWord());
   }
 
   @Inline
@@ -129,7 +118,6 @@ import org.vmmagic.unboxed.*;
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
-    node.store(ObjectReference.fromObject(owner), LIST_OFFSET);
     if (!head.isZero())
       head.store(node, PREV_OFFSET);
     head = node;
@@ -152,7 +140,6 @@ import org.vmmagic.unboxed.*;
     // Null out node's reference to the list
     node.store(Address.zero(), PREV_OFFSET);
     node.store(Address.zero(), NEXT_OFFSET);
-    node.store(Address.zero(), LIST_OFFSET);
     if (lock != null) lock.release();
   }
 

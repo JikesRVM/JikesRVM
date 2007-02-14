@@ -56,9 +56,9 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public Treadmill(int granularity, boolean shared) {
-    fromSpace = new DoublyLinkedList(granularity, shared, this);
-    toSpace = new DoublyLinkedList(granularity, shared, this);
-    nursery = new DoublyLinkedList(granularity, shared, this);
+    fromSpace = new DoublyLinkedList(granularity, shared);
+    toSpace = new DoublyLinkedList(granularity, shared);
+    nursery = new DoublyLinkedList(granularity, shared);
   }
 
   @Inline
@@ -106,10 +106,6 @@ import org.vmmagic.pragma.*;
    * Misc header manipulation
    */
   
-  static public final Treadmill getTreadmill(Address node) {
-    return (Treadmill) DoublyLinkedList.getOwner(node);
-  }
-
   @Inline
   static public final int headerSize() { 
     return DoublyLinkedList.headerSize();

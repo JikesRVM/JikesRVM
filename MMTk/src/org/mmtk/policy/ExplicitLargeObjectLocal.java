@@ -52,7 +52,6 @@ import org.vmmagic.unboxed.*;
    * 
    * Instance variables
    */
-  DoublyLinkedList cells;
 
   /****************************************************************************
    * 
@@ -68,7 +67,6 @@ import org.vmmagic.unboxed.*;
   public ExplicitLargeObjectLocal(LargeObjectSpace space) {
     super(space);
     this.space = space;
-    this.cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true, this);
   }
 
   /****************************************************************************
@@ -86,7 +84,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   protected final void postAlloc (Address cell) { 
-    cells.add(DoublyLinkedList.payloadToNode(cell));
+    space.getCells().add(DoublyLinkedList.payloadToNode(cell));
   };
 
   /****************************************************************************
@@ -113,23 +111,8 @@ import org.vmmagic.unboxed.*;
   @Inline
   public static final void free(LargeObjectSpace space, ObjectReference object) { 
     Address cell = getSuperPage(VM.objectModel.refToAddress(object));
-    ((ExplicitLargeObjectLocal)DoublyLinkedList.getOwner(cell)).cells.remove(cell);
+    space.getCells().remove(cell);
     space.release(cell);
-  }
-  
-  /**
-   * Perform a linear scan through the objects allocated by this bump pointer.
-   * 
-   * @param scanner The scan object to delegate scanning to.
-   */
-  @Inline
-  public void linearScan(LinearScan scanner) { 
-    Address cell = cells.getHead();
-    while (!cell.isZero()) {
-      ObjectReference current = VM.objectModel.getObjectFromStartAddress(cell.plus(superPageHeaderSize())); 
-      scanner.scan(current);
-      cell = cells.getNext(cell);
-    }
   }
 
   /****************************************************************************

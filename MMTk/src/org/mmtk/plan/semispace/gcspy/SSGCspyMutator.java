@@ -223,8 +223,8 @@ import org.vmmagic.unboxed.*;
       }
       
       if (event == SSGCspy.BEFORE_COLLECTION) {       
-	// Before the flip
-	// Mutator has not rebound toSpace yet
+        // Before the flip
+        // Mutator has not rebound toSpace yet
         GCspy.server.startCompensationTimer();
         
         // -- Handle the semispaces

@@ -224,8 +224,8 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == RELEASE) {
-      loSpace.release();
-      ploSpace.release();
+      loSpace.release(true);
+      ploSpace.release(true);
       immortalSpace.release();
       VM.memory.globalReleaseVMSpace();
       return;

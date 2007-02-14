@@ -10,7 +10,9 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
+import org.mmtk.utility.DoublyLinkedList;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.Constants;
 
@@ -55,6 +57,8 @@ import org.vmmagic.unboxed.*;
    */
   private Word markState;
   private boolean inNurseryGC;
+  private DoublyLinkedList cells;
+  private Treadmill treadmill;
 
   /****************************************************************************
    * 
@@ -75,7 +79,7 @@ import org.vmmagic.unboxed.*;
   public LargeObjectSpace(String name, int pageBudget, Address start,
       Extent bytes) {
     super(name, false, false, start, bytes);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -92,7 +96,7 @@ import org.vmmagic.unboxed.*;
    */
   public LargeObjectSpace(String name, int pageBudget, int mb) {
     super(name, false, false, mb);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -111,7 +115,7 @@ import org.vmmagic.unboxed.*;
    */
   public LargeObjectSpace(String name, int pageBudget, float frac) {
     super(name, false, false, frac);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -134,7 +138,7 @@ import org.vmmagic.unboxed.*;
    */
   public LargeObjectSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, false, mb, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -159,7 +163,14 @@ import org.vmmagic.unboxed.*;
   public LargeObjectSpace(String name, int pageBudget, float frac, 
                           boolean top) {
     super(name, false, false, frac, top);
+    init(pageBudget);
+  }
+  
+  @Interruptible
+  private void init(int pageBudget) {
     pr = new FreeListPageResource(pageBudget, this, start, extent);
+    cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
+    treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }
 
   /****************************************************************************
@@ -174,8 +185,13 @@ import org.vmmagic.unboxed.*;
    * 
    */
   public void prepare(boolean fullHeap) {
-    if (fullHeap) 
+    if (fullHeap) { 
+      if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
+      }
       markState = MARK_BIT.minus(markState);
+      treadmill.flip();          
+    }
     inNurseryGC = !fullHeap;
   }
 
@@ -184,9 +200,31 @@ import org.vmmagic.unboxed.*;
    * collector this means we can perform the sweep phase.
    * 
    */
-  public void release() {
+  public void release(boolean fullHeap) {
+    // sweep the large objects
+    sweepLargePages(true);                // sweep the nursery
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());   
+    if (fullHeap) sweepLargePages(false); // sweep the mature space
   }
 
+  /**
+   * Sweep through the large pages, releasing all superpages on the
+   * "from space" treadmill.
+   */
+  private final void sweepLargePages(boolean sweepNursery) {
+    while (true) {
+      Address cell = treadmill.pop(sweepNursery);
+      if (cell.isZero()) break;
+      release(LargeObjectAllocator.getSuperPage(cell));
+    }
+    if (VM.VERIFY_ASSERTIONS) {
+      if (sweepNursery)                                                      
+        VM.assertions._assert(treadmill.nurseryEmpty());
+      else                                                                   
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
+    }                                                                       
+  }
+  
   /**
    * Release a group of pages that were allocated together.
    * 
@@ -252,8 +290,7 @@ import org.vmmagic.unboxed.*;
 
     Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
-    Treadmill tm = Treadmill.getTreadmill(node);
-    tm.copy(node, nurseryObject);
+    treadmill.copy(node, nurseryObject);
   }
 
   /****************************************************************************
@@ -324,5 +361,29 @@ import org.vmmagic.unboxed.*;
    */
   public final Extent getSize(Address first) {
     return ((FreeListPageResource) pr).getSize(first);
+  }
+  
+  /**
+   * This is the cell list for this large object space. 
+   * 
+   * Note that it depends on the specific local in use whether this
+   * is being used.
+   * 
+   * @return The cell list associated with this large object space.
+   */
+  public final DoublyLinkedList getCells() {
+    return this.cells;
+  }
+  
+  /**
+   * This is the treadmill used by the large object space. 
+   * 
+   * Note that it depends on the specific local in use whether this
+   * is being used.
+   * 
+   * @return The treadmill associated with this large object space.
+   */
+  public final Treadmill getTreadmill() {
+    return this.treadmill;
   }
 }
