@@ -67,7 +67,7 @@
 
   <target name="init" depends="prepare-ant-tasks">
     <tstamp prefix="test-run.start">
-      <format property="time" pattern="yyyy-MM-dd'T'HH:mm.SSSSSS'Z'Z"/>
+      <format property="time" pattern="EE MMM d HH:mm:ss z yyyy"/>
     </tstamp>
   </target>
 
