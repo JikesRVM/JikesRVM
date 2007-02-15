@@ -14,9 +14,10 @@
 use Time::Local;
 
 require "getopts.pl";
-&Getopts('a:e:p:r:s:h:');
-die "Need to specify an email address with -e" unless ($opt_e ne "");
+&Getopts('a:e:p:r:s:h:o:');
+die "Need to specify either an email address with -e or an output file with -o" unless (($opt_e eq "") xor ($opt_o eq ""));
 my $reportrecipient = $opt_e;
+my $outputfile = $opt_o;
 die "Need to specify an archive path with -a" unless ($opt_a ne "");
 my $archivepath = $opt_a;
 die "Need to specify a platform with -p" unless ($opt_p ne "");
@@ -50,8 +51,7 @@ my $regressiondomain = "anu.edu.au";
 my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
 
 # initialize things
-#open($out, ">summary.eml");
-open($out, "|$SENDMAIL -t");
+
 my $today = 1;
 my %allsanity = ();
 my %allperf = ();
@@ -68,7 +68,14 @@ $datestring = getdatestringfromcheckout($checkout);
 updatebestperf($archivepath, $today, \%allperf, \%bestperf);
 
 # produce the html
-printemailhdr($out, getpasses(-1, $today, \%allsanity), $platform);
+my $out;
+if ($reportrecipient ne "") {
+  open($out, "|$SENDMAIL -t");
+  printemailhdr($out, getpasses(-1, $today, \%allsanity), $platform);
+} else {
+  open($out, ">$outputfile");
+}
+printmimehdr($out);
 if ($html) { printhtmlhdr($out); }
 printsummary($out, $html, $checkout, $datestring);
 printrevisions($out, $html, $today, $checkout, \@allrevisions);
@@ -96,6 +103,13 @@ sub printemailhdr {
     print $out "From: regression\@$regressionhost.$regressiondomain\n";
   }
   print $out "To: $reportrecipient\n";
+}
+
+#
+# print the mime header
+#
+sub printmimehdr {
+  my ($out) = @_;
   print $out "MIME-Version: 1.0\n";
   print $out "Subject: $subject\n";
 #  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
