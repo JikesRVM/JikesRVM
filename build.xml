@@ -1340,6 +1340,7 @@ target.dll-prefix=${target.dll-prefix}
     </condition>
 
     <mkdir dir="${build.dir}/javadoc/classes-ia32"/>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" emacsmode="true"/>
     <javac destdir="${build.dir}/javadoc/classes-ia32"
            debug="true"
            debugLevel="lines,source"
@@ -1358,10 +1359,12 @@ target.dll-prefix=${target.dll-prefix}
       <src path="${generated.config.java}"/>
       <src path="${generated.vmmagic.arch.java}"/>
     </javac>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
   <target name="apidoc" depends="compile-for-apidocs" description="Generate the javadoc.">
 
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" append="true" emacsmode="true"/>
     <javadoc
         destdir="${build.dir}/javadoc/docs/api"
         author="true"
@@ -1394,6 +1397,7 @@ target.dll-prefix=${target.dll-prefix}
 
       <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
     </javadoc>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
 </project>
