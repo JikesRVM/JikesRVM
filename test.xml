@@ -27,6 +27,9 @@
   <property name="mail.host" value="localhost"/>
   <property name="mail.port" value="25"/>
 
+  <!-- properties defining where to upload -->
+  <property name="upload.location" value=""/>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                      Macro for setup test properties                     * -->
@@ -236,13 +239,30 @@
     <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</test-run>]]></echo>
   </target>
 
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                  Targets for archiving results and report                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="archive" depends="aggregate" if="archive.results">
+    <tstamp prefix="report"/>
+    <mkdir dir="${results.archive}"/>
+<!--
+    <gzip src="${test.results.dir}/Report.xml"
+          destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
+-->
+    <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${report.DSTAMP}.xml.gz"/>
+  </target>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                  Targets for generating a simple report                  * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-report" depends="aggregate">
+  <target name="gen-report" depends="archive">
     <xslt in="${build.results.dir}/Results.xml"
           out="${test.results.dir}/Report.xml"
           style="${jikesrvm.dir}/build/results2report.xsl"
@@ -263,29 +283,17 @@
       <outputproperty name="indent" value="yes"/>
     </xslt>
 
+    <condition property="upload-opt" value="" else="-s ${upload.location}">
+      <equals arg1="upload.location" arg2=""/>
+    </condition>
+
     <exec executable="${perl.exe}" failonerror="true">
       <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
       <arg value="-x"/>
       <arg value="${test.results.dir}/Report.xml"/>
-      <arg value="-o"/>
-      <arg value="${build.results.dir}/ReportNG.html"/>
+      <arg value=" -o"/>
+      <arg line="${build.results.dir}/ReportNG.html ${upload-opt}"/>
     </exec>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                  Targets for archiving results and report                * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="archive" depends="gen-report" if="archive.results">
-    <tstamp prefix="report"/>
-    <mkdir dir="${results.archive}"/>
-<!--
-    <gzip src="${test.results.dir}/Report.xml"
-          destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
--->
-    <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${report.DSTAMP}.xml.gz"/>
   </target>
 
   <!-- **************************************************************************** -->
