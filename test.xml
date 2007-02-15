@@ -242,11 +242,30 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *                           Generate XML report                            * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="gen-xml-report" depends="aggregate">
+    <xslt in="${build.results.dir}/Results.xml"
+          out="${test.results.dir}/Report.xml"
+          style="${jikesrvm.dir}/build/results2report.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="standalone" value="yes"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+      <outputproperty name="omit-xml-declaration" value="yes"/>
+    </xslt>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                  Targets for archiving results and report                * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="archive" depends="aggregate" if="archive.results">
+  <target name="archive" depends="gen-xml-report" if="archive.results">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
 <!--
@@ -263,16 +282,6 @@
   <!-- **************************************************************************** -->
 
   <target name="gen-report" depends="archive">
-    <xslt in="${build.results.dir}/Results.xml"
-          out="${test.results.dir}/Report.xml"
-          style="${jikesrvm.dir}/build/results2report.xsl"
-          force="true">
-      <outputproperty name="method" value="xml"/>
-      <outputproperty name="standalone" value="yes"/>
-      <outputproperty name="encoding" value="US-ASCII"/>
-      <outputproperty name="indent" value="yes"/>
-      <outputproperty name="omit-xml-declaration" value="yes"/>
-    </xslt>
     <xslt in="${test.results.dir}/Report.xml"
           out="${build.results.dir}/Report.html"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"
@@ -294,6 +303,21 @@
       <arg value=" -o"/>
       <arg line="${build.results.dir}/ReportNG.html ${upload-opt}"/>
     </exec>
+    <exec executable="${perl.exe}" failonerror="true">
+      <arg value="${jikesrvm.dir}/testing/harness/regressionsummary.pl"/>
+      <arg value="-r"/>
+      <arg value="${results.archive}/${report.DSTAMP}.xml.gz"/>
+      <arg line="-a"/>
+      <arg value="${results.archive}"/>
+      <arg value="-p"/>
+      <arg value="Linux.i686.32"/>
+      <arg value="-h"/>
+      <arg value="rvmx86lnx32"/>
+      <arg value="-s"/>
+      <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
+      <arg value="-o"/>
+      <arg value="${build.results.dir}/ReportSummary.html"/>
+    </exec>
   </target>
 
   <!-- **************************************************************************** -->
@@ -302,7 +326,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="send-report" depends="archive" if="send.reports">
+  <target name="send-report" depends="gen-report" if="send.reports">
     <mail mailhost="${mail.host}"
           mailport="${mail.port}"
           messagemimetype="text/html"
