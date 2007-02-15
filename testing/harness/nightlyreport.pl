@@ -428,6 +428,8 @@ sub getxml {
   while (<XML>) {
     if (/<revision>/) {
       (${$svnrevision}) = /<revision>(\d+)<\/revision>/;
+    } elsif ($intest == 0 && /<time>[A-Z][a-z][a-z]\s/) {
+      (${$svnstamp}) = /<time>(.+)<\/time>/;
     } elsif (/<test-configuration>/) {
       $_ = <XML>;
       while (!/<id>/) { $_ = <XML>; }

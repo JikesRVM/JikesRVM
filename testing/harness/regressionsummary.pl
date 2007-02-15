@@ -72,10 +72,10 @@ my $out;
 if ($reportrecipient ne "") {
   open($out, "|$SENDMAIL -t");
   printemailhdr($out, getpasses(-1, $today, \%allsanity), $platform);
+  printmimehdr($out);
 } else {
   open($out, ">$outputfile");
 }
-printmimehdr($out);
 if ($html) { printhtmlhdr($out); }
 printsummary($out, $html, $checkout, $datestring);
 printrevisions($out, $html, $today, $checkout, \@allrevisions);
@@ -646,9 +646,9 @@ sub gettodayfromsvn {
   my $value;
   while (<IN>) {
     if ((($value) = /Checkout at:<td>(.+)<\/tr>/) ||
-	(($value) = />Checkout at: (.+)<\//)) {
+	(($value) = /<time>([A-Z][a-z]+\s.+\s\d+)<\/time>/)) {
       ${$checkout} = $value;
-      my ($dayname) = $value =~ /^\s*([A-Z][a-z]+)\s.+\s\d+/;
+      my ($dayname) = $value =~ /([A-Z][a-z][a-z])\s[A-Z][a-z][a-z].+\s\d+/;
       my $day;
       for ($day = 0; $day < 7; $day++) {
         if ($SHORTDAYS[$day] eq $dayname) {
@@ -658,7 +658,7 @@ sub gettodayfromsvn {
     }
   }
   close(IN);
-  print "=====> DAY NOT PARSED $source $checkout\n";
+  print "=====> DAY NOT PARSED $source ".${$checkout}."\n";
 }
 
 #
@@ -675,7 +675,9 @@ sub getdaydata {
   my $fail = 0;
   open (IN, "$source");
   while (<IN>) {
-    if ($day == -1 && (($value) = /Checkout at:<td>(.+)<\/tr>/)) {
+    if ($day == -1 && 
+	((($value) = /Checkout at:<td>(.+)<\/tr>/) ||
+	 (($value) = /<time>([A-Z][a-z]+\s.+\s\d+)<\/time>/))) {
       ${$checkout} = $value;
       $day = gettodayfromsvn($value);
     } elsif (($value, $valueb) = /Regression tests:<td><b>.+Failed (\d+)<\/font>\/(\d+)<\/b>/) {
