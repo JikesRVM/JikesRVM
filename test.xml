@@ -156,6 +156,11 @@
     </forEach>
 
     <bres><![CDATA[</builds>]]></bres>
+
+    <erant antfile="${jikesrvm.dir}/build.xml"failonerror="false" target="apidoc">
+      <property name="config.name" value="prototype-opt"/>
+    </erant>
+
   </target>
 
   <!-- **************************************************************************** -->
