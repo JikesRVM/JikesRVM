@@ -383,10 +383,10 @@ host=`hostname`
 $RVM_ROOT/testing/harness/nightlyreport.pl -r $RVM_ROOT -o $RVM_ROOT/results/report.html -s steveb@littleblue.anu.edu.au:public_html/jikesrvm/$host
 
 ##
-## Generate the summary email (just on one machine for now)
+## Generate the summary email (for rvmx86lnx64 & rvmppclnx32)
 ##
-if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.i686.32' ]]; then
-  $RVM_ROOT/testing/harness/regressionsummary.pl -r $RVM_ROOT/results/report.html -a archive -e $RESULT_MAILING_LIST -p ${NS_OS}.${NS_ARCH}.${NS_BITS} -h $host
+if [[ ${NS_OS}.${NS_BITS} = 'Linux.32' ]]; then
+  $RVM_ROOT/testing/harness/regressionsummary.pl -r $RVM_ROOT/results/report.html -a $ARCHIVE -e $RESULT_MAILING_LIST -p ${NS_OS}.${NS_ARCH}.${NS_BITS} -h $host
 fi
 
 ##
