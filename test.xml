@@ -265,7 +265,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="archive" depends="gen-xml-report" if="archive.results">
+  <target name="archive" depends="gen-xml-report">
     <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
 <!--
