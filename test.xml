@@ -328,30 +328,19 @@
   <!-- **************************************************************************** -->
 
   <target name="send-report" depends="gen-report" if="send.reports">
+    <selectRegex property="testcount"
+                 select="\1"
+                 file="${build.results.dir}/ReportSummary.html"
+                 pattern="Failed (\d+)/.*"/>
+    <condition property="test-run.description" value="SUCCESS" else="FAILED ${testcount} tests">
+      <equals arg1="${testcount}" arg2="0"/>
+    </condition>
     <mail mailhost="${mail.host}"
           mailport="${mail.port}"
           messagemimetype="text/html"
-          subject="Test Results for ${test-run.name} on ${target.name}"
-          messagefile="${build.results.dir}/Report.html">
-      <from address="${mail.from}"/>
-      <replyto address="jikesrvm-core@lists.sourceforge.net"/>
-      <to address="${mail.to}"/>
-    </mail>
-    <mail mailhost="${mail.host}"
-          mailport="${mail.port}"
-          messagemimetype="text/html"
-          subject="Test Results for ${test-run.name} on ${target.name}"
-          messagefile="${build.results.dir}/ReportNG.html">
-      <from address="${mail.from}"/>
-      <replyto address="jikesrvm-core@lists.sourceforge.net"/>
-      <to address="${mail.to}"/>
-    </mail>
-    <mail mailhost="${mail.host}"
-          mailport="${mail.port}"
-          messagemimetype="text/html"
-          subject="Test Results for ${test-run.name} on ${target.name}"
+          subject="[${target.name}][${test-run.name}] ${test-run.description}"
           messagefile="${build.results.dir}/ReportSummary.html">
-      <from address="${mail.from}"/>
+      <from address='"[${target.name}][${test-run.name}]" &lt;${mail.from}&gt;'/>
       <replyto address="jikesrvm-core@lists.sourceforge.net"/>
       <to address="${mail.to}"/>
     </mail>
@@ -363,6 +352,6 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="report" depends="test,archive,send-report"/>
+  <target name="report" depends="test,send-report"/>
 
 </project>
