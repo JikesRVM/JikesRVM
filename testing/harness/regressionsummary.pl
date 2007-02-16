@@ -160,14 +160,14 @@ sub printrevisions {
     print $out "Checkout at: $checkout\n";
   } 
   if ($html) {
-    print $out "Revisions covered by this sanity run: ";
+    print $out "Revisions covered by this sanity run: \n";
   } else {
     print $out "Revisions covered by this sanity run: ";
   } 
   while ($rev <= $latestrev) {
     if ($html) {
       print $out  "<a href=\"$SVNURL$rev\">$rev<\/a>";
-      print $out  (($rev != $latestrev) ? ", " : "<br>\n");
+      print $out  (($rev != $latestrev) ? ", \n" : "<br>\n");
     } else {
       print $out $rev;
       print $out (($rev != $latestrev) ? ", " : "\n");
