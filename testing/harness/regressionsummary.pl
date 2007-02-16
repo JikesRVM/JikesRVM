@@ -98,7 +98,7 @@ sub printemailhdr {
   $platform =~ s/[.]/\//g;
   $subject .= " [$platform]";
   if ($regressiondomain eq "anu.edu.au") {
-    print $out "From: rvm-regression\@cs.anu.edu.au\n";
+    print $out "From: $platform <rvm-regression\@cs.anu.edu.au>\n";
   } else {
     print $out "From: regression\@$regressionhost.$regressiondomain\n";
   }
