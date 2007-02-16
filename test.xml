@@ -338,7 +338,7 @@
     <mail mailhost="${mail.host}"
           mailport="${mail.port}"
           messagemimetype="text/html"
-          subject="[${target.name}][${test-run.name}] ${test-run.description}"
+          subject="${test-run.description}"
           messagefile="${build.results.dir}/ReportSummary.html">
       <from address='"[${target.name}][${test-run.name}]" &lt;${mail.from}&gt;'/>
       <replyto address="jikesrvm-core@lists.sourceforge.net"/>
