@@ -103,6 +103,7 @@ sub printemailhdr {
     print $out "From: regression\@$regressionhost.$regressiondomain\n";
   }
   print $out "To: $reportrecipient\n";
+  print $out "Subject: $subject\n";
 }
 
 #
@@ -111,7 +112,6 @@ sub printemailhdr {
 sub printmimehdr {
   my ($out) = @_;
   print $out "MIME-Version: 1.0\n";
-  print $out "Subject: $subject\n";
 #  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
 #  print $out "Content-Base: $reporturl/$regressionhost/\n";
 #  print $out "\n--$MIMEBOUNDARY\n";
