@@ -31,12 +31,14 @@ public class ErrorRecordingAntTask
       super.execute();
     } catch (final BuildException be) {
       if (failonerror) throw be;
-      final Property property = (Property) getProject().createTask("property");
-      property.setOwningTarget(getOwningTarget());
-      property.init();
-      property.setName(failonerrorProperty);
-      property.setValue("true");
-      property.execute();
+      if (null != failonerrorProperty) {
+        final Property property = (Property) getProject().createTask("property");
+        property.setOwningTarget(getOwningTarget());
+        property.init();
+        property.setName(failonerrorProperty);
+        property.setValue("true");
+        property.execute();
+      }
     }
   }
 }
