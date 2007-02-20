@@ -100,11 +100,16 @@
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
 
+    <condition property="cp.objectmode" value="32_64" else="">
+      <equals arg1="${target.name}" arg2="ppc64-aix"/>
+    </condition>
+
     <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
       <!-- need to pass thru compiler settings so if we are building on
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
+      <env key="OBJECT_MODE" value="${cp.objectmode}" />
       <!--<env key="FIND" value=""/>-->
       <!--<env key="ZIP" value=""/>-->
       <!--<env key="AR" value=""/>-->
