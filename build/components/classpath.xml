@@ -96,7 +96,7 @@
       <equals arg1="${target.name}" arg2="x86_64-linux"/>
     </condition>
 
-    <condition property="cp.cppflags" value=" CPPFLAGS='-D_POSIX_SOURCE'" else="">
+    <condition property="cp.cppflags" value=" CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE'" else="">
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
 
