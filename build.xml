@@ -1136,6 +1136,7 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
       <arg line="${rvm.common.args}"/>
       <arg value="-P"/>
+      <arg value="${cpp.args}"/>
       <arg value="${basedir}/tools/bootImageRunner/powerPC/bootThread.c"/>
     </exec>
   </target>
@@ -1175,6 +1176,8 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvmdynlib.dll}"/>
+      <arg value="-L${build.base}"/>
+      <arg value="-lrvm"/>
       <arg value="${bl.dir}/com_ibm_jikesrvm_VM_0005fDynamicLibrary.C"/>
     </exec>
 
