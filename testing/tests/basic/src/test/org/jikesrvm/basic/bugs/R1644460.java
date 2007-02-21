@@ -14,14 +14,28 @@ package test.org.jikesrvm.basic.bugs;
  * Should be tested with -X:aos:initial_compiler=opt in at least one test-configuration. 
  *
  * @author Peter Donald
- * @author Dave Grove
+ * @author Robin Garner
  */
 public class R1644460 {
   public static float b = 0.009765625f;
   public static float a = 10.57379f;
 
+  public static float aa = 8.485281f;
+  public static float ab = 1.2461331f;
+
   public static void main(String[] args) {
-    final float c = a * b;
-    System.out.println(c == 0.10325967f);
+    float c = a * b;              check(c);
+    float d = aa * ab;   d *= b;  check(d);
+    System.out.println(c);
+    System.out.println(((float)(a * b)));
+  }
+
+  private static void check(float c) {
+    assert((c == 0.10325967f));
+    assert(!(c != 0.10325967f));
+    assert((c <= 0.10325967f));
+    assert((c >= 0.10325967f));
+    assert(!(c < 0.10325967f));
+    assert(!(c > 0.10325967f));
   }
 }
