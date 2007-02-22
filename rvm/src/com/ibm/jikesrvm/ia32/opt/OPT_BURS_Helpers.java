@@ -1211,64 +1211,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
   }
   /**
-   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
-   * FP_SUB_ACC, and FP_DIV_ACC.
-   * Moves first value into fp0,
-   * accumulates second value into fp0 using op.
-   *
-   * @param s the instruction to expand
-   * @param op the floating point op to use
-   * @param val1 the first operand
-   * @param val2 the second operand
-   */
-  protected final void FP_MOV_OP(OPT_Instruction s,
-                                 OPT_Operator op,
-                                 OPT_Operand val1,
-                                 OPT_Operand val2) {
-    EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
-    EMIT(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
-  }
-  /**
-   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
-   * FP_SUB_ACC, and FP_DIV_ACC.
-   * apply op to val1 and val2
-   * move val1 to result using movop
-   *
-   * @param s the instruction to expand
-   * @param op the floating point op to use
-   * @param movop the move op to use
-   * @param result the result operand
-   * @param val1 the first operand
-   * @param val2 the second operand
-   */
-  protected final void FP_OP_MOV(OPT_Instruction s,
-                                 OPT_Operator op,
-                                 OPT_Operator movop,
-                                 OPT_Operand result,
-                                 OPT_Operand val1,
-                                 OPT_Operand val2) {
-    EMIT(MIR_BinaryAcc.mutate(s, op, val1, val2));
-    EMIT(MIR_Move.create(movop, result, val1.copy()));
-  }
-  /**
-   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
-   * FP_SUB_ACC, and FP_DIV_ACC.
-   * apply op to val1 and val2.
-   * NOTE: either val1 or val2 must be either FPR0 or ST(0)!
-   * 
-   * @param s the instruction to expand
-   * @param op the floating point op to use
-   * @param val1 the first operand
-   * @param val2 the second operand
-   */
-  protected final void FP_OP(OPT_Instruction s,
-                             OPT_Operator op,
-                             OPT_Operand val1,
-                             OPT_Operand val2) {
-    EMIT(MIR_BinaryAcc.mutate(s, op, val1, val2));
-  }
-
-  /**
    * Expansion of FP_REM 
    *
    * @param s the instruction to expand
@@ -1280,17 +1222,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                               OPT_Operand val2) {
     EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val2));
     EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
-    EMIT(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
-  }
-  /**
-   * Expansion of FP_REM
-   *
-   * @param s the instruction to expand
-   * @param val the operand to divide with fp0 to get a remainder
-   */
-  protected final void FP_REM(OPT_Instruction s,
-                              OPT_Operand val) {
-    EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val));
     EMIT(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
   }
 
