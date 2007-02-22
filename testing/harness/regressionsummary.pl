@@ -203,9 +203,9 @@ sub printfailures {
   } else {
     print $out "$str\n";
   }
-  printfailuresummary($out, $html, $today, $datestring, $RED, "new failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $RED, "failures new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   if ($summary) {
-    printfailuresummary($out, $html, $today, $datestring, $GREEN, "new successes", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $GREEN, "successes new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   } else {
     printfailuresummary($out, $html, $today, $datestring, $BLACK, "transient failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
     printfailuresummary($out, $html, $today, $datestring, $BLACK, "persistent failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
