@@ -29,8 +29,6 @@
   <property name="build.dir" location="target"/>
   <property name="build.base" location="${build.dir}/${build.name}"/>
 
-  <property name="build.scratch" location="${build.dir}/scratch"/>
-
   <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
   <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
   <property name="build.native" location="${build.base}/c"/>
@@ -347,7 +345,7 @@ Check to make sure all required properties are specified. This includes properti
     <attribute name="todir"/>
     <attribute name="filelist"/>
     <sequential>
-      <exec executable="${build.scratch.preprocessor}/preprocessor" failonerror="true">
+      <exec executable="${build.preprocessor.dir}/preprocessor" failonerror="true">
         <arg line="${filter}"/>
         <arg value="--disable-modification-exit-status"/>
         <arg value="@{todir}"/>
@@ -357,15 +355,15 @@ Check to make sure all required properties are specified. This includes properti
   </macrodef>
 
   <target name="build-preprocessor" depends="check-properties,setup-filter-properties">
-    <property name="build.scratch.preprocessor" location="${build.dir}/scratch/preprocessor"/>
-    <mkdir dir="${build.scratch.preprocessor}"/>
+    <property name="build.preprocessor.dir" location="${build.dir}/${host.name}/preprocessor"/>
+    <mkdir dir="${build.preprocessor.dir}"/>
 
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${c++.args}"/>
       <arg value="-I${basedir}/include"/>
       <arg value="${basedir}/tools/preprocessor/preprocessModifiedFiles.C"/>
       <arg value="-o"/>
-      <arg value="${build.scratch.preprocessor}/preprocessor"/>
+      <arg value="${build.preprocessor.dir}/preprocessor"/>
     </exec>
   </target>
 
@@ -381,7 +379,7 @@ Check to make sure all required properties are specified. This includes properti
     <sequential>
       <java classname="GenerateFromTemplate" failonerror="true">
         <classpath>
-          <pathelement location="${build.scratch.expander}"/>
+          <pathelement location="${build.expander.dir}"/>
         </classpath>
         <args/>
       </java>
@@ -389,9 +387,9 @@ Check to make sure all required properties are specified. This includes properti
   </macrodef>
 
   <target name="build-template-expander" depends="check-properties">
-    <property name="build.scratch.expander" location="${build.dir}/scratch/expander"/>
-    <mkdir dir="${build.scratch.expander}"/>
-    <javac srcdir="${basedir}/tools/templateExpander" destdir="${build.scratch.expander}" debug="true"
+    <property name="build.expander.dir" location="${build.dir}/expander"/>
+    <mkdir dir="${build.expander.dir}"/>
+    <javac srcdir="${basedir}/tools/templateExpander" destdir="${build.expander.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5"/>
   </target>
 
@@ -504,7 +502,7 @@ Check to make sure all required properties are specified. This includes properti
         </args>
       </GenerateFromTemplate>
 
-      <exec executable="${build.scratch.jburg}/jburg"
+      <exec executable="${build.jburg.dir}/jburg"
             dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
             failonerror="true">
         <arg value="-a"/>
@@ -520,7 +518,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="@{arch}" arg2="ia32"/>
       </condition>
 
-      <exec executable="${build.scratch.preprocessor}/preprocessor" failonerror="true">
+      <exec executable="${build.preprocessor.dir}/preprocessor" failonerror="true">
         <arg line="${@{arch}-@{addressSize}.pp-filter} --disable-modification-exit-status"/>
         <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java"/>
         <arg line="${build.burs.dir}/OPT_BURS_TreeNode.template ${basedir}/tools-external/jburg/burg.template"/>
@@ -551,10 +549,10 @@ Check to make sure all required properties are specified. This includes properti
 
   <!-- build tool used to create burs -->
   <target name="build-jburg" depends="check-properties">
-    <property name="build.scratch.jburg" location="${build.dir}/scratch/jburg"/>
-    <mkdir dir="${build.scratch.jburg}"/>
+    <property name="build.jburg.dir" location="${build.dir}/${host.name}/jburg"/>
+    <mkdir dir="${build.jburg.dir}"/>
     <exec executable="${bison.exe}" failonerror="true">
-      <arg value="--output=${build.scratch.jburg}/gram.c"/>
+      <arg value="--output=${build.jburg.dir}/gram.c"/>
       <arg value="${basedir}/tools-external/jburg/gram.y"/>
     </exec>
     <exec executable="${c.exe}" failonerror="true">
@@ -563,9 +561,9 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-I"/>
       <arg value="${basedir}/tools-external/jburg"/>
       <arg value="-o"/>
-      <arg value="${build.scratch.jburg}/jburg"/>
+      <arg value="${build.jburg.dir}/jburg"/>
       <arg value="${basedir}/tools-external/jburg/jburg.c"/>
-      <arg value="${build.scratch.jburg}/gram.c"/>
+      <arg value="${build.jburg.dir}/gram.c"/>
     </exec>
   </target>
 
@@ -660,45 +658,45 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="VM_Assembler.in"/>
     </exec>
 
-    <property name="build.scratch.ia32-assembler-opt" location="${build.dir}/scratch/ia32-assembler-opt"/>
-    <property name="build.ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
+    <property name="build.ia32-assembler-opt.dir" location="${build.dir}/ia32-assembler-opt"/>
+    <property name="ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
 
-    <mkdir dir="${build.scratch.ia32-assembler-opt}"/>
+    <mkdir dir="${build.ia32-assembler-opt.dir}"/>
     <GenerateFromTemplate>
       <args>
-        <arg value="${build.ia32-assembler-opt.dir}/OPT_InstructionFormatTables.template"/>
-        <arg value="${build.scratch.ia32-assembler-opt}/OPT_InstructionFormatTables.java"/>
+        <arg value="${ia32-assembler-opt.dir}/OPT_InstructionFormatTables.template"/>
+        <arg value="${build.ia32-assembler-opt.dir}/OPT_InstructionFormatTables.java"/>
         <arg value="FORMAT_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${build.ia32-assembler-opt.dir}/OPT_OperatorFormatTables.template"/>
-        <arg value="${build.scratch.ia32-assembler-opt}/OPT_OperatorFormatTables.java"/>
+        <arg value="${ia32-assembler-opt.dir}/OPT_OperatorFormatTables.template"/>
+        <arg value="${build.ia32-assembler-opt.dir}/OPT_OperatorFormatTables.java"/>
         <arg value="OPERATOR_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/OperatorList.dat"/>
       </args>
     </GenerateFromTemplate>
-    <copy todir="${build.scratch.ia32-assembler-opt}">
+    <copy todir="${build.ia32-assembler-opt.dir}">
       <fileset dir="${main.java}">
         <include name="com/ibm/jikesrvm/ia32/VM_RegisterConstants.java"/>
         <include name="com/ibm/jikesrvm/ia32/VM_AssemblerConstants.java"/>
       </fileset>
     </copy>
-    <copy todir="${build.scratch.ia32-assembler-opt}">
+    <copy todir="${build.ia32-assembler-opt.dir}">
       <globmapper from="*.fake" to="*.java"/>
-      <fileset dir="${build.ia32-assembler-opt.dir}">
+      <fileset dir="${ia32-assembler-opt.dir}">
         <include name="VM*.fake"/>
         <include name="ArchitectureSpecific.fake"/>
       </fileset>
     </copy>
     <copy file="${main.java}/com/ibm/jikesrvm/VM_ForwardReference.java"
-          tofile="${build.scratch.ia32-assembler-opt}/com/ibm/jikesrvm/VM_ForwardReference.java"/>
+          tofile="${build.ia32-assembler-opt.dir}/com/ibm/jikesrvm/VM_ForwardReference.java"/>
     <copy file="${generated.ia32.java}/com/ibm/jikesrvm/ia32/VM_Assembler.java"
-          tofile="${build.scratch.ia32-assembler-opt}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
+          tofile="${build.ia32-assembler-opt.dir}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
 
-    <javac srcdir="${build.scratch.ia32-assembler-opt}" destdir="${build.scratch.ia32-assembler-opt}" debug="true"
+    <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
-      <src path="${build.ia32-assembler-opt.dir}"/>
+      <src path="${ia32-assembler-opt.dir}"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
       </classpath>
@@ -706,7 +704,7 @@ Check to make sure all required properties are specified. This includes properti
     <java classname="GenerateAssembler" failonerror="true" fork="true">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
-        <pathelement location="${build.scratch.ia32-assembler-opt}"/>
+        <pathelement location="${build.ia32-assembler-opt.dir}"/>
       </classpath>
       <jvmarg value="-DgenerateToDir=${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
     </java>
@@ -921,13 +919,13 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="build-bootimage-writer" depends="build-preprocessor,package">
-    <property name="build.scratch.bootimage-writer" value="${build.scratch}/bootimage-writer"/>
-    <mkdir dir="${build.scratch.bootimage-writer}"/>
+    <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
+    <mkdir dir="${build.bootimage-writer.dir}"/>
 
     <property name="bti.dir" value="${basedir}/tools/bootImageWriter"/>
-    <preprocess todir="${build.scratch.bootimage-writer}"
+    <preprocess todir="${build.bootimage-writer.dir}"
                 filelist="${bti.dir}/BootImage.java ${bti.dir}/BootImageMap.java ${bti.dir}/BootImageWorker.java ${bti.dir}/BootImageWriter.java ${bti.dir}/BootImageWriterConstants.java ${bti.dir}/BootImageWriterMessages.java"/>
-    <javac srcdir="${build.scratch.bootimage-writer}" destdir="${build.scratch.bootimage-writer}" debug="true"
+    <javac srcdir="${build.bootimage-writer.dir}" destdir="${build.bootimage-writer.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
@@ -954,7 +952,7 @@ Check to make sure all required properties are specified. This includes properti
           dir="${basedir}/tools/bootImageWriter"
           output="${build.base}/BootImageWriterOutput.txt">
       <classpath>
-        <pathelement location="${build.scratch.bootimage-writer}"/>
+        <pathelement location="${build.bootimage-writer.dir}"/>
         <path refid="rvm.class.path"/>
       </classpath>
 
@@ -1002,8 +1000,8 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="build-interface-generator" depends="package,build-preprocessor">
     <!-- need to include configuration name as the tool is configured using per configuration settings -->
-    <property name="build.scratch.interface-generator" value="${build.scratch}/${config.name}/interface-generator"/>
-    <mkdir dir="${build.scratch.interface-generator}"/>
+    <property name="build.interface-generator.dir" value="${build.base}/interface-generator"/>
+    <mkdir dir="${build.interface-generator.dir}"/>
 
     <condition property="arch" value="IA">
       <equals arg1="${target.arch}" arg2="ia32"/>
@@ -1013,9 +1011,9 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <property name="bir.dir" location="${basedir}/tools/bootImageRunner"/>
-    <preprocess todir="${build.scratch.interface-generator}"
+    <preprocess todir="${build.interface-generator.dir}"
                 filelist="${bir.dir}/GenerateInterfaceDeclarations.java ${bir.dir}/GenArch.java ${bir.dir}/GenArch${arch}.java"/>
-    <javac srcdir="${build.scratch.interface-generator}" destdir="${build.scratch.interface-generator}" debug="true"
+    <javac srcdir="${build.interface-generator.dir}" destdir="${build.interface-generator.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <classpath>
         <pathelement location="${build.rt.jar}"/>
@@ -1029,7 +1027,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.native}"/>
     <java classname="GenerateInterfaceDeclarations" fork="yes" maxmemory="200M" failonerror="true">
       <classpath>
-        <pathelement location="${build.scratch.interface-generator}"/>
+        <pathelement location="${build.interface-generator.dir}"/>
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
       </classpath>
