@@ -549,8 +549,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
 #endif
 
     if (endp == subtoken) {
-        fprintf(SysTraceFile, "%s: \"%s\": -X%s must be followed"
-                " by a number.\n", Me, token, sizeFlag);
+        fprintf(SysTraceFile, "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
         *fastExit = true;
     }
     
@@ -563,26 +562,10 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         /* no suffix.  Along with the Sun JVM, we now assume Bytes by
            default. (This is a change from  previous Jikes RVM behaviour.)  */  
         factor = 1.0;
-// Don't use C or c, since they are hexadecimal digits.
-//     } else if (strequal(endp, "c")) {
-//         /* The "dd" Unix utility has used "c" for "characters" to mean what we
-//            mean by bytes, so we go ahead and make "c" legal syntax.  This is
-//            handled specially, since we don't want to treat "cib" or "cB" as
-//            legal -- that would just be sick. */
-//         factor = 1.0;
-        // We don't use "p" for "pages" so that we can avoid conflicting with
-        // Petabytes one day.
-    } else if (strequal(endp, "pages") // || strequal(endp, "p")
-        ) {
+    } else if (strequal(endp, "pages") ) {
         factor = BYTES_IN_PAGE;
-    } else if (   /* Handle constructs like "M" and "K" */
-                  endp[1] == '\0' 
-                  /* Handle constructs like "MiB" or "MB".  We stand with
-                     common practice in the programming community and against
-                     ISO, by having KB of memory be units of 1024, not units of
-                     1000. */
-               || strequal(endp + 2, "iB") || strequal(endp + 2, "ib") 
-               || strequal(endp + 2, "B") || strequal(endp + 2, "b") ) {
+    /* Handle constructs like "M" and "K" */
+    } else if ( endp[1] == '\0' ) {
         factorStr = endp;
     } else {
         fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
@@ -592,37 +575,11 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
 
     if (! *fastExit && factor == 0.0) {
         char e = *factorStr;
-        /* At this time, with our using a 32-bit quantity to indicate memory
-         * size, we can't use T and above, and we are unlikely to use G.  But
-         * it doesn't hurt to have the code in here, since a double is
-         * guaranteed to be able to represent quantities of the magnitude
-         * 2^40, and this only wastes a couple of instructions, once during
-         * the program run.  When we go up to 64 bits, we'll be glad.  I
-         * think. --steve augart */
-
-//  Don't use E alone for now -- E is a hex digit.
-//         if (e == 'e' || e == 'E') // Exbibytes
-//             factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
-//         else 
-        if (e == 'p' || e == 'P') // Pebibytes
-            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
-        else if (e == 't' || e == 'T') // Tebibytes
-            /* We'll always recognize T and above, but we don't show those
-               sizes in the help message unless we're on a 64-bit platform,
-               since they're not useful on a 32-bit platform. */
-            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0; // Tebibytes
-        else if (e == 'g' || e == 'G')
-            factor = 1024.0 * 1024.0 * 1024.0; // Gibibytes
-        else if (e == 'm' || e == 'M')
-            factor = 1024.0 * 1024.0; // Mebibytes
-        else if (e == 'k' || e == 'K')
-            factor = 1024.0;    // Kibibytes
-// We have gotten rid of the B suffix, since B is a hexadecimal digit.
-//         else if (e == 'b' || e == 'B') 
-//             factor = 1.0;
-        else if (e == '\0') {   // Absence of a suffix means Bytes.
-            factor = 1.0;
-        } else {
+        if (e == 'g' || e == 'G') factor = 1024.0 * 1024.0 * 1024.0;
+        else if (e == 'm' || e == 'M') factor = 1024.0 * 1024.0;
+        else if (e == 'k' || e == 'K') factor = 1024.0;
+        else if (e == '\0') factor = 1.0;
+        else {
             fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
                     " unit of memory size\n", Me, token, factorStr);          
             *fastExit = true;
@@ -641,56 +598,26 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     } 
 
     if (!*fastExit) {
-        if (   errno == ERANGE 
-            || userNum > ((long double) (UINT_MAX - roundTo)/factor)) 
+        if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) ) 
         {
-            fprintf(SysTraceFile, "%s: \"%s\": out of range"
-                    " to represent internally\n", Me, subtoken);
+            fprintf(SysTraceFile, "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
             *fastExit = true;
         }
     }
 
     if (*fastExit) {
-        fprintf(SysTraceFile, "\tPlease specify %s as follows:\n", 
-                sizeName);
-        fprintf(SysTraceFile, 
-                "\t    in bytes, using \"-X%s<positive number>\",\n",
+        fprintf(SysTraceFile, "\tPlease specify %s as follows:\n", sizeName);
+        fprintf(SysTraceFile, "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
+        fprintf(SysTraceFile, "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
+        fprintf(SysTraceFile, "\tor, in virtual memory pages of %u bytes, using\n"
+                "\t\t\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE,
                 sizeFlag);
-        fprintf(SysTraceFile, 
-                "\tor, in kilobytes (kibibytes), using \"-X%s<positive number>K\",\n",
-                sizeFlag);
-        fprintf(SysTraceFile,
-                "\tor, in virtual memory pages of %u bytes, using\n"
-                "\t\t\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE, 
-                sizeFlag);
-        fprintf(SysTraceFile, 
-                "\tor, in megabytes (mebibytes), using \"-X%s<positive number>M\",\n", 
-                sizeFlag);
-        fprintf(SysTraceFile,
-                "\tor, in gigabytes (gibibytes), using \"-X%s<positive number>G\"",
-                sizeFlag);
-// #ifdef RVM_FOR_64_ADDR
-        fprintf(SysTraceFile, ",\n");
-        fprintf(SysTraceFile, 
-                "\tor, in terabytes (tebibytes), using \"-X%s<positive number>T\"",
-                sizeFlag);
-        fprintf(SysTraceFile, ",\n");
-        fprintf(SysTraceFile, 
-                "\tor, in petabytes (pebibytes), using \"-X%s<positive number>P\"",
-                sizeFlag);
-//         fprintf(SysTraceFile, ",\n");
-//         fprintf(SysTraceFile, 
-//                 "\tor, in exabytes (exbibytes), using \"-X%s<positive number>E\"",
-//                 sizeFlag);
-// #endif // RVM_FOR_64_ADDR
-        fprintf(SysTraceFile, ".\n");
-        fprintf(SysTraceFile,
-                "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
+        fprintf(SysTraceFile, "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
+        fprintf(SysTraceFile, "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
+        fprintf(SysTraceFile, "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
         if (roundTo != 1) {
-            fprintf(SysTraceFile,
-                    "  The # of bytes will be rounded up to a multiple of");
-            if (roundTo == BYTES_IN_PAGE)
-                fprintf(SysTraceFile, "\n  the virtual memory page size: ");
+            fprintf(SysTraceFile, "  The # of bytes will be rounded up to a multiple of");
+            if (roundTo == BYTES_IN_PAGE) fprintf(SysTraceFile, "\n  the virtual memory page size: ");
             fprintf(SysTraceFile, "%u\n", roundTo);
         }
         return 0U;              // Distinguished value meaning trouble.
