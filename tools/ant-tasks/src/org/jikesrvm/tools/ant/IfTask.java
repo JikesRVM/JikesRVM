@@ -1,7 +1,6 @@
 package org.jikesrvm.tools.ant;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Target;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.MacroDef;
 import org.apache.tools.ant.taskdefs.MacroInstance;
