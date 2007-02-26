@@ -107,6 +107,8 @@ usage(void)
     fprintf(SysTraceFile,"              like version but with more information\n");
     fprintf(SysTraceFile,"    -? -help  print this message\n");
     fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
+    fprintf(SysTraceFile,"    -javaagent:<jarpath>[=<options>]\n");
+    fprintf(SysTraceFile,"              load Java programming language agent, see java.lang.instrument\n");
 
     fprintf(SysTraceFile,"\n For more information see http://jikesrvm.sourceforge.net\n");
 
