@@ -196,7 +196,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         }
 
         //   while (*argv && **argv == '-')    {
-        if (strequal(token, "-help") || strequal(token, "--help") || strequal(token, "-?") ) {
+        if (strequal(token, "-help") || strequal(token, "-?") ) {
             usage();
             *fastExit = true;
             break;
