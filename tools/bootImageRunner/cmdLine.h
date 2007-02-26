@@ -21,8 +21,7 @@
 static const int HELP_INDEX                    = 0;
 static const int VERBOSE_INDEX                 = HELP_INDEX+1;
 static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
-static const int INITIAL_HEAP_INDEX            = VERBOSE_BOOT_INDEX+1;
-static const int MS_INDEX                      = INITIAL_HEAP_INDEX+1;
+static const int MS_INDEX                      = VERBOSE_BOOT_INDEX+1;
 static const int MX_INDEX                      = MS_INDEX+1;
 static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
 static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
@@ -45,7 +44,6 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X", 
    "-X:verbose",
    "-X:verboseBoot=",
-   "-X:h=",
    "-Xms",
    "-Xmx",
    "-X:sysLogfile=",

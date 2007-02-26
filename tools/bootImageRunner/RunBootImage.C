@@ -309,31 +309,6 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             continue;
         }
 
-        if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
-            subtoken = token + 5;
-            fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", Me);
-            /* Does the arg finish with a magnitude expression (a non-numeric
-             * character)?  If so, don't stick on 
-             * another one.   This is just parsing so that we generate a nicer
-             * warning message, by the way -- nothing magic goes on here.  */
-            size_t sublen = strlen(subtoken); // length of subtoken
-            /* Avoid examining subtoken[-1], not that we actually would care,
-               but I like the idea of explicitly setting megaChar to '\0'
-               instead of to '=', which is what we'd get without the
-               conditional operator here. */
-            char megaChar = sublen > 0 ? subtoken[sublen - 1] : '\0';
-            const char *megabytes;
-            if (megaChar == 'm' || megaChar == 'M')
-                megabytes = "";
-            else
-                megabytes = "M";
-            fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s%s.\n", subtoken, subtoken, megabytes);
-            fprintf(SysTraceFile, "\tTo set a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
-            /* Go ahead and set the initial heap size, now. */
-            // size. 
-            token = nonStandardArgs[MS_INDEX];
-        }
-
         if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
             subtoken = token + 4;
             initialHeapSize 
