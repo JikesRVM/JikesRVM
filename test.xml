@@ -92,12 +92,14 @@
         <testRunPropertyInit tag="@{tag}"/>
         <propertycopy name="test.config.@{tag}.build.done" from="${test.config.@{tag}.configuration}.built"/>
         <if>
-          <not>
-            <or>
-              <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
-              <isset property="skip.build"/>
-            </or>
-          </not>
+          <conditions>
+            <not>
+              <or>
+                <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
+                <isset property="skip.build"/>
+              </or>
+            </not>
+          </conditions>
           <sequential>
             <echo message="Building ${test.config.@{tag}.configuration}"/>
             <timer property="${test.config.@{tag}.configuration}.build.time"/>

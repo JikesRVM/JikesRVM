@@ -361,9 +361,11 @@
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
       <if>
-        <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
+        <conditions>
+          <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
+        </conditions>
         <sequential>
-          <!-- If excluded then record result -->
+        <!-- If excluded then record result -->
           <property name="test.@{tag}.result" value="EXCLUDED"/>
           <explainResult tag="@{tag}" message="Test excluded."/>
           <touch file="${test.@{tag}.output.file}"/>

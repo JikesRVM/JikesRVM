@@ -10,20 +10,23 @@
     <text name="props"/>
     <sequential>
       <if>
-        <isset property="protect.config-files"/>
+        <conditions>
+          <isset property="protect.config-files"/>
+        </conditions>
         <sequential>
           <echo><![CDATA[Edit the components configuration file ${components.file} and add the following lines(s):${line.separator}@{props}]]></echo>
         </sequential>
       </if>
       <if>
-        <not>
-          <isset property="protect.config-files"/>
-        </not>
+        <conditions>
+          <not>
+            <isset property="protect.config-files"/>
+          </not>
+        </conditions>
         <sequential>
           <echo file="${components.file}" append="true"><![CDATA[@{props}]]></echo>
         </sequential>
       </if>
     </sequential>
   </macrodef>
-
 </project>
