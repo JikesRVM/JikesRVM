@@ -52,6 +52,9 @@
   <!-- Set the properties for distribution directory -->
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
+  <!-- Permit parallelisation of the bootimage build -->
+  <property name="bootimage.threads" value="1"/>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *              Targets for retrieving external components                  * -->
@@ -980,6 +983,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${target.bootimage.code.address}"/>
       <arg value="-ra"/>
       <arg value="${target.bootimage.rmap.address}"/>
+      <arg value="-numThreads=${bootimage.threads}"/>
     </java>
 
     <loadfile property="bootimage.warnings" srcFile="${build.base}/BootImageWriterOutput.txt">
