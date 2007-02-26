@@ -20,15 +20,15 @@ import org.mmtk.policy.ImmortalSpace;
  */
 public interface GCspyPlan {
   
-  public static final int GCSPY_MB = 4; // 1 chunk
+  int GCSPY_MB = 4; // 1 chunk
   
   /**
    * Any GCspy objects allocated after booting are allocated 
    * in a separate immortal space. 
    */
-  public static final ImmortalSpace gcspySpace = 
+  ImmortalSpace gcspySpace =
       new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, GCSPY_MB);
   
   /** The descriptor for the GCspy allocation space */
-  public static final int GCSPY = gcspySpace.getDescriptor();
+  int GCSPY = gcspySpace.getDescriptor();
 }

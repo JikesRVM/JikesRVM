@@ -22,7 +22,7 @@ public interface OPT_InlineOracle {
    * @param state information needed to make the inlining decision
    * @return an OPT_InlineDecision with the result
    */
-  public OPT_InlineDecision shouldInline (com.ibm.jikesrvm.opt.ir.OPT_CompilationState state);
+  OPT_InlineDecision shouldInline (com.ibm.jikesrvm.opt.ir.OPT_CompilationState state);
 }
 
 

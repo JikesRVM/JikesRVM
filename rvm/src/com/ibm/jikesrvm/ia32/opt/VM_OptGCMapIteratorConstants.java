@@ -27,11 +27,11 @@ public interface VM_OptGCMapIteratorConstants extends OPT_PhysicalRegisterConsta
   /*
    * The index of the first nonvolatile register that may hold a reference, 
    */
-  static final int FIRST_GCMAP_REG = 0;  
+  int FIRST_GCMAP_REG = 0;
 
   /*
    * the index of last register that may hold a reference
    */
-  static final int LAST_GCMAP_REG = 7;
+  int LAST_GCMAP_REG = 7;
 
 }

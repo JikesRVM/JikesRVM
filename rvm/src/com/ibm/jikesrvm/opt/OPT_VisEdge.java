@@ -26,14 +26,14 @@ public interface OPT_VisEdge {
    * The node has to implement the OPT_VisNode interface
    * @return edge source node
    */
-  public OPT_VisNode sourceNode();
+  OPT_VisNode sourceNode();
 
   /**
    * Returns the target node of the edge.
    * The node has to implement the OPT_VisNode interface
    * @return edge target node
    */
-  public OPT_VisNode targetNode();
+  OPT_VisNode targetNode();
 }
 
 

@@ -33,17 +33,17 @@ extends   VM_ThinLockConstants,         // architecture-neutral
 {
   /**
    * For assertion checking things that should never happen.
-   */ 
-  static final boolean NOT_REACHED = false;
+   */
+  boolean NOT_REACHED = false;
 
   /**
    * Reflection uses an integer return from a function which logically
    * returns a triple.  The values are packed in the interger return value
    * by the following masks.
    */
-  static final int REFLECTION_GPRS_BITS = 5;
-  static final int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
-  static final int REFLECTION_FPRS_BITS = 5;
-  static final int REFLECTION_FPRS_MASK = (1 << REFLECTION_FPRS_BITS) - 1;
+  int REFLECTION_GPRS_BITS = 5;
+  int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
+  int REFLECTION_FPRS_BITS = 5;
+  int REFLECTION_FPRS_MASK = (1 << REFLECTION_FPRS_BITS) - 1;
 
 }

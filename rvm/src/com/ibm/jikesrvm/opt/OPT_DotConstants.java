@@ -27,38 +27,38 @@ public interface OPT_DotConstants {
   //////////////////////
 
   /** Solid (default) */
-  public static final String SOLID = "solid";
+  String SOLID = "solid";
   /** Bold */
-  public static final String BOLD = "bold";
+  String BOLD = "bold";
   /** Dashed */
-  public static final String DASHED = "dashed";
+  String DASHED = "dashed";
   /** Dotted */
-  public static final String DOTTED = "dotted";
+  String DOTTED = "dotted";
   /** Invisible */
-  public static final String INVIS = "invis";
+  String INVIS = "invis";
   /** Filled */
-  public static final String FILLED = "filled";
+  String FILLED = "filled";
 
   //////////////////////
   // Color constants
   //////////////////////
 
   /** Black (default) */
-  public static final String BLACK = "black";
+  String BLACK = "black";
   /** White */
-  public static final String WHITE = "white";
+  String WHITE = "white";
   /** Red */
-  public static final String RED = "red";
+  String RED = "red";
   /** Blue */
-  public static final String BLUE = "blue";
+  String BLUE = "blue";
   /** Green */
-  public static final String GREEN = "green";
+  String GREEN = "green";
   /** Yellow */
-  public static final String YELLOW = "yellow";
+  String YELLOW = "yellow";
 
   /**
    * Special value for numeric types indicating default
    */
-  public static final int NONE = -1;
+  int NONE = -1;
 }
 

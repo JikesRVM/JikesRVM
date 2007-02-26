@@ -21,7 +21,7 @@ public interface OPT_InstructionEnumeration extends Enumeration<OPT_Instruction>
   /**
    * Same as nextElement but avoid the need to downcast from Object
    */
-  public OPT_Instruction next();
+  OPT_Instruction next();
 
   /**
    * Single preallocated empty OPT_InstructionEnumeration.
@@ -30,6 +30,6 @@ public interface OPT_InstructionEnumeration extends Enumeration<OPT_Instruction>
    * blocking scalar replacement.  Only use Empty when we have no hope
    * of scalar replacing the alternative (real) enumeration object.
    */
-  public static final OPT_InstructionEnumeration Empty = new OPT_EmptyInstructionEnumeration();
+  OPT_InstructionEnumeration Empty = new OPT_EmptyInstructionEnumeration();
 }
 

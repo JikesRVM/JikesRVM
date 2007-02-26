@@ -32,18 +32,18 @@ public interface OPT_VCGGraph extends OPT_VisGraph {
    * </pre>
    * @return graph descriptor
    */
-  public GraphDesc getVCGDescriptor();
+  GraphDesc getVCGDescriptor();
 
   /**
    * Default VCG descriptor
    */
-  public final GraphDesc defaultVCGDesc = new GraphDesc();
+  GraphDesc defaultVCGDesc = new GraphDesc();
 
   /**
    * VCG Graph Descriptor class
    * Subclass to extend functionality
    */
-  public static class GraphDesc implements OPT_VCGConstants {
+  class GraphDesc implements OPT_VCGConstants {
     /**
      * Returns the title of the graph.
      * @return graph title

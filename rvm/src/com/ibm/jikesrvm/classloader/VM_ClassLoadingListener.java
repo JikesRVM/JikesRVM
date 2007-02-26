@@ -19,6 +19,6 @@ package com.ibm.jikesrvm.classloader;
  */
 public interface VM_ClassLoadingListener {
 
-  public void classInitialized(VM_Class c, boolean writingBootImage);
+  void classInitialized(VM_Class c, boolean writingBootImage);
 
 }

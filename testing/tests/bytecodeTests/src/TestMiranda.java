@@ -21,7 +21,7 @@ public class TestMiranda {
    */
   interface Interface {
     /** A method that can be implemented */
-    public int someMethod (int i, int j);
+    int someMethod (int i, int j);
   }
 
   /**

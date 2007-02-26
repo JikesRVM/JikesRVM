@@ -19,5 +19,5 @@ public interface OPT_AggregateReplacer {
   /** 
    * Perform the transformation
    */
-  public abstract void transform ();
+  void transform ();
 }

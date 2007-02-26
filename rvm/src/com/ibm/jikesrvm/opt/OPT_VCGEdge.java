@@ -32,24 +32,24 @@ public interface OPT_VCGEdge extends OPT_VisEdge {
    * </pre>
    * @return edge descriptor
    */
-  public EdgeDesc getVCGDescriptor();
+  EdgeDesc getVCGDescriptor();
 
   /**
    * Returns whether this edge is a backedge.
    * @return true if the edge is a backedge, false otherwise
    */
-  public boolean backEdge();
+  boolean backEdge();
 
   /**
    * Default VCG descriptor
    */
-  public final EdgeDesc defaultVCGDesc = new EdgeDesc();
+  EdgeDesc defaultVCGDesc = new EdgeDesc();
 
   /**
    * VCG Graph Edge Descriptor class
    * Subclass to extend functionality
    */
-  public static class EdgeDesc implements OPT_VCGConstants {
+  class EdgeDesc implements OPT_VCGConstants {
     /**
      * Returns the label of the edge (contents).
      * Default is blank.

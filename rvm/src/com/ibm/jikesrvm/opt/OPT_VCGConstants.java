@@ -24,6 +24,6 @@ public interface OPT_VCGConstants {
   /**
    * Special value for numeric types indicating default
    */
-  public static final int NONE = -1;
+  int NONE = -1;
 }
 

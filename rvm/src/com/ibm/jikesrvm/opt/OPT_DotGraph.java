@@ -61,18 +61,18 @@ public interface OPT_DotGraph extends OPT_VisGraph {
    * </pre>
    * @return graph descriptor
    */
-  public GraphDesc getDotDescriptor();
+  GraphDesc getDotDescriptor();
 
   /**
    * Default Dot descriptor
    */
-  public final GraphDesc defaultDotDesc = new GraphDesc();
+  GraphDesc defaultDotDesc = new GraphDesc();
 
   /**
    * Dot Graph Descriptor class
    * Subclass to extend functionality
    */
-  public static class GraphDesc implements OPT_DotConstants {
+  class GraphDesc implements OPT_DotConstants {
     /**
      * Returns the label of the graph.
      * @return graph label

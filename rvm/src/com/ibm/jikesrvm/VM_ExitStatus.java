@@ -57,19 +57,19 @@ interface VM_ExitStatus {
   public static final int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
   public static final int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP =
     EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
-  public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
-  public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
+  int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
+  int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
   /** same as OPT compiler */
-  public static int EXIT_STATUS_JNI_COMPILER_FAILED = 101; 
-  public static int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
-  public static int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
-  public static int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
+  int EXIT_STATUS_JNI_COMPILER_FAILED = 101;
+  int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
+  int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
+  int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
     EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
-  public static int EXIT_STATUS_JNI_TROUBLE = 98;
+  int EXIT_STATUS_JNI_TROUBLE = 98;
   /** Used in VM_0005fProcess.C */
-  public static int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
+  int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   /** What exit status should we use after we have printed out a help message?
    *  Some common utilities exit with 1, some with 0.  Jikes RVM seems
    *  to be using 1, so let's keep doing so. */
-  public static int EXIT_STATUS_PRINTED_HELP_MESSAGE = 1;
+  int EXIT_STATUS_PRINTED_HELP_MESSAGE = 1;
 }

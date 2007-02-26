@@ -73,7 +73,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been loaded.
      * @param klass the class that was loaded
      */
-    public void notifyClassLoaded(VM_Class klass);
+    void notifyClassLoaded(VM_Class klass);
   }
 
   /**
@@ -133,7 +133,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been resolved.
      * @param klass the class that was resolved
      */
-    public void notifyClassResolved(VM_Class klass);
+    void notifyClassResolved(VM_Class klass);
   }
 
   /**
@@ -193,7 +193,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been instantiated.
      * @param klass the class that was instantiated
      */
-    public void notifyClassInstantiated(VM_Class klass);
+    void notifyClassInstantiated(VM_Class klass);
   }
 
   /**
@@ -254,7 +254,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been initialized.
      * @param klass the class that was initialized
      */
-    public void notifyClassInitialized(VM_Class klass);
+    void notifyClassInitialized(VM_Class klass);
   }
 
   /**
@@ -316,7 +316,7 @@ public final class VM_Callbacks {
      * @param method the method that was loaded
      * @param parent the method that it overrides (null if none)
      */
-    public void notifyMethodOverride(VM_Method method, VM_Method parent);
+    void notifyMethodOverride(VM_Method method, VM_Method parent);
   }
 
   /**
@@ -386,7 +386,7 @@ public final class VM_Callbacks {
      * @param compiler the compiler that will be invoked.
      *        Values are constants in VM_CompiledMethod
      */
-    public void notifyMethodCompile(VM_Method method, int compiler);
+    void notifyMethodCompile(VM_Method method, int compiler);
   }
 
   /**
@@ -452,7 +452,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.forName was called.
      * @param type the type that will be returned
      */
-    public void notifyForName(VM_Type type);
+    void notifyForName(VM_Type type);
   }
 
   /**
@@ -513,7 +513,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.defineclass was called.
      * @param type the type that will be returned
      */
-    public void notifyDefineClass(VM_Type type);
+    void notifyDefineClass(VM_Type type);
   }
 
   /**
@@ -575,7 +575,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.loadclass was called.
      * @param type the type that will be returned
      */
-    public void notifyLoadClass(VM_Type type);
+    void notifyLoadClass(VM_Type type);
   }
 
   /**
@@ -636,7 +636,7 @@ public final class VM_Callbacks {
      * Notify the monitor that boot image writing is in progress.
      * @param types the types that are included in the boot image
      */
-    public void notifyBootImage(Enumeration<String> types);
+    void notifyBootImage(Enumeration<String> types);
   }
 
   /**
@@ -692,7 +692,7 @@ public final class VM_Callbacks {
     /**
      * Notify the monitor that the VM has started up.
      */
-    public void notifyStartup();
+    void notifyStartup();
   }
 
   /**
@@ -749,7 +749,7 @@ public final class VM_Callbacks {
      * Notify the monitor that the VM is about to exit.
      * @param value the exit value
      */
-    public void notifyExit(int value);
+    void notifyExit(int value);
   }
 
   /**
@@ -810,7 +810,7 @@ public final class VM_Callbacks {
      * Notify the monitor that the application has started executing
      * @param app application name
      */
-    public void notifyAppStart(String app);
+    void notifyAppStart(String app);
   }
 
   /**
@@ -864,7 +864,7 @@ public final class VM_Callbacks {
      * Notify the monitor that the application has completed executing
      * @param app  name of application
      */
-    public void notifyAppComplete(String app);
+    void notifyAppComplete(String app);
   }
 
   /**
@@ -918,7 +918,7 @@ public final class VM_Callbacks {
      * @param app application name
      * @param run run number
      */
-    public void notifyAppRunStart(String app, int run);
+    void notifyAppRunStart(String app, int run);
   }
 
   /**
@@ -974,7 +974,7 @@ public final class VM_Callbacks {
      * @param app name of application
      * @param run run number
      */
-    public void notifyAppRunComplete(String app, int run);
+    void notifyAppRunComplete(String app, int run);
   }
 
   /**
@@ -1031,7 +1031,7 @@ public final class VM_Callbacks {
     /**
      * Notify the monitor that the application has requested the recompile
      */
-    public void notifyRecompileAll();
+    void notifyRecompileAll();
   }
 
   /**

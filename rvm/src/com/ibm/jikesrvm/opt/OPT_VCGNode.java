@@ -32,18 +32,18 @@ public interface OPT_VCGNode extends OPT_VisNode {
    * </pre>
    * @return node descriptor
    */
-  public NodeDesc getVCGDescriptor();
+  NodeDesc getVCGDescriptor();
 
   /**
    * Default VCG descriptor
    */
-  public final NodeDesc defaultVCGDesc = new NodeDesc();
+  NodeDesc defaultVCGDesc = new NodeDesc();
 
   /**
    * VCG Graph Node Descriptor class
    * Subclass to extend functionality
    */
-  public static class NodeDesc implements OPT_VCGConstants {
+  class NodeDesc implements OPT_VCGConstants {
     /**
      * Returns the label of the node (contents).
      * Default is node number.
@@ -96,7 +96,7 @@ public interface OPT_VCGNode extends OPT_VisNode {
    * To be used for implementing edges() for graphs that don't
    * have explicit edge representation.
    */
-  public static class DefaultEdge extends OPT_VisNode.DefaultEdge
+  class DefaultEdge extends OPT_VisNode.DefaultEdge
     implements OPT_VCGEdge
   {
     private boolean _backEdge;

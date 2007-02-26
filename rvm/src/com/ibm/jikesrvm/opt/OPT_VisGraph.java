@@ -28,6 +28,6 @@ public interface OPT_VisGraph {
    * Each of the nodes has to implement the OPT_VisNode interface
    * @return the enumeration that would list the nodes of the graph
    */
-  public Enumeration<OPT_VCGNode> nodes();
+  Enumeration<OPT_VCGNode> nodes();
 }
 

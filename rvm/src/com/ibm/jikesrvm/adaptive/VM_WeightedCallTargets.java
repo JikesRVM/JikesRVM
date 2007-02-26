@@ -72,7 +72,7 @@ public abstract class VM_WeightedCallTargets {
    * Used by visitTargets
    */
   public static interface Visitor {
-    public void visit(VM_Method target, double weight);
+    void visit(VM_Method target, double weight);
   }
   
   /**

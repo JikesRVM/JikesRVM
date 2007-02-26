@@ -47,18 +47,18 @@ public interface OPT_DotEdge extends OPT_VisEdge {
    * </pre>
    * @return edge descriptor
    */
-  public EdgeDesc getDotDescriptor();
+  EdgeDesc getDotDescriptor();
 
   /**
    * Default Dot descriptor
    */
-  public final EdgeDesc defaultDotDesc = new EdgeDesc();
+  EdgeDesc defaultDotDesc = new EdgeDesc();
 
   /**
    * Dot Graph Edge Descriptor class
    * Subclass to extend functionality
    */
-  public static class EdgeDesc extends OPT_DotUtils {
+  class EdgeDesc extends OPT_DotUtils {
     /**
      * Returns the label of the edge (contents).
      * Default is blank.

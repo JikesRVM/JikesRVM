@@ -22,7 +22,7 @@ interface VM_Decayable {
   /**
    *  Called periodically when it is time to decay runtime mesaurment data
    */
-  public void decay();
+  void decay();
 
 }
 

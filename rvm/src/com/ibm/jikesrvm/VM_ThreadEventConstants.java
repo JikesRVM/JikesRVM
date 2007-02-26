@@ -22,12 +22,12 @@ public interface VM_ThreadEventConstants {
   /**
    * Thread is waiting on the queue.
    */
-  public static final int WAIT_PENDING = 0;
+  int WAIT_PENDING = 0;
 
   /**
    * Set if thread is suspended while executing native code.
    */
-  public static final int WAIT_NATIVE = 1;
+  int WAIT_NATIVE = 1;
 
   /**
    * Set if thread has been marked to be taken off the wait queue.
@@ -38,21 +38,21 @@ public interface VM_ThreadEventConstants {
    * <li> the thread was interrupted
    * </ul>
    */
-  public static final int WAIT_FINISHED = 2;
+  int WAIT_FINISHED = 2;
 
   /**
    * The event wait timed out.
    */
-  public static final int WAIT_TIMEOUT = 4;
+  int WAIT_TIMEOUT = 4;
 
   /**
    * The thread was interrupted before the event or the timeout occurred.
    */
-  public static final int WAIT_INTERRUPTED = 8;
+  int WAIT_INTERRUPTED = 8;
 
   /**
    * Used to specify that a wait should block indefinitely
    * (i.e., no timeout).
    */
-  public static final long WAIT_INFINITE = -1;
+  long WAIT_INFINITE = -1;
 }

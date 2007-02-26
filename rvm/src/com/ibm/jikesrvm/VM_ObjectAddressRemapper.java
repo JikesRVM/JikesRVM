@@ -28,12 +28,12 @@ public interface VM_ObjectAddressRemapper {
    * @param object in "local" virtual machine
    * @return its address in a foreign virtual machine
    */
-   public <T> Address objectAsAddress(T object);
+  <T> Address objectAsAddress(T object);
 
   /**
    * Map an address to an object.
    * @param address value obtained from "objectAsAddress"
    * @return corresponding object
    */
-   public Object addressAsObject(Address address);
+  Object addressAsObject(Address address);
 }

@@ -137,46 +137,46 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  */
 public interface VM_StackframeLayoutConstants  {
 
-  public static final int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  public static final int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
+  int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** offset of caller's return address from FP */
-  static final int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4;
+  int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4;
   /** base of this frame */
-  static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
+  int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
   /** offset of method id from FP */
-  static final int STACKFRAME_METHOD_ID_OFFSET        = -4;
+  int STACKFRAME_METHOD_ID_OFFSET        = -4;
   /** offset of work area from FP */
-  static final int STACKFRAME_BODY_OFFSET             = -8;
+  int STACKFRAME_BODY_OFFSET             = -8;
   /** size of frame header, in bytes */
-  static final int STACKFRAME_HEADER_SIZE             = 12;
+  int STACKFRAME_HEADER_SIZE             = 12;
    
    // space to save entire FPU state.  The FPU state is saved only for 'bridge' frames
-   static final int FPU_STATE_SIZE                     = 108;
+   int FPU_STATE_SIZE                     = 108;
 
   /** fp value indicating end of stack walkback */
-  static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
+  Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
   /** marker for "assembler" frames that have no associated VM_Method */
-  static final int INVISIBLE_METHOD_ID    = -1;
+  int INVISIBLE_METHOD_ID    = -1;
 
    // Stackframe alignment.
    // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
    //
-   static final int STACKFRAME_ALIGNMENT = 8;
+   int STACKFRAME_ALIGNMENT = 8;
    
    // Sizes for stacks and subregions thereof.
    // Values are in bytes and must be a multiple of 4 (size of a stack slot).
    //
   /** how much to grow stack when overflow detected */
-  static final int STACK_SIZE_GROW      = 8*1024;
+   int STACK_SIZE_GROW      = 8*1024;
   /** max space needed for stack overflow trap processing */
-  static final int STACK_SIZE_GUARD     = 64*1024;
+  int STACK_SIZE_GUARD     = 64*1024;
   /** max space needed for any native code called by vm */
-  static final int STACK_SIZE_SYSCALL   = 4*1024;
+  int STACK_SIZE_SYSCALL   = 4*1024;
   /** max space needed for dlopen sys call */
-  static final int STACK_SIZE_DLOPEN    = 30*1024;
+  int STACK_SIZE_DLOPEN    = 30*1024;
   /** max space needed while running with gc disabled */
-  static final int STACK_SIZE_GCDISABLED= 4*1024;
+  int STACK_SIZE_GCDISABLED= 4*1024;
    
    // Complications:
    // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
@@ -191,10 +191,10 @@ public interface VM_StackframeLayoutConstants  {
    // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
    //
   /** initial stack space to allocate for normal    thread (includes guard region) */
-   static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  200*1024; // initial stack space to allocate for normal    thread (includes guard region)
-   static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for boot      thread (includes guard region)
-   static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for collector thread (includes guard region)
-   static final int STACK_SIZE_MAX       = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 200*1024; // upper limit on stack size (includes guard region)
+  int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  200*1024; // initial stack space to allocate for normal    thread (includes guard region)
+   int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for boot      thread (includes guard region)
+   int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for collector thread (includes guard region)
+   int STACK_SIZE_MAX       = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 200*1024; // upper limit on stack size (includes guard region)
    
-   static final int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
+   int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
 }

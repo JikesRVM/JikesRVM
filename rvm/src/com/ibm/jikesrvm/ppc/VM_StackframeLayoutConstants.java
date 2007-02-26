@@ -127,36 +127,36 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  */
 public interface VM_StackframeLayoutConstants  {
 
-  public static final int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  public static final int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
+  int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
-  static final int STACKFRAME_HEADER_SIZE             = 3*BYTES_IN_STACKSLOT; // size of frame header, in bytes
+  int STACKFRAME_HEADER_SIZE             = 3*BYTES_IN_STACKSLOT; // size of frame header, in bytes
 
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
-  static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI ? 2*BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
-  static final int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI ? BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT;
+  int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI ? 2*BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
+  int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI ? BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT;
   
-  static final int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
+  int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
       
-  static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
-  static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
+  Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
+  int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 
   // Stackframe alignment.
   // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
   //
-  static final int STACKFRAME_ALIGNMENT = VM_SizeConstants.BYTES_IN_DOUBLE;
+  int STACKFRAME_ALIGNMENT = VM_SizeConstants.BYTES_IN_DOUBLE;
    
   // Sizes for stacks and subregions thereof.
   // Values are in bytes and must be a multiple of 8 (size of a stack slot on 64-architecture).
   //
-  static final int STACK_SIZE_GROW           =   8*1024; // how much to grow normal stack when overflow detected
-  static final int STACK_SIZE_GUARD          =   8*1024; // max space needed for stack overflow trap processing
-  static final int STACK_SIZE_NATIVE         =   4*1024; // max space needed for entry to sysCall# via VM_Magic
-  static final int STACK_SIZE_JNINATIVE      = 180*1024; // max space needed for first entry to native code via JNI
-  static final int STACK_SIZE_DLOPEN         =  30*1024; // max space needed for dlopen sys call 
-  static final int STACK_SIZE_JNINATIVE_GROW = 184*1024; // size to grow once for native on first entry via JNI
-  static final int STACK_SIZE_GCDISABLED     =   4*1024; // max space needed while running with gc disabled
-  static final int STACK_SIZE_MAX            = 512*1024; // upper limit on stack size (includes guard region)
+  int STACK_SIZE_GROW           =   8*1024; // how much to grow normal stack when overflow detected
+  int STACK_SIZE_GUARD          =   8*1024; // max space needed for stack overflow trap processing
+  int STACK_SIZE_NATIVE         =   4*1024; // max space needed for entry to sysCall# via VM_Magic
+  int STACK_SIZE_JNINATIVE      = 180*1024; // max space needed for first entry to native code via JNI
+  int STACK_SIZE_DLOPEN         =  30*1024; // max space needed for dlopen sys call
+  int STACK_SIZE_JNINATIVE_GROW = 184*1024; // size to grow once for native on first entry via JNI
+  int STACK_SIZE_GCDISABLED     =   4*1024; // max space needed while running with gc disabled
+  int STACK_SIZE_MAX            = 512*1024; // upper limit on stack size (includes guard region)
    
   // Complications:
   // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
@@ -173,9 +173,9 @@ public interface VM_StackframeLayoutConstants  {
   // - Stacks for "collector" threads are fixed in size and cannot grow.
   // - Stacks for "boot" thread grow as needed - boot thread calls JNI during initialization
   //
-  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024 + (VM.BuildFor64Addr?256*1024:0); 
-  static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  STACK_SIZE_JNINATIVE + 128 * 1024;
-  static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  32*1024; 
+  int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024 + (VM.BuildFor64Addr?256*1024:0);
+  int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  STACK_SIZE_JNINATIVE + 128 * 1024;
+  int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  32*1024;
 
 }
 

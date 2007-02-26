@@ -20,7 +20,7 @@ public interface OPT_BasicBlockEnumeration extends Enumeration<OPT_BasicBlock> {
   /**
    * Same as nextElement but avoid the need to downcast from Object.
    */
-  public OPT_BasicBlock next();
+  OPT_BasicBlock next();
 
   /**
    * Single preallocated empty OPT_BasicBlockEnumeration.
@@ -29,5 +29,5 @@ public interface OPT_BasicBlockEnumeration extends Enumeration<OPT_BasicBlock> {
    * blocking scalar replacement.  Only use Empty when we have no hope
    * of scalar replacing the alternative (real) enumeration object.
    */
-  public static final OPT_BasicBlockEnumeration Empty = new OPT_EmptyBasicBlockEnumeration();
+  OPT_BasicBlockEnumeration Empty = new OPT_EmptyBasicBlockEnumeration();
 }

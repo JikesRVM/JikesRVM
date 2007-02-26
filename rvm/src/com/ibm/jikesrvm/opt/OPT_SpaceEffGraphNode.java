@@ -451,7 +451,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   public interface GraphEdgeEnumeration<T extends OPT_GraphEdge> extends Enumeration<T> {
     // Same as nextElement but avoid the need to downcast from Object
-    public T next();
+    T next();
   }
 
   public final InEdgeEnumeration inEdges() {

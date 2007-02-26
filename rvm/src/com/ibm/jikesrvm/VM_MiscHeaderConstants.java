@@ -31,11 +31,11 @@ public interface VM_MiscHeaderConstants extends VM_Constants {
    */
 
   /* amount by which tracing causes headers to grow */
-  static final int GC_TRACING_HEADER_WORDS = (MM_Constants.GENERATE_GC_TRACE ? 3 : 0);
-  static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS<<LOG_BYTES_IN_ADDRESS;
+  int GC_TRACING_HEADER_WORDS = (MM_Constants.GENERATE_GC_TRACE ? 3 : 0);
+  int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS<<LOG_BYTES_IN_ADDRESS;
 
   /**
    * How many bytes are used by all misc header fields?
    */
-  static final int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
+  int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
 }

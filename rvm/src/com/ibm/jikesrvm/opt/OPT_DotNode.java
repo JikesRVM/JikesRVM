@@ -47,18 +47,18 @@ public interface OPT_DotNode extends OPT_VisNode {
    * </pre>
    * @return node descriptor
    */
-  public NodeDesc getDotDescriptor();
+  NodeDesc getDotDescriptor();
 
   /**
    * Default Dot descriptor
    */
-  public final NodeDesc defaultDotDesc = new NodeDesc();
+  NodeDesc defaultDotDesc = new NodeDesc();
 
   /**
    * Dot Graph Node Descriptor class
    * Subclass to extend functionality
    */
-  public static class NodeDesc extends OPT_DotUtils {
+  class NodeDesc extends OPT_DotUtils {
     /**
      * Returns the label of the node (contents).
      * Default is node number.
@@ -191,7 +191,7 @@ public interface OPT_DotNode extends OPT_VisNode {
    * To be used for implementing edges() for graphs that don't
    * have explicit edge representation.
    */
-  public static class DefaultEdge extends OPT_VisNode.DefaultEdge
+  class DefaultEdge extends OPT_VisNode.DefaultEdge
     implements OPT_DotEdge
   {
     public DefaultEdge(OPT_DotNode s, OPT_DotNode t) { super(s, t); }
