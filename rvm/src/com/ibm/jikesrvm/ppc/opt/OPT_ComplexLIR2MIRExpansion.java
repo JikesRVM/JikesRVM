@@ -202,7 +202,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
    */
   private static void threeValueCmp (OPT_Instruction s, OPT_IR ir) {
     OPT_PowerPCConditionOperand
-      firstCond = OPT_PowerPCConditionOperand.LESS_EQUAL();;
+      firstCond = OPT_PowerPCConditionOperand.LESS_EQUAL();
     int firstConst = 1;
       
     switch (s.operator.opcode) {

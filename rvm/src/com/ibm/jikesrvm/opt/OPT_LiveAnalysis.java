@@ -1160,7 +1160,6 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      */
     public String toString() {
       StringBuffer buf = new StringBuffer("");
-      ;
       buf.append(" Gen: " + gen + "\n");
       buf.append(" BB Kill: " + BBKillSet + "\n");
       buf.append(" first PEI Kill: " + firstPEIKillSet + "\n");

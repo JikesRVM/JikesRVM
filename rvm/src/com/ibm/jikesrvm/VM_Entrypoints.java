@@ -260,7 +260,7 @@ public class VM_Entrypoints implements VM_Constants {
       optNewArrayArrayMethod = null;
       sysArrayCopy = null;
     }
-  };
+  }
 
   public static final VM_NormalMethod osrGetRefAtMethod;
   public static final VM_NormalMethod osrCleanRefsMethod;
@@ -273,8 +273,8 @@ public class VM_Entrypoints implements VM_Constants {
       osrGetRefAtMethod = null;
       osrCleanRefsMethod = null;
     }
-  };      
-  
+  }
+
   ////////////////// 
   // Entrypoints that are valid only when the adaptive optimization system is included in the build
   //////////////////
@@ -322,7 +322,7 @@ public class VM_Entrypoints implements VM_Constants {
       processorCBSField = null;
       cbsResetValueField = null;
     }
-  };
+  }
 
   public static final VM_Field classLoaderDefinedPackages =
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");

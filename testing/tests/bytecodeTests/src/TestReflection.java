@@ -98,9 +98,9 @@ class Foo
       {
       Bar(int i) { this.i = i; }
       int i;
-      };
+      }
 
-   // primitive
+     // primitive
    //
    public boolean z = true;
    public byte    b = 1;

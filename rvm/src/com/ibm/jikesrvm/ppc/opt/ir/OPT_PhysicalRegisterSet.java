@@ -507,7 +507,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     } else {
       throw new OPT_OptimizingCompilerException("Invalid SPR");
     }
-  };
+  }
+
   /**
    * register names for each class. used in printing the IR
    * The indices for "FP" and "JTOC" should always match the

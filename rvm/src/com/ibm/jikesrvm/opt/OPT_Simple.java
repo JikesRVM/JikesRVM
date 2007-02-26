@@ -515,7 +515,6 @@ public final class OPT_Simple extends OPT_CompilerPhase {
           isDead = false;
           break;
         }
-        ;
         if (r.register.isPhysical()) {
           isDead = false;
           break;

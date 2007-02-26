@@ -280,14 +280,18 @@ public class VM_SysCallMagic {
   public static void gcspyMainServerAddEvent (Address functionAddress, Address server, int event, Address name) {}
   public static Address gcspyMainServerInit (Address functionAddress, int port, int len, Address name, int verbose) { return null; }
   public static int gcspyMainServerIsConnected (Address functionAddress, Address server, int event) { return 0; }
-  public static Address gcspyMainServerOuterLoop (Address functionAddress) { return null; }; 
-  public static void gcspyMainServerSafepoint (Address functionAddress, Address server, int event) {};
-  public static void gcspyMainServerSetGeneralInfo (Address functionAddress, Address server, Address info) {};
-  public static void gcspyMainServerStartCompensationTimer (Address functionAddress, Address server) {};
-  public static void gcspyMainServerStopCompensationTimer (Address functionAddress, Address server) {};
+  public static Address gcspyMainServerOuterLoop (Address functionAddress) { return null; }
 
-  public static void gcspyStartserver (Address functionAddress, Address server, int wait, Address serverOuterLoop) {};
-   
+  public static void gcspyMainServerSafepoint (Address functionAddress, Address server, int event) {}
+
+  public static void gcspyMainServerSetGeneralInfo (Address functionAddress, Address server, Address info) {}
+
+  public static void gcspyMainServerStartCompensationTimer (Address functionAddress, Address server) {}
+
+  public static void gcspyMainServerStopCompensationTimer (Address functionAddress, Address server) {}
+
+  public static void gcspyStartserver (Address functionAddress, Address server, int wait, Address serverOuterLoop) {}
+
   public static void gcspyStreamInit (Address functionAddress, Address stream, int id, int dataType, Address name,
                                int minValue, int maxValue, int zeroValue, int defaultValue,
                                Address pre, Address post, int presentation, int paintStyle,

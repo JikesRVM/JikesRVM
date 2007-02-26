@@ -87,8 +87,7 @@ public class VM_ClassLoader implements VM_Constants,
   private static boolean appCLReady;
   public static void declareApplicationClassLoaderIsReady() {
     appCLReady = true;
-  };
-  
+  }
 
   public static ClassLoader getApplicationClassLoader() {
     if (! VM.runningVM)

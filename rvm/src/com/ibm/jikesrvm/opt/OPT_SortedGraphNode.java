@@ -104,7 +104,6 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
       }
       currentSortMarker = Integer.MIN_VALUE;
     }
-    ;
     return  ++currentSortMarker;
   }
   int sortMarker = Integer.MIN_VALUE;

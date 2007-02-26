@@ -51,7 +51,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    */
   public final boolean shouldPerform(OPT_Options options) {
     return options.GLOBAL_BOUNDS_CHECK || typeChecks;
-  };
+  }
 
   /**
    * Constructor for this compiler phase

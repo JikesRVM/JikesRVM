@@ -85,7 +85,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   protected final void postAlloc (Address cell) { 
     space.getCells().add(DoublyLinkedList.payloadToNode(cell));
-  };
+  }
 
   /****************************************************************************
    * 

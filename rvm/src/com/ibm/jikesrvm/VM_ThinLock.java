@@ -104,7 +104,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
             if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
               while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
                 if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled())
-                  VM_Thread.yield();;
+                  VM_Thread.yield();
               }
               break major;  // lock succeeds (note that lockHeavy has issued an isync)
             }

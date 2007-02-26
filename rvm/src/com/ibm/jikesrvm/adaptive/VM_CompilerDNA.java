@@ -62,7 +62,7 @@ public class VM_CompilerDNA implements VM_Constants {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       compilationRates = null;
     }
-  };
+  }
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
@@ -83,7 +83,7 @@ public class VM_CompilerDNA implements VM_Constants {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       speedupRates = null;
     }      
-  };      
+  }
 
   /**
    * Benefits of moving from one compilation level to another

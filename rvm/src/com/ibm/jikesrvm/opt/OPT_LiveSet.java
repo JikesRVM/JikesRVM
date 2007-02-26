@@ -320,7 +320,6 @@ public class OPT_LiveSet {
    */
   public String toString() {
     StringBuffer buf = new StringBuffer("");
-    ;
     if (first == null)
       buf.append("empty"); 
     else {
