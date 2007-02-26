@@ -1848,7 +1848,7 @@ public final class OPT_Instruction
   void resizeNumberOfOperands(int newSize) {
     int oldSize = ops.length;
     if (oldSize != newSize) {
-      OPT_Operand newOps[] = new OPT_Operand[newSize];
+      OPT_Operand[] newOps = new OPT_Operand[newSize];
       int min = oldSize;
       if (newSize < oldSize) {
         min = newSize;

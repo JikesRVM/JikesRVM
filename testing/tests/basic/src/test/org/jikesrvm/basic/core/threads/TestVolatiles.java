@@ -14,7 +14,7 @@ package test.org.jikesrvm.basic.core.threads;
  */
 class TestVolatiles extends XThread {
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     for (int i = 0; i < 5; i++) {
       TestVolatiles tv = new TestVolatiles(i);
       tv.start();

@@ -514,9 +514,9 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * The indices for "FP" and "JTOC" should always match the
    * final static values of int FP and int JTOC defined below.
    */
-  private static final String registerName[] = new String[getSize()];
+  private static final String[] registerName = new String[getSize()];
   static {
-    String regName[] = registerName;
+    String[] regName = registerName;
     for (int i = 0; i < NUM_GPRS; i++)
       regName[i + FIRST_INT] = "R" + i;
     for (int i = 0; i < NUM_FPRS; i++)

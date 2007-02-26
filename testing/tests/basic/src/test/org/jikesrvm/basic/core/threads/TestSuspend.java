@@ -16,7 +16,7 @@ class TestSuspend extends XThread {
 
   static Thread sleeper;
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     XThread.holdMessages = false;
     sleeper = Thread.currentThread();
     new TestSuspend().start();

@@ -28,7 +28,7 @@ import com.ibm.jikesrvm.VM_Magic;
   // and for software/hardware exception reporting/delivery.
   //
   public final WordArray gprs; // general purpose registers
-  public final double fprs[]; // floating point registers
+  public final double[] fprs; // floating point registers
   public Address ip;     // instruction address register
   public Address fp;     // frame pointer
   

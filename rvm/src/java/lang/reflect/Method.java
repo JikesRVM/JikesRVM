@@ -93,7 +93,7 @@ public final class Method extends AccessibleObject implements Member {
     return code1 ^ code2;
   }
 
-  public Object invoke(Object receiver, Object args[]) throws IllegalAccessException, 
+  public Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
                                                               IllegalArgumentException, 
                                                               ExceptionInInitializerError,
                                                               InvocationTargetException {

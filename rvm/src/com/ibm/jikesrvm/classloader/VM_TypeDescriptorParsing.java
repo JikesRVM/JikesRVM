@@ -190,7 +190,7 @@ public abstract class VM_TypeDescriptorParsing
    * Takes a character array (i.e., an exploded string) and the indices of the
    * first and last characters of the array that are to be checked. */
   public static boolean isJavaClassNameInternalForm(
-                char val[], int first, int last) 
+                char[] val, int first, int last)
   {
     if (val[first++] != ClassTypeCode) // the L
       return false;
@@ -259,7 +259,7 @@ public abstract class VM_TypeDescriptorParsing
   @Interruptible
   public static void validateAsTypeDescriptor(String s) 
     throws IllegalArgumentException { 
-    char val[] = s.toCharArray();
+    char[] val = s.toCharArray();
     
     int i = 0;
     if (val.length == 0)

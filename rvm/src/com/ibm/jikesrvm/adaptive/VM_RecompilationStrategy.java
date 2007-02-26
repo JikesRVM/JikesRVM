@@ -278,7 +278,7 @@ public abstract class VM_RecompilationStrategy {
    * @param optCompilerOptions The list of command line options
    */
   static void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
-                                        String optCompilerOptions[]) {
+                                        String[] optCompilerOptions) {
 
     String prefix = "opt"+optLevel+":";
     for (int j=0; j<optCompilerOptions.length; j++) {

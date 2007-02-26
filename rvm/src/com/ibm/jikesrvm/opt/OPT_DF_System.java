@@ -296,7 +296,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
     } else
       lhs.addDef(eq);
 
-    OPT_DF_LatticeCell operands[] = eq.getOperands();
+    OPT_DF_LatticeCell[] operands = eq.getOperands();
     for(int i = 1; i < operands.length; i++) {
       OPT_DF_LatticeCell op = operands[i];
       if (! (op.getDefs().hasNext()||op.getUses().hasNext())) {

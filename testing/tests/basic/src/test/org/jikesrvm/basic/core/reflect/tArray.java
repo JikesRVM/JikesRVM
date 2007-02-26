@@ -26,10 +26,10 @@ class tArray {
     return "tArray " + i;
   }
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     Class elementType = Class.forName("test.org.jikesrvm.basic.core.reflect.tArray");
     int length = 10;
-    Object array[] = (Object[]) Array.newInstance(elementType, length);
+    Object[] array = (Object[]) Array.newInstance(elementType, length);
 
     for (int i = 0, n = array.length; i < n; ++i)
       array[i] = new tArray(i);

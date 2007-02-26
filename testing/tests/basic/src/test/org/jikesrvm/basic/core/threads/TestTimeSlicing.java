@@ -19,7 +19,7 @@ class TestTimeSlicing {
 
   private static final int LAST_COUNT = 10; // threads count to ten in step
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     final Task[] tasks = new Task[3];
     final int[] countArray = new int[tasks.length];

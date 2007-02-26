@@ -12,7 +12,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  * @author unascribed
  */
 class TestArithmetic {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     System.out.println();
     System.out.println("-- itest --");
     itest();

@@ -33,8 +33,8 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
    * localTypeCodes |-- a_lsize --|-- b_lsize --|-- c_lsize --|
    * stackTypeCodes |-- a_ssize --|-- b_ssize --|-- c_ssize --|
    */
-  public int methodids[];
-  public int bcindexes[];
+  public int[] methodids;
+  public int[] bcindexes;
   public byte[][] localTypeCodes;
   public byte[][] stackTypeCodes;
 
@@ -44,7 +44,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
      | locals 1 | stacks 1 | locals 2 | stacks 2 | ....
    */
 
-  public OPT_InlinedOsrTypeInfoOperand(int[] mids, int cpcs[],
+  public OPT_InlinedOsrTypeInfoOperand(int[] mids, int[] cpcs,
                                        byte[][] ltypes, byte[][] stypes) {
     this.methodids = mids;
     this.bcindexes = cpcs;

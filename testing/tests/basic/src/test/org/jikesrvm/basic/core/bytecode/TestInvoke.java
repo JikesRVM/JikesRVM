@@ -55,7 +55,7 @@ class TestInvoke {
     }
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     final TypeA a = new TypeA();
     final TypeB b = new TypeB();
     final TypeC c = new TypeC();

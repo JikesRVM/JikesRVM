@@ -81,7 +81,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * For each register, the set of live interval elements describing the
    * register.
    */
-  private ArrayList<OPT_LiveIntervalElement> registerMap[];
+  private ArrayList<OPT_LiveIntervalElement>[] registerMap;
   
   // Debugging information
   // Live Intervals, GC Maps, and fixed-point results

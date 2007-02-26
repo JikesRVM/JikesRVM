@@ -47,7 +47,7 @@ class TestGC extends Thread
          buf.append('x');
       }
 
-   public static void main(String args[])
+   public static void main(String[] args)
       {
       runTest();
       }

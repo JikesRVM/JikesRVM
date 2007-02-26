@@ -44,12 +44,12 @@ public final class VM_BuildBB
    * basic blocks of the byte code 
    */
   public VM_BasicBlockFactory      bbf;
-  public VM_BasicBlock             basicBlocks[];       
+  public VM_BasicBlock[]             basicBlocks;
 
   /** 
    * identify which block a byte is part of 
    */
-  public short                     byteToBlockMap[]; 
+  public short[]                     byteToBlockMap;
 
   /**
    * Number of unique jsr targets processed
@@ -72,7 +72,7 @@ public final class VM_BuildBB
   
   public void determineTheBasicBlocks(VM_NormalMethod method) {
     VM_ExceptionHandlerMap    exceptions;   // Used to get a hold of the try Start, End and Handler lists
-    int                       retList[];    // List of basic block numbers that end with a "ret" instruction.
+    int[]                       retList;    // List of basic block numbers that end with a "ret" instruction.
     VM_BytecodeStream         bcodes;       // The bytecodes being analyzed.
     VM_BasicBlock             currentBB;    // current basic block being processed
     byte                      lastInstrType;// type of the last instruction
@@ -534,7 +534,7 @@ public final class VM_BuildBB
   /**
    * process the effect of the ret instructions on the precedance table
    */
-  private void processRetList(int retList[], int nextRetList) {
+  private void processRetList(int[] retList, int nextRetList) {
     // block 0 not used
     int otherRetCount;
     for (int i = 0; i<nextRetList; i++) {
@@ -549,7 +549,7 @@ public final class VM_BuildBB
   /**
    * scan back from ret instruction to jsr call sites 
    */
-  private void findAndSetJSRCallSite(int  pred, VM_BasicBlock retBB, int otherRetCount, boolean seenAlready[]) {
+  private void findAndSetJSRCallSite(int  pred, VM_BasicBlock retBB, int otherRetCount, boolean[] seenAlready) {
     seenAlready[pred] = true;
     VM_BasicBlock jsrBB =  basicBlocks[pred]; 
     jsrBB.setState(VM_BasicBlock.INJSR);       
@@ -726,7 +726,7 @@ public final class VM_BuildBB
         if (newSize <= blocknum)
           newSize = blocknum + 20;
       }
-      VM_BasicBlock biggerBlocks[] = new VM_BasicBlock[newSize];
+      VM_BasicBlock[] biggerBlocks = new VM_BasicBlock[newSize];
       for (int i=0; i<currentSize; i++) 
         biggerBlocks[i] = basicBlocks[i];
       basicBlocks = biggerBlocks;

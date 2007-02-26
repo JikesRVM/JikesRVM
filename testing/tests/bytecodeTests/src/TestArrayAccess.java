@@ -12,7 +12,7 @@
  */
 class TestArrayAccess
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -42,7 +42,7 @@ class TestArrayAccess
    static void
    boolean_array()
       {
-      boolean array[] = new boolean[2];                                      // newarray type=4 eltsize=1
+      boolean[] array = new boolean[2];                                      // newarray type=4 eltsize=1
       boolean x0      = false;                                               // iconst_0
       boolean x1      = true;                                                // iconst_1
 
@@ -56,7 +56,7 @@ class TestArrayAccess
    static void
    byte_array()
       {
-      byte array[] = new byte[2];                                            // newarray type=8 eltsize=1
+      byte[] array = new byte[2];                                            // newarray type=8 eltsize=1
       byte x0      = 127;
       byte x1      = -1;
 
@@ -70,7 +70,7 @@ class TestArrayAccess
    static void
    char_array()
       {
-      char array[] = new char[2];                                            // newarray type=5 eltsize=2
+      char[] array = new char[2];                                            // newarray type=5 eltsize=2
       char x0      = 0x7f41;
       char x1      = 0xff41;
 
@@ -84,7 +84,7 @@ class TestArrayAccess
    static void
    short_array()
       {
-      short array[] = new short[2];                                          // newarray type=9 eltsize=2
+      short[] array = new short[2];                                          // newarray type=9 eltsize=2
       short x0      = 32767;
       short x1      = -1;
 
@@ -98,7 +98,7 @@ class TestArrayAccess
    static void
    int_array()
       {
-      int array[] = new int[2];                                              // newarray type=10 eltsize=4
+      int[] array = new int[2];                                              // newarray type=10 eltsize=4
       int x0      = 0;
       int x1      = 1;
 
@@ -112,7 +112,7 @@ class TestArrayAccess
    static void
    long_array()
       {
-      long array[] = new long[2];                                            // newarray type=11 eltsize=8
+      long[] array = new long[2];                                            // newarray type=11 eltsize=8
       long x0      = 0;
       long x1      = 1;
 
@@ -126,7 +126,7 @@ class TestArrayAccess
    static void
    float_array()
       {
-      float array[] = new float[2];                                          // newarray type=6 eltsize=4
+      float[] array = new float[2];                                          // newarray type=6 eltsize=4
       float x0      = 0;
       float x1      = 1;
 
@@ -140,7 +140,7 @@ class TestArrayAccess
    static void
    double_array()
       {
-      double array[] = new double[2];                                        // newarray type=7 eltsize=8
+      double[] array = new double[2];                                        // newarray type=7 eltsize=8
       double x0      = 0;
       double x1      = 1;
 
@@ -154,7 +154,7 @@ class TestArrayAccess
    static void
    object_array()
       {
-      Object array[] = new Object[2];   // anewarray
+      Object[] array = new Object[2];   // anewarray
       Object x0      = null;
       Object x1      = null;
 
@@ -168,9 +168,9 @@ class TestArrayAccess
    static void
    array_array()
       {
-      Object array[] = new Object[2];   // anewarray
-      Object x0[]    = new Object[2];   // anewarray
-      Object x1[]    = null;
+      Object[] array = new Object[2];   // anewarray
+      Object[] x0    = new Object[2];   // anewarray
+      Object[] x1    = null;
 
       array[0] = x0;                    // aastore
       array[1] = x1;                    // aastore
@@ -186,7 +186,7 @@ class TestArrayAccess
       int middle = 3;
       int inner  = 4;
       
-      int ary[][][] = new int[outer][middle][inner]; // multianewarray
+      int[][][] ary = new int[outer][middle][inner]; // multianewarray
       
       int n = 0;
       for (int i = 0; i < outer; ++i)
@@ -209,7 +209,7 @@ class TestArrayAccess
       int middle = 3;
       int inner  = 4;
       
-      Integer ary[][][] = new Integer[outer][middle][inner]; // multianewarray
+      Integer[][][] ary = new Integer[outer][middle][inner]; // multianewarray
       
       int n = 0;
       for (int i = 0; i < outer; ++i)
@@ -231,7 +231,7 @@ class TestArrayAccess
       int outer  = 2;
       int middle = 3;
       
-      int ary[][][] = new int [outer][middle][]; // multianewarray
+      int[][][] ary = new int [outer][middle][]; // multianewarray
       
       for (int i = 0; i < outer; ++i)
          for (int j = 0; j < middle; ++j)

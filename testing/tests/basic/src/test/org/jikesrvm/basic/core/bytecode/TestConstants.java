@@ -13,7 +13,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  * @author unascribed
  */
 class TestConstants {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     aconst();
     iconst();
     lconst();

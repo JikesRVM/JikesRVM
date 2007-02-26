@@ -13,7 +13,7 @@
 
 class TestReturn
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -47,6 +47,6 @@ class TestReturn
    static float    float_f()           { float   x   = 7;          return x; } // freturn
    static double   double_f()          { double  x   = 8;          return x; } // dreturn
    static Object   object_f()          { Object  x   = null;       return x; } // areturn
-   static int[]    primitive_array_f() { int     x[] = null;       return x; } // areturn
-   static Object[] object_array_f()    { Object  x[] = null;       return x; } // areturn
+   static int[]    primitive_array_f() { int[]     x = null;       return x; } // areturn
+   static Object[] object_array_f()    { Object[]  x = null;       return x; } // areturn
    }

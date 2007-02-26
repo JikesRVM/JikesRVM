@@ -324,7 +324,7 @@ import org.vmmagic.pragma.*;
    * @param spillArray an array of spills
    */
   @Interruptible
-  private final void addAllSpills(int spillArray[]) { 
+  private final void addAllSpills(int[] spillArray) {
     // 1) sort the spills to increase the odds of reusing the GC map
     java.util.Arrays.sort(spillArray);
 

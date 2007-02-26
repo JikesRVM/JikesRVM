@@ -86,7 +86,7 @@ public final class Constructor<T> extends AccessibleObject
 	 return constructor.isSynthetic();
   }
 
-  public Object newInstance(Object args[]) throws InstantiationException, 
+  public Object newInstance(Object[] args) throws InstantiationException,
                                                   IllegalAccessException, 
                                                   IllegalArgumentException, 
                                                   InvocationTargetException {

@@ -218,13 +218,13 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
 
     // rewriting loops where the header has more than one in-loop
     // successor will lead to irreducible control flow.
-    OPT_BasicBlock succ[] = inLoopSuccessors (n);
+    OPT_BasicBlock[] succ = inLoopSuccessors (n);
     if (succ.length > 1) {
       if (DEBUG) VM.sysWrite ("unwhiling would lead to irreducible CFG\n");
       return false;
     }
     
-    OPT_BasicBlock pred[] = inLoopPredecessors (n);
+    OPT_BasicBlock[] pred = inLoopPredecessors (n);
     float frequency = 0f;
 
     if (pred.length > 0) {
@@ -254,7 +254,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     OPT_BasicBlockEnumeration be = header.getIn();
     while (be.hasMoreElements()) if (!inLoop (be.next(), loop)) i++;
 
-    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+    OPT_BasicBlock[] res = new OPT_BasicBlock[i];
 
     i = 0;
     be = header.getIn();
@@ -276,7 +276,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     OPT_BasicBlockEnumeration be = header.getIn();
     while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
 
-    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+    OPT_BasicBlock[] res = new OPT_BasicBlock[i];
     
     i = 0;
     be = header.getIn();
@@ -297,7 +297,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     OPT_BasicBlockEnumeration be = header.getOut();
     while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
 
-    OPT_BasicBlock res[] = new OPT_BasicBlock[i];
+    OPT_BasicBlock[] res = new OPT_BasicBlock[i];
     
     i = 0;
     be = header.getOut();
@@ -355,7 +355,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       if (b.isExceptionHandlerBasicBlock() || numberOfIns <= 1)
         continue;
       // copy the predecessors, since we will alter the incoming edges.
-      OPT_BasicBlock ins[] = new OPT_BasicBlock[numberOfIns];
+      OPT_BasicBlock[] ins = new OPT_BasicBlock[numberOfIns];
       OPT_BasicBlockEnumeration ie = b.getIn();
       for (int i = 0; i < numberOfIns; ++i)
         ins[i] = ie.next();

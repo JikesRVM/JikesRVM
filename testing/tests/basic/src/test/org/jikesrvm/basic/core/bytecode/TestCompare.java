@@ -12,7 +12,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  * @author unascribed
  */
 public class TestCompare {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     zero_cmp();
     i_cmp();
     l_cmp();

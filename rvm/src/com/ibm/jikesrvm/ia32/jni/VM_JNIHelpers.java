@@ -60,7 +60,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     else
       varargAddress = argAddress;
 
-    Object argObjs[];
+    Object[] argObjs;
     if (isJvalue)
       argObjs = packageParameterFromJValue(mth, argAddress);
     else

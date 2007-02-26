@@ -55,8 +55,8 @@ class OPT_DepGraphStats {
       if (instr.isImplicitStore() || instr.isImplicitLoad())
         containsLoadOrStore = true;
     }
-    OPT_DepGraphNode nodes[] = new OPT_DepGraphNode[_numNodes];
-    int ECT[] = new int[_numNodes];              // Earliest Completion Times
+    OPT_DepGraphNode[] nodes = new OPT_DepGraphNode[_numNodes];
+    int[] ECT = new int[_numNodes];              // Earliest Completion Times
     int _totalTime = 0;
     int _critPathLength = 0;
     // Second pass -- compute times

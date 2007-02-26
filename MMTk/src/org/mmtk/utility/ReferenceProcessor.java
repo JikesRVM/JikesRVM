@@ -45,7 +45,7 @@ import org.vmmagic.pragma.*;
   public static final int WEAK_SEMANTICS = 1;
   public static final int PHANTOM_SEMANTICS = 2;
 
-  public static final String semanticStrings [] = {
+  public static final String[] semanticStrings  = {
     "SOFT", "WEAK", "PHANTOM" };
 
   private static boolean clearSoftReferences = false;

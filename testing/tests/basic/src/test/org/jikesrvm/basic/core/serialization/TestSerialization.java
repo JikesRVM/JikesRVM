@@ -19,7 +19,7 @@ import java.io.ObjectOutputStream;
  * @author Peter Donald
  */
 class TestSerialization {
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     //Uncomment when need to generate serialized data from jdk again
 /*
     try {

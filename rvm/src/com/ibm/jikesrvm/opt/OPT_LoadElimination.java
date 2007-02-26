@@ -220,7 +220,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
         continue;
       // this instruction is a DEF of heap variable H.
       // Check if UseRepSet needs the scalar assigned by this def
-      OPT_HeapOperand<?> H[] = ssa.getHeapDefs(s);
+      OPT_HeapOperand<?>[] H = ssa.getHeapDefs(s);
       if (H.length != 1)
         throw  new OPT_OptimizingCompilerException("OPT_LoadElimination: encountered a store with more than one def? "
                                                    + s);

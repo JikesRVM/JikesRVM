@@ -31,7 +31,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
    */
-  protected final VM_Annotation runtimeVisibleAnnotations[];
+  protected final VM_Annotation[] runtimeVisibleAnnotations;
   /**
    * Should we retain runtime invisible annotations? Enabling this
    * option allows some support of annotations without a full
@@ -43,7 +43,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * visible. These annotations aren't available to the reflection
    * API.
    */
-  protected final VM_Annotation runtimeInvisibleAnnotations[];
+  protected final VM_Annotation[] runtimeInvisibleAnnotations;
 
   /**
    * Constructor used by all annotated elements
@@ -53,8 +53,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * @param runtimeInvisibleAnnotations optional array of runtime
    * invisible annotations
    */
-  protected VM_AnnotatedElement (VM_Annotation runtimeVisibleAnnotations[],
-                                 VM_Annotation runtimeInvisibleAnnotations[])
+  protected VM_AnnotatedElement (VM_Annotation[] runtimeVisibleAnnotations,
+                                 VM_Annotation[] runtimeInvisibleAnnotations)
   {
     if (VM.VerifyAssertions && !retainRuntimeInvisibleAnnotations) {
       VM._assert(runtimeInvisibleAnnotations == null);
@@ -74,13 +74,13 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * have 1.
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int constantPool[],
+  protected static VM_Annotation[] readAnnotations(int[] constantPool,
                                                    DataInputStream input,
                                                    int numAnnotationBytes,
                                                    ClassLoader classLoader
                                                    ) throws IOException
   {
-    VM_Annotation annotations[] = null;
+    VM_Annotation[] annotations = null;
     try {
       int numAnnotations;
       if(numAnnotationBytes == 2) {
@@ -130,7 +130,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
     if (retainRuntimeInvisibleAnnotations) {
       numAnnotations += (runtimeInvisibleAnnotations != null) ? runtimeInvisibleAnnotations.length : 0;
     }
-    Annotation result[] = new Annotation[numAnnotations];
+    Annotation[] result = new Annotation[numAnnotations];
     if (runtimeVisibleAnnotations != null) {       
       for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
         result[i] = runtimeVisibleAnnotations[i].getValue();

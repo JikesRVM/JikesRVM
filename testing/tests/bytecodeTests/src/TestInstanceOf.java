@@ -12,7 +12,7 @@
  */
 class TestInstanceOf
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -23,11 +23,11 @@ class TestInstanceOf
       SystemOut.println("TestInstanceOf");
 
       Object o1     = new TestInstanceOf();   // source: a reference
-      Object o2[]   = new TestInstanceOf[2];  // source: an array of references
-      Object o3[][] = new Object[2][];        // source: an array of arrays
+      Object[] o2   = new TestInstanceOf[2];  // source: an array of references
+      Object[][] o3 = new Object[2][];        // source: an array of arrays
              o3[0]  = new TestInstanceOf[4];
              o3[1]  = new TestInstanceOf[4];
-      int    o4[]   = new int [2];            // source: an array of primitives
+      int[]    o4   = new int [2];            // source: an array of primitives
 
       SystemOut.print("\nwant: true false false false\n got: ");  test(o1);
       SystemOut.print("\nwant: false true false false\n got: ");  test(o2);

@@ -73,7 +73,7 @@ class tClass {
     System.out.println("tClass private constructor called!");
   }
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     // Class.forName
     //
     Class c = Class.forName("test.org.jikesrvm.basic.core.reflect.tClass");
@@ -92,14 +92,14 @@ class tClass {
 
     // ------------------------------  Class.getConstructors
     //
-    Constructor ctors[] = c.getConstructors();
+    Constructor[] ctors = c.getConstructors();
     Arrays.sort(ctors, ToStringComparator.COMPARATOR);
 
     System.out.println(c + " has " + ctors.length + " visible constructors");
     for (int i = 0; i < ctors.length; ++i)
       System.out.println("   " + i + ": " + ctors[i]);
 
-    Constructor declaredCtors[] = c.getDeclaredConstructors();
+    Constructor[] declaredCtors = c.getDeclaredConstructors();
     Arrays.sort(declaredCtors, ToStringComparator.COMPARATOR);
 
     System.out.println(c + " has " + declaredCtors.length + " declared constructors");
@@ -108,14 +108,14 @@ class tClass {
 
     // Class.getMethods  Method.getName
     //
-    Method methods[] = c.getMethods();
+    Method[] methods = c.getMethods();
     Method hello = null;
     Method iello = null;
     Method lello = null;
     Method jello = null;
     Method vello = null;
 
-    Method declaredMethods[] = c.getDeclaredMethods();
+    Method[] declaredMethods = c.getDeclaredMethods();
     Arrays.sort(declaredMethods, ToStringComparator.COMPARATOR);
 
     System.out.println(c + " has a total number of methods: "

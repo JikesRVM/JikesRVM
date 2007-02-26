@@ -662,7 +662,7 @@ public class VM_CommandLineArgs {
    * @return number of bytes placed in buffer. -1 means buffer too small 
    *         for argument to fit)
    */
-  private static int sysArg(int argno, byte buf[]) {
+  private static int sysArg(int argno, byte[] buf) {
     return VM_SysCall.sysArg(argno, buf, buf.length);
   }
 

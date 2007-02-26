@@ -36,7 +36,7 @@ class TestFinally
       }
    
    public static void 
-   main(String args[])
+   main(String[] args)
       {
    // VM.boot();
       runTest();

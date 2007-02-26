@@ -304,7 +304,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
       {
         if (OPT_Dominators.DEBUG)
           VM.sysWrite("LOCATION #2 ...\n");
-        OPT_DF_LatticeCell s[] = new OPT_DF_LatticeCell[bb.getNumberOfOut()];
+        OPT_DF_LatticeCell[] s = new OPT_DF_LatticeCell[bb.getNumberOfOut()];
         OPT_BasicBlockEnumeration e = bb.getOut();
         for (int i = 0; i < s.length; i++) {
           OPT_BasicBlock p = e.next();
@@ -316,7 +316,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
     else {
       if (OPT_Dominators.DEBUG)
         System.out.println("LOCATION #3 ...");
-      OPT_DF_LatticeCell s[] = new OPT_DF_LatticeCell[bb.getNumberOfIn()];
+      OPT_DF_LatticeCell[] s = new OPT_DF_LatticeCell[bb.getNumberOfIn()];
       OPT_BasicBlockEnumeration e = bb.getIn();
       for (int i = 0; i < s.length; i++) {
         OPT_BasicBlock p = e.next();

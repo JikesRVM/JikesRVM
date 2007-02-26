@@ -24,7 +24,7 @@ package test.org.jikesrvm.basic.core.threads;
  */
 
 class TestTimedWait {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     Flag.timedWait = true;
 
     int count = 20;

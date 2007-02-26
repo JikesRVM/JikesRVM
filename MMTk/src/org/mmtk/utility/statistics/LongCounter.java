@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
    * Instance variables
    */
 
-  private final long count[];
+  private final long[] count;
 
   private long startValue = 0;
   protected long totalCount = 0;

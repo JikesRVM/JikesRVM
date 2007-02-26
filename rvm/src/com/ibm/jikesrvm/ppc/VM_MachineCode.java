@@ -104,13 +104,13 @@ public abstract class VM_MachineCode {
     b[j] = instr;
   }
   
-  public void setBytecodeMap(int b2m[]) {
+  public void setBytecodeMap(int[] b2m) {
     bytecode_2_machine = b2m;
     return;
   }
 
 
-  private int bytecode_2_machine[];  // See setBytecodeMap/getBytecodeMap
+  private int[] bytecode_2_machine;  // See setBytecodeMap/getBytecodeMap
 
   /* Unfortunately, the number of instructions is not known in advance.
      This class implements a vector of instructions (ints).  It uses a

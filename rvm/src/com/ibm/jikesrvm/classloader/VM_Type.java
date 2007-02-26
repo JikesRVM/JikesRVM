@@ -206,8 +206,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   protected VM_Type(VM_TypeReference typeRef,
                     Class<?> classForType,
                     int dimension,
-                    VM_Annotation runtimeVisibleAnnotations[],
-                    VM_Annotation runtimeInvisibleAnnotations[])
+                    VM_Annotation[] runtimeVisibleAnnotations,
+                    VM_Annotation[] runtimeInvisibleAnnotations)
   {
     super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.typeRef = typeRef;
@@ -236,8 +236,8 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    */
   protected VM_Type(VM_TypeReference typeRef,
                     int dimension,
-                    VM_Annotation runtimeVisibleAnnotations[],
-                    VM_Annotation runtimeInvisibleAnnotations[])
+                    VM_Annotation[] runtimeVisibleAnnotations,
+                    VM_Annotation[] runtimeInvisibleAnnotations)
   {
     super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.typeRef = typeRef;
@@ -626,7 +626,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public final VM_Method findVirtualMethod(VM_Atom memberName, 
                                            VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method methods[] = getVirtualMethods();
+    VM_Method[] methods = getVirtualMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (method.getName() == memberName && 
@@ -643,7 +643,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    */
   public final VM_Method getTIBMethodAtSlot(int slot) {
     if (slot >= VM_TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX) {
-      VM_Method methods[] = getVirtualMethods();
+      VM_Method[] methods = getVirtualMethods();
       int offset = slot << LOG_BYTES_IN_ADDRESS;
       for(int i=0, n = methods.length; i < n; i++) {
         if (methods[i].getOffset().toInt() == offset) {

@@ -78,7 +78,7 @@ public abstract class AbstractDriver {
   /** The maximum number of tiles in this GCspy space */
   protected int maxTileNum;
   /** This space's streams  */
-  protected Stream streams[];
+  protected Stream[] streams;
   /**  control values for tiles in this space */
   protected byte[] control;
   /** Has this space changed? */

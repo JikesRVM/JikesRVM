@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.*;
   public static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
 
   private byte[] referenceMaps;
-  private int MCSites[];
+  private int[] MCSites;
   private final int bitsPerMap;   // number of bits in each map
   private int mapCount;
 //  final private int startLocal0Offset; // distance from frame pointer to start of the Local area

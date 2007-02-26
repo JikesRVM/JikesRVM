@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
-  private static byte allocCallMethods[][];
+  private static byte[][] allocCallMethods;
 
   static {
     /* Build the list of "own methods" */

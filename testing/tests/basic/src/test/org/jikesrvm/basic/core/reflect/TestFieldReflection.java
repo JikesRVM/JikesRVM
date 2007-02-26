@@ -55,7 +55,7 @@ class TestFieldReflection {
     private double mdouble = 1.0;
   }
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     testFieldReflection(TypeWithPublicFields.class);
     testFieldReflection(TypeWithDifferentAccessModifiers.class);
   }

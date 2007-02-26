@@ -54,7 +54,7 @@ public class Thread implements Runnable {
   // Only for use by MainThread() constructor.
   // ugh. protected, should probably be default. fix this.
   //
-  protected Thread(String argv[]){
+  protected Thread(String[] argv){
     vmdata = new VM_Thread(this);
     
     vmdata.isSystemThread = false;

@@ -139,7 +139,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
         }
       }
     }
-    Class<?> result[] = new Class[publicClasses.size()];
+    Class<?>[] result = new Class[publicClasses.size()];
     result = publicClasses.toArray(result);
     return result;
   }
@@ -162,13 +162,13 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       : null;
   }
 
-  public Constructor<?> getConstructor(Class<?> parameterTypes[]) 
+  public Constructor<?> getConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
-    VM_Method methods[] = type.asClass().getConstructorMethods();
+    VM_Method[] methods = type.asClass().getConstructorMethods();
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
       if (method.isPublic() && 
@@ -186,7 +186,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Constructor[0];
 
-    VM_Method methods[] = type.asClass().getConstructorMethods();
+    VM_Method[] methods = type.asClass().getConstructorMethods();
     Collector coll = new Collector(methods.length);
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
@@ -233,13 +233,13 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return result;
   }
 
-  public Constructor<?> getDeclaredConstructor(Class<?> parameterTypes[]) 
+  public Constructor<?> getDeclaredConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
-    VM_Method methods[] = type.asClass().getConstructorMethods();
+    VM_Method[] methods = type.asClass().getConstructorMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (parametersMatch(method.getParameterTypes(), parameterTypes)) {
@@ -254,7 +254,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Constructor[0];
 
-    VM_Method methods[] = type.asClass().getConstructorMethods();
+    VM_Method[] methods = type.asClass().getConstructorMethods();
     Constructor<?>[] ans = new Constructor[methods.length];
     for (int i = 0; i<methods.length; i++) {
       ans[i] = JikesRVMSupport.createConstructor(methods[i]);
@@ -293,7 +293,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return ans;
   }
 
-  public Method getDeclaredMethod(String name, Class<?> parameterTypes[]) 
+  public Method getDeclaredMethod(String name, Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException 
   {
     checkMemberAccess(Member.DECLARED);
@@ -375,8 +375,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Field[] getFields() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
     
-    VM_Field static_fields[] = type.getStaticFields();
-    VM_Field instance_fields[] = type.getInstanceFields();
+    VM_Field[] static_fields = type.getStaticFields();
+    VM_Field[] instance_fields = type.getInstanceFields();
     Collector coll = new Collector(static_fields.length + instance_fields.length);
     for (int i = 0; i < static_fields.length; i++) {
       VM_Field field = static_fields[i];
@@ -410,7 +410,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Method getMethod(String name, Class<?> parameterTypes[]) throws NoSuchMethodException, SecurityException {
+  public Method getMethod(String name, Class<?>[] parameterTypes) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
     if (!type.isClassType()) throw new NoSuchMethodException(name + parameterTypes);
@@ -472,8 +472,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Method[] getMethods() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
  
-    VM_Method static_methods[] = type.getStaticMethods();
-    VM_Method virtual_methods[] = type.getVirtualMethods();
+    VM_Method[] static_methods = type.getStaticMethods();
+    VM_Method[] virtual_methods = type.getVirtualMethods();
     Collector coll = new Collector(static_methods.length + virtual_methods.length);
     for (int i = 0; i < static_methods.length; i++) {
       VM_Method meth = static_methods[i];
@@ -606,7 +606,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     // Find the defaultConstructor
     VM_Method defaultConstructor = null;
-    VM_Method methods[] = type.asClass().getConstructorMethods();
+    VM_Method[] methods = type.asClass().getConstructorMethods();
     for (int i = 0; i < methods.length; i++) {
       VM_Method method = methods[i];
       if (method.getParameterTypes().length == 0) {

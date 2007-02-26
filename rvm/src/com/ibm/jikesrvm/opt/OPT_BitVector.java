@@ -25,7 +25,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
   private static final int LOG_BITS_PER_UNIT = 5;
   private static final int MASK = 0xffffffff;
   private static final int LOW_MASK = 0x1f;
-  private final int bits[];
+  private final int[] bits;
   private final int nbits; 
 
   /**

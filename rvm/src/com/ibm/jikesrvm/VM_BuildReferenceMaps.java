@@ -62,45 +62,45 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     //                                                                //
     //****************************************************************//
     int             gcPointCount     = buildBB.gcPointCount;
-    short           byteToBlockMap[] = buildBB.byteToBlockMap;
-    VM_BasicBlock   basicBlocks[]    = buildBB.basicBlocks;
+    short[]           byteToBlockMap = buildBB.byteToBlockMap;
+    VM_BasicBlock[]   basicBlocks    = buildBB.basicBlocks;
     int             jsrCount         = buildBB.numJsrs;
 
-    byte    bbMaps[][];            // The starting map for each block, a block is not
+    byte[][]    bbMaps;            // The starting map for each block, a block is not
                                    // processed until it has a starting map.
     int[]   blockStkTop;           // For each block, track where its current stack top is.
 
     int     currBBNum;             // Block number of block currently being processed
-    byte    currBBMap[];           // The current map, used during processing thru a block
+    byte[]    currBBMap;           // The current map, used during processing thru a block
     int     currBBStkTop;          // Stack top for the current map
 
     int     currBBStkEmpty;        // Level when stack is empty - value depends on number of locals
     int     paramCount;            // Number of parameters to the method being processed
   
     // Variables for processing JSR instructions, RET instructions and JSR subroutines
-    VM_PendingRETInfo        bbPendingRETs[] = null;
+    VM_PendingRETInfo[]        bbPendingRETs = null;
     VM_PendingRETInfo        currPendingRET;
-    VM_JSRSubroutineInfo     JSRSubs[] = null;
+    VM_JSRSubroutineInfo[]     JSRSubs = null;
 
     // Blocks that need to be processed are put on the workStk
-    short                    workStk[];
+    short[]                    workStk;
 
     // Track whether a block has already been seen once. Any recording of maps done 
     // within such a block will be processed as a "rerecording" instead of a new map.
     //
-    boolean                 blockSeen[];
+    boolean[]                 blockSeen;
 
     // blocks that represent "catch" blocks need special processing. Catch blocks 
     // also referred to as handlers 
     //
     VM_ExceptionHandlerMap  exceptions;                // exception table class for method being processed
-    int                     tryStartPC[];              // array of try start indicesinto byte code table
-    int                     tryEndPC[];                // array of try end indices into byte code table
-    int                     tryHandlerPC[];            // array of try handlers start indices into bytecode
+    int[]                     tryStartPC;              // array of try start indicesinto byte code table
+    int[]                     tryEndPC;                // array of try end indices into byte code table
+    int[]                     tryHandlerPC;            // array of try handlers start indices into bytecode
     int                     tryHandlerLength;          // length of try handlers array
-    int                     reachableHandlerBBNums[];  // array of reachable handlers from a given try block
+    int[]                     reachableHandlerBBNums;  // array of reachable handlers from a given try block
     int                     reachableHandlersCount;    // Number of reachable handlers 
-    boolean                 handlerProcessed[];        // Handler blocks are processed after the normal flow. As
+    boolean[]                 handlerProcessed;        // Handler blocks are processed after the normal flow. As
                                                        // they may be nested, they need to be handled 
                                                        // individually. This array is used to track which 
                                                        // have been processed.
@@ -1736,12 +1736,12 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     return workStk;
   }
 
-  private short [] processBranchBB(short brBBNum, int currBBStkTop, byte currBBMap[], 
-                                   int currBBStkEmpty, boolean inJSRSub, byte bbMaps[][], 
-                                   int blockStkTop[], VM_PendingRETInfo currPendingRET, 
-                                   VM_PendingRETInfo bbPendingRETs[], short[] workStk) {
+  private short [] processBranchBB(short brBBNum, int currBBStkTop, byte[] currBBMap,
+                                   int currBBStkEmpty, boolean inJSRSub, byte[][] bbMaps,
+                                   int[] blockStkTop, VM_PendingRETInfo currPendingRET,
+                                   VM_PendingRETInfo[] bbPendingRETs, short[] workStk) {
 
-    short newworkStk[] = workStk;
+    short[] newworkStk = workStk;
 
     // If the destination block doesn't already have a map, then use this
     // map as its map and add it to the work stack
@@ -1788,7 +1788,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   }
 
   private int processInvoke(VM_MethodReference target, int byteindex, int currBBStkTop, 
-                            byte currBBMap[], boolean isStatic, boolean inJSRSub, 
+                            byte[] currBBMap, boolean isStatic, boolean inJSRSub,
                             VM_ReferenceMaps referenceMaps, VM_PendingRETInfo currPendingRET, 
                             boolean blockSeen, int currBBStkEmpty ) {
     boolean skipRecordingReferenceMap = false;
@@ -1852,11 +1852,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   }
 
   private short[] processJSR(int JSRBBNum, int JSRSubStartIndex, short brBBNum, short nextBBNum, 
-                             byte[][] bbMaps, int currBBStkTop, byte currBBMap[], int currBBStkEmpty, 
-                             int blockStkTop[], VM_PendingRETInfo bbPendingRETs[], 
+                             byte[][] bbMaps, int currBBStkTop, byte[] currBBMap, int currBBStkEmpty,
+                             int[] blockStkTop, VM_PendingRETInfo[] bbPendingRETs,
                              VM_PendingRETInfo currPendingRET, VM_JSRSubroutineInfo[] JSRSubs, 
                              short[] workStk) {
-    short newworkStk[] = workStk;
+    short[] newworkStk = workStk;
 
     // If the destination block doesn't already have a map, then use this map to build
     // the stack portion of the reference map and add the block to the work stack. 
@@ -1897,10 +1897,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   }
 
   private short[] computeJSRNextMaps(short nextBBNum, int maplength, int JSRSubIndex, 
-                                     boolean JSRisinJSRSub, byte[][] bbMaps, int blockStkTop[],
+                                     boolean JSRisinJSRSub, byte[][] bbMaps, int[] blockStkTop,
                                      VM_JSRSubroutineInfo[] JSRSubs, int currBBStkEmpty,
                                      short[] workStk) {
-    short newworkStk[] = workStk;
+    short[] newworkStk = workStk;
    
     // Calculate the new map for the block starting at the instruction after the
     // JSR instruction (this is the block nextBBNum)

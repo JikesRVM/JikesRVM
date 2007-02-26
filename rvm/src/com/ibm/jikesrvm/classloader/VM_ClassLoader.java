@@ -266,14 +266,14 @@ public class VM_ClassLoader implements VM_Constants,
     // pass 1: read constant pool
     //
     int[] constantPool = new int[input.readUnsignedShort()];
-    byte tmpTags[] = new byte[constantPool.length];
+    byte[] tmpTags = new byte[constantPool.length];
 
     // note: slot 0 is unused
     for (int i = 1; i <constantPool.length; i++) {
       tmpTags[i] = input.readByte();
       switch (tmpTags[i]) {
       case TAG_UTF:  {
-        byte utf[] = new byte[input.readUnsignedShort()];
+        byte[] utf = new byte[input.readUnsignedShort()];
         input.readFully(utf);
         constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
         break;  

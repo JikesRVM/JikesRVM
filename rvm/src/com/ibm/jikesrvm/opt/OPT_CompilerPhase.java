@@ -55,7 +55,7 @@ public abstract class OPT_CompilerPhase {
   /**
    * Arguments to constructor that copies this phase
    */
-  private final Object initargs[];
+  private final Object[] initargs;
 
   /**
    * Constructor
@@ -69,7 +69,7 @@ public abstract class OPT_CompilerPhase {
    *
    * @param initargs arguments used when constructing copies of this phase
    */
-  public OPT_CompilerPhase(Object initargs[]){
+  public OPT_CompilerPhase(Object[] initargs){
     this.initargs = initargs;
   }
      
@@ -167,7 +167,7 @@ public abstract class OPT_CompilerPhase {
    * argument) constructor for it.
    */
   protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(String compilerPhaseName, 
-      Class<?> initTypes[]) {
+      Class<?>[] initTypes) {
     try{
       @SuppressWarnings("unchecked") // We are explicitly breaking type safety
       Constructor<OPT_CompilerPhase> constructor = 

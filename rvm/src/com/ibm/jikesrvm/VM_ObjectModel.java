@@ -186,7 +186,7 @@ import org.vmmagic.pragma.*;
     int alignment = klass.getAlignment();
 
     // New fields to be allocated for this object
-    VM_Field fields[] = klass.getDeclaredFields();
+    VM_Field[] fields = klass.getDeclaredFields();
     
     if (DEBUG) {
       VM.sysWrite("Laying out: ");
@@ -288,7 +288,7 @@ import org.vmmagic.pragma.*;
     int alignment = klass.getAlignment();
 
     // New fields to be allocated for this object
-    VM_Field fields[] = klass.getDeclaredFields();
+    VM_Field[] fields = klass.getDeclaredFields();
     
     if (DEBUG) {
       VM.sysWrite("Laying out: ");

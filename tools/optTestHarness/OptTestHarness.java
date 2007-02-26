@@ -381,7 +381,7 @@ class OptTestHarness {
   }
 
 
-  public static void main(String args[]) 
+  public static void main(String[] args)
     throws InvocationTargetException, 
            IOException,
            IllegalAccessException {

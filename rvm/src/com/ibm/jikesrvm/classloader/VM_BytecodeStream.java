@@ -462,7 +462,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference
    */
-  public final VM_MethodReference getMethodReference(int constantPool[]) {
+  public final VM_MethodReference getMethodReference(int[] constantPool) {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                  opcode == JBC_invokestatic || opcode == JBC_invokeinterface);

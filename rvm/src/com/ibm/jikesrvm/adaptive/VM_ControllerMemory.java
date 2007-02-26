@@ -298,8 +298,8 @@ public final class VM_ControllerMemory implements VM_Constants {
     //  recompiled an arbitrary amount of times.  We record this in in a counter.
 
     final int MAX_BIT_PATTERN = 7;
-    int summaryArray[] = new int[MAX_BIT_PATTERN+1];
-    int recompsAtLevel2Array[] = new int[MAX_BIT_PATTERN+1];
+    int[] summaryArray = new int[MAX_BIT_PATTERN+1];
+    int[] recompsAtLevel2Array = new int[MAX_BIT_PATTERN+1];
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred

@@ -82,7 +82,7 @@ public class VM_Statics implements VM_Constants {
    * called for making it dynamically growable.  We could also make it
    * non-contiguous.
    */
-  private static final int slots[] = new int[0x20000]; // 128K = 131072
+  private static final int[] slots = new int[0x20000]; // 128K = 131072
 
   /**
    * Object version of the slots used during boot image creation and
@@ -90,7 +90,7 @@ public class VM_Statics implements VM_Constants {
    * of a slot address to its associated object during boot image
    * creation.
    */
-  private static Object objectSlots[] = new Object[0x20000];
+  private static Object[] objectSlots = new Object[0x20000];
 
   /**
    * The middle of the table, references are slots above this and

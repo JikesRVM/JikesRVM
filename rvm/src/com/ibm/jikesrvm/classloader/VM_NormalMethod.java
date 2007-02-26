@@ -165,9 +165,9 @@ public final class VM_NormalMethod
   VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr,
                   int mo, VM_TypeReference[] et, int lw, int ow, byte[] bc,
                   VM_ExceptionHandlerMap eMap, int[] lm,
-                  int constantPool[], VM_Atom sig,
-                  VM_Annotation rvan[], VM_Annotation rivan[],
-                  VM_Annotation rvpan[], VM_Annotation rivpan[],
+                  int[] constantPool, VM_Atom sig,
+                  VM_Annotation[] rvan, VM_Annotation[] rivan,
+                  VM_Annotation[] rvpan, VM_Annotation[] rivpan,
                   Object ad) 
   {
     super(dc, mr, mo, et, sig, rvan, rivan, rvpan, rivpan, ad);
@@ -499,7 +499,7 @@ public final class VM_NormalMethod
    * This method computes a summary of interesting method characteristics 
    * and stores an encoding of the summary as an int.
    */
-  private void computeSummary(int constantPool[]) {
+  private void computeSummary(int[] constantPool) {
     int calleeSize = 0;
     if (isSynchronized()) {
       summary |= HAS_SYNCH;

@@ -76,14 +76,14 @@ import org.vmmagic.pragma.*;
   private MarkSweepSpace msSpace;
 
   /* fragmentation measurement */
-  private int utilization[];
-  private int allPreUtilization[][];
-  private int allPostUtilization[][];
-  private int totUtilization[];
-  private int allPreBlocks[];
-  private int allPostBlocks[];
-  private int allPreUsedCells[];
-  private int allPostUsedCells[];
+  private int[] utilization;
+  private int[][] allPreUtilization;
+  private int[][] allPostUtilization;
+  private int[] totUtilization;
+  private int[] allPreBlocks;
+  private int[] allPostBlocks;
+  private int[] allPreUsedCells;
+  private int[] allPostUsedCells;
 
   protected final boolean preserveFreeList() { return !LAZY_SWEEP; }
   protected final boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }

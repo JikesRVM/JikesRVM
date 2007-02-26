@@ -13,7 +13,7 @@ package test.org.jikesrvm.basic.core.classloading;
  * @author unascribed
  */
 class TestClassLoading {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     doTest("java.lang.String");
     doTest("java.lang.Number"); //Can't instantiate abstract classes
     doTest("java.lang.Integer"); //Can't instantiate as no default constructor

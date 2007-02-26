@@ -19,7 +19,7 @@ class TestClone implements Cloneable {
   }
 
   public static void
-  main(String args[])
+  main(String[] args)
       throws CloneNotSupportedException {
 
     final TestClone a = new TestClone("a");
@@ -35,11 +35,11 @@ class TestClone implements Cloneable {
     System.out.println();
 
 
-    TestClone c[][] = new TestClone[2][3];
+    TestClone[][] c = new TestClone[2][3];
     for (int i = 0; i < 2; ++i)
       for (int j = 0; j < 3; ++j)
         c[i][j] = new TestClone(i + "" + j);
-    final TestClone d[][] = c.clone();
+    final TestClone[][] d = c.clone();
 
     runTest(c,d);
 

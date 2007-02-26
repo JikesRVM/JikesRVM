@@ -13,7 +13,7 @@
 
 class TestStackAccess
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -248,10 +248,10 @@ class TestStackAccess
    long         a,  b;
 
    int   pos   = 0;
-   int   buf[] = { 1, 2 };
+   int[]   buf = { 1, 2 };
 
    int  lpos   = 0;
-   long lbuf[] = { 1, 2 };
+   long[] lbuf = { 1, 2 };
    
    static void
    dup()
@@ -268,7 +268,7 @@ class TestStackAccess
 
       SystemOut.print(t.lbuf[t.lpos]++);         // dup2_x2
 
-      int x[] = new int[1];
+      int[] x = new int[1];
       switch(x[0] = 1)                           // dup_x2
          {
          case 1: SystemOut.print(1);

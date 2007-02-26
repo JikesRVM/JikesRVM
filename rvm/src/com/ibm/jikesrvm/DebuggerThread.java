@@ -251,7 +251,7 @@ class DebuggerThread extends VM_Thread {
         continue;
       }
     }
-    String result[] = new String[tokens.size()];
+    String[] result = new String[tokens.size()];
 	 tokens.toArray(result);
     return result;
   }

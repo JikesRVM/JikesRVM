@@ -56,7 +56,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       constMethod.setAccessible(true);
     }
 
-    Object argObjs[];
+    Object[] argObjs;
 
     if (isJvalue) {
       argObjs = packageParameterFromJValue(mth, argAddress);

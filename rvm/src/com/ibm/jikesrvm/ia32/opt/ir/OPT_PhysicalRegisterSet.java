@@ -422,9 +422,9 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Register names for each class. used in printing the IR
    */
-  private static final String registerName[] = new String[getSize()];
+  private static final String[] registerName = new String[getSize()];
   static {
-    String regName[] = registerName;
+    String[] regName = registerName;
     for (int i = 0; i < NUM_GPRS; i++)
       regName[i + FIRST_INT] = GPR_NAMES[i];
     for (int i = 0; i < NUM_FPRS; i++)
@@ -501,7 +501,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate all the volatile GPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateVolatileGPRs() {
-    OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_GPRS ];
+    OPT_Register[] r = new OPT_Register[ NUM_VOLATILE_GPRS ];
     for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
       r[i] = getGPR(VOLATILE_GPRS[i]);
     return new PhysicalRegisterEnumeration(r);
@@ -511,7 +511,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate all the nonvolatile GPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateNonvolatileGPRs() {
-    OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
+    OPT_Register[] r = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
     return new PhysicalRegisterEnumeration(r);
@@ -528,7 +528,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate all the volatile FPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateVolatileFPRs() {
-    OPT_Register r[] = new OPT_Register[ NUM_VOLATILE_FPRS ];
+    OPT_Register[] r = new OPT_Register[ NUM_VOLATILE_FPRS ];
     for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
       r[i] = getFPR(VOLATILE_FPRS[i]);
     return new PhysicalRegisterEnumeration(r);
@@ -538,7 +538,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Enumerate all the nonvolatile FPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateNonvolatileFPRs() {
-    OPT_Register r[] = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
+    OPT_Register[] r = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
     for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
       r[i] = getFPR(NONVOLATILE_FPRS[i]);
     return new PhysicalRegisterEnumeration(r);
@@ -620,7 +620,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    */
   static final class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
     private int index;
-    private final OPT_Register r[];
+    private final OPT_Register[] r;
     PhysicalRegisterEnumeration(OPT_Register[] r) {
       this.r = r;
       this.index = 0;

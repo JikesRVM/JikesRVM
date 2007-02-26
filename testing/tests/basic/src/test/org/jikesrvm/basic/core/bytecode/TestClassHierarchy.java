@@ -297,7 +297,7 @@ In class SubSubClass extends SubClassInDifferentPackage:
     System.out.print(test?"1":"0");
   }
   }
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     new SubSubClass().runTests();
   }
 }

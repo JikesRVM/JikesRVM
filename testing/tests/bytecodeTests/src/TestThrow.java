@@ -31,7 +31,7 @@ class NotMyTestError extends Throwable
    
 class TestThrow
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       throws Throwable
       {
    // VM.boot();

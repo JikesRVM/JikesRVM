@@ -18,7 +18,7 @@ class TestInstanceOf {
   static class Science {}
   static class Magic extends Science {}
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     runTest("Magic()", new Magic());
     runTest("Magic[2]", new Magic[2]);
     runTest("Object[][]{new Magic[4],new Magic[4]}", new Object[][]{new Magic[4], new Magic[4]});

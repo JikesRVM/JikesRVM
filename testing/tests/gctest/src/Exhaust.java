@@ -28,7 +28,7 @@ class Exhaust {
   static long wasAllocating;            // How much were we allocating?
   
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     long mhs = MM_Interface.getMaxHeapSize().toLong();
     
     o.println("Max heap size: " + mhs + " bytes");

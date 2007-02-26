@@ -37,7 +37,7 @@ class TestClassLoading
       return Class.forName(s);
       }
       
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -86,7 +86,7 @@ class TestClassLoading
       {
       Class c = myLoader("[Ljava.lang.String;");
       SystemOut.println("class=" + c);
-      String i[] = (String[])c.newInstance();
+      String[] i = (String[])c.newInstance();
       SystemOut.println("instance=" + i + " len=" + i.length);
       }
       
@@ -95,7 +95,7 @@ class TestClassLoading
       {
       Class c = myLoader("[[Ljava.lang.String;");
       SystemOut.println("class=" + c);
-      String i[][] = (String[][])c.newInstance();
+      String[][] i = (String[][])c.newInstance();
       SystemOut.println("instance=" + i + " len=" + i.length);
       }
       
@@ -104,7 +104,7 @@ class TestClassLoading
       {
       Class c = myLoader("[I");
       SystemOut.println("class=" + c);
-      int    i[] = (int[])c.newInstance();
+      int[]    i = (int[])c.newInstance();
       SystemOut.println("instance=" + i + " len=" + i.length);
       }
       
@@ -113,7 +113,7 @@ class TestClassLoading
       {
       Class c = myLoader("[[I");
       SystemOut.println("class=" + c);
-      int    i[][] = (int[][])c.newInstance();
+      int[][]    i = (int[][])c.newInstance();
       SystemOut.println("instance=" + i + " len=" + i.length);
       }
    }

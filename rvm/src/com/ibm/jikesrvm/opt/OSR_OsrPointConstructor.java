@@ -159,10 +159,10 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
         VM._assert(inlineDepth != 0); }
 
       // Step 2: make a new InlinedOsrTypeOperand from barriers
-      int methodids[] = new int[inlineDepth];
-      int bcindexes[] = new int[inlineDepth];
-      byte localTypeCodes[][] = new byte[inlineDepth][];
-      byte stackTypeCodes[][] = new byte[inlineDepth][];
+      int[] methodids = new int[inlineDepth];
+      int[] bcindexes = new int[inlineDepth];
+      byte[][] localTypeCodes = new byte[inlineDepth][];
+      byte[][] stackTypeCodes = new byte[inlineDepth][];
       
       int totalOperands = 0;
       // first iteration, count the size of total locals and stack sizes

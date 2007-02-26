@@ -890,7 +890,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       if (A.operator() != PHI) {
         OPT_HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
-          OPT_HeapOperand<Object> r[] = dictionary.replaceDefs(A, X);
+          OPT_HeapOperand<Object>[] r = dictionary.replaceDefs(A, X);
           for (int i = 0; i < r.length; i++) {
             Stack<OPT_HeapOperand<Object>> S = stacks.get(r[i].getHeapType());
             S.push(r[i]);
@@ -898,7 +898,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
           }
         }
       } else {
-        OPT_HeapOperand<Object> r[] = dictionary.replaceDefs(A, X);
+        OPT_HeapOperand<Object>[] r = dictionary.replaceDefs(A, X);
         Stack<OPT_HeapOperand<Object>> S = stacks.get(r[0].getHeapType());
         S.push(r[0]);
         if (DEBUG) System.out.println("PUSH " + r[0] + " FOR " + r[0].getHeapType());

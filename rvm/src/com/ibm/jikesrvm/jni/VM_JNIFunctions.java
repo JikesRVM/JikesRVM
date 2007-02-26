@@ -3957,7 +3957,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
         arrayType.instantiate();
         arrayType.initialize();
       }
-      Object newArray[] = (Object []) VM_Runtime.resolvedNewArray(length, arrayType);
+      Object[] newArray = (Object []) VM_Runtime.resolvedNewArray(length, arrayType);
 
       if (initElement != null) {
         for (int i=0; i<length; i++) {
@@ -3985,7 +3985,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
 
     try {
-      Object sourceArray[] = (Object []) env.getJNIRef(arrayJREF);
+      Object[] sourceArray = (Object []) env.getJNIRef(arrayJREF);
 
       if (sourceArray==null)
         return 0;
@@ -4021,7 +4021,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
 
     try {
-      Object sourceArray[] = (Object []) env.getJNIRef(arrayJREF);
+      Object[] sourceArray = (Object []) env.getJNIRef(arrayJREF);
       Object elem = env.getJNIRef(objectJREF);
       sourceArray[index] = elem;
     } catch (Throwable e) {
@@ -4040,7 +4040,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
 
     try {
-      boolean newArray[] = new boolean[length];
+      boolean[] newArray = new boolean[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4060,7 +4060,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
 
     try {
-      byte newArray[] = new byte[length];
+      byte[] newArray = new byte[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4080,7 +4080,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
 
     try {
-      char newArray[] = new char[length];
+      char[] newArray = new char[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4100,7 +4100,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
 
     try {
-      short newArray[] = new short[length];
+      short[] newArray = new short[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4120,7 +4120,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
 
     try {
-      int newArray[] = new int[length];
+      int[] newArray = new int[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4140,7 +4140,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
 
     try {
-      long newArray[] = new long[length];
+      long[] newArray = new long[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4160,7 +4160,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
 
     try {
-      float newArray[] = new float[length];
+      float[] newArray = new float[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4180,7 +4180,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
 
     try {
-      double newArray[] = new double[length];
+      double[] newArray = new double[length];
       return env.pushJNIRef(newArray);  
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4202,7 +4202,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
 
     try {
-      boolean sourceArray[] = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
@@ -4239,7 +4239,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
 
     try {
-      byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4284,7 +4284,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
 
     try {
-      char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4326,7 +4326,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
 
     try {
-      short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4368,7 +4368,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
 
     try {
-      int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4409,7 +4409,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
 
     try {
-      long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4450,7 +4450,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
     
     try {
-      float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4492,7 +4492,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
 
     try {
-      double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
@@ -4535,7 +4535,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
 
     try {
-      boolean sourceArray[] = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4594,7 +4594,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  releaseMode=",releaseMode);
 
     try {
-      byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4635,7 +4635,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
 
     try {
-      char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4672,7 +4672,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
 
     try {
-      short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4709,7 +4709,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
 
     try {
-      int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4747,7 +4747,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
 
     try {
-      long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4784,7 +4784,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
 
     try {
-      float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4821,7 +4821,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
 
     try {
-      double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
@@ -4857,7 +4857,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
 
     try {
-      boolean sourceArray[] = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4884,7 +4884,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
 
     try {
-      byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4912,7 +4912,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
 
     try {
-      char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4940,7 +4940,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
 
     try {
-      short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4968,7 +4968,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
 
     try {
-      int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4996,7 +4996,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
 
     try {
-      long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5024,7 +5024,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
 
     try {
-      float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5052,7 +5052,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
 
     try {
-      double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5080,7 +5080,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
 
     try {
-      boolean destinationArray[] = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] destinationArray = (boolean []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5108,7 +5108,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
 
     try {
-      byte destinationArray[] = (byte []) env.getJNIRef(arrayJREF);
+      byte[] destinationArray = (byte []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5137,7 +5137,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
 
     try {
-      char destinationArray[] = (char []) env.getJNIRef(arrayJREF);
+      char[] destinationArray = (char []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5165,7 +5165,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
 
     try {
-      short destinationArray[] = (short []) env.getJNIRef(arrayJREF);
+      short[] destinationArray = (short []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5194,7 +5194,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
 
     try {
-      int destinationArray[] = (int []) env.getJNIRef(arrayJREF);
+      int[] destinationArray = (int []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5222,7 +5222,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
 
     try {
-      long destinationArray[] = (long []) env.getJNIRef(arrayJREF);
+      long[] destinationArray = (long []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5250,7 +5250,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
 
     try {
-      float destinationArray[] = (float []) env.getJNIRef(arrayJREF);
+      float[] destinationArray = (float []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -5278,7 +5278,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
 
     try {
-      double destinationArray[] = (double []) env.getJNIRef(arrayJREF);
+      double[] destinationArray = (double []) env.getJNIRef(arrayJREF);
 
       if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());

@@ -383,7 +383,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
    
     
     OPT_CFGTransformations.killFallThroughs (ir, nloop);
-    OPT_BasicBlock handles[] = makeSomeCopies(unrollFactor, ir, nloop, blocks,
+    OPT_BasicBlock[] handles = makeSomeCopies(unrollFactor, ir, nloop, blocks,
                                               header, exitBlock, exitBlock);
     OPT_BasicBlock mainHeader = handles[0];
     OPT_BasicBlock mainExit = handles[1];
@@ -569,7 +569,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
     // first, capture the blocks in the loop body.
     int bodyBlocks = nloop.populationCount();
-    OPT_BasicBlock body[] = new OPT_BasicBlock[bodyBlocks];
+    OPT_BasicBlock[] body = new OPT_BasicBlock[bodyBlocks];
     {
       int i = 0;
       bs = ir.getBasicBlocks (nloop);
@@ -840,7 +840,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
       bodyBlocks++;
       bs.next();
     }
-    OPT_BasicBlock body[] = new OPT_BasicBlock[bodyBlocks];
+    OPT_BasicBlock[] body = new OPT_BasicBlock[bodyBlocks];
     {
       int i = 0;
       bs = ir.getBasicBlocks (loop);
@@ -857,7 +857,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
     OPT_BasicBlock firstHeader = null;
     OPT_BasicBlock lastHeader = null;
     OPT_BasicBlock lastExit = null;
-    OPT_BasicBlock handles[] = new OPT_BasicBlock[2];
+    OPT_BasicBlock[] handles = new OPT_BasicBlock[2];
     
     
     for (int i = 0;  i < unrollFactor;  ++i) {

@@ -892,10 +892,10 @@ class OPT_LICM extends OPT_CompilerPhase {
 
   private HashSet<OPT_Instruction> relocated;
   
-  private int state[];
-  private OPT_BasicBlock block[];
-  private OPT_BasicBlock origBlock[];
-  private OPT_Instruction earlyPos[];
+  private int[] state;
+  private OPT_BasicBlock[] block;
+  private OPT_BasicBlock[] origBlock;
+  private OPT_Instruction[] earlyPos;
   private OPT_SSADictionary ssad;
   private OPT_DominatorTree dominator;
   private OPT_IR ir;

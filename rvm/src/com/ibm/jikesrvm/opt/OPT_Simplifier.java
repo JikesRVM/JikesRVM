@@ -3034,7 +3034,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
 
           // Create appropriate constant operand for TIB slot
           OPT_ConstantOperand result;
-          Object tibArray[] = tib.value.getTypeInformationBlock();
+          Object[] tibArray = tib.value.getTypeInformationBlock();
           if(tib.value.isTIBSlotTIB(intSlot)) {
             VM_Type typeOfTIB = (VM_Type)(((Object[])tibArray[intSlot])[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
             result = new OPT_TIBConstantOperand(typeOfTIB);

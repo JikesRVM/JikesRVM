@@ -192,7 +192,7 @@ public final class OPT_SSADictionary {
       OPT_Operand result = Phi.getResult(s);
       return  (result instanceof OPT_HeapOperand);
     }
-    OPT_HeapOperand<Object> o[] = uses.get(s);
+    OPT_HeapOperand<Object>[] o = uses.get(s);
     return  (o != null);
   }
 
@@ -209,7 +209,7 @@ public final class OPT_SSADictionary {
       OPT_Operand result = Phi.getResult(s);
       return  (result instanceof OPT_HeapOperand);
     }
-    OPT_HeapOperand<Object> o[] = defs.get(s);
+    OPT_HeapOperand<Object>[] o = defs.get(s);
     return  (o != null);
   }
 

@@ -14,7 +14,7 @@ package test.org.jikesrvm.basic.core.threads;
  */
 class TestDispatch {
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
 
     final int threadCount = 2;
     final TestDispatchWorker[] workers = new TestDispatchWorker[threadCount];

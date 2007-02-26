@@ -48,7 +48,7 @@ import org.vmmagic.pragma.*;
    * Class variables
    */
   public static final Lock lock = VM.newLock("Mmapper");
-  private static byte mapped[];
+  private static byte[] mapped;
 
 
   /****************************************************************************

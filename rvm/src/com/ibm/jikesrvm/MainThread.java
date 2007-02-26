@@ -39,7 +39,7 @@ class MainThread extends Thread {
    * Taken: args[0]    = name of class containing "main" method
    *        args[1..N] = parameters to pass to "main" method
    */
-  MainThread(String args[]) {
+  MainThread(String[] args) {
     super(args); // special constructor to create thread that has no parent
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;

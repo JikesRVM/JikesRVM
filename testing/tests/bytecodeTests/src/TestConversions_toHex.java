@@ -12,7 +12,7 @@
  */
 class TestConversions_toHex
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();
@@ -203,7 +203,7 @@ class TestConversions_toHex
       SystemOut.println("int:    " + (int )lo + " .. " + (int )hi);
       }
 
-   static long x[] = {
+   static long[] x = {
       0x8000000000000000L,
       0xF000000000000000L,
       0xF0000000FFFFFFFFL,

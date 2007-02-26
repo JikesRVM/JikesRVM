@@ -22,7 +22,7 @@ package test.org.jikesrvm.basic.core.threads;
  * @author unascribed
  */
 class TestNotification {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     int count = 20;
     Mailbox mailbox = new Mailbox(count);
     Flag flag = new Flag();

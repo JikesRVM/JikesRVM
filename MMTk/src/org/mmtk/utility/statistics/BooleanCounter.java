@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
    * Instance variables
    */
 
-  private final boolean state[];
+  private final boolean[] state;
 
   protected int total = 0;
   private boolean running = false;

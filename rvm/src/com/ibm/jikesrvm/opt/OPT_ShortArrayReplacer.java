@@ -61,7 +61,7 @@ public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
   public void transform () {
     // first set up temporary scalars for the array elements
     // initialize them before the def.
-    OPT_RegisterOperand scalars[] = new OPT_RegisterOperand[size];
+    OPT_RegisterOperand[] scalars = new OPT_RegisterOperand[size];
     VM_Type elementType = vmArray.getElementType();
     OPT_RegisterOperand def = reg.defList;
     OPT_Instruction defI = def.instruction;

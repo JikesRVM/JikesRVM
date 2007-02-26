@@ -43,7 +43,7 @@ class TestClassInitializer {
     static int i = 123;
   }
 
-  public static void main(final String args[]) {
+  public static void main(final String[] args) {
     int i = TypeA.i;
     System.out.println(i);     // test initialization before first field reference
     System.out.println(new TypeB().f()); // test initialization before first instance creation

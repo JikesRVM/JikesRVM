@@ -42,10 +42,10 @@ public final class VM_AbstractMethod extends VM_Method {
    */
   VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
                     int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                    VM_Annotation runtimeVisibleAnnotations[],
-                    VM_Annotation runtimeInvisibleAnnotations[],
-                    VM_Annotation runtimeVisibleParameterAnnotations[],
-                    VM_Annotation runtimeInvisibleParameterAnnotations[],
+                    VM_Annotation[] runtimeVisibleAnnotations,
+                    VM_Annotation[] runtimeInvisibleAnnotations,
+                    VM_Annotation[] runtimeVisibleParameterAnnotations,
+                    VM_Annotation[] runtimeInvisibleParameterAnnotations,
                     Object annotationDefault)
   {
     super(declaringClass, memRef, modifiers, exceptionTypes, signature,

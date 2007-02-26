@@ -39,7 +39,7 @@ class C extends B
 
 class TestSpecialCall
    {
-   public static void main(String args[])
+   public static void main(String[] args)
       {
    // VM.boot();
       runTest();

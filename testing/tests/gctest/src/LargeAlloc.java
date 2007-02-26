@@ -20,7 +20,7 @@ class LargeAlloc {
   static double timeLimit = 120;
   public static byte [] junk;
 
-  public static void main(String args[])  throws Throwable {
+  public static void main(String[] args)  throws Throwable {
     boolean base = true;
     if (args.length == 0) 
       System.out.println("No argument.  Assuming base");

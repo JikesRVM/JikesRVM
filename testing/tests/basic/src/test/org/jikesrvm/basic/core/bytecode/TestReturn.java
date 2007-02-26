@@ -12,7 +12,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  * @author unascribed
  */
 class TestReturn {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     System.out.println(boolean_f());
     System.out.println(byte_f());
     System.out.println(char_f());

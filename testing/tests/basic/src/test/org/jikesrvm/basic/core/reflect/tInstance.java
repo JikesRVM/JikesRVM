@@ -53,7 +53,7 @@ class tInstance {
     ifield = ifield + i + x.intValue();
   }
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     // Class.forName
     //
     Class c = Class.forName("test.org.jikesrvm.basic.core.reflect.tInstance");
@@ -67,7 +67,7 @@ class tInstance {
 
     // Class.getMethods  Method.getName
     //
-    Method methods[] = c.getMethods();
+    Method[] methods = c.getMethods();
     Method imethod = null;
     Method dmethod = null;
     Method bmethod = null;
@@ -169,7 +169,7 @@ class tInstance {
       System.exit(1);
     } else {
       System.out.println("================= READY TO CALL: " + vmethod);
-      Object twoargs[] = new Object[2];
+      Object[] twoargs = new Object[2];
       twoargs[0] = new Integer(4);
       twoargs[1] = new Integer(10);
       Object vresult = vmethod.invoke(myInstance, twoargs);

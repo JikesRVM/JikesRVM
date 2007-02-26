@@ -56,20 +56,20 @@ public class VM_RuntimeCompiler implements VM_Constants,
   public static final byte OPT_COMPILER      = 2;
 
   // Data accumulators
-  private static final String name[]        = {"JNI\t","Base\t","Opt\t"};   // Output names
-  private static int totalMethods[]         = {0,0,0};
-  private static double totalCompTime[]     = {0,0,0}; 
-  private static int totalBCLength[]        = {0,0,0};
-  private static int totalMCLength[]        = {0,0,0};
+  private static final String[] name        = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int[] totalMethods         = {0,0,0};
+  private static double[] totalCompTime     = {0,0,0};
+  private static int[] totalBCLength        = {0,0,0};
+  private static int[] totalMCLength        = {0,0,0};
 
   // running sum of the natural logs of the rates, 
   //  used for geometric mean, the product of rates is too big for doubles
   //  so we use the principle of logs to help us 
   // We compute  e ** ((log a + log b + ... + log n) / n )
-  private static double totalLogOfRates[]   = {0,0,0};
+  private static double[] totalLogOfRates   = {0,0,0};
 
   // We can't record values until Math.log is loaded, so we miss the first few
-  private static int totalLogValueMethods[] = {0,0,0};
+  private static int[] totalLogValueMethods = {0,0,0};
 
   private static String[] earlyOptArgs = new String[0];
 

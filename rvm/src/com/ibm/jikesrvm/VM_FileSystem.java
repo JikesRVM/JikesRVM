@@ -268,7 +268,7 @@ public class VM_FileSystem {
    * Will block indefinitely until data can be read.
    * @see #readBytes(int,byte[],int,int,double)
    */
-  public static int readBytes(int fd, byte buf[], int off, int cnt) {
+  public static int readBytes(int fd, byte[] buf, int off, int cnt) {
     try {
       return readBytes(fd, buf, off, cnt, VM_ThreadEventConstants.WAIT_INFINITE);
     }
@@ -290,7 +290,7 @@ public class VM_FileSystem {
    * @return number of bytes read (-2: error)
    * @throws VM_TimeoutException if the read times out
    */ 
-  public static int readBytes(int fd, byte buf[], int off, int cnt, double totalWaitTime)
+  public static int readBytes(int fd, byte[] buf, int off, int cnt, double totalWaitTime)
     throws VM_TimeoutException {
 
     if (off < 0)
@@ -391,7 +391,7 @@ public class VM_FileSystem {
    * @param cnt number of bytes to write
    * @return number of bytes written (-2: error)
    */ 
-  public static int writeBytes(int fd, byte buf[], int off, int cnt) {
+  public static int writeBytes(int fd, byte[] buf, int off, int cnt) {
     if (cnt == 0) return 0;
 
     if (off < 0)
@@ -513,7 +513,7 @@ public class VM_FileSystem {
 
     // pass 2: extract names
     //
-    String names[] = new String[cnt];
+    String[] names = new String[cnt];
     for (int beg = 0, end = cnt = 0; beg < len; beg = end + 1) {
       for (end = beg; asciiList[end] != 0; ++end);
       names[cnt++] = new String(asciiList, beg, end - beg);

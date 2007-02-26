@@ -35,7 +35,7 @@ class TestFieldAccess {
 
   public String toString() { return "Instance of " + getClass().getName(); }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     System.out.println(TestFieldAccess.s0);
     System.out.println(TestFieldAccess.s1);
     System.out.println(TestFieldAccess.s2);

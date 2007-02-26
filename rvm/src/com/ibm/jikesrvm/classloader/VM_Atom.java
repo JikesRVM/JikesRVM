@@ -54,7 +54,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * The utf8 value this atom represents
    */
-  private final byte val[];  
+  private final byte[] val;
 
   /**
    * Cached hash code for this atom.
@@ -138,8 +138,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     return atoms[id];
   }
 
-  private static VM_Atom findOrCreate(byte utf8[], int off, int len) {
-    byte val[] = new byte[len];
+  private static VM_Atom findOrCreate(byte[] utf8, int off, int len) {
+    byte[] val = new byte[len];
     for (int i = 0; i < len; ++i)
       val[i] = utf8[off++];
     return findOrCreate(val, true);
@@ -200,7 +200,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   final VM_Atom arrayDescriptorFromElementDescriptor() {
     if (VM.VerifyAssertions)
       VM._assert(val.length > 0);
-    byte sig[] = new byte[1 + val.length];
+    byte[] sig = new byte[1 + val.length];
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
@@ -216,7 +216,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     if (VM.VerifyAssertions)
       VM._assert(val.length > 0);
     if (val[0] == '[') return this;
-    byte sig[] = new byte[1 + val.length + 1];
+    byte[] sig = new byte[1 + val.length + 1];
     sig[0] = (byte)'L';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
@@ -597,7 +597,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this to implement serialization correctly.
    */
   public VM_Atom annotationInterfaceToAnnotationClass() {
-    byte annotationClassName_tmp[] = new byte[val.length+2];
+    byte[] annotationClassName_tmp = new byte[val.length+2];
     System.arraycopy(val, 0, annotationClassName_tmp, 0, val.length-1);
     annotationClassName_tmp[val.length-1] = '$';
     annotationClassName_tmp[val.length]   = '$';
@@ -665,7 +665,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   private static class Key {
     final byte[] val;
 
-    Key(byte utf8[]) {
+    Key(byte[] utf8) {
       val = utf8;
     }
 

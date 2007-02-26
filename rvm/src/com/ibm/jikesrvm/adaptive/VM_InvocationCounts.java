@@ -38,7 +38,7 @@ public final class VM_InvocationCounts {
       if (newSize <= id) newSize = id+500;
       int[] tmp = new int[newSize];
       System.arraycopy(counts, 0, tmp, 0, counts.length);
-      boolean tmp2[] = new boolean[newSize];
+      boolean[] tmp2 = new boolean[newSize];
       System.arraycopy(processed, 0, tmp2, 0, processed.length);
       VM_Magic.sync();
       counts = tmp;

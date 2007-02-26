@@ -33,7 +33,7 @@ class TestClone implements Cloneable
       }
       
    public static void 
-   main(String args[])
+   main(String[] args)
       throws CloneNotSupportedException
       {
    // VM.boot();
@@ -73,7 +73,7 @@ class TestClone implements Cloneable
       // clone array
       //
       
-      TestClone c[][] = new TestClone[2][3];
+      TestClone[][] c = new TestClone[2][3];
       for (int i = 0; i < 2; ++i)
          for (int j = 0; j < 3; ++j)
             c[i][j] = new TestClone(i + "" + j);
@@ -86,7 +86,7 @@ class TestClone implements Cloneable
          SystemOut.println();
          }
 
-      TestClone d[][] = (TestClone[][])c.clone();
+      TestClone[][] d = (TestClone[][])c.clone();
       
       SystemOut.println("clone: ");
       for (int i = 0; i < 2; ++i)

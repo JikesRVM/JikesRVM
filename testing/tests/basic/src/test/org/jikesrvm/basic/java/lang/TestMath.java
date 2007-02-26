@@ -13,7 +13,7 @@ package test.org.jikesrvm.basic.java.lang;
  * @author unascribed
  */
 class TestMath {
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     runFloorTest(1.6, 1.0);
     runFloorTest(1.5, 1.0);
     runFloorTest(1.4, 1.0);

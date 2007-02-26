@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
    *
    * Instance variables
    */
-  private int data[];			// The stream data
+  private int[] data;			// The stream data
   private int defaultValue;		// The default value for the data items
   
   

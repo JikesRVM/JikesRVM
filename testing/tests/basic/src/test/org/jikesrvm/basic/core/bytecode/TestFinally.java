@@ -36,7 +36,7 @@ class TestFinally {
     }
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     System.out.println("TestFinally.main()");
     System.out.println(TestFinally.foo());
     System.out.println(TestFinally.foo2());

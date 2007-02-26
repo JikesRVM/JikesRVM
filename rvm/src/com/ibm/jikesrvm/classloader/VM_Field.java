@@ -50,8 +50,8 @@ public final class VM_Field extends VM_Member {
                    int modifiers,
                    VM_Atom signature,
                    int constantValueIndex,
-                   VM_Annotation runtimeVisibleAnnotations[],
-                   VM_Annotation runtimeInvisibleAnnotations[])
+                   VM_Annotation[] runtimeVisibleAnnotations,
+                   VM_Annotation[] runtimeInvisibleAnnotations)
   {
     super(declaringClass, memRef, modifiers, signature,
           runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
@@ -71,13 +71,13 @@ public final class VM_Field extends VM_Member {
    * @param input the DataInputStream to read the field's attributed from
    */
   static VM_Field readField(VM_TypeReference declaringClass,
-                            int constantPool[], VM_MemberReference memRef,
+                            int[] constantPool, VM_MemberReference memRef,
                             int modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
     VM_Atom tmp_signature = null;
-    VM_Annotation tmp_runtimeVisibleAnnotations[] = null;
-    VM_Annotation tmp_runtimeInvisibleAnnotations[] = null;
+    VM_Annotation[] tmp_runtimeVisibleAnnotations = null;
+    VM_Annotation[] tmp_runtimeInvisibleAnnotations = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
       VM_Atom attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       int     attLength = input.readInt();

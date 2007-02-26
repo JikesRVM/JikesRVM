@@ -20,7 +20,7 @@ class FixedLive {
   static Node2I2A root;
   static Node2I2A junk;
 
-  public static void main(String args[])  throws Throwable {
+  public static void main(String[] args)  throws Throwable {
     boolean base = true;
     if (args.length == 0)
       System.out.println("No argument.  Assuming base");

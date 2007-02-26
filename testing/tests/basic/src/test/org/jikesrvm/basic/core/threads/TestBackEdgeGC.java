@@ -29,7 +29,7 @@ package test.org.jikesrvm.basic.core.threads;
  * wait for the GC object to complete, then exit
  */
 class TestBackEdgeGC {
-  public static void main(String args[]) throws java.lang.InterruptedException {
+  public static void main(String[] args) throws java.lang.InterruptedException {
 
     XThread.say("Creating Looper");
     Looper looper = new Looper();

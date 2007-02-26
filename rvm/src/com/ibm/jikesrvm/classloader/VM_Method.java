@@ -44,13 +44,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  protected final VM_Annotation runtimeVisibleParameterAnnotations[];
+  protected final VM_Annotation[] runtimeVisibleParameterAnnotations;
   /**
    * Method parameter Annotations from the class file that are
    * described as runtime visible. These annotations aren't available
    * to the reflection API.
    */
-  protected final VM_Annotation runtimeInvisibleParameterAnnotations[];
+  protected final VM_Annotation[] runtimeInvisibleParameterAnnotations;
   /**
    * A value present in the method info tables of annotation types. It
    * represents the default result from an annotation method.
@@ -83,10 +83,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, 
                       int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                      VM_Annotation runtimeVisibleAnnotations[],
-                      VM_Annotation runtimeInvisibleAnnotations[],
-                      VM_Annotation runtimeVisibleParameterAnnotations[],
-                      VM_Annotation runtimeInvisibleParameterAnnotations[],
+                      VM_Annotation[] runtimeVisibleAnnotations,
+                      VM_Annotation[] runtimeInvisibleAnnotations,
+                      VM_Annotation[] runtimeVisibleParameterAnnotations,
+                      VM_Annotation[] runtimeInvisibleParameterAnnotations,
                       Object annotationDefault)
   {
     super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS, signature,
@@ -113,7 +113,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the method's attributes from
    */
-  static VM_Method readMethod(VM_TypeReference declaringClass, int constantPool[], VM_MemberReference memRef,
+  static VM_Method readMethod(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
                               int modifiers, DataInputStream input) throws IOException {
     int tmp_localWords = 0;
     int tmp_operandWords = 0;      
@@ -122,10 +122,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     VM_TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;      
     VM_Atom tmp_signature = null;
-    VM_Annotation tmp_runtimeVisibleAnnotations[] = null;
-    VM_Annotation tmp_runtimeInvisibleAnnotations[] = null;
-    VM_Annotation tmp_runtimeVisibleParameterAnnotations[] = null;
-    VM_Annotation tmp_runtimeInvisibleParameterAnnotations[] = null;
+    VM_Annotation[] tmp_runtimeVisibleAnnotations = null;
+    VM_Annotation[] tmp_runtimeInvisibleAnnotations = null;
+    VM_Annotation[] tmp_runtimeVisibleParameterAnnotations = null;
+    VM_Annotation[] tmp_runtimeInvisibleParameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
@@ -237,10 +237,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * returned by this method
    * @return the created method
    */
-  static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int constantPool[],
+  static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
                                           VM_MemberReference memRef, VM_Method interfaceMethod,
                                           int constantPoolIndex) {
-    byte bytecodes[] = new byte[] {
+    byte[] bytecodes = new byte[] {
       (byte)JBC_aload_0,
       (byte)JBC_getfield,
       (byte)(constantPoolIndex >>> 8),
@@ -266,11 +266,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param aMethods
    * @return the created method
    */
-  static VM_Method createAnnotationInit(VM_TypeReference aClass, int constantPool[],
+  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool,
                                         VM_MemberReference memRef, int objectInitIndex,
-                                        VM_Field aFields[], VM_Method aMethods[],
-                                        int defaultConstants[]) {
-    byte bytecode[] = new byte[6+(defaultConstants.length*7)];
+                                        VM_Field[] aFields, VM_Method[] aMethods,
+                                        int[] defaultConstants) {
+    byte[] bytecode = new byte[6+(defaultConstants.length*7)];
     bytecode[0] =   (byte)JBC_aload_0; // stack[0] = this
     bytecode[1] =   (byte)JBC_aload_1; // stack[1] = instanceof VM_Annotation
     bytecode[2] = (byte)JBC_invokespecial;

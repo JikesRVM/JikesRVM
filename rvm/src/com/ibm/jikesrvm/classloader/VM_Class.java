@@ -536,7 +536,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return cpValue & 0xffff;
   }
 
-  static final int getLiteralSize(int constantPool[], int constantPoolIndex) {
+  static final int getLiteralSize(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     switch(unpackCPType(cpValue)) {
     case CP_INT:
@@ -567,7 +567,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
-  static final Offset getLiteralOffset(int constantPool[], int constantPoolIndex) {
+  static final Offset getLiteralOffset(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     if (VM.VerifyAssertions) {
       int value = unpackSignedCPValue(cpValue);
@@ -622,7 +622,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return type that was referenced
    */
   @Uninterruptible
-  static VM_TypeReference getTypeRef(int constantPool[], int constantPoolIndex) { 
+  static VM_TypeReference getTypeRef(int[] constantPool, int constantPoolIndex) {
     if (constantPoolIndex != 0) {
       int cpValue = constantPool[constantPoolIndex];
       if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_CLASS);
@@ -644,7 +644,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "methodRef" constant pool entry.
    */
   @Uninterruptible
-  static VM_MethodReference getMethodRef(int constantPool[], int constantPoolIndex) { 
+  static VM_MethodReference getMethodRef(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
     return  (VM_MethodReference)
@@ -676,7 +676,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "utf" from a constant pool entry.
    */
   @Uninterruptible
-  static VM_Atom getUtf(int constantPool[], int constantPoolIndex) { 
+  static VM_Atom getUtf(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
     return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
@@ -1013,7 +1013,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   public final VM_Method findStaticMethod(VM_Atom memberName, 
                                           VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method methods[] = getStaticMethods();
+    VM_Method[] methods = getStaticMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (method.getName() == memberName && 
@@ -1030,7 +1030,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method methods[] = getConstructorMethods();
+    VM_Method[] methods = getConstructorMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (method.getDescriptor() == memberDescriptor)
@@ -1136,15 +1136,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param runtimeInvisibleAnnotations optional array of runtime
    * invisible annotations
    */
-  private VM_Class(VM_TypeReference typeRef, int constantPool[], int modifiers,
-                   VM_Class superClass, VM_Class declaredInterfaces[],
-                   VM_Field declaredFields[], VM_Method declaredMethods[],
-                   VM_TypeReference declaredClasses[], VM_TypeReference declaringClass,
+  private VM_Class(VM_TypeReference typeRef, int[] constantPool, int modifiers,
+                   VM_Class superClass, VM_Class[] declaredInterfaces,
+                   VM_Field[] declaredFields, VM_Method[] declaredMethods,
+                   VM_TypeReference[] declaredClasses, VM_TypeReference declaringClass,
                    VM_TypeReference enclosingClass, VM_MethodReference enclosingMethod,
                    VM_Atom sourceName, VM_Method classInitializerMethod,
                    VM_Atom signature,
-                   VM_Annotation runtimeVisibleAnnotations[],
-                   VM_Annotation runtimeInvisibleAnnotations[])
+                   VM_Annotation[] runtimeVisibleAnnotations,
+                   VM_Annotation[] runtimeInvisibleAnnotations)
   {
     super(typeRef, 0, runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
 
@@ -1222,15 +1222,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     //
     // pass 1: read constant pool
     //
-    int constantPool[] = new int[input.readUnsignedShort()];
-    byte tmpTags[] = new byte[constantPool.length];
+    int[] constantPool = new int[input.readUnsignedShort()];
+    byte[] tmpTags = new byte[constantPool.length];
 
     // note: slot 0 is unused
     for (int i = 1; i <constantPool.length; i++) {
       tmpTags[i] = input.readByte();
       switch (tmpTags[i]) {
       case TAG_UTF:  {
-        byte utf[] = new byte[input.readUnsignedShort()];
+        byte[] utf = new byte[input.readUnsignedShort()];
         input.readFully(utf);
         int atomId = VM_Atom.findOrCreateUtf8Atom(utf).getId();
         constantPool[i] = packCPEntry(CP_UTF, atomId);
@@ -1376,7 +1376,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     int numInterfaces = input.readUnsignedShort();
-    VM_Class declaredInterfaces[];
+    VM_Class[] declaredInterfaces;
     if (numInterfaces == 0) {
       declaredInterfaces = emptyVMClass;
     } else {
@@ -1388,7 +1388,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     int numFields = input.readUnsignedShort();
-    VM_Field declaredFields[];
+    VM_Field[] declaredFields;
     if (numFields == 0) {
       declaredFields = emptyVMField;
     } else {
@@ -1403,7 +1403,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     int numMethods = input.readUnsignedShort();
-    VM_Method declaredMethods[];
+    VM_Method[] declaredMethods;
     VM_Method classInitializerMethod = null;
     if (numMethods == 0) {
       declaredMethods = emptyVMMethod;
@@ -1424,8 +1424,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_Atom sourceName = null;
     VM_TypeReference declaringClass = null;
     VM_Atom signature = null;
-    VM_Annotation runtimeVisibleAnnotations[] = null;
-    VM_Annotation runtimeInvisibleAnnotations[] = null;
+    VM_Annotation[] runtimeVisibleAnnotations = null;
+    VM_Annotation[] runtimeInvisibleAnnotations = null;
     VM_TypeReference enclosingClass = null;
     VM_MethodReference enclosingMethod = null;
     // Read attributes.
@@ -1569,18 +1569,18 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // start with fields and methods of superclass
       //
       if (superClass != null) {
-        VM_Field fields[] = superClass.getInstanceFields();
+        VM_Field[] fields = superClass.getInstanceFields();
         for (int i = 0, n = fields.length; i < n; ++i)
           instanceFields.addElement(fields[i]);
 
-        VM_Method methods[] = superClass.getVirtualMethods();
+        VM_Method[] methods = superClass.getVirtualMethods();
         for (int i = 0, n = methods.length; i < n; ++i)
           virtualMethods.addElement(methods[i]);
       }
 
       // append fields defined by this class
       //
-      VM_Field fields[] = getDeclaredFields();
+      VM_Field[] fields = getDeclaredFields();
       for (int i = 0, n = fields.length; i < n; ++i) {
         VM_Field field = fields[i];
         if (field.isStatic())
@@ -1591,7 +1591,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
       // append/overlay methods defined by this class
       //
-      VM_Method methods[] = getDeclaredMethods();
+      VM_Method[] methods = getDeclaredMethods();
       for (int i = 0, n = methods.length; i < n; ++i) {
         VM_Method method = methods[i];
 
@@ -2243,10 +2243,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     int numFields = annotationInterface.declaredMethods.length;
     int numMethods = annotationInterface.declaredMethods.length+1;
     int constantPoolSize = numFields + numMethods + numDefaultFields;
-    int constantPool[] = new int[constantPoolSize];
+    int[] constantPool = new int[constantPoolSize];
 
     // Create fields for class
-    VM_Field annotationFields[] = new VM_Field[numFields];
+    VM_Field[] annotationFields = new VM_Field[numFields];
     for(int i=0; i < numFields; i++) {
       VM_Method currentAnnotationValue = annotationInterface.declaredMethods[i];
       VM_Atom newFieldName = VM_Atom.findOrCreateAsciiAtom(currentAnnotationValue.getName().toString() + "_field");
@@ -2257,7 +2257,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     // Create copy of methods from the annotation
-    VM_Method annotationMethods[] = new VM_Method[numMethods];
+    VM_Method[] annotationMethods = new VM_Method[numMethods];
     for (int i=0; i < annotationInterface.declaredMethods.length; i++) {
       VM_Method currentAnnotationValue = annotationInterface.declaredMethods[i];
       VM_Atom newMethodName = currentAnnotationValue.getName();
@@ -2271,7 +2271,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
     // Create default value constants
     int nextFreeConstantPoolSlot = numFields + annotationInterface.declaredMethods.length;
-    int defaultConstants[] = new int[numDefaultFields];
+    int[] defaultConstants = new int[numDefaultFields];
     for(int i=0, j=0; i < annotationInterface.declaredMethods.length; i++) {
       Object value = annotationInterface.declaredMethods[i].annotationDefault;
       if(value != null) {

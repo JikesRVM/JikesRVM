@@ -33,7 +33,7 @@ public final class VM_Annotation {
   /**
    * Members of this annotation
    */
-  private final AnnotationMember elementValuePairs[];
+  private final AnnotationMember[] elementValuePairs;
   /**
    * The class loader that loaded this annotation
    */
@@ -70,7 +70,7 @@ public final class VM_Annotation {
    * that override the defaults
    * @param classLoader the class loader being used to load this annotation
    */
-  private VM_Annotation(VM_Atom type, AnnotationMember elementValuePairs[], ClassLoader classLoader){
+  private VM_Annotation(VM_Atom type, AnnotationMember[] elementValuePairs, ClassLoader classLoader){
     this.type = type;
     this.elementValuePairs = elementValuePairs;
     this.classLoader = classLoader;
@@ -82,7 +82,7 @@ public final class VM_Annotation {
    * @param constantPool from constant pool being loaded
    * @param input the data being rea
    */
-  static VM_Annotation readAnnotation (int constantPool[], DataInputStream input,
+  static VM_Annotation readAnnotation (int[] constantPool, DataInputStream input,
                                        ClassLoader classLoader) throws IOException, ClassNotFoundException {
     VM_Atom type;
     // Read type
@@ -90,7 +90,7 @@ public final class VM_Annotation {
     type = VM_Class.getUtf(constantPool, typeIndex);
     // Read values
     int numAnnotationMembers = input.readUnsignedShort();
-    AnnotationMember elementValuePairs[] = new AnnotationMember[numAnnotationMembers];
+    AnnotationMember[] elementValuePairs = new AnnotationMember[numAnnotationMembers];
     for(int i=0; i < numAnnotationMembers; i++) {
       elementValuePairs[i] = AnnotationMember.readAnnotationMember(constantPool, input, classLoader);
     }
@@ -136,7 +136,7 @@ public final class VM_Annotation {
     VM_Method defaultConstructor = annotationClass.getConstructorMethods()[0];
     VM_Reflection.invoke(defaultConstructor, annotationInstance, new VM_Annotation[]{this});
     // Override default values with those given in the element value pairs
-    VM_Field annotationClassFields[] = annotationClass.getDeclaredFields();
+    VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
     for(int i=0; i < elementValuePairs.length; i++) {
       AnnotationMember evp = elementValuePairs[i];
       VM_Atom evpFieldName = evp.getNameAsFieldName();
@@ -175,7 +175,7 @@ public final class VM_Annotation {
    * @param input stream to read from
    * @return object representing the value read
    */
-  static Object readValue(int constantPool[], DataInputStream input,
+  static Object readValue(int[] constantPool, DataInputStream input,
                           ClassLoader classLoader) throws IOException, ClassNotFoundException {
     // Read element value's tag and decode
     byte elementValue_tag = input.readByte();
@@ -262,7 +262,7 @@ public final class VM_Annotation {
     case '[':
       {
         int numValues = input.readUnsignedShort();
-        Object array[] = new Object[numValues];
+        Object[] array = new Object[numValues];
         for (int i=0; i < numValues; i++) {
           array[i] = readValue(constantPool, input, classLoader);
         }
@@ -302,7 +302,7 @@ public final class VM_Annotation {
     else {
       VM_Class annotationInterface = VM_TypeReference.findOrCreate(vmA.classLoader, vmA.type).resolve().asClass();
       VM_Class annotationClass = annotationInterface.getAnnotationClass();
-      VM_Field annotationClassFields[] = annotationClass.getDeclaredFields();
+      VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
       for(int i=0; i < annotationClassFields.length; i++) {
         Object objA = annotationClassFields[i].getObjectUnchecked(a);
         Object objB = annotationClassFields[i].getObjectUnchecked(b);
@@ -328,7 +328,7 @@ public final class VM_Annotation {
   public int hashCode(BaseAnnotation a) {
     VM_Class annotationInterface = VM_TypeReference.findOrCreate(classLoader, type).resolve().asClass();
     VM_Class annotationClass = annotationInterface.getAnnotationClass();
-    VM_Field annotationClassFields[] = annotationClass.getDeclaredFields();
+    VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
     String typeString = type.toString();
     int result = typeString.substring(1, typeString.length() - 1).hashCode();
     for(int i=0; i < annotationClassFields.length; i++) {
@@ -442,7 +442,7 @@ public final class VM_Annotation {
      * @param classLoader the class loader being used to load this annotation
      * @return a newly created annotation member
      */
-    static AnnotationMember readAnnotationMember (int constantPool[], DataInputStream input,
+    static AnnotationMember readAnnotationMember (int[] constantPool, DataInputStream input,
                                                   ClassLoader classLoader) throws IOException, ClassNotFoundException {
       // Read name of pair
       int elemNameIndex = input.readUnsignedShort();
@@ -497,7 +497,7 @@ public final class VM_Annotation {
       String result = name.toString() + "=";
       if (value instanceof Object[]) {
         result += "{";
-        Object a[] = (Object[])value;
+        Object[] a = (Object[])value;
         for(int i=0; i < a.length; i++) {
           result += a[i].toString();
           if (i < (a.length -1)) {

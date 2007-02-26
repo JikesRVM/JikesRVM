@@ -34,7 +34,7 @@ public abstract class VM_MachineCode {
     return bytecodeMap;
   }
 
-  public void setBytecodeMap(int b2m[]) {
+  public void setBytecodeMap(int[] b2m) {
     bytecodeMap = b2m;
   }
 }

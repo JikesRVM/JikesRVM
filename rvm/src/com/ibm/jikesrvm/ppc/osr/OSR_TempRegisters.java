@@ -25,7 +25,7 @@ public class OSR_TempRegisters implements VM_Constants {
 
   Address ip;        // next instruction address
   WordArray gprs;
-  double fprs[];
+  double[] fprs;
 
   /* hold CR, XER, CTR */
   int    cr;
@@ -36,7 +36,7 @@ public class OSR_TempRegisters implements VM_Constants {
    * address to a reference. When objs[i] is null, the GPR[i] is not
    * holding a reference.
    */
-  Object objs[];
+  Object[] objs;
 
   public OSR_TempRegisters(VM_Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);

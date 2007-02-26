@@ -65,7 +65,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     // least two edges, supposingly. Then we found that the lookupswitch 
     // bytecode could have only one edge, so the number of branch profiles 
     // is not necessarily less than half of the number of edges.
-    VM_BranchProfile data[] = new VM_BranchProfile[cs.length]; 
+    VM_BranchProfile[] data = new VM_BranchProfile[cs.length];
     VM_BytecodeStream bcodes = m.getBytecodes();
     int dataIdx = 0;
     int countIdx = 0;

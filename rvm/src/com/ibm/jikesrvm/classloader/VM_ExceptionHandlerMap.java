@@ -77,7 +77,7 @@ public final class VM_ExceptionHandlerMap {
    * @param handlerPCs
    * @param exceptionTypes
    */
-  private VM_ExceptionHandlerMap(int startPCs[], int endPCs[], int handlerPCs[], VM_TypeReference exceptionTypes[]) {
+  private VM_ExceptionHandlerMap(int[] startPCs, int[] endPCs, int[] handlerPCs, VM_TypeReference[] exceptionTypes) {
     this.startPCs   = startPCs;
     this.endPCs     = endPCs;
     this.handlerPCs = handlerPCs;
@@ -90,15 +90,15 @@ public final class VM_ExceptionHandlerMap {
    * @return an exception handler map or null if none were present
    */
   static VM_ExceptionHandlerMap readExceptionHandlerMap(DataInputStream input, 
-                                                        int constantPool[]
+                                                        int[] constantPool
                                                         ) throws IOException
   {
     int cnt = input.readUnsignedShort();
     if (cnt != 0) {
-      int startPCs[]   = new int[cnt];
-      int endPCs[]     = new int[cnt];
-      int handlerPCs[] = new int[cnt];
-      VM_TypeReference exceptionTypes[] = new VM_TypeReference[cnt];
+      int[] startPCs   = new int[cnt];
+      int[] endPCs     = new int[cnt];
+      int[] handlerPCs = new int[cnt];
+      VM_TypeReference[] exceptionTypes = new VM_TypeReference[cnt];
       for (int i = 0; i < cnt; ++i) {
         startPCs[i]       = input.readUnsignedShort();
         endPCs[i]         = input.readUnsignedShort();
@@ -120,13 +120,13 @@ public final class VM_ExceptionHandlerMap {
 
   VM_ExceptionHandlerMap deepCopy() {
     int n = startPCs.length;
-    int copyStartPCs[]   = new int[n];
+    int[] copyStartPCs   = new int[n];
     System.arraycopy(this.startPCs, 0, copyStartPCs, 0, n);
-    int copyEndPCs[]     = new int[n];
+    int[] copyEndPCs     = new int[n];
     System.arraycopy(this.endPCs, 0, copyEndPCs, 0, n);
-    int copyHandlerPCs[] = new int[n];
+    int[] copyHandlerPCs = new int[n];
     System.arraycopy(this.handlerPCs, 0, copyHandlerPCs, 0, n);
-    VM_TypeReference copyExceptionTypes[] = new VM_TypeReference[n];
+    VM_TypeReference[] copyExceptionTypes = new VM_TypeReference[n];
     System.arraycopy(this.exceptionTypes, 0, copyExceptionTypes, 0, n);
 
     return new VM_ExceptionHandlerMap(copyStartPCs, copyEndPCs, copyHandlerPCs, copyExceptionTypes);

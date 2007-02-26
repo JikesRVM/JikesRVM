@@ -64,8 +64,8 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    */
   protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef,
                       int modifiers, VM_Atom signature,
-                      VM_Annotation runtimeVisibleAnnotations[],
-                      VM_Annotation runtimeInvisibleAnnotations[])
+                      VM_Annotation[] runtimeVisibleAnnotations,
+                      VM_Annotation[] runtimeInvisibleAnnotations)
   {
     super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.declaringClass = declaringClass;
