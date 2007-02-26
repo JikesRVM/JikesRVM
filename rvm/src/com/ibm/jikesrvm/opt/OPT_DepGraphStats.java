@@ -11,7 +11,6 @@ package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
-import java.lang.Math;
 
 /**
  * Dependence Graph Statistics 

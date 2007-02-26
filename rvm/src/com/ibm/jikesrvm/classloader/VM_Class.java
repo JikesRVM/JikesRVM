@@ -9,9 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm.classloader;
 
-import java.lang.UnsupportedClassVersionError;
-import java.lang.ClassFormatError;
-
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
