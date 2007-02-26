@@ -164,9 +164,18 @@
 
     <bres><![CDATA[</builds>]]></bres>
 
-    <erant antfile="${jikesrvm.dir}/build.xml" failonerror="false" target="apidoc">
-      <property name="config.name" value="prototype-opt"/>
-    </erant>
+    <if>
+      <conditions>
+        <not>
+          <isset property="skip.build"/>
+        </not>
+      </conditions>
+      <sequential>
+        <erant antfile="${jikesrvm.dir}/build.xml" failonerror="false" target="apidoc">
+          <property name="config.name" value="prototype-opt"/>
+        </erant>
+      </sequential>
+    </if>
 
   </target>
 
