@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.OPT_IR;
-import com.ibm.jikesrvm.opt.OPT_LSTGraph;
 import com.ibm.jikesrvm.VM;
 
 /**

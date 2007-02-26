@@ -9,12 +9,8 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-// import java.io.PrintStream;
-// import java.io.PrintWriter;
 import com.ibm.jikesrvm.classloader.VM_Method;
 import com.ibm.jikesrvm.classloader.VM_Class;
-import com.ibm.jikesrvm.PrintLN;
-// import java.lang.Class;  // Not needed, redundant with language def.
 
 import org.vmmagic.unboxed.*;
 

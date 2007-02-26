@@ -9,11 +9,6 @@
 //$Id$
 package com.ibm.jikesrvm;
 
-/* Some of these import statements aren't necessary, but are here for
-   documentation purposes.  --S. Augart */ 
-import com.ibm.jikesrvm.PrintLN;
-import com.ibm.jikesrvm.VM;
-
 import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Member;
 
@@ -34,7 +29,7 @@ import java.io.PrintWriter;
  */
 public class PrintContainer {
   /** Can not be instantiated. */
-  private PrintContainer() {};
+  private PrintContainer() {}
   /** Print via PrintWriter */
   private static class WithPrintWriter
     extends PrintLN

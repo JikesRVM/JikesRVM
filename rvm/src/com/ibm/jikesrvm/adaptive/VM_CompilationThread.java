@@ -10,7 +10,6 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)
