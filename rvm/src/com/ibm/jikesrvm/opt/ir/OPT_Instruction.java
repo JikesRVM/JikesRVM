@@ -954,7 +954,8 @@ public final class OPT_Instruction
   /** 
    * @deprecated use {@link #isExplicitLoad()} or {@link #isImplicitLoad()}
    */ 
-  public boolean isLoad() { 
+  @Deprecated
+  public boolean isLoad() {
     return isImplicitLoad(); 
   }
   
@@ -984,7 +985,8 @@ public final class OPT_Instruction
   /** 
    * @deprecated use {@link #isExplicitStore()} or {@link #isImplicitStore()}
    */ 
-  public boolean isStore() { 
+  @Deprecated
+  public boolean isStore() {
     return isImplicitStore(); 
   }
 
@@ -1961,6 +1963,7 @@ public final class OPT_Instruction
    * Temp kludge for BURS as we bring the ir package on line
    * @deprecated
    */
+  @Deprecated
   public void BURS_KLUDGE_linkWithNext(OPT_Instruction other) {
     linkWithNext(other);
   }

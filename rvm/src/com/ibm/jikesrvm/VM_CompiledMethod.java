@@ -137,6 +137,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    * Return the machine code for this compiled method
    * @deprecated 
    */
+  @Deprecated
   @Uninterruptible
   public final VM_CodeArray getInstructions() { 
     if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);

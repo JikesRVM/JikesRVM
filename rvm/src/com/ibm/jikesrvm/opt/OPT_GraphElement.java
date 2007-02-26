@@ -23,6 +23,7 @@ package com.ibm.jikesrvm.opt;
  * @author Julian Dolby
  *
  */
+@Deprecated
 interface OPT_GraphElement {
 
   /** 
@@ -30,6 +31,7 @@ interface OPT_GraphElement {
    * @return the contents of the Object scratch field
    * @deprecated
    */
+  @Deprecated
   Object getScratchObject ();
 
   /** 
@@ -37,6 +39,7 @@ interface OPT_GraphElement {
    * @param obj the new contents of the Object scratch field
    * @deprecated
    */
+  @Deprecated
   Object setScratchObject (Object obj);
 
   /** 
@@ -44,6 +47,7 @@ interface OPT_GraphElement {
    * @return the contents of the int scratch field
    * @deprecated
    */
+  @Deprecated
   int getScratch ();
 
   /** 
@@ -51,5 +55,6 @@ interface OPT_GraphElement {
    * @param scratch the new contents of the int scratch field
    * @deprecated
    */
+  @Deprecated
   int setScratch (int scratch);
 }

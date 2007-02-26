@@ -851,6 +851,7 @@ import org.vmmagic.unboxed.*;
   /**
   * @deprecated use alignUp(..) instead
   */
+  @Deprecated
   @Inline
   public static Address align (Address address, int alignment) { 
         return alignUp(address, alignment); }
@@ -858,6 +859,7 @@ import org.vmmagic.unboxed.*;
   /**
   * @deprecated use alignUp(..) instead
   */
+  @Deprecated
   @Inline
   public static int align (int address, int alignment) { 
         return alignUp(address, alignment); }

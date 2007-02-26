@@ -201,6 +201,7 @@ import org.vmmagic.unboxed.*;
    * A synonym for unlock.
    * @deprecated (was to avoid the "sync" of unlock)
    */
+  @Deprecated
   public void release () { unlock(); }
 
   /**

@@ -19,6 +19,7 @@ import java.util.Iterator;
  * @author Stephen Fink
  * @deprecated
  */
+@Deprecated
 public class OPT_IteratorEnumerator<T> implements Enumeration<T> {
   private final Iterator<T> i;
 

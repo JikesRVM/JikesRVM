@@ -107,6 +107,7 @@ import org.vmmagic.pragma.*;
   /**
     @deprecated : use int bytesToPagesUp(Extent bytes) if possible
    */
+  @Deprecated
   public static int bytesToPagesUp(int bytes) {
     return bytesToPagesUp(Extent.fromIntZeroExtend(bytes));
   }
@@ -114,6 +115,7 @@ import org.vmmagic.pragma.*;
   /**
     @deprecated : use int bytesToPagesUp(Extent bytes) if possible
    */
+  @Deprecated
   public static int bytesToPages(int bytes) {
     return bytesToPages(Extent.fromIntZeroExtend(bytes));
   }

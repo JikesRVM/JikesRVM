@@ -339,6 +339,7 @@ public class VM_Magic {
    * Set contents of memory location.
    * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
    */
+  @Deprecated
   public static void setMemoryAddress(Address address, Address value, int locationMetadata) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
@@ -486,6 +487,7 @@ public class VM_Magic {
    * @return object reference as type (no checking on cast)
    * @deprecated  Use <code>{@link #objectAsType}( {@link #addressAsObject} (</code>...<code>))</code>
    */
+  @Deprecated
   public static VM_Type addressAsType(Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
@@ -507,6 +509,7 @@ public class VM_Magic {
    * @return object reference as thread (no checking on cast)
    * @deprecated  Use objectAsThread.
    */
+  @Deprecated
   public static VM_Thread addressAsThread(Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;

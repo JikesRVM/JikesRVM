@@ -50,6 +50,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return integer register operand
    */
+  @Deprecated
   public static final OPT_RegisterOperand R(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }

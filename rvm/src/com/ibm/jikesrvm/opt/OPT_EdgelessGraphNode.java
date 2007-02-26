@@ -43,11 +43,13 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    *  A scratch field in int type
    * @deprecated
    */
+  @Deprecated
   private int scratch;
   /**
    *  A scratch field in Object type
    * @deprecated
    */
+  @Deprecated
   private Object scratchObject;
 
   /**
@@ -55,6 +57,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return the  current value of the int scratch field
    * @deprecated
    */
+  @Deprecated
   public int getScratch() {
     return  scratch;
   }
@@ -65,6 +68,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return the new value of the int scratch field
    * @deprecated
    */
+  @Deprecated
   public int setScratch(int scratch) {
     return  this.scratch = scratch;
   }
@@ -74,6 +78,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return the current value of the Object scratch field
    * @deprecated
    */
+  @Deprecated
   public Object getScratchObject() {
     return  scratchObject;
   }
@@ -84,6 +89,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
    * @return the new value of the Object scratch field
    * @deprecated
    */
+  @Deprecated
   public Object setScratchObject(Object scratch) {
     return  this.scratchObject = scratch;
   }

@@ -73,6 +73,7 @@ public class Thread implements Runnable {
    * @deprecated This constructor should go away in favor of the two-argument
    * form. 
    */
+  @Deprecated
   Thread(VM_Thread vmdata) {
     /* Initialize the name to NULL, then set it after the initializer is run.
      * This is awkward, but Java won't let us invoke the toString()
