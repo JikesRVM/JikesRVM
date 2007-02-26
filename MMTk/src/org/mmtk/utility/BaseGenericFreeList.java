@@ -13,8 +13,6 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

@@ -11,7 +11,6 @@
 package org.mmtk.utility;
 
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

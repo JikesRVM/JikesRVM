@@ -9,7 +9,6 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
@@ -81,7 +80,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   protected final void postAlloc (Address cell) { 
     space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
-  };
+  }
 
   /****************************************************************************
    * 

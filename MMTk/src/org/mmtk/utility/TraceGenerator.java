@@ -13,7 +13,6 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.semispace.gctrace.GCTrace;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;

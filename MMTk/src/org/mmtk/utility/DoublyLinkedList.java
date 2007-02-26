@@ -8,7 +8,6 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.mmtk.vm.Lock;

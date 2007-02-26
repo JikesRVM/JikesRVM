@@ -12,8 +12,6 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -426,7 +424,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes the start of an array of characters and a new-line, then
    * flushes the buffer.
-   * @see #write(char [], int)
+   * @see #write(char[], int)
    * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
@@ -437,7 +435,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an array of bytes and a new-line, then
    * flushes the buffer.
-   * @see #write(byte [])
+   * @see #write(byte[])
    * 
    * @param b the array of bytes to be logged
    */
@@ -580,7 +578,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes the start of an array of characters and a new-line, then
    * optionally flushes the buffer.
-   * @see #write(char [], int)
+   * @see #write(char[], int)
    * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
@@ -595,7 +593,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an array of bytes and a new-line, then optionally flushes the
    * buffer.
-   * @see #write(byte [])
+   * @see #write(byte[])
    * 
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer
