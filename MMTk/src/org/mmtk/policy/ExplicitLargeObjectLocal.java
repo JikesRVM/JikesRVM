@@ -9,9 +9,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.DoublyLinkedList;
 

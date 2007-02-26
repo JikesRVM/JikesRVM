@@ -17,7 +17,6 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.lang.reflect.*;
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 
 import org.vmmagic.unboxed.*;
 

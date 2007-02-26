@@ -8,9 +8,6 @@
  */
 //$Id$
 package com.ibm.jikesrvm;
-import com.ibm.jikesrvm.PrintContainer; /* This import statement isn't
-                                     necessary, but is here for documentation
-                                     purposes. --S. Augart */ 
 import com.ibm.jikesrvm.classloader.VM_Member;
 import com.ibm.jikesrvm.classloader.VM_Atom;
 import com.ibm.jikesrvm.classloader.VM_Class;

@@ -21,7 +21,6 @@ import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.ppc.*;

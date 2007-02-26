@@ -9,9 +9,6 @@
 //$Id: /jikesrvm/local/testing/tests/threads/src/TestBackEdgeGC.java 10522 2006-11-14T22:42:56.816831Z dgrove-oss  $
 package test.org.jikesrvm.basic.core.threads;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-
 /**
  * @author unascribed
  */
