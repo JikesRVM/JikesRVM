@@ -70,4 +70,8 @@ jai.description=Java Advanced Imaging Toolkit
     <setupComponentsConfig>${target.name}.jai.lib.dir=${jai.package.dir}/${target.name}/lib</setupComponentsConfig>
   </target>
 
+  <target name="ensure" depends="init-jai-properties">
+    <ensureUptodate name="jai" dir="${jai.package.dir}/${target.name}/lib"/>
+  </target>
+
 </project>

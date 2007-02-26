@@ -111,4 +111,8 @@ gcspy.description=GCSpy Heap Visualisation Framework
     <setupComponentsConfig><![CDATA[${gcspy.client.property}${target.name}.gcspy.server.dir=${gcspy.package.dir}/${target.name}/server]]></setupComponentsConfig>
   </target>
 
+  <target name="ensure" depends="init-gcspy-properties">
+    <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/server"/>
+  </target>
+
 </project>

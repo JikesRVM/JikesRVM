@@ -29,4 +29,27 @@
       </if>
     </sequential>
   </macrodef>
+  <macrodef name="ensureUptodate">
+    <attribute name="name"/>
+    <attribute name="dir"/>
+    <sequential>
+      <property file="@{dir}/constants.properties" prefix="ensure."/>
+      <condition property="ensure.valid" value="true" else="false">
+        <and>
+          <available file="@{dir}/constants.properties"/>
+          <equals arg1="${ensure.@{name}.version}" arg2="${@{name}.version}"/>
+        </and>
+      </condition>
+      <if>
+        <conditions>
+          <equals arg1="${ensure.valid}" arg2="false"/>
+        </conditions>
+        <sequential>
+        <echo message="@{name} does not exist or is of the wrong version. Rebuilding..."/>
+          <antcall target="build" inheritall="false" inheritrefs="false"/>
+        </sequential>
+      </if>
+    </sequential>
+  </macrodef>
+
 </project>

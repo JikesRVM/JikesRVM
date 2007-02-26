@@ -155,4 +155,8 @@ classpath.description=GNU Classpath (Generics Branch)
     <setupComponentsConfig>${target.name}.classpath.lib.dir=${classpath.package.dir}/${target.name}/lib</setupComponentsConfig>
   </target>
 
+  <target name="ensure" depends="init-classpath-properties">
+    <ensureUptodate name="classpath" dir="${classpath.package.dir}/${target.name}/lib"/>
+  </target>
+
 </project>
