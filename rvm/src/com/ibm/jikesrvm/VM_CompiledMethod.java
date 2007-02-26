@@ -29,24 +29,24 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   /*
    * constants for compiler types
    */
-  public final static int TRAP      = 0; // no code: special trap handling stackframe
-  public final static int BASELINE  = 1; // baseline code
-  public final static int OPT       = 3; // opt code
-  public final static int JNI       = 4; // java to Native C transition frame
-  public final static int NUM_COMPILER_TYPES = 4;
+  public static final int TRAP      = 0; // no code: special trap handling stackframe
+  public static final int BASELINE  = 1; // baseline code
+  public static final int OPT       = 3; // opt code
+  public static final int JNI       = 4; // java to Native C transition frame
+  public static final int NUM_COMPILER_TYPES = 4;
 
   /*
    * constants for bitField1
    */
-  private final static int COMPILED        = 0x80000000;
-  private final static int INVALID         = 0x40000000;
-  private final static int OBSOLETE        = 0x20000000;
-  private final static int ACTIVE_ON_STACK = 0x10000000;
+  private static final int COMPILED        = 0x80000000;
+  private static final int INVALID         = 0x40000000;
+  private static final int OBSOLETE        = 0x20000000;
+  private static final int ACTIVE_ON_STACK = 0x10000000;
   // flags the compiled method as outdated, needs OSR
-  private final static int OUTDATED        = 0x08000000;
+  private static final int OUTDATED        = 0x08000000;
 
   /** Bits in bitfield1 available for use by subclasses */
-  protected final static int AVAIL_BITS    = 0x00ffffff;
+  protected static final int AVAIL_BITS    = 0x00ffffff;
 
   /**
    * The compiled method id of this compiled method (index into VM_CompiledMethods)

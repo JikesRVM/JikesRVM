@@ -86,15 +86,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
      return offsetToLocation(getStartLocalOffset(m) - (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
    }
  
-   @Uninterruptible
    @Inline
-   public final static int locationToOffset(int location) {
+   @Uninterruptible
+   public static final int locationToOffset(int location) {
      return -location;
    }
    
-   @Uninterruptible
    @Inline
-   public final static int offsetToLocation(int offset) {
+   @Uninterruptible
+   public static final int offsetToLocation(int offset) {
      return -offset;
    }
    

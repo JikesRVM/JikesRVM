@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public final class TraceGenerator 
   implements Constants, TracingConstants {
 
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /***********************************************************************
    * 
@@ -300,7 +300,7 @@ import org.vmmagic.unboxed.*;
    * should be called after garbage collection (but before the space has 
    * been reclaimed) and at program termination.  
    */
-  private final static void findDeaths() {
+  private static final void findDeaths() {
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */

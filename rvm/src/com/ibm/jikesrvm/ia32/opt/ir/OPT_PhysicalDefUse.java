@@ -26,36 +26,36 @@ import java.util.Enumeration;
 public abstract class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
-  public final static int mask             = 0x0000;  // empty mask
-  public final static int maskAF           = 0x0001;
-  public final static int maskCF           = 0x0002;
-  public final static int maskOF           = 0x0004;
-  public final static int maskPF           = 0x0008;
-  public final static int maskSF           = 0x0010;
-  public final static int maskZF           = 0x0020;
-  public final static int maskC0           = 0x0040;
-  public final static int maskC1           = 0x0080;
-  public final static int maskC2           = 0x0100;
-  public final static int maskC3           = 0x0200;
-  public final static int maskPR           = 0x0400;
+  public static final int mask             = 0x0000;  // empty mask
+  public static final int maskAF           = 0x0001;
+  public static final int maskCF           = 0x0002;
+  public static final int maskOF           = 0x0004;
+  public static final int maskPF           = 0x0008;
+  public static final int maskSF           = 0x0010;
+  public static final int maskZF           = 0x0020;
+  public static final int maskC0           = 0x0040;
+  public static final int maskC1           = 0x0080;
+  public static final int maskC2           = 0x0100;
+  public static final int maskC3           = 0x0200;
+  public static final int maskPR           = 0x0400;
   // Meta mask for the enumeration.
-  private final static int maskHIGH = 0x0400;
-  private final static int maskALL  = 0x07FF;
+  private static final int maskHIGH = 0x0400;
+  private static final int maskALL  = 0x07FF;
   
-  public final static int maskCF_OF = maskCF | maskOF;
-  public final static int maskCF_PF_ZF = maskCF | maskPF | maskZF;
-  public final static int maskCF_OF_PF_SF_ZF = maskCF | maskOF | maskPF | maskSF | 
+  public static final int maskCF_OF = maskCF | maskOF;
+  public static final int maskCF_PF_ZF = maskCF | maskPF | maskZF;
+  public static final int maskCF_OF_PF_SF_ZF = maskCF | maskOF | maskPF | maskSF |
                                         maskZF;
-  public final static int maskAF_OF_PF_SF_ZF = maskAF | maskOF | maskPF | maskSF | 
+  public static final int maskAF_OF_PF_SF_ZF = maskAF | maskOF | maskPF | maskSF |
                                         maskZF;
-  public final static int maskAF_CF_OF_PF_SF_ZF = maskAF | maskCF | maskOF |
+  public static final int maskAF_CF_OF_PF_SF_ZF = maskAF | maskCF | maskOF |
                                            maskPF | maskSF | maskZF;
-  public final static int maskC0_C1_C2_C3 = maskC0 | maskC1 | maskC2 | maskC3;
-  public final static int maskcallDefs = maskAF_CF_OF_PF_SF_ZF;
-  public final static int maskcallUses = mask;
-  public final static int maskIEEEMagicUses = mask;
-  public final static int maskTSPUses = mask;
-  public final static int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskPR;
+  public static final int maskC0_C1_C2_C3 = maskC0 | maskC1 | maskC2 | maskC3;
+  public static final int maskcallDefs = maskAF_CF_OF_PF_SF_ZF;
+  public static final int maskcallUses = mask;
+  public static final int maskIEEEMagicUses = mask;
+  public static final int maskTSPUses = mask;
+  public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskPR;
 
 
   /**

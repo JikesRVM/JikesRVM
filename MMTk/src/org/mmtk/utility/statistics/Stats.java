@@ -42,10 +42,10 @@ import org.vmmagic.pragma.*;
   /** Maximum number of counters that can be in operation */
   static final int MAX_COUNTERS = 100;
 
-  static private int counters = 0;
-  static private Counter counter[];
+  private static int counters = 0;
+  private static Counter counter[];
   static int phase = 0;
-  static private int gcCount = 0;
+  private static int gcCount = 0;
   static boolean gatheringStats = false;
 
   /****************************************************************************

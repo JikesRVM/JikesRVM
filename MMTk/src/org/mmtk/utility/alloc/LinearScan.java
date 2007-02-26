@@ -21,11 +21,12 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date    $Date$
  */
-@Uninterruptible abstract public class LinearScan {
+@Uninterruptible
+public abstract class LinearScan {
   /**
    * Scan an object.
    * 
    * @param object The object to scan
    */
-  abstract public void scan(ObjectReference object);
+  public abstract void scan(ObjectReference object);
 }

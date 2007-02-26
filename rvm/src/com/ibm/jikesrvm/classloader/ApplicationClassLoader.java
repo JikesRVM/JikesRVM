@@ -39,7 +39,7 @@ import java.util.StringTokenizer;
 public class ApplicationClassLoader extends URLClassLoader {
   
 
-  final static boolean DBG = false;
+  static final boolean DBG = false;
   
   static int numInstantiations = 0;
 
@@ -94,8 +94,8 @@ public class ApplicationClassLoader extends URLClassLoader {
    * <P>
    * I intended this name to reflect both "SystemClassLoader" and
    * "ApplicationClassLoader".
-   */ 
-  public final static String myName = "SystemAppCL";
+   */
+  public static final String myName = "SystemAppCL";
 
   public String toString() { 
     return myName

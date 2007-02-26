@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
@@ -63,13 +63,13 @@ import org.vmmagic.unboxed.*;
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  abstract protected Word getKey(Address obj);
+  protected abstract Word getKey(Address obj);
 
-  private final static Word mask16 = Word.fromIntZeroExtend(0xffff0000);
-  private final static Word mask8 = Word.fromIntZeroExtend(0x0000ff00);
-  private final static Word mask4 = Word.fromIntZeroExtend(0x000000f0);
-  private final static Word mask2 = Word.fromIntZeroExtend(0x0000000c);
-  private final static Word mask1 = Word.fromIntZeroExtend(0x00000002);
+  private static final Word mask16 = Word.fromIntZeroExtend(0xffff0000);
+  private static final Word mask8 = Word.fromIntZeroExtend(0x0000ff00);
+  private static final Word mask4 = Word.fromIntZeroExtend(0x000000f0);
+  private static final Word mask2 = Word.fromIntZeroExtend(0x0000000c);
+  private static final Word mask1 = Word.fromIntZeroExtend(0x00000002);
 
   /**
    * Find the highest bit that is set in a longword and return a mask

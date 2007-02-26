@@ -36,7 +36,7 @@ import java.util.*;
  * @author Stephen Fink
  */
 class OPT_DominanceFrontier extends OPT_CompilerPhase {
-  final static boolean DEBUG = false;
+  static final boolean DEBUG = false;
 
   /**
    * Should this phase be performed?  This is a member of a composite

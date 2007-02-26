@@ -43,7 +43,7 @@ public class VM_PriorityQueue {
    * Determines number of elements in the queue
    * @return number of elements in the queue
    */
-  synchronized final public int numElements() {
+  public final synchronized int numElements() {
     return numElements;
   }
 
@@ -51,7 +51,7 @@ public class VM_PriorityQueue {
    * Checks if the queue is empty
    * @return is the queue empty?
    */
-  protected synchronized final boolean isEmpty() {
+  protected final synchronized boolean isEmpty() {
     return numElements == 0;
   }
 
@@ -84,7 +84,7 @@ public class VM_PriorityQueue {
    * @param _priority  the priority of the inserted object
    * @param _data the object to insert
    */
-  synchronized public void insert(double _priority, Object _data) {
+  public synchronized void insert(double _priority, Object _data) {
     numElements++;
 
     if (numElements == queue.length) {
@@ -107,7 +107,7 @@ public class VM_PriorityQueue {
    * Remove and return the front (minimum) object
    * @return the front (minimum) object or null if the queue is empty.
    */
-  synchronized public Object deleteMin() {
+  public synchronized Object deleteMin() {
     if (isEmpty()) return null;
 
     Object returnValue = queue[1].data;
@@ -153,7 +153,7 @@ public class VM_PriorityQueue {
    *  Return the priority of front object without removing it
    *  @return the priority of the front object
    */
-  synchronized final public double rootValue() {
+  public final synchronized double rootValue() {
     if (VM.VerifyAssertions) VM._assert(!isEmpty());
 
     return queue[1].priority;
@@ -163,7 +163,7 @@ public class VM_PriorityQueue {
    *  Prints the contents of the queue
    *  @return the queue contents
    */
-  synchronized public String toString() {
+  public synchronized String toString() {
     final StringBuilder sb = new StringBuilder(" --> ");
     sb.append("Dumping Queue with ");
     sb.append(numElements);

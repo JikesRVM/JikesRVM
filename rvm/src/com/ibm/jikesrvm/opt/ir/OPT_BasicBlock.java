@@ -1895,7 +1895,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * We don't really intend clients to directly instantiate these, but rather to 
    * call the appropriate utility function that creates/initializes one of these
    */
-  static abstract class BBEnum implements OPT_BasicBlockEnumeration {
+  abstract static class BBEnum implements OPT_BasicBlockEnumeration {
     protected OPT_BasicBlock current;  
     public final boolean hasMoreElements() { return current != null; }
     public final OPT_BasicBlock nextElement() { return next(); }

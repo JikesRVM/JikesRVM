@@ -365,19 +365,19 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   /**
    * Initialize all lattice cells in the system.
    */
-  abstract protected void initializeLatticeCells();
+  protected abstract void initializeLatticeCells();
 
   /**
    * Initialize the work list for iteration.j
    */
-  abstract protected void initializeWorkList();
+  protected abstract void initializeWorkList();
 
   /**
    * Create a new lattice cell, referenced by a given key
    * @param key key to look up the new cell with
    * @return the newly created lattice cell
    */
-  abstract protected OPT_DF_LatticeCell makeCell(Object key);
+  protected abstract OPT_DF_LatticeCell makeCell(Object key);
 
   /** 
    * Update the worklist, assuming that a particular equation

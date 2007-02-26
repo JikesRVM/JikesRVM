@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   public VM_OptGCMapIterator(WordArray registerLocations) {
     super(registerLocations);
@@ -168,8 +168,8 @@ import org.vmmagic.unboxed.*;
     return lastSpill;
   }
 
-  final static int SPILL_DISTANCE_FROM_FP = 3 * BYTES_IN_ADDRESS;
-  final static int SAVE_VOL_SIZE = BYTES_IN_ADDRESS *
+  static final int SPILL_DISTANCE_FROM_FP = 3 * BYTES_IN_ADDRESS;
+  static final int SAVE_VOL_SIZE = BYTES_IN_ADDRESS *
     ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) + 
      (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1)); 
 

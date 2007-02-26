@@ -20,7 +20,7 @@ import com.ibm.jikesrvm.classloader.*;
  * @author Stephen Fink
  */
 final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.FieldDatabaseEntry> {
-  final static private boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   OPT_FieldDatabase() { }
 
@@ -114,8 +114,8 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
   // a data structure holding information about a particular <method,field>
   // combination, where the method may write the field
   final class FieldWriterInfo {
-    final static int BOTTOM   = 0x1;
-    final static int ANALYZED = 0x2;
+    static final int BOTTOM   = 0x1;
+    static final int ANALYZED = 0x2;
     int status;
     VM_TypeReference concreteType;
 

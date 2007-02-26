@@ -71,11 +71,11 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * Class variables
    */
-  private final static int verbose = 0;
+  private static final int verbose = 0;
 
   /** Name used by toString() and when we create the associated
    * java.lang.Thread.  */
-  private final static String myName =  "VM_CollectorThread";
+  private static final String myName =  "VM_CollectorThread";
   
   /** When true, causes RVM collectors to display heap configuration
    * at startup */
@@ -94,10 +94,10 @@ public class VM_CollectorThread extends VM_Thread {
    * in Rendezvous during the collection process. Will also force
    * summary statistics to be generated.
    */
-  public final static boolean MEASURE_WAIT_TIMES = false;
+  public static final boolean MEASURE_WAIT_TIMES = false;
   
   /** array of size 1 to count arriving collector threads */
-  final static int[]  participantCount;
+  static final int[]  participantCount;
 
   /** maps processor id to assoicated collector thread */
   static VM_CollectorThread[] collectorThreads; 
@@ -111,7 +111,7 @@ public class VM_CollectorThread extends VM_Thread {
    * detecting a need for a collection, and passed to the collect
    * method when requesting a collection.
    */
-  public final static VM_Handshake handshake;
+  public static final VM_Handshake handshake;
 
   /** Use by collector threads to rendezvous during collection */
   public static SynchronizationBarrier gcBarrier;

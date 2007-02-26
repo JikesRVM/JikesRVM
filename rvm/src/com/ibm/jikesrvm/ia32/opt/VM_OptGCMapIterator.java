@@ -146,6 +146,6 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  final static int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
-  final static int SAVE_VOL_SIZE = VOL_SIZE + VM.FPU_STATE_SIZE;
+  static final int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + VM.FPU_STATE_SIZE;
 }

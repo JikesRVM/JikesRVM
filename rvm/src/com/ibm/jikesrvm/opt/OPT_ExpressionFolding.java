@@ -43,7 +43,7 @@ class OPT_ExpressionFolding {
    *                    
    * @param ir the governing IR
    */
-  final public static void perform(OPT_IR ir) {
+  public static final void perform(OPT_IR ir) {
     
     // Create a set of potential computations to fold.
     HashSet<OPT_Register> candidates = new HashSet<OPT_Register>(20);

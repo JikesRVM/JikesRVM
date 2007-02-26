@@ -56,7 +56,7 @@ public class OSR_VariableElement implements OSR_Constants {
   //////////////////////////////////
   // class auxiliary methods
   ///////////////////////////////// 
-  final static boolean isIBitsType(int tcode) {
+  static final boolean isIBitsType(int tcode) {
     switch (tcode) {
     case INT:
     case FLOAT:
@@ -69,7 +69,7 @@ public class OSR_VariableElement implements OSR_Constants {
     }
   }
 
-  final static boolean isLBitsType(int tcode) {
+  static final boolean isLBitsType(int tcode) {
     switch (tcode) {
     case LONG:
     case DOUBLE:
@@ -81,11 +81,11 @@ public class OSR_VariableElement implements OSR_Constants {
     }
   }
 
-  final static boolean isRefType(int tcode) {
+  static final boolean isRefType(int tcode) {
     return tcode == REF;
   }
 
-  final static boolean isWordType(int tcode) {
+  static final boolean isWordType(int tcode) {
     return tcode == WORD;
   }
 

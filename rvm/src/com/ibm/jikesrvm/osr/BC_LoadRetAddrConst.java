@@ -16,7 +16,7 @@ package com.ibm.jikesrvm.osr;
  */
 
 public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
-  private final static int bsize = 6;
+  private static final int bsize = 6;
   private int bcindex;
 
   public BC_LoadRetAddrConst(int off) {

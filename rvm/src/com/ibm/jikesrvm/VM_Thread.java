@@ -38,8 +38,8 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /**
    * debug flag
    */
-  private final static boolean trace = false;
-  private final static boolean traceTermination = false;
+  private static final boolean trace = false;
+  private static final boolean traceTermination = false;
 
   private Thread thread;         // Can't be final -- the primordial thread is
                                 // created by the boot image writer without an
@@ -52,12 +52,12 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /**
    * Enumerate different types of yield points for sampling
    */
-  public final static int PROLOGUE = 0;
-  public final static int BACKEDGE = 1;
-  public final static int EPILOGUE = 2;
-  public final static int NATIVE_PROLOGUE = 3;
-  public final static int NATIVE_EPILOGUE = 4;
-  public final static int OSROPT  = 5;
+  public static final int PROLOGUE = 0;
+  public static final int BACKEDGE = 1;
+  public static final int EPILOGUE = 2;
+  public static final int NATIVE_PROLOGUE = 3;
+  public static final int NATIVE_EPILOGUE = 4;
+  public static final int OSROPT  = 5;
   
   /* Set by exception handler. */
   public boolean dyingWithUncaughtException = false;
@@ -1302,7 +1302,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /** Biggest buffer you would possibly need for {@link #dump(char[], int)}
    *  Modify this if you modify that method.   
    */
-  final static public int MAX_DUMP_LEN = 
+  public static final int MAX_DUMP_LEN =
     10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
 
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */

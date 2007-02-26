@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 @Uninterruptible class Deque implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

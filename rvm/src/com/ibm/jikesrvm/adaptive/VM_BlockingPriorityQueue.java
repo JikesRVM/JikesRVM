@@ -54,7 +54,7 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    * @param _priority  the priority to 
    * @param _data the object to insert
    */
-  synchronized final public void insert(double _priority, Object _data) { 
+  public final synchronized void insert(double _priority, Object _data) {
     super.insert(_priority, _data);
     try {
       notifyAll();
@@ -70,7 +70,7 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    *
    * @return the front (minimum) object.
    */
-  synchronized final public Object deleteMin() {
+  public final synchronized Object deleteMin() {
     // While the queue is empty, sleep until notified that an object has been enqueued.
     while (isEmpty()) {
       try {

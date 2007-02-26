@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.Offset;
  */
 class VM_DynamicCallGraphOrganizer extends VM_Organizer {
 
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /*
    * buffer provides the communication channel between the edge listener

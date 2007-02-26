@@ -31,12 +31,12 @@ public final class ScanStatics implements Constants {
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
    * 64bit addresses =2)
    */
-  private final static int refSlotSize = VM_Statics.getReferenceSlotSize();
+  private static final int refSlotSize = VM_Statics.getReferenceSlotSize();
   /**
    * Mask used when calculating the chunkSize to ensure chunks are
    * 64bit aligned on 64bit architectures
    */
-  private final static int chunkSizeMask = 0xFFFFFFFF - (refSlotSize - 1);
+  private static final int chunkSizeMask = 0xFFFFFFFF - (refSlotSize - 1);
   /**
    * Scan static variables (JTOC) for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the

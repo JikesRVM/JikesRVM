@@ -19,13 +19,13 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  * @author Stephen Fink
  */
 public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
-  final private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /**
    * Arrays shorter than this length are candidates to be replaced by
    * scalar values.
    */
-  public final static int SHORT_ARRAY_SIZE = 5;
+  public static final int SHORT_ARRAY_SIZE = 5;
 
   /** 
    * Return an object representing this transformation for a given

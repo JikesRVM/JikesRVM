@@ -14,7 +14,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
-final public class WordArray {
+public final class WordArray {
 
   public static WordArray create(int size) {
     return null;

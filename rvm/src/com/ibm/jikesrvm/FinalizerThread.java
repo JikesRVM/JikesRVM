@@ -29,7 +29,7 @@ import com.ibm.jikesrvm.classloader.VM_Method;
  */
 public class FinalizerThread extends VM_Thread {
 
-   private final static int verbose = 0; // currently goes up to 2
+   private static final int verbose = 0; // currently goes up to 2
 
   private final Object[]  none = new Object[0];
   

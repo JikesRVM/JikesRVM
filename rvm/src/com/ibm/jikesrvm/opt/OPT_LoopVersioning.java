@@ -230,11 +230,11 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   /**
    * The phi instruction operand holding the optimized loop variable
    */
-  private final static int OPTIMIZED_LOOP_OPERAND = 0;
+  private static final int OPTIMIZED_LOOP_OPERAND = 0;
   /**
    * The phi instruction operand holding the unoptimized loop variable
    */
-  private final static int UNOPTIMIZED_LOOP_OPERAND = 1;
+  private static final int UNOPTIMIZED_LOOP_OPERAND = 1;
 
 
   /**
@@ -287,7 +287,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    *
    * @param _ir the IR to process
    */
-  final public void perform(OPT_IR _ir) {
+  public final void perform(OPT_IR _ir) {
     ir = _ir;
 
     // Create SSA

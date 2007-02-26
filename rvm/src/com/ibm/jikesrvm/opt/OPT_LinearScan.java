@@ -48,25 +48,25 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Mark FMOVs that end a live range?
    */
-  private final static boolean MUTATE_FMOV = VM.BuildForIA32;
+  private static final boolean MUTATE_FMOV = VM.BuildForIA32;
 
   /**
    * Attempt to coalesce to eliminate register moves?
    */
-  final static boolean COALESCE_MOVES = true;
+  static final boolean COALESCE_MOVES = true;
 
   /**
    * Attempt to coalesce stack locations?
    */
-  private final static boolean COALESCE_SPILLS = true;
+  private static final boolean COALESCE_SPILLS = true;
 
   /**
    * debug flags
    */
-  private final static boolean debug = false;
-  private final static boolean verboseDebug = false;
-  private final static boolean gcdebug = false;
-  private final static boolean debugCoalesce = false;
+  private static final boolean debug = false;
+  private static final boolean verboseDebug = false;
+  private static final boolean gcdebug = false;
+  private static final boolean debugCoalesce = false;
 
   /**
    * Register allocation is required
@@ -166,7 +166,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   }
 
 
-  public final static class LinearScanState {
+  public static final class LinearScanState {
     /**
      * The live interval information, a set of Basic Intervals 
      * sorted by increasing start point
@@ -188,7 +188,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * A phase to compute register restrictions.
    */
-  final static class RegisterRestrictions extends OPT_CompilerPhase {
+  static final class RegisterRestrictions extends OPT_CompilerPhase {
 
     /**
      * Return this instance of this phase. This phase contains no
@@ -225,7 +225,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-  final static class LinearScan extends OPT_CompilerPhase implements
+  static final class LinearScan extends OPT_CompilerPhase implements
     OPT_PhysicalRegisterConstants, OPT_Operators {
 
       /**
@@ -908,7 +908,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    * This version is maintained sorted in order of increasing
    * live interval end point.
    */
-  final static class ActiveSet extends IncreasingEndMappedIntervalSet {
+  static final class ActiveSet extends IncreasingEndMappedIntervalSet {
     /** Support for Set serialization */
     static final long serialVersionUID = 2570397490575294294L;
     /**
@@ -1697,7 +1697,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * phase to compute linear scan intervals.
    */
-  final static class IntervalAnalysis extends OPT_CompilerPhase implements
+  static final class IntervalAnalysis extends OPT_CompilerPhase implements
   OPT_Operators {
     /**
      * the governing ir
@@ -2251,7 +2251,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-  static abstract class IntervalSet extends TreeSet<BasicInterval> {
+  abstract static class IntervalSet extends TreeSet<BasicInterval> {
 
     /**
      * Create an interval set sorted by increasing start or end number
@@ -2276,7 +2276,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    * Update GC maps after register allocation but before inserting spill
    * code.
    */
-  final static class UpdateGCMaps1 extends OPT_CompilerPhase {
+  static final class UpdateGCMaps1 extends OPT_CompilerPhase {
 
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
@@ -2340,7 +2340,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Update GC Maps again, to account for changes induced by spill code.
    */
-  final static class UpdateGCMaps2 extends OPT_CompilerPhase {
+  static final class UpdateGCMaps2 extends OPT_CompilerPhase {
     /**
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
@@ -2450,7 +2450,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Insert Spill Code after register assignment.
    */
-  final static class SpillCode extends OPT_CompilerPhase implements
+  static final class SpillCode extends OPT_CompilerPhase implements
     OPT_Operators{
     /**
      * Return this instance of this phase. This phase contains no
@@ -2496,7 +2496,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  allocated physical register.
      *  Also used by ClassWriter
      */
-    static public void replaceSymbolicRegisters(OPT_IR ir) {
+    public static void replaceSymbolicRegisters(OPT_IR ir) {
       for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
            inst.hasMoreElements();) {
         OPT_Instruction s = inst.next();
@@ -2522,7 +2522,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    * Update GC maps after register allocation but before inserting spill
    * code.
    */
-  final static class UpdateOSRMaps extends OPT_CompilerPhase {
+  static final class UpdateOSRMaps extends OPT_CompilerPhase {
 
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
@@ -2684,14 +2684,14 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
     } // end of setRealPosition
 
-    final static void setTupleValue(OSR_LocalRegPair tuple,
+    static final void setTupleValue(OSR_LocalRegPair tuple,
                                     int type,
                                     int value) {
       tuple.valueType = type;
       tuple.value     = Word.fromIntSignExtend(value);
     } // end of setTupleValue
 
-    final static void setTupleValue(OSR_LocalRegPair tuple,
+    static final void setTupleValue(OSR_LocalRegPair tuple,
                                     int type,
                                     Word value) {
       tuple.valueType = type;

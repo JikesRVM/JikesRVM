@@ -56,7 +56,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    */
   private final int round;
 
-  final static class LoadEliminator extends OPT_CompilerPhase {
+  static final class LoadEliminator extends OPT_CompilerPhase {
     public final String getName() {
       return  "Load Eliminator";
     }
@@ -76,7 +76,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
 
       if (ir.desiredSSAOptions.getAbort()) return;
 
@@ -98,7 +98,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    *
    * @return true if any load is eliminated.
    */
-  final static boolean eliminateLoads(OPT_IR ir, OPT_DF_Solution available) {
+  static final boolean eliminateLoads(OPT_IR ir, OPT_DF_Solution available) {
     // maintain a mapping from value number to temporary register
     HashMap<UseRecord,OPT_Register> registers = new HashMap<UseRecord,OPT_Register>();
     UseRecordSet UseRepSet = replaceLoads(ir, available, registers);
@@ -118,7 +118,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
    */
-  final static UseRecordSet replaceLoads(OPT_IR ir, OPT_DF_Solution available, 
+  static final UseRecordSet replaceLoads(OPT_IR ir, OPT_DF_Solution available,
                                          HashMap<UseRecord,OPT_Register> registers) {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
@@ -206,7 +206,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param UseRepSet stores the uses(loads) that have been eliminated
    * @param registers mapping from valueNumber -> temporary register
    */
-  final static void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet, 
+  static final void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet,
                                  HashMap<UseRecord,OPT_Register> registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
@@ -351,7 +351,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     final Object type;        // may be either a VM_TypeReference or a VM_Field
     final int v1;             // first value number (object pointer)
     final int v2;             // second value number (array index)
-    final static int NONE = -2;
+    static final int NONE = -2;
 
     UseRecord(Object type, int valueNumber) {
       this.type = type;
@@ -375,7 +375,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-  final static class UseRecordSet {
+  static final class UseRecordSet {
     final HashSet<UseRecord> set = new HashSet<UseRecord>(10);
 
     // Does this set contain a use that has the same type as H and
@@ -413,7 +413,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param key a key into the map
    * @return the set map(key).  create one if none exists.
    */
-  private final static <T> HashSet<T> findOrCreateIndexSet(HashMap<Object,HashSet<T>> map,
+  private static final <T> HashSet<T> findOrCreateIndexSet(HashMap<Object,HashSet<T>> map,
                                                                          Object key) {
     HashSet<T> result = map.get(key);
     if (result == null) {
@@ -434,7 +434,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * narrowest common ancestor is Object.
    */
   @SuppressWarnings("unchecked")
-  final public static HashSet<Object> getCandidates(OPT_IR ir) {
+  public static final HashSet<Object> getCandidates(OPT_IR ir) {
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
     // which types have we seen loads for?
     HashSet<Object> seenLoad = new HashSet<Object>(10);
@@ -643,7 +643,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 
     private final int round;
 
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination
       ir.desiredSSAOptions = new OPT_SSAOptions();
@@ -691,7 +691,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
       return constructor;
     }
 
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination
       ir.desiredSSAOptions = new OPT_SSAOptions();

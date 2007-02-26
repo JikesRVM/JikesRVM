@@ -41,7 +41,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param countersNeeded The number of counters being requested 
    * @return The handle for this data's counter space.
    **/
-  synchronized public int registerCounterSpace(int countersNeeded) {
+  public synchronized int registerCounterSpace(int countersNeeded) {
     if (counterArrays.length == numCounterArrays) {
       expandCounterArrays();
     }
@@ -64,7 +64,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param handle  The handle describing which the data to be resized
    * @param countersNeeded The number of counters being requested 
    **/
-  synchronized public void resizeCounterSpace(int handle, int countersNeeded) {
+  public synchronized void resizeCounterSpace(int handle, int countersNeeded) {
     // allocate the new array
     double[] temp = new double[countersNeeded];
     

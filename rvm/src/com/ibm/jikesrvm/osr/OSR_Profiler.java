@@ -51,7 +51,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
   }
 
   // invalidate an execution state    
-  private synchronized static void invalidateState(OSR_ExecutionState state) {
+  private static synchronized void invalidateState(OSR_ExecutionState state) {
         // step 1: invalidate the compiled method with this OSR assumption
     //         how does this affect the performance?
     VM_CompiledMethod mostRecentlyCompiledMethod = 

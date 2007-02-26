@@ -34,14 +34,14 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Constants
    */
-  final public static byte UNMAPPED = 0;
-  final public static byte MAPPED = 1;
-  final public static byte PROTECTED = 2; // mapped but not accessible
-  final public static int LOG_MMAP_CHUNK_BYTES = 20;
-  final public static int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
+  public static final byte UNMAPPED = 0;
+  public static final byte MAPPED = 1;
+  public static final byte PROTECTED = 2; // mapped but not accessible
+  public static final int LOG_MMAP_CHUNK_BYTES = 20;
+  public static final int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
   //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
-  private final static int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
-  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES);
+  private static final int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
+  private static final int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES);
   public static final boolean verbose = false;
 
   /****************************************************************************

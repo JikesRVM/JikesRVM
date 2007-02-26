@@ -105,7 +105,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * perform the phase
      * @param ir
      */
-    final public void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       boolean dont = false;
       //VM.sysWrite("> " + ir.method + "\n");
       
@@ -174,7 +174,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * perform the phase
      * @param ir
      */
-    final public void perform (OPT_IR ir) {
+    public final void perform (OPT_IR ir) {
       ir.options.SSA = true;
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves

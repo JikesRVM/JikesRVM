@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.*;
  * @author Kris Venstermans
  */
 public class BC_LoadWordConst extends OSR_PseudoBytecode {
-  private final static int bsize = 2+BYTES_IN_ADDRESS;
+  private static final int bsize = 2+BYTES_IN_ADDRESS;
   private final Word wbits;
   
   public BC_LoadWordConst(Word bits) {

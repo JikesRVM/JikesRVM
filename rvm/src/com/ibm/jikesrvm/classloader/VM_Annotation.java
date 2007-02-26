@@ -360,7 +360,7 @@ public final class VM_Annotation {
   /**
    * The superclass for all annotation instances
    */
-  static abstract class BaseAnnotation implements Annotation {
+  abstract static class BaseAnnotation implements Annotation {
     /**
      * The VM_Annotation that this annotation is an instance of
      */

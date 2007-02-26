@@ -37,7 +37,7 @@ public class OPT_LoopAnalysis extends OPT_CompilerPhase {
 	* The main entry point
 	* @param ir the IR to process
 	*/
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
 	 if (!ir.hasReachableExceptionHandlers()) {
 		// Build LST tree and dominator info
 		new OPT_DominatorsPhase(false).perform(ir);

@@ -47,7 +47,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
   /**
    * Allow scratch registers in PEIs?
    */
-  public final static boolean SCRATCH_IN_PEI = true;
+  public static final boolean SCRATCH_IN_PEI = true;
 
   /**
    * Default Constructor

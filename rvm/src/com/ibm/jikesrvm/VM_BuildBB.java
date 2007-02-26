@@ -27,9 +27,9 @@ public final class VM_BuildBB
   // ---------------- Static Class Fields --------------------
 
   // Types of Instructions 
-  static private final byte NONBRANCH = 1;
-  static private final byte CONDITIONAL_BRANCH = 2;
-  static private final byte BRANCH = 3;  
+  private static final byte NONBRANCH = 1;
+  private static final byte CONDITIONAL_BRANCH = 2;
+  private static final byte BRANCH = 3;
 
   //***************************************************************************//
   //                                                                           //

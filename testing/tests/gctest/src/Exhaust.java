@@ -17,11 +17,11 @@ import org.vmmagic.pragma.*;
  */
 class Exhaust {
 
-  final private static PrintStream o = System.out;
+  private static final PrintStream o = System.out;
 
   static Object [] first;
   static Object [] last;
-  final static int itemSize = 64;
+  static final int itemSize = 64;
   static double growthFactor = 10.0;
   static int rounds = 5;
   static long tot = 0;          // total # allocated

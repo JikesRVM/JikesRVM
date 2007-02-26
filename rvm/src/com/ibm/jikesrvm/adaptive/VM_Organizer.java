@@ -70,7 +70,7 @@ abstract class VM_Organizer extends VM_Thread {
    * Organizer specific setup.  
    * A good place to install and activate any listeners.
    */
-  abstract protected void initialize();
+  protected abstract void initialize();
 
   /*
    * Can access the thread queue without locking because 

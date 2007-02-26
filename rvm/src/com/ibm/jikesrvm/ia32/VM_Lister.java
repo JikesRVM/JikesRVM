@@ -309,11 +309,11 @@ public class VM_Lister implements VM_Constants {
     lockPrefix = false;
   }
 
-  private final static boolean isFP(String op) {
+  private static final boolean isFP(String op) {
     return op.startsWith("F");
   }
 
-  private final static String left (String s, int w) {
+  private static final String left (String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(0,w);
     for (int i=n; i<w; i++) {
@@ -322,7 +322,7 @@ public class VM_Lister implements VM_Constants {
     return s; 
   }
 
-  private final static String right (String s, int w) {
+  private static final String right (String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(n-w);
     for (int i=n; i<w; i++) {
@@ -331,11 +331,11 @@ public class VM_Lister implements VM_Constants {
     return s; 
   }
 
-  private final static String decimal (Offset o) {
+  private static final String decimal (Offset o) {
     return decimal(o.toInt());
   }
 
-  final static String decimal (int n) {
+  static final String decimal (int n) {
     if (n==0) return "0";
     String sign = "";
     if (n<0) {
@@ -360,23 +360,23 @@ public class VM_Lister implements VM_Constants {
     return (sign + result);
   }
 
-  private final static String decimal (short s) {
+  private static final String decimal (short s) {
     return decimal((int) s);
   }
 
-  final static String hex (Offset i) {
+  static final String hex (Offset i) {
     return (hex((short) (i.toInt()>>16)) + hex((short) i.toInt()));
   }
 
-  public final static String hex (int i) {
+  public static final String hex (int i) {
     return (hex((short) (i>>16)) + hex((short) i));
   }
 
-  final static String hex (short i) {
+  static final String hex (short i) {
     return (hex((byte) (i>>8)) + hex((byte) i));
   }
 
-  final static String hex (byte b) {
+  static final String hex (byte b) {
     int  i = b & 0xFF;
     byte j = (byte) (i/0x10);
     String s;

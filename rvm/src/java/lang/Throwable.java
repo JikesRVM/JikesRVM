@@ -202,7 +202,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   /** How deep can we go? */
-  final static private int maxDepth = 7;
+  private static final int maxDepth = 7;
   
   public static synchronized int getMaxDepth() {
     return maxDepth;

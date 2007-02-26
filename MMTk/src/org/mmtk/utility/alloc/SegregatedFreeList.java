@@ -526,9 +526,9 @@ import org.vmmagic.unboxed.*;
    * 
    */
 
-  abstract protected boolean maintainSideBitmap();
-  abstract protected boolean preserveFreeList();
-  abstract protected Address advanceToBlock(Address block, int sizeClass);
+  protected abstract boolean maintainSideBitmap();
+  protected abstract boolean preserveFreeList();
+  protected abstract Address advanceToBlock(Address block, int sizeClass);
   
   /**
    * Should the sweep reclaim the cell containing this object. Is this object

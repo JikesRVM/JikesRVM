@@ -43,13 +43,13 @@ public final class OPT_SSADictionary {
   /**
    * Flag to turn on debugging
    */
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /**
    * The object for the heap variable that is used for modelling
    * explicit exception dependencies
    */
-  final static String exceptionState = "X-State";
+  static final String exceptionState = "X-State";
   
   /**
    * A mapping from <code> OPT_Instruction </code> to the set of heap

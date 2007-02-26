@@ -132,7 +132,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param phase The phase to be printed
    */
-  final protected void printCount(int phase) {
+  protected final void printCount(int phase) {
     if (VM.VERIFY_ASSERTIONS && mergePhases())
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
     if (mergePhases())
@@ -144,7 +144,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current total number of 'true' phases for this counter
    */
-  final protected void printTotal() {
+  protected final void printTotal() {
     int total = 0;
     for (int p = 0; p <= Stats.phase; p++) {
       total += (state[p]) ? 1 : 0;
@@ -159,7 +159,7 @@ import org.vmmagic.pragma.*;
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
-  final protected void printTotal(boolean mutator) {
+  protected final void printTotal(boolean mutator) {
     int total = 0;
     for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
       total += (state[p]) ? 1 : 0;
@@ -174,7 +174,7 @@ import org.vmmagic.pragma.*;
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
-  final protected void printMin(boolean mutator) {}
+  protected final void printMin(boolean mutator) {}
 
   /**
    * Print the current maximum value for either the mutator or GC
@@ -183,7 +183,7 @@ import org.vmmagic.pragma.*;
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
-  final protected void printMax(boolean mutator) {}
+  protected final void printMax(boolean mutator) {}
 
   /**
    * Print the given value

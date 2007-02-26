@@ -25,7 +25,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  */
 class OPT_LICM extends OPT_CompilerPhase {
   /** Generate debug output? */
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
   /** Generate verbose debug output? */
   private static boolean verbose = false;
 

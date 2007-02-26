@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible public class OSR_ObjectHolder implements VM_SizeConstants {
 
   // initialize pool size
-  private final static int POOLSIZE = 8;
+  private static final int POOLSIZE = 8;
 
   private static Object[][] refs; 
 
@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.Offset;
    * The VM scope descriptor extractor can hand in an object here
    */
   @Interruptible
-  public final static int handinRefs(Object[] objs) { 
+  public static final int handinRefs(Object[] objs) {
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {
@@ -66,9 +66,9 @@ import org.vmmagic.unboxed.Offset;
 
   /**
    * Get the object handed in before, only called by specialized code.
-   */ 
+   */
   @Inline
-  public final static Object getRefAt(int h, int i) { 
+  public static final Object getRefAt(int h, int i) {
         
         if (VM.TraceOnStackReplacement) {
           VM.sysWriteln("OSR_ObjectHolder getRefAt");
@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.Offset;
    * Uses magic because it must be uninterruptible
    */
   @Inline
-  public final static void cleanRefs(int i) { 
+  public static final void cleanRefs(int i) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }

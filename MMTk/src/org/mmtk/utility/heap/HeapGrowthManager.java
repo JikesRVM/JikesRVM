@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.*;
   private static Extent currentHeapSize;
 
 
-  private final static double[][] generationalFunction =    {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
+  private static final double[][] generationalFunction =    {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
       { 0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
       { 0.01, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
       { 0.02, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00 },
@@ -53,7 +53,7 @@ import org.vmmagic.unboxed.*;
       { 0.40, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 },
       { 1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 } };
 
-  private final static double[][] nongenerationalFunction = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
+  private static final double[][] nongenerationalFunction = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
       { 0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
       { 0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
       { 0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00 },

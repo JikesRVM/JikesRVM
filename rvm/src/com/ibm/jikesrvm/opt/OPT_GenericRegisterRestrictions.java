@@ -84,7 +84,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  final private void processBlock(OPT_BasicBlock bb) {
+  private final void processBlock(OPT_BasicBlock bb) {
     ArrayList<OPT_LiveIntervalElement> symbolic =
       new ArrayList<OPT_LiveIntervalElement>(20);
     ArrayList<OPT_LiveIntervalElement> physical =
@@ -165,7 +165,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  final protected boolean contains(OPT_LiveIntervalElement R, int n) {
+  protected final boolean contains(OPT_LiveIntervalElement R, int n) {
     int begin = -1;
     int end = Integer.MAX_VALUE;
     if (R.getBegin() != null) {

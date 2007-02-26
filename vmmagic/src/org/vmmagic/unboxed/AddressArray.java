@@ -14,7 +14,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
-final public class AddressArray {
+public final class AddressArray {
 
   public static AddressArray create(int size) {
     return null;

@@ -25,7 +25,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-@Uninterruptible final public class SortTODSharedDeque extends SortSharedDeque {
+@Uninterruptible
+public final class SortTODSharedDeque extends SortSharedDeque {
 
   /**
    * Constructor

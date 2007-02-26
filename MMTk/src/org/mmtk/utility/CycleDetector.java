@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 @Uninterruptible abstract class CycleDetector {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   static {
     Options.cycleFilterThreshold = new CycleFilterThreshold();

@@ -66,7 +66,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
     /**
      * Execute expression folding. 
      */
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       OPT_DefUse.computeDU(ir);
       OPT_ExpressionFolding.perform(ir);
     }
@@ -113,7 +113,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * optimizations
      */
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       ir.desiredSSAOptions = new OPT_SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);
       ir.desiredSSAOptions.setBackwards(false);

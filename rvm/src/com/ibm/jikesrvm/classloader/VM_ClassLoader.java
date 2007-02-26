@@ -25,7 +25,7 @@ import java.io.*;
 public class VM_ClassLoader implements VM_Constants, 
                                        VM_ClassLoaderConstants {
 
-  final private static boolean DBG_APP_CL = false;
+  private static final boolean DBG_APP_CL = false;
   
   private static ClassLoader appCL;
 

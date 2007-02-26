@@ -96,7 +96,7 @@ import org.vmmagic.pragma.*;
  * 
  */
 @Uninterruptible abstract class BaseGenericFreeList implements Constants {
-   public final static String Id = "$Id$";
+   public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

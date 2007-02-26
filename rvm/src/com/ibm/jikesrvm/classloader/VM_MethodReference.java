@@ -188,7 +188,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
 
-  final static boolean DBG = false;
+  static final boolean DBG = false;
   
   /**
    * Return true iff this member reference refers to a method which

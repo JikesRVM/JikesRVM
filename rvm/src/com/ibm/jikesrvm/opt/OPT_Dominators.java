@@ -439,7 +439,7 @@ class OPT_DominatorOperator extends OPT_DF_Operator {
   /**
    * A singleton instance of this class.
    */
-  final static OPT_DominatorOperator MEET = new OPT_DominatorOperator();
+  static final OPT_DominatorOperator MEET = new OPT_DominatorOperator();
 }
 
 

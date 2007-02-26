@@ -184,7 +184,7 @@ import org.vmmagic.unboxed.*;
    * array of Objects.
    */
   @LogicallyUninterruptible
-  public final static ObjectReference get() { 
+  public static final ObjectReference get() {
 
     if (liveStart == liveEnd) return ObjectReference.nullReference();
 
@@ -198,7 +198,7 @@ import org.vmmagic.unboxed.*;
    * Move all finalizable objects to the to-be-finalized queue
    * Called on shutdown.  Caller must also scheduler the finalizer thread.
    */
-  public final static void finalizeAll() {
+  public static final void finalizeAll() {
 
     int cursor = 0;
     while (cursor < candidateEnd) {
@@ -213,7 +213,7 @@ import org.vmmagic.unboxed.*;
   }
 
 
-  public final static void kill() {
+  public static final void kill() {
     candidateEnd = 0;
   }
 
@@ -224,7 +224,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param trace The trace instance to use.
    */
-  public final static int moveToFinalizable(TraceLocal trace) {
+  public static final int moveToFinalizable(TraceLocal trace) {
     int cursor = 0;
     int newFinalizeCount = 0;
 
@@ -252,7 +252,7 @@ import org.vmmagic.unboxed.*;
    * @param trace The trace object to use for forwarding.
    */
   @Inline
-  public final static void forward(TraceLocal trace) { 
+  public static final void forward(TraceLocal trace) {
     int cursor = 0;
 
     while (cursor < candidateEnd) {

@@ -209,7 +209,7 @@ public class VM_CompilerAdviceAttribute {
     return attribMap.values();
   }
 
-  final public static boolean hasAdvice() {
+  public static final boolean hasAdvice() {
     return hasAdvice;
   }
   

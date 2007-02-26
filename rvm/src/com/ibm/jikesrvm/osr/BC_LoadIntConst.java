@@ -15,7 +15,7 @@ package com.ibm.jikesrvm.osr;
  * @author Feng Qian
  */
 public class BC_LoadIntConst extends OSR_PseudoBytecode {
-  private final static int bsize = 6;
+  private static final int bsize = 6;
   private final int ibits;
   
   public BC_LoadIntConst(int bits) {

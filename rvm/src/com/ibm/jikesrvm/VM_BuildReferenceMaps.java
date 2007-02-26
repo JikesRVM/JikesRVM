@@ -35,8 +35,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   static final byte SET_TO_REFERENCE = 1;
   static final byte SET_TO_NONREFERENCE = 3;
 
-  static final private byte ONEWORD    = 1;
-  static final private byte DOUBLEWORD = 2;
+  private static final byte ONEWORD    = 1;
+  private static final byte DOUBLEWORD = 2;
 
   private static final boolean debug = false;
 

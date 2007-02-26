@@ -17,19 +17,19 @@ public class TestClassHierarchy {
 
   public interface Magic { void magic(); }
 
-  static protected class A implements Magic {
+  protected static class A implements Magic {
     public void magic() { System.out.print("A"); }
   }
 
-  static protected class B extends A {
+  protected static class B extends A {
     public void magic() { System.out.print("B"); }
   }
 
-  static protected class C extends B {
+  protected static class C extends B {
     public void magic() { System.out.print("C"); }
   }
 
-  static protected class D extends A {
+  protected static class D extends A {
     public void magic() { System.out.print("D"); }
   }
 

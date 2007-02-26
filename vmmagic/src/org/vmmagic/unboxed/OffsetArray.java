@@ -14,7 +14,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
-final public class OffsetArray {
+public final class OffsetArray {
 
   public static OffsetArray create(int size) {
     return null;

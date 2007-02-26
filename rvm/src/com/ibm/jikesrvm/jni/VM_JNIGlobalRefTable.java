@@ -26,8 +26,8 @@ import org.vmmagic.unboxed.*;
  */
 class VM_JNIGlobalRefTable {
 
-  static private Object[] refs = new Object[ 100 ];
-  static private int free = 1;
+  private static Object[] refs = new Object[ 100 ];
+  private static int free = 1;
 
   static int newGlobalRef(Object referent) {
     if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef(ObjectReference.fromObject(referent)));

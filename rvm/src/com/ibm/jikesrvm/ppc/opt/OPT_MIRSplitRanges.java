@@ -45,7 +45,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase {
    * 
    * @param ir the governing IR
    */
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
   }
 }
 

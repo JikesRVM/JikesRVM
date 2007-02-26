@@ -76,7 +76,7 @@ import org.vmmagic.pragma.*;
    * @return The current value for this timer
    */
   @Inline
-  final protected long getCurrentValue() { 
+  protected final long getCurrentValue() {
     return VM.statistics.cycles();
   }
 

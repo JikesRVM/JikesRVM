@@ -7,19 +7,19 @@ import test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy;
  */
 public class SubClassInDifferentPackage extends TestClassHierarchy {
 
-  static public class P_B extends A {
+  public static class P_B extends A {
     public void magic() { System.out.print("P_B"); }
   }
 
-  static public class P_C1 extends B {
+  public static class P_C1 extends B {
     public void magic() { System.out.print("P_C1"); }
   }
 
-  static public class P_C2 extends P_B {
+  public static class P_C2 extends P_B {
     public void magic() { System.out.print("P_C2"); }
   }
 
-  static public class P_D extends A {
+  public static class P_D extends A {
     public void magic() { System.out.print("P_D"); }
   }
 

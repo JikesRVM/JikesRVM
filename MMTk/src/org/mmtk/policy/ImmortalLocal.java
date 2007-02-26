@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 @Uninterruptible public final class ImmortalLocal extends BumpPointer {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /**
    * Constructor

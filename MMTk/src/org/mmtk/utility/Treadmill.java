@@ -104,24 +104,24 @@ import org.vmmagic.pragma.*;
    * 
    * Misc header manipulation
    */
-  
+
   @Inline
-  static public final int headerSize() { 
+  public static final int headerSize() {
     return DoublyLinkedList.headerSize();
   }
 
   @Inline
-  static public final Address nodeToPayload(Address payload) { 
+  public static final Address nodeToPayload(Address payload) {
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
   @Inline
-  static public final Address payloadToNode(Address payload) { 
+  public static final Address payloadToNode(Address payload) {
     return DoublyLinkedList.payloadToNode(payload);
   }
 
   @Inline
-  static public final Address midPayloadToNode(Address payload) { 
+  public static final Address midPayloadToNode(Address payload) {
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 

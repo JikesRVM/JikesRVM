@@ -23,7 +23,7 @@ import com.ibm.jikesrvm.classloader.*;
 
 public class BC_InvokeStatic extends OSR_PseudoBytecode {
 
-  private final static int bsize = 6;   
+  private static final int bsize = 6;
   private final int tid;  // target INDEX
 
   public BC_InvokeStatic(int targetId) {

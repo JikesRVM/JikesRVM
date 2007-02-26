@@ -30,15 +30,15 @@ public final class OPT_GlobalValueNumberState {
   /**
    * Constant used to flag "unknown" value numbers
    */
-  final public static int UNKNOWN = -1;
+  public static final int UNKNOWN = -1;
   /**
    * Print verbose debugging output?
    */
-  final private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
   /**
    * Assume parameters are not aliased?
    */
-  final private static boolean NO_PARAM_ALIAS = false;
+  private static final boolean NO_PARAM_ALIAS = false;
 
   /**
    * ArrayList of OPT_GVCongruenceClass, indexed by value number.

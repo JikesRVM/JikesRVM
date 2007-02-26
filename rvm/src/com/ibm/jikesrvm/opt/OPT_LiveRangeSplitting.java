@@ -388,7 +388,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * renaming
      */
-    final public void perform(OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       ir.desiredSSAOptions = new OPT_SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);
       ir.desiredSSAOptions.setBackwards(false);

@@ -68,7 +68,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    *
    * @param ir the governing IR
    */
-  final public void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
 
     java.util.HashMap<OPT_Register, OPT_Register> newMap = 
       new java.util.HashMap<OPT_Register, OPT_Register>(5);

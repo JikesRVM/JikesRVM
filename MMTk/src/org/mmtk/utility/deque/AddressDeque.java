@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class AddressDeque extends LocalDeque 
   implements Constants {
-   public final static String Id = "$Id$"; 
+   public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

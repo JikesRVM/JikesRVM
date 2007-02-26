@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
 
   private byte[] referenceMaps;
   private int MCSites[];
-  final private int bitsPerMap;   // number of bits in each map
+  private final int bitsPerMap;   // number of bits in each map
   private int mapCount;
 //  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private VM_JSRInfo jsrInfo;

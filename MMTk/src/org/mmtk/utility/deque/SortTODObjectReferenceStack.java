@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque 
   implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

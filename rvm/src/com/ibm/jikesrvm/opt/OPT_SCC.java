@@ -69,7 +69,7 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
       }
     };
   }
-  private final static long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 }
 
 

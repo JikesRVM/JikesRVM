@@ -142,28 +142,28 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    */
   private int scratch;
 
-  static private final int PARAMETER    = 0x01000000; // the register operand is for a parameter
-  static private final int NON_VOLATILE = 0x02000000;
+  private static final int PARAMETER    = 0x01000000; // the register operand is for a parameter
+  private static final int NON_VOLATILE = 0x02000000;
 
-  static private final int EXTANT        = 0x04000000; // is this an extant object?
+  private static final int EXTANT        = 0x04000000; // is this an extant object?
   @SuppressWarnings("unused")  // here as doco
   static private final int UNUSED_BIT2   = 0x08000000; 
   // type of a RegisterOperand can be in one of three states:
   // a- declared: the type obtained from a getfield,getstatic,putfield,putstatic,array load
   // b- precise:  obtained from a NEW.
   // c- computed: (default) computed from propagating types.
-  static private final int DECLARED_TYPE= 0x10000000;
-  static private final int PRECISE_TYPE = 0x20000000;
+  private static final int DECLARED_TYPE= 0x10000000;
+  private static final int PRECISE_TYPE = 0x20000000;
   // the following applies only to integer-like types:
-  static private final int POSITIVE     = 0x40000000;
+  private static final int POSITIVE     = 0x40000000;
 
-  static private final int FLAGS_MASK   = EXTANT | DECLARED_TYPE | PRECISE_TYPE | POSITIVE;
+  private static final int FLAGS_MASK   = EXTANT | DECLARED_TYPE | PRECISE_TYPE | POSITIVE;
 
   // the following is used to represent ranges of registers in a register operand
-  static private final int RANGE_MASK   = 0x00ff0000;
+  private static final int RANGE_MASK   = 0x00ff0000;
 
   // the following available for analysis-specific extra information 
-  static private final int INFO_MASK    = 0x0000ffff;
+  private static final int INFO_MASK    = 0x0000ffff;
 
   public boolean isParameter()       {   return (scratch & PARAMETER    ) != 0; }
   public boolean isNonVolatile()     {   return (scratch & NON_VOLATILE ) != 0; }
@@ -247,13 +247,13 @@ public final class OPT_RegisterOperand extends OPT_Operand {
      state there? */
   private int scratch2;
 
-  static private final int TAKEN     = 0x00000001; // guard operand that
+  private static final int TAKEN     = 0x00000001; // guard operand that
                                             // represents a taken branch
-  static private final int NOT_TAKEN = 0x00000002; // guard operand that
+                                            private static final int NOT_TAKEN = 0x00000002; // guard operand that
                                         // represents a not taken branch
-  static private final int BOUNDS_CHECK = 0x00000004; // guard operand that
+                                        private static final int BOUNDS_CHECK = 0x00000004; // guard operand that
                                         // originates from a bounds-check
-  static private final int NULL_CHECK = 0x00000008; // guard operand that
+                                        private static final int NULL_CHECK = 0x00000008; // guard operand that
                                         // originates from a null-check
   public boolean isTaken()              {   return (scratch2 & TAKEN) != 0; }
   public boolean isNotTaken()           {   return (scratch2 & NOT_TAKEN) != 0; }

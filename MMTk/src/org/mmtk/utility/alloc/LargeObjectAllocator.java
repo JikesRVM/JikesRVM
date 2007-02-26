@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 @Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 
@@ -83,7 +83,7 @@ import org.vmmagic.pragma.*;
     return alignAllocation(cell, align, offset);
   }
 
-  abstract protected void postAlloc(Address cell);
+  protected abstract void postAlloc(Address cell);
 
   /**
    * Allocate a large object.  Large objects are directly allocted and
@@ -98,7 +98,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  final protected Address allocSlowOnce(int bytes, int align, int offset,
+  protected final Address allocSlowOnce(int bytes, int align, int offset,
       boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
@@ -132,8 +132,8 @@ import org.vmmagic.pragma.*;
    * Superpages
    */
 
-  abstract protected int superPageHeaderSize();
-  abstract protected int cellHeaderSize();
+  protected abstract int superPageHeaderSize();
+  protected abstract int cellHeaderSize();
 
   /**
    * Return the superpage for a given cell.  If the cell is a small

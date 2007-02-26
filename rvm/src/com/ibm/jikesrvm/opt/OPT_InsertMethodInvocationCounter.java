@@ -49,7 +49,7 @@ class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
    * 
    * @param ir the governing IR
    */
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     // Don't insert counters in uninterruptible or
     // save volatile methods, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||

@@ -92,7 +92,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
 
   // follows a chain of moves to determine the initial register
-  protected final static OPT_Operand follow (OPT_Operand use) {
+  protected static final OPT_Operand follow (OPT_Operand use) {
     while (true) {
       if (!(use instanceof OPT_RegisterOperand)) return use;
       OPT_RegisterOperand rop = (OPT_RegisterOperand) use;

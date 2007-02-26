@@ -37,39 +37,39 @@ public final class OPT_Register {
    */
   private int flags;
 
-  static private final int LOCAL            = 0x00001;  /* local variable */
-  static private final int SPAN_BASIC_BLOCK = 0x00002;  /* live on a basic block boundary */
-  static private final int SSA              = 0x00004;  /* only one assignment to this register */
-  static private final int SEEN_USE         = 0x00008;  /* seen use */
-  static private final int PHYSICAL         = 0x00010;  /* physical (real) register - not symbolic */
+  private static final int LOCAL            = 0x00001;  /* local variable */
+  private static final int SPAN_BASIC_BLOCK = 0x00002;  /* live on a basic block boundary */
+  private static final int SSA              = 0x00004;  /* only one assignment to this register */
+  private static final int SEEN_USE         = 0x00008;  /* seen use */
+  private static final int PHYSICAL         = 0x00010;  /* physical (real) register - not symbolic */
 
   /*  register type  for both physical and symbolic */
-  static private final int TYPE_SHIFT       = 6;        /* # bits to shift */
-  static private final int ADDRESS          = 0x00040;  /* address */
-  static private final int INTEGER          = 0x00080;  /* integer */
-  static private final int FLOAT            = 0x00100;  /* floating-point single precision */
-  static private final int DOUBLE           = 0x00200;  /* floating-point double precision */
-  static private final int CONDITION        = 0x00400;  /* condition: PPC,x86*/
-  static private final int LONG             = 0x00800;  /* long (two ints)*/
-  static private final int VALIDATION       = 0x01000;  /* validation pseudo-register */
+  private static final int TYPE_SHIFT       = 6;        /* # bits to shift */
+  private static final int ADDRESS          = 0x00040;  /* address */
+  private static final int INTEGER          = 0x00080;  /* integer */
+  private static final int FLOAT            = 0x00100;  /* floating-point single precision */
+  private static final int DOUBLE           = 0x00200;  /* floating-point double precision */
+  private static final int CONDITION        = 0x00400;  /* condition: PPC,x86*/
+  private static final int LONG             = 0x00800;  /* long (two ints)*/
+  private static final int VALIDATION       = 0x01000;  /* validation pseudo-register */
 
 
   /* this for physical register only */
-  static private final int VOLATILE         = 0x02000;  
-  static private final int NON_VOLATILE     = 0x04000;
+  private static final int VOLATILE         = 0x02000;
+  private static final int NON_VOLATILE     = 0x04000;
 
   /* used with live analysis */
-  static private final int EXCLUDE_LIVEANAL = 0x08000; /* reg is excluded from live analysis */
+  private static final int EXCLUDE_LIVEANAL = 0x08000; /* reg is excluded from live analysis */
 
   /* used by the register allocator */
-  static private final int  SPILLED         = 0x10000; /* spilled into a memory location */
-  static private final int  TOUCHED         = 0x20000; /* register touched */
-  static private final int  ALLOCATED       = 0x40000; /* allocated to some register */
-  static private final int  PINNED          = 0x80000; /* pinned, unavailable for allocation */
+  private static final int  SPILLED         = 0x10000; /* spilled into a memory location */
+  private static final int  TOUCHED         = 0x20000; /* register touched */
+  private static final int  ALLOCATED       = 0x40000; /* allocated to some register */
+  private static final int  PINNED          = 0x80000; /* pinned, unavailable for allocation */
 
 
   /* derived constants to be exported */
-  static private final int TYPE_MASK = (ADDRESS|INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
+  private static final int TYPE_MASK = (ADDRESS|INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
   public static final int ADDRESS_TYPE   = ADDRESS     >>> TYPE_SHIFT;
   public static final int INTEGER_TYPE   = INTEGER     >>> TYPE_SHIFT;
   public static final int FLOAT_TYPE     = FLOAT       >>> TYPE_SHIFT;

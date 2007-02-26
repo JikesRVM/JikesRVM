@@ -618,7 +618,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * An enumerator for use by the physical register utilities.
    */
-  final static class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
+  static final class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
     private int index;
     private final OPT_Register r[];
     PhysicalRegisterEnumeration(OPT_Register[] r) {

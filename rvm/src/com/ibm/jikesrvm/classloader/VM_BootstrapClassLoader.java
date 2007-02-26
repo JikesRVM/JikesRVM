@@ -34,7 +34,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   private final VM_HashMap<String,VM_Type> loaded = 
     new VM_HashMap<String,VM_Type>(); 
 
-  private final static boolean DBG = false;
+  private static final boolean DBG = false;
 
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
@@ -93,7 +93,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   /* Interface */
-  private final static VM_BootstrapClassLoader bootstrapClassLoader =
+  private static final VM_BootstrapClassLoader bootstrapClassLoader =
     new VM_BootstrapClassLoader();
 
   public static VM_BootstrapClassLoader getBootstrapClassLoader() { 
@@ -209,8 +209,8 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   }
   
   /** Keep this a static field, since it's looked at in
-   *  {@link VM_MemberReference#parse}. */ 
-  public final static String myName = "BootstrapCL";
+   *  {@link VM_MemberReference#parse}. */
+  public static final String myName = "BootstrapCL";
   
   public String toString() { return myName; }
 

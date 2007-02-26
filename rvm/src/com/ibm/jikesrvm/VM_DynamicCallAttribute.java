@@ -155,7 +155,7 @@ class VM_DynamicCallAttribute {
     return value;
   }
 
-  final static boolean hasAdvice() {
+  static final boolean hasAdvice() {
     return hasAdvice;
   }
   

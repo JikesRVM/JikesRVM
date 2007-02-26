@@ -87,7 +87,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  static public final int headerSize() { 
+  public static final int headerSize() {
     return HEADER_SIZE.toInt();
   }
 
@@ -96,17 +96,17 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  static public final Address nodeToPayload(Address node) { 
+  public static final Address nodeToPayload(Address node) {
     return node.plus(HEADER_SIZE);
   }
 
   @Inline
-  static public final Address payloadToNode(Address payload) { 
+  public static final Address payloadToNode(Address payload) {
     return payload.minus(HEADER_SIZE);
   }
 
   @Inline
-  static public final Address midPayloadToNode(Address payload) { 
+  public static final Address midPayloadToNode(Address payload) {
     // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
     return payload.toWord().and(nodeMask).toAddress();
   }

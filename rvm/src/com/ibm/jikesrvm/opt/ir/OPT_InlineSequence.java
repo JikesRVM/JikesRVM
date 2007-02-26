@@ -20,7 +20,7 @@ import com.ibm.jikesrvm.opt.*;
  * @author Stephen Fink
  */
 public final class OPT_InlineSequence {
-  final static boolean DEBUG=false;
+  static final boolean DEBUG=false;
 
   /**
    * Current method.

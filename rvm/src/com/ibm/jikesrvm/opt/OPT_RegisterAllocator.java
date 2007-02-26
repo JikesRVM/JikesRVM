@@ -53,7 +53,7 @@ public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeEl
     /**
      * create the stack manager
      */
-    final public void perform (com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
+    public final void perform (com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
       ir.stackManager.prepare(ir);
     }
   }

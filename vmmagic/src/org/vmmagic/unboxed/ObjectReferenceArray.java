@@ -14,7 +14,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
-final public class ObjectReferenceArray {
+public final class ObjectReferenceArray {
 
   public static ObjectReferenceArray create(int size) {
     return null;

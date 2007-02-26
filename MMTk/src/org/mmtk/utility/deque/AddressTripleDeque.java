@@ -26,7 +26,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @date $Date$
  */
 @Uninterruptible public class AddressTripleDeque extends LocalDeque implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

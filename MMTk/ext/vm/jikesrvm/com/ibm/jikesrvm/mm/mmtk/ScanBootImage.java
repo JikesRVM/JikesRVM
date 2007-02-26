@@ -31,16 +31,16 @@ import org.vmmagic.pragma.*;
  */  
 public class ScanBootImage implements Constants {
   
-  static private final boolean DEBUG = false;
-  static private final boolean FILTER = true;
+  private static final boolean DEBUG = false;
+  private static final boolean FILTER = true;
   
-  static private final int LOG_CHUNK_BYTES = 10;
-  static private final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
-  static private final int LONG_MASK = 0x1;
-  static private final int RUN_MASK = 0x2;
-  static private final int MAX_RUN = (1<<BITS_IN_BYTE)-1;
-  static private final int LONG_OFFSET_BYTES = 4;
-  static private final int GUARD_REGION = LONG_OFFSET_BYTES + 1; /* long offset + run encoding */
+  private static final int LOG_CHUNK_BYTES = 10;
+  private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
+  private static final int LONG_MASK = 0x1;
+  private static final int RUN_MASK = 0x2;
+  private static final int MAX_RUN = (1<<BITS_IN_BYTE)-1;
+  private static final int LONG_OFFSET_BYTES = 4;
+  private static final int GUARD_REGION = LONG_OFFSET_BYTES + 1; /* long offset + run encoding */
   
   /* statistics */
   static int roots = 0;
@@ -153,15 +153,15 @@ public class ScanBootImage implements Constants {
    *
    * Build-time encoding (assumed to be single-threaded)
    */
-  static private int lastOffset = 0;
-  static private int oldIndex = 0;
-  static private int codeIndex = 0;
+  private static int lastOffset = 0;
+  private static int oldIndex = 0;
+  private static int codeIndex = 0;
   
   /* statistics */
-  static private int shortRefs = 0;
-  static private int runRefs = 0;
-  static private int longRefs = 0;
-  static private int startRefs = 0;
+  private static int shortRefs = 0;
+  private static int runRefs = 0;
+  private static int longRefs = 0;
+  private static int startRefs = 0;
   
   /**
    * Take a bytemap encoding of all references in the boot image, and

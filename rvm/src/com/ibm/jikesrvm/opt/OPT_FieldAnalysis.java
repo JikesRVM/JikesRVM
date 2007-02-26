@@ -28,7 +28,7 @@ import com.ibm.jikesrvm.opt.ir.*;
  * @author Stephen Fink
  */
 public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
-  final static private boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -98,7 +98,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  final public void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.
@@ -150,7 +150,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   /**
    * The backing store
    */
-  private final static OPT_FieldDatabase db = new OPT_FieldDatabase();
+  private static final OPT_FieldDatabase db = new OPT_FieldDatabase();
 
   /**
    * Record that a method writes an unknown concrete type to a field.
@@ -176,7 +176,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Record that a method stores an object of a particular concrete type
    * to a field.
    */
-  private synchronized static void recordConcreteType (VM_Method m, VM_Field f, VM_TypeReference t) {
+  private static synchronized void recordConcreteType (VM_Method m, VM_Field f, VM_TypeReference t) {
     // for now, only track private fields
     if (!f.isPrivate())
       return;

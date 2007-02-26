@@ -23,7 +23,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-@Uninterruptible final public class DumpLinearScan extends LinearScan {
+@Uninterruptible
+public final class DumpLinearScan extends LinearScan {
   /**
    * Scan an object.
    * 

@@ -75,7 +75,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  final public static Address alignAllocation(Address region, int alignment,
+  public static final Address alignAllocation(Address region, int alignment,
                                              int offset, int knownAlignment, 
                                              boolean fillAlignmentGap) { 
     if (VM.VERIFY_ASSERTIONS) {
@@ -125,7 +125,7 @@ import org.vmmagic.pragma.*;
    * @param end A pointer past the end of the region.
    */
   @Inline
-  final public static void fillAlignmentGap(Address start, Address end) { 
+  public static final void fillAlignmentGap(Address start, Address end) {
     if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
       // At most a single hole
       if (!end.diff(start).isZero()) {
@@ -151,7 +151,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  final public static Address alignAllocation(Address region, int alignment,
+  public static final Address alignAllocation(Address region, int alignment,
                                              int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
   }
@@ -168,7 +168,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  final public static Address alignAllocationNoFill(Address region, int alignment, 
+  public static final Address alignAllocationNoFill(Address region, int alignment,
                                              int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
@@ -181,7 +181,7 @@ import org.vmmagic.pragma.*;
    * @param alignment The requested alignment (some factor of 2).
    */
   @Inline
-  final public static int getMaximumAlignedSize(int size, int alignment) { 
+  public static final int getMaximumAlignedSize(int size, int alignment) {
     return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
 
@@ -196,7 +196,7 @@ import org.vmmagic.pragma.*;
    * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
    */
   @Inline
-  final public static int getMaximumAlignedSize(int size, int alignment,
+  public static final int getMaximumAlignedSize(int size, int alignment,
                                                 int knownAlignment) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
@@ -217,7 +217,7 @@ import org.vmmagic.pragma.*;
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  abstract protected Address allocSlowOnce(int bytes, int alignment,
+  protected abstract Address allocSlowOnce(int bytes, int alignment,
       int offset, boolean inGC);
 
   /**
@@ -232,7 +232,7 @@ import org.vmmagic.pragma.*;
    * @return The start address of the region, or zero if allocation fails
    */
   @NoInline
-  final public Address allocSlow(int bytes, int alignment, int offset, boolean inGC) { 
+  public final Address allocSlow(int bytes, int alignment, int offset, boolean inGC) {
     return allocSlowInline(bytes, alignment, offset, inGC);
   }
   
@@ -250,7 +250,7 @@ import org.vmmagic.pragma.*;
    * @return The start address of the region, or zero if allocation fails
    */
   @Inline
-  final public Address allocSlowInline(int bytes, int alignment, int offset,
+  public final Address allocSlowInline(int bytes, int alignment, int offset,
       boolean inGC) { 
     int gcCountStart = Stats.gcCount();
     Allocator current = this;

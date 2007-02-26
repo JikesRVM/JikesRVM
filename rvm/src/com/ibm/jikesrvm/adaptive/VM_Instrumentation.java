@@ -139,5 +139,5 @@ public final class VM_Instrumentation
   public static boolean instrumentationEnabled() {
     return instrumentationEnabled;
   }
-  static private boolean instrumentationEnabled=true;
+  private static boolean instrumentationEnabled=true;
 }

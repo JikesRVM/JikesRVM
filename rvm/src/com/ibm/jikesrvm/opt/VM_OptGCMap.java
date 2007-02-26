@@ -70,7 +70,7 @@ import org.vmmagic.pragma.*;
    */
   private int[] gcMapInformation;
 
-  public final static boolean DEBUG = false;
+  public static final boolean DEBUG = false;
 
   /**
    * Constructor, called during compilation

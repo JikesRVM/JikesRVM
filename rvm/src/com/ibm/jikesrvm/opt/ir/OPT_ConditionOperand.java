@@ -414,9 +414,9 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   }
 
 
-  final public static int FALSE = 0;
-  final public static int TRUE = 1;
-  final public static int UNKNOWN = 2;
+  public static final int FALSE = 0;
+  public static final int TRUE = 1;
+  public static final int UNKNOWN = 2;
 
   /**
    * Given two operands, evaluate the condition on them.

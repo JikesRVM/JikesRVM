@@ -31,7 +31,7 @@ class MainThread extends Thread {
   private VM_Method mainMethod;
   protected boolean launched = false;
    
-  private final static boolean dbg = false;
+  private static final boolean dbg = false;
   
 
   /**

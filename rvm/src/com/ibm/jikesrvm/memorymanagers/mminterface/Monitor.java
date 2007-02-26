@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class Monitor 
   implements Constants, VM_Callbacks.ExitMonitor {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /**
    * Register the exit monitor at boot time.

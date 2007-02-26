@@ -28,9 +28,9 @@ import org.vmmagic.pragma.*;
  * @modified Mauricio Serrano
  */
 public final class OPT_DefUse {
-  final static boolean DEBUG = false;
-  final static boolean TRACE_DU_ACTIONS = false;
-  final static boolean SUPRESS_DU_FOR_PHYSICALS = true;
+  static final boolean DEBUG = false;
+  static final boolean TRACE_DU_ACTIONS = false;
+  static final boolean SUPRESS_DU_FOR_PHYSICALS = true;
 
   /**
    * Clear defList, useList for an IR.

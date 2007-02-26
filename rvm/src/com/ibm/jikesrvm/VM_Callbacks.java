@@ -1100,24 +1100,24 @@ public final class VM_Callbacks {
     public final CallbackList next;
   }
 
-  private final static boolean TRACE_ADDMONITOR        = false;
-  private final static boolean TRACE_CLASSLOADED       = false;
-  private final static boolean TRACE_CLASSRESOLVED     = false;
-  private final static boolean TRACE_CLASSINITIALIZED  = false;
-  private final static boolean TRACE_CLASSINSTANTIATED = false;
-  private final static boolean TRACE_METHODOVERRIDE    = false;
-  private final static boolean TRACE_METHODCOMPILE     = false;
-  private final static boolean TRACE_FORNAME           = false;
-  private final static boolean TRACE_DEFINECLASS       = false;
-  private final static boolean TRACE_LOADCLASS         = false;
-  private final static boolean TRACE_BOOTIMAGE         = false;
-  private final static boolean TRACE_STARTUP           = false;
-  private final static boolean TRACE_EXIT              = false;
-  private final static boolean TRACE_APP_RUN_START     = false;
-  private final static boolean TRACE_APP_RUN_COMPLETE  = false;
-  private final static boolean TRACE_APP_START         = false;
-  private final static boolean TRACE_APP_COMPLETE      = false;
-  private final static boolean TRACE_RECOMPILE_ALL     = false;
+  private static final boolean TRACE_ADDMONITOR        = false;
+  private static final boolean TRACE_CLASSLOADED       = false;
+  private static final boolean TRACE_CLASSRESOLVED     = false;
+  private static final boolean TRACE_CLASSINITIALIZED  = false;
+  private static final boolean TRACE_CLASSINSTANTIATED = false;
+  private static final boolean TRACE_METHODOVERRIDE    = false;
+  private static final boolean TRACE_METHODCOMPILE     = false;
+  private static final boolean TRACE_FORNAME           = false;
+  private static final boolean TRACE_DEFINECLASS       = false;
+  private static final boolean TRACE_LOADCLASS         = false;
+  private static final boolean TRACE_BOOTIMAGE         = false;
+  private static final boolean TRACE_STARTUP           = false;
+  private static final boolean TRACE_EXIT              = false;
+  private static final boolean TRACE_APP_RUN_START     = false;
+  private static final boolean TRACE_APP_RUN_COMPLETE  = false;
+  private static final boolean TRACE_APP_START         = false;
+  private static final boolean TRACE_APP_COMPLETE      = false;
+  private static final boolean TRACE_RECOMPILE_ALL     = false;
 
   /**
    * Return class name of the object.

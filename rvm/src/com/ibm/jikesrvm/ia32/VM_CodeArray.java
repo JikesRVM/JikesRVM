@@ -21,7 +21,8 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
  *
  * @author Perry Cheng
  */
-@Uninterruptible abstract public class VM_CodeArray {
+@Uninterruptible
+public abstract class VM_CodeArray {
   private byte [] data;
 
   public VM_CodeArray (int size) { 

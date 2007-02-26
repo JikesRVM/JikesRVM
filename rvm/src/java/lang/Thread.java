@@ -27,9 +27,9 @@ import com.ibm.jikesrvm.VM_Wait;
  */
 public class Thread implements Runnable {
 
-  public final static int MIN_PRIORITY = 1;
-  public final static int MAX_PRIORITY = 10;
-  public final static int NORM_PRIORITY = 5;
+  public static final int MIN_PRIORITY = 1;
+  public static final int MAX_PRIORITY = 10;
+  public static final int NORM_PRIORITY = 5;
 
   private static int createCount = 0;
     
@@ -334,7 +334,7 @@ public class Thread implements Runnable {
    * << Automatically generated names are of the form "Thread-"+n,
    *    where n is an integer. >>
    */
-  private synchronized static String newName() {
+  private static synchronized String newName() {
     return "Thread-" + createCount++;
   }
 

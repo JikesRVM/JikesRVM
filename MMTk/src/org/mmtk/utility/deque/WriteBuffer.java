@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class WriteBuffer extends LocalSSB
   implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

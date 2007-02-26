@@ -52,7 +52,7 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
     }
   }
 
-  final public String toString() {
+  public final String toString() {
     String res = bci + "\tswitch     < " + (int)counts[0];
     for (int i=1; i<counts.length; i++) {
       res += ", "+(int)counts[i];

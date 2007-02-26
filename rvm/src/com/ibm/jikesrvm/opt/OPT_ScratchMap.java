@@ -205,7 +205,7 @@ public final class OPT_ScratchMap {
   /**
    * Super class of physical and symbolic intervals
    */
-  private static abstract class Interval {
+  private abstract static class Interval {
     /**
      * The instruction before which the scratch range begins.
      */

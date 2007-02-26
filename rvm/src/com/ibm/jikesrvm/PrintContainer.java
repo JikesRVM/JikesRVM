@@ -84,16 +84,16 @@ public class PrintContainer {
     }
   }
 
-  static public PrintLN get(PrintStream out) {
+  public static PrintLN get(PrintStream out) {
      return new WithPrintStream(out);
   }
 
-  static public PrintLN get(PrintWriter out) {
+  public static PrintLN get(PrintWriter out) {
      return new WithPrintWriter(out);
   }
 
   // Keep this one ready to go at all times :)
-  final static public PrintLN readyPrinter = new WithSysWrite();
+  public static final PrintLN readyPrinter = new WithSysWrite();
   
   /** This (nested) class does printing via {@link VM#sysWrite} */
   private static class WithSysWrite 

@@ -47,7 +47,7 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase {
     *
     * @param ir the governing IR
     */
-   final public void perform(OPT_IR ir) {
+   public final void perform(OPT_IR ir) {
 
      // Don't insert counters in uninterruptible methods, 
      // the boot image, or when instrumentation is disabled

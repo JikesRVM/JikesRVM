@@ -23,7 +23,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  *
  */
 public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
-  final static boolean DEBUG = false;
+  static final boolean DEBUG = false;
 
   /** 
    * Return an object representing this transformation for a given

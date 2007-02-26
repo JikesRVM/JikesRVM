@@ -14,7 +14,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
-final public class ExtentArray {
+public final class ExtentArray {
 
   public static ExtentArray create(int size) {
     return null;

@@ -117,9 +117,9 @@ class ReferenceTest {
   }
 
   private static int failCount = 0;
-  private final static int NO_QUALITY = 0;
-  private final static int GOOD = 1;
-  private final static int POOR = 2;
+  private static final int NO_QUALITY = 0;
+  private static final int GOOD = 1;
+  private static final int POOR = 2;
 
   private static void check (String msg, boolean correct, int quality) {
       System.out.print(msg + "     ");

@@ -85,7 +85,7 @@ import org.vmmagic.unboxed.*;
 public class VM_JNIFunctions implements VM_NativeBridge, 
                                  VM_SizeConstants {
   // one message for each JNI function called from native
-  public final static boolean traceJNI = false;
+  public static final boolean traceJNI = false;
 
   // number of JNI function entries
   public static final int FUNCTIONCOUNT = 232; // JNI 1.4

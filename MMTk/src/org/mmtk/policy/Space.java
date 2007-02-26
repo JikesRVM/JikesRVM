@@ -468,7 +468,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param start The address of the start of the region to be released
    */
-  abstract public void release(Address start);
+  public abstract void release(Address start);
 
   /**
    * Get the total number of pages reserved by all of the spaces
@@ -585,7 +585,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
-  abstract public ObjectReference traceObject(TraceLocal trace,
+  public abstract ObjectReference traceObject(TraceLocal trace,
       ObjectReference object);
 
   
@@ -607,7 +607,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object reference.
    * @return True if the object is live.
    */
-  abstract public boolean isLive(ObjectReference object);
+  public abstract boolean isLive(ObjectReference object);
 
   /**
    * Align an address to a space chunk

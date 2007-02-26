@@ -53,7 +53,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
     *
     * @param ir the governing IR
     */
-   final public void perform(OPT_IR ir) {
+   public final void perform(OPT_IR ir) {
      // Convert all instrumentation instructions into actual counter code
      lowerInstrumentation(ir);
 

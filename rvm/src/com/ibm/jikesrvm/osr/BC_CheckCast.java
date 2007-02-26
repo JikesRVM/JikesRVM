@@ -15,7 +15,7 @@ package com.ibm.jikesrvm.osr;
  * @author Feng Qian
  */
 public class BC_CheckCast extends OSR_PseudoBytecode {
-  private final static int bsize = 6;
+  private static final int bsize = 6;
   private final int tid;
   
   public BC_CheckCast(int typeId) {

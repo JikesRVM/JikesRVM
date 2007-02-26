@@ -36,7 +36,7 @@ class OPT_UniformlyGeneratedGVN {
    *
    * @param ir the governing IR
    */
-  final public static void perform (OPT_IR ir) {
+  public static final void perform (OPT_IR ir) {
 
     // create 'standard' global value numbers.
     OPT_GlobalValueNumberState gvn = null;

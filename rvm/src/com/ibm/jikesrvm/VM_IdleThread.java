@@ -37,7 +37,7 @@ class VM_IdleThread extends VM_Thread {
    */
   private boolean runInitProc;
 
-  final private static String myName = "VM_IdleThread";
+  private static final String myName = "VM_IdleThread";
   
   /**
    * A thread to run if there is no other work for a virtual processor.

@@ -23,26 +23,26 @@ import com.ibm.jikesrvm.opt.ir.OPT_Register;
 public abstract class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
-  public final static int mask         = 0x00;  // empty mask
-  public final static int maskC0       = 0x01;
-  public final static int maskXER      = 0x02;
-  public final static int maskLR       = 0x04;
-  public final static int maskJTOC     = 0x08;
-  public final static int maskCTR      = 0x10;
-  public final static int maskPR       = 0x20;
+  public static final int mask         = 0x00;  // empty mask
+  public static final int maskC0       = 0x01;
+  public static final int maskXER      = 0x02;
+  public static final int maskLR       = 0x04;
+  public static final int maskJTOC     = 0x08;
+  public static final int maskCTR      = 0x10;
+  public static final int maskPR       = 0x20;
 
   // Meta mask for the enumeration.
-  private final static int maskHIGH = 0x20;
-  private final static int maskALL  = 0x3F;
+  private static final int maskHIGH = 0x20;
+  private static final int maskALL  = 0x3F;
 
-  public final static int maskC0_XER   = maskC0 | maskXER;
-  public final static int maskJTOC_LR  = maskJTOC | maskLR;
-  public final static int maskJTOC_CTR = maskJTOC | maskCTR;
-  public final static int maskcallDefs = maskLR;
-  public final static int maskcallUses = maskJTOC;
-  public final static int maskIEEEMagicUses = maskJTOC;
-  public final static int maskTSPDefs  = maskPR;
-  public final static int maskTSPUses  = maskJTOC;
+  public static final int maskC0_XER   = maskC0 | maskXER;
+  public static final int maskJTOC_LR  = maskJTOC | maskLR;
+  public static final int maskJTOC_CTR = maskJTOC | maskCTR;
+  public static final int maskcallDefs = maskLR;
+  public static final int maskcallUses = maskJTOC;
+  public static final int maskIEEEMagicUses = maskJTOC;
+  public static final int maskTSPDefs  = maskPR;
+  public static final int maskTSPUses  = maskJTOC;
 
   /**
    * @return a string representation of the physical registers encoded by

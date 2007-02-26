@@ -30,7 +30,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * will be ineffective.  TODO: prove that null-check elimination is
    * sound before turning this on again.
    */
-  final static boolean CHECK_REF_PI = false;
+  static final boolean CHECK_REF_PI = false;
 
   /**
    * Should we insert (true) or delete (false) PI nodes?

@@ -54,7 +54,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
    * perform the transformation
    * @param ir the governing IR
    */
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     // Compute liveness.
     OPT_LiveAnalysis live = new OPT_LiveAnalysis(false /* GC Maps */,
                                                  false /* don't skip local

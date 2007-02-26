@@ -266,15 +266,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     return lastFloatStackRegister;
   }
 
-  private final static boolean needsFloatRegister(byte type) {
+  private static final boolean needsFloatRegister(byte type) {
     return 0 != (type & (FLOAT_TYPE | DOUBLE_TYPE));
   }
 
-  private final static byte stripFloatRegisters(byte type) {
+  private static final byte stripFloatRegisters(byte type) {
     return (byte) (type & (~(FLOAT_TYPE | DOUBLE_TYPE)));
   }
 
-  private final static boolean containsLongType(byte type) {
+  private static final boolean containsLongType(byte type) {
     return 0 != (type & (LONG_TYPE));
   }
 
@@ -3045,17 +3045,17 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   @Uninterruptible
-  public final static boolean isRegister(int location) {
+  public static final boolean isRegister(int location) {
     return location > 0;
   }
       
   @Uninterruptible
-  public final static int locationToOffset(int location) {
+  public static final int locationToOffset(int location) {
     return -location;
   }
   
   @Uninterruptible
-  public final static int offsetToLocation(int offset) {
+  public static final int offsetToLocation(int offset) {
     return -offset;
   }
   

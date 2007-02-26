@@ -39,7 +39,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-@Uninterruptible abstract public class PageResource implements Constants {
+@Uninterruptible
+public abstract class PageResource implements Constants {
 
   /****************************************************************************
    * 
@@ -47,8 +48,8 @@ import org.vmmagic.unboxed.*;
    */
   protected static final boolean ZERO_ON_RELEASE = false; // debugging
 
-  static private Lock classLock;
-  static private long cumulativeCommitted = 0;
+  private static Lock classLock;
+  private static long cumulativeCommitted = 0;
 
 
   /****************************************************************************
@@ -131,7 +132,7 @@ import org.vmmagic.unboxed.*;
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  abstract public int adjustForMetaData(int pages);
+  public abstract int adjustForMetaData(int pages);
 
   /**
    * Adjust a page request to include metadata requirements, if any.
@@ -141,7 +142,7 @@ import org.vmmagic.unboxed.*;
    * pending request
    * @return The number of required pages, inclusive of any metadata
    */
-  abstract public int adjustForMetaData(int pages, Address begin);
+  public abstract int adjustForMetaData(int pages, Address begin);
   
   /**
    * Allocate pages in virtual memory, returning zero on failure.<p>
@@ -208,7 +209,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param pages The number of pages to be added.
    */
-  final private static void addToCommitted(int pages) {
+  private static final void addToCommitted(int pages) {
     classLock.acquire();
     cumulativeCommitted += pages;
     classLock.release();
@@ -218,7 +219,7 @@ import org.vmmagic.unboxed.*;
    * Acquire the appropriate lock depending on whether the context is
    * GC or mutator.
    */
-  final protected void lock() {
+  protected final void lock() {
     if (Plan.gcInProgress())
       gcLock.acquire();
     else
@@ -229,7 +230,7 @@ import org.vmmagic.unboxed.*;
    * Release the appropriate lock depending on whether the context is
    * GC or mutator.
    */
-  final protected void unlock() {
+  protected final void unlock() {
     if (Plan.gcInProgress())
       gcLock.release();
     else

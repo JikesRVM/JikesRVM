@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 @Uninterruptible public final class BlockAllocator implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
 
   /****************************************************************************
@@ -241,7 +241,7 @@ import org.vmmagic.unboxed.*;
    * @return The size in bytes of a block of this size class
    */
   @Inline
-  public final static int blockSize(int blockSizeClass) { 
+  public static final int blockSize(int blockSizeClass) {
     return 1 << (LOG_MIN_BLOCK + blockSizeClass);
   }
 
@@ -254,7 +254,7 @@ import org.vmmagic.unboxed.*;
    * blocks) of this size class.
    */
   @Inline
-  private final static int pagesForSizeClass(int blockSizeClass) { 
+  private static final int pagesForSizeClass(int blockSizeClass) {
     if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
       return 1;
     else
@@ -657,7 +657,7 @@ import org.vmmagic.unboxed.*;
    * output detailing the composition of the list.
    * @return The length of the list
    */
-  final static int sanityTraverse(Address block, Address prev, 
+  static final int sanityTraverse(Address block, Address prev,
                                    boolean verbose) {
     if (verbose) Log.write("[");
     boolean first = true;

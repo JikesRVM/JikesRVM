@@ -93,7 +93,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
    * perform the main out-of-ssa transformation
    * @param ir the governing IR
    */
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     this.ir = ir;
     translateFromSSA(ir);
 

@@ -89,7 +89,7 @@ class VM_Barriers implements VM_BaselineConstants {
    * Assumption: no floating-point parameters.
    * @param params number of parameter words (including "this" if any).
    */
-  private final static void genParameterRegisterLoad (VM_Assembler asm, int params){
+  private static final void genParameterRegisterLoad (VM_Assembler asm, int params){
     if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params-1) << LG_WORDSIZE));

@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @date $Date$
  */
 @Uninterruptible public final class MarkCompactLocal extends BumpPointer {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /**
    * Constructor

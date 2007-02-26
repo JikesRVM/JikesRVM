@@ -123,7 +123,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 
   // RC (concurrent GC) vars
   static int              globalEpoch = -1;
-  final static int EPOCH_MAX = 32 * 1024;
+  static final int EPOCH_MAX = 32 * 1024;
   // ~RC vars
 
   private static int NUM_EXTRA_PROCS = 0; // How many extra procs (not counting primordial) ?

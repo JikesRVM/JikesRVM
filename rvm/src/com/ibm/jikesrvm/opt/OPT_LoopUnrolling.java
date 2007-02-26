@@ -810,7 +810,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
   // for all loops:
   // make the header block point to the corresponding loop structure tree node.
-  static private void markHeaders (OPT_LSTNode t) {
+  private static void markHeaders (OPT_LSTNode t) {
     OPT_BasicBlock header = t.header;
     header.scratchObject = t;
     Enumeration<OPT_GraphNode> e = t.outNodes();

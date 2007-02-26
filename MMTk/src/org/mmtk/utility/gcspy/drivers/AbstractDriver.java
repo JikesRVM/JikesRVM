@@ -33,7 +33,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-@Uninterruptible abstract public class AbstractDriver {
+@Uninterruptible
+public abstract class AbstractDriver {
 
   /****************************************************************************
    *
@@ -156,7 +157,7 @@ import org.vmmagic.pragma.*;
    * Get the name of this driver type.
    * @return The name of this driver.
    */
-  abstract protected String getDriverName();
+  protected abstract String getDriverName();
 
   /**
    * Get the maximum number of tiles in this space.

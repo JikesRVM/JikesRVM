@@ -29,7 +29,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   /**
    * Create a VM_CompiledMethod appropriate for the given compilerType
    */
-  public synchronized static VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
+  public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 

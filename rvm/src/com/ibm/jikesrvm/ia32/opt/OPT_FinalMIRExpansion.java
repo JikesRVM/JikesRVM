@@ -46,7 +46,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
    * @param ir the IR to expand
    * @return return value is garbage for IA32
    */
-  public final static int expand(OPT_IR ir) {
+  public static final int expand(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     for (OPT_Instruction next, p = ir.firstInstructionInCodeOrder();

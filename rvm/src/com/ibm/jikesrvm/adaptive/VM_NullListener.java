@@ -27,5 +27,5 @@ import org.vmmagic.pragma.*;
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?
    */
-  abstract public void update(int whereFrom);
+  public abstract void update(int whereFrom);
 }

@@ -37,7 +37,7 @@ import org.vmmagic.pragma.*;
    * Entry point to dump what has been collected.
    */
   @Interruptible
-  abstract public void report(); 
+  public abstract void report();
 
   /**
    * Is the listener currently active (interested in getting "update" calls)
@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
   /**
    * reset the listeners data structures
    */
-  abstract public void reset();
+  public abstract void reset();
 
   /**
    * Organizer associated with this listener.

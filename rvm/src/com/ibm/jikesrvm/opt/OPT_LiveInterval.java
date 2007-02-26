@@ -33,7 +33,7 @@ final class OPT_LiveInterval {
    * @param inst the intruction where the register's live range ends, 
    *             null represents the end of the basic block
    */
-  static public void createEndLiveRange(OPT_LiveSet set, 
+  public static void createEndLiveRange(OPT_LiveSet set,
                                         OPT_BasicBlock block, 
                                         OPT_Instruction inst) {
     if (DEBUG) {
@@ -64,7 +64,7 @@ final class OPT_LiveInterval {
    * @param block The basic block
    * @param inst  The end instruction to use, if we have to create a neode.
    */
-  static public void createEndLiveRange(OPT_Register reg, 
+  public static void createEndLiveRange(OPT_Register reg,
                                         OPT_BasicBlock block,
                                         OPT_Instruction inst) { 
 
@@ -94,7 +94,7 @@ final class OPT_LiveInterval {
    * @param inst  the "begin" instruction
    * @param block the basic block of interest
    */
-  static public void setStartLiveRange(OPT_Register reg, 
+  public static void setStartLiveRange(OPT_Register reg,
                                        OPT_Instruction inst, 
                                        OPT_BasicBlock block) {
     if (DEBUG) {
@@ -155,7 +155,7 @@ final class OPT_LiveInterval {
    *
    * @param block the basic block of interest
    */
-  static public void moveUpwardExposedRegsToFront(OPT_BasicBlock block) {
+  public static void moveUpwardExposedRegsToFront(OPT_BasicBlock block) {
 
     OPT_LiveIntervalElement prev = 
       (OPT_LiveIntervalElement) block.getFirstLiveIntervalElement();
@@ -191,7 +191,7 @@ final class OPT_LiveInterval {
    * @return <code>true</code> if it does or <code>false</code>
    *         if it does not
    */
-  static private boolean containsUnresolvedElement(OPT_BasicBlock block, 
+  private static boolean containsUnresolvedElement(OPT_BasicBlock block,
                                                    OPT_Register reg) {
 
     if (DEBUG) {
@@ -216,7 +216,7 @@ final class OPT_LiveInterval {
    *
    * @param block the block
    */
-  static public void printLiveIntervalList(OPT_BasicBlock block) {
+  public static void printLiveIntervalList(OPT_BasicBlock block) {
     System.out.println("Live Interval List for "+ block);
     for (OPT_LiveIntervalElement elem 
            = (OPT_LiveIntervalElement) block.getFirstLiveIntervalElement();

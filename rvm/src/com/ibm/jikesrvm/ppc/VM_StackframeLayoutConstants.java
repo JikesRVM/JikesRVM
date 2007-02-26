@@ -127,8 +127,8 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  */
 public interface VM_StackframeLayoutConstants  {
 
-  public final static int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  public final static int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
+  public static final int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  public static final int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   static final int STACKFRAME_HEADER_SIZE             = 3*BYTES_IN_STACKSLOT; // size of frame header, in bytes
 

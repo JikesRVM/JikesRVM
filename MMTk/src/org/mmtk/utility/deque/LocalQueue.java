@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 @Uninterruptible class LocalQueue extends LocalSSB implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /**
    * Constructor

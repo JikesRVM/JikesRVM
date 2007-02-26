@@ -32,10 +32,10 @@ import java.util.*;
 public class VM_CompilerDNA implements VM_Constants {
 
   private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
-  final static int BASELINE = 0;
-  final static int OPT0 = 1;
-  final static int OPT1 = 2;
-  final static int OPT2 = 3;
+  static final int BASELINE = 0;
+  static final int OPT0 = 1;
+  static final int OPT1 = 2;
+  static final int OPT2 = 3;
 
 
   /**
@@ -106,7 +106,7 @@ public class VM_CompilerDNA implements VM_Constants {
    * @param compiler2
    * @return the benefit ratio (speedup) of moving from compiler1 to compiler2
    */
-  static public double getBenefitRatio(int compiler1, int compiler2) {
+  public static double getBenefitRatio(int compiler1, int compiler2) {
     return benefitRatio[compiler1][compiler2];
   }
 
@@ -119,7 +119,7 @@ public class VM_CompilerDNA implements VM_Constants {
    * @return the additional overhead (relative to compiler1 compile time)
    * of compile2 compile time
    */
-  static public double getCompileTimeRatio(int compiler1, int compiler2) {
+  public static double getCompileTimeRatio(int compiler1, int compiler2) {
     return compileTimeRatio[compiler1][compiler2];
   }
 
@@ -219,7 +219,7 @@ public class VM_CompilerDNA implements VM_Constants {
    * Read a serialized representation of the DNA info
    * @param filename DNA filename
    */
-  static private void readDNA(String filename) {
+  private static void readDNA(String filename) {
     try {
 
       LineNumberReader in =
@@ -243,7 +243,7 @@ public class VM_CompilerDNA implements VM_Constants {
    *  @param title the title string to look for
    *  @param valueHolder the array to hold the read values
    */
-  static private void processOneLine(LineNumberReader in, String title,
+  private static void processOneLine(LineNumberReader in, String title,
                                      double[] valueHolder) throws IOException {
 
     String s = in.readLine();
@@ -273,7 +273,7 @@ public class VM_CompilerDNA implements VM_Constants {
    * returns the number of compilers 
    * @return the number of compilers 
    */
-  static public int getNumberOfCompilers() {
+  public static int getNumberOfCompilers() {
     return numCompilers;
   }
 

@@ -189,7 +189,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * String-i-fies the node
    * @return the node as a string
    */
-  final public String toString() {
+  public final String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append(block);
     sb.append(" ("+low+", "+high+")");

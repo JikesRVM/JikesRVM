@@ -38,7 +38,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   /**
    * object representing the MEET operator
    */
-  private final static MeetOperator MEET = new MeetOperator();
+  private static final MeetOperator MEET = new MeetOperator();
 
   /** 
    * Set up the system of dataflow equations.

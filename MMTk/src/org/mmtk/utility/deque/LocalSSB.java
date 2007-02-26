@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 @Uninterruptible class LocalSSB extends Deque implements Constants {
-  public final static String Id = "$Id$"; 
+  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

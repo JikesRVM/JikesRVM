@@ -328,7 +328,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     return nloop.get(idx);
   }
   
-  static private boolean exitsLoop (OPT_BasicBlock b, OPT_BitVector loop)
+  private static boolean exitsLoop (OPT_BasicBlock b, OPT_BitVector loop)
   {
     OPT_BasicBlockEnumeration be = b.getOut();
     while (be.hasMoreElements()) {

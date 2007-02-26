@@ -128,7 +128,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  final public void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
 
     // Exit if we don't have to recompute SSA.
     if (ir.desiredSSAOptions.getAbort()) return;
@@ -1006,8 +1006,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    * SIDE EFFECT: empties the scalarPhis set
    * SIDE EFFECT: bashes the OPT_Instruction scratch field.
    */
-  private final static int NO_NULL_TYPE = 0;
-  private final static int FOUND_NULL_TYPE = 1;
+  private static final int NO_NULL_TYPE = 0;
+  private static final int FOUND_NULL_TYPE = 1;
   private void rectifyPhiTypes() {
     if (DEBUG) System.out.println("Rectify phi types.");
     removeAllUnreachablePhis(scalarPhis);

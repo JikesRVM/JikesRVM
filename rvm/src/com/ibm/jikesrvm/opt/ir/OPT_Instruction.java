@@ -1608,12 +1608,12 @@ public final class OPT_Instruction
    * Implementation: Operand enumeration classes
    */
   // Shared functionality
-  private static abstract class BASE_OE implements OPT_OperandEnumeration {
+  private abstract static class BASE_OE implements OPT_OperandEnumeration {
     protected OPT_Instruction instr;
     protected int i;
     protected int end;
     protected OPT_Operand nextElem;
-    final static protected boolean DEBUG=false;
+    protected static final boolean DEBUG=false;
     private BASE_OE() {} 
     protected BASE_OE(OPT_Instruction instr, int start, int end) {
       this.instr = instr;

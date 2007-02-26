@@ -15,7 +15,7 @@ package com.ibm.jikesrvm.osr;
  * @author Feng Qian
  */
 public class BC_LoadDoubleConst extends OSR_PseudoBytecode {
-  private final static int bsize = 10;
+  private static final int bsize = 10;
   private final long dbits;
 
   public BC_LoadDoubleConst(long bits) {

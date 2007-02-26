@@ -104,11 +104,11 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * @author Stephen Fink
    */
-  final static class ObjectCell extends OPT_DF_AbstractCell {
+  static final class ObjectCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
      */
-    private final static int CAPACITY = 10; 
+    private static final int CAPACITY = 10;
     /**
      * a set of value numbers comparising this lattice cell.
      */
@@ -313,11 +313,11 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * @author Stephen Fink
    */
-  final static class ArrayCell extends OPT_DF_AbstractCell {
+  static final class ArrayCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
      */
-    private final static int CAPACITY = 10;      
+    private static final int CAPACITY = 10;
     /**
      * a set of value number pairs comparising this lattice cell.
      */
