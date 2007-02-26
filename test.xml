@@ -127,9 +127,11 @@
         </if>
         <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
         <if>
-          <not>
-            <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
-          </not>
+          <conditions>
+            <not>
+              <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
+            </not>
+          </conditions>
           <sequential>
             <echo message="Testing Run @{tag}"/>
             <echo message="    rvm.dir:        ${test.config.@{tag}.rvm.dir}"/>
