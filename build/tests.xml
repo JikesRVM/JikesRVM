@@ -373,7 +373,9 @@
       </if>
       <timer property="test.@{tag}.time"/>
       <if>
-        <equals arg1="${test.@{tag}.exclude}" arg2="false"/>
+        <conditions>
+          <equals arg1="${test.@{tag}.exclude}" arg2="false"/>
+        </conditions>
         <sequential>
           <texec executable="${rvm.exe}"
                  failonerror="false"
