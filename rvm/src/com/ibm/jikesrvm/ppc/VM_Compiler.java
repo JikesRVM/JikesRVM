@@ -288,13 +288,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
   @Uninterruptible
   @Inline
-  public static final int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+  public static int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
     return localloc[index];
   }
   
   @Uninterruptible
   @Inline
-  public static final int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
+  public static int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
     return localloc[index];
   }
 

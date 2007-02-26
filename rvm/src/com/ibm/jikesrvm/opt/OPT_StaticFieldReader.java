@@ -256,7 +256,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return the current value of the field
    */
-  public static final long getLongStaticFieldValue(VM_Field field) 
+  public static long getLongStaticFieldValue(VM_Field field)
     throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsLong(field.getOffset());
@@ -277,7 +277,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return the current value of the field
    */
-  public static final double getDoubleStaticFieldValue(VM_Field field) 
+  public static double getDoubleStaticFieldValue(VM_Field field)
     throws NoSuchFieldException {
     if (VM.runningVM) {
       long bits = VM_Statics.getSlotContentsAsLong(field.getOffset());
@@ -299,7 +299,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return the current value of the field
    */
-  public static final Object getObjectStaticFieldValue(VM_Field field) 
+  public static Object getObjectStaticFieldValue(VM_Field field)
     throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsObject(field.getOffset());
@@ -321,7 +321,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return true if the field contains null, false otherwise
    */
-  public static final boolean isStaticFieldNull(VM_Field field) 
+  public static boolean isStaticFieldNull(VM_Field field)
     throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
@@ -332,7 +332,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return type of value contained in the field
    */
-  public static final VM_TypeReference getTypeFromStaticField (VM_Field field) 
+  public static VM_TypeReference getTypeFromStaticField (VM_Field field)
     throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
     if (o == null) return VM_TypeReference.NULL_TYPE;

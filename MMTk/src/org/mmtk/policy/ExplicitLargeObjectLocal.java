@@ -107,7 +107,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be freed.
    */
   @Inline
-  public static final void free(LargeObjectSpace space, ObjectReference object) { 
+  public static void free(LargeObjectSpace space, ObjectReference object) {
     Address cell = getSuperPage(VM.objectModel.refToAddress(object));
     space.getCells().remove(cell);
     space.release(cell);

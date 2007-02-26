@@ -66,7 +66,7 @@ public abstract class VM_ForwardReference {
   // add a new reference r to a priority queue q
   // return the updated queue
   //
-  public static final VM_ForwardReference enqueue (VM_ForwardReference q, VM_ForwardReference r) {
+  public static VM_ForwardReference enqueue (VM_ForwardReference q, VM_ForwardReference r) {
     if (q == null) return r;
     if (r.targetBytecodeIndex < q.targetBytecodeIndex) {
       r.next = q;

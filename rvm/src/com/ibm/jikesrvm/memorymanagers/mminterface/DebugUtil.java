@@ -38,7 +38,7 @@ import com.ibm.jikesrvm.VM_Thread;
   private static Object[] tibForPrimitiveType;
 
   @Interruptible
-  static final void boot (VM_BootRecord theBootRecord) { 
+  static void boot (VM_BootRecord theBootRecord) {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.IntArray;
     tibForArrayType = VM_ObjectModel.getTIB(t);

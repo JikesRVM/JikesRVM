@@ -65,7 +65,7 @@ import org.vmmagic.pragma.*;
   }
 
   /** Flush the mutator remembered sets (if any) for this active plan */
-  public static final void flushRememberedSets() {
+  public static void flushRememberedSets() {
      Selected.Mutator.get().flushRememberedSets();
   }
     

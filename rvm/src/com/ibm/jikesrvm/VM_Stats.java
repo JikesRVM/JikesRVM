@@ -19,13 +19,13 @@ import org.vmmagic.pragma.*;
 
 @Uninterruptible final class VM_Stats {
 
-  static final void println() { VM.sysWrite("\n"); }
-  static final void print(String s) { VM.sysWrite(s); }
-  static final void println(String s) { print(s); println(); }
-  static final void print(int i) { VM.sysWrite(i); }
-  static final void println(int i) { print(i); println(); }
-  static final void print(String s, int i) { print(s); print(i); }
-  static final void println(String s, int i) { print(s,i); println(); }
+  static void println() { VM.sysWrite("\n"); }
+  static void print(String s) { VM.sysWrite(s); }
+  static void println(String s) { print(s); println(); }
+  static void print(int i) { VM.sysWrite(i); }
+  static void println(int i) { print(i); println(); }
+  static void print(String s, int i) { print(s); print(i); }
+  static void println(String s, int i) { print(s,i); println(); }
 
   static void percentage (int numerator, int denominator, String quantity) {
     print("\t");

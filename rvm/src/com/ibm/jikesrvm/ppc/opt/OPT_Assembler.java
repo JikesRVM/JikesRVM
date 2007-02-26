@@ -92,7 +92,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
-  public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
+  public static int generateCode (OPT_IR ir, boolean shouldPrint) {
     ir.MIRInfo.machinecode = ArchitectureSpecific.VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
     return new ArchitectureSpecific.OPT_Assembler().genCode(ir, shouldPrint);
   }

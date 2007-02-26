@@ -145,7 +145,7 @@ public abstract class VM_MemberReference {
   }
 
   //BEGIN HRM
-  public static final int getNextId() {
+  public static int getNextId() {
     return nextId;
   }
   //END HRM

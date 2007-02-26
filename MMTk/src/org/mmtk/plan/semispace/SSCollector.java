@@ -168,7 +168,7 @@ import org.vmmagic.pragma.*;
    * @return True if the given reference is to an object that is within
    * one of the semi-spaces.
    */
-  public static final boolean isSemiSpaceObject(ObjectReference object) {
+  public static boolean isSemiSpaceObject(ObjectReference object) {
     return Space.isInSpace(SS.SS0, object) || Space.isInSpace(SS.SS1, object);
   }
 

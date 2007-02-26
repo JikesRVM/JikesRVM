@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
   /** @return The active cycle detector global instance */
   @Inline
-  public static final CDCollector current() { 
+  public static CDCollector current() {
     return ((RCBaseCollector)VM.activePlan.collector()).cycleDetector();
   }
 }

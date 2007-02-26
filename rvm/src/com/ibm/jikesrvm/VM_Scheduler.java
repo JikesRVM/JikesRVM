@@ -781,7 +781,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 
   static int outputLock;
 
-  static final void lockOutput () {
+  static void lockOutput () {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
@@ -793,7 +793,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     VM_Magic.isync(); // TODO!! is this really necessary?
   }
 
-  static final void unlockOutput () {
+  static void unlockOutput () {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // TODO!! is this really necessary?
     if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?

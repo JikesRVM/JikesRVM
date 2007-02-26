@@ -207,7 +207,7 @@ public class VM_ClassLoader implements VM_Constants,
   }
 
 
-  public static final VM_Type defineClassInternal(String className, 
+  public static VM_Type defineClassInternal(String className,
                                                   byte[] classRep, 
                                                   int offset, 
                                                   int length, 
@@ -215,7 +215,7 @@ public class VM_ClassLoader implements VM_Constants,
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static final VM_Type defineClassInternal(String className, 
+  public static VM_Type defineClassInternal(String className,
                                                   InputStream is, 
                                                   ClassLoader classloader) throws ClassFormatError {
     VM_TypeReference tRef;

@@ -33,7 +33,7 @@ public final class ObjectReference {
   /**
    * Return a null reference
    */
-  public static final ObjectReference nullReference() {
+  public static ObjectReference nullReference() {
     return null;
   }
 

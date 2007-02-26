@@ -342,22 +342,22 @@ import org.vmmagic.unboxed.*;
   private static int exceptionReserve = 0;
 
   /** @return Is the memory management system initialized? */
-  public static final boolean isInitialized() {
+  public static boolean isInitialized() {
     return initialized;
   }
 
   /** @return The number of collections that have been initiated. */
-  protected static final int getCollectionsInitiated() {
+  protected static int getCollectionsInitiated() {
     return collectionsInitiated;
   }
 
   /** @return The amount of space reserved in case of an exception. */
-  protected static final int getExceptionReserve() {
+  protected static int getExceptionReserve() {
     return exceptionReserve;
   }
 
   /** Request an async GC */
-  protected static final void setAwaitingCollection() {
+  protected static void setAwaitingCollection() {
     awaitingCollection = true;
   }
 
@@ -450,7 +450,7 @@ import org.vmmagic.unboxed.*;
    * allocating, or "<null>" if there is no space associated with
    * <code>a</code>.
    */
-  public static final String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
+  public static String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
     Space space = getSpaceFromAllocatorAnyLocal(a);
     if (space == null)
       return "<null>";
@@ -468,7 +468,7 @@ import org.vmmagic.unboxed.*;
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
-  public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
+  public static Space getSpaceFromAllocatorAnyLocal(Allocator a) {
     for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
       Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
@@ -541,7 +541,7 @@ import org.vmmagic.unboxed.*;
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
-  public static final Extent freeMemory() {
+  public static Extent freeMemory() {
     return totalMemory().minus(usedMemory());
   }
 
@@ -552,7 +552,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static final Extent usedMemory() {
+  public static Extent usedMemory() {
     return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
   }
 
@@ -564,7 +564,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static final Extent reservedMemory() {
+  public static Extent reservedMemory() {
     return Conversions.pagesToBytes(VM.activePlan.global().getPagesReserved());
   }
 
@@ -575,7 +575,7 @@ import org.vmmagic.unboxed.*;
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
-  public static final Extent totalMemory() {
+  public static Extent totalMemory() {
     return HeapGrowthManager.getCurrentHeapSize();
   }
 
@@ -654,7 +654,7 @@ import org.vmmagic.unboxed.*;
    * @return The time cap for this GC (i.e. the time by which it
    * should complete).
    */
-  public static final long getTimeCap() {
+  public static long getTimeCap() {
     return timeCap;
   }
 

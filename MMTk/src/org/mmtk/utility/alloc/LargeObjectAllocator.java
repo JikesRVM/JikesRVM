@@ -147,7 +147,7 @@ import org.vmmagic.pragma.*;
    *         <code>cell</code>.
    */
   @Inline
-  public static final Address getSuperPage(Address cell) { 
+  public static Address getSuperPage(Address cell) {
     return cell.toWord().and(PAGE_MASK).toAddress();
   }
 

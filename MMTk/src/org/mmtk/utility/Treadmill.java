@@ -106,22 +106,22 @@ import org.vmmagic.pragma.*;
    */
 
   @Inline
-  public static final int headerSize() {
+  public static int headerSize() {
     return DoublyLinkedList.headerSize();
   }
 
   @Inline
-  public static final Address nodeToPayload(Address payload) {
+  public static Address nodeToPayload(Address payload) {
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
   @Inline
-  public static final Address payloadToNode(Address payload) {
+  public static Address payloadToNode(Address payload) {
     return DoublyLinkedList.payloadToNode(payload);
   }
 
   @Inline
-  public static final Address midPayloadToNode(Address payload) {
+  public static Address midPayloadToNode(Address payload) {
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 

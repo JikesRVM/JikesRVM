@@ -763,7 +763,7 @@ import org.vmmagic.pragma.*;
   /*
  *  Will this object move (allows us to optimize some JNI calls)
  *  */
-  public static final boolean objectCanMove(Object obj) {
+  public static boolean objectCanMove(Object obj) {
     return Selected.Plan.get().objectCanMove(ObjectReference.fromObject(obj));
   }
 

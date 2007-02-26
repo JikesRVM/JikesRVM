@@ -66,7 +66,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
    *
     * @param ir the governing IR
    */ 
-  static final void lowerInstrumentation(OPT_IR ir) {
+  static void lowerInstrumentation(OPT_IR ir) {
     /*
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements(); ) {

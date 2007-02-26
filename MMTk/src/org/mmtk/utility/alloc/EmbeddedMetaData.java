@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
    * region in which the address is located.
    */
   @Inline
-  public static final Address getMetaDataBase(Address address) { 
+  public static Address getMetaDataBase(Address address) {
     return address.toWord().and(REGION_MASK.not()).toAddress();
   }
 
@@ -69,7 +69,7 @@ import org.vmmagic.pragma.*;
    * @return The offset into the meta-data for this region, given the
    * specified address and coverage and aligment requirements.
    */
-  public static final Extent getMetaDataOffset(Address address,
+  public static Extent getMetaDataOffset(Address address,
                                                   int logCoverage,
                                                   int logAlign) {
     return address.toWord().and(REGION_MASK).rshl(logCoverage+logAlign).lsh(logAlign).toExtent();

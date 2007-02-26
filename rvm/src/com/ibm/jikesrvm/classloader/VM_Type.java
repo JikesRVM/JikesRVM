@@ -557,7 +557,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * Only intended to be used by the bootimage writer!
    */
   @Uninterruptible
-  public static final int numTypes() { 
+  public static int numTypes() {
     return nextId-1; 
   }
   /**
@@ -565,14 +565,14 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * Only intended to be used by the bootimage writer!
    */
   @Uninterruptible
-  public static final VM_Type[] getTypes() { 
+  public static VM_Type[] getTypes() {
     return types; 
   }
   /**
    * Get the type for the given id
    */
   @Uninterruptible
-  public static final VM_Type getType(int id) { 
+  public static VM_Type getType(int id) {
     return types[id];
   }
 

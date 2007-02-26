@@ -105,7 +105,7 @@ import org.vmmagic.pragma.*;
    * This is called from MM_Interface.
    */
   @Interruptible
-  public static final void init() { 
+  public static void init() {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
@@ -126,7 +126,7 @@ import org.vmmagic.pragma.*;
   }
   
   @Interruptible
-  public static final void triggerCollectionStatic(int why) { 
+  public static void triggerCollectionStatic(int why) {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
@@ -331,7 +331,7 @@ import org.vmmagic.pragma.*;
    * has been called, and before mutators are allowed to run.
    */
   @Uninterruptible
-  public static final void scheduleFinalizerThread () { 
+  public static void scheduleFinalizerThread () {
 
     int finalizedCount = Finalizer.countToBeFinalized();
     boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();

@@ -97,7 +97,7 @@ import org.vmmagic.unboxed.*;
    * @return The to space for the current collection.
    */
   @Inline
-  public static final CopySpace toSpace() { 
+  public static CopySpace toSpace() {
     return hi ? copySpace1 : copySpace0;
   }
 
@@ -105,7 +105,7 @@ import org.vmmagic.unboxed.*;
    * @return The from space for the current collection.
    */
   @Inline
-  public static final CopySpace fromSpace() { 
+  public static CopySpace fromSpace() {
     return hi ? copySpace0 : copySpace1;
   }
 

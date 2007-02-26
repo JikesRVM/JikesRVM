@@ -435,7 +435,7 @@ import org.vmmagic.unboxed.*;
    *         dealt with explicitly as a large object.
    */
   @Inline
-  protected static final int getSizeClass(int bytes) { 
+  protected static int getSizeClass(int bytes) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((bytes > 0) && (bytes <= MAX_CELL_SIZE));
 
     int sz1 = bytes - 1;
@@ -483,7 +483,7 @@ import org.vmmagic.unboxed.*;
    * header).
    */
   @Inline
-  protected static final int getBaseCellSize(int sc) { 
+  protected static int getBaseCellSize(int sc) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
     if (BYTES_IN_ADDRESS == 4) { // 32-bit
@@ -777,7 +777,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the bit was changed to true.
    */
   @Inline
-  public static final boolean liveObject(ObjectReference object) { 
+  public static boolean liveObject(ObjectReference object) {
     return liveAddress(VM.objectModel.objectStartRef(object), true);
   }
   
@@ -787,7 +787,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose blocks liveness is to be set.
    */
   @Inline
-  public static final void liveBlock(ObjectReference object) { 
+  public static void liveBlock(ObjectReference object) {
     BlockAllocator.markBlockMeta(object);
   }
 
@@ -799,7 +799,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose live bit is to be set.
    */
   @Inline
-  public static final boolean unsyncLiveObject(ObjectReference object) { 
+  public static boolean unsyncLiveObject(ObjectReference object) {
     return liveAddress(VM.objectModel.refToAddress(object), false);
   }
 
@@ -810,7 +810,7 @@ import org.vmmagic.unboxed.*;
    * @param atomic True if we want to perform this operation atomically
    */
   @Inline
-  protected static final boolean liveAddress(Address address, boolean atomic) { 
+  protected static boolean liveAddress(Address address, boolean atomic) {
     Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
@@ -832,7 +832,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose live bit is to be set.
    */
   @Inline
-  public static final boolean isLiveObject(ObjectReference object) { 
+  public static boolean isLiveObject(ObjectReference object) {
     return isLiveAddress(VM.objectModel.refToAddress(object));
   }
 
@@ -843,7 +843,7 @@ import org.vmmagic.unboxed.*;
    * @return true if this operation changed the state of the live bit.
    */
   @Inline
-  protected static final boolean isLiveAddress(Address address) { 
+  protected static boolean isLiveAddress(Address address) {
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
     Word value = liveWord.loadWord();
@@ -856,7 +856,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose live bit is to be cleared.
    */
   @Inline
-  protected static final void deadObject(ObjectReference object) { 
+  protected static void deadObject(ObjectReference object) {
     deadAddress(VM.objectModel.refToAddress(object));
   }
 
@@ -866,7 +866,7 @@ import org.vmmagic.unboxed.*;
    * @param address The address whose live bit is to be cleared.
    */
   @Inline
-  protected static final void deadAddress(Address address) { 
+  protected static void deadAddress(Address address) {
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, false);
     liveWord.store(liveWord.loadWord().and(mask));
@@ -875,7 +875,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Clear all live bits
    */
-  public static final void zeroLiveBits(Address start, Address end) {
+  public static void zeroLiveBits(Address start, Address end) {
     Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
     while (start.LT(end)) {
       Address metadata = EmbeddedMetaData.getMetaDataBase(start).plus(SegregatedFreeList.META_DATA_OFFSET);
@@ -894,7 +894,7 @@ import org.vmmagic.unboxed.*;
    * @return The given address, aligned down so that it corresponds to
    * an address on a live word boundary.
    */
-  protected static final Address alignToLiveStride(Address address) {
+  protected static Address alignToLiveStride(Address address) {
     return address.toWord().and(LIVE_WORD_STRIDE_MASK).toAddress();
   }
 
@@ -1029,7 +1029,7 @@ import org.vmmagic.unboxed.*;
    * @param address The address for which the live word is required
    * @return A word containing live bits for the given address.
    */
-  protected static final Word getLiveBits(Address address) {
+  protected static Word getLiveBits(Address address) {
     return getLiveWordAddress(address).loadWord();
   }
 
@@ -1042,7 +1042,7 @@ import org.vmmagic.unboxed.*;
    * @return The appropriate bit mask for object for the live table for.
    */
   @Inline
-  protected static final Word getMask(Address address, boolean set) { 
+  protected static Word getMask(Address address, boolean set) {
     int shift = address.toWord().rshl(OBJECT_LIVE_SHIFT).and(WORD_SHIFT_MASK).toInt();
     Word rtn = Word.one().lsh(shift);
     return (set) ? rtn : rtn.not();
@@ -1056,7 +1056,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the live word for this object
    */
   @Inline
-  protected static final Address getLiveWordAddress(Address address) { 
+  protected static Address getLiveWordAddress(Address address) {
     Address rtn = EmbeddedMetaData.getMetaDataBase(address);
     return rtn.plus(META_DATA_OFFSET).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_LIVE_COVERAGE, LOG_BYTES_IN_WORD));
   }

@@ -36,7 +36,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return integer register operand
    */
-  public static final OPT_RegisterOperand A(OPT_Register reg) {
+  public static OPT_RegisterOperand A(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Address);
   }
 
@@ -51,11 +51,11 @@ public abstract class OPT_IRTools {
    * @return integer register operand
    */
   @Deprecated
-  public static final OPT_RegisterOperand R(OPT_Register reg) {
+  public static OPT_RegisterOperand R(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
-  public static final OPT_RegisterOperand I(OPT_Register reg) {
+  public static OPT_RegisterOperand I(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
@@ -69,7 +69,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return float register operand
    */
-  public static final OPT_RegisterOperand F(OPT_Register reg) {
+  public static OPT_RegisterOperand F(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Float);
   }
 
@@ -83,7 +83,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return double register operand
    */
-  public static final OPT_RegisterOperand D(OPT_Register reg) {
+  public static OPT_RegisterOperand D(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Double);
   }
 
@@ -97,7 +97,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return long register operand
    */
-  public static final OPT_RegisterOperand L(OPT_Register reg) {
+  public static OPT_RegisterOperand L(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Long);
   }
 
@@ -111,7 +111,7 @@ public abstract class OPT_IRTools {
    * @param reg the given register
    * @return condition register operand
    */
-  public static final OPT_RegisterOperand CR(OPT_Register reg) {
+  public static OPT_RegisterOperand CR(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
@@ -125,11 +125,11 @@ public abstract class OPT_IRTools {
    * @param value    The address constant
    * @return address constant operand
    */
-  public static final OPT_AddressConstantOperand AC(Address value) {
+  public static OPT_AddressConstantOperand AC(Address value) {
     return new OPT_AddressConstantOperand(value);
   }
   
-  public static final OPT_AddressConstantOperand AC(Offset value) {
+  public static OPT_AddressConstantOperand AC(Offset value) {
     return new OPT_AddressConstantOperand(value);
   }
   
@@ -143,7 +143,7 @@ public abstract class OPT_IRTools {
    * @param value   The int constant
    * @return integer constant operand
    */
-  public static final OPT_IntConstantOperand IC(int value) {
+  public static OPT_IntConstantOperand IC(int value) {
     return new OPT_IntConstantOperand(value);
   }
 
@@ -157,7 +157,7 @@ public abstract class OPT_IRTools {
    * @param value the long value
    * @return long constant operand
    */
-  public static final OPT_LongConstantOperand LC(long value) {
+  public static OPT_LongConstantOperand LC(long value) {
     return new OPT_LongConstantOperand(value);
   }
 
@@ -171,7 +171,7 @@ public abstract class OPT_IRTools {
    * @param value the float value
    * @return float constant operand
    */
-  public static final OPT_FloatConstantOperand FC(float value) {
+  public static OPT_FloatConstantOperand FC(float value) {
     return new OPT_FloatConstantOperand(value);
   }
 
@@ -185,7 +185,7 @@ public abstract class OPT_IRTools {
    * @param value the double value
    * @return double constant operand
    */
-  public static final OPT_DoubleConstantOperand DC(double value) {
+  public static OPT_DoubleConstantOperand DC(double value) {
     return new OPT_DoubleConstantOperand(value);
   }
 
@@ -198,7 +198,7 @@ public abstract class OPT_IRTools {
    * 
    * @return true guard operand
    */
-  public static final OPT_TrueGuardOperand TG() {
+  public static OPT_TrueGuardOperand TG() {
     return new OPT_TrueGuardOperand();
   }
 
@@ -215,7 +215,7 @@ public abstract class OPT_IRTools {
    * @param dst the instruction to copy position information to
    * @return dest
    */
-  public static final OPT_Instruction CPOS(OPT_Instruction src, 
+  public static OPT_Instruction CPOS(OPT_Instruction src,
                                            OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
@@ -227,7 +227,7 @@ public abstract class OPT_IRTools {
    * @param type desired type
    * @return a constant operand with the default value for type
    */
-  public static final OPT_Operand getDefaultOperand(VM_TypeReference type) {
+  public static OPT_Operand getDefaultOperand(VM_TypeReference type) {
     if (type.isBooleanType()) return new OPT_IntConstantOperand(0);
     if (type.isByteType())    return new OPT_IntConstantOperand(0);
     if (type.isCharType())    return new OPT_IntConstantOperand(0);
@@ -245,7 +245,7 @@ public abstract class OPT_IRTools {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  public static final OPT_Operator getMoveOp(VM_TypeReference type) {
+  public static OPT_Operator getMoveOp(VM_TypeReference type) {
     if (type.isLongType())    return LONG_MOVE;
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
@@ -262,7 +262,7 @@ public abstract class OPT_IRTools {
    * @param type desired type to move
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  public static final OPT_Operator getCondMoveOp(VM_TypeReference type) {
+  public static OPT_Operator getCondMoveOp(VM_TypeReference type) {
     if (type.isLongType())    return LONG_COND_MOVE;
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
@@ -279,7 +279,7 @@ public abstract class OPT_IRTools {
    * @param isStatic is the field static
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_FieldReference field, boolean isStatic) {
+  public static OPT_Operator getLoadOp(VM_FieldReference field, boolean isStatic) {
     return getLoadOp(field.getFieldContentsType(), isStatic);
   }
 
@@ -290,7 +290,7 @@ public abstract class OPT_IRTools {
    * @param isStatic is the field static
    * @return the OPT_Operator to use when loading the given field
    */
-  public static final OPT_Operator getLoadOp(VM_TypeReference type, boolean isStatic) {
+  public static OPT_Operator getLoadOp(VM_TypeReference type, boolean isStatic) {
     if (!VM_Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
       if (type.isByteType())      return INT_LOAD;
@@ -317,7 +317,7 @@ public abstract class OPT_IRTools {
    * @param isStatic is the field static
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_FieldReference field, boolean isStatic) {
+  public static OPT_Operator getStoreOp(VM_FieldReference field, boolean isStatic) {
     return getStoreOp(field.getFieldContentsType(), isStatic);
   }
 
@@ -328,7 +328,7 @@ public abstract class OPT_IRTools {
    * @param isStatic is the field static
    * @return the OPT_Operator to use when storing to the given field
    */
-  public static final OPT_Operator getStoreOp(VM_TypeReference type, boolean isStatic) {
+  public static OPT_Operator getStoreOp(VM_TypeReference type, boolean isStatic) {
     if (!VM_Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
       if (type.isByteType())      return INT_STORE;
@@ -358,7 +358,7 @@ public abstract class OPT_IRTools {
    * @param op operand to copy to a register
    * @return register operand that we copied into
    */
-  public static final OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
+  public static OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
                                                            OPT_Instruction s,
                                                            OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
@@ -381,7 +381,7 @@ public abstract class OPT_IRTools {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  public static final OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
+  public static OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
                                                            OPT_Operator move_op,
                                                            OPT_RegisterPool pool,
                                                            OPT_Instruction s,
@@ -399,7 +399,7 @@ public abstract class OPT_IRTools {
    * @param from instruction to move
    * @param to instruction after where you want it moved
    */
-  public static final void moveInstruction(OPT_Instruction from, OPT_Instruction to) {
+  public static void moveInstruction(OPT_Instruction from, OPT_Instruction to) {
     from.remove();
     to.insertBack(from);
   }
@@ -412,7 +412,7 @@ public abstract class OPT_IRTools {
    * @param after instruction after where you want it inserted
    * @param temp basic block which contains the instructions to be inserted.
    */
-  public static final void insertInstructionsAfter(OPT_Instruction after,
+  public static void insertInstructionsAfter(OPT_Instruction after,
                                                    OPT_BasicBlock temp) {
     if (temp.isEmpty()) return;
     OPT_Instruction after_after = after.getNext();
@@ -626,7 +626,7 @@ public abstract class OPT_IRTools {
    * @param instr the given instruction
    * @return the given instruction
    */
-  public static final OPT_Instruction nonPEIGC(OPT_Instruction instr) {
+  public static OPT_Instruction nonPEIGC(OPT_Instruction instr) {
     instr.markAsNonPEINonGCPoint();
     return instr;
   }

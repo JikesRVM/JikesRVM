@@ -113,7 +113,7 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   @NoInline
-  public static final void failWithOutOfMemoryErrorStatic() { 
+  public static void failWithOutOfMemoryErrorStatic() {
     if (VM.doEmergencyGrowHeap)
       MM_Interface.emergencyGrowHeap(EMERGENCY_HEAP_REQ); // ask and pray
     throw new OutOfMemoryError();

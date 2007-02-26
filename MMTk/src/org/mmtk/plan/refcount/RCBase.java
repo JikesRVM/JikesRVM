@@ -203,7 +203,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to check
    * @return True if the object is in a reference counted space.
    */
-  public static final boolean isRCObject(ObjectReference object) {
+  public static boolean isRCObject(ObjectReference object) {
     return !object.isNull() && !Space.isInSpace(VM_SPACE, object);  
   }
 
@@ -212,7 +212,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param object The object to free.
    */
-  public static final void free(ObjectReference object) {
+  public static void free(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
     	VM.assertions._assert(isRCObject(object));
     }

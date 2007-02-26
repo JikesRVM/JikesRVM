@@ -127,7 +127,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId The unique phase identifier.
    * @return The name of the phase.
    */
-  public static final String getName(int phaseId) {
+  public static String getName(int phaseId) {
     return phases[phaseId].name;
   }
 
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param phaseId The identifier of the phase to execute.
    */
-  public static final void delegatePhase(int phaseId) {
+  public static void delegatePhase(int phaseId) {
     delegatePhase(phases[phaseId]);
   }
 
@@ -155,7 +155,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param phase The phase to execute.
    */
-  protected static final void delegatePhase(Phase phase) {
+  protected static void delegatePhase(Phase phase) {
     phase.delegatePhase();
   }
 

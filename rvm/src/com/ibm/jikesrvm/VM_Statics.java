@@ -136,7 +136,7 @@ public class VM_Statics implements VM_Constants {
    * Conversion from JTOC slot index to JTOC offset.
    */
   @Uninterruptible
-  public static final Offset slotAsOffset(int slot) { 
+  public static Offset slotAsOffset(int slot) {
     return Offset.fromIntSignExtend((slot - middleOfTable) << LOG_BYTES_IN_INT);
   }
 
@@ -144,7 +144,7 @@ public class VM_Statics implements VM_Constants {
    * Conversion from JTOC offset to JTOC slot index.
    */
   @Uninterruptible
-  public static final int offsetAsSlot(Offset offset) { 
+  public static int offsetAsSlot(Offset offset) {
     if (VM.VerifyAssertions) VM._assert((offset.toInt() & 3) == 0);
     return middleOfTable + (offset.toInt() >> LOG_BYTES_IN_INT);
   }
@@ -152,14 +152,14 @@ public class VM_Statics implements VM_Constants {
   /**
    * Return the lowest slot number in use
    */
-  public static final int getLowestInUseSlot() {
+  public static int getLowestInUseSlot() {
     return nextNumericSlot+1;
   }
 
   /**
    * Return the highest slot number in use
    */
-  public static final int getHighestInUseSlot() {
+  public static int getHighestInUseSlot() {
     return nextReferenceSlot - (VM.BuildFor32Addr ? 1 : 2);
   }
 
@@ -169,7 +169,7 @@ public class VM_Statics implements VM_Constants {
    * @param literal the literal value to find or create
    * @return the offset in the JTOC of the literal
    */
-  public static final int findOrCreateIntSizeLiteral(int literal) {
+  public static int findOrCreateIntSizeLiteral(int literal) {
     Integer offsetAsInt;
     synchronized(intSizeLiterals) {
        offsetAsInt = intSizeLiterals.get(literal);
@@ -192,7 +192,7 @@ public class VM_Statics implements VM_Constants {
    * @param literal the literal value to find or create
    * @return the offset in the JTOC of the literal
    */
-  public static final int findOrCreateLongSizeLiteral(long literal) {
+  public static int findOrCreateLongSizeLiteral(long literal) {
     Integer offsetAsInt;
     synchronized(longSizeLiterals) {
        offsetAsInt = longSizeLiterals.get(literal);

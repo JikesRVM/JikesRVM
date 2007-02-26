@@ -284,7 +284,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param op destination operand
    * @return input edge or null if not found
    */
-  public static final OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n,
+  public static OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n,
                                                      OPT_Operand op) {
     for (OPT_DepGraphEdge inEdge = (OPT_DepGraphEdge) n.firstInEdge();
          inEdge != null; 

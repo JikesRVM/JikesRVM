@@ -326,7 +326,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if the given object is in an immortal (uncollected) space.
    */
-  public static final boolean isImmortal(ObjectReference object) {
+  public static boolean isImmortal(ObjectReference object) {
     Space space = getSpaceForObject(object);
     if (space == null)
       return true;
@@ -341,7 +341,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the given object is in space that moves objects.
    */
   @Inline
-  public static final boolean isMovable(ObjectReference object) { 
+  public static boolean isMovable(ObjectReference object) {
     Space space = getSpaceForObject(object);
     if (space == null)
       return true;
@@ -356,7 +356,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the given object is in a space managed by MMTk.
    */
   @Inline
-  public static final boolean isMappedObject(ObjectReference object) { 
+  public static boolean isMappedObject(ObjectReference object) {
     return !object.isNull() && (getSpaceForObject(object) != null) && Mmapper.objectIsMapped(object);
   }
 
@@ -367,7 +367,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the given address is in a space managed by MMTk.
    */
   @Inline
-  public static final boolean isMappedAddress(Address address) { 
+  public static boolean isMappedAddress(Address address) {
     return Map.getSpaceForAddress(address) != null && Mmapper.addressIsMapped(address);
   }
 

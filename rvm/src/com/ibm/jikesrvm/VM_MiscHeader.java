@@ -182,7 +182,7 @@ import org.vmmagic.unboxed.*;
       oid = oid_;
   }
 
-  public static final int getHeaderSize() {
+  public static int getHeaderSize() {
     return NUM_BYTES_HEADER;
   }
 

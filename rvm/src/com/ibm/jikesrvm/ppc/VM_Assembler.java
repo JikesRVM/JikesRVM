@@ -388,7 +388,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   static final int BCtemplate = 16<<26;
 
-  public static final int flipCode(int cc) {
+  public static int flipCode(int cc) {
     switch(cc) {
     case LT: return GE;
     case GT: return LE;
@@ -891,7 +891,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   static final int LFSXtemplate = 31<<26 | 535<<1;
 
-  public static final int LFSX (int FRT, int RA, int RB) {
+  public static int LFSX (int FRT, int RA, int RB) {
     return 31<<26 | FRT<<21 | RA<<16 | RB<<11 | 535<<1;
   }
 
@@ -1000,7 +1000,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   static final int FRSPtemplate = 63<<26 | 12<<1;
 
-  static final int FRSP (int RT, int RB) {
+  static int FRSP (int RT, int RB) {
     return 63<<26 | RT<<21 |  RB<<11 | 12<<1;
   }
 
@@ -1256,7 +1256,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
   static final int STFSXtemplate = 31<<26 | 663<<1;
 
-  public static final int STFSX(int FRS, int RA, int RB) {
+  public static int STFSX(int FRS, int RA, int RB) {
     return 31<<26 | FRS<<21 | RA<<16 | RB<<11 | 663<<1;
   }
 

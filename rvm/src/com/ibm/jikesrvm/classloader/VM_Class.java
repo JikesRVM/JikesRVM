@@ -536,7 +536,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return cpValue & 0xffff;
   }
 
-  static final int getLiteralSize(int[] constantPool, int constantPoolIndex) {
+  static int getLiteralSize(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     switch(unpackCPType(cpValue)) {
     case CP_INT:
@@ -567,7 +567,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
-  static final Offset getLiteralOffset(int[] constantPool, int constantPoolIndex) {
+  static Offset getLiteralOffset(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     if (VM.VerifyAssertions) {
       int value = unpackSignedCPValue(cpValue);

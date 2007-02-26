@@ -336,7 +336,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   public abstract int getCompilerType(); 
 
   @Uninterruptible
-  public static final String compilerTypeToString (int compilerType) { 
+  public static String compilerTypeToString (int compilerType) {
     switch (compilerType) {
       case TRAP: return "TRAP";
       case BASELINE: return "BASELINE";

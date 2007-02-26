@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
   public final void setArrayNoBarrier(char [] dst, int index, char value) {
     setArrayNoBarrierStatic(dst, index, value);
   }
-  public static final void setArrayNoBarrierStatic(char [] dst, int index, char value) {
+  public static void setArrayNoBarrierStatic(char [] dst, int index, char value) {
     if (VM.runningVM)
       VM_Magic.setCharAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR), value);
     else
@@ -103,7 +103,7 @@ import org.vmmagic.pragma.*;
   public final char getArrayNoBarrier(char [] src, int index) {
     return getArrayNoBarrierStatic(src, index);
   }
-  public static final char getArrayNoBarrierStatic(char [] src, int index) {
+  public static char getArrayNoBarrierStatic(char [] src, int index) {
     if (VM.runningVM)
       return VM_Magic.getCharAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR));
     else
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.*;
   public final byte getArrayNoBarrier(byte [] src, int index) {
     return getArrayNoBarrierStatic(src, index);
   }
-  public static final byte getArrayNoBarrierStatic(byte [] src, int index) {
+  public static byte getArrayNoBarrierStatic(byte [] src, int index) {
     if (VM.runningVM)
       return VM_Magic.getByteAtOffset(src, Offset.fromIntZeroExtend(index));
     else
@@ -170,7 +170,7 @@ import org.vmmagic.pragma.*;
   public final byte[] getArrayNoBarrier(byte[][] src, int index) {
     return getArrayNoBarrierStatic(src, index);
   }
-  public static final byte[] getArrayNoBarrierStatic(byte[][] src, int index) {
+  public static byte[] getArrayNoBarrierStatic(byte[][] src, int index) {
     if (VM.runningVM)
       return VM_Magic.addressAsByteArray(VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS))));
     else

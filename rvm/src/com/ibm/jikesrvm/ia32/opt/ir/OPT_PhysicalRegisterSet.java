@@ -49,7 +49,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Return the total number of physical registers.
    */
-  public static final int getSize() {
+  public static int getSize() {
     return NUM_GPRS + NUM_FPRS + NUM_SPECIALS;
   }
 
@@ -63,21 +63,21 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * Return the total number of nonvolatile GPRs.
    */
-  public static final int getNumberOfNonvolatileGPRs() {
+  public static int getNumberOfNonvolatileGPRs() {
     return NUM_NONVOLATILE_GPRS;
   }
 
   /**
    * Return the total number of GPRs that may hold parameters.
    */
-  public static final int getNumberOfGPRParams() {
+  public static int getNumberOfGPRParams() {
     return NUM_PARAMETER_GPRS;
   }
 
   /**
    * Return the total number of FPRs that may hold parameters.
    */
-  public static final int getNumberOfFPRParams() {
+  public static int getNumberOfFPRParams() {
     return NUM_PARAMETER_FPRS;
   }
 
@@ -408,7 +408,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @param r a symbolic register
    * @return one of INT_REG, DOUBLE_REG 
    */
-  public static final int getPhysicalRegisterType(OPT_Register r) {
+  public static int getPhysicalRegisterType(OPT_Register r) {
     if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_REG;
     } else if (r.isFloatingPoint()) {

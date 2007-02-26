@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.*;
    * @param trace_ The dequeue used to store and then output the trace
    */
   @Interruptible
-  public static final void init(SortTODSharedDeque worklist_,
+  public static void init(SortTODSharedDeque worklist_,
                                 SortTODSharedDeque trace_) { 
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
@@ -105,7 +105,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param value The integer value for the reason Jikes is terminating
    */
-  public static final void notifyExit(int value) {
+  public static void notifyExit(int value) {
     if (MERLIN_ANALYSIS)
       findDeaths();
     trace.process();
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
    * @param ref The address of the object to be added to the linked list
    * @param linkSpace The region to which the object should be added
    */
-  public static final void addTraceObject(ObjectReference ref, int linkSpace) {
+  public static void addTraceObject(ObjectReference ref, int linkSpace) {
     VM.traceInterface.setLink(ref, objectLinks.get(linkSpace));
     objectLinks.set(linkSpace, ref);
   }
@@ -127,7 +127,7 @@ import org.vmmagic.unboxed.*;
    * Do the work necessary following each garbage collection. This HAS to be
    * called after EACH collection.
    */
-  public static final void postCollection() {
+  public static void postCollection() {
     /* Find and output the object deaths */
     traceBusy = true;
     findDeaths();
@@ -147,7 +147,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param bootStart The address at which the bootimage starts
    */
-  public static final void boot(Address bootStart) {
+  public static void boot(Address bootStart) {
     Word nextOID = VM.traceInterface.getOID();
     ObjectReference trav = VM.traceInterface.getBootImageLink().plus(bootStart.toWord().toOffset()).toObjectReference();
     objectLinks.set(ALLOC_BOOT, trav);
@@ -224,7 +224,7 @@ import org.vmmagic.unboxed.*;
    */
   @LogicallyUninterruptible
   @NoInline
-  public static final void traceAlloc(boolean isImmortal, ObjectReference ref,
+  public static void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes) { 
     boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
@@ -360,7 +360,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param obj The root-referenced object
    */
-  public static final void rootEnumerate(ObjectReference obj) {
+  public static void rootEnumerate(ObjectReference obj) {
     VM.traceInterface.updateDeathTime(obj);
   }
 
@@ -371,7 +371,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param ref The address of the object to examine
    */
-  public static final void propagateDeathTime(ObjectReference ref) {
+  public static void propagateDeathTime(ObjectReference ref) {
     /* If this death time is more accurate, set it. */
     if (VM.traceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */

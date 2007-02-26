@@ -82,7 +82,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Return the total number of physical registers.
    */
-  public static final int getSize() {
+  public static int getSize() {
     return NUM_GPRS + NUM_FPRS + NUM_CRS + NUM_SPECIALS;
   }
 
@@ -96,14 +96,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * Return the total number of nonvolatile GPRs.
    */
-  public static final int getNumberOfNonvolatileGPRs() {
+  public static int getNumberOfNonvolatileGPRs() {
     return NUM_NONVOLATILE_GPRS;
   }
 
   /**
    * Return the total number of nonvolatile FPRs.
    */
-  public static final int getNumberOfNonvolatileFPRs() {
+  public static int getNumberOfNonvolatileFPRs() {
     return NUM_NONVOLATILE_FPRS;
   }
 
@@ -476,7 +476,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * @param r a symbolic register
    * @return one of INT_REG, DOUBLE_REG, or CONDITION_REG
    */
-  public static final int getPhysicalRegisterType(OPT_Register r) {
+  public static int getPhysicalRegisterType(OPT_Register r) {
     if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_REG;
     } else if (r.isFloatingPoint()) {

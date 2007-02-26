@@ -38,7 +38,7 @@ public abstract class VM_ExceptionTable {
    * @param exceptionType the type of exception that was raised
    * @return the machine code offset of the catch block.
    */
-  public static final int findCatchBlockForInstruction(int[] eTable,
+  public static int findCatchBlockForInstruction(int[] eTable,
                                                        Offset instructionOffset, 
                                                        VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
@@ -67,7 +67,7 @@ public abstract class VM_ExceptionTable {
    * Print an encoded exception table.
    * @param eTable the encoded exception table to print.
    */
-  public static final void printExceptionTable (int[] eTable) {
+  public static void printExceptionTable (int[] eTable) {
     int length = eTable.length;
     VM.sysWriteln("Exception Table:");
     VM.sysWriteln("    trystart   tryend    catch    type");

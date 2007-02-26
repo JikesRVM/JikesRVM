@@ -93,7 +93,7 @@ final class VMClassLoader
     }
   }
 
-  static final Class<?> defineClass(ClassLoader cl, String name,
+  static Class<?> defineClass(ClassLoader cl, String name,
       byte[] data, int offset, int len,
       ProtectionDomain pd)
       throws ClassFormatError
@@ -110,14 +110,14 @@ final class VMClassLoader
     return ans;
       }
 
-  static final void resolveClass(Class<?> c) {
+  static void resolveClass(Class<?> c) {
     VM_Type cls = JikesRVMSupport.getTypeForClass(c);
     cls.resolve();
     cls.instantiate();
     cls.initialize();
   }
 
-  static final Class<?> loadClass(String name, boolean resolve)
+  static Class<?> loadClass(String name, boolean resolve)
   throws ClassNotFoundException
   {
     return VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
@@ -237,7 +237,7 @@ final class VMClassLoader
     return packages;
   }
 
-  static final Class<?> getPrimitiveClass(char type) {
+  static Class<?> getPrimitiveClass(char type) {
     VM_Type t;
     switch (type) {
     case 'Z': 
@@ -273,7 +273,7 @@ final class VMClassLoader
     return t.getClassForType();
   }
 
-  static final boolean defaultAssertionStatus() {
+  static boolean defaultAssertionStatus() {
     return true;
   }
 
@@ -324,7 +324,7 @@ final class VMClassLoader
     instrumenter = theInstrumenter;
   }
 
-  static final Class<?> defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
+  static Class<?> defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
       int offset, int len, ProtectionDomain pd) {
 
     if (instrumenter != null) {

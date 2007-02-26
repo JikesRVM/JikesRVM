@@ -233,14 +233,14 @@ import org.vmmagic.pragma.*;
   /**
    * @return the active PlanLocal as a GCTraceLocal
    */
-  public static final GCTraceCollector local() {
+  public static GCTraceCollector local() {
     return ((GCTraceCollector) VM.activePlan.collector());
   }
 
   /**
    * @return the active Plan as a GCTrace
    */
-  public static final GCTrace global() {
+  public static GCTrace global() {
     return ((GCTrace) VM.activePlan.global());
   }
 }

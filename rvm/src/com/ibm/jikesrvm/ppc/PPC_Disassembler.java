@@ -138,11 +138,11 @@ public class PPC_Disassembler implements VM_Constants {
     
   }
   
-  static final int bits (int x, int n, int m) {
+  static int bits (int x, int n, int m) {
     return ((x >> (31-m)) & ((1 << (m-n+1)) - 1));
   }
   
-  static final int signed (int x, int n, int m) {
+  static int signed (int x, int n, int m) {
     return ((x << n) >> 31-m+n);
   }
 

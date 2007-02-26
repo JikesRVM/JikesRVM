@@ -167,7 +167,7 @@ import org.vmmagic.unboxed.*;
 
   /** @return The active cycle detector global instance */
   @Inline
-  public static final CD current() { 
+  public static CD current() {
     return ((RCBase)VM.activePlan.global()).cycleDetector();
   }
 }

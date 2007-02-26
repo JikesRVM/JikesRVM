@@ -43,7 +43,7 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static final OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
+  public static OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
                                                                      final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
@@ -80,7 +80,7 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static final OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
+  public static OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
                                                                      final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
@@ -109,7 +109,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  public static final OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
+  public static OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -133,7 +133,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  public static final OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
+  public static OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -157,7 +157,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the basic blocks in ir
    */ 
-  public static final OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
+  public static OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.firstBasicBlockInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }
@@ -181,7 +181,7 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a reverse enumeration of the basic blocks in ir
    */ 
-  public static final OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
+  public static OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.lastBasicBlockInCodeOrder();
       public final boolean hasMoreElements() { return current != null; }

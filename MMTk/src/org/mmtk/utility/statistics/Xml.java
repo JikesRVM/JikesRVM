@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.Word;
    * @param value The value of the entity
    * @param units The units, or null for no units.
    */
-  public static final void singleValue(String name, double value, String units) {
+  public static void singleValue(String name, double value, String units) {
     openMinorTag("stat");
     attribute("name",name); 
     attribute("value",value); 
@@ -138,7 +138,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void singleValue(String name, double value) {
+  public static void singleValue(String name, double value) {
     singleValue(name,value,null);
   }
 
@@ -150,7 +150,7 @@ import org.vmmagic.unboxed.Word;
    * @param value The value of the entity
    * @param units The units, or null for no units.
    */
-  public static final void singleValue(String name, long value, String units) {
+  public static void singleValue(String name, long value, String units) {
     openMinorTag("stat");
     attribute("name",name); 
     attribute("value",value); 
@@ -164,7 +164,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void singleValue(String name, long value) {
+  public static void singleValue(String name, long value) {
     singleValue(name,value,null);
   }
 
@@ -174,7 +174,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, Word value) {
+  public static void attribute(String name, Word value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
@@ -184,7 +184,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, byte[] value) {
+  public static void attribute(String name, byte[] value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
@@ -194,7 +194,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, String value) {
+  public static void attribute(String name, String value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
@@ -204,7 +204,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, double value) {
+  public static void attribute(String name, double value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
@@ -214,7 +214,7 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, long value) {
+  public static void attribute(String name, long value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
@@ -224,14 +224,14 @@ import org.vmmagic.unboxed.Word;
    * @param name Name of the entity
    * @param value The value of the entity
    */
-  public static final void attribute(String name, int value) {
+  public static void attribute(String name, int value) {
     openAttribute(name); Log.write(value); closeAttribute();
   }
 
   /**
    * Close an attribute (actually a simple close-quote)
    */
-  public static final void closeAttribute() {
+  public static void closeAttribute() {
     Log.write("\"");
   }
 
@@ -240,14 +240,14 @@ import org.vmmagic.unboxed.Word;
    * 
    * @param name Name of the entity
    */
-  public static final void openAttribute(String name) {
+  public static void openAttribute(String name) {
     Log.write(" "); Log.write(name); Log.write("=\"");
   }
 
   /**
    * Start a tag
    */
-  public static final void startTag() {
+  public static void startTag() {
     Log.write("<"); 
   }
 
@@ -256,7 +256,7 @@ import org.vmmagic.unboxed.Word;
    * 
    * @param close If true, close the tag with "/>" rather than ">"
    */
-  public static final void closeTag(boolean close) {
+  public static void closeTag(boolean close) {
     closeTag(close,true);
   }
   
@@ -267,7 +267,7 @@ import org.vmmagic.unboxed.Word;
    * @param close If true, close the tag with "/>" rather than ">"
    * @param endLine If true end the current line.
    */
-  public static final void closeTag(boolean close, boolean endLine) {
+  public static void closeTag(boolean close, boolean endLine) {
     if (close) Log.write("/");
     Log.write(">"); 
     if (endLine) Log.writeln();
@@ -276,7 +276,7 @@ import org.vmmagic.unboxed.Word;
   /**
    * Close a tag with a "/>"
    */
-  public static final void closeMinorTag() {
+  public static void closeMinorTag() {
     closeTag(true,true); 
   }
 
@@ -286,21 +286,21 @@ import org.vmmagic.unboxed.Word;
    * 
    * @param name Name of the entity
    */
-  public static final void openMinorTag(String name) {
+  public static void openMinorTag(String name) {
     Log.write("<"); Log.write(name);
   }
 
   /**
    * Open an XML comment
    */
-  public static final void openComment() {
+  public static void openComment() {
 	  Log.write("<!-- ");
   }
   
   /**
    * Close an XML comment
    */
-  public static final void closeComment() {
+  public static void closeComment() {
 	  Log.write(" -->");
   }
   
@@ -309,7 +309,7 @@ import org.vmmagic.unboxed.Word;
    * 
    * @param comment The comment.
    */
-  public static final void comment(String comment) {
+  public static void comment(String comment) {
 	  openComment();
 	  Log.write(comment);
 	  closeComment();

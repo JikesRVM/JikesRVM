@@ -380,7 +380,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the block containing the address
    */
   @Inline
-  public static final Address getBlkStart(Address address) { 
+  public static Address getBlkStart(Address address) {
     address = Conversions.pageAlign(address);
     byte offset = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) >>> BLOCK_PAGE_OFFSET_SHIFT);
     return address.minus(offset<<LOG_BYTES_IN_PAGE);
@@ -395,7 +395,7 @@ import org.vmmagic.unboxed.*;
    * @param sc The value to which this field is to be set
    */
   @Inline
-  public static final void setAllClientSizeClass(Address block, int blocksc, byte sc) { 
+  public static void setAllClientSizeClass(Address block, int blocksc, byte sc) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block == Conversions.pageAlign(block));
     Address address = block;
     for (int i = 0; i < pagesForSizeClass(blocksc); i++) {
@@ -413,7 +413,7 @@ import org.vmmagic.unboxed.*;
    * @return The size class field for the block containing the given address
    */
   @Inline
-  public static final byte getClientSizeClass(Address address) { 
+  public static byte getClientSizeClass(Address address) {
     address = Conversions.pageAlign(address);
     byte rtn = getMetaAddress(address).loadByte(CSC_OFFSET);
     return rtn;
@@ -428,7 +428,7 @@ import org.vmmagic.unboxed.*;
    * @param value The value to which this field is to be set
    */
   @Inline
-  public static final void setFreeListMeta(Address address, 
+  public static void setFreeListMeta(Address address,
                                            Address value) { 
     getMetaAddress(address).plus(FL_META_OFFSET).store(value);
   }
@@ -443,7 +443,7 @@ import org.vmmagic.unboxed.*;
    * the given address
    */
   @Inline
-  public static final Address getFreeListMeta(Address address) { 
+  public static Address getFreeListMeta(Address address) {
     return getMetaAddress(address).plus(FL_META_OFFSET).loadAddress();
   }
 
@@ -453,7 +453,7 @@ import org.vmmagic.unboxed.*;
    * @param block The block to be removed from the doubly linked list
    */
   @Inline
-  static final void unlinkBlock(Address block) { 
+  static void unlinkBlock(Address block) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next = getNextBlock(block);
     Address prev = getPrevBlock(block);
@@ -472,7 +472,7 @@ import org.vmmagic.unboxed.*;
    * @param prev The block that is to preceed the new block
    */
   @Inline
-  static final void linkedListInsert(Address block, Address prev) { 
+  static void linkedListInsert(Address block, Address prev) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next;
     if (!prev.isZero()) {
@@ -492,7 +492,7 @@ import org.vmmagic.unboxed.*;
    * @param prev The value to which this field is to be set
    */
   @Inline
-  static final void setPrevBlock(Address address, Address prev) { 
+  static void setPrevBlock(Address address, Address prev) {
     getMetaAddress(address, PREV_OFFSET).store(prev);
   }
 
@@ -503,7 +503,7 @@ import org.vmmagic.unboxed.*;
    * @return The prev field for the block containing the given address
    */
   @Inline
-  static final Address getPrevBlock(Address address) { 
+  static Address getPrevBlock(Address address) {
     return getMetaAddress(address, PREV_OFFSET).loadAddress();
   }
 
@@ -514,7 +514,7 @@ import org.vmmagic.unboxed.*;
    * @param next The value to which this field is to be set
    */
   @Inline
-  static final void setNextBlock(Address address, Address next) { 
+  static void setNextBlock(Address address, Address next) {
     getMetaAddress(address, NEXT_OFFSET).store(next);
   }
 
@@ -525,7 +525,7 @@ import org.vmmagic.unboxed.*;
    * @return The next field for the block containing the given address
    */
   @Inline
-  public static final Address getNextBlock(Address address) { 
+  public static Address getNextBlock(Address address) {
     return getMetaAddress(address, NEXT_OFFSET).loadAddress();
   }
 
@@ -601,7 +601,7 @@ import org.vmmagic.unboxed.*;
    * @param ref 
    */ 
   @Inline
-  public static final void markBlockMeta(ObjectReference ref) { 
+  public static void markBlockMeta(ObjectReference ref) {
     getMetaAddress(VM.objectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
   }
  
@@ -612,7 +612,7 @@ import org.vmmagic.unboxed.*;
    * @return value of the meta data.
    */ 
   @Inline
-  public static final boolean checkBlockMeta(Address block) { 
+  public static boolean checkBlockMeta(Address block) {
     return getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
   }
   
@@ -622,7 +622,7 @@ import org.vmmagic.unboxed.*;
    * @param block The block address
    */ 
   @Inline
-  public static final void clearBlockMeta(Address block) { 
+  public static void clearBlockMeta(Address block) {
     getMetaAddress(block).plus(FL_META_OFFSET).store(Word.zero());
   }
   

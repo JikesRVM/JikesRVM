@@ -49,7 +49,7 @@ import org.vmmagic.pragma.*;
    * @param start The start of the range
    * @param end The end of the range
    */
-  public static final void dumpRange(Address start, Address end) {
+  public static void dumpRange(Address start, Address end) {
     Log.write("["); Log.write(start);
     Log.write(","); Log.write(end);
     Log.write(')');
@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
    * @return The length of the string representation of the integer
    *         -1 indicates some problem (e.g the char buffer was too small)
    */
-  public static final int numToBytes(byte[] buffer, long value) {
+  public static int numToBytes(byte[] buffer, long value) {
     return numToBytes(buffer, value, 10);
   }
   
@@ -105,7 +105,7 @@ import org.vmmagic.pragma.*;
    * @return The length of the string representation of the integer
    *         -1 indicates some problem (e.g the char buffer was too small)
    */
-  public static final int numToBytes(byte[] buffer, long value, int radix) {
+  public static int numToBytes(byte[] buffer, long value, int radix) {
 
     if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
       radix = 10;

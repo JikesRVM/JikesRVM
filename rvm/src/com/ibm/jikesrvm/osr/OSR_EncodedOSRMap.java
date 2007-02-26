@@ -46,7 +46,7 @@ public class OSR_EncodedOSRMap
   private static final boolean DEBUG = false;
   
   @Inline
-  public static final boolean registerIsSet(int map, int regnum) { 
+  public static boolean registerIsSet(int map, int regnum) {
 
     int bitpos = getRegBitPosition(regnum);
     return (map & (NEXT_BIT >>> bitpos)) > 0;
