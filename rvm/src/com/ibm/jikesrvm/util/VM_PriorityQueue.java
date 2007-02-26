@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.jikesrvm.adaptive;
+package com.ibm.jikesrvm.util;
 
 import com.ibm.jikesrvm.VM;
 
@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.VM;
  *
  * @author Michael Hind
  */
-class VM_PriorityQueue {
+public class VM_PriorityQueue {
 
   /**
    * the queue, we use elements 1..queue.length
@@ -30,7 +30,7 @@ class VM_PriorityQueue {
    */
   private int numElements = 0;
 
-  VM_PriorityQueue() {
+  protected VM_PriorityQueue() {
     queue = new VM_PriorityQueueNode[20];
 
     // We don't use element #0
@@ -51,7 +51,7 @@ class VM_PriorityQueue {
    * Checks if the queue is empty
    * @return is the queue empty?
    */
-  synchronized final boolean isEmpty() {
+  protected synchronized final boolean isEmpty() {
     return numElements == 0;
   }
 

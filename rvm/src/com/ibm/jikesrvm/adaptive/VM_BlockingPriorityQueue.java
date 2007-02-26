@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.VM;
+import com.ibm.jikesrvm.util.VM_PriorityQueue;
 
 /**
  * This class extends VM_PriorityQueue to safely
