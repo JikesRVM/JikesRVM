@@ -34,12 +34,6 @@ public final class VM_LinkedList<T> implements List<T> {
   Element<T> tail = null;
 
   /**
-   * Constructor
-   */
-  public VM_LinkedList() {
-  }
-
-  /**
    * Insert an element at a given position in the list.
    * <p>
    * UNIMPLEMENTED

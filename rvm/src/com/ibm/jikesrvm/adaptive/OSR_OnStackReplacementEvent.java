@@ -41,8 +41,6 @@ public final class OSR_OnStackReplacementEvent
   /* the osr method's fp offset */
   public Offset ypTakenFPoff;
 
-  public OSR_OnStackReplacementEvent() {}
-
   /** 
    * This function will generate a controller plan and 
    * inserted in the recompilation queue. 

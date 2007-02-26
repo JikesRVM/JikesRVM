@@ -18,8 +18,6 @@ import com.ibm.jikesrvm.opt.ir.*;
  */
 public final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
 
-  public OPT_PrologueEpilogueCreator() { }
-
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.

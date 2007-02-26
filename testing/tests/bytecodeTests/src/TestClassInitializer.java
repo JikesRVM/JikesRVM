@@ -19,8 +19,7 @@ class TestClassInitializerA
 
 class TestClassInitializerB
    {
-   TestClassInitializerB()        { }
-   static     { SystemOut.println("clinit called for TestClassInitializerB"); }
+     static     { SystemOut.println("clinit called for TestClassInitializerB"); }
    int    f() { SystemOut.println("TestClassInitializerB.f called"); return 456; }
    }
 

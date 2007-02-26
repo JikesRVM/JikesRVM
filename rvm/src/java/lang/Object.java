@@ -23,9 +23,6 @@ import com.ibm.jikesrvm.VM_Runtime;
  */
 public class Object {
 
-  public Object() {
-  }
-
   protected Object clone() throws CloneNotSupportedException {
     return VM_Runtime.clone(this);
   }

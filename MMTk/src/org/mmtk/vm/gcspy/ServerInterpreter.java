@@ -35,12 +35,6 @@ import org.vmmagic.unboxed.Address;
 
   protected static final boolean DEBUG = false;
 
-
-  /*
-   * Create a new ServerInterpreter.
-   */
-  public ServerInterpreter() {}
-  
   /**
    * Create a new ServerInterpreter singleton.
    * @param name The name of the server

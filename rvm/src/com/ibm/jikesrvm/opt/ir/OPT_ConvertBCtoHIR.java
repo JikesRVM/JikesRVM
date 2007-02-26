@@ -17,7 +17,6 @@ import com.ibm.jikesrvm.opt.*;
  * @author Dave Grove
  */
 public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
-  public OPT_ConvertBCtoHIR() {}
 
   public final String getName () { 
     return "Generate HIR";

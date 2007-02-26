@@ -36,12 +36,6 @@ import org.vmmagic.unboxed.ObjectReference;
    * Initialization
    */
 
-  /**
-   * Constructor
-   */
-  public CDCollector() {
-  }
-  
   /*****************************************************************************
    * 
    * Collection

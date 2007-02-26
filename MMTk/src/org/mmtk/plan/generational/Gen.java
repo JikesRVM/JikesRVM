@@ -118,12 +118,6 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  /**
-   * Constructor
-   */
-  public Gen() {
-  }
-
   /*****************************************************************************
    * 
    * Collection

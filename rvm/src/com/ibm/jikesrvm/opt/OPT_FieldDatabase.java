@@ -22,8 +22,6 @@ import com.ibm.jikesrvm.classloader.*;
 final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.FieldDatabaseEntry> {
   private static final boolean DEBUG = false;
 
-  OPT_FieldDatabase() { }
-
   FieldDatabaseEntry findOrCreateEntry(VM_Field f) {
     FieldDatabaseEntry e = (FieldDatabaseEntry)get(f);
     if (e == null) {

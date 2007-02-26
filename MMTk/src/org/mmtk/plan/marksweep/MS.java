@@ -72,13 +72,6 @@ import org.vmmagic.unboxed.*;
   private int availablePreGC;
 
   /**
-   * Constructor.
-   * 
-   */
-  public MS() {
-  }
-
-  /**
    * Boot-time initialization
    */
   @Interruptible

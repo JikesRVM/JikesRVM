@@ -68,11 +68,6 @@ import org.vmmagic.unboxed.*;
   /* The trace class for a full-heap collection */
   public final Trace matureTrace = new Trace(metaDataSpace);
 
-  /**
-   * Constructor
-   */
-  public GenMS() { }
-
   /*****************************************************************************
    * 
    * Collection

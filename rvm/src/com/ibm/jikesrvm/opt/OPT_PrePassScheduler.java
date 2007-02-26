@@ -42,9 +42,4 @@ public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);
   }
 
-  /**
-   * Initialize pre-pass scheduler
-   */
-  public OPT_PrePassScheduler() {
-  }
 }
