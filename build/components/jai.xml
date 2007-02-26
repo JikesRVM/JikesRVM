@@ -67,7 +67,7 @@ jai.description=Java Advanced Imaging Toolkit
   <target name="fetch" depends="get-jai-linux-ia32"/>
 
   <target name="build" depends="fetch">
-    <setupComponentsConfig>${target.name}.jai.lib.dir=${jai.package.dir}/${target.name}/lib</setupComponentsConfig>
+    <setComponentsConfig key="${target.name}.jai.lib.dir" value="${jai.package.dir}/${target.name}/lib"/>
   </target>
 
   <target name="ensure" depends="init-jai-properties">

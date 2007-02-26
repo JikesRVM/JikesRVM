@@ -152,7 +152,7 @@
 classpath.version=${classpath.version}
 classpath.description=GNU Classpath (Generics Branch)
 ]]></echo>
-    <setupComponentsConfig>${target.name}.classpath.lib.dir=${classpath.package.dir}/${target.name}/lib</setupComponentsConfig>
+    <setComponentsConfig key="${target.name}.classpath.lib.dir" value="${classpath.package.dir}/${target.name}/lib"/>
   </target>
 
   <target name="ensure" depends="init-classpath-properties">

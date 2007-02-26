@@ -6,15 +6,16 @@
 
   <property file="${target.file}"/>
 
-  <macrodef name="setupComponentsConfig">
-    <text name="props"/>
+  <macrodef name="setComponentsConfig">
+    <attribute name="key"/>
+    <attribute name="value"/>
     <sequential>
       <if>
         <conditions>
           <isset property="protect.config-files"/>
         </conditions>
         <sequential>
-          <echo><![CDATA[Edit the components configuration file ${components.file} and add the following lines(s):${line.separator}@{props}]]></echo>
+          <echo><![CDATA[Edit the components configuration file ${components.file} and add the following lines(s):${line.separator}@{key}=@{value}]]></echo>
         </sequential>
       </if>
       <if>
@@ -24,11 +25,14 @@
           </not>
         </conditions>
         <sequential>
-          <echo file="${components.file}" append="true"><![CDATA[@{props}]]></echo>
+          <propertyfile file="${components.file}">
+            <entry key="@{key}" value="@{value}"/>
+          </propertyfile>
         </sequential>
       </if>
     </sequential>
   </macrodef>
+
   <macrodef name="ensureUptodate">
     <attribute name="name"/>
     <attribute name="dir"/>
