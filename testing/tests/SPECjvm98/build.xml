@@ -52,7 +52,8 @@
   <macrodef name="score">
     <attribute name="key"/>
     <sequential>
-      <property name="test.SPECjvm98.@{key}.pattern" value="@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*).*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}\s*@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*)"/>
+      <property name="test.SPECjvm98.@{key}.pattern"
+                value="@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*).*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}.*${line.separator}\s*@{key}\s*Time:\s*(\S*)\s*Ratio:\s*(\S*)"/>
       <extractStatistic tag="SPECjvm98"
                         key="@{key}.best.time"
                         pattern="${test.SPECjvm98.@{key}.pattern}"
@@ -83,6 +84,57 @@
   <!-- **************************************************************************** -->
 
   <target name="test" depends="prepare-dirs">
+    <if>
+      <conditions>
+        <equals arg1="${test.mode}" arg2="performance"/>
+      </conditions>
+      <sequential>
+        <antcall target="performance-test"/>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <not>
+          <equals arg1="${test.mode}" arg2="performance"/>
+        </not>
+      </conditions>
+      <sequential>
+        <antcall target="normal-test"/>
+      </sequential>
+    </if>
+  </target>
+
+  <macrodef name="specTest">
+    <attribute name="test"/>
+    <sequential>
+      <rvm tag="@{test}" class="SpecApplication" args="-a -g ${spec.args} @{test}"/>
+      <outputTestStart tag="@{test}"/>
+      <outputStatisticStart/>
+      <extractStatistic tag="@{test}" key="time" pattern="======= @{test} Finished in (\S*) secs"/>
+      <outputStatisticEnd/>
+      <outputTestResults tag="@{test}"/>
+      <outputTestEnd/>
+      <displayTestResults tag="@{test}"/>
+    </sequential>
+  </macrodef>
+
+  <target name="normal-test">
+
+    <startResults/>
+
+    <specTest test="_200_check"/>
+    <specTest test="_201_compress"/>
+    <specTest test="_202_jess"/>
+    <specTest test="_209_db"/>
+    <specTest test="_213_javac"/>
+    <specTest test="_222_mpegaudio"/>
+    <specTest test="_227_mtrt"/>
+    <specTest test="_228_jack"/>
+
+    <finishResults/>
+  </target>
+
+  <target name="performance-test">
 
     <startResults/>
     <rvm tag="SPECjvm98" class="SpecApplication" args="-a -g ${spec.args} ${spec.tests}"/>
