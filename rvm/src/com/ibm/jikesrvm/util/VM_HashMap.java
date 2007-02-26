@@ -82,7 +82,7 @@ public class VM_HashMap<K,V> {
     }
   }
 
-  private final void growMap() {
+  private void growMap() {
     Bucket<K,V>[] newBuckets = newBucketArray(buckets.length*2+1);
     for (int i=0; i<buckets.length; i++) {
       Bucket<K,V> cur = buckets[i];
@@ -127,7 +127,7 @@ public class VM_HashMap<K,V> {
     return new KeyIterator();
   }
 
-  private final int bucketIndex(K key, int divisor) {
+  private int bucketIndex(K key, int divisor) {
     if (key == null) {
       return 0;
     } else {

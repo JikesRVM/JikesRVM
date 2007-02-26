@@ -78,7 +78,7 @@ import org.vmmagic.unboxed.*;
    * @param addr Value for which the mask needs to be found
    * @return The highest bit set in the parameter
    */
-  private static final Word getBitMask(Word addr) {
+  private static Word getBitMask(Word addr) {
     int shift = 0;
     if (!addr.and(mask16).isZero()) {
       addr = addr.rshl(16);
@@ -108,7 +108,7 @@ import org.vmmagic.unboxed.*;
    *  @param begin Start address of the range to be sorted
    *  @param end End address of the range to be sorted
    */
-  private final void insertionSort(Address begin, Address end) {
+  private void insertionSort(Address begin, Address end) {
     Address rPtr = begin.minus(BYTES_IN_ADDRESS);
     Address lPtr;
 
@@ -181,7 +181,7 @@ import org.vmmagic.unboxed.*;
    * @param endLinkAddr The address where the end block has its next field
    * @param bitMask The mask in which the bit to be commpared is set
    */
-  private final void partition(Address startAddr, Address startLinkAddr,
+  private void partition(Address startAddr, Address startLinkAddr,
                                Address endAddr, Address endLinkAddr,
                                Word bitMask) {
     Address travPtr = endAddr;
@@ -292,7 +292,7 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for the stack and intialize it with the first range
    * to partition
    */
-  private final void initStack() {
+  private void initStack() {
     stackLoc = 0;
 
     Address endOfBlock = tail;
@@ -330,7 +330,7 @@ import org.vmmagic.unboxed.*;
    * 
   * @param val The address to be pushed
    */
-  private final void pushOnStack(Address val) {
+  private void pushOnStack(Address val) {
     stackBase.set(stackLoc, val);
     stackLoc++;
   }
@@ -340,7 +340,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The address at the top of the stack, or 0 if stack is empty
    */
-  private final Address popStack() {
+  private Address popStack() {
     if (stackLoc == 0)
       return Address.zero();
     stackLoc--;
@@ -352,7 +352,7 @@ import org.vmmagic.unboxed.*;
    * decreasing final reference deletion time
    * 
    */
-  private final void checkIfSorted() {
+  private void checkIfSorted() {
     if (VM.VERIFY_ASSERTIONS) {
       Address buf, end;
       Word prevKey = Word.max();

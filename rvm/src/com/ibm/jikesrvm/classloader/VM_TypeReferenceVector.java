@@ -74,7 +74,7 @@ final class VM_TypeReferenceVector {
 
   private static final VM_TypeReference[] empty = new VM_TypeReference[0];	
   
-  private final void adjustLength(int newLength) {
+  private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {

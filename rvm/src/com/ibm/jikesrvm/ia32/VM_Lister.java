@@ -290,7 +290,7 @@ public class VM_Lister implements VM_Constants {
     end(i);
   }
 
-  private final int begin(int i, String op) {
+  private int begin(int i, String op) {
     if (lockPrefix) i--;
     VM.sysWrite(right(hex(i),6) + "| ");
     if (lockPrefix) {
@@ -302,7 +302,7 @@ public class VM_Lister implements VM_Constants {
     return i;
   }
 
-  private final void end(int i) {
+  private void end(int i) {
     VM.sysWrite(" | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");

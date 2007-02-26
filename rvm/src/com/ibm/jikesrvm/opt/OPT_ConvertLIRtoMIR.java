@@ -279,7 +279,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
       }
     }
 
-    private final OPT_Operand ensureRegister(OPT_Operand op, OPT_Instruction s, OPT_IR ir) {
+    private OPT_Operand ensureRegister(OPT_Operand op, OPT_Instruction s, OPT_IR ir) {
       if (op.isConstant()) {
         VM_TypeReference opType = op.getType();
         OPT_RegisterOperand rop = ir.regpool.makeTemp(opType);

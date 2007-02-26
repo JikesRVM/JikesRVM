@@ -169,7 +169,7 @@ import org.vmmagic.pragma.*;
   * @return The address of the first byte of the allocated region
   */
   @NoInline
-  private final Address allocSlow(Address start, Address end, int align,
+  private Address allocSlow(Address start, Address end, int align,
       int offset, boolean inGC) { 
     Address rtn = null;
     Address card = null;
@@ -203,7 +203,7 @@ import org.vmmagic.pragma.*;
    * @param start The address of an object which creates a new card.
    * @param bytes The size of the pending allocation in bytes (used for debugging)
    */
-  private final void createCardAnchor(Address card, Address start, int bytes) {
+  private void createCardAnchor(Address card, Address start, int bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allowScanning);
       VM.assertions._assert(card.EQ(getCard(card)));
@@ -224,7 +224,7 @@ import org.vmmagic.pragma.*;
    * @param address The address for which the card start is required
    * @return The start of the card containing the address
    */
-  private static final Address getCard(Address address) {
+  private static Address getCard(Address address) {
     return address.toWord().and(Word.fromIntSignExtend(CARD_MASK).not()).toAddress();
   }
   
@@ -233,7 +233,7 @@ import org.vmmagic.pragma.*;
    * @param card The address of some card
    * @return The address of the metadata associated with that card
    */
-  private static final Address getCardMetaData(Address card) {
+  private static Address getCardMetaData(Address card) {
     Address metadata = EmbeddedMetaData.getMetaDataBase(card);
     return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
   }
@@ -313,7 +313,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
-  private final Address consumeNextRegion(Address nextRegion, int bytes, int align,
+  private Address consumeNextRegion(Address nextRegion, int bytes, int align,
         int offset, boolean inGC) {
     region.plus(DATA_END_OFFSET).store(cursor);
     region = nextRegion;
@@ -333,7 +333,7 @@ import org.vmmagic.pragma.*;
    * @param size The size of the new region (rounded up to chunk-alignment)
    */
   @Inline
-  private final void updateMetaData(Address start, Extent size, int bytes) { 
+  private void updateMetaData(Address start, Extent size, int bytes) {
     if (initialRegion.isZero()) {
       /* this is the first allocation */
       initialRegion = start;
@@ -418,7 +418,7 @@ import org.vmmagic.pragma.*;
    * @param start The start of this region
    */
   @Inline
-  private final void scanRegion(LinearScan scanner, Address start) { 
+  private void scanRegion(LinearScan scanner, Address start) {
     /* Get the end of this region */
     Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 

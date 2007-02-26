@@ -132,7 +132,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     return resolveInternal((VM_Class)type.resolve());
   }
 
-  private final VM_Field resolveInternal(VM_Class declaringClass) {
+  private VM_Field resolveInternal(VM_Class declaringClass) {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
@@ -156,7 +156,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     throw new NoSuchFieldError(this.toString());
   }
 
-  private final VM_Field searchInterfaceFields(VM_Class c) {
+  private VM_Field searchInterfaceFields(VM_Class c) {
     VM_Field it = c.findDeclaredField(name, descriptor);
     if (it != null) return it;
     VM_Class[] interfaces = c.getDeclaredInterfaces();

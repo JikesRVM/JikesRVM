@@ -389,7 +389,7 @@ import org.vmmagic.unboxed.*;
    * transitive closure of the dead objects.  Death times are computed
    * as the latest reaching death time to an object.
    */
-  private static final void computeTransitiveClosure() {
+  private static void computeTransitiveClosure() {
      if (!worklist.isEmpty()) {
        /* The latest time an object can die. */
        agePropagate = Word.max();
@@ -410,7 +410,7 @@ import org.vmmagic.unboxed.*;
      }
   }
 
-  private static final TraceLocal getTraceLocal() {
+  private static TraceLocal getTraceLocal() {
     return VM.activePlan.collector().getCurrentTrace();
   }
 

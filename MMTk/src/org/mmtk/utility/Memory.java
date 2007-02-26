@@ -165,19 +165,19 @@ import org.vmmagic.pragma.*;
    * 
    * @param value The value to be tested
    */
-  private static final void assertAligned(int value) {
+  private static void assertAligned(int value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & (BYTES_IN_INT - 1)) == 0);
   }
 
-  private static final void assertAligned(Word value) {
+  private static void assertAligned(Word value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
   }
 
-  private static final void assertAligned(Extent value) {
+  private static void assertAligned(Extent value) {
     assertAligned(value.toWord());
   }
 
-  private static final void assertAligned(Address value) {
+  private static void assertAligned(Address value) {
     assertAligned(value.toWord());
   }
 

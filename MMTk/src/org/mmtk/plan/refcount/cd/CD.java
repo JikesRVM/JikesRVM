@@ -86,7 +86,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return True if we should act
    */
-  private final boolean shouldAct(int thresholdPages) {
+  private boolean shouldAct(int thresholdPages) {
     if (RCBase.FORCE_FULL_CD) return true;
     final int LOG_WRIGGLE = 2;
     int slack = log2((int) VM.activePlan.global().getPagesAvail() / thresholdPages);
@@ -95,7 +95,7 @@ import org.vmmagic.unboxed.*;
     return rtn;
   }
   
-  private final int log2(int value) {
+  private int log2(int value) {
     int rtn = 0;
     while (value > 1<<rtn) rtn++;
     return rtn;

@@ -224,13 +224,13 @@ import org.vmmagic.pragma.*;
    * Print out fragmentation and wastage statistics.  This is not intended
    * to be efficient, just accurate and informative.
    */
-  private final void fragmentationStatistics(boolean prepare) {
+  private void fragmentationStatistics(boolean prepare) {
     if (Options.verboseFragmentationStats.getValue())
       verboseFragmentationStatistics(prepare);
     shortFragmentationStatistics(prepare);
   }
 
-  private final void shortFragmentationStatistics(boolean prepare) {
+  private void shortFragmentationStatistics(boolean prepare) {
     if (Options.verbose.getValue() > 2) Log.writeln();
     if (Options.verboseFragmentationStats.getValue())
       Log.write((prepare) ? "> " : "< ");
@@ -252,7 +252,7 @@ import org.vmmagic.pragma.*;
    * (immediately prior to GC), false if called in the release phase.
    * @return The number of unused bytes on the free lists
    */
-  private final int unusedBytes(boolean prepare) {
+  private int unusedBytes(boolean prepare) {
     int unused = 0;
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
       Address block = (prepare) ? currentBlock.get(sizeClass) : firstBlock.get(sizeClass);
@@ -275,7 +275,7 @@ import org.vmmagic.pragma.*;
    * @return the number of cells marked as live on this block.
    */
   @Inline
-  private final int markedCells(Address block, int sizeClass) { 
+  private int markedCells(Address block, int sizeClass) {
     Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
     Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
     Address nextCellCursor = cellCursor.plus(cellBytes);
@@ -302,7 +302,7 @@ import org.vmmagic.pragma.*;
     return markCount;
   }
 
-  private final void verboseFragmentationStatistics(boolean prepare) {
+  private void verboseFragmentationStatistics(boolean prepare) {
     int totUsedCellBytes = 0; // bytes for cells actually in use
     int totCellBytes = 0; // bytes consumed by cells
     int totBytes = 0; // bytes consumed (incl header etc)
@@ -358,7 +358,7 @@ import org.vmmagic.pragma.*;
     printFragRow(prepare, false, true, 0, totUsedCellBytes, totCellBytes - totUsedCellBytes, totCellBytes, totBytes, totBlocks);
   }
 
-  private final void finalVerboseFragmentationStatistics(boolean prepare) {
+  private void finalVerboseFragmentationStatistics(boolean prepare) {
     int totUsedCellBytes = 0; // bytes for cells actually in use
     int totCellBytes = 0; // bytes consumed by cells
     int totBytes = 0; // bytes consumed (incl header etc)
@@ -379,7 +379,7 @@ import org.vmmagic.pragma.*;
     printFragRow(prepare, true, true, 0, totUsedCellBytes, totCellBytes - totUsedCellBytes, totCellBytes, totBytes, totBlocks);
   }
 
-  private final void printFragHeader(boolean prepare, boolean all) {
+  private void printFragHeader(boolean prepare, boolean all) {
     if (all) {
       Log.write(prepare ? "\n=> " : "\n=< ");
       Log.write("TOTAL FRAGMENTATION ");
@@ -399,7 +399,7 @@ import org.vmmagic.pragma.*;
     printFragDivider(prepare, all);
   }
 
-  private final void printFragRow(boolean prepare, boolean all, boolean totals,
+  private void printFragRow(boolean prepare, boolean all, boolean totals,
                                   int sizeClass, int usedCellBytes,
                                   int freeBytes, int cellBytes, int totBytes,
                                   int blocks) {
@@ -438,15 +438,15 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  private final void printMB(int bytes, String str) {
+  private void printMB(int bytes, String str) {
     Log.write(bytes / (double) (1 << 20));
     Log.write(str);
   }
-  private final void printRatio(int numerator, int denominator, String str) {
+  private void printRatio(int numerator, int denominator, String str) {
     Log.write(numerator / (double) denominator);
     Log.write(str);
   }
-  private final void printFragDivider(boolean prepare, boolean all) {
+  private void printFragDivider(boolean prepare, boolean all) {
     if (all) Log.write("=");
     Log.write((prepare) ? "> " : "< ");
     Log.write("----------------------------------------");
@@ -459,7 +459,7 @@ import org.vmmagic.pragma.*;
    * 
    * Sanity checks and debugging
    */
-  private final int getUsedPages() {
+  private int getUsedPages() {
     int bytes = 0;
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       bytes += getUsedBlockBytes(firstBlock.get(sc), sc);
@@ -467,7 +467,7 @@ import org.vmmagic.pragma.*;
     return bytes >> LOG_BYTES_IN_PAGE;
   }
 
-  private final int getUsedBlockBytes(Address block, int sizeClass) {
+  private int getUsedBlockBytes(Address block, int sizeClass) {
     int bytes = 0;
     while (!block.isZero()) {
       bytes += BlockAllocator.blockSize(blockSizeClass[sizeClass]);

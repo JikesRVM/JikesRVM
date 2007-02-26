@@ -241,7 +241,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    * @param RT
    * @param field
    */
-  private final void emitLFtoc(OPT_Operator operator, 
+  private void emitLFtoc(OPT_Operator operator,
                                OPT_Register RT, VM_Field field) {
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     Offset offset = field.getOffset();
@@ -1340,7 +1340,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Unary.create(PPC_EXTSB, def, reg1.copyD2U()));
   }
 
-  private final int PowerOf2 (int v) {
+  private int PowerOf2 (int v) {
     int i = 31;
     int power = -1;
     for (; v != 0; v = v << 1, i--)
@@ -2249,7 +2249,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
 
-  private final void mutateTrapToCall(OPT_Instruction s, 
+  private void mutateTrapToCall(OPT_Instruction s,
                                       VM_Method target) {
     Offset offset = target.getOffset();
     OPT_RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);

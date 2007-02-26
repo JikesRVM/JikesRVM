@@ -138,7 +138,7 @@ import org.vmmagic.unboxed.*;
    * @return The index.
    */
   @Inline
-  private final int computeHash(Word key) { 
+  private int computeHash(Word key) {
     return key.rshl(HASH_SHIFT).and(mask).toInt();
   }
 
@@ -149,7 +149,7 @@ import org.vmmagic.unboxed.*;
    * @return An address to the entry.
    */
   @Inline
-  private final Address getEntry(int index) { 
+  private Address getEntry(int index) {
     return base.plus(Extent.fromIntZeroExtend(index * entrySize.toInt()));
   }
 

@@ -2515,7 +2515,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   // implementation //
   //----------------//
   
-  private final void genPrologue () {
+  private void genPrologue () {
     if (shouldPrint) asm.comment("prologue for " + method);
     if (klass.isBridgeFromNative()) {
       // replace the normal prologue with a special prolog
@@ -2641,7 +2641,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     genThreadSwitchTest(VM_Thread.PROLOGUE);
   }
   
-  private final void genEpilogue (int bytesPopped) {
+  private void genEpilogue (int bytesPopped) {
     if (klass.isBridgeFromNative()) {
       // pop locals and parameters, get to saved GPR's
       asm.emitADD_Reg_Imm(SP, (this.method.getLocalWords() << LG_WORDSIZE));
@@ -2659,7 +2659,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     }
   }
    
-  private final void genMonitorEnter () {
+  private void genMonitorEnter () {
     if (method.isStatic()) {
       if (VM.writingBootImage) {
         VM.deferClassObjectCreation(klass);
@@ -2677,7 +2677,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     lockOffset = asm.getMachineCodeIndex();                       // after this instruction, the method has the monitor
   }
   
-  private final void genMonitorExit () {
+  private void genMonitorExit () {
     if (method.isStatic()) {
       asm.emitMOV_Reg_RegDisp (T0, JTOC, klass.getTibOffset());                   // T0 = tib for klass
       asm.emitMOV_Reg_RegInd (T0, T0);                             // T0 = VM_Class for klass
@@ -2689,7 +2689,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
   }
   
-  private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
+  private void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) {
     asm.emitCMP_RegDisp_Reg(arrayRefReg,
                             VM_ObjectModel.getArrayLengthOffset(), indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LGT);                     // Jmp around trap if index is OK
@@ -2707,7 +2707,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit a conditional branch on the given condition and bytecode target.
    * The caller has just emitted the instruction sequence to set the condition codes.
    */
-  private final void genCondBranch(byte cond, int bTarget) {
+  private void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       // Allocate two counters: taken and not taken
@@ -2730,7 +2730,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
 
-  private final void incEdgeCounter(byte scratch, int counterIdx) {
+  private void incEdgeCounter(byte scratch, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx<<2));
     asm.emitINC_Reg(scratch);
@@ -2738,7 +2738,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx<<2), scratch);
   }
 
-  private final void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
+  private void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, VM_Assembler.WORD, Offset.fromIntZeroExtend(counterIdx<<2));
     asm.emitINC_Reg(scratch);
@@ -2756,7 +2756,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * to doubleToInt() or doubleToLong()
    */
   @SuppressWarnings("unused")
-  private final void genParameterRegisterLoad () {
+  private void genParameterRegisterLoad () {
     if (0 < NUM_PARAMETER_FPRS) {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
     }
@@ -2770,7 +2770,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Assumption: no floating-point parameters.
    * @param params number of parameter words (including "this" if any).
    */
-  private final void genParameterRegisterLoad (int params) {
+  private void genParameterRegisterLoad (int params) {
     if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params-1) << LG_WORDSIZE));
@@ -2788,7 +2788,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param method is the method to be called.
    * @param hasThisParam is the method virtual?
    */
-  private final void genParameterRegisterLoad (VM_MethodReference method, boolean hasThisParam) {
+  private void genParameterRegisterLoad (VM_MethodReference method, boolean hasThisParam) {
     int max = NUM_PARAMETER_GPRS + NUM_PARAMETER_FPRS;
     if (max == 0) return; // quit looking when all registers are full
     int gpr = 0;  // number of general purpose registers filled
@@ -2856,7 +2856,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Assumption: although some parameters may be passed in registers,
    * space for all parameters is layed out in order on the caller's stackframe.
    */
-  private final void genParameterCopy (Offset srcOffset, Offset dstOffset) {
+  private void genParameterCopy (Offset srcOffset, Offset dstOffset) {
     int gpr = 0;  // number of general purpose registers unloaded
     int fpr = 0;  // number of floating point registers unloaded
     byte  T = T0; // next GPR to get a parameter
@@ -2960,7 +2960,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /** 
    * Push return value of method from register to operand stack.
    */
-  private final void genResultRegisterUnload (VM_MethodReference method) {
+  private void genResultRegisterUnload (VM_MethodReference method) {
     VM_TypeReference t = method.getReturnType();
     if (t.isVoidType()) return;
     if (t.isLongType()) {
@@ -2980,7 +2980,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
-  private final void genThreadSwitchTest (int whereFrom) {
+  private void genThreadSwitchTest (int whereFrom) {
     if (!isInterruptible) {
       return;
     } 
@@ -3033,7 +3033,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       methodName == VM_MagicNames.addressArrayCreate;
   }
 
-  private final boolean genMagic (VM_MethodReference m) {
+  private boolean genMagic (VM_MethodReference m) {
     VM_Atom methodName = m.getName();
 
     if (m.getType() == VM_TypeReference.Address) {
@@ -3931,14 +3931,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   // Offset of Java local variable (off stack pointer)
   // assuming ESP is still positioned as it was at the 
   // start of the current bytecode (biStart)
-  private final Offset localOffset  (int local) {
+  private Offset localOffset  (int local) {
     return Offset.fromIntZeroExtend((stackHeights[biStart] - local)<<LG_WORDSIZE);
   }
 
   // Translate a FP offset into an SP offset 
   // assuming ESP is still positioned as it was at the 
   // start of the current bytecode (biStart)
-  private final Offset fp2spOffset(Offset offset) {
+  private Offset fp2spOffset(Offset offset) {
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
     return offset.plus(offsetToFrameHead);
   }

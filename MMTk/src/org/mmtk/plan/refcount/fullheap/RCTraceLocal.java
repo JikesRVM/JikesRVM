@@ -109,7 +109,7 @@ import org.vmmagic.unboxed.*;
    * @return The current RC collector instace.
    */
   @Inline
-  private static final RCCollector collector() { 
+  private static RCCollector collector() {
     return (RCCollector)VM.activePlan.collector();
   }
   

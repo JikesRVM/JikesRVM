@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
     super(global, plan);
   }
 
-  private static final GenCopy global() {
+  private static GenCopy global() {
     return (GenCopy) VM.activePlan.global();
   }
 

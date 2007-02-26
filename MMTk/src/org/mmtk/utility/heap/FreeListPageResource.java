@@ -170,7 +170,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param extent The size of this space
    */
-  private final void reserveMetaData(Extent extent) {
+  private void reserveMetaData(Extent extent) {
     highWaterMark = 0;
     if (metaDataPagesPerRegion > 0) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));

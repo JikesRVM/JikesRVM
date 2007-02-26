@@ -176,7 +176,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void tailOverflow(int arity) {
+  private void tailOverflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
@@ -193,7 +193,7 @@ import org.vmmagic.unboxed.*;
    *  @param arity The arity of this buffer.
    */
   @NoInline
-  private final void closeAndEnqueueTail(int arity) { 
+  private void closeAndEnqueueTail(int arity) {
     Address last;
     if (!bufferOffset(tail).isZero()) {
       // prematurely closed

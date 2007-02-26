@@ -1475,7 +1475,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   /**
    * Remove unreachable unoptimized loop
    */
-  private final void removeUnoptimizedLoop(OPT_AnnotatedLSTNode loop,
+  private void removeUnoptimizedLoop(OPT_AnnotatedLSTNode loop,
                                            HashMap<OPT_BasicBlock,OPT_BasicBlock> unoptimizedLoopMap) {
     OPT_BasicBlockEnumeration blocks = loop.getBasicBlocks();
     report("removing unoptimized loop");

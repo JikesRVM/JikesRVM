@@ -197,7 +197,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * adjustPointersInDuplicatedCode
    *
    * @param ir the governing IR */
-  private final void duplicateCode (OPT_IR ir,
+  private void duplicateCode (OPT_IR ir,
                                     HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap,
                                     HashSet<OPT_BasicBlock> exceptionHandlerBlocks){
 
@@ -296,7 +296,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param ir the governing IR 
    */
-  private final void insertCBSChecks(OPT_IR ir,
+  private void insertCBSChecks(OPT_IR ir,
                                      HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap,
                                      HashSet<OPT_BasicBlock> exceptionHandlerBlocks){
     
@@ -362,7 +362,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param fallthroughToInstBB Should checkBB fallthrough to instBB 
    *                            (otherwise it must fallthrough to noInstBB)
    */
-  private final void createCheck(OPT_BasicBlock checkBB, 
+  private void createCheck(OPT_BasicBlock checkBB,
                                 OPT_BasicBlock noInstBB,
                                 OPT_BasicBlock instBB,
                                 boolean fallthroughToInstBB,
@@ -511,7 +511,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param bb The block to append the load to
    * @param ir The IR
    */
-  private final void prependDecrement(OPT_BasicBlock bb,
+  private void prependDecrement(OPT_BasicBlock bb,
                                                 OPT_IR ir) {
     if (DEBUG)VM.sysWrite("Adding Increment to "+ bb + "\n");
 
@@ -531,7 +531,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param bb The block to append the load to
    * @param ir The IR */
-  private final void prependCounterReset(OPT_BasicBlock bb,
+  private void prependCounterReset(OPT_BasicBlock bb,
                                        OPT_IR ir) {
     OPT_Instruction load = null;
     OPT_Instruction store = null;
@@ -883,7 +883,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *    to get A -> B -> C
    * 2) Add check to A, making it go to B if it succeeds, otherwise C   
    */
-  private final void 
+  private void
     conditionalizeInstrumentationOperation(OPT_IR ir,
                                            OPT_Instruction i,
                                            OPT_BasicBlock bb) {

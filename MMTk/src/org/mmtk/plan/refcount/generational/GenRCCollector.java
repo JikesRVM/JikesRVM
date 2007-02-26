@@ -151,7 +151,7 @@ implements Constants {
 
   /** @return The active global plan as an <code>MS</code> instance. */
   @Inline
-  private static final GenRC global() { 
+  private static GenRC global() {
     return (GenRC) VM.activePlan.global();
   }
   

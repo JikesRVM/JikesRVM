@@ -278,12 +278,12 @@ final class VMClassLoader
   }
 
   @SuppressWarnings({"unchecked","unused"}) // TODO should this method be deleted ?
-  private static final Map packageAssertionStatus() {
+  private static Map packageAssertionStatus() {
     return new HashMap();
   }
 
   @SuppressWarnings({"unchecked","unused"}) // TODO should this method be deleted ?
-  private static final Map classAssertionStatus() {
+  private static Map classAssertionStatus() {
     return new HashMap();
   }
 

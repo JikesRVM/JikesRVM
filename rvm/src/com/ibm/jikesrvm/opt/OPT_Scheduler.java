@@ -70,7 +70,7 @@ final class OPT_Scheduler {
    * @param options the options object
    * @return true if we should print depgraph, false otherwise
    */
-  private final boolean printDepgraph(OPT_Options options) {
+  private boolean printDepgraph(OPT_Options options) {
     return (phase == PREPASS && options.PRINT_DG_SCHED_PRE) ||
            (phase == POSTPASS && options.PRINT_DG_SCHED_POST);
   }
@@ -80,7 +80,7 @@ final class OPT_Scheduler {
    * @param options the options object
    * @return true if we should visualize depgraph, false otherwise
    */
-  private final boolean vcgDepgraph(OPT_Options options) {
+  private boolean vcgDepgraph(OPT_Options options) {
     return (phase == PREPASS && options.VCG_DG_SCHED_PRE) ||
            (phase == POSTPASS && options.VCG_DG_SCHED_POST);
   }
@@ -172,7 +172,7 @@ final class OPT_Scheduler {
    * Output debugging information.
    * @param s string to print
    */
-  private static final void debug(String s) {
+  private static void debug(String s) {
     System.err.println(s);
   }
 
@@ -187,7 +187,7 @@ final class OPT_Scheduler {
    * @param depth level of indenting
    * @param s string to print
    */
-  private static final void debug(int depth, String s) {
+  private static void debug(int depth, String s) {
     if (SPACES == null) SPACES = dup(128, ' ');
     if (SPACES.length() < depth*2) SPACES += SPACES;
     debug(SPACES.substring(0, depth*2) + s);
@@ -218,7 +218,7 @@ final class OPT_Scheduler {
    * @param i given instruction
    * @param n dependence graph node for instruction
    */
-  private final void setGraphNode(OPT_Instruction i, OPT_DepGraphNode n) {
+  private void setGraphNode(OPT_Instruction i, OPT_DepGraphNode n) {
     i2gn[i.scratch] = n;
   }
 
@@ -226,7 +226,7 @@ final class OPT_Scheduler {
    * Return corresponding graph node for instruction.
    * @param i given instruction
    */
-  private final OPT_DepGraphNode getGraphNode(OPT_Instruction i) {
+  private OPT_DepGraphNode getGraphNode(OPT_Instruction i) {
     return i2gn[i.scratch];
   }
 
@@ -235,7 +235,7 @@ final class OPT_Scheduler {
    * @param n start node
    * @param depth current DFS depth
    */
-  private final void computeCriticalPath(OPT_DepGraphNode n, int depth) {
+  private void computeCriticalPath(OPT_DepGraphNode n, int depth) {
     if (verbose >= 5)
       debug(depth, "Visiting " + n);
     OPT_Instruction i = n.instruction();
@@ -257,7 +257,7 @@ final class OPT_Scheduler {
    * Compute earliest scheduling time for an instruction.
    * @param i given instruction
    */
-  private final int computeEarliestTime(OPT_Instruction i) {
+  private int computeEarliestTime(OPT_Instruction i) {
     if (verbose >= 5)
       debug("Computing earliest time for " + i);
     OPT_DepGraphNode n = getGraphNode(i);
@@ -358,7 +358,7 @@ final class OPT_Scheduler {
    * Uses bucket sort on time, with equal times ordered by critical path.
    * @param maxtime the maximum scheduled time
    */
-  private final boolean sortBasicBlock(int maxtime) {
+  private boolean sortBasicBlock(int maxtime) {
     boolean changed = false;
     InstructionBucket[] pool = new InstructionBucket[maxtime + 1];
     int num = bb.firstInstruction().scratch;
@@ -379,7 +379,7 @@ final class OPT_Scheduler {
   /**
    * Schedule a basic block.
    */
-  private final void scheduleBasicBlock() {
+  private void scheduleBasicBlock() {
     if (verbose >= 2)
       debug("Scheduling " + bb);
     if (verbose >= 4) {
@@ -455,7 +455,7 @@ final class OPT_Scheduler {
    * @param len the length to generate
    * @param c the character to fill the string with
    */
-  private static final String dup(int len, char c) {
+  private static String dup(int len, char c) {
     StringBuffer ret = new StringBuffer();
     StringBuffer sp2 = new StringBuffer(c);
     int p2 = 1;

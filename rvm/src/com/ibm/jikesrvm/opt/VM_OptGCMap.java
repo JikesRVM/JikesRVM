@@ -311,7 +311,7 @@ import org.vmmagic.pragma.*;
    * @return The index of that entry.
    */
   @Interruptible
-  private final int setRegisterBitMap(int bitMap) { 
+  private int setRegisterBitMap(int bitMap) {
     // Set the appropriate bit, but make sure we preserve the NEXT bit!
     int entry = getNextMapEntry();
     gcMapInformation[entry] = bitMap | NEXT_BIT;
@@ -324,7 +324,7 @@ import org.vmmagic.pragma.*;
    * @param spillArray an array of spills
    */
   @Interruptible
-  private final void addAllSpills(int[] spillArray) {
+  private void addAllSpills(int[] spillArray) {
     // 1) sort the spills to increase the odds of reusing the GC map
     java.util.Arrays.sort(spillArray);
 
@@ -339,7 +339,7 @@ import org.vmmagic.pragma.*;
    * @param spill the spill location
    */
   @Interruptible
-  private final void addSpillLocation(int spill) { 
+  private void addSpillLocation(int spill) {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
       VM._assert(false, "Unexpected spill passed:" + spill);
@@ -355,7 +355,7 @@ import org.vmmagic.pragma.*;
    * @return the index of the beginning of the map (may be different)
    */
   @Interruptible
-  private final int endCurrentMap(int firstIndex) { 
+  private int endCurrentMap(int firstIndex) {
     int lastEntry = lastGCMapEntry;
 
     // adjust the last entry so that the NEXT bit is not set.

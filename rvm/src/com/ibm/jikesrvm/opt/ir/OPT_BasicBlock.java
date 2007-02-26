@@ -557,26 +557,26 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     flags &= ~LANDING_PAD;
   }    
 
-  private final void setCanThrowExceptions(boolean v) {
+  private void setCanThrowExceptions(boolean v) {
     if (v) 
       setCanThrowExceptions();
     else
       clearCanThrowExceptions();
   }
-  private final void setMayThrowUncaughtException(boolean v) {
+  private void setMayThrowUncaughtException(boolean v) {
     if (v) 
       setMayThrowUncaughtException();
     else   
       clearMayThrowUncaughtException();
   }
   @SuppressWarnings("unused") // FIXME can this be deleted ??
-  private final void setIsExceptionHandlerBasicBlock(boolean v) {
+  private void setIsExceptionHandlerBasicBlock(boolean v) {
     if (v) 
       setExceptionHandlerBasicBlock();
     else   
       clearExceptionHandlerBasicBlock();
   }
-  private final void setUnsafeToSchedule(boolean v) {
+  private void setUnsafeToSchedule(boolean v) {
     if (v) 
       setUnsafeToSchedule();
     else   
@@ -1703,7 +1703,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   }
   // helper function for unfactor
-  private final void deleteExceptionalOut() {
+  private void deleteExceptionalOut() {
     for (OPT_SpaceEffGraphEdge e = _outEdgeStart; e!=null; e = e.getNextOut()) {
       OPT_BasicBlock out = (OPT_BasicBlock)e.toNode(); 
       if (out.isExceptionHandlerBasicBlock())

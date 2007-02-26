@@ -181,7 +181,7 @@ import org.vmmagic.unboxed.*;
     return pages;
    }
   
-  private static final Address getRegionStart(Address addr) {
+  private static Address getRegionStart(Address addr) {
     return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
 
@@ -228,7 +228,7 @@ import org.vmmagic.unboxed.*;
    * zeroing on release and optionally memory protecting on release.
    */
   @Inline
-  private final void releasePages() { 
+  private void releasePages() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     Extent bytes = cursor.diff(start).toWord().toExtent();
     releasePages(start, bytes);
@@ -240,7 +240,7 @@ import org.vmmagic.unboxed.*;
    * zeroing on release and optionally memory protecting on release.
    */
   @Inline
-  private final void releasePages(Address first, Extent bytes) { 
+  private void releasePages(Address first, Extent bytes) {
     int pages = Conversions.bytesToPages(bytes);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));

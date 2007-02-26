@@ -133,7 +133,7 @@ import org.vmmagic.unboxed.*;
    * @return The current RC collector instace.
    */
   @Inline
-  private static final GenRCCollector collector() { 
+  private static GenRCCollector collector() {
     return (GenRCCollector)VM.activePlan.collector();
   }
 }

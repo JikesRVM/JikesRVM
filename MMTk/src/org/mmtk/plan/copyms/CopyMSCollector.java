@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
 
   /** @return the active global plan as an <code>MS</code> instance. */
   @Inline
-  private static final CopyMS global() { 
+  private static CopyMS global() {
     return (CopyMS) VM.activePlan.global();
   }
 

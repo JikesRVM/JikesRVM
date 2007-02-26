@@ -211,7 +211,7 @@ import org.vmmagic.unboxed.*;
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
-  private final void sweepLargePages(boolean sweepNursery) {
+  private void sweepLargePages(boolean sweepNursery) {
     while (true) {
       Address cell = treadmill.pop(sweepNursery);
       if (cell.isZero()) break;
@@ -286,7 +286,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object which has been marked.
    */
   @Inline
-  private final void internalMarkObject(ObjectReference object, boolean nurseryObject) { 
+  private void internalMarkObject(ObjectReference object, boolean nurseryObject) {
 
     Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
@@ -319,7 +319,7 @@ import org.vmmagic.unboxed.*;
    * @param value The value to which the mark bit will be set
    */
   @Inline
-  private final boolean testAndMark(ObjectReference object, Word value) { 
+  private boolean testAndMark(ObjectReference object, Word value) {
     Word oldValue, markBit;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -338,7 +338,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the mark bit for the object has the given value.
    */
   @Inline
-  private final boolean testMarkBit(ObjectReference object, Word value) { 
+  private boolean testMarkBit(ObjectReference object, Word value) {
     return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT).EQ(value);
   }
 
@@ -349,7 +349,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the object is in the logical nursery                     
    */                                                                         
   @Inline
-  private final boolean isInNursery(ObjectReference object) { 
+  private boolean isInNursery(ObjectReference object) {
      return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
   }
 

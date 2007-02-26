@@ -74,7 +74,7 @@ final class VM_FieldVector {
 
   private static final VM_Field[] empty = new VM_Field[0];	
   
-  private final void adjustLength(int newLength) {
+  private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {

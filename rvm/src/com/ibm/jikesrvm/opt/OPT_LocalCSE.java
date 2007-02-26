@@ -96,7 +96,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param ir the method's ir
    * @param bb the basic block
    */
-  private final void optimizeBasicBlockHIR(OPT_IR ir, OPT_BasicBlock bb) {
+  private void optimizeBasicBlockHIR(OPT_IR ir, OPT_BasicBlock bb) {
     AvExCache cache = new AvExCache(ir.options, true);
     // iterate over all instructions in the basic block
     for (OPT_Instruction inst = bb.firstRealInstruction(), 
@@ -138,7 +138,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param ir the method's ir
    * @param bb the basic block
    */
-  private final void optimizeBasicBlockLIR(OPT_IR ir, OPT_BasicBlock bb) {
+  private void optimizeBasicBlockLIR(OPT_IR ir, OPT_BasicBlock bb) {
     AvExCache cache = new AvExCache(ir.options, false);
     // iterate over all instructions in the basic block
     for (OPT_Instruction inst = bb.firstRealInstruction(), 
@@ -183,7 +183,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param inst the instruction in question
    * @return true or false, as appropriate
    */
-  private final boolean isExpression (OPT_Instruction inst) {
+  private boolean isExpression (OPT_Instruction inst) {
     if (inst.isDynamicLinkingPoint()) return false;
     switch (inst.operator.format) {
     case OPT_InstructionFormat.Unary_format:
@@ -203,7 +203,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param inst the instruction in question
    * @return true or false, as appropriate
    */
-  private final boolean isCheck (OPT_Instruction inst) {
+  private boolean isCheck (OPT_Instruction inst) {
     switch (inst.getOpcode()) {
     case NULL_CHECK_opcode:case BOUNDS_CHECK_opcode:
     case INT_ZERO_CHECK_opcode:case LONG_ZERO_CHECK_opcode:
@@ -216,7 +216,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     }
   }
 
-  private final boolean isTypeCheck(OPT_Instruction inst) {
+  private boolean isTypeCheck(OPT_Instruction inst) {
     return TypeCheck.conforms(inst);
   }
 
@@ -228,7 +228,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private final void loadHelper(OPT_IR ir, AvExCache cache, 
+  private void loadHelper(OPT_IR ir, AvExCache cache,
                                 OPT_Instruction inst) {
     OPT_LocationOperand loc = LocationCarrier.getLocation(inst);
     if (loc.mayBeVolatile()) return; // don't optimize volatile fields
@@ -281,7 +281,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private final void storeHelper (AvExCache cache, OPT_Instruction inst) {
+  private void storeHelper (AvExCache cache, OPT_Instruction inst) {
     OPT_LocationOperand loc = LocationCarrier.getLocation(inst);
     if (loc.mayBeVolatile()) return; // don't optimize volatile fields
 
@@ -301,7 +301,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private final void expressionHelper(OPT_IR ir, AvExCache cache, 
+  private void expressionHelper(OPT_IR ir, AvExCache cache,
                                       OPT_Instruction inst) {
     // look up the expression in the cache
     AvailableExpression ae = cache.find(inst);
@@ -337,7 +337,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private final void checkHelper (OPT_IR ir, AvExCache cache, 
+  private void checkHelper (OPT_IR ir, AvExCache cache,
                                   OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
@@ -374,7 +374,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache  The cache of available expressions.
    * @param inst   The instruction being processed
    */
-  private final void typeCheckHelper(OPT_IR ir, AvExCache cache, 
+  private void typeCheckHelper(OPT_IR ir, AvExCache cache,
                                OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
@@ -388,7 +388,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
   }
 
 
-  private final OPT_Operator getMoveOp(OPT_RegisterOperand r) {
+  private OPT_Operator getMoveOp(OPT_RegisterOperand r) {
     return OPT_IRTools.getMoveOp(r.type);
   }
 

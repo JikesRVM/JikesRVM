@@ -190,7 +190,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Calculate the size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
    */
-  private final int computeLogElementSize() {
+  private int computeLogElementSize() {
     if (elementType.getTypeRef().equals(VM_TypeReference.Code)) {
       return LG_INSTRUCTION_WIDTH;
     }

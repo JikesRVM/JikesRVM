@@ -796,7 +796,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
         return readLong();
   }
 
-  private final long readLong() {
+  private long readLong() {
     long l = ((long)bcodes[bcIndex++] & 0x0FF) << (7*BITS_IN_BYTE);
     l |= ((long)bcodes[bcIndex++] & 0x0FF) << (6*BITS_IN_BYTE);
     l |= ((long)bcodes[bcIndex++] & 0x0FF) << (5*BITS_IN_BYTE);
@@ -809,32 +809,32 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   //// READ BYTECODES
-  private final byte readSignedByte() {
+  private byte readSignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return bcodes[bcIndex++];
   }
-  private final int readUnsignedByte() {
+  private int readUnsignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return (int)(bcodes[bcIndex++] & 0xFF);
   }
-  private final int getUnsignedByte(int index) {
+  private int getUnsignedByte(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     return (int)(bcodes[index] & 0xFF);
   }
 
-  private final int readSignedShort() {
+  private int readSignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
-  private final int readUnsignedShort() {
+  private int readUnsignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
-  private final int readSignedInt() {
+  private int readSignedInt() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << (3*BITS_IN_BYTE);
     i |= (bcodes[bcIndex++] & 0xFF) << (2*BITS_IN_BYTE);
@@ -842,7 +842,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     i |= (bcodes[bcIndex++] & 0xFF);
     return i;
   }
-  private final int getSignedInt(int index) {
+  private int getSignedInt(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     int i = bcodes[index++] << (3*BITS_IN_BYTE);
     i |= (bcodes[index++] & 0xFF) << (2*BITS_IN_BYTE);

@@ -150,7 +150,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      *
      * @param ir the IR to optimize
      */
-    private final void removeUnreachableCode(OPT_IR ir) {
+    private void removeUnreachableCode(OPT_IR ir) {
       boolean removedCode = false;
       OPT_BasicBlock entry = ir.cfg.entry();
       ir.cfg.clearDFS();
@@ -182,7 +182,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     /**
      * Return the basic block that s's block will goto if s is not taken.
      */
-    private final OPT_BasicBlock getNotTakenBlock(OPT_Instruction s) {
+    private OPT_BasicBlock getNotTakenBlock(OPT_Instruction s) {
       s = s.nextInstructionInCodeOrder();
       if (Goto.conforms(s)) return s.getBranchTarget();
       if (VM.VerifyAssertions) VM._assert(s.operator() == BBEND);

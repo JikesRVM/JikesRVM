@@ -112,7 +112,7 @@ import org.vmmagic.pragma.*;
 
   /** @return The active global plan as an <code>MS</code> instance. */
   @Inline
-  private static final MS global() { 
+  private static MS global() {
     return (MS) VM.activePlan.global();
   }
 

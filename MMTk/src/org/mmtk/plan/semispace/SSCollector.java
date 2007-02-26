@@ -179,7 +179,7 @@ import org.vmmagic.pragma.*;
 
   /** @return The active global plan as an <code>SS</code> instance. */
   @Inline
-  private static final SS global() { 
+  private static SS global() {
     return (SS) VM.activePlan.global();
   }
 

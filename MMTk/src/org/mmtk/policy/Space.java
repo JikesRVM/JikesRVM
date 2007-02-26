@@ -475,7 +475,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return the total number of papers reserved by all of the spaces
    */
-  private static final int getPagesReserved() {
+  private static int getPagesReserved() {
     int pages = 0;
     for (int i = 0; i < spaceCount; i++) {
       pages += spaces[i].reservedPages();
@@ -616,7 +616,7 @@ import org.vmmagic.unboxed.*;
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static final Address chunkAlign(Address addr, boolean down) {
+  private static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
@@ -628,7 +628,7 @@ import org.vmmagic.unboxed.*;
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static final Extent chunkAlign(Extent bytes, boolean down) {
+  private static Extent chunkAlign(Extent bytes, boolean down) {
     if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
     return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
   }

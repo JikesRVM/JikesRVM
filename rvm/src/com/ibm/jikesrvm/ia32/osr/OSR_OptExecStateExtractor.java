@@ -549,7 +549,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
-  private static final Object getObjectFrom(int vtype,
+  private static Object getObjectFrom(int vtype,
                                             int value,
                                             byte[] stack,
                                             Offset fpOffset,

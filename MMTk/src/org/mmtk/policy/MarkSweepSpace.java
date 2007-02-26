@@ -302,7 +302,7 @@ import org.vmmagic.unboxed.*;
    * @param increment If true, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */
-  private final Word deltaMarkState(boolean increment) {
+  private Word deltaMarkState(boolean increment) {
     Word mask = Word.fromIntZeroExtend((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
     Word rtn = increment ? markState.plus(MARK_COUNT_INCREMENT) : markState.minus(MARK_COUNT_INCREMENT);
     rtn = rtn.and(mask);
@@ -396,7 +396,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose mark state is to be written
    */
   @Inline
-  private final void writeAllocState(ObjectReference object) { 
+  private void writeAllocState(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -409,7 +409,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object whose mark state is to be written
    */
   @Inline
-  private final void writeMarkState(ObjectReference object) { 
+  private void writeMarkState(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);

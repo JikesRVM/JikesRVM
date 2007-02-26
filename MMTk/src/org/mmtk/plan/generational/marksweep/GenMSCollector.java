@@ -167,7 +167,7 @@ import org.vmmagic.unboxed.*;
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
   @Inline
-  private static final GenMS global() { 
+  private static GenMS global() {
     return (GenMS) VM.activePlan.global();
   }
 }

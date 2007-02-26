@@ -132,7 +132,7 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  private static final void compactCandidates() {
+  private static void compactCandidates() {
     int leftCursor = 0;
     int rightCursor = candidateEnd - 1;
     // Invariant: Slots left of leftCursor are non-empty and slots right of rightCursor are empty

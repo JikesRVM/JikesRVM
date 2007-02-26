@@ -143,7 +143,7 @@ import org.vmmagic.unboxed.*;
    * replenished.
    */
   @NoInline
-  private final boolean dequeueUnderflow(int arity) { 
+  private boolean dequeueUnderflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))

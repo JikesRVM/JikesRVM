@@ -22,14 +22,14 @@ import com.ibm.jikesrvm.opt.ir.*;
 final class OPT_ResourceMap {
   private static final int verbose = 0;
 
-  private static final void debug(String s) {
+  private static void debug(String s) {
     System.out.println(s);
   }
   // Padding
   // For internal use only.
   private static final String ZEROS = dup(32, '0');
 
-  private static final String toBinaryPad32(int value) {
+  private static String toBinaryPad32(int value) {
     String s = Integer.toBinaryString(value);
     return  ZEROS.substring(s.length()) + s;
   }
@@ -157,7 +157,7 @@ final class OPT_ResourceMap {
 
   // Generates a string of a given length filled by a given character.
   // For internal use only.
-  private static final String dup(int len, char c) {
+  private static String dup(int len, char c) {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < len; i++)
       sb.append(c);

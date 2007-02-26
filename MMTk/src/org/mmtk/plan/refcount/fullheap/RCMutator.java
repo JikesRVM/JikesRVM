@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
-  private final void writeBarrierInternal(ObjectReference src, Address slot,
+  private void writeBarrierInternal(ObjectReference src, Address slot,
                                           ObjectReference tgt, Offset metaDataA,
                                           int metaDataB, int mode) { 
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
@@ -184,7 +184,7 @@ import org.vmmagic.unboxed.*;
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @NoInline
-  private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
+  private void writeBarrierInternalOOL(ObjectReference src, Address slot,
                                              ObjectReference tgt,
                                              Offset metaDataA, int metaDataB,
                                              int mode) { 
@@ -272,7 +272,7 @@ import org.vmmagic.unboxed.*;
    * @param srcObj The object being mutated
    */
   @NoInline
-  private final void coalescingWriteBarrierSlow(ObjectReference srcObj) { 
+  private void coalescingWriteBarrierSlow(ObjectReference srcObj) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RC.WITH_COALESCING_RC);
       VM.assertions._assert(RCBase.isRCObject(srcObj));

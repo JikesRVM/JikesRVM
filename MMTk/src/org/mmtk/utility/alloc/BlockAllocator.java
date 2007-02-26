@@ -167,7 +167,7 @@ import org.vmmagic.unboxed.*;
    * zero on failure.
    */
   @Inline
-  private final Address allocFast(int blockSizeClass) { 
+  private Address allocFast(int blockSizeClass) {
     Address rtn;
     if (!(rtn = freeList.get(blockSizeClass)).isZero()) {
       // successfully got a block off the free list
@@ -190,7 +190,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
-  private final Address allocSlow(int blockSizeClass) {
+  private Address allocSlow(int blockSizeClass) {
     Address rtn;
     int pages = pagesForSizeClass(blockSizeClass);
     if (!(rtn = space.acquire(pages)).isZero()) {
@@ -217,7 +217,7 @@ import org.vmmagic.unboxed.*;
    * @param start The start of the page
    * @param blockSizeClass The sizeClass of the blocks to go in this page.
    */
-  private final void populatePage(Address start, int blockSizeClass) {
+  private void populatePage(Address start, int blockSizeClass) {
     resetInUseCount(start);
     int blockSize = blockSize(blockSizeClass);
     Address end = start.plus(BYTES_IN_PAGE);
@@ -312,7 +312,7 @@ import org.vmmagic.unboxed.*;
    * @param iu The value to which this field is to be set
    */
   @Inline
-  private static final void setInUseCount(Address address, short iu) { 
+  private static void setInUseCount(Address address, short iu) {
     address = Conversions.pageAlign(address);
     getMetaAddress(address).store(iu, IU_OFFSET);
   }
@@ -325,7 +325,7 @@ import org.vmmagic.unboxed.*;
    * @return The inuse field for the block containing the given address
    */
   @Inline
-  private static final short getInUseCount(Address address) { 
+  private static short getInUseCount(Address address) {
     address = Conversions.pageAlign(address);
     return getMetaAddress(address).loadShort(IU_OFFSET);
   }
@@ -339,7 +339,7 @@ import org.vmmagic.unboxed.*;
    * @param sc The value to which this field is to be set
    */
   @Inline
-  private static final void setBlkSizeMetaData(Address block, byte sc) { 
+  private static void setBlkSizeMetaData(Address block, byte sc) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(block == Conversions.pageAlign(block));
       VM.assertions._assert(pagesForSizeClass(sc) - 1  <= MAX_BLOCK_PAGE_OFFSET);
@@ -365,7 +365,7 @@ import org.vmmagic.unboxed.*;
    * @return The size class field for the block containing the given address
    */
   @Inline
-  private static final byte getBlkSizeClass(Address address) { 
+  private static byte getBlkSizeClass(Address address) {
     address = Conversions.pageAlign(address);
     byte rtn = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) & BLOCK_SC_MASK);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(rtn >= 0 && rtn <= (byte) MAX_BLOCK_SIZE_CLASS);
@@ -538,7 +538,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the specified meta data
    */
   @Inline
-  private static final Address getMetaAddress(Address address) { 
+  private static Address getMetaAddress(Address address) {
     return getMetaAddress(address, Offset.zero());
   }
 
@@ -553,7 +553,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the specified meta data
    */
   @Inline
-  private static final Address getMetaAddress(Address address,
+  private static Address getMetaAddress(Address address,
                                               Offset offset) { 
     return EmbeddedMetaData.getMetaDataBase(address).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).plus(offset);
   }
@@ -633,7 +633,7 @@ import org.vmmagic.unboxed.*;
    * @param verbose If true then produce large amounts of debugging
    * output detailing the composition of the free lists.
    */
-  private final void sanity(boolean verbose) {
+  private void sanity(boolean verbose) {
     for (int sc = 0; sc < BLOCK_SIZE_CLASSES; sc++) {
       int blocks = sanityTraverse(freeList.get(sc), Address.zero(), verbose);
       if (blocks != freeBlocks[sc]) {

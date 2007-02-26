@@ -463,7 +463,7 @@ public abstract class OPT_IREnumeration {
   }
 
   @NoInline
-  private static final void fail(String msg) throws java.util.NoSuchElementException { 
+  private static void fail(String msg) throws java.util.NoSuchElementException {
     throw new java.util.NoSuchElementException(msg);
   }
 }

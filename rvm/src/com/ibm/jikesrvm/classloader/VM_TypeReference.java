@@ -649,7 +649,7 @@ public final class VM_TypeReference {
     }
   }
 
-  private final VM_Type resolveInternal() throws NoClassDefFoundError, 
+  private VM_Type resolveInternal() throws NoClassDefFoundError,
                                                      IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {

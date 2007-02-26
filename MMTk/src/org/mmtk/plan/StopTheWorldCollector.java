@@ -169,7 +169,7 @@ import org.vmmagic.pragma.*;
 
   /** @return The active global plan as a <code>StopTheWorld</code> instance. */
   @Inline
-  private static final StopTheWorld global() { 
+  private static StopTheWorld global() {
     return (StopTheWorld) VM.activePlan.global();
   }
 

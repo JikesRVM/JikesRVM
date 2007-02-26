@@ -175,7 +175,7 @@ public abstract class PageResource implements Constants {
    * @param pages The number of pages to be committed
    * @param begin The start address of the allocated region
    */
-  private final void commitPages(int pages, Address begin) {
+  private void commitPages(int pages, Address begin) {
     lock();
     committed += adjustForMetaData(pages, begin);
     if (!Plan.gcInProgress())

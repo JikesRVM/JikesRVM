@@ -174,7 +174,7 @@ import org.vmmagic.pragma.*;
    */
 
   /** @return The active global plan as a <code>GenCopy</code> instance. */
-  private static final GenCopy global() {
+  private static GenCopy global() {
     return (GenCopy) VM.activePlan.global();
   }
 

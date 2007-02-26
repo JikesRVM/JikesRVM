@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 
-  private static final void swLock() {
+  private static void swLock() {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
       while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  private static final void swUnlock() {
+  private static void swUnlock() {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
       VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);

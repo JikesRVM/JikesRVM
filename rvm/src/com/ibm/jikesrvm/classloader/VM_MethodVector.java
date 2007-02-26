@@ -74,7 +74,7 @@ final class VM_MethodVector {
 
   private static final VM_Method[] empty = new VM_Method[0];	
   
-  private final void adjustLength(int newLength) {
+  private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {

@@ -265,7 +265,7 @@ import org.vmmagic.pragma.*;
 
   /** @return The active global plan as an <code>SSGCspy</code> instance. */
   @Inline
-  private static final SSGCspy global() { 
+  private static SSGCspy global() {
     return (SSGCspy) VM.activePlan.global();
   }
 

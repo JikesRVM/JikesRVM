@@ -134,7 +134,7 @@ import org.vmmagic.pragma.*;
 
   /** @return The active global plan as a <code>Gen</code> instance. */
   @Inline
-  private static final Gen global() { 
+  private static Gen global() {
     return (Gen) VM.activePlan.global();
   }
 

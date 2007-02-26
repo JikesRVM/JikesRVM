@@ -170,7 +170,7 @@ import org.vmmagic.pragma.*;
   private Lock lock;
 
   
-  private final Address dequeue(boolean waiting, boolean fromTail) {
+  private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
     if (rtn.isZero()) {
@@ -215,7 +215,7 @@ import org.vmmagic.pragma.*;
    * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
-  private static final void setNext(Address buf, Address next) {
+  private static void setNext(Address buf, Address next) {
     buf.store(next);
   }
 
@@ -235,7 +235,7 @@ import org.vmmagic.pragma.*;
    * @param buf The buffer whose next field is to be set.
    * @param prev The reference to which prev should point.
    */
-  private final void setPrev(Address buf, Address prev) {
+  private void setPrev(Address buf, Address prev) {
     buf.store(prev, PREV_OFFSET);
   }
 
@@ -256,7 +256,7 @@ import org.vmmagic.pragma.*;
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */
-  private final boolean checkDequeLength(int length) {
+  private boolean checkDequeLength(int length) {
     Address top = head;
     int l = 0;
     while (!top.isZero() && l <= length) {
@@ -270,7 +270,7 @@ import org.vmmagic.pragma.*;
    * Lock this shared queue.  We use one simple low-level lock to
    * synchronize access to the shared queue of buffers.
    */
-  private final void lock() {
+  private void lock() {
     lock.acquire();
   }
 
@@ -278,34 +278,34 @@ import org.vmmagic.pragma.*;
    * Release the lock.  We use one simple low-level lock to synchronize
    * access to the shared queue of buffers.
    */
-  private final void unlock() {
+  private void unlock() {
     lock.release();
   }
 
   // need to use this to avoid generating a putfield and so causing write barrier recursion
   //
   @Inline
-  private final void setCompletionFlag(int flag) { 
+  private void setCompletionFlag(int flag) {
     completionFlag = flag;
   }
 
   @Inline
-  private final void setNumConsumers(int newNumConsumers) { 
+  private void setNumConsumers(int newNumConsumers) {
     numConsumers = newNumConsumers;
   }
 
   @Inline
-  private final void setNumConsumersWaiting(int newNCW) { 
+  private void setNumConsumersWaiting(int newNCW) {
     numConsumersWaiting = newNCW;
   }
 
   @Inline
-  private final void setHead(Address newHead) { 
+  private void setHead(Address newHead) {
     head = newHead;
   }
 
   @Inline
-  private final void setTail(Address newTail) { 
+  private void setTail(Address newTail) {
     tail = newTail;
   }
 }

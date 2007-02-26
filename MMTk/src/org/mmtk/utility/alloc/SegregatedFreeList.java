@@ -285,7 +285,7 @@ import org.vmmagic.unboxed.*;
    *         insufficient resources to allocate a new block.
    */
   @Inline
-  private final Address expandSizeClass(int sizeClass) { 
+  private Address expandSizeClass(int sizeClass) {
     Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
     if (block.isZero())
       return Address.zero();
@@ -334,7 +334,7 @@ import org.vmmagic.unboxed.*;
    * @param next The next cell in the chain.
    */
   @Inline
-  private final void setNextCell(Address cell, Address next) { 
+  private void setNextCell(Address cell, Address next) {
     cell.store(next);
   }
 
@@ -373,7 +373,7 @@ import org.vmmagic.unboxed.*;
    * @param sizeClass The size class to which the block is being added
    */
   @Inline
-  private final void installNewBlock(Address block, int sizeClass) { 
+  private void installNewBlock(Address block, int sizeClass) {
     BlockAllocator.setAllClientSizeClass(block, blockSizeClass[sizeClass], (byte) sizeClass);
     BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
     currentBlock.set(sizeClass, block);
@@ -700,7 +700,7 @@ import org.vmmagic.unboxed.*;
    * @param block the block to be added to a bucket
    * @param liveness the liveness of the block that is to be added
    */
-  private final void addToBlockBucket(Address block, int liveness) {
+  private void addToBlockBucket(Address block, int liveness) {
     int bucket = (liveness >= BLOCK_BUCKETS) ? BLOCK_BUCKETS - 1 : liveness;
     if (blockBucketHead.get(bucket).isZero())
       blockBucketHead.set(bucket, block);
@@ -713,7 +713,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Clear the list of block buckets prior to re-using it
    */
-  private final void clearBucketList() {
+  private void clearBucketList() {
     for (int bucket = 0; bucket < BLOCK_BUCKETS; bucket++) {
       blockBucketHead.set(bucket, Address.zero());
       blockBucketTail.set(bucket, Address.zero());
@@ -731,7 +731,7 @@ import org.vmmagic.unboxed.*;
    * @param sizeClass The sizeclass whose free block list is being
    * composed
    */
-  private final void reestablishBlockFreeList(int sizeClass) {
+  private void reestablishBlockFreeList(int sizeClass) {
     Address head = Address.zero();
     for (int bucket = 0; bucket < BLOCK_BUCKETS; bucket++)
       head = addToFreeBlockList(sizeClass, head, bucket);
@@ -751,7 +751,7 @@ import org.vmmagic.unboxed.*;
    * this free block list.
    */
   @Inline
-  private final Address addToFreeBlockList(int sizeClass, Address head,
+  private Address addToFreeBlockList(int sizeClass, Address head,
       int bucket) { 
     Address tail = blockBucketTail.get(bucket);
     if (!tail.isZero()) {
@@ -912,7 +912,7 @@ import org.vmmagic.unboxed.*;
    * otherwise.
    */
   @Inline
-  private static final int getLiveness(Address block, Extent blockSize,
+  private static int getLiveness(Address block, Extent blockSize,
       boolean count) { 
     int liveWords = 0;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(alignToLiveStride(block).EQ(block));

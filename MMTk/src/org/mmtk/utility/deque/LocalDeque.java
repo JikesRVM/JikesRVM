@@ -110,7 +110,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void headOverflow(int arity) {
+  private void headOverflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
@@ -126,7 +126,7 @@ import org.vmmagic.pragma.*;
    *  @param arity The arity of this buffer.
    */
   @Inline
-  private final void closeAndInsertHead(int arity) { 
+  private void closeAndInsertHead(int arity) {
     queue.enqueue(head, arity, false);
   }
 
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
    * @return True if the consumer has eaten all of the entries
    */
   @SuppressWarnings("unused")
-  private final boolean tailStarved(int arity) {
+  private boolean tailStarved(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {

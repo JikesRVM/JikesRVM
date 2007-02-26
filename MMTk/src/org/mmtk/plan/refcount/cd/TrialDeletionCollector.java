@@ -144,18 +144,18 @@ import org.vmmagic.unboxed.ObjectReference;
     return false;
   }
 
-  private final void filterPurpleBufs() {
+  private void filterPurpleBufs() {
     filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer);
     maturePurpleBuffer.flushLocal();
   }
   
-  private final void filterMaturePurpleBufs() {
+  private void filterMaturePurpleBufs() {
     if (filteredPurpleBuffer.isEmpty()) {
       filterPurpleBufs(maturePurpleBuffer, filteredPurpleBuffer);
     }
   }
 
-  private final void filterPurpleBufs(ObjectReferenceDeque src, ObjectReferenceDeque tgt) {
+  private void filterPurpleBufs(ObjectReferenceDeque src, ObjectReferenceDeque tgt) {
     ObjectReference object = ObjectReference.nullReference();
     src.flushLocal();
     while (!(object = src.pop()).isNull()) {
@@ -164,7 +164,7 @@ import org.vmmagic.unboxed.ObjectReference;
     tgt.flushLocal();
   }
 
-  private final void flushFilteredPurpleBufs() {
+  private void flushFilteredPurpleBufs() {
     ObjectReference object = ObjectReference.nullReference();
     while (!(object = filteredPurpleBuffer.pop()).isNull()) {
       maturePurpleBuffer.push(object);
@@ -172,7 +172,7 @@ import org.vmmagic.unboxed.ObjectReference;
     maturePurpleBuffer.flushLocal();
   }
 
-  private final void filter(ObjectReference object, ObjectReferenceDeque tgt) {
+  private void filter(ObjectReference object, ObjectReferenceDeque tgt) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCHeader.isBuffered(object));
     if (RCHeader.isLiveRC(object)) {
@@ -187,7 +187,7 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
 
-  private final void processFreeBufs() {
+  private void processFreeBufs() {
     ObjectReference object;
     while (!(object = freeBuffer.pop()).isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isBuffered(object));
@@ -215,14 +215,14 @@ import org.vmmagic.unboxed.ObjectReference;
    * and thus applying temporary decrements to each of the object's
    * decendents.
    */
-  private final void doMarkGreyPhase() {
+  private void doMarkGreyPhase() {
     ObjectReference object = ObjectReference.nullReference();
     while (!(object = filteredPurpleBuffer.pop()).isNull()) {
       processGreyObject(object, cycleBufferA);
     }
   }
   @Inline
-  private final boolean processGreyObject(ObjectReference object,
+  private boolean processGreyObject(ObjectReference object,
                                           ObjectReferenceDeque tgt) { 
    // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -243,7 +243,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  private final void markGrey(ObjectReference object) { 
+  private void markGrey(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -267,7 +267,7 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
 
-  private final void doScanPhase() {
+  private void doScanPhase() {
     ObjectReference object;
     ObjectReferenceDeque src = cycleBufferA;
     ObjectReferenceDeque tgt = cycleBufferB;
@@ -279,7 +279,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
 
   @Inline
-  private final void scan(ObjectReference object) { 
+  private void scan(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -302,7 +302,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  private final void scanBlack(ObjectReference object) { 
+  private void scanBlack(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(blackQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -322,7 +322,7 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
 
-  private final void doCollectPhase() {
+  private void doCollectPhase() {
     ObjectReference object;
     ObjectReferenceDeque src = cycleBufferB;
     while (!(object = src.pop()).isNull()) {
@@ -333,7 +333,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  private final void collectWhite(ObjectReference object) { 
+  private void collectWhite(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (RCHeader.isWhite(object) && !RCHeader.isBuffered(object)) {
@@ -371,7 +371,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
   /** @return The active global plan as an <code>MS</code> instance. */
   @Inline
-  private static final TrialDeletion global() { 
+  private static TrialDeletion global() {
     return (TrialDeletion)((RCBase)VM.activePlan.global()).cycleDetector();
   }
 }

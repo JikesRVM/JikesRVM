@@ -142,7 +142,7 @@ import org.vmmagic.pragma.*;
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
    */
-  private final int alloc(int size, int unit, int unitSize) {
+  private int alloc(int size, int unit, int unitSize) {
     if (unitSize >= size) {
       if (unitSize > size)
         split(unit, size);
@@ -230,7 +230,7 @@ import org.vmmagic.pragma.*;
    * @param unit The index of the first unit
    * @param size The size of the first part
    */
-  private final void split(int unit, int size) {
+  private void split(int unit, int size) {
     int basesize = getSize(unit);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(basesize > size);
     setSize(unit, size);
@@ -244,7 +244,7 @@ import org.vmmagic.pragma.*;
    * @param start The index of the start of the first lump
    * @param end The index of the start of the last lump
    */
-  private final void coalesce(int start, int end) {
+  private void coalesce(int start, int end) {
     if (getFree(end))
       removeFromFree(end);
     if (getFree(start))
@@ -258,7 +258,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param unit The first unit in the lump of units to be added
    */
-  private final void addToFree(int unit) {
+  private void addToFree(int unit) {
     setFree(unit, true);
     int next = getNext(HEAD);
     setNext(unit, next);
@@ -272,7 +272,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param unit The first unit in the lump of units to be removed
    */
-  private final void removeFromFree(int unit) {
+  private void removeFromFree(int unit) {
     int next = getNext(unit);
     int prev = getPrev(unit);
     setNext(prev, next);
@@ -286,7 +286,7 @@ import org.vmmagic.pragma.*;
    * @return The index of the first unit in the lump to the
    * "right"/"below" the lump in question.
    */
-  private final int getRight(int unit) {
+  private int getRight(int unit) {
     return unit + getSize(unit);
   }
 

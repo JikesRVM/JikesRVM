@@ -90,7 +90,7 @@ import org.vmmagic.pragma.*;
    * @param name The method name to test as an array of bytes
    * @return True if the method is a "real" method, false otherwise.
    */
-  private final boolean isAllocCall(byte[] name) {    
+  private boolean isAllocCall(byte[] name) {
     for (int i = 0; i < allocCallMethods.length; i++) {
       byte[] funcName = Barriers.getArrayNoBarrierStatic(allocCallMethods, i);
       if (VM_Magic.getArrayLength(name) == VM_Magic.getArrayLength(funcName)) {

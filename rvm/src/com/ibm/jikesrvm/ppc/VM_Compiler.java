@@ -278,11 +278,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     return 0 != (type & (LONG_TYPE));
   }
 
-  private final int getGeneralLocalLocation(int index) {
+  private int getGeneralLocalLocation(int index) {
     return localFixedLocations[index];
   }
 
-  private final int getFloatLocalLocation(int index) {
+  private int getFloatLocalLocation(int index) {
     return localFloatLocations[index];
   }
 
@@ -308,15 +308,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
 
 
-  private final int getSingleStackLocation(int index) {
+  private int getSingleStackLocation(int index) {
     return offsetToLocation(spTopOffset + BYTES_IN_STACKSLOT + (index<<LOG_BYTES_IN_STACKSLOT));
   }
 
-  private final int getDoubleStackLocation(int index) {
+  private int getDoubleStackLocation(int index) {
     return offsetToLocation(spTopOffset + 2*BYTES_IN_STACKSLOT + (index<<LOG_BYTES_IN_STACKSLOT));
   }
 
-  private final int getTopOfStackLocationForPush() {
+  private int getTopOfStackLocationForPush() {
     return offsetToLocation(spTopOffset);
   }
   /**
@@ -354,11 +354,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   /*
    * Helper functions for expression stack manipulation
    */
-  private final void discardSlot() {
+  private void discardSlot() {
     spTopOffset += BYTES_IN_STACKSLOT;
   }
 
-  private final void discardSlots(int n) {
+  private void discardSlots(int n) {
     spTopOffset += n * BYTES_IN_STACKSLOT;
   }
 
@@ -368,7 +368,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
-  private final void pushInt(int reg) {
+  private void pushInt(int reg) {
     asm.emitSTW (reg, spTopOffset - BYTES_IN_INT, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -378,7 +378,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
-  private final void pushFloat(int reg) {
+  private void pushFloat(int reg) {
     asm.emitSTFS (reg, spTopOffset - BYTES_IN_FLOAT, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -388,7 +388,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
-  private final void pushDouble(int reg) {
+  private void pushDouble(int reg) {
     asm.emitSTFD (reg, spTopOffset -BYTES_IN_DOUBLE, FP);
     spTopOffset -= 2*BYTES_IN_STACKSLOT;
   }
@@ -398,7 +398,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
-  private final void pushLowDoubleAsInt(int reg) {
+  private void pushLowDoubleAsInt(int reg) {
     asm.emitSTFD (reg, spTopOffset -BYTES_IN_DOUBLE, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -409,7 +409,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param reg1 register containing,  the most significant 32 bits to push on 32bit arch (to lowest address), not used on 64bit
    * @param reg2 register containing,  the least significant 32 bits on 32bit arch (to highest address), the whole value on 64bit
    */
-  private final void pushLong(int reg1, int reg2) {
+  private void pushLong(int reg1, int reg2) {
     if (VM.BuildFor64Addr) {
       asm.emitSTD (reg2,  spTopOffset -BYTES_IN_LONG, FP);
     } else {
@@ -427,7 +427,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * one instruction!!!
    * @param reg register containing the value to push
    */
-  private final void pushLongAsDouble(int reg) {
+  private void pushLongAsDouble(int reg) {
     asm.emitSTFD (reg, spTopOffset -BYTES_IN_LONG, FP);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
@@ -437,7 +437,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
-  private final void pushAddr(int reg) {
+  private void pushAddr(int reg) {
     asm.emitSTAddr(reg, spTopOffset -BYTES_IN_ADDRESS, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -447,7 +447,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack on position idx.
    * @param reg register to peek the value into
    */
-  private final void pokeAddr(int reg, int idx) {
+  private void pokeAddr(int reg, int idx) {
     asm.emitSTAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -456,7 +456,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * contained in 'reg' onto the expression stack on position idx.
    * @param reg register to peek the value into
    */
-  private final void pokeInt(int reg, int idx) {
+  private void pokeInt(int reg, int idx) {
     asm.emitSTW(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -465,7 +465,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
-  private final void popCharAsInt(int reg) {
+  private void popCharAsInt(int reg) {
     asm.emitLHZ(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_CHAR, FP);
     discardSlot();
   }
@@ -475,7 +475,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
-  private final void popShortAsInt(int reg) {
+  private void popShortAsInt(int reg) {
     asm.emitLHA(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_SHORT, FP);
     discardSlot();
   }
@@ -485,7 +485,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
-  private final void popByteAsInt(int reg) {
+  private void popByteAsInt(int reg) {
     asm.emitLWZ(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT, FP);
     asm.emitEXTSB(reg,reg);
     discardSlot();
@@ -496,7 +496,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'. Sign extend on 64 bit platform.
    * @param reg register to pop the value into
    */
-  private final void popInt(int reg) {
+  private void popInt(int reg) {
     asm.emitLInt(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT, FP);
     discardSlot();
   }
@@ -506,7 +506,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to pop the value into
    */
-  private final void popFloat(int reg) {
+  private void popFloat(int reg) {
     asm.emitLFS (reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_FLOAT, FP);
     discardSlot();
   }
@@ -516,7 +516,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to pop the value into
    */
-  private final void popDouble(int reg) {
+  private void popDouble(int reg) {
     asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE, FP);
     discardSlots(2);
   }
@@ -527,7 +527,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param reg1 register to pop,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
    * @param reg2 register to pop,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
    */
-  private final void popLong(int reg1, int reg2) {
+  private void popLong(int reg1, int reg2) {
     if (VM.BuildFor64Addr) {
       asm.emitLD (reg2,  spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_LONG, FP);
     } else {
@@ -545,7 +545,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * one instruction!!!
    * @param reg register to pop the value into
    */
-  private final void popLongAsDouble(int reg) {
+  private void popLongAsDouble(int reg) {
     asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE, FP);
     discardSlots(2);
   }
@@ -555,7 +555,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to pop the value into
    */
-  private final void popAddr(int reg) {
+  private void popAddr(int reg) {
     asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS, FP);
     discardSlot();
   }
@@ -574,7 +574,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to peek the value into
    */
-  private final void peekFloat(int reg, int idx) {
+  private void peekFloat(int reg, int idx) {
     asm.emitLFS(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_FLOAT + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -583,7 +583,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to peek the value into
    */
-  private final void peekDouble(int reg, int idx) {
+  private void peekDouble(int reg, int idx) {
     asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE + (idx << LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -593,7 +593,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param reg1 register to peek,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
    * @param reg2 register to peek,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
    */
-  private final void peekLong(int reg1, int reg2, int idx) {
+  private void peekLong(int reg1, int reg2, int idx) {
     if (VM.BuildFor64Addr) {
       asm.emitLD (reg2, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_LONG + (idx << LOG_BYTES_IN_STACKSLOT), FP);
     } else {
@@ -3443,14 +3443,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param scratch scratch register
    * @param counterIdx index of counter to increment
    */
-  private final void incEdgeCounter(int counters, int scratch, int counterIdx) {
+  private void incEdgeCounter(int counters, int scratch, int counterIdx) {
     asm.emitLInt   (scratch, counterIdx<<2, counters);
     asm.emitADDI   (scratch, 1, scratch);
     asm.emitRLWINM (scratch, scratch, 0, 1, 31);
     asm.emitSTW    (scratch, counterIdx<<2, counters);
   }
 
-  private final void incEdgeCounterIdx(int counters, int scratch, int base, int counterIdx) {
+  private void incEdgeCounterIdx(int counters, int scratch, int base, int counterIdx) {
     asm.emitADDI    (counters, base<<2, counters);
     asm.emitLIntX   (scratch, counterIdx, counters);
     asm.emitADDI    (scratch, 1, scratch);

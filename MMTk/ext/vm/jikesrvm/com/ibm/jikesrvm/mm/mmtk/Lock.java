@@ -225,7 +225,7 @@ import org.mmtk.utility.Log;
 
   // want to avoid generating a putfield so as to avoid write barrier recursion
   @Inline
-  private final void setLocker(long start, VM_Thread thread, int w) { 
+  private void setLocker(long start, VM_Thread thread, int w) {
     VM_Magic.setLongAtOffset(this, startFieldOffset, start);
     VM_Magic.setObjectAtOffset(this, threadFieldOffset, (Object) thread);
     where = w;

@@ -923,7 +923,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
   }
 
-  private static final OPT_BasicBlock advanceBlock(int bcIndex, OPT_BasicBlock curBlock, OPT_IR ir) {
+  private static OPT_BasicBlock advanceBlock(int bcIndex, OPT_BasicBlock curBlock, OPT_IR ir) {
     OPT_BasicBlock newBlock = curBlock.createSubBlock(bcIndex, ir);
     curBlock.insertOut(newBlock);
     ir.cfg.linkInCodeOrder(curBlock, newBlock);

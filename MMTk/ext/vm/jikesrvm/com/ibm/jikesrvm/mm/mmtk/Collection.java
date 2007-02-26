@@ -227,7 +227,7 @@ import org.vmmagic.pragma.*;
    * @param async True if this collection was asynchronously triggered.
    */
   @LogicallyUninterruptible
-  private static final void checkForExhaustion(int why, boolean async) { 
+  private static void checkForExhaustion(int why, boolean async) {
     double usage = Plan.reservedMemory().toLong()/ ((double) Plan.totalMemory().toLong());
     
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {

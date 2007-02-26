@@ -233,7 +233,7 @@ import org.vmmagic.unboxed.*;
 
   /** @return The active global plan as an <code>RC</code> instance. */
   @Inline
-  private static final RCBase global() { 
+  private static RCBase global() {
     return (RCBase) VM.activePlan.global();
   }
   

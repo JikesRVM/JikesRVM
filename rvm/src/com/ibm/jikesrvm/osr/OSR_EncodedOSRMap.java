@@ -65,7 +65,7 @@ public class OSR_EncodedOSRMap
    * get register bit position
    */
   @Inline
-  private static final int getRegBitPosition(int regnum) { 
+  private static int getRegBitPosition(int regnum) {
 
     return regnum - FIRST_GCMAP_REG + 1;
   }
@@ -151,7 +151,7 @@ public class OSR_EncodedOSRMap
   // instruction's mc offset as the key, but since there are
   // in the order, we will use the current instruction's mc offset
   // as the key.
-  private static final void quickSort(OSR_VariableMapElement[] array,
+  private static void quickSort(OSR_VariableMapElement[] array,
                                       int start,
                                       int end) {
     if ( start < end ) {
@@ -161,7 +161,7 @@ public class OSR_EncodedOSRMap
     }
   }
 
-  private static final int partition(OSR_VariableMapElement[] array,
+  private static int partition(OSR_VariableMapElement[] array,
                                      int start,
                                      int end) {
     int left = start;
@@ -455,7 +455,7 @@ public class OSR_EncodedOSRMap
    * Do a binary search, find the entry for the machine code offset. 
    * Return -1 if no entry was found.
    */
-  private final int findOSREntry(Offset mcOffset) {
+  private int findOSREntry(Offset mcOffset) {
     
     int l = 0;
     int r = lastEntry;
@@ -483,39 +483,39 @@ public class OSR_EncodedOSRMap
     return NO_OSR_ENTRY;
   }
 
-  private final int getMCOffset(int entry) {
+  private int getMCOffset(int entry) {
     return (int)((mapEntries[entry] & OFFSET_MASK) >>> OFFSET_SHIFT);
   }
 
-  private final int getOSRMapIndex(int entry) {
+  private int getOSRMapIndex(int entry) {
     return (int)((mapEntries[entry] & OSRI_MASK) >>> OSRI_SHIFT);
   }
 
-  private final int getBCIndex(int entry) {
+  private int getBCIndex(int entry) {
     return (int)((mapEntries[entry] & BCI_MASK) >>> BCI_SHIFT);
   }
 
   @SuppressWarnings("unused") // Here for completeness (RJG ??)
-  private final int getIEIndex(int entry) {
+  private int getIEIndex(int entry) {
     return (int)((mapEntries[entry] & IEI_MASK) >>> IEI_SHIFT);
   }
 
-  private final void setMCOffset(int entry, int offset) {
+  private void setMCOffset(int entry, int offset) {
     mapEntries[entry] = (mapEntries[entry] & ~OFFSET_MASK) 
       | (((long)offset) << OFFSET_SHIFT);
   }
  
-  private final void setOSRMapIndex(int entry, int index) {
+  private void setOSRMapIndex(int entry, int index) {
     mapEntries[entry] = (mapEntries[entry] & ~OSRI_MASK)
       | (((long)index) << OSRI_SHIFT);
   }
 
-  private final void setBCIndex(int entry, int index) {
+  private void setBCIndex(int entry, int index) {
     mapEntries[entry] = (mapEntries[entry] & ~BCI_MASK)
       | (((long)index) << BCI_SHIFT);
   }
 
-  private final void setIEIndex(int entry, int index) {
+  private void setIEIndex(int entry, int index) {
     mapEntries[entry] = (mapEntries[entry] & ~IEI_MASK)
       | (((long)index) << IEI_SHIFT);
   }

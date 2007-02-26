@@ -240,7 +240,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  private final VM_Method resolveInternal(VM_Class declaringClass) {
+  private VM_Method resolveInternal(VM_Class declaringClass) {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
@@ -330,7 +330,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.4.
    * @return the VM_Method that this method ref resolved to or null for error
    */
-  private final VM_Method resolveInterfaceMethodInternal(VM_Class declaringClass) {
+  private VM_Method resolveInterfaceMethodInternal(VM_Class declaringClass) {
     VM_Method it = declaringClass.findDeclaredMethod(name, descriptor);
     if (it != null) {
       resolvedMember = it; 
@@ -347,7 +347,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     return null;
   }
     
-  private final VM_Method searchInterfaceMethods(VM_Class c) {
+  private VM_Method searchInterfaceMethods(VM_Class c) {
     if (!c.isResolved()) c.resolve();
     VM_Method it = c.findDeclaredMethod(name, descriptor);
     if (it != null) return it;

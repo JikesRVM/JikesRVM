@@ -314,7 +314,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   static final int Btemplate = 18<<26;
 
-  private final void _emitB (int relative_address) {
+  private void _emitB (int relative_address) {
     if (VM.VerifyAssertions) VM._assert(fits(relative_address,24));
     int mi = Btemplate | (relative_address&0xFFFFFF)<<2;
     mIP++;
@@ -358,7 +358,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   static final int BLtemplate = 18<<26 | 1;
 
-  private final void _emitBL (int relative_address) {
+  private void _emitBL (int relative_address) {
     if (VM.VerifyAssertions) VM._assert(fits(relative_address,24));
     int mi = BLtemplate | (relative_address&0xFFFFFF)<<2;
     mIP++;
@@ -401,7 +401,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     return -1;
   }
 
-  private final void _emitBC (int cc, int relative_address) {
+  private void _emitBC (int cc, int relative_address) {
     if (fits(relative_address, 14)) {
       int mi = BCtemplate | cc | (relative_address&0x3FFF)<<2;
       mIP++;
@@ -499,7 +499,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitADDI (RT, D&0xFFFF, RA);
   }
 
-  private final void _emitADDI (int RT, int D, int RA) {
+  private void _emitADDI (int RT, int D, int RA) {
     //D has already been masked
     int mi = ADDItemplate | RT<<21 | RA<<16 | D;
     mIP++;
@@ -518,7 +518,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitADDIS (RT, RA, UI);
   }
 
-  private final void _emitADDIS (int RT, int RA, int UI) {
+  private void _emitADDIS (int RT, int RA, int UI) {
     //UI has already been masked
     int mi = ADDIStemplate | RT<<21 | RA<<16 | UI;
     mIP++;
@@ -530,7 +530,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitADDIS (RT, UI);
   }
 
-  private final void _emitADDIS (int RT, int UI) {
+  private void _emitADDIS (int RT, int UI) {
     //UI has already been masked
     int mi = ADDIStemplate | RT<<21 | UI;
     mIP++;
@@ -774,7 +774,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitLWZ (RT, D&0xFFFF, RA);
   }
 
-  private final void _emitLWZ (int RT, int D, int RA) {
+  private void _emitLWZ (int RT, int D, int RA) {
     //D has already been masked
     int mi = LWZtemplate  | RT<<21 | RA<<16 | D;
     mIP++;
@@ -844,7 +844,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitLFD (FRT, D&0xFFFF, RA);
   }
 
-  private final void _emitLFD (int FRT, int D, int RA) {
+  private void _emitLFD (int FRT, int D, int RA) {
     //D has already been masked
     int mi = LFDtemplate | FRT<<21 | RA<<16 | D;
     mIP++;
@@ -882,7 +882,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitLFS (FRT, D&0xFFFF, RA);
   }
 
-  private final void _emitLFS (int FRT, int D, int RA) {
+  private void _emitLFS (int FRT, int D, int RA) {
     //D has already been masked
     int mi = LFStemplate | FRT<<21 | RA<<16 | D;
     mIP++;
@@ -917,7 +917,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     mc.addInstruction(mi);
   }
 
-  private final void _emitLI (int RT, int D) {
+  private void _emitLI (int RT, int D) {
     //D has already been masked
     int mi = ADDItemplate | RT<<21 | D;
     mIP++;
@@ -1185,7 +1185,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitSTW (RS, D&0xFFFF, RA);
   }
 
-  private final void _emitSTW (int RS, int D, int RA) {
+  private void _emitSTW (int RS, int D, int RA) {
     //D has already been masked
     int mi = STWtemplate | RS<<21 | RA<<16 | D;
     mIP++;
@@ -1274,7 +1274,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitSTFD (FRS, D&0xFFFF, RA);
   }
 
-  private final void _emitSTFD (int FRS, int D, int RA) {
+  private void _emitSTFD (int FRS, int D, int RA) {
     //D has already been masked
     int mi = STFDtemplate | FRS<<21 | RA<<16 | D;
     mIP++;
@@ -1312,7 +1312,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitSTFS (FRS, D&0xFFFF, RA);
   }
 
-  private final void _emitSTFS (int FRS, int D, int RA) {
+  private void _emitSTFS (int FRS, int D, int RA) {
     //D has already been masked
     int mi = STFStemplate | FRS<<21 | RA<<16 | D;
     mIP++;
@@ -1443,7 +1443,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
 
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLDoffset(int RT, int RA, Offset offset) {
+  private void emitLDoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
       _emitLD (RT, maskLower16(offset), RA);
     } else {
@@ -1454,7 +1454,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
   
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLWAoffset(int RT, int RA, Offset offset) {
+  private void emitLWAoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
       _emitLWA (RT, maskLower16(offset), RA);
     } else {
@@ -1465,7 +1465,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
     
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLWZoffset(int RT, int RA, Offset offset) {
+  private void emitLWZoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
       _emitLWZ (RT, maskLower16(offset), RA);
     } else {
@@ -1793,7 +1793,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitLD (RT, DS, RA);
   }
 
-  private final void _emitLD (int RT, int DS, int RA) {
+  private void _emitLD (int RT, int DS, int RA) {
     //DS is already checked to fit 16 bits
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     int mi = LDtemplate  | RT<<21 | RA<<16 | (DS&0xFFFC);
@@ -1845,7 +1845,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitLWA (RT, DS, RA);
   }
   
-  private final void _emitLWA (int RT, int DS, int RA) {
+  private void _emitLWA (int RT, int DS, int RA) {
     //DS is already checked to fit 16 bits
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     int mi = LWAtemplate | RT<<21 | RA<<16 | (DS&0xFFFC);
@@ -1945,7 +1945,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     _emitSTD (RS, DS, RA);
   }
 
-  private final void _emitSTD (int RS, int DS, int RA) {
+  private void _emitSTD (int RS, int DS, int RA) {
     //DS is already checked to fit 16 bits
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     int mi = STDtemplate | RS<<21 | RA<<16 | (DS&0xFFFC);
@@ -1954,7 +1954,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
 
   //private: use emitSTWOffset or emitSTAddrOffset instead
-  private final void emitSTDoffset (int RS, int RA, Offset Dis) {
+  private void emitSTDoffset (int RS, int RA, Offset Dis) {
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     if (VM.VerifyAssertions) VM._assert(fits(Dis, 16));
     int DS = maskLower16(Dis);

@@ -259,7 +259,7 @@ import java.util.ArrayList;
     return  -1;
   }
 
-  private final int nextEntry(int entry) {
+  private int nextEntry(int entry) {
     if (isBigEntry(entry)) return entry + SIZEOF_BIG_ENTRY;
     if (isHugeEntry(entry)) return entry + SIZEOF_HUGE_ENTRY;
     return entry + SIZEOF_ENTRY;
@@ -426,7 +426,7 @@ import java.util.ArrayList;
    * @param  entry the index of the start of the entry
    * @return       the MCOffset for this entry
    */
-  private final int getMCOffset(int entry) {
+  private int getMCOffset(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry+BIG_OFFSET_IDX_ADJ];
       return (t & BIG_OFFSET_MASK) >>> BIG_OFFSET_SHIFT;
@@ -444,7 +444,7 @@ import java.util.ArrayList;
    * @param   entry the index of the start of the entry
    * @return        the GC map entry index for this entry (or -1 if none)
    */
-  private final int getGCMapIndex(int entry) {
+  private int getGCMapIndex(int entry) {
     if (isBigEntry(entry)) {
       int t  = MCInformation[entry+BIG_GCI_IDX_ADJ];
       int gci = (t & BIG_GCI_MASK) >>> BIG_GCI_SHIFT;
@@ -468,7 +468,7 @@ import java.util.ArrayList;
    * @param entry the index of the start of the entry
    * @return      the bytecode index for this entry (-1 if unknown)
    */
-  private final int getBytecodeIndex(int entry) { 
+  private int getBytecodeIndex(int entry) {
     if (isBigEntry(entry)) {
       int t  = MCInformation[entry+BIG_BCI_IDX_ADJ];
       int bci = (t & BIG_BCI_MASK) >>> BIG_BCI_SHIFT;
@@ -492,7 +492,7 @@ import java.util.ArrayList;
    * @param entry the index of the start of the entry
    * @return      the inline encoding index for this entry (-1 if unknown)
    */
-  private final int getInlineEncodingIndex(int entry) {
+  private int getInlineEncodingIndex(int entry) {
     if (isBigEntry(entry)) {
       int t  = MCInformation[entry+BIG_IEI_IDX_ADJ];
       int iei = (t & BIG_IEI_MASK) >>> BIG_IEI_SHIFT;
@@ -516,7 +516,7 @@ import java.util.ArrayList;
    * @param entry the index of the start of the entry
    * @return      the call info for this entry 
    */
-  private final int getCallInfo(int entry) {
+  private int getCallInfo(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry+BIG_CALL_IDX_ADJ];
       return (t & BIG_CALL_MASK) >>> BIG_CALL_SHIFT;
@@ -532,7 +532,7 @@ import java.util.ArrayList;
   /**
    * Is the entry a big entry?
    */
-  private final boolean isBigEntry(int entry) {
+  private boolean isBigEntry(int entry) {
     if (VM.VerifyAssertions) {
       VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
     }
@@ -542,7 +542,7 @@ import java.util.ArrayList;
   /**
    * Is the entry a big entry?
    */
-  private final boolean isHugeEntry(int entry) {
+  private boolean isHugeEntry(int entry) {
     if (VM.VerifyAssertions) {
       VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
     }
@@ -570,7 +570,7 @@ import java.util.ArrayList;
    * @param entry  the entry to print
    */
   @Interruptible
-  private final void printMCInformationEntry(int entry) { 
+  private void printMCInformationEntry(int entry) {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";

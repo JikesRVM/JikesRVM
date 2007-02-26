@@ -191,7 +191,7 @@ import org.vmmagic.unboxed.*;
 
   /** @return The active global plan as an <code>MC</code> instance. */
   @Inline
-  private static final MC global() { 
+  private static MC global() {
     return (MC) VM.activePlan.global();
   }
 }
