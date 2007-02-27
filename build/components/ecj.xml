@@ -3,6 +3,7 @@
   <import file="base.xml"/>
 
   <property name="ecj.version" value="3.2"/>
+  <property name="ecj.description" value="Eclipse Compiler"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -30,10 +31,7 @@
 java -Xmx256m -jar "`dirname "$0"`/ecj.jar" -warn:-unusedPrivate "$@"
     </echo>
     <chmod file="${ecj.dir}/ecj" perm="ugo+rx"/>
-    <echo file="${ecj.dir}/constants.properties"><![CDATA[
-ecj.version=${ecj.version}
-ecj.description=Eclipse Compiler
-]]></echo>
+    <writeComponentConstants dir="${ecj.dir}"/>
   </target>
 
   <target name="build" depends="fetch">

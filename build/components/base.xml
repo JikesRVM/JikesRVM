@@ -33,6 +33,17 @@
     </sequential>
   </macrodef>
 
+  <macrodef name="writeComponentConstants">
+    <attribute name="name" default="${ant.project.name}"/>
+    <attribute name="dir"/>
+    <sequential>
+      <echo file="@{dir}/constants.properties"><![CDATA[
+@{name}.version=${@{name}.version}
+@{name}.description=${@{name}.description}
+]]></echo>
+    </sequential>
+  </macrodef>
+
   <macrodef name="ensureUptodate">
     <attribute name="name"/>
     <attribute name="dir"/>

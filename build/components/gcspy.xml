@@ -3,6 +3,7 @@
   <import file="base.xml"/>
 
   <property name="gcspy.version" value="1_01"/>
+  <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -98,10 +99,7 @@
         <include name="include/*"/>
       </fileset>
     </copy>
-    <echo file="${gcspy.package.dir}/${target.name}/server/constants.properties"><![CDATA[
-gcspy.version=${gcspy.version}
-gcspy.description=GCSpy Heap Visualisation Framework
-]]></echo>
+    <writeComponentConstants dir="${gcspy.package.dir}/${target.name}/server"/>
     <setComponentsConfig key="${target.name}.gcspy.client.dir" value="${gcspy.package.dir}/${target.name}/client"/>
     <setComponentsConfig key="${target.name}.gcspy.server.dir" value="${gcspy.package.dir}/${target.name}/server"/>
   </target>

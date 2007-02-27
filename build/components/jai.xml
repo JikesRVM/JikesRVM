@@ -3,6 +3,7 @@
   <import file="base.xml"/>
 
   <property name="jai.version" value="1_1_2_01"/>
+  <property name="jai.description" value="Java Advanced Imaging Toolkit"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -58,10 +59,7 @@
         <include name="*"/>
       </fileset>
     </copy>
-    <echo file="${jai.package.dir}/${target.name}/lib/constants.properties"><![CDATA[
-jai.version=${jai.version}
-jai.description=Java Advanced Imaging Toolkit
-]]></echo>
+    <writeComponentConstants dir="${jai.package.dir}/${target.name}/lib"/>
   </target>
 
   <target name="fetch" depends="get-jai-linux-ia32"/>
