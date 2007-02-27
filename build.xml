@@ -1136,9 +1136,8 @@ Check to make sure all required properties are specified. This includes properti
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
     <test-file name="cpp.exe" location="${host.file}"/>
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
-      <arg line="${rvm.common.args}"/>
+      <arg line="${rvm.common.args} ${cpp.args}"/>
       <arg value="-P"/>
-      <arg value="${cpp.args}"/>
       <arg value="${basedir}/tools/bootImageRunner/powerPC/bootThread.c"/>
     </exec>
   </target>
