@@ -950,9 +950,11 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
-    <java classname="BootImageWriter" fork="yes"
+    <java classname="BootImageWriter"
+          fork="yes"
           maxmemory="500M"
-          failonerror="true"
+          failonerror="false"
+          resultproperty="bootimage-writer.result"
           dir="${basedir}/tools/bootImageWriter"
           output="${build.base}/BootImageWriterOutput.txt">
       <classpath>
@@ -995,6 +997,14 @@ Check to make sure all required properties are specified. This includes properti
       </filterchain>
     </loadfile>
     <fail if="bootimage.warnings" message="${bootimage.warnings}"/>
+
+    <echo message="bootimage-writer.result=${bootimage-writer.result}"/>
+    <condition property="bootimage.failed" value="1">
+      <not>
+      <equals arg1="${bootimage-writer.result}" arg2="0"/>
+      </not>
+    </condition>
+    <fail if="bootimage.failed" message="Failed to write bootimage."/>
   </target>
 
   <!-- **************************************************************************** -->
