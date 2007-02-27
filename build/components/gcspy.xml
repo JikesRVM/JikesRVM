@@ -45,9 +45,7 @@
 
   <target name="build-gcspy-client" depends="fetch" if="include.gcspy-client">
     <propertycopy name="gcspy.jai.lib.dir" from="${target.name}.jai.lib.dir"/>
-    <property name="jai.error"
-              value="The user can invoke build-jai target to download jai from the web. Alternatively the user can specify -Dgcspy.skip-client=1 when invoking the build-gcspy target to avoid building the gcspy client."/>
-    <test-file name="gcspy.jai.lib.dir" msg="${jai.error}" location="${components.file}"/>
+    <test-file name="gcspy.jai.lib.dir" location="${components.file}"/>
 
     <replace file="${gcspy.dir}/src/src/java/GNUmakefile"
              token="$$(JAI_ROOT)/lib/jai_core.jar"

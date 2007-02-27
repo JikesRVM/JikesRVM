@@ -75,7 +75,7 @@
 
   <!-- build classpath in classpath.dir -->
   <target name="build" depends="fetch" description="Download Classpath and build.">
-    <test-file name="ecj.dir" location="${components.file}" msg="You can invoke the build-ecj target to download ecj from the web."/>
+    <test-file name="ecj.dir" location="${components.file}"/>
     <test-file name="make.exe" location="${host.file}"/>
 
     <condition property="cp.enable.gtk-peer" value=" --enable-gtk-peer" else=" --disable-gtk-peer">
