@@ -1339,7 +1339,7 @@ target.dll-prefix=${target.dll-prefix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile-for-apidocs" depends="prepare-source">
+  <target name="compile-for-apidocs" depends="prepare-config-source">
     <condition property="toexclude" value="ppc" else="ia32">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
