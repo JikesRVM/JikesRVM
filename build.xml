@@ -167,7 +167,9 @@
         </and>
       </conditions>
       <sequential>
-        <ant antfile="build/components/gcspy.xml" target="ensure"/>
+        <ant antfile="build/components/gcspy.xml" target="ensure">
+          <property name="gcspy.skip-client" value="1"/>
+        </ant>
       </sequential>
     </if>
     <property file="${components.file}"/>
