@@ -177,24 +177,18 @@
 
   <target name="check-classpath-properties" depends="check-components-properties">
     <propertycopy name="classpath.lib.dir" from="${target.name}.classpath.lib.dir"/>
-    <property name="classpath.error"
-              value="The user can invoke build-classpath target to download and build classpath from CVS or from the web."/>
-    <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
+    <test-file name="classpath.lib.dir" location="${components.file}"/>
     <property file="${classpath.lib.dir}/constants.properties"/>
   </target>
 
   <target name="check-gcspy-client-properties" depends="check-config-properties" if="include.gcspy-client">
     <propertycopy name="gcspy.client.dir" from="${target.name}.gcspy.client.dir"/>
-    <property name="gcspy.client.error"
-              value="The user can invoke build-gcspy target to download and build gcspy from the web."/>
-    <test-file name="gcspy.client.dir" msg="${gcspy.client.error}" location="${components.file}"/>
+    <test-file name="gcspy.client.dir" location="${components.file}"/>
   </target>
 
   <target name="check-gcspy-properties" depends="check-gcspy-client-properties" if="include.gcspy">
     <propertycopy name="gcspy.server.dir" from="${target.name}.gcspy.server.dir"/>
-    <property name="gcspy.server.error"
-              value="The user can invoke build-gcspy target to download and build gcspy from the web."/>
-    <test-file name="gcspy.server.dir" msg="${gcspy.server.error}" location="${components.file}"/>
+    <test-file name="gcspy.server.dir" location="${components.file}"/>
     <property file="${gcspy.server.dir}/constants.properties"/>
   </target>
 
