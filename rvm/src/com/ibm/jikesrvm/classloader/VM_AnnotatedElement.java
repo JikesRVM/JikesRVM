@@ -14,6 +14,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import com.ibm.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A common abstract super class for all elements that can be
@@ -184,6 +185,23 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
     if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
       for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
         if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
+             return true;
+         }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Is there an annotation of this type implemented on this annotated
+   * element? Safe to be called from uninterruptible code.
+   */
+  @Uninterruptible
+  boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef) {
+    if (runtimeVisibleAnnotations != null) {
+      for (VM_Annotation annotation : runtimeVisibleAnnotations) {
+        if( annotation.getType().equals(annotationTypeRef.getName()) &&
+            annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
           return true;
         }
       }

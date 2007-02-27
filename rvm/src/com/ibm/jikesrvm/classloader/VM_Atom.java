@@ -653,6 +653,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /*
    * We canonicalize VM_Atoms, therefore we can use == for equals
    */
+  @Uninterruptible
   public final boolean equals(Object other) {
     return this == other;
   }

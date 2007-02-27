@@ -14,6 +14,7 @@ import com.ibm.jikesrvm.VM_Reflection;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Uninterruptible;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
@@ -285,6 +286,12 @@ public final class VM_Annotation {
   VM_TypeReference annotationType() {
     return VM_TypeReference.findOrCreate(classLoader, type);
   }
+
+  @Uninterruptible
+  VM_Atom getType() { return type; }
+
+  @Uninterruptible
+  ClassLoader getClassLoader() { return classLoader; }
 
   /**
    * Are two annotations logically equivalent?
