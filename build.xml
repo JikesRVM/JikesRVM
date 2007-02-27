@@ -4,7 +4,8 @@
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
-  
+  <import file="build/tasks.xml"/>
+
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
 
   <!-- configuration data -->
@@ -57,24 +58,6 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *              Targets for retrieving external components                  * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="build-classpath" description="Download and build Classpath.">
-    <ant antfile="${jikesrvm.dir}/build/components/classpath.xml" inheritall="false" inheritrefs="false"/>
-  </target>
-
-  <target name="build-gcspy" description="Download and build GCSpy.">
-    <ant antfile="${jikesrvm.dir}/build/components/gcspy.xml" inheritall="false" inheritrefs="false"/>
-  </target>
-
-  <target name="build-jai" description="Download and build JAI.">
-    <ant antfile="${jikesrvm.dir}/build/components/jai.xml" inheritall="false" inheritrefs="false"/>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
   <!-- *             Property initialization section of the build                 * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
@@ -124,22 +107,7 @@
     <test-property name="shld.args" location="${host.file}"/>
   </target>
 
-  <target name="check-components-properties">
-    <available property="components_file_present" file="${components.file}"/>
-    <fail unless="components_file_present">
-      Components file ${components.file} not present. Please create ${components.file} and edit.
-    </fail>
-  </target>
-
-  <target name="check-classpath-properties" depends="check-components-properties">
-    <propertycopy name="classpath.lib.dir" from="${target.name}.classpath.lib.dir"/>
-    <property name="classpath.error"
-              value="The user can invoke build-classpath target to download and build classpath from CVS or from the web."/>
-    <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
-    <property file="${classpath.lib.dir}/constants.properties"/>
-  </target>
-
-  <target name="include-gcspy-check" depends="check-components-properties">
+  <target name="include-gcspy-check">
     <condition property="include.gcspy-java" value="1">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
     </condition>
@@ -176,7 +144,44 @@
     <fail if="gcspy-and-svp">GCSpy can not be combined with a single virtual processor.</fail>
   </target>
 
-  <target name="check-gcspy-client-properties" depends="include-gcspy-check,check-config-properties" if="include.gcspy-client">
+  <target name="check-components-properties" depends="include-gcspy-check,prepare-ant-tasks">
+    <mkdir dir="${components.dir}"/>
+    <ant antfile="build/components/ecj.xml" target="ensure"/>
+    <ant antfile="build/components/classpath.xml" target="ensure"/>
+    <if>
+      <conditions>
+        <isset property="include.gcspy-client"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/jai.xml" target="ensure"/>
+        <ant antfile="build/components/gcspy.xml" target="ensure-client"/>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <and>
+          <isset property="include.gcspy"/>
+          <not>
+            <isset property="include.gcspy-client"/>
+          </not>
+        </and>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/gcspy.xml" target="ensure"/>
+      </sequential>
+    </if>
+    <property file="${components.file}"/>
+  </target>
+
+  <target name="check-classpath-properties" depends="check-components-properties">
+    <propertycopy name="classpath.lib.dir" from="${target.name}.classpath.lib.dir"/>
+    <property name="classpath.error"
+              value="The user can invoke build-classpath target to download and build classpath from CVS or from the web."/>
+    <test-file name="classpath.lib.dir" location="${components.file}" msg="${classpath.error}"/>
+    <property file="${classpath.lib.dir}/constants.properties"/>
+  </target>
+
+  <target name="check-gcspy-client-properties" depends="check-config-properties" if="include.gcspy-client">
     <propertycopy name="gcspy.client.dir" from="${target.name}.gcspy.client.dir"/>
     <property name="gcspy.client.error"
               value="The user can invoke build-gcspy target to download and build gcspy from the web."/>

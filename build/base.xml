@@ -17,7 +17,6 @@ common build component for setting up and checking propertys that common across 
   <!-- location of components -->
   <property name="components.dir" location="${jikesrvm.dir}/components"/>
   <property name="components.file" location="${components.dir}/components.properties"/>
-  <property file="${components.file}"/>
   
   <!-- location of intermediate directory -->
   <property name="build.dir" location="${jikesrvm.dir}/target"/>

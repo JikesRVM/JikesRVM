@@ -1,6 +1,7 @@
 <project name="gcspy" default="build" basedir=".">
 
   <import file="base.xml"/>
+  <property file="${components.file}"/>
 
   <property name="gcspy.version" value="1_01"/>
   <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
@@ -81,6 +82,7 @@
       java -classpath $$GCSPY_DIR/gcspy-${gcspy.version}.jar:$$GCSPY_DIR/jai_core.jar gcspy.Main $*
     </echo>
     <chmod file="${gcspy.package.dir}/${target.name}/client/gcspy" perm="ugo+rx"/>
+    <writeComponentConstants dir="${gcspy.package.dir}/${target.name}/client"/>
   </target>
 
   <target name="build" depends="build-gcspy-client" description="Download GCSpy and build.">
@@ -106,6 +108,10 @@
 
   <target name="ensure" depends="init-gcspy-properties">
     <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/server"/>
+  </target>
+
+  <target name="ensure-client" depends="init-gcspy-properties">
+    <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/client"/>
   </target>
 
 </project>
