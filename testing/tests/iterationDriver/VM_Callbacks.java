@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 /**
  * Entry point for notification when an application starts to run.

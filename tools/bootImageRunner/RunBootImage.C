@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2003, 2005
  */
-//$Id$
 
 /*
  * C runtime support for virtual machine.

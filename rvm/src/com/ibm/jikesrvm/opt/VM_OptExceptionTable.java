@@ -6,8 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-// $Id$
-package com.ibm.jikesrvm.opt; 
+package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;

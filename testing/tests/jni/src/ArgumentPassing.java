@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$:
 /**
  * Test argument passing by the Java to C native interface
  * Register used for arguments

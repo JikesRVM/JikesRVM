@@ -17,11 +17,8 @@ import org.vmmagic.unboxed.*;
 /**
  * An option with a simple integer value.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class AddressOption extends Option {
   // values

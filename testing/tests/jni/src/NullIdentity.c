@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2004
- *$Id$
  *
  * Test that NULL is assigned JNI id 0.
  * Implement native methods from NullIdentity.java 

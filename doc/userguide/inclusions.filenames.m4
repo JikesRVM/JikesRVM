@@ -4,9 +4,8 @@ dnl The Jikes RVM project is distributed under the Common Public License (CPL).
 dnl A copy of the license is included in the distribution, and is also
 dnl available at http://www.opensource.org/licenses/cpl1.0.php
 dnl
-dnl Copyright © IBM Corp. 2003
+dnl Copyright (C) IBM Corp. 2003
 dnl
-dnl $Id$
 dnl
 dnl This file contains the files used in building the user guide,
 dnl in order of appearance.  The in-order appearance is so that we can

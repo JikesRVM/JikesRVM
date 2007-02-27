@@ -24,12 +24,9 @@ import org.vmmagic.pragma.*;
  * and/or all thread-local plan instances, and performs synchronization
  * and timing.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class SimplePhase extends Phase
   implements Constants {

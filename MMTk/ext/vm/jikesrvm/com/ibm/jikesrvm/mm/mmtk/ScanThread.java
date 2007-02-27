@@ -71,15 +71,12 @@ import org.vmmagic.pragma.*;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  *
- * $Id$
  *
  * @author Stephen Smith
  * @author Perry Cheng
  * @author Steve Blackburn
  *
- * @version $Revision$
- * @date $Date$
- */  
+ */
 @Uninterruptible public final class ScanThread implements VM_Constants {
 
   /***********************************************************************

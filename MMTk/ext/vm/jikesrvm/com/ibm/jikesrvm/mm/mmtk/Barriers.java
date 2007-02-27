@@ -19,13 +19,10 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   /**

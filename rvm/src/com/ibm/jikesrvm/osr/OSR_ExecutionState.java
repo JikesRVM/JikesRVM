@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002
  */
-//$Id$
 
 /** 
  * VM scope descriptor (execution state) of a method activation. 

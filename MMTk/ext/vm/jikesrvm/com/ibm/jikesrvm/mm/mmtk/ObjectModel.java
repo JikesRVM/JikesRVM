@@ -32,13 +32,10 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
 

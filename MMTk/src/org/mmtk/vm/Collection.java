@@ -17,13 +17,10 @@ import org.mmtk.plan.MutatorContext;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Collection {
 

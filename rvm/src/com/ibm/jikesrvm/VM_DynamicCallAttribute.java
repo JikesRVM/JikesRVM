@@ -9,7 +9,6 @@
  * University of Texas at Austin 2005
  * All rights reserved.
  */
-//$Id$
 
 package com.ibm.jikesrvm;
 
@@ -34,8 +33,6 @@ import com.ibm.jikesrvm.adaptive.VM_Controller;
  *
  * Also, it also record byte code index and weight of the call size.
  * @author: Xianglong Huang
- * @version $Revision$
- * @date $Date$
  *
  * @see VM_CompilerAdvice
  * @see VM_DynamicCallFileInfoReader

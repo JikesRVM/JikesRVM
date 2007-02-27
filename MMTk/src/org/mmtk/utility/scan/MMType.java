@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
-//$Id$
 package org.mmtk.utility.scan;
 
 import org.mmtk.utility.Constants;
@@ -21,8 +20,6 @@ import org.vmmagic.pragma.*;
  * 
  * @author Andrew Gray
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MMType implements Constants {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.

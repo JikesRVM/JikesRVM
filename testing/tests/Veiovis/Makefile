@@ -7,7 +7,6 @@
 # (C) Copyright IBM Corp. 2001
 #
 #
-# $Id: Makefile 11025 2006-11-20 19:05:23Z dgrove-oss $
 #
 # @author Peter Donald
 #

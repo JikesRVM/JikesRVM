@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2004
- * $Id$
  *
  * Test JNI 1.2 Functions related to Strings
  * Implement native methods from StringRegion.java 

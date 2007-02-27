@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 DECL 
 # Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
 # NOTE: OPT_LEVEL is a bogus short term kludge as we work on unifying

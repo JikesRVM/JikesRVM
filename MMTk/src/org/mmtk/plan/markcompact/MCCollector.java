@@ -38,11 +38,8 @@ import org.vmmagic.unboxed.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class MCCollector extends StopTheWorldCollector {
 

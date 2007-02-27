@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2003
 #
-# $Id$
 #
 # @author Michael Hind
 #

@@ -9,7 +9,6 @@
  * University of Texas at Austin 2005
  * All rights reserved.
  */
-//$Id$
 
 package com.ibm.jikesrvm;
 
@@ -26,8 +25,6 @@ import com.ibm.jikesrvm.adaptive.VM_Controller;
  *
  * @author Xianglong Huang
  * @author <a href="http://www.cs.utexas.edu/users/xlhuang">Xianglong Huang</a>
- * @version $Revision$
- * @date    $Date$ 
  *
  * @see VM_CompilerAdviceAttribute
  * @see VM_CompilerAdviceInfoReader

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /**
  * unresolved putstatic/getstatic test
  *

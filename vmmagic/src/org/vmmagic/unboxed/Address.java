@@ -20,11 +20,8 @@ package org.vmmagic.unboxed;
  * to 32 bit and 64 bit integral types), and access to unsigned
  * operations (Java does not have unsigned int types).
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public final class Address {
 

@@ -6,8 +6,7 @@
 #
 # (C) Copyright IBM Corp. 2001, 2004
 #
-#$Id$
-# @author John Whaley            
+# @author John Whaley
 # @author Igor Pechtchanski      
 
 ## JCOMPILE is passed in here as an argument to the invocation of "make".

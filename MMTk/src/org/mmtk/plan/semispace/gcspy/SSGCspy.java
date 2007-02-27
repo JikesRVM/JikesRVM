@@ -107,15 +107,12 @@ import org.vmmagic.pragma.*;
  --Phase Collector.complete
  --Phase Plan.complete
  *
- * $Id$
- * 
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 

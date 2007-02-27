@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2005
  */
-// $Id$
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.classloader.*;

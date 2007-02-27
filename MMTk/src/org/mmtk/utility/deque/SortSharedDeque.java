@@ -24,12 +24,9 @@ import org.vmmagic.unboxed.*;
  * Matthew Hertz for GCTk.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
-  public static final String Id = "$Id$";
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;

@@ -23,16 +23,13 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * @author <a href="http://www.cs.kent.ac.uk/~rej">Richard Jones</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SSGCspyTraceLocal extends SSTraceLocal {
   /**

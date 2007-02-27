@@ -6,7 +6,6 @@
  *
  *(C) Copyright Australian National University, 2004.
  */
-//$Id$
 package org.vmmagic.unboxed;
 
 /**

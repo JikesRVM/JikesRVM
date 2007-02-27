@@ -7,7 +7,6 @@
  * (C) Copyright Canisius College. 2006
  */
 
-//$Id$
 
 /**
  * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>

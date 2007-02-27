@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package com.ibm.jikesrvm.opt.ir;
 
 import java.util.Enumeration;

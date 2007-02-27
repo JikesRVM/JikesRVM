@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: /jikesrvm/local/testing/tests/reflect/src/TestFieldReflection.java 10522 2006-11-14T22:42:56.816831Z dgrove-oss  $
 package test.org.jikesrvm.basic.core.reflect;
 
 import java.lang.reflect.Field;

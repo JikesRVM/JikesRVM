@@ -24,11 +24,8 @@ import org.vmmagic.unboxed.*;
  * 
  * This class is not thread safe.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class SanityDataTable extends SimpleHashtable 
   implements Constants {

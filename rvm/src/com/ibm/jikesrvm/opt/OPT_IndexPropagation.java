@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package com.ibm.jikesrvm.opt;
 
 import java.lang.reflect.Constructor;

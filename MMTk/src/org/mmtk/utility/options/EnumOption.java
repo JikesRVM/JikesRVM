@@ -20,11 +20,8 @@ import org.vmmagic.pragma.*;
  * 
  * Enumerations are case sensitive.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class EnumOption extends Option {
   // values

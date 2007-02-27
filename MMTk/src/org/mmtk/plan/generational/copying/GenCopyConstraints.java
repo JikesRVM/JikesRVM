@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  *
- * $Id$
  */
 package org.mmtk.plan.generational.copying;
 
@@ -20,8 +19,6 @@ import org.vmmagic.pragma.*;
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GenCopyConstraints extends GenConstraints {
 }

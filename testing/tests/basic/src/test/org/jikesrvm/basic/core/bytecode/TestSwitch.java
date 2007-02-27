@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: /jikesrvm/local/testing/tests/bytecodeTests/src/TestSwitch.java 10522 2006-11-14T22:42:56.816831Z dgrove-oss  $
 package test.org.jikesrvm.basic.core.bytecode;
 
 /**

@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //BootImageWriterMessages.java
-//$Id$
 
 /**
  * Functionality to write messages during image generation.

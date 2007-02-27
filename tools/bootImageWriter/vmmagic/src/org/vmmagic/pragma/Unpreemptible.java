@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package org.vmmagic.pragma; 
 
 import java.lang.annotation.Retention;

@@ -20,11 +20,8 @@ import org.vmmagic.pragma.*;
 /**
  * Set up a GCspy Stream with data type BYTE_TYPE
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 
 @Uninterruptible public abstract class ByteStream extends Stream {

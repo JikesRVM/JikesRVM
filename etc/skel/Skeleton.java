@@ -5,9 +5,8 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * Copyright © IBM Corp 2006
+ * Copyright ? IBM Corp 2006
  *
- * $Id$
  */
 package com.ibm.jikesrvm;       // FILL ME IN with the appropriate package.
 

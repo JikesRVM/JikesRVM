@@ -24,13 +24,10 @@ import org.vmmagic.unboxed.*;
  * closure over the heap graph, specifically in a Generational copying
  * collector. 
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 

@@ -20,12 +20,9 @@ import org.vmmagic.pragma.*;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Monitor 
   implements Constants, VM_Callbacks.ExitMonitor {
-  public static final String Id = "$Id$";
 
   /**
    * Register the exit monitor at boot time.

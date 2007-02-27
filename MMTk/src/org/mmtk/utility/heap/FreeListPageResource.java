@@ -25,11 +25,8 @@ import org.vmmagic.pragma.*;
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class FreeListPageResource extends PageResource 
   implements Constants {

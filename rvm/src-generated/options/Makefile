@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2006
 #
-# $Id: Makefile 10976 2006-11-15 15:38:26Z dgrove-oss $
 #
 # @author Stephen Fink
 # @author Dave Grove

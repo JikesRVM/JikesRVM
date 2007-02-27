@@ -16,11 +16,8 @@ import org.vmmagic.pragma.*;
 /**
  * A time option that stores values at a microsecond granularity.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class MicrosecondsOption extends Option {
   // values

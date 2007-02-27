@@ -3,13 +3,12 @@
 ## Normally run from inside $(SCRATCH_DIR).
 ## Caller sets VPATH if needed.
 
-## Copyright © IBM Corporation, 2003
+## Copyright (C) IBM Corporation, 2003
 ## Or, for compatibility with /bin/findDeviantFiles: 
 # (C) Copyright IBM Corp. 2003
 #
 # @author Steven Augart
 ##
-## $Id$
 ##
 
 

@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-//$Id$
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
@@ -20,9 +19,7 @@ import com.ibm.jikesrvm.VM_SizeConstants;
  * cyclic class-loading dependencies.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- */  
+ */
 public class MM_Constants implements VM_SizeConstants {
   /** True if the selected plan needs support for linearly scanning the heap */
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();

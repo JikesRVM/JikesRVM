@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002
  */
-//$Id$
 package java.lang.reflect;
 
 import java.lang.annotation.Annotation;

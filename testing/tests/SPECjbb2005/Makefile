@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2006
 #
-# $Id$
 #
 # @author Julian Dolby
 # @author Dave Grove

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2006
  */
-//$Id$
 package com.ibm.jikesrvm.util;
 
 import java.util.Iterator;

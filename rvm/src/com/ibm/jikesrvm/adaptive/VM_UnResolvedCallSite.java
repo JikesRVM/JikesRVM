@@ -10,7 +10,6 @@
  * All rights reserved.
  */
 
-//$Id$
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.classloader.VM_MethodReference;

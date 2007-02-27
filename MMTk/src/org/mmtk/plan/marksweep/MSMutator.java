@@ -41,13 +41,10 @@ import org.vmmagic.unboxed.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
 

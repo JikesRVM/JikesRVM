@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
 import com.ibm.jikesrvm.classloader.*;

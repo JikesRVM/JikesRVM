@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //BootImageWriterConstants.java
-//$Id$
 
 import com.ibm.jikesrvm.*;
 import org.vmmagic.unboxed.Address;

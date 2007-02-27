@@ -6,7 +6,6 @@
  *
  * (C) Copyright ANU, 2004
  */
-//$Id$
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;

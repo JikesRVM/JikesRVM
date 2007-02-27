@@ -23,11 +23,8 @@ import org.vmmagic.pragma.*;
  * 
  * @author Daniel Frampton
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ImmortalLocal extends BumpPointer {
-  public static final String Id = "$Id$";
 
   /**
    * Constructor

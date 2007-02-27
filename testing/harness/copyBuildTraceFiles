@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2002
 #
-# $Id$
 #
 # Copies the build trace files in the subdirectories on $1 into 
 #   a newly created $2/images directory

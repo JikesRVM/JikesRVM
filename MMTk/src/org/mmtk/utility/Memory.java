@@ -22,12 +22,9 @@ import org.vmmagic.pragma.*;
  * 
  * FIXME: Why can't these operations be performed at word-granularity?
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Memory implements Constants {
 

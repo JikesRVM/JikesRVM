@@ -20,11 +20,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for CopyMS collectors.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class CopyMSSanityCheckerLocal extends SanityCheckerLocal {
 

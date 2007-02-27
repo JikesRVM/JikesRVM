@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
@@ -62,9 +61,7 @@ import com.ibm.jikesrvm.VM_Synchronization;
  * @author Stephen Smith
  * @modified Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
- */ 
+ */
 public class VM_CollectorThread extends VM_Thread {
   
   /***********************************************************************

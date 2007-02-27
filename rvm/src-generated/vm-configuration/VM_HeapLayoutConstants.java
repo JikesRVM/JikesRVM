@@ -14,12 +14,9 @@ import org.vmmagic.unboxed.*;
 /**
  * Constants defining heap layout constants
  *
- * $Id: VM_HeapLayoutConstants.java 10996 2006-11-16 23:37:12Z dgrove-oss $
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
- * @version $Revision: 10996 $
- * @date $Date: 2006-11-17 10:37:12 +1100 (Fri, 17 Nov 2006) $
  */
 public interface VM_HeapLayoutConstants {
 

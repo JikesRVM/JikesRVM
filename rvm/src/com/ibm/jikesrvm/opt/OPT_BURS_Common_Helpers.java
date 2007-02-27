@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001,2002
  */
-//$Id$
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;

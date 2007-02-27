@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$ 
 /**
  * Test static and instance field access from native code
  * The following JNI calls are tested:

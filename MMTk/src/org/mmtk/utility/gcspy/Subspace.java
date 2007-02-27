@@ -30,11 +30,8 @@ import org.vmmagic.pragma.*;
  * the index of its first block, the size of the blocks in this space,
  * and the number of blocks in this subspace.
  *
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Subspace {
 

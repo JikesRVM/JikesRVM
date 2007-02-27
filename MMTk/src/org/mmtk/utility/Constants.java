@@ -24,12 +24,9 @@ import org.mmtk.vm.VM;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
  * static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 public interface Constants {
 

@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2003
 #
-# $Id$
 #
 # N.B.: This is an auxiliary function for loading.
 #       We do not execute this script directly; the `#! /bin/bash'

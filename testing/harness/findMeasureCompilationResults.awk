@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 #
 # Find the measure compilation output.
 #

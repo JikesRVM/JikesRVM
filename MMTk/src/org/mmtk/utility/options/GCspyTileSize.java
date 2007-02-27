@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * GCspy Tile Size.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class GCspyTileSize extends IntOption {
   /**

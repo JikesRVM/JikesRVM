@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002, 2003, 2004
  */
-//$Id$
 
 // @author Stephen Fink
 

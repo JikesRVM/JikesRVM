@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002, 2004, 2005
  */
-//$Id$
 package gnu.java.lang;
 
 import java.lang.instrument.Instrumentation;

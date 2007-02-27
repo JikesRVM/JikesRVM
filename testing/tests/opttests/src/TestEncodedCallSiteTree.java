@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /*
  * Unit tests for VM_OptEncodedCallSiteTree.callEdgeMissing
  * @author Dave Grove

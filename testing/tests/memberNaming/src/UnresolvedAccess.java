@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id$
 
 import test.classB;
 import test.interfaceB;

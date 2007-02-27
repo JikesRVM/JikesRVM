@@ -26,12 +26,9 @@ import org.vmmagic.pragma.*;
  * 
  * TODO write a replacePhase method.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ComplexPhase extends Phase
   implements Constants {

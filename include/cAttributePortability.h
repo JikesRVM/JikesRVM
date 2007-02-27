@@ -7,9 +7,7 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2003
- */
-/* $Id$
- * @author Steven Augart 
+ * @author Steven Augart
  */
 
 /* Unless we're running GCC 3.0 or greater, just turn off the 'unused',

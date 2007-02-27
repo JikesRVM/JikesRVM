@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //OPT_DotUtils.java
-//$Id$
 package com.ibm.jikesrvm.opt;
 
 /**

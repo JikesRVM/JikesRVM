@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2003
  */
-//$Id$
 package java.lang;
 
 import com.ibm.jikesrvm.VM_Magic;

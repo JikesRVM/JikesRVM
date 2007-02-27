@@ -23,11 +23,8 @@ import org.vmmagic.unboxed.*;
  * 
  * Discontigious spaces are currently unsupported.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Map implements Constants {
 

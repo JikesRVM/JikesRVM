@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: /jikesrvm/local/testing/tests/serialization/src/SerializationData.java 10756 2006-12-15T14:21:40.351562Z dgrove-oss  $
 package test.org.jikesrvm.basic.core.serialization;
 
 import java.io.Serializable;

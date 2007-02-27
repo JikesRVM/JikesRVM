@@ -15,13 +15,10 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Barriers {
   /**

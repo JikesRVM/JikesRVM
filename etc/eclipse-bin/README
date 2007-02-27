@@ -1,4 +1,3 @@
-$Id$
 
 This directory contains a program named "java", which is what Eclipse
 3.0 expects.  To run eclipse, under Jikes RVM, make sure that you run

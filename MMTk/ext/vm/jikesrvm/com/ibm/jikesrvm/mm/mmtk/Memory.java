@@ -27,13 +27,10 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
   implements Constants, VM_HeapLayoutConstants, VM_SizeConstants {

@@ -6,7 +6,6 @@
  *
  * (C) Copyright The University of Manchester 2006
  */
-//$Id$
 package java.lang.reflect;
 
 import com.ibm.jikesrvm.classloader.VM_Array;

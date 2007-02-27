@@ -4,7 +4,6 @@
 #ifndef BURG_INCLUDED
 #define BURG_INCLUDED
 
-/* $Id$ */
 /* iburg.c: */
 extern void *alloc(size_t nbytes);
 

@@ -42,11 +42,8 @@ import org.vmmagic.unboxed.*;
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class SegregatedFreeList extends Allocator 
   implements Constants {

@@ -21,9 +21,6 @@ import org.vmmagic.pragma.*;
  * integer (long) value for each phase).
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
 @Uninterruptible public abstract class LongCounter extends Counter {
 

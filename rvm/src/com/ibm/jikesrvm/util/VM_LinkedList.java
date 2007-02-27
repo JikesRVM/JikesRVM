@@ -6,7 +6,6 @@
  *
  * (C) Copyright Australian National University 2007
  */
-//$Id:$
 package com.ibm.jikesrvm.util;
 
 import java.util.Collection;

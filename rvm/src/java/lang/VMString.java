@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002
  */
-//$Id$
 package java.lang;
 
 import java.lang.ref.WeakReference;

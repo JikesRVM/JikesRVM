@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2005
  */
-//$Id$
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
 import com.ibm.jikesrvm.mm.mmtk.Lock;
@@ -36,8 +35,6 @@ import com.ibm.jikesrvm.VM_Thread;
  * @author Stephen Smith
  * @modified Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 public class VM_Handshake {
   

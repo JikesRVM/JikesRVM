@@ -24,12 +24,9 @@ import org.vmmagic.pragma.*;
  * for shared use.  The data can be added to and removed from either end
  * of the deque.  
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 

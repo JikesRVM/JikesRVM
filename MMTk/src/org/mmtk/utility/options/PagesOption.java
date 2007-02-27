@@ -18,11 +18,8 @@ import org.vmmagic.unboxed.*;
 /**
  * A memory option that stores values as a whole number of pages.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class PagesOption extends Option {
   // values

@@ -25,11 +25,8 @@ import org.vmmagic.unboxed.*;
  * This class provides access to raw memory for managing internal meta
  * data.
  * 
- *  $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class RawPageSpace extends Space 
   implements Constants {

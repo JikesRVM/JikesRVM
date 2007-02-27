@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-//$Id$
 package com.ibm.jikesrvm.ppc;
 
 import org.vmmagic.unboxed.*;

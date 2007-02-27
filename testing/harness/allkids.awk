@@ -7,9 +7,8 @@
 ## A copy of the license is included in the distribution, and is also
 ## available at http://www.opensource.org/licenses/cpl1.0.php
 ##
-## Copyright © IBM Corp. 2003
+## Copyright ? IBM Corp. 2003
 ##
-## $Id$
 ##
 ## Parse the output of "ps -ef" so that we have an array that records the
 ## parent/child relationships of all processes in the "ps" output.  Use

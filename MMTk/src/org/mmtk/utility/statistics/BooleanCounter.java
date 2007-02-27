@@ -21,9 +21,6 @@ import org.vmmagic.pragma.*;
  * phases where some boolean event is true).
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
 @Uninterruptible public class BooleanCounter extends Counter {
 

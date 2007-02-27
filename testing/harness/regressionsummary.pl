@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
-# $Id: night-sanity-run 10860 2006-10-03 19:25:15Z dgrove-oss $
 #
 # Produce an email which summarizes a nightly regression run.
 #

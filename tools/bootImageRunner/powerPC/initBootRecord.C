@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2003
  */
-//$Id$
 
 /*
  * Segregate the code to initialize the boot record, 

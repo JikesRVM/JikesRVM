@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /**
  * Test JNI functions that provide direct pointer
  * to Java internal memory such as array, string

@@ -10,7 +10,6 @@
  * All rights reserved.
  */
 
-// $Id$
 
 package com.ibm.jikesrvm.adaptive;
 

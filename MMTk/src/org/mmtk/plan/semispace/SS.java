@@ -36,15 +36,12 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */

@@ -7,7 +7,6 @@
 # (C) Copyright IBM Corp. 2001
 #
 #
-# $Id: /jikesrvm/local/testing/tests/jgf/Makefile 10723 2006-12-03T03:56:55.303892Z peter  $
 #
 # @author Julian Dolby
 #

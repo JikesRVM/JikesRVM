@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
-//$Id$
 
 import  java.io.*;
 import  java.io.PrintStream;

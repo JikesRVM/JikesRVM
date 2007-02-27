@@ -37,12 +37,9 @@ import org.vmmagic.pragma.*;
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @modified Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 
 @Uninterruptible public abstract class Allocator implements Constants {

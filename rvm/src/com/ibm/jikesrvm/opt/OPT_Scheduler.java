@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //OPT_Scheduler.java
-// $Id$
 package com.ibm.jikesrvm.opt;
 
 import com.ibm.jikesrvm.opt.ir.*;

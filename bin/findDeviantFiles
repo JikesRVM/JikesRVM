@@ -8,12 +8,9 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2006
 #
-# $Id$
-#
 # This shell finds plain files that have:
 #   no authorship tag: "@ author", or
 #   no copyright notice: "(C) Copyright", or
-#   no id: "$Id$".
 # And source files (.java files) that have:
 #   embedded TAB characters (some editors don't display them properly)
 #
@@ -47,7 +44,6 @@ Usage: $ME <input-subtree> <output-directory> [ <suffix> ]
   that don't contain either:
     1) an @author javadoc tag, 
     2) a copyright notice, or
-    3) an \$Id: tag.
 
   Output files:
 
@@ -55,8 +51,6 @@ Usage: $ME <input-subtree> <output-directory> [ <suffix> ]
 	      Names of files without the @author tag
     "<output-directory>/noCopyright[.<suffix>]"   
 	      Names of files without a copyright notice
-    "<output-directory>/noId[.<suffix>]"   
-	      Names of files without an \$Id: tag.
 
 EOF
     exit ${exitstatus}
@@ -191,9 +185,6 @@ find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatched
 
 #echo "find all plain files without copyright notices"
 find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noCopyright${suffix}"
-
-#echo "find all plain files without \$Id: tags"
-find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noId${suffix}"
 
 #echo "find all plain files without license statement"
 find . "${find_optsA[@]}" -exec egrep -c "The Jikes RVM project is distributed under the Common Public License|MMTk is distributed under the Common Public License" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noLicense${suffix}"

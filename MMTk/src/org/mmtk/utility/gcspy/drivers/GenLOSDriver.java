@@ -25,12 +25,9 @@ import org.vmmagic.pragma.*;
  * This class extends a simple driver for the MMTk LargeObjectSpace 
  * for Generational Collectors.
  *
- * $Id$ 
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GenLOSDriver extends TreadmillDriver {
   

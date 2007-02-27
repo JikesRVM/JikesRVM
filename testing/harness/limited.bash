@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2003
 #
-# $Id$
 #
 # @author Julian Dolby
 # @modiifed Steven Augart

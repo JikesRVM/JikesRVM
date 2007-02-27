@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *$Id$
  */
 /* Native code for Mangled_Name_s_.java
  *

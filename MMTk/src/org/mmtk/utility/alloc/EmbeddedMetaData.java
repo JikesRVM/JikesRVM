@@ -25,11 +25,8 @@ import org.vmmagic.pragma.*;
  * of each page which will cause those few cache lines corresponding
  * to the start of each page to be heavily conflicted).
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class EmbeddedMetaData implements Constants {
 

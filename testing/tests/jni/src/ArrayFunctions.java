@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /**
  * Test JNI Functions dealing with Array
  * The following JNI calls are tested:

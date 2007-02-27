@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-// $Id$
 package com.ibm.jikesrvm.ppc.opt;
 import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.opt.VM_OptGenericGCMapIterator;

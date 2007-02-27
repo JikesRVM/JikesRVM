@@ -25,12 +25,9 @@ import org.vmmagic.pragma.*;
  * @see SegregatedFreeList
  * @see ExplicitFreeListSpace
  *
- * $Id$
  *
  * @author Steve Blackburn
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ExplicitFreeListLocal extends SegregatedFreeList
   implements Constants {

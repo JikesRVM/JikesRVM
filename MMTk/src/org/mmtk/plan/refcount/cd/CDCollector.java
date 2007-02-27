@@ -20,11 +20,8 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements <i>per-collector thread</i> behavior 
  * and state for a cycle detector.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class CDCollector {
   /****************************************************************************

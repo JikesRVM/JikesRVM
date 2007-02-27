@@ -6,7 +6,6 @@
  *
  * (C) Copyright Elias Naur 2006
  *
- * $Id: /jikesrvm/local/testing/tests/javaagent/src/Agent1.java 10522 2006-11-14T22:42:56.816831Z dgrove-oss  $
  */
 package test.org.jikesrvm.basic.core.instrument;
 

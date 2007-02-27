@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id$
 
 package org.mmtk.vm;
 
@@ -16,8 +15,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Simple, fair locks with deadlock detection.
  * 
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Lock {
 

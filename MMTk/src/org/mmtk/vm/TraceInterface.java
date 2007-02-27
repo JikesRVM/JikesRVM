@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003.
  *
- * $Id$
  */
 package org.mmtk.vm;
 
@@ -19,8 +18,6 @@ import org.vmmagic.pragma.*;
  * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class TraceInterface {
 

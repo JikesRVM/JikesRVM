@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /**
  *  Method invocation in JNI:  test the following JNI functions
  *    CallStaticBooleanMethodA    CallStaticBooleanMethodV  CallStaticBooleanMethod 

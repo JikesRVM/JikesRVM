@@ -6,7 +6,6 @@
  *
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
-//$Id$
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.classloader.VM_TypeReference;

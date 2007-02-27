@@ -21,9 +21,6 @@ import org.vmmagic.pragma.*;
  * events that occur for each phase).
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
 @Uninterruptible public class EventCounter extends Counter {
 

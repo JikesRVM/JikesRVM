@@ -34,11 +34,8 @@ import org.vmmagic.unboxed.*;
  * Access to the instances may be synchronized depending on the
  * constructor argument.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class DoublyLinkedList implements Constants {
 

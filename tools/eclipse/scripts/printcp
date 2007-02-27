@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2002
 # @author David Hovemeyer
-# $Id$
 
 # Read files from stdin, and combine them into a path
 # string that can be used as a classpath.

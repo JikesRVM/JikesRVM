@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 import java.io.FileOutputStream;
 import java.io.IOException;

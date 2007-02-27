@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 /**
  * Generic driver to run a program <N> times.

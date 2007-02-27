@@ -77,16 +77,13 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GCTrace extends SS {
 

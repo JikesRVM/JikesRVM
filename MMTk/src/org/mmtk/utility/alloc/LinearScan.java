@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-//$Id$
 package org.mmtk.utility.alloc;
 
 import org.vmmagic.unboxed.*;
@@ -18,8 +17,6 @@ import org.vmmagic.pragma.*;
  * a subclass of this object.
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date    $Date$
  */
 @Uninterruptible
 public abstract class LinearScan {

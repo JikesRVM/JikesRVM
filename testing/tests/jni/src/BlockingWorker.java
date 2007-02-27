@@ -7,7 +7,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 /**
  * Part of test of 3GT - thread management in 

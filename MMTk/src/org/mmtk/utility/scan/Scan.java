@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-//$Id$
 
 package org.mmtk.utility.scan;
 
@@ -25,8 +24,6 @@ import org.vmmagic.pragma.*;
  * @author Robin Garner
  * @author Andrew Gray
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class Scan {
   /**

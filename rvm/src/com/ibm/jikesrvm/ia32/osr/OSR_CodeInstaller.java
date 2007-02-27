@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002
  */
-//$Id$
 
 package com.ibm.jikesrvm.ia32.osr;
 

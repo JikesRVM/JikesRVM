@@ -17,13 +17,10 @@ import com.ibm.jikesrvm.VM_Processor;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class Strings extends org.mmtk.vm.Strings {
   /**

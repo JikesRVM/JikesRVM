@@ -26,12 +26,9 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  * 
- * $Id$ 
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ImmortalSpace extends Space 
   implements Constants {

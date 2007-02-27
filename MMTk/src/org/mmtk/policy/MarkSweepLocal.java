@@ -40,11 +40,8 @@ import org.vmmagic.pragma.*;
  * @see SegregatedFreeList
  * @see MarkSweepSpace
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants {

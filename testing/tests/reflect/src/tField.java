@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 import java.lang.reflect.*;
 import java.util.*;
 

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-//$Id$
 package org.mmtk.utility;
 
 import org.mmtk.vm.SynchronizedCounter;

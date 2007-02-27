@@ -1,4 +1,3 @@
-## $Id$
 
 ## First, we go through a lot of cruft in order to decide whether we'll be
 ## generating the *_options.tex files out of source.

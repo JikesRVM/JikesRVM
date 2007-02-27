@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  *
- * $Id$:
  *
  * @author Ton Ngo
  * @author Steven Augart

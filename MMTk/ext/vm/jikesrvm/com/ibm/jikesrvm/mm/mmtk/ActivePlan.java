@@ -22,13 +22,10 @@ import org.vmmagic.pragma.*;
  * This class contains interfaces to access the current plan, plan local and
  * plan constraints instances.
  *
- * $Id$
  *
  * @author Daniel Frampton 
  * @author Robin Garner 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 

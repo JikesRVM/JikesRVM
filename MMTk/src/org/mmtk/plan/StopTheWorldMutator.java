@@ -26,14 +26,11 @@ import org.vmmagic.pragma.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class StopTheWorldMutator extends MutatorContext {
 

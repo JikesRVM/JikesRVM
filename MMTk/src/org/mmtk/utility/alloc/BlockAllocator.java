@@ -28,11 +28,8 @@ import org.vmmagic.unboxed.*;
  * consumed by blocks are accounted for by a memory resource.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class BlockAllocator implements Constants {
-  public static final String Id = "$Id$";
 
 
   /****************************************************************************

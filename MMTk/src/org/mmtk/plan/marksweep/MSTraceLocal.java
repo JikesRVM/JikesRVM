@@ -20,13 +20,10 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MSTraceLocal extends TraceLocal {
   /**

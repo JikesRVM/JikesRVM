@@ -5,9 +5,8 @@
 # A copy of the license is included in the distribution, and is also
 # available at http://www.opensource.org/licenses/cpl1.0.php
 #
-# Copyright © IBM Corp. 2003
+# Copyright ? IBM Corp. 2003
 #
-# $Id$
 #
 # This is src/tools/configuring/GNUmakefile.  It does some auto-configuration
 # on the target machine.

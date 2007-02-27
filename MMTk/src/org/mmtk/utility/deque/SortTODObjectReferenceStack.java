@@ -22,12 +22,9 @@ import org.vmmagic.pragma.*;
  * the shared stack.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque 
   implements Constants {
-  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

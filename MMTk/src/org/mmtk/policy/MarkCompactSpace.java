@@ -22,11 +22,8 @@ import org.vmmagic.pragma.*;
  * This class implements functionality for a simple sliding mark-compact
  * space.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MarkCompactSpace extends Space
   implements Constants {

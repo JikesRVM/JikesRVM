@@ -5,9 +5,8 @@
 """ A copy of the license is included in the distribution, and is also
 """ available at http://www.opensource.org/licenses/cpl1.0.php
 """
-""" Copyright © IBM Corp 2003
+""" Copyright (C) IBM Corp 2003
 """
-""" $Id$
 
 """ C, C++, and Java style for editing Jikes RVM source code.  This
 """ customizes Java mode, C++ mode, and C mode.  Since this file will

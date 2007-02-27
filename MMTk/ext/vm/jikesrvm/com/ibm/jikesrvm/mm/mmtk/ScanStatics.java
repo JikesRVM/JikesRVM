@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
 /**
  * Class that determines all JTOC slots (statics) that hold references
  *
- * $Id$
  *
  * @author Perry Cheng
  * @author Ian Rogers

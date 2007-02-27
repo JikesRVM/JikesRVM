@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 
-//$Id$
 
 import java.util.Hashtable;
 import java.util.Vector;

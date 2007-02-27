@@ -32,11 +32,8 @@ import org.vmmagic.unboxed.*;
  * compiler can perform this decoding at compile time and produce
  * optimal code for the test.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SpaceDescriptor implements Constants {
 

@@ -39,11 +39,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class MCMutator extends StopTheWorldMutator {
 

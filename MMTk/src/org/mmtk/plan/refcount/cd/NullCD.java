@@ -15,11 +15,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a null cycle detector.
 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class NullCD extends CD {
 

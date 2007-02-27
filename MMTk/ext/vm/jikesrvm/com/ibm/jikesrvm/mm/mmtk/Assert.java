@@ -20,13 +20,10 @@ import com.ibm.jikesrvm.VM_Scheduler;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
   /* wriggle-room to accommodate memory demands while handling failures */

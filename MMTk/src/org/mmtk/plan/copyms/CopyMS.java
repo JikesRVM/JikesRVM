@@ -41,13 +41,10 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class CopyMS extends StopTheWorld {
 

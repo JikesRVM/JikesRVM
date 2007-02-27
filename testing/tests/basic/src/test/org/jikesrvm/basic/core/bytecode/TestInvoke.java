@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id: /jikesrvm/local/testing/tests/bytecodeTests/src/TestInvoke.java 10684 2006-12-05T17:57:54.600932Z dgrove-oss  $
 package test.org.jikesrvm.basic.core.bytecode;
 
 import org.vmmagic.pragma.NoInline;

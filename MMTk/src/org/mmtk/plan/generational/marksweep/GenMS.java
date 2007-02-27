@@ -40,13 +40,10 @@ import org.vmmagic.unboxed.*;
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GenMS extends Gen {
 

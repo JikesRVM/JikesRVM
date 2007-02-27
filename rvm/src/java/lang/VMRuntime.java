@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2003, 2004
  */
-//$Id$
 package java.lang;
 
 import java.io.File;

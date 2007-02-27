@@ -20,16 +20,12 @@ import org.vmmagic.pragma.*;
  * closure over the heap.  This class holds the global state, TraceLocal
  * and its super-classes handle per-thread state.
  * 
- * $Id$
- * 
- * $Id$
- * 
+ *
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Trace implements Constants {
 

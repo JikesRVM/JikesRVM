@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-//$Id$
 package com.ibm.jikesrvm.ppc.opt.ir;
 
 import com.ibm.jikesrvm.VM_MagicNames;

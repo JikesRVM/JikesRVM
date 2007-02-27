@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id: summarize.awk 10860 2006-10-03 19:25:15Z dgrove-oss $
 #
 # @author Julian Dolby
 

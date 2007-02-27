@@ -16,11 +16,8 @@ import org.vmmagic.pragma.*;
 /**
  * Base class for boolean options.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class BooleanOption extends Option {
   // values

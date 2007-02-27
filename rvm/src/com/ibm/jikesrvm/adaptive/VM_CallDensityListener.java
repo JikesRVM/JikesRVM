@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2004
  */
-//$Id$
 package com.ibm.jikesrvm.adaptive;
 
 import com.ibm.jikesrvm.*;

@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
-# $Id: night-sanity-run 10860 2006-10-03 19:25:15Z dgrove-oss $
 #
 # Parse the various nightly sanity logs and produce a html summary.
 #

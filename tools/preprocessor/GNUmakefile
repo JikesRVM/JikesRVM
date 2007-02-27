@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
-#$Id$
 # @author Derek Lieber
 # @modified Steven Augart
 

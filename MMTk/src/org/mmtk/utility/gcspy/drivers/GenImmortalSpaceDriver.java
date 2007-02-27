@@ -28,12 +28,9 @@ import org.vmmagic.pragma.*;
  * This class extends ImmortalSpaceDriver, a simple driver for 
  * the contiguous MMTk ImmortalSpace.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 

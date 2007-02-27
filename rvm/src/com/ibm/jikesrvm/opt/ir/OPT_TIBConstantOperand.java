@@ -6,7 +6,6 @@
  *
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
-//$Id: OPT_ClassConstantOperand.java 74 2006-09-22 12:17:46Z dgrove-oss $
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.classloader.VM_TypeReference;

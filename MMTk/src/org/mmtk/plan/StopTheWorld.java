@@ -35,14 +35,11 @@ import org.vmmagic.pragma.*;
  * For details of the split between global and thread-local operations
  * @see org.mmtk.plan.Plan
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class StopTheWorld extends Plan
   implements Constants {

@@ -18,13 +18,10 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
  *
  * @author Steve Blackburn
  * @author Perry Cheng
  *
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**

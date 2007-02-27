@@ -30,11 +30,8 @@ import org.mmtk.vm.VM;
  * when performing this mapping but may remove spaces and change
  * the case of any character.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public abstract class Option {
   // options registry

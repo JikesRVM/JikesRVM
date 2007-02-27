@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-//$Id$
 package com.ibm.jikesrvm.ia32.opt;
 
 import com.ibm.jikesrvm.ia32.opt.ir.*;

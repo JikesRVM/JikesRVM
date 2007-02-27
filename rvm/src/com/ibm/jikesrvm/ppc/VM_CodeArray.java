@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-//$Id$
 package com.ibm.jikesrvm.ppc;
 
 import org.vmmagic.pragma.*;

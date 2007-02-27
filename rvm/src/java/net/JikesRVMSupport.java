@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002
  */
-//$Id$
 package java.net;
 import com.ibm.jikesrvm.VM_SizeConstants;
 

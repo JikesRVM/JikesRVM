@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 NOTE: We currently only support a subset of cases of variable operands.
   (1) instructions with 0+ defs, 0+ def/uses, 0+ uses, and a variable# of uses

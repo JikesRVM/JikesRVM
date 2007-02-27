@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2006
  */
-//$Id: com_ibm_jikesrvm_VM_0005fProcess.C 10975 2006-11-15 14:27:33Z dgrove-oss $
 /*****************************************************************
  * JNI functions to support OnLoad
  *

@@ -24,11 +24,8 @@ import org.vmmagic.pragma.*;
  * This class implements the GCspy Space abstraction.
  * Here, it largely to forward calls to the gcspy C library.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class ServerSpace extends org.mmtk.vm.gcspy.ServerSpace { 
 

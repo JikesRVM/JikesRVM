@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  *
- * $Id$
  */
 /* Test miscellaneous query JNI Functions 
  * Implement native methods from ClassQuery.java 

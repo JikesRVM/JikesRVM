@@ -29,12 +29,9 @@ import org.vmmagic.pragma.*;
  * It should be possible to remove some by thinking about phases more 
  * carefully
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;

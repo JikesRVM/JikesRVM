@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002, 2004
  */
-//$Id$
 /*****************************************************************
  * JNI interface to manage processes.
  *
@@ -352,7 +351,7 @@ Java_com_ibm_jikesrvm_VM_1Process_exec4
     /* However, traditionally the shell and xargs use status 127 to mean that
      * they were unable to find something to execute.
      * To quote the bash manpage, "If a command is found
-     *  but is not executable, the return status is 126.¨
+     *  but is not executable, the return status is 126.?
      * We shall adopt those customs here. --Steve Augart*/
     if (errno == ENOENT || errno == ENOTDIR)
         exit(EXIT_STATUS_EXECUTABLE_NOT_FOUND);

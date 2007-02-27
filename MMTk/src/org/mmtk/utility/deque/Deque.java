@@ -22,11 +22,8 @@ import org.vmmagic.pragma.*;
  * 
  * @author Steve Blackburn
  * @modified <a href="http://www-ali.cs.umass.edu">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible class Deque implements Constants {
-  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

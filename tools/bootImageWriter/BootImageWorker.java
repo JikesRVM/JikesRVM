@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-//$Id$
 
 import java.util.*;
 import com.ibm.jikesrvm.classloader.VM_Type;

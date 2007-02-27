@@ -35,11 +35,8 @@ import org.mmtk.utility.Log;
  * 
  * This implementation relies on there being less than 1<<32 waiters.
  *
- * $Id$
- * 
+ *
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Lock extends org.mmtk.vm.Lock {
 

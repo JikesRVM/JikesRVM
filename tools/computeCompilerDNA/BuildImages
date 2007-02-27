@@ -8,7 +8,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 #
 # This script will be the images needed by the Run-gather-dna script
 #   Arguments:  directory to hold image directories

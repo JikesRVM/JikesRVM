@@ -14,8 +14,7 @@ import org.vmmagic.pragma.*;
 /**
  * Constraints specific to Stop-the-world collectors.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton

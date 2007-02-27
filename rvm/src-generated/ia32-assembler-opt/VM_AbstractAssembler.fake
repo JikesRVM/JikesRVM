@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-//$Id: VM_Compiler.fake 11260 2007-01-02 23:25:20Z steveb-oss $
 package com.ibm.jikesrvm;
 /**
  * @author Dave Grove

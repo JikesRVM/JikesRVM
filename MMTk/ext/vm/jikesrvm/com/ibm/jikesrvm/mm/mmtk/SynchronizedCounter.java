@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A counter that supports atomic increment and reset.
  *
- * $Id$
  *
  * @author Perry Cheng
  */

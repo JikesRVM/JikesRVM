@@ -18,11 +18,8 @@ import org.vmmagic.pragma.*;
  * Abstract class that provides generally useful
  * methods.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Util {
   

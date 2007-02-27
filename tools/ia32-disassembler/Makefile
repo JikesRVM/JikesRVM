@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2005
 #
-# $Id$
 #
 # @author Ton Ngo
 include		$(RVM_BUILD)/Make.rules.target

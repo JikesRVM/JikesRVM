@@ -37,16 +37,13 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SSGCspyCollector extends SSCollector {
 

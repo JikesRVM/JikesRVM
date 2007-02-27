@@ -22,11 +22,8 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-compact space during the initial marking phase.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MCMarkTraceLocal extends TraceLocal {
   /**

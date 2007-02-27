@@ -14,13 +14,10 @@ package org.mmtk.vm;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class Assert {
   /**

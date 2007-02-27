@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /*
- *$Id$ 
  * Begin execution of a VM_Thread "startoff" method.
  * @author Derek Lieber
  * @date 21 Oct 1998

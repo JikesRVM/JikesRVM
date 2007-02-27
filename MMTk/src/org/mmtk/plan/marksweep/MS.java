@@ -37,13 +37,10 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class MS extends StopTheWorld {
 

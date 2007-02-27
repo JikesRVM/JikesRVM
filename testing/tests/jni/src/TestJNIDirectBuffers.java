@@ -6,7 +6,6 @@
  *
  * (C) Copyright Elias Naur 2006
  * 
- * $Id$
  */
 import java.nio.*;
 

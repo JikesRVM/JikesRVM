@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *$Id$
  */
 /* Test method invocation from native code 
  * Implement native methods from MethodInvocation.java 

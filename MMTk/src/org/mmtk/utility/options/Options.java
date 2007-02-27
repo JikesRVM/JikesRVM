@@ -15,12 +15,9 @@ import org.mmtk.utility.heap.HeapGrowthManager;
 /**
  * Repository for all option instances.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 public final class Options {
   /* Options system options */

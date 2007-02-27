@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  * 
- * $Id: MM_Interface.java 11018 2006-11-19 23:39:48Z captain5050 $
  */
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 

@@ -12,8 +12,6 @@
  * required to access VM data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
- * $Id: GenerateInterfaceDeclarations.java 11229 2006-12-19 20:45:40Z dgrove-oss
- *
  * @author Derek Lieber
  * @modified Steven Augart -- added the "-out" command-line argument.
  */

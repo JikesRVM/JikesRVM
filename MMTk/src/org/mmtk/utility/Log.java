@@ -9,7 +9,6 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
-//$Id$
 package org.mmtk.utility;
 
 import org.mmtk.vm.VM;
@@ -22,8 +21,6 @@ import org.vmmagic.pragma.*;
  * 
  * @author Derek Lieber
  * @author Andrew Gray
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Log implements Constants {
 

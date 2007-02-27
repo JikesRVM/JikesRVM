@@ -21,8 +21,7 @@ import org.vmmagic.pragma.*;
 /**
  * Stub to give access to plan local, constraint and global instances
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
  */

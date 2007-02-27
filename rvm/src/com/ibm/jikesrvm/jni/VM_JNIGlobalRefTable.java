@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002, 2004
  */
-//$Id$
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;

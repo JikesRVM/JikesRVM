@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 import java.io.PrintStream;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;

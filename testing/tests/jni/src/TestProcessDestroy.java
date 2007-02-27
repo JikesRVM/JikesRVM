@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM 2002
  */
-// $Id$
 
 /**
  * Test of <code>Process.destroy()</code>.

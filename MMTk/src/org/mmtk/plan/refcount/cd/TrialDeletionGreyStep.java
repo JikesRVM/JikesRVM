@@ -17,11 +17,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This trace step is used during trial deletion processing.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class TrialDeletionGreyStep extends TraceStep {
 

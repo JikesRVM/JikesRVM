@@ -15,11 +15,8 @@ import org.vmmagic.pragma.*;
  * This class implements the <i>per-mutator thread</i> 
  * behavior for a trial deletion cycle detector. 
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class TrialDeletionMutator extends CDMutator {
 }

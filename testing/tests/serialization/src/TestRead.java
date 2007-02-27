@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 

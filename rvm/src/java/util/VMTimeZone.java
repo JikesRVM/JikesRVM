@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2004
  *
- * $Id$
  */
 package java.util;
 

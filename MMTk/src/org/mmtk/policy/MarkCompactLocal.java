@@ -29,11 +29,8 @@ import org.vmmagic.unboxed.ObjectReference;
  * @see MarkCompactSpace
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class MarkCompactLocal extends BumpPointer {
-  public static final String Id = "$Id$";
 
   /**
    * Constructor

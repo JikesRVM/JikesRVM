@@ -5,9 +5,8 @@
 # A copy of the license is included in the distribution, and is also
 # available at http://www.opensource.org/licenses/cpl1.0.php
 #
-# (C) Copyright © IBM Corp. 2003
+# (C) Copyright ? IBM Corp. 2003
 #
-# $Id$
 #
 # Simple program that hunts for files that don't meet our 
 # four-space indentation criterion.

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package com.ibm.jikesrvm.opt.ir;
 
 import com.ibm.jikesrvm.opt.OPT_OptimizingCompilerException;

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2003, 2004
  */
-//$Id$
 package com.ibm.jikesrvm.ia32.jni;
 
 import com.ibm.jikesrvm.VM;

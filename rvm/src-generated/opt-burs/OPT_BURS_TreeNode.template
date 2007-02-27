@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 //-#if RVM_FOR_IA32
 package com.ibm.jikesrvm.ia32.opt;

@@ -20,11 +20,8 @@ import org.vmmagic.pragma.*;
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Color {
 

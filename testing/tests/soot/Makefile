@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2002
 #
-# $Id$
 #
 # @author Julian Dolby
 # @author Stephen Fink

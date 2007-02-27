@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002,2005,2006
  */
-// $Id$
 
 package java.lang;
 

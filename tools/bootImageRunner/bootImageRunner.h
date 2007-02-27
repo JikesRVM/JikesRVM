@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
-// $Id$
 /* Handles "extern" declarations shared among files in
  * tools/bootImageRunner/.
  * @author: Steven Augart, based on contributions from everyone who ever

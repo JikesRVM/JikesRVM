@@ -16,11 +16,8 @@ import org.vmmagic.pragma.*;
 
 /*
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible abstract class CycleDetector {
-  public static final String Id = "$Id$";
 
   static {
     Options.cycleFilterThreshold = new CycleFilterThreshold();

@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001, 2004
  *
- * $Id$
  */
 package org.vmmagic.unboxed;
 
@@ -29,8 +28,6 @@ import org.vmmagic.pragma.*;
  *
  * @author Perry Cheng
  * @modified Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class Address extends ArchitecturalWord implements VM_SizeConstants {
 

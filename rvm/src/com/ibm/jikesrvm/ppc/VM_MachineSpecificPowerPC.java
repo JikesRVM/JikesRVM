@@ -20,8 +20,7 @@ import org.vmmagic.unboxed.*;
 /**
  * Wrappers around PowerPC-specific code common to both 32 & 64 bit
  * 
- * $Id: OPT_IA32ConditionOperand.java 10996 2006-11-16 23:37:12Z dgrove-oss $
- * 
+ *
  * @author Steve Blackburn
  */
 public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific implements VM_Constants {

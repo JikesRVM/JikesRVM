@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002, 2004, 2005
  */
-//$Id$
 package java.nio;
 
 import org.vmmagic.unboxed.*;

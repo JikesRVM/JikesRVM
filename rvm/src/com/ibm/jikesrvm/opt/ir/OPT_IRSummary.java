@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package com.ibm.jikesrvm.opt.ir;
 import static com.ibm.jikesrvm.opt.ir.OPT_Operators.BOUNDS_CHECK;
 

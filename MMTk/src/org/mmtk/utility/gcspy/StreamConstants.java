@@ -35,11 +35,8 @@ package org.mmtk.utility.gcspy;
    </table>
  * StreamConstants
  * 
- * $Id$
- * 
+ *
  * @author Richard Jones
- * @version $Revision$
- * @date $Date$
  */
 
 public interface StreamConstants {

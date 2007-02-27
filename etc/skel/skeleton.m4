@@ -6,7 +6,6 @@ dnl available at http://www.opensource.org/licenses/cpl1.0.php
 dnl
 dnl Copyright © IBM Corp. 2006
 dnl
-dnl $Id$
 dnl
 dnl Substitute a brief description of what function this source file 
 dnl performs.

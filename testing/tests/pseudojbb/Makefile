@@ -6,8 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id:
-#
 # @author Peter Sweeney
 
 include		$(RVM_BUILD)/Make.rules.target

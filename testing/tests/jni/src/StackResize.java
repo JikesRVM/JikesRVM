@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 import com.ibm.jikesrvm.*;
 /**
  * Test stack resize with native methods, various scenarios:

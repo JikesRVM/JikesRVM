@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * Should finalization be disabled?
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class NoFinalizer extends BooleanOption {
   /**

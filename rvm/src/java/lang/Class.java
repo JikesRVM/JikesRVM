@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2002, 2003, 2005
  */
-//$Id$
 package java.lang;
 
 import java.io.InputStream;

@@ -20,11 +20,8 @@ import org.vmmagic.pragma.*;
  * 
  * Implementing classes will largely forward calls to the gcspy C library.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class ServerSpace {
 

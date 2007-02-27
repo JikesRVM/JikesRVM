@@ -18,11 +18,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the simply sanity closure.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class SanityTraceLocal extends TraceLocal {
 

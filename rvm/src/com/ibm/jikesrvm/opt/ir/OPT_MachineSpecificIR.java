@@ -14,8 +14,7 @@ import com.ibm.jikesrvm.opt.*;
 /**
  * Generic wrappers around machine-specific IR
  * 
- * $Id: OPT_IA32ConditionOperand.java 10996 2006-11-16 23:37:12Z dgrove-oss $
- * 
+ *
  * @author Steve Blackburn
  */
 public abstract class OPT_MachineSpecificIR {

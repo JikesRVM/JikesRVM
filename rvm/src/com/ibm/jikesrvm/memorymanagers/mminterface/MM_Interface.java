@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-//$Id$
 
 package com.ibm.jikesrvm.memorymanagers.mminterface;
 
@@ -54,9 +53,7 @@ import org.vmmagic.pragma.*;
  * research virtual machine.
  * 
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
- */  
+ */
 @Uninterruptible public class MM_Interface implements VM_HeapLayoutConstants, Constants {
 
   /***********************************************************************

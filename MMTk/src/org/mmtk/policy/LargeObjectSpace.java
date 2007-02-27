@@ -32,11 +32,8 @@ import org.vmmagic.unboxed.*;
  * and called on a per-thread basis, where each instance of
  * TreadmillLocal corresponds to one thread operating over one space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class LargeObjectSpace extends Space 
   implements Constants {

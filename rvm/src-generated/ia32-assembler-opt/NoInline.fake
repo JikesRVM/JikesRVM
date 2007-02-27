@@ -6,8 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id: NoInlinePragma.fake 11168 2006-12-12 11:08:30Z steveb-oss $
-package org.vmmagic.pragma; 
+package org.vmmagic.pragma;
 
 
 import java.lang.annotation.Retention;

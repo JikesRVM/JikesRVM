@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * A sample enumeration for testing.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class DummyEnum extends EnumOption {
 

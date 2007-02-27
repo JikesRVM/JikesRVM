@@ -30,14 +30,11 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class TraceLocal extends TraceStep 
   implements Constants {

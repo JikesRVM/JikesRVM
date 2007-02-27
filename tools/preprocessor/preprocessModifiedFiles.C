@@ -5,9 +5,8 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright © IBM Corp 2001, 2003, 2004
+ * (C) Copyright ? IBM Corp 2001, 2003, 2004
 
- * $Id$
 
  * Documentation for this program is in the variables short_help_msg and
  * long_help_msg, immediately below.
@@ -134,7 +133,7 @@ static const char authors[] =
 "   @date June, 2003\n";
 
 static const char license[] = 
-"Copyright ©IBM Corp. 2001, 2003.\n"
+"Copyright ?IBM Corp. 2001, 2003.\n"
 "This software is redistributable under the terms of the Common Public License,\n"
 "an OSI-certified open-source license.\n";
 

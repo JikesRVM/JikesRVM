@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp 2001,2002, 2004, 2005
  */
 //VM_BuildReferenceMaps.java
-//$Id$
 package com.ibm.jikesrvm;
 
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_Compiler;

@@ -6,7 +6,6 @@
  *
  * (C) Copyright ANU. 2004
  */
-//$Id: Uninterruptible.java 11058 2006-11-25 22:53:00Z captain5050 $
 package org.vmmagic.pragma;
 
 import java.lang.annotation.Retention;

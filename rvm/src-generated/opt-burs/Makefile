@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-#$Id$
 #
 # @author David Grove
 

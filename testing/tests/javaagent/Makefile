@@ -7,7 +7,6 @@
 # (C) Copyright IBM Corp. 2001
 #
 #
-# $Id: Makefile 10806 2006-09-22 12:17:46Z dgrove-oss $
 #
 # @author Julian Dolby
 #

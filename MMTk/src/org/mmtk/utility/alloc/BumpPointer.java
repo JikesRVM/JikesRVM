@@ -50,12 +50,9 @@ import org.vmmagic.pragma.*;
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class BumpPointer extends Allocator 
   implements Constants {

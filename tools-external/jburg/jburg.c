@@ -13,10 +13,6 @@
 #include <unistd.h>             /* getcwd().  We use the non-gnu interface
                                  * (ugh).  */
 
-// Commented out to hush up GCC warnings.
-// #ifndef lint
-// static char rcsid[] = "$Id$";
-// #endif
 static const char *prefix = ""; /* prefix for any Java symbols */
 static const char *arch = ""; /* arch name for packages & directories */
 static int Tflag = 0;

@@ -23,11 +23,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for StopTheWorld collectors.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SanityCheckerLocal implements Constants {
 

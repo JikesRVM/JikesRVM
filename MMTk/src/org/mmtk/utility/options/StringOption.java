@@ -16,11 +16,8 @@ import org.vmmagic.pragma.*;
 /**
  * An option that has a simple string value.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class StringOption extends Option {
   // values

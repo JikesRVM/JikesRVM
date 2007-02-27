@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-#$Id$
 #
 # split InstructionFormats.RAW into 1 class per file
 # @author Dave Grove 

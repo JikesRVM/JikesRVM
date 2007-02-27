@@ -24,11 +24,8 @@ import com.ibm.jikesrvm.VM;
  * 
  * @see org.mmtk.vm.Factory
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 public final class Factory extends org.mmtk.vm.Factory {
 

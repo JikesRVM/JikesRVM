@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2006
 #
-# $Id$
 #
 # @author Dave Grove
 #
@@ -19,11 +18,9 @@
 cd $RVM_ROOT
 
 # Source code files should have the following properties set:
-#   svn:keywords : Author Date Id Revision
 #   svn:eol-style : native
 #   svn:mime-type : text/plain
 for extension in .java .c .h .C; do
-    find . -name "*$extension" -exec svn propset svn:keywords 'Author Date Id Revision' {} \;
     find . -name "*$extension" -exec svn propset svn:eol-style native {} \;
     find . -name "*$extension" -exec svn propset svn:mime-type text/plain {} \;
 done

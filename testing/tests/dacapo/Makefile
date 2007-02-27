@@ -5,7 +5,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 #
 # @author Robin Garner
 #

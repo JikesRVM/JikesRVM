@@ -6,7 +6,6 @@
 #
 # (C) Copyright © IBM Corp. 2004
 #
-# $Id$
 #
 # Initialization file for Kaffe.  This will be needed until Kaffe gets arguments to 
 # prefix and suffix the boot class path  with additional directories.  This file needs to be 

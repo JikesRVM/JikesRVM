@@ -9,7 +9,6 @@
  * University of Texas at Austin 2005
  * All rights reserved.
  */
-//$Id$
 
 package com.ibm.jikesrvm;
 
@@ -37,8 +36,6 @@ import java.io.InputStreamReader;
  * </ul>
  *
  * @author Xianglong Huang
- * @version $Revision$
- * @date $Date$
  *
  * @see VM_CompilerAdvice
  */

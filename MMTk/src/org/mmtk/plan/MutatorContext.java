@@ -73,14 +73,11 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 
 @Uninterruptible  public abstract class MutatorContext implements Constants {

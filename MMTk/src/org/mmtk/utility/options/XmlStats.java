@@ -13,11 +13,8 @@ package org.mmtk.utility.options;
  * Display statistics and options in XML rather than himan-readable
  * format.
  * 
- * $Id:$
- * 
+ *
  * @author Robin Garner
- * @version $Revision:$
- * @date $Date:$
  */
 public class XmlStats extends BooleanOption {
 

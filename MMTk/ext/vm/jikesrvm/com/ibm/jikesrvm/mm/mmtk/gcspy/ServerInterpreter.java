@@ -27,10 +27,7 @@ import org.vmmagic.pragma.*;
  * clients. It handles commands from the client and passes data to it.
  * Mostly it forwards calls to the C gcspy library.
  *
- * $Id$
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
   implements VM_JavaHeaderConstants {

@@ -27,12 +27,9 @@ import org.mmtk.vm.gcspy.Util;
  * build time, we leave it to a concrete vm-specific instance of this class
  * to perform the object instantiation.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * 
- * @version $Revision$
- * @date $Date$
  */
 public abstract class Factory {
 

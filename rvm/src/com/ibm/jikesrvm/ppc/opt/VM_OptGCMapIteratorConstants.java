@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-// $Id$
 package com.ibm.jikesrvm.ppc.opt;
 
 import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;

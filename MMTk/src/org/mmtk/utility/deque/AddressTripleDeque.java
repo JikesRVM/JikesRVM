@@ -22,11 +22,8 @@ import org.vmmagic.pragma.Uninterruptible;
  * address triples
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class AddressTripleDeque extends LocalDeque implements Constants {
-  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

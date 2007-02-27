@@ -17,8 +17,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
 /**
  * Wrappers around machine specific code
  * 
- * $Id: OPT_IA32ConditionOperand.java 10996 2006-11-16 23:37:12Z dgrove-oss $
- * 
+ *
  * @author Steve Blackburn
  */
 public abstract class VM_MachineSpecific {

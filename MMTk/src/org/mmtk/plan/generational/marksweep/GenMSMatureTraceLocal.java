@@ -22,13 +22,10 @@ import org.vmmagic.pragma.*;
  * closure over the heap graph, specifically in a Generational Mark-Sweep
  * collector.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
 

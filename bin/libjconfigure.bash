@@ -8,7 +8,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2003
 #
-# $Id$
 #
 # N.B.: This is an auxiliary set of library functions.  It is loaded
 #       by "jconfigure" and by the "jbuild" and "jbuild."* scripts

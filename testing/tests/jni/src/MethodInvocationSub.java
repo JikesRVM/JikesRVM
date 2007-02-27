@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /**
  * Sub class of MethodInvocation to test CallNonVirtual<type>Method
  *

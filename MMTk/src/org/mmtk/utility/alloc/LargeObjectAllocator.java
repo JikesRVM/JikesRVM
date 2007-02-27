@@ -28,11 +28,8 @@ import org.vmmagic.pragma.*;
  * improvement...
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
-  public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

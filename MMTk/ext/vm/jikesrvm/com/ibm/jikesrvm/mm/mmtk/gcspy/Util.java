@@ -27,11 +27,8 @@ import org.vmmagic.pragma.*;
 /**
  * This class provides generally useful methods.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
   private static final boolean DEBUG_ = false;

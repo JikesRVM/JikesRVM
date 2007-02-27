@@ -24,11 +24,8 @@ import org.vmmagic.pragma.*;
  * Most importantly, it calls the Plan's startGCspyServer method which
  * creates a new ServerInterpreter, and adds events and space drivers.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class GCspy {
 

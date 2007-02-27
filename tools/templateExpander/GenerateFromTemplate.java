@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //GenerateFromTemplate.java
-//$Id$
 /**
  * Generates output files given a template.  Run from command line.
  *

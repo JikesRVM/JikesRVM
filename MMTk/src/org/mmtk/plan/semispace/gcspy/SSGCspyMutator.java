@@ -40,12 +40,9 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class SSGCspyMutator extends SSMutator {
 

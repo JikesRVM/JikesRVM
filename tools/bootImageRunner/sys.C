@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2004, 2005
  */
-//$Id$
 
 /**
  * O/S support services required by the java class libraries.

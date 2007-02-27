@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2003, 2004, 2005
  *
- * $Id$
  */
 package com.ibm.jikesrvm;
 

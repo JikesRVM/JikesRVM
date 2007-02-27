@@ -91,12 +91,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * the doubly linked list of free blocks.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * 
+ *
  */
 @Uninterruptible final class SmallGenericFreeList extends BaseGenericFreeList implements Constants {
-   public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

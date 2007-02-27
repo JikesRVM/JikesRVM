@@ -39,13 +39,10 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class GenMSMutator extends GenMutator {
   /******************************************************************

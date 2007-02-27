@@ -29,11 +29,8 @@ import org.vmmagic.unboxed.*;
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class LargeObjectLocal extends LargeObjectAllocator
   implements Constants {

@@ -26,12 +26,9 @@ import org.vmmagic.pragma.*;
  * This class extends LinearSpaceDriver, a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class ImmortalSpaceDriver extends LinearSpaceDriver {
 

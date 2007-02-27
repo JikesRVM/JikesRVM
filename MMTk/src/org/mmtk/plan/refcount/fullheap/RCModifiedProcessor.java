@@ -21,14 +21,11 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceLocal
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class RCModifiedProcessor extends TraceStep {
 

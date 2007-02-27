@@ -29,13 +29,10 @@ import org.vmmagic.unboxed.*;
  * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class TraceGenerator 
   implements Constants, TracingConstants {
 
-  public static final String Id = "$Id$";
 
   /***********************************************************************
    * 

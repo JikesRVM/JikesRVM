@@ -2,8 +2,6 @@
  * Ant build file for vmmagic
  *       
  * - jar         compiles from source and creates the jar file. 
- *   $Date: 2006/07/08 01:51:44 $
- *   $Id: build.xml,v 1.19 2006/07/08 01:51:44 steveb Exp $
 -->
 
 <project name="vmmagic" default="jar" basedir=".">

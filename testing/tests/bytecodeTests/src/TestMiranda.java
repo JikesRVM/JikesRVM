@@ -6,7 +6,6 @@
  *
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
-//$Id$
 /*
  * @author Ian Rogers
  */

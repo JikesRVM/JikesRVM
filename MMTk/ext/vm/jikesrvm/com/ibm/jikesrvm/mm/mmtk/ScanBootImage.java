@@ -25,7 +25,6 @@ import org.vmmagic.pragma.*;
 /**
  * Scan the boot image for references using the boot image reference map
  *
- * $Id$
  *
  * @author Steve Blackburn
  */  

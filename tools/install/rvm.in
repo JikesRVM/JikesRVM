@@ -5,9 +5,8 @@
 # A copy of the license is included in the distribution, and is also
 # available at http://www.opensource.org/licenses/cpl1.0.php
 #
-# (C) Copyright © IBM Corp. 2004
+# (C) Copyright ? IBM Corp. 2004
 #
-# $Id$
 #
 # This program will be macro-expanded and installed in as 
 # /usr/bin/rvm or /usr/local/bin/rvm or whatever @BIN_DIR@ expands to.

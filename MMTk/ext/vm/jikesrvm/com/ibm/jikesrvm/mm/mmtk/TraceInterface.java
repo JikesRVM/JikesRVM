@@ -35,11 +35,8 @@ import org.vmmagic.pragma.*;
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements VM_Constants {
 

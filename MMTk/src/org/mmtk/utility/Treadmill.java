@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  *
- * $Id$
  */
 package org.mmtk.utility;
 
@@ -32,8 +31,6 @@ import org.vmmagic.pragma.*;
  * Access to the instances may be synchronized depending on the constructor argument.
  * 
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public final class Treadmill
   implements Constants {

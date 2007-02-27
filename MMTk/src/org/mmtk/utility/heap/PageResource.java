@@ -33,11 +33,8 @@ import org.vmmagic.unboxed.*;
  * more restrictive (useful for copying collectors which allocate
  * monotonically before freeing the entire space and starting over).
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible
 public abstract class PageResource implements Constants {

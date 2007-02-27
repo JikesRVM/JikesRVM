@@ -7,7 +7,6 @@
 #
 # (C) Copyright © IBM Corp. 2004
 #
-# $Id$
 #
 ## This is a pretend "java" executable that will run Jikes RVM with
 ## settings that make it work to run Eclipse.

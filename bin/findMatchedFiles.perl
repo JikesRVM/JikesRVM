@@ -7,7 +7,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003.
 #
-# $Id$
 #
 # @author Peter Sweeney
 # @date   11/2/2001

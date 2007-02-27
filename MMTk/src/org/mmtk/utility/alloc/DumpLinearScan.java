@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-//$Id$
 package org.mmtk.utility.alloc;
 
 import org.mmtk.vm.VM;
@@ -20,8 +19,6 @@ import org.vmmagic.pragma.*;
  * Simple linear scan to dump object information.
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible
 public final class DumpLinearScan extends LinearScan {

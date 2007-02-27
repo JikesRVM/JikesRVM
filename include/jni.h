@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 1998, 1999 All Rights Reserved
  */
-//$Id$
 
 /**
  * Adapted for Jikes RVM

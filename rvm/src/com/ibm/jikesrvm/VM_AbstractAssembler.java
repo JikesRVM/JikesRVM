@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2007
  *
- * $Id: VM_Assembler.java 11260 2007-01-02 23:25:20Z steveb-oss $
  *
  * This class has been created to work around a bug whereby the system seems to have gotten
  * confused by the relationship between:

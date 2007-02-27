@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 /****************************************************************
  * This program tests the JNI functions provided in the library:
  *    CreateJavaVM

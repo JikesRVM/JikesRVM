@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2002
- * $Id$
  */
 
 /* Test the JavaVM and GetEnv JNI functionality 

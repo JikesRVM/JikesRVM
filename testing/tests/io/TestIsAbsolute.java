@@ -7,11 +7,6 @@
  * (C) Copyright IBM Corp., 2002.
  *
  * ==========
- * $Source$
- * $Revision$
- * $Date$
- * $Author$
- * $Id$
  */
 
 import java.io.File;

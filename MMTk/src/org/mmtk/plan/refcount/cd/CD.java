@@ -24,11 +24,8 @@ import org.vmmagic.unboxed.*;
  * This class implements <i>global</i> behavior 
  * and state for a cycle detector.
  *  
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class CD {
 

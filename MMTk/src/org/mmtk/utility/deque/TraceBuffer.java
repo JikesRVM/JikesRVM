@@ -22,12 +22,9 @@ import org.vmmagic.unboxed.*;
  * and bulk processing of the buffer.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class TraceBuffer extends LocalQueue 
   implements Constants, TracingConstants {
-  public static final String Id = "$Id$";
 
   /***********************************************************************
    * 

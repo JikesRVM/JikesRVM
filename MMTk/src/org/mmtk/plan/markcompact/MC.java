@@ -38,11 +38,8 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class MC extends StopTheWorld {
 

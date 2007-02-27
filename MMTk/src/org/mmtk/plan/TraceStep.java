@@ -20,11 +20,8 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceLocal
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public abstract class TraceStep implements Constants {
 

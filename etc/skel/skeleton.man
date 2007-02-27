@@ -6,7 +6,6 @@
 ./
 ./ (C) Copyright IBM Corp. 2006
 ./
-./ $Id$
 ./
 ./ @author Steven Augart
 ./ @date 23 April 2004

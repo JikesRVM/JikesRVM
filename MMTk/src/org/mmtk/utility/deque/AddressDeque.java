@@ -20,12 +20,9 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
 @Uninterruptible public class AddressDeque extends LocalDeque 
   implements Constants {
-   public static final String Id = "$Id$";
 
   /****************************************************************************
    * 

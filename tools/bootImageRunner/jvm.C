@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2004, 2005
  */
-//$Id: sys.C 11178 2006-12-13 18:32:12Z dgrove-oss $
 
 /**
  * Implementation of JNI Invocation API for Jikes RVM.
