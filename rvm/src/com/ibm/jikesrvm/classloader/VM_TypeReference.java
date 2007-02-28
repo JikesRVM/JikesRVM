@@ -132,6 +132,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference NativeBridge = findOrCreate("Lorg/vmmagic/pragma/NativeBridge;");
   public static final VM_TypeReference DynamicBridge = findOrCreate("Lorg/vmmagic/pragma/DynamicBridge;");
   public static final VM_TypeReference SynchronizedObject = findOrCreate("Lorg/vmmagic/pragma/SynchronizedObject;");
+  public static final VM_TypeReference SaveVolatile = findOrCreate("Lorg/vmmagic/pragma/SaveVolatile;");
 
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 

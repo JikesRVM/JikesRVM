@@ -789,14 +789,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   
   /**
    * Should the methods of this class save incoming registers ?
-   * @see VM_SaveVolatile
+   * @see SaveVolatile
    */
   @Uninterruptible
-  public final boolean isSaveVolatile() { 
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isSaveVolatileType()) return true;
-    return false; 
+  public final boolean isSaveVolatile() {
+    return isAnnotationPresent(VM_TypeReference.SaveVolatile);
   }
 
   /**

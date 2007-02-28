@@ -28,7 +28,7 @@ class Dummy {
   static VM_Reflection              e;
   static VM_Process                 f;
   static com.ibm.jikesrvm.jni.BuildJNIFunctionTable g;
-  static VM_SaveVolatile            i;
+  static org.vmmagic.pragma.SaveVolatile i;
   static MM_Interface               l;
   static VM_RecompilationManager    o;
   static VM_MultianewarrayHelper    r;

@@ -6,7 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm;
+package org.vmmagic.pragma;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
 
 /**
  * Methods of a class that implements this interface
@@ -17,4 +22,6 @@ package com.ibm.jikesrvm;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public interface VM_SaveVolatile  { }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SaveVolatile { }

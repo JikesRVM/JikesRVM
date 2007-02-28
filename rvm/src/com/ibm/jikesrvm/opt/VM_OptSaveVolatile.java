@@ -16,8 +16,8 @@ import org.vmmagic.unboxed.*;
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
  * save/restore all registers (both volatile and non-volatile).
- * TODO: Instead of VM_SaveVolatile, make this class implement
- * DynamicBridge...will allow us to kill support for VM_SaveVolatile!.
+ * TODO: Instead of SaveVolatile, make this class implement
+ * DynamicBridge...will allow us to kill support for SaveVolatile!.
  * ISSUE: GCMapping for dynamic bridge assumes that it is being used for
  *        lazy method compilation.  Need to generalize to support 
  *        opt's use for other purposes. 
@@ -27,7 +27,9 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-@Uninterruptible public class VM_OptSaveVolatile implements VM_SaveVolatile {
+@SaveVolatile
+@Uninterruptible
+public class VM_OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken in method prologue.

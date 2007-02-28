@@ -95,7 +95,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Array ExtentArrayType;             
   public static final VM_Primitive CodeType;
   public static final VM_Array CodeArrayType;
-  public static final VM_Class SaveVolatileType;
 
   static {
     // Primitive types
@@ -117,10 +116,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     // Jikes RVM classes
     ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
     MagicType           = VM_TypeReference.Magic.resolve().asClass();
-    SaveVolatileType =
-      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_SaveVolatile;")
-                                    ).resolve().asClass();
     // Array types
     CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
@@ -446,14 +441,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public final boolean isMagicType() { 
     return isWordType() || isWordArrayType() ||
       this == MagicType || this == CodeArrayType;
-  }
-  /**
-   * @return is this type the Jikes RVM internal save volatile pragma
-   * type?
-   */
-  @Uninterruptible
-  public final boolean isSaveVolatileType() { 
-    return this == SaveVolatileType;
   }
 
   /**
