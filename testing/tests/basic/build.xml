@@ -66,6 +66,8 @@
     <runCompareTest tag="TestFloatingRem" class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
     <runCompareTest tag="TestConstants" class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
 
+    <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
+
     <runCompareTest tag="TestResolveOnInvokeVirtual"
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>

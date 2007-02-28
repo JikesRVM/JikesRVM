@@ -14,6 +14,8 @@ import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -434,7 +436,56 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return classInitializerMethod;
   }
 
-  /** 
+  /**
+   * Cached set of inherited annotations.
+   */
+  private Annotation[] inheritedAnnotations;
+  
+  /**
+   * Get the annotations for this and all super annotated elements
+   */
+  @Override
+  public Annotation[] getAnnotations() {
+    final VM_Class parent = getSuperClass();
+    if (null == parent) {
+      return getDeclaredAnnotations();
+    } else {
+      final Annotation[] declared = getDeclaredAnnotations();
+      //Not synchronized as it does not matter if occasionally we create two cached copies
+      if (null == inheritedAnnotations) {
+        final Annotation[] parentAnnotations = parent.getAnnotations();
+        int rejected = 0;
+        for (int i = 0; i < parentAnnotations.length; i++) {
+          final Annotation pa = parentAnnotations[i];
+          final Class<? extends Annotation> paType = pa.annotationType();
+          if (!paType.isAnnotationPresent(Inherited.class)) {
+            parentAnnotations[i] = null;
+            rejected++;
+          } else {
+            for (final Annotation a : declared) {
+              if (a.annotationType().equals(paType)) {
+                parentAnnotations[i] = null;
+                rejected++;
+                break;
+              }
+            }
+          }
+        }
+        final Annotation[] inherited = new Annotation[ parentAnnotations.length - rejected];
+        int index = 0;
+        for (final Annotation pa : parentAnnotations) {
+          if (null != pa) inherited[index++] = pa;
+        }
+        inheritedAnnotations = inherited;
+      }
+      final Annotation[] result = new Annotation[declared.length + inheritedAnnotations.length];
+      System.arraycopy(declared, 0, result, 0, declared.length);
+      System.arraycopy(inheritedAnnotations, 0, result, declared.length, inheritedAnnotations.length);
+      return result;
+    }
+  }
+
+  /**
    * Find description of a field of this class.
    * @param fieldName field name - something like "foo"
    * @param fieldDescriptor field descriptor - something like "I"

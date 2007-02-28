@@ -27,7 +27,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
    */
-  protected final VM_Annotation[] annotations;
+  private final VM_Annotation[] declaredAnnotations;
 
   /**
    * Constructor used by all annotated elements
@@ -36,7 +36,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   protected VM_AnnotatedElement(VM_Annotation[] annotations)
   {
-    this.annotations = annotations;
+    this.declaredAnnotations = annotations;
   }
 
   /**
@@ -53,8 +53,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   protected static VM_Annotation[] readAnnotations(int[] constantPool,
                                                    DataInputStream input,
                                                    int numAnnotationBytes,
-                                                   ClassLoader classLoader
-                                                   ) throws IOException
+                                                   ClassLoader classLoader) 
+      throws IOException
   {
     try {
       int numAnnotations;
@@ -74,37 +74,23 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       throw new Error(e);
     }
   }
+  
   /**
-   * Get the value of the super for this annotated element. Elements
-   * are expected to override as appropriate
-   * @return the super value or null
-   */
-  protected VM_AnnotatedElement getSuperAnnotatedElement() {
-    return null;
-  }
-  /**
-   * Get the annotations for this and all super annotated elements
+   * Get the annotations for this and all super annotated elements.
+   * Must be overridden in VM_Class to return inherited annotations.
    */
   public Annotation[] getAnnotations() {
-    Annotation[] result = getDeclaredAnnotations();
-    VM_AnnotatedElement superAE = getSuperAnnotatedElement();
-    if (superAE != null) {
-      Annotation[] superResult = superAE.getAnnotations();
-      Annotation[] newResult = new Annotation[result.length + superResult.length];
-      System.arraycopy(result, 0, superResult, 0, result.length);
-      System.arraycopy(superResult, 0, superResult, result.length, superResult.length);
-      result = newResult;
-    }
-    return result;
-  }  
+    return getDeclaredAnnotations();
+  }
+
   /**
    * Get the annotations for this annotated element
    */
   public Annotation[] getDeclaredAnnotations() {
-    int    numAnnotations = (annotations != null) ? annotations.length : 0;
+    int    numAnnotations = (declaredAnnotations != null) ? declaredAnnotations.length : 0;
     final Annotation[] result = new Annotation[numAnnotations];
     for (int i = 0; i < result.length; i++) {
-      result[i] = annotations[i].getValue();
+      result[i] = declaredAnnotations[i].getValue();
     }
     return result;
   }
@@ -113,11 +99,11 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (annotations != null) {
-      for(int i=0; i < annotations.length; i++) {
-        if(annotations[i].annotationType() == annotationTypeRef) {
+    if (declaredAnnotations != null) {
+      for(int i=0; i < declaredAnnotations.length; i++) {
+        if(declaredAnnotations[i].annotationType() == annotationTypeRef) {
           @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
-          T result = (T) annotations[i].getValue();
+          T result = (T) declaredAnnotations[i].getValue();
           return result;
         }
       }
@@ -130,9 +116,9 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (annotations != null) {
-      for(int i=0; i < annotations.length; i++) {
-         if(annotations[i].annotationType() == annotationTypeRef) {
+    if (declaredAnnotations != null) {
+      for(int i=0; i < declaredAnnotations.length; i++) {
+         if(declaredAnnotations[i].annotationType() == annotationTypeRef) {
              return true;
          }
       }
@@ -146,8 +132,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   @Uninterruptible
   boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef) {
-    if (annotations != null) {
-      for (VM_Annotation annotation : annotations) {
+    if (declaredAnnotations != null) {
+      for (VM_Annotation annotation : declaredAnnotations) {
         if( annotation.getType().equals(annotationTypeRef.getName()) &&
             annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
           return true;
