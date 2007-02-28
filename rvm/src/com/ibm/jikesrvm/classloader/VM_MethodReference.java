@@ -130,7 +130,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Resolve the method reference for an invoke special into a target
    * method, return null if the method cannot be resolved without classloading.
    */
-  public final VM_Method resolveInvokeSpecial() {
+  public final synchronized VM_Method resolveInvokeSpecial() {
     VM_Class thisClass = (VM_Class)type.peekResolvedType();
     if (thisClass == null 
         && name != VM_ClassLoader.StandardObjectInitializerMethodName) 
@@ -179,7 +179,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  public final VM_Method resolve() {
+  public final synchronized VM_Method resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.

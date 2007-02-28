@@ -124,7 +124,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * the search order specified in JVM spec 5.4.3.2.
    * @return the VM_Field that this method ref resolved to.
    */
-  public final VM_Field resolve() {
+  public final synchronized VM_Field resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
