@@ -7,35 +7,29 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper;
-import org.vmmagic.unboxed.*;
-
 /**
  * Dummy class containing enough references to force java compiler
  * to find every class comprising the vm, so everything gets recompiled
  * by just compiling "Dummy.java".
- *
+ * <p/>
  * The minimal set has to be discovered by trial and error. Sorry.
  *
  * @author Derek Lieber
  */
 class Dummy {
-  static VM                         a;
+  static com.ibm.jikesrvm.VM a;
   static com.ibm.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
-  static VM_DynamicLinker           c;
-  static VM_Reflection              e;
-  static VM_Process                 f;
+  static com.ibm.jikesrvm.VM_DynamicLinker c;
+  static com.ibm.jikesrvm.VM_Reflection e;
+  static com.ibm.jikesrvm.VM_Process f;
   static com.ibm.jikesrvm.jni.BuildJNIFunctionTable g;
   static org.vmmagic.pragma.SaveVolatile i;
-  static MM_Interface               l;
-  static VM_RecompilationManager    o;
-  static VM_MultianewarrayHelper    r;
-  static Address                 s;
-  static VM_Math                    t;
-  static WordArray               x;
-  static OffsetArray             y;
-  static ExtentArray             z;
+  static com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface l;
+  static com.ibm.jikesrvm.VM_RecompilationManager o;
+  static com.ibm.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper r;
+  static org.vmmagic.unboxed.Address s;
+  static com.ibm.jikesrvm.VM_Math t;
+  static org.vmmagic.unboxed.WordArray x;
+  static org.vmmagic.unboxed.OffsetArray y;
+  static org.vmmagic.unboxed.ExtentArray z;
 }
-	// Test of a TAB character.
