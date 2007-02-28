@@ -102,6 +102,7 @@
           </conditions>
           <sequential>
             <echo message="Building ${test.config.@{tag}.configuration}"/>
+            <delete dir="${test.config.@{tag}.rvm.dir}"/>
             <timer property="${test.config.@{tag}.configuration}.build.time"/>
             <erant antfile="${jikesrvm.dir}/build.xml"
                    failonerror="false"
