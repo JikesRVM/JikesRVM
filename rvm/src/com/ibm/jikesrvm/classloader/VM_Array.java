@@ -410,7 +410,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param elementType
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
-    super(typeRef, typeRef.getDimensionality(),  null, null);
+    super(typeRef, typeRef.getDimensionality(),  null);
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
     thinLockOffset = VM_ObjectModel.defaultThinLockOffset();

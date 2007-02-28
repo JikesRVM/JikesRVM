@@ -155,21 +155,19 @@ public final class VM_NormalMethod
    * @param lm the line number map for this method
    * @param constantPool the constantPool for this method
    * @param sig generic type of this method.
-   * @param rvan array of runtime visible annotations
-   * @param rivan optional array of runtime invisible annotations
-   * @param rvpan array of runtime visible paramter annotations
-   * @param rivpan optional array of runtime invisible paramter annotations
+   * @param annotations array of runtime visible annotations
+   * @param parameterAnnotations array of runtime visible paramter annotations
    * @param ad annotation default value for that appears in annotation classes
    */
   VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr,
                   int mo, VM_TypeReference[] et, int lw, int ow, byte[] bc,
                   VM_ExceptionHandlerMap eMap, int[] lm,
                   int[] constantPool, VM_Atom sig,
-                  VM_Annotation[] rvan, VM_Annotation[] rivan,
-                  VM_Annotation[] rvpan, VM_Annotation[] rivpan,
+                  VM_Annotation[] annotations,
+                  VM_Annotation[] parameterAnnotations,
                   Object ad) 
   {
-    super(dc, mr, mo, et, sig, rvan, rivan, rvpan, rivpan, ad);
+    super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
     operandWords = ow;
     bytecodes = bc;

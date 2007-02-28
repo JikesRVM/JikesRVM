@@ -43,13 +43,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  protected final VM_Annotation[] runtimeVisibleParameterAnnotations;
-  /**
-   * Method parameter Annotations from the class file that are
-   * described as runtime visible. These annotations aren't available
-   * to the reflection API.
-   */
-  protected final VM_Annotation[] runtimeInvisibleParameterAnnotations;
+  protected final VM_Annotation[] parameterAnnotations;
   /**
    * A value present in the method info tables of annotation types. It
    * represents the default result from an annotation method.
@@ -69,33 +63,18 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param modifiers modifiers associated with this method.
    * @param exceptionTypes exceptions thrown by this method.
    * @param signature generic type of this method.
-   * @param runtimeVisibleAnnotations array of runtime visible
-   * annotations
-   * @param runtimeInvisibleAnnotations optional array of runtime
-   * invisible annotations
-   * @param runtimeVisibleParameterAnnotations array of runtime
-   * visible parameter annotations
-   * @param runtimeInvisibleParameterAnnotations optional array of
-   * runtime invisible parameter annotations
+   * @param annotations array of runtime visible annotations
+   * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
-   * in annotation classes
    */
-  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, 
+  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef,
                       int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                      VM_Annotation[] runtimeVisibleAnnotations,
-                      VM_Annotation[] runtimeInvisibleAnnotations,
-                      VM_Annotation[] runtimeVisibleParameterAnnotations,
-                      VM_Annotation[] runtimeInvisibleParameterAnnotations,
+                      VM_Annotation[] annotations,
+                      VM_Annotation[] parameterAnnotations,
                       Object annotationDefault)
   {
-    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS, signature,
-          runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
-
-    if (VM.VerifyAssertions && !retainRuntimeInvisibleAnnotations) {
-      VM._assert(runtimeInvisibleParameterAnnotations == null);
-    }
-    this.runtimeVisibleParameterAnnotations = runtimeVisibleParameterAnnotations;
-    this.runtimeInvisibleParameterAnnotations = runtimeInvisibleParameterAnnotations;
+    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS, signature, annotations);
+    this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
     memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
@@ -121,10 +100,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     VM_TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;      
     VM_Atom tmp_signature = null;
-    VM_Annotation[] tmp_runtimeVisibleAnnotations = null;
-    VM_Annotation[] tmp_runtimeInvisibleAnnotations = null;
-    VM_Annotation[] tmp_runtimeVisibleParameterAnnotations = null;
-    VM_Annotation[] tmp_runtimeInvisibleParameterAnnotations = null;
+    VM_Annotation[] annotations = null;
+    VM_Annotation[] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
@@ -173,10 +150,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        tmp_runtimeVisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
                                                                             declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        tmp_runtimeVisibleParameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
+        parameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
                                                                                      declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
@@ -185,14 +162,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         catch (ClassNotFoundException e){
           throw new Error(e);
         }
-      } else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
-                 (attName == VM_ClassLoader.runtimeInvisibleAnnotationsAttributeName)) {
-        tmp_runtimeInvisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
-                                                                              declaringClass.getClassLoader());
-      } else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
-                 (attName == VM_ClassLoader.runtimeInvisibleParameterAnnotationsAttributeName)) {
-        tmp_runtimeInvisibleParameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
-                                                                                       declaringClass.getClassLoader());
       } else {
         // all other method attributes are boring
         input.skipBytes(attLength);
@@ -201,23 +170,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     VM_Method method;
     if ((modifiers & ACC_NATIVE) != 0) {
       method = new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                   tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
-                                   tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
-                                   tmp_annotationDefault);
+                                   annotations, parameterAnnotations, tmp_annotationDefault);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
       method = new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                     tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
-                                     tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
-                                     tmp_annotationDefault);
+                                     annotations, parameterAnnotations, tmp_annotationDefault);
 
     } else {
       method = new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
                                    tmp_localWords, tmp_operandWords, tmp_bytecodes, 
                                    tmp_exceptionHandlerMap, tmp_lineNumberMap,
                                    constantPool, tmp_signature,
-                                   tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
-                                   tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
-                                   tmp_annotationDefault);
+                                   annotations, parameterAnnotations, tmp_annotationDefault);
     }
     return method;
   }
@@ -251,7 +214,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
                                1, 2, bytecodes,
                                null, null,
                                constantPool,
-                               null, null, null, null, null, null);
+                               null, null, null, null);
   }
   /**
    * Create a method to initialise the annotation class
@@ -297,7 +260,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
                                2, 3, bytecode,
                                null, null,
                                constantPool,
-                               null, null, null, null, null, null);
+                               null, null, null, null);
   }
 
   /**

@@ -192,18 +192,14 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * @param typeRef The canonical type reference for this type.
    * @param classForType The java.lang.Class representation
    * @param dimension The dimensionality
-   * @param runtimeVisibleAnnotations array of runtime visible
-   * annotations
-   * @param runtimeInvisibleAnnotations optional array of runtime
-   * invisible annotations
+   * @param annotations array of runtime visible annotations
    */
   protected VM_Type(VM_TypeReference typeRef,
                     Class<?> classForType,
                     int dimension,
-                    VM_Annotation[] runtimeVisibleAnnotations,
-                    VM_Annotation[] runtimeInvisibleAnnotations)
+                    VM_Annotation[] annotations)
   {
-    super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+    super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
     this.id = nextId(this);
@@ -223,17 +219,12 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * Create an instance of a {@link VM_Type}
    * @param typeRef The canonical type reference for this type.
    * @param dimension The dimensionality
-   * @param runtimeVisibleAnnotations array of runtime visible
-   * annotations
-   * @param runtimeInvisibleAnnotations optional array of runtime
-   * invisible annotations
+   * @param annotations array of runtime visible annotations
    */
   protected VM_Type(VM_TypeReference typeRef,
                     int dimension,
-                    VM_Annotation[] runtimeVisibleAnnotations,
-                    VM_Annotation[] runtimeInvisibleAnnotations)
-  {
-    super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+                    VM_Annotation[] annotations) {
+    super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
     this.id = nextId(this);

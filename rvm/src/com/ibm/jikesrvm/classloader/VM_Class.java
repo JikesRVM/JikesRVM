@@ -1113,7 +1113,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    *
    * @param typeRef the type reference that was resolved to this class
    * @param constantPool array of ints encoding constant value
-   * @param modifiers {@link VM_ClassLoaderConstants}
+   * @param modifiers {@link com.ibm.jikesrvm.classloader.VM_ClassLoaderConstants}
    * @param superClass parent of this class
    * @param declaredInterfaces array of interfaces this class implements
    * @param declaredFields fields of the class
@@ -1123,10 +1123,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param sourceName source file name
    * @param classInitializerMethod handle to class initializer method
    * @param signature the generic type name for this class
-   * @param runtimeVisibleAnnotations array of runtime visible
-   * annotations
-   * @param runtimeInvisibleAnnotations optional array of runtime
-   * invisible annotations
+   * @param annotations array of runtime visible annotations
    */
   private VM_Class(VM_TypeReference typeRef, int[] constantPool, int modifiers,
                    VM_Class superClass, VM_Class[] declaredInterfaces,
@@ -1135,10 +1132,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                    VM_TypeReference enclosingClass, VM_MethodReference enclosingMethod,
                    VM_Atom sourceName, VM_Method classInitializerMethod,
                    VM_Atom signature,
-                   VM_Annotation[] runtimeVisibleAnnotations,
-                   VM_Annotation[] runtimeInvisibleAnnotations)
-  {
-    super(typeRef, 0, runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+                   VM_Annotation[] annotations) {
+    super(typeRef, 0, annotations);
 
     // final fields
     this.constantPool           = constantPool;
@@ -1416,8 +1411,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_Atom sourceName = null;
     VM_TypeReference declaringClass = null;
     VM_Atom signature = null;
-    VM_Annotation[] runtimeVisibleAnnotations = null;
-    VM_Annotation[] runtimeInvisibleAnnotations = null;
+    VM_Annotation[] annotations = null;
     VM_TypeReference enclosingClass = null;
     VM_MethodReference enclosingMethod = null;
     // Read attributes.
@@ -1482,15 +1476,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       }
       else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        runtimeVisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
                                                                         typeRef.getClassLoader());
-      }
-      else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
-               (attName == VM_ClassLoader.runtimeInvisibleAnnotationsAttributeName)) {
-        runtimeInvisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
-                                                                          typeRef.getClassLoader());
-      }
-      else {
+      } else {
         input.skipBytes(attLength);
       }
     }
@@ -1502,9 +1490,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                         enclosingClass, enclosingMethod,
                         sourceName, classInitializerMethod,
                         signature,
-                        runtimeVisibleAnnotations,
-                        runtimeInvisibleAnnotations
-                        );
+                        annotations );
   }
 
   /**
@@ -1658,7 +1644,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
             VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
             virtualMethods.addElement(new VM_AbstractMethod(getTypeRef(), mRef, ACC_ABSTRACT | ACC_PUBLIC, 
                                                             iMeth.getExceptionTypes(),
-                                                            null, null, null, null, null, null));
+                                                            null, null, null, null));
           }
         }
       }
@@ -2323,8 +2309,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                                   baInitMemRef.resolveMember().getDeclaringClass(), // superClass
                                   new VM_Class[]{annotationInterface}, // declaredInterfaces
                                   annotationFields, annotationMethods,
-                                  null, null, null, null, null, null, null, null, null
-                                  );
+                                  null, null, null, null, null, null, null, null );
     annotationClass.setResolvedType(klass);
     return klass;
   }

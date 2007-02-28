@@ -20,10 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * A common abstract super class for all elements that can be
  * annotated within the JVM. Namely classes, methods and fields.
  *
- * Annotations can be runtime visible or invisible, invisible
- * annotations are typically used by the compiler and by default
- * aren't retained by the JVM.
- *
  * @author Ian Rogers
  */
 public abstract class VM_AnnotatedElement implements AnnotatedElement {
@@ -31,36 +27,16 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
    */
-  protected final VM_Annotation[] runtimeVisibleAnnotations;
-  /**
-   * Should we retain runtime invisible annotations? Enabling this
-   * option allows some support of annotations without a full
-   * Classpath generics branch.
-   */
-  protected static final boolean retainRuntimeInvisibleAnnotations = false;
-  /**
-   * Annotations from the class file that are described as runtime
-   * visible. These annotations aren't available to the reflection
-   * API.
-   */
-  protected final VM_Annotation[] runtimeInvisibleAnnotations;
+  protected final VM_Annotation[] annotations;
 
   /**
    * Constructor used by all annotated elements
    *
-   * @param runtimeVisibleAnnotations array of runtime visible
-   * annotations
-   * @param runtimeInvisibleAnnotations optional array of runtime
-   * invisible annotations
+   * @param annotations array of runtime visible annotations
    */
-  protected VM_AnnotatedElement (VM_Annotation[] runtimeVisibleAnnotations,
-                                 VM_Annotation[] runtimeInvisibleAnnotations)
+  protected VM_AnnotatedElement(VM_Annotation[] annotations)
   {
-    if (VM.VerifyAssertions && !retainRuntimeInvisibleAnnotations) {
-      VM._assert(runtimeInvisibleAnnotations == null);
-    }
-    this.runtimeVisibleAnnotations = runtimeVisibleAnnotations;
-    this.runtimeInvisibleAnnotations = runtimeInvisibleAnnotations;
+    this.annotations = annotations;
   }
 
   /**
@@ -80,7 +56,6 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
                                                    ClassLoader classLoader
                                                    ) throws IOException
   {
-    VM_Annotation[] annotations = null;
     try {
       int numAnnotations;
       if(numAnnotationBytes == 2) {
@@ -89,15 +64,15 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
         if (VM.VerifyAssertions) VM._assert(numAnnotationBytes == 1);
         numAnnotations = input.readByte() & 0xFF;
       }
-      annotations = new VM_Annotation[numAnnotations];
+      final VM_Annotation[] annotations = new VM_Annotation[numAnnotations];
       for(int j=0; j < numAnnotations; j++) {
         annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);
       }
+      return annotations;
     }
     catch(ClassNotFoundException e) {
       throw new Error(e);
     }
-    return annotations;
   }
   /**
    * Get the value of the super for this annotated element. Elements
@@ -126,21 +101,10 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Get the annotations for this annotated element
    */
   public Annotation[] getDeclaredAnnotations() {
-    int    numAnnotations = (runtimeVisibleAnnotations != null) ? runtimeVisibleAnnotations.length : 0;
-    if (retainRuntimeInvisibleAnnotations) {
-      numAnnotations += (runtimeInvisibleAnnotations != null) ? runtimeInvisibleAnnotations.length : 0;
-    }
-    Annotation[] result = new Annotation[numAnnotations];
-    if (runtimeVisibleAnnotations != null) {       
-      for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
-        result[i] = runtimeVisibleAnnotations[i].getValue();
-      }
-    }
-    if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
-      int start = (runtimeVisibleAnnotations != null) ? runtimeVisibleAnnotations.length : 0;
-      for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
-        result[start + i] = runtimeInvisibleAnnotations[i].getValue();
-      }
+    int    numAnnotations = (annotations != null) ? annotations.length : 0;
+    final Annotation[] result = new Annotation[numAnnotations];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = annotations[i].getValue();
     }
     return result;
   }
@@ -149,20 +113,11 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (runtimeVisibleAnnotations != null) {       
-      for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
-        if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
+    if (annotations != null) {
+      for(int i=0; i < annotations.length; i++) {
+        if(annotations[i].annotationType() == annotationTypeRef) {
           @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
-          T result = (T)runtimeVisibleAnnotations[i].getValue();
-          return result;
-        }
-      }
-    }
-    if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
-      for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
-        if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
-          @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
-          T result = (T)runtimeInvisibleAnnotations[i].getValue();
+          T result = (T) annotations[i].getValue();
           return result;
         }
       }
@@ -175,16 +130,9 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (runtimeVisibleAnnotations != null) {       
-      for(int i=0; i < runtimeVisibleAnnotations.length; i++) {
-         if(runtimeVisibleAnnotations[i].annotationType() == annotationTypeRef) {
-             return true;
-         }
-      }
-    }
-    if (retainRuntimeInvisibleAnnotations && (runtimeInvisibleAnnotations != null)) {
-      for(int i=0; i < runtimeInvisibleAnnotations.length; i++) {
-        if(runtimeInvisibleAnnotations[i].annotationType() == annotationTypeRef) {
+    if (annotations != null) {
+      for(int i=0; i < annotations.length; i++) {
+         if(annotations[i].annotationType() == annotationTypeRef) {
              return true;
          }
       }
@@ -198,8 +146,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   @Uninterruptible
   boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef) {
-    if (runtimeVisibleAnnotations != null) {
-      for (VM_Annotation annotation : runtimeVisibleAnnotations) {
+    if (annotations != null) {
+      for (VM_Annotation annotation : annotations) {
         if( annotation.getType().equals(annotationTypeRef.getName()) &&
             annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
           return true;

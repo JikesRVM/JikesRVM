@@ -77,8 +77,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
     super(tr,    // type reference
           classForType, // j.l.Class representation
           -1,    // dimensionality
-          null,  // runtime visible annotations
-          null); // runtime invisible annotations
+          null  // runtime visible annotations
+    );
     this.name = name;
     this.stackWords = stackWords;
     this.memoryBytes = memoryBytes;
