@@ -79,8 +79,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Array JavaLangObjectArrayType;
   public static final VM_Class JavaLangClassType;
   public static final VM_Class JavaLangThrowableType; 
-  public static final VM_Class NativeBridgeType;
-  public static final VM_Class JavaLangStringType;    
+  public static final VM_Class JavaLangStringType;
   public static final VM_Class JavaLangCloneableType; 
   public static final VM_Class JavaIoSerializableType; 
   public static final VM_Class MagicType;             
@@ -131,10 +130,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     SaveVolatileType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_SaveVolatile;")
-                                    ).resolve().asClass();
-    NativeBridgeType      =
-      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/jni/VM_NativeBridge;")
                                     ).resolve().asClass();
     // Array types
     CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
@@ -494,14 +489,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   @Uninterruptible
   public final boolean isSaveVolatileType() { 
     return this == SaveVolatileType;
-  }
-  /**
-   * @return is this type the Jikes RVM internal native bridge pragma
-   * type?
-   */
-  @Uninterruptible
-  public final boolean isNativeBridgeType() { 
-    return this == NativeBridgeType;
   }
 
   /**

@@ -128,6 +128,9 @@ public final class VM_TypeReference {
   public static final VM_TypeReference VM_Processor = findOrCreate("Lcom/ibm/jikesrvm/VM_Processor;");
   public static final VM_TypeReference VM_Type = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Type;");
   public static final VM_TypeReference VM_Class = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Class;");
+
+  public static final VM_TypeReference NativeBridge = findOrCreate("Lorg/vmmagic/pragma/NativeBridge;");
+
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 
   // Synthetic types used by the opt compiler 

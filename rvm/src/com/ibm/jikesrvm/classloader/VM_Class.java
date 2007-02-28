@@ -713,14 +713,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   @Uninterruptible
   public final boolean isBridgeFromNative() { 
-    // The only class that returns true is the VM_JNIFunctions
-    // which must have been loaded by the first call to System.loadLibrary
-    // If this class is not loaded yet, we can assume that it
-    // is not the VM_JNIFunctions
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isNativeBridgeType()) return true;
-    return false;
+    return isAnnotationPresent(VM_TypeReference.NativeBridge);
   }
 
   /**

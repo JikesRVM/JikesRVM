@@ -18,6 +18,7 @@ import java.lang.reflect.*;
 import java.nio.Buffer;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.NativeBridge;
 
 /**
  * This class implements the 232 JNI functions.
@@ -79,9 +80,9 @@ import org.vmmagic.unboxed.*;
  * @modified Steven Augart
  * @date June 2004 -- JNI 1.2 and 1.4 largely implemented
  */
-@SuppressWarnings("unused")  // called from native code 
-public class VM_JNIFunctions implements VM_NativeBridge, 
-                                 VM_SizeConstants {
+@SuppressWarnings("unused")  // called from native code
+@NativeBridge
+public class VM_JNIFunctions implements VM_SizeConstants {
   // one message for each JNI function called from native
   public static final boolean traceJNI = false;
 

@@ -6,7 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm.jni;
+package org.vmmagic.pragma;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
 
 /**
  * Methods of a class that implements this interface are treated specially 
@@ -18,5 +23,7 @@ package com.ibm.jikesrvm.jni;
  *
  * @author Bowen Alpern
  * @author Derek Lieber
- */ 
-interface VM_NativeBridge { }
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface NativeBridge { }
