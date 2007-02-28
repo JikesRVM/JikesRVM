@@ -27,8 +27,8 @@ public class ArchitectureSpecific {
       super(registerLocations);
     }}
   public static final class VM_CodeArray extends com.ibm.jikesrvm.ia32.VM_CodeArray {
-    public VM_CodeArray() { super(0);};
-    public VM_CodeArray(int size) { super(size);};
+    public VM_CodeArray() { super(0);}
+    public VM_CodeArray(int size) { super(size);}
     public static VM_CodeArray create (int size) { // only intended to be called from VM_CodeArray.factory
       if (VM.runningVM) VM._assert(false);  // should be hijacked
       return new VM_CodeArray(size);
