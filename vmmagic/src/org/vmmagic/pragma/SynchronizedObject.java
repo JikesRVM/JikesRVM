@@ -7,7 +7,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package com.ibm.jikesrvm;
+package org.vmmagic.pragma;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
 
 /**
  * This interface designates an object which should always be allocated a
@@ -15,5 +20,7 @@ package com.ibm.jikesrvm;
  *
  * @author Stephen Fink
  */
-public interface VM_SynchronizedObject {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SynchronizedObject {
 }

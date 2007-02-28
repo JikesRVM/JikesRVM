@@ -35,9 +35,9 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  * @author Ian Rogers
  */
+@SynchronizedObject
 public final class VM_Primitive extends VM_Type implements VM_Constants, 
-                                                           VM_ClassLoaderConstants,
-                                                           VM_SynchronizedObject {
+                                                           VM_ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long' 

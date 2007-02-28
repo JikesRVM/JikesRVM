@@ -682,15 +682,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Does this object implement the VM_SynchronizedObject interface?
-   * @see VM_SynchronizedObject
+   * Does this object implement the SynchronizedObject interface?
+   * @see SynchronizedObject
    */ 
   @Uninterruptible
-  final boolean isSynchronizedObject() { 
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isSynchronizedObjectType()) return true;
-    return false;
+  final boolean isSynchronizedObject() {
+    return isAnnotationPresent(VM_TypeReference.SynchronizedObject);
   }
 
   /**

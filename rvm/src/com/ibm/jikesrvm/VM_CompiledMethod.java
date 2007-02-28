@@ -15,15 +15,15 @@ import org.vmmagic.unboxed.*;
 
 /**
  * A method that has been compiled into machine code by one of our compilers.
- * We implement VM_SynchronizedObject because we need to synchronize
+ * We implement SynchronizedObject because we need to synchronize
  * on the VM_CompiledMethod object as part of the invalidation protocol.
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
  * @modified Steven Augart
  */
-public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
-                                                   VM_SizeConstants {
+@SynchronizedObject
+public abstract class VM_CompiledMethod implements VM_SizeConstants {
 
   /*
    * constants for compiler types

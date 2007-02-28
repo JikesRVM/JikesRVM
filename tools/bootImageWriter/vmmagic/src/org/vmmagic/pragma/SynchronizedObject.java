@@ -7,16 +7,20 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package com.ibm.jikesrvm;
+package org.vmmagic.pragma;
 
-import org.vmmagic.pragma.SynchronizedObject;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
 
 /**
- * This class defines an object which should always be allocated a
+ * This interface designates an object which should always be allocated a
  * thin lock, since it is likely to be synchronized.
  *
  * @author Stephen Fink
  */
-@SynchronizedObject
-public class VM_Synchronizer {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SynchronizedObject {
 }
