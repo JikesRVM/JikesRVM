@@ -162,7 +162,7 @@ public abstract class OSR_OptExecStateExtractor
   }
 
 
-  /* VM_OptSaveVolatile has different stack layout from VM_DynamicBridge
+  /* VM_OptSaveVolatile has different stack layout from DynamicBridge
    * Have to separately recover them now, but there should be unified 
    * later on.
    *

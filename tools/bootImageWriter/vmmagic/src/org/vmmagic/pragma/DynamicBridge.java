@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm;
+package org.vmmagic.pragma;
 
 /**
  * Methods of a class that implements this interface are treated specially 
@@ -23,4 +23,4 @@ package com.ibm.jikesrvm;
  *
  * @author Bowen Alpern
  */
-interface VM_DynamicBridge { }
+public interface DynamicBridge { }

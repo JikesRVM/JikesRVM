@@ -696,14 +696,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Should the methods of this class be compiled with special 
    * register save/restore logic?
-   * @see VM_DynamicBridge
+   * @see DynamicBridge
    */
   @Uninterruptible
-  public final boolean isDynamicBridge () { 
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isDynamicBridgeType()) return true;
-    return false;
+  public final boolean isDynamicBridge () {
+    return isAnnotationPresent(VM_TypeReference.DynamicBridge);
   }
 
   /**

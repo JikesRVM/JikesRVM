@@ -96,8 +96,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Primitive CodeType;
   public static final VM_Array CodeArrayType;
   public static final VM_Class SynchronizedObjectType;   
-  public static final VM_Class DynamicBridgeType;     
-  public static final VM_Class SaveVolatileType;      
+  public static final VM_Class SaveVolatileType;
 
   static {
     // Primitive types
@@ -122,10 +121,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     SynchronizedObjectType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_SynchronizedObject;")
-                                    ).resolve().asClass();
-    DynamicBridgeType =
-      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_DynamicBridge;")
                                     ).resolve().asClass();
     SaveVolatileType =
       VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
@@ -464,14 +459,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   @Uninterruptible
   public final boolean isSynchronizedObjectType() { 
     return this == SynchronizedObjectType;
-  }
-  /**
-   * @return is this type the Jikes RVM internal dynamic bridge pragma
-   * type?
-   */
-  @Uninterruptible
-  public final boolean isDynamicBridgeType() { 
-    return this == DynamicBridgeType;
   }
   /**
    * @return is this type the Jikes RVM internal save volatile pragma

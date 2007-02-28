@@ -753,7 +753,7 @@ public class VM_Magic {
   /**
    * Transfer execution to target of a dynamic bridge method.
    * The following registers are restored:  non-volatiles, volatiles
-   * Note: this method must only be called from a VM_DynamicBridge method
+   * Note: this method must only be called from a DynamicBridge method
    * never returns (target method returns to caller of dynamic bridge method)
    * @param instructions target method
    */

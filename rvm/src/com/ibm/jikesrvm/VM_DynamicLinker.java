@@ -23,7 +23,8 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 17 Sep 1999  
  */
-public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
+@DynamicBridge
+public class VM_DynamicLinker implements VM_Constants {
 
   /**
    * Resolve, compile if necessary, and invoke a method.
@@ -54,7 +55,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
   /**
    * Helper class that does the real work of resolving method references
    * and compiling a lazy method invocation.  In separate class so
-   * that it doesn't implement VM_DynamicBridge magic.
+   * that it doesn't implement DynamicBridge magic.
    */
   private static class DL_Helper {
     
