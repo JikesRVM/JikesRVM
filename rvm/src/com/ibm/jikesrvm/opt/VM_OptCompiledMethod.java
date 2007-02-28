@@ -33,7 +33,9 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-@Uninterruptible public final class VM_OptCompiledMethod extends VM_CompiledMethod {
+@SynchronizedObject
+@Uninterruptible
+public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    

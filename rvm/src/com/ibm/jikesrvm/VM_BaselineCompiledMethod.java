@@ -23,6 +23,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Bowen Alpern
  * @modified Steven Augart
  */
+@SynchronizedObject
 public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
   implements VM_BaselineConstants {
 

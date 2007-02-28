@@ -21,6 +21,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
+@SynchronizedObject
 final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
 
   public VM_HardwareTrapCompiledMethod(int id, VM_Method m) {

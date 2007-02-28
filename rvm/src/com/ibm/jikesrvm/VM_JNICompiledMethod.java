@@ -26,6 +26,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Ton Ngo
  */
+@SynchronizedObject
 public final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
   public VM_JNICompiledMethod(int id, VM_Method m) {

@@ -27,16 +27,17 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
    */
-  private final VM_Annotation[] declaredAnnotations;
+  protected final VM_Annotation[] declaredAnnotationDatas;
+  /** Cached array of declared annotations. */
+  private Annotation[] declaredAnnotations;
 
   /**
    * Constructor used by all annotated elements
    *
    * @param annotations array of runtime visible annotations
    */
-  protected VM_AnnotatedElement(VM_Annotation[] annotations)
-  {
-    this.declaredAnnotations = annotations;
+  protected VM_AnnotatedElement(VM_Annotation[] annotations) {
+    this.declaredAnnotationDatas = annotations;
   }
 
   /**
@@ -77,67 +78,103 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   
   /**
    * Get the annotations for this and all super annotated elements.
-   * Must be overridden in VM_Class to return inherited annotations.
    */
-  public Annotation[] getAnnotations() {
-    return getDeclaredAnnotations();
+  public final Annotation[] getAnnotations() {
+    return cloneAnnotations(getAnnotationsInternal());
+  }
+
+  Annotation[] getAnnotationsInternal() {
+    return getDeclaredAnnotationsInternal();
   }
 
   /**
    * Get the annotations for this annotated element
    */
-  public Annotation[] getDeclaredAnnotations() {
-    int    numAnnotations = (declaredAnnotations != null) ? declaredAnnotations.length : 0;
-    final Annotation[] result = new Annotation[numAnnotations];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = declaredAnnotations[i].getValue();
-    }
-    return result;
+  public final Annotation[] getDeclaredAnnotations() {
+    return cloneAnnotations(getDeclaredAnnotationsInternal());
   }
+
+  final Annotation[] getDeclaredAnnotationsInternal() {
+    if (null == declaredAnnotations) {
+      declaredAnnotations = toAnnotations(declaredAnnotationDatas);
+    }
+    return declaredAnnotations;
+  }
+
+  /**
+   * Copy array of annotations so can be safely returned to user.
+   */
+  private Annotation[] cloneAnnotations(final Annotation[] internal) {
+    final Annotation[] annotations = new Annotation[internal.length];
+    System.arraycopy(internal,0,annotations,0,internal.length);
+    return annotations;
+  }
+
+  /**
+   * Convert annotations from internal format to annotation instances.
+   *
+   * @param annotations the annotations.
+   * @return the annotation instances.
+   */
+  final Annotation[] toAnnotations(final VM_Annotation[] annotations) {
+    if (null == annotations) {
+      return new Annotation[0];
+    } else {
+      final Annotation[] copy = new Annotation[annotations.length];
+      for (int i = 0; i < copy.length; i++) {
+        copy[i] = annotations[i].getValue();
+      }
+      return copy;
+    }
+  }
+
   /**
    * Get the annotation implementing the specified class or null
    */
-  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-    VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (declaredAnnotations != null) {
-      for(int i=0; i < declaredAnnotations.length; i++) {
-        if(declaredAnnotations[i].annotationType() == annotationTypeRef) {
-          @SuppressWarnings("unchecked") // If T extends Annotation, surely an Annotation is a T ???
-          T result = (T) declaredAnnotations[i].getValue();
-          return result;
-        }
-      }
+  @SuppressWarnings({"unchecked"})
+  public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+    if (null == annotationClass) {
+      throw new NullPointerException("annotationClass");
+    }
+    final Annotation[] annotations = getAnnotationsInternal();
+    for (final Annotation annotation : annotations) {
+      if( annotationClass.isInstance(annotation) ) return (T)annotation;
     }
     return null;
-  }
-  /**
-   * Is there an annotation of this type implemented on this annotated
-   * element?
-   */
-  public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-    VM_TypeReference annotationTypeRef = VM_TypeReference.findOrCreate(annotationClass);
-    if (declaredAnnotations != null) {
-      for(int i=0; i < declaredAnnotations.length; i++) {
-         if(declaredAnnotations[i].annotationType() == annotationTypeRef) {
-             return true;
-         }
-      }
-    }
-    return false;
   }
 
   /**
    * Is there an annotation of this type implemented on this annotated
-   * element? Safe to be called from uninterruptible code.
+   * element?
+   */
+  public final boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+    if (!VM.runningVM) {
+      final VM_TypeReference reference = VM_TypeReference.findOrCreate(annotationClass);
+      return isAnnotationDeclared(reference);
+    } else {
+      return getAnnotation(annotationClass) != null;
+    }
+  }
+
+  /**
+   * Return true if annotation present.
+   * WARNING: This method is overidden in VM_Class and it assumes that only @Inherited annotions will be processed.
    */
   @Uninterruptible
-  boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef) {
-    if (declaredAnnotations != null) {
-      for (VM_Annotation annotation : declaredAnnotations) {
-        if( annotation.getType().equals(annotationTypeRef.getName()) &&
-            annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
-          return true;
-        }
+  final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
+    return declaredAnnotationDatas != null && isAnnotationPresent(annotationTypeRef, declaredAnnotationDatas);
+  }
+
+  /**
+   * Return true if annotation is in specified set.
+   */
+  @Uninterruptible
+  static boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef,
+                                     final VM_Annotation[] annotations) {
+    for (VM_Annotation annotation : annotations) {
+      if( annotation.getType().equals(annotationTypeRef.getName()) &&
+          annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
+        return true;
       }
     }
     return false;

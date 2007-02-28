@@ -208,6 +208,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private Object mmType;
 
+  /** Cached set of inherited and declared annotations. */
+  private Annotation[] annotations;
+
   // --- General purpose functions --- //
 
   /**
@@ -436,23 +439,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return classInitializerMethod;
   }
 
-  /**
-   * Cached set of inherited annotations.
-   */
-  private Annotation[] inheritedAnnotations;
-  
-  /**
-   * Get the annotations for this and all super annotated elements
-   */
-  @Override
-  public Annotation[] getAnnotations() {
+  final Annotation[] getAnnotationsInternal() {
     final VM_Class parent = getSuperClass();
     if (null == parent) {
-      return getDeclaredAnnotations();
+      return super.getAnnotationsInternal();
     } else {
-      final Annotation[] declared = getDeclaredAnnotations();
-      //Not synchronized as it does not matter if occasionally we create two cached copies
-      if (null == inheritedAnnotations) {
+      if (null == annotations) {
+        final Annotation[] declared = getDeclaredAnnotations();
+        //Not synchronized as it does not matter if occasionally we create two cached copies
         final Annotation[] parentAnnotations = parent.getAnnotations();
         int rejected = 0;
         for (int i = 0; i < parentAnnotations.length; i++) {
@@ -471,17 +465,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
             }
           }
         }
-        final Annotation[] inherited = new Annotation[ parentAnnotations.length - rejected];
-        int index = 0;
+        annotations = new Annotation[declared.length + parentAnnotations.length - rejected];
+        System.arraycopy(declared, 0, annotations, 0, declared.length);
+        int index = declared.length;
         for (final Annotation pa : parentAnnotations) {
-          if (null != pa) inherited[index++] = pa;
+          if (null != pa) annotations[index++] = pa;
         }
-        inheritedAnnotations = inherited;
       }
-      final Annotation[] result = new Annotation[declared.length + inheritedAnnotations.length];
-      System.arraycopy(declared, 0, result, 0, declared.length);
-      System.arraycopy(inheritedAnnotations, 0, result, declared.length, inheritedAnnotations.length);
-      return result;
+      return annotations;
     }
   }
 
@@ -733,32 +724,39 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Does this object implement the SynchronizedObject interface?
+   * Return true if the SynchronizedObject annotation is present.
    * @see SynchronizedObject
-   */ 
-  @Uninterruptible
+   */
   final boolean isSynchronizedObject() {
-    return isAnnotationPresent(VM_TypeReference.SynchronizedObject);
+    return isAnnotationDeclared(VM_TypeReference.SynchronizedObject);
   }
 
   /**
-   * Should the methods of this class be compiled with special 
+   * Should the methods of this class be compiled with special
    * register save/restore logic?
    * @see DynamicBridge
    */
   @Uninterruptible
   public final boolean isDynamicBridge () {
-    return isAnnotationPresent(VM_TypeReference.DynamicBridge);
+    return isAnnotationDeclared(VM_TypeReference.DynamicBridge);
   }
 
   /**
-   * The methods of this class are only called from native code, 
+   * The methods of this class are only called from native code,
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
   @Uninterruptible
-  public final boolean isBridgeFromNative() { 
-    return isAnnotationPresent(VM_TypeReference.NativeBridge);
+  public final boolean isBridgeFromNative() {
+    return isAnnotationDeclared(VM_TypeReference.NativeBridge);
+  }
+
+  /**
+   * Should the methods of this class save incoming registers ?
+   * @see SaveVolatile
+   */
+  public final boolean isSaveVolatile() {
+    return isAnnotationDeclared(VM_TypeReference.SaveVolatile);
   }
 
   /**
@@ -769,7 +767,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see Interruptible
    */
   public final boolean isInterruptible() {
-    return isAnnotationPresent(Interruptible.class);
+    return isAnnotationDeclared(VM_TypeReference.Interruptible);
   }
 
   /**
@@ -780,9 +778,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see LogicallyUninterruptible
    */
   public final boolean isLogicallyUninterruptible() {
-    return isAnnotationPresent(LogicallyUninterruptible.class);
+    return isAnnotationDeclared(VM_TypeReference.LogicallyUninterruptible);
   }
-  
+
   /**
    * Does this class, its parents or one of its interfaces have an
    * NoOptCompile pragma annotation?
@@ -791,9 +789,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see NoOptCompile
    */
   public final boolean isNoOptCompile() {
-    return isAnnotationPresent(NoOptCompile.class);
+    return isAnnotationDeclared(VM_TypeReference.NoOptCompile);
   }
-  
+
   /**
    * Does this class, its parents or one of its interfaces have an
    * Preemptable pragma annotation?
@@ -802,9 +800,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see Preemptible
    */
   public final boolean isPreemptible() {
-    return isAnnotationPresent(Preemptible.class);
+    return isAnnotationDeclared(VM_TypeReference.Preemptible);
   }
-  
+
   /**
    * Does this class, its parents or one of its interfaces have an
    * UninterruptibleNoWarn pragma annotation?
@@ -813,9 +811,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see UninterruptibleNoWarn
    */
   public final boolean isUninterruptibleNoWarn() {
-    return isAnnotationPresent(UninterruptibleNoWarn.class);
+    return isAnnotationDeclared(VM_TypeReference.UninterruptibleNoWarn);
   }
-  
+
   /**
    * Does this class, its parents or one of its interfaces have an
    * Uninterruptible pragma annotation?
@@ -824,7 +822,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see Uninterruptible
    */
   public final boolean isUninterruptible() {
-    return isAnnotationPresent(Uninterruptible.class);
+    return isAnnotationDeclared(VM_TypeReference.Uninterruptible);
   }
 
   /**
@@ -835,16 +833,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see Unpreemptible
    */
   public final boolean isUnpreemptible() {
-    return isAnnotationPresent(Unpreemptible.class);
-  }  
-  
-  /**
-   * Should the methods of this class save incoming registers ?
-   * @see SaveVolatile
-   */
-  @Uninterruptible
-  public final boolean isSaveVolatile() {
-    return isAnnotationPresent(VM_TypeReference.SaveVolatile);
+    return isAnnotationDeclared(VM_TypeReference.Unpreemptible);
   }
 
   /**
@@ -2445,7 +2434,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return true
    */
   @Uninterruptible
-  public boolean isArrayType() { 
+  public boolean isArrayType() {
     return false;
   }
 
@@ -2454,7 +2443,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return false
    */
   @Uninterruptible
-  public boolean isPrimitiveType() { 
+  public boolean isPrimitiveType() {
     return false;
   }
 
@@ -2462,7 +2451,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return whether or not this is a reference (ie non-primitive) type.
    */
   @Uninterruptible
-  public boolean isReferenceType() { 
+  public boolean isReferenceType() {
     return true;
   }
 }

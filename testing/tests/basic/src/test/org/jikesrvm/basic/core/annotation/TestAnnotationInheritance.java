@@ -47,6 +47,21 @@ public class TestAnnotationInheritance {
     for (final Annotation annotation : annotations) {
       System.out.println(annotation);
     }
+    check("getAnnotations must return 2 annotations, 1 inherited and 1 declared", Y.class.getAnnotations().length == 2);
+    check("getAnnotations must return declared first", Y.class.getAnnotations()[0] instanceof B);
+    check("getAnnotations must return inherited second", Y.class.getAnnotations()[1] instanceof A);
+    check("getAnnotation on non-declared, non-inherited annotation must return null", Y.class.getAnnotation(C.class) == null);
+    check("getAnnotation on declared annotation must not return null", Y.class.getAnnotation(B.class) != null);
+    check("getAnnotation on inherited annotation must not return null", Y.class.getAnnotation(A.class) != null);
+    check("getAnnotation on declared annotation must return same instance after multiple calls",
+        Y.class.getAnnotation(B.class) == Y.class.getAnnotation(B.class));
+    check("getAnnotation on inherited annotation must return same instance after multiple calls",
+        Y.class.getAnnotation(A.class) == Y.class.getAnnotation(A.class));
+    check("getAnnotation on inherited annotation must return same instance from parent and child classes",
+        Y.class.getAnnotation(A.class) == X.class.getAnnotation(A.class));
   }
 
+  private static void check(String message, boolean condition) {
+    if (!condition) System.out.println("Failed check: " + message);
+  }
 }

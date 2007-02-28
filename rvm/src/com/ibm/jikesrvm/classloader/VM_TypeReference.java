@@ -133,6 +133,13 @@ public final class VM_TypeReference {
   public static final VM_TypeReference DynamicBridge = findOrCreate("Lorg/vmmagic/pragma/DynamicBridge;");
   public static final VM_TypeReference SynchronizedObject = findOrCreate("Lorg/vmmagic/pragma/SynchronizedObject;");
   public static final VM_TypeReference SaveVolatile = findOrCreate("Lorg/vmmagic/pragma/SaveVolatile;");
+  public static final VM_TypeReference Interruptible = findOrCreate("Lorg/vmmagic/pragma/Interruptible;");
+  public static final VM_TypeReference LogicallyUninterruptible = findOrCreate("Lorg/vmmagic/pragma/LogicallyUninterruptible;");
+  public static final VM_TypeReference NoOptCompile = findOrCreate("Lorg/vmmagic/pragma/NoOptCompile;");
+  public static final VM_TypeReference Preemptible = findOrCreate("Lorg/vmmagic/pragma/Preemptible;");
+  public static final VM_TypeReference UninterruptibleNoWarn = findOrCreate("Lorg/vmmagic/pragma/UninterruptibleNoWarn;");
+  public static final VM_TypeReference Uninterruptible = findOrCreate("Lorg/vmmagic/pragma/Uninterruptible;");
+  public static final VM_TypeReference Unpreemptible = findOrCreate("Lorg/vmmagic/pragma/Unpreemptible;");
 
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 
