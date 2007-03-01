@@ -1610,12 +1610,11 @@ public final class OPT_Instruction
    */
   // Shared functionality
   private abstract static class BASE_OE implements OPT_OperandEnumeration {
-    protected OPT_Instruction instr;
+    protected final OPT_Instruction instr;
     protected int i;
-    protected int end;
+    protected final int end;
     protected OPT_Operand nextElem;
     protected static final boolean DEBUG=false;
-    private BASE_OE() {} 
     protected BASE_OE(OPT_Instruction instr, int start, int end) {
       this.instr = instr;
       this.i = start - 1;
@@ -1640,7 +1639,7 @@ public final class OPT_Instruction
 
   // enumerate leaf operands in the given ranges
   private static final class OE extends BASE_OE {
-    private int defEnd;
+    private final int defEnd;
     private OPT_Operand deferredMOReg;
     public OE(OPT_Instruction instr, int start, int end, int defEnd) {
       super(instr, start, end);
