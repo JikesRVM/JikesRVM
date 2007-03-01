@@ -590,7 +590,7 @@ emitdefs(Nonterm nts_)
     print("package com.ibm.jikesrvm.%sopt; \n", arch);
     print("interface OPT_BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
-        print("%1static final byte %S_NT  \t= %d;\n", p, p->number);
+        print("%1byte %S_NT  \t= %d;\n", p, p->number);
     print("\n");
 #if 0
     print("static char *ntname[] = {\n%10,\n");

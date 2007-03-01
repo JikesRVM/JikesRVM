@@ -31,7 +31,7 @@ interface VM_ExitStatus {
      certainly don't want to give a false impression of success!  Please
      replace it with {@link #EXIT_STATUS_MISC_TROUBLE}.
   */
-  public static final int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
+  int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
   /* Note that XARGS uses status codes 123 through 127 specially.  You are
    * warned.  We keep out of the namespace from 129 upwards to 180 or so,
    * because Bash and other SH-compatible shells treat a command that dies
@@ -43,18 +43,18 @@ interface VM_ExitStatus {
    * To quote the bash manpage, "If a command is found
    *  but is not executable, the return status is 126."
    * We shall adopt those customs here. --Steve Augart*/
-  public static final int EXIT_STATUS_EXECUTABLE_NOT_FOUND = 127;
-  public static final int EXIT_STATUS_COULD_NOT_EXECUTE = 126;
-  public static final int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
-  public static final int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
-  public static final int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
-  public static final int EXIT_STATUS_MISC_TROUBLE = 122;
-  public static final int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
-  public static final int EXIT_STATUS_SYSCALL_TROUBLE = 121;
-  public static final int EXIT_STATUS_TIMER_TROUBLE =
+  int EXIT_STATUS_EXECUTABLE_NOT_FOUND = 127;
+  int EXIT_STATUS_COULD_NOT_EXECUTE = 126;
+  int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
+  int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
+  int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
+  int EXIT_STATUS_MISC_TROUBLE = 122;
+  int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
+  int EXIT_STATUS_SYSCALL_TROUBLE = 121;
+  int EXIT_STATUS_TIMER_TROUBLE =
     EXIT_STATUS_SYSCALL_TROUBLE;
-  public static final int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
-  public static final int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP =
+  int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
+  int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP =
     EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
   int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
   int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
