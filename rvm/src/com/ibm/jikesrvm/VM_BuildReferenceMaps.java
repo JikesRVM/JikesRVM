@@ -1644,12 +1644,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       if ((workStkTop == -1) && !handlersAllDone ) {
         int i;
         for (i=0; i < tryHandlerLength; i++) {
-          if (handlerProcessed[i] || bbMaps[byteToBlockMap[tryHandlerPC[i]]] == null)
-            continue;   // already processed this handler, or, haven't seen the 
+          // already processed this handler, or, haven't seen the 
           // associated try block yet so no starting map is available,
           // the try block must be in one of the other handlers
-          else 
-            break;
+          if (!handlerProcessed[i] && bbMaps[byteToBlockMap[tryHandlerPC[i]]] != null) break;
         }
         if (i == tryHandlerLength) {
           handlersAllDone = true;

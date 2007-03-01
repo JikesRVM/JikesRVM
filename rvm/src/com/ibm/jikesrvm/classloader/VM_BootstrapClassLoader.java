@@ -311,20 +311,15 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
           if (file.exists()) {
             h.process(file);
             if (!multiple) return h.getResult();
-          } else {
-            continue;
           }
         } else {
           File file = new File(path + File.separator + name);
           if (file.exists()) {
             h.process(file);
             if (!multiple) return h.getResult();
-          } else {
-            continue;
           }
         }
       } catch (Exception e) {
-        continue;
       }
     }
 

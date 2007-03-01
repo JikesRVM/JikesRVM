@@ -1122,10 +1122,8 @@ outer: for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) 
       VM_TypeReference t = val.getType();
       if (t == null) {
         s.scratch = FOUND_NULL_TYPE;
-        continue;
       } else if (result == null) {
         result = t;
-        continue;
       } else {
         VM_TypeReference meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {

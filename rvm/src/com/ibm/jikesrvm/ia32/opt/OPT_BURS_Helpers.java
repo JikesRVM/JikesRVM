@@ -1960,7 +1960,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
         OsrPoint.setElement(s, i, IC(val.upper32()));
         OsrPoint.setElement(s, pidx++, IC(val.lower32()));
       } else if (param instanceof OPT_IntConstantOperand){
-        continue;
       } else {
         throw new OPT_OptimizingCompilerException("OPT_BURS_Helpers", "unexpected parameter type"+param);
       }

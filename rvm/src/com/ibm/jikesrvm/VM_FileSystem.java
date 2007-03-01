@@ -218,9 +218,6 @@ public class VM_FileSystem {
           // Hmm, the wait returned, but the fd is not ready.
           // Assume an error was detected (such as the fd becoming invalid).
           return -2;
-        else
-          // Fd seems to be ready now, so retry the read
-          continue;
       }
       else
         // Read returned with a genuine error
@@ -252,9 +249,7 @@ public class VM_FileSystem {
         if (!isFdReady(waitData.writeFds[0]))
           // Looks like an error occurred.
           return -1;
-        else
-          // Fd looks like it's ready, so retry the write
-          continue;
+        // Fd looks like it's ready, so retry the write
       }
       else
         // The write returned with an error.
@@ -330,11 +325,8 @@ public class VM_FileSystem {
           read += rc;
           off += rc;
           cnt -= rc;
-          if (cnt == 0)
-              return read;
-          else 
-              // did not get everything, let's try again
-              continue;
+          if (cnt == 0) return read;
+          // did not get everything, let's try again
       }
       else if (rc == -1) {
         // last read would have blocked
@@ -365,7 +357,6 @@ public class VM_FileSystem {
               throw new VM_TimeoutException("read timed out");
             lastWaitTime = now;
           }
-          continue;
         }
       }
       else
@@ -422,19 +413,14 @@ public class VM_FileSystem {
         written += rc;
         off += rc;
         cnt -= rc;
-        if (cnt == 0)
-          return written;
-        else 
-          continue;
+        if (cnt == 0) return written;
       } else if (rc == -1) {
         // Write would have blocked
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
         if (!isFdReady(waitData.writeFds[0]))
           // Fd is not ready, so presumably an error occurred while on IO queue
           return -2;
-        else
-          // Fd apprears to be ready, so try write again
-          continue;
+        // Fd apprears to be ready, so try write again
       }
       else
         // Write returned with an error

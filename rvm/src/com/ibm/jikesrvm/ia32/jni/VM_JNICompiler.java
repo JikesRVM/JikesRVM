@@ -315,10 +315,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     for (int i=0; i<numArguments && gpr<NUM_PARAMETER_GPRS; i++) {
       if (types[i].isDoubleType()) {
         parameterOffset=parameterOffset.minus(2*WORDSIZE);
-        continue;
       } else if (types[i].isFloatType()) {
         parameterOffset=parameterOffset.minus(WORDSIZE);
-        continue;
       } else if (types[i].isLongType()) {
         if (gpr<NUM_PARAMETER_GPRS) {   // get the hi word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);

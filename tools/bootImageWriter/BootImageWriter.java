@@ -783,15 +783,12 @@ public class BootImageWriter extends BootImageWriterMessages
         if (type == null) continue;
         if (!type.isResolved()) {
           say("type referenced but not resolved: ", type.toString());
-          continue;
         }
-        if (!type.isInstantiated()) {
+        else if (!type.isInstantiated()) {
           say("type referenced but not instantiated: ", type.toString());
-          continue;
         }
-        if (!type.isInitialized()) {
+        else if (!type.isInitialized()) {
           say("type referenced but not initialized: ", type.toString());
-          continue;
         }
       }
     }

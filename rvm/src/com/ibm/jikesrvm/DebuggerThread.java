@@ -246,7 +246,6 @@ class DebuggerThread extends VM_Thread {
 
       if (ch != ' ' && ch != '\r' && ch != '\t') {
         tokens.add(Character.toString(ch));
-        continue;
       }
     }
     String[] result = new String[tokens.size()];
