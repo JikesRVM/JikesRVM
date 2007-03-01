@@ -227,7 +227,7 @@ public final class VM_Field extends VM_Member {
     } else {
       bits = VM_Magic.getUnsignedByteAtOffset(obj, getOffset());
     }
-    return (bits == 0) ? false : true;
+    return (bits != 0);
   }
 
   public final byte getByteValueUnchecked(Object obj) {
