@@ -66,8 +66,13 @@ public class TimeoutRecordingExecTask
 
     public void timeoutOccured(Watchdog watchdog) {
       System.out.println("Timeout occured. Attempting to kill process...");
-      super.timeoutOccured(watchdog);
-      System.out.println("Process should be dead...");
+      try {
+        super.timeoutOccured(watchdog);
+        System.out.println("Process should be dead...");
+      } catch (final Throwable e) {
+        System.out.println("Error terminating process...");
+        e.printStackTrace(System.out);        
+      }      
     }
   }
 }
