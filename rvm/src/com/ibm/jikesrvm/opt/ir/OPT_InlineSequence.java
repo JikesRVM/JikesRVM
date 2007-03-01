@@ -34,7 +34,7 @@ public final class OPT_InlineSequence {
   /**
    * bytecode index (in caller) of call site
    */
-  public final int bcIndex;
+  public int bcIndex;
 
   /**
    * We need more detailed information of call site than bcIndex.
