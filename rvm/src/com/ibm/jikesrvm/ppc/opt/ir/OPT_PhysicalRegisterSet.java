@@ -701,9 +701,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       case CONDITION_REG:
         return enumerateVolatileConditionRegisters();
       case SPECIAL_REG:
-        @SuppressWarnings("unchecked") // Can't type check this in generic Java
-        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
-        return empty;
+        return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException("Unsupported volatile type");
     }
@@ -740,9 +738,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       case CONDITION_REG:
         return enumerateNonvolatileConditionRegisters();
       case SPECIAL_REG:
-        @SuppressWarnings("unchecked") // Can't type check this in generic Java
-        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
-        return empty;
+        return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException
           ("Unsupported non-volatile type");

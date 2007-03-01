@@ -142,7 +142,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
     // 5. set up the non-volatile GPRs
     for (Enumeration<OPT_Register> e = enumerateNonvolatileGPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       r.setNonVolatile();
     }
 
@@ -161,27 +161,27 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
     // 7. set up the volatile FPRs
     for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       r.setVolatile();
     }
 
     // 8. set up the non-volatile FPRs
     for (Enumeration<OPT_Register> e = enumerateNonvolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       r.setNonVolatile();
     }
 
     // 9. Cache the volatile registers for efficiency
     volatileSet = new OPT_BitSet(this);
     for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       volatileSet.add(r);
     }
 
     // 10. Cache the FPRs for efficiency
     fpSet = new OPT_BitSet(this);
     for (Enumeration<OPT_Register> e = enumerateFPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       fpSet.add(r);
     }
 
@@ -554,9 +554,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       case DOUBLE_REG:
         return enumerateVolatileFPRs();
       case SPECIAL_REG:
-        @SuppressWarnings("unchecked") // Can't type check this in generic Java
-        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
-        return empty;
+        return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException("Unsupported volatile type");
     }
@@ -596,9 +594,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       case DOUBLE_REG:
         return enumerateNonvolatileFPRs();
       case SPECIAL_REG:
-        @SuppressWarnings("unchecked") // Can't type check this in generic Java
-        Enumeration<OPT_Register> empty = (Enumeration)OPT_EmptyEnumerator.EMPTY;
-        return empty;
+        return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException
           ("Unsupported non-volatile type");

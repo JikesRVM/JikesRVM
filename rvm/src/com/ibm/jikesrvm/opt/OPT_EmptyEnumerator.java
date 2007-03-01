@@ -19,8 +19,13 @@ import  java.util.NoSuchElementException;
  */
 public final class OPT_EmptyEnumerator
     implements Enumeration<Object> {
-  public static final OPT_EmptyEnumerator EMPTY = new OPT_EmptyEnumerator();
+  private static final OPT_EmptyEnumerator EMPTY = new OPT_EmptyEnumerator();
 
+  @SuppressWarnings({"unchecked", "RedundantCast"})
+  public static <T> Enumeration<T> emptyEnumeration(){
+    return (Enumeration<T>)(Enumeration)EMPTY; 
+  }
+  
   public boolean hasMoreElements () {
     return  false;
   }
