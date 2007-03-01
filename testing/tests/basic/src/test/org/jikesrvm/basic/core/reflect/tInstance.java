@@ -43,7 +43,7 @@ class tInstance {
 
   public Object ouserFunction(String s) {
     gc();
-    ofield = new String(s + "abc");
+    ofield = s + "abc";
     return ofield;
   }
 
@@ -151,7 +151,7 @@ class tInstance {
       System.exit(1);
     } else {
       System.out.println("================= READY TO CALL: " + omethod);
-      methodargs[0] = new String("123");
+      methodargs[0] = "123";
       Object oresult = omethod.invoke(myInstance, methodargs);
       if (!(oresult instanceof java.lang.String) || !oresult.equals("123abc")) {
         System.out.println("Wrong answer from ouserFunction");
