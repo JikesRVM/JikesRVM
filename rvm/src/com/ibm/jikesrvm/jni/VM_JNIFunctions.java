@@ -4546,23 +4546,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
             Address addr = copyBufferAddress.plus(i);
             int data = addr.loadInt();
             if (VM.LittleEndian) {
-              if (i<size) 
-                sourceArray[i]   = ((data)        & 0x000000ff) == 0 ? false : true;
-              if (i+1<size)                              
-                sourceArray[i+1] = ((data >>> BITS_IN_BYTE)  & 0x000000ff) == 0 ? false : true;
-              if (i+2<size)                              
-                sourceArray[i+2] = ((data >>> (2*BITS_IN_BYTE)) & 0x000000ff) == 0 ? false : true;
-              if (i+3<size)                                      
-                sourceArray[i+3] = ((data >>> (3*BITS_IN_BYTE)) & 0x000000ff) == 0 ? false : true;
+              if (i<size) sourceArray[i]   = ((data) & 0x000000ff) != 0;
+              if (i+1<size) sourceArray[i+1] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
+              if (i+2<size) sourceArray[i+2] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i+3<size) sourceArray[i+3] = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
             } else {
-              if (i<size) 
-                sourceArray[i]   = ((data >>> (3*BITS_IN_BYTE)) & 0x000000ff) == 0 ? false : true;
-              if (i+1<size)                              
-                sourceArray[i+1] = ((data >>> (2*BITS_IN_BYTE)) & 0x000000ff) == 0 ? false : true;
-              if (i+2<size)                              
-                sourceArray[i+2] = ((data >>> BITS_IN_BYTE)  & 0x000000ff) == 0 ? false : true;
-              if (i+3<size)                                      
-                sourceArray[i+3] = ((data)        & 0x000000ff) == 0 ? false : true;
+              if (i<size) sourceArray[i]   = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i+1<size) sourceArray[i+1] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i+2<size) sourceArray[i+2] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
+              if (i+3<size) sourceArray[i+3] = ((data) & 0x000000ff) != 0;
             }
           }
         } 
