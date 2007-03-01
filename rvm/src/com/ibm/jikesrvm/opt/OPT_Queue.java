@@ -35,7 +35,7 @@ final class OPT_Queue<T> implements Iterable<T> {
   }
 
   final boolean isEmpty() {
-    return elements.size() == 0;
+    return elements.isEmpty();
   }
 
   public final Iterator<T> iterator() {

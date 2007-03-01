@@ -108,7 +108,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase {
     globalCSE(ir.firstBasicBlockInCodeOrder());
 
     if (VM.VerifyAssertions) {
-      VM._assert(avail.size() == 0, avail.toString());
+      VM._assert(avail.isEmpty(), avail.toString());
     }
     ir.actualSSAOptions.setScalarValid(false);
   }

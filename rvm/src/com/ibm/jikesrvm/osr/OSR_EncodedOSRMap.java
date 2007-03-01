@@ -205,7 +205,7 @@ public class OSR_EncodedOSRMap
    */
   private int generateOsrMaps(LinkedList<OSR_MethodVariables> mVarList) {
 
-    int regmap = (mVarList.size() > 0)? NEXT_BIT:0;
+    int regmap = (!mVarList.isEmpty())? NEXT_BIT:0;
     int mapIndex = addIntToOsrMap(regmap);
 
     // from inner to outer

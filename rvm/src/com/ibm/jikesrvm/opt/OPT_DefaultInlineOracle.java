@@ -301,7 +301,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         });
 
       // Stage 4: Choose guards and package up the results in an InlineDecision object
-      if (methodsToInline.size() == 0) {
+      if (methodsToInline.isEmpty()) {
         OPT_InlineDecision d = OPT_InlineDecision.NO("No desirable targets");
         if (verbose) VM.sysWriteln("\tDecide: "+d);
         return d;

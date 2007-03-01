@@ -61,7 +61,7 @@ public final class OSR_VariableMap {
   public String toString () {
     StringBuffer buf = new StringBuffer("");
 
-    if (list.size() == 0)
+    if (list.isEmpty())
       buf.append("empty"); 
     else {
       for (OSR_VariableMapElement ptr : list) {

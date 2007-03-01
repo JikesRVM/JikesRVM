@@ -412,7 +412,7 @@ public final class OPT_GlobalValueNumberState {
       partition.removeVertex(v);
     }
     // if needed place the original partition back on the work list
-    if ((newClasses.size() > 0) && (partition.size() > 1)) {
+    if ((!newClasses.isEmpty()) && (partition.size() > 1)) {
       workList.push(partition);
     }
     // place any new congruence classes with size > 1 on the worklist

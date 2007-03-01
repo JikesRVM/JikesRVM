@@ -71,7 +71,7 @@ public class SelectRegexTask
   private String performMatching(final String input) {
     final Regexp regexp = this.pattern.getRegexp(getProject());
     final Vector groups = regexp.getGroups(input, 0);
-    if (groups != null && groups.size() > 0) {
+    if (groups != null && !groups.isEmpty()) {
       String output = select;
       final int count = groups.size();
       for( int i = 0; i < count; i++ ) {

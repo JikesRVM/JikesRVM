@@ -343,9 +343,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       } 
     }
     // while there is any more work to do.
-    while (workList.size() > 0 || copySet.size() > 0) {
+    while (!workList.isEmpty() || !copySet.isEmpty()) {
       // while there are copies that can be correctly inserted.
-      while (workList.size() > 0) {
+      while (!workList.isEmpty()) {
         Copy c = workList.remove(0);
         OPT_Register r = c.destination.register;
         VM_TypeReference tt = c.destination.type;
@@ -481,7 +481,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       // of an arbitrary member of the copy set into a temporary.
       // this destination has thus been saved, and can now be
       // safely overwritten.  so, add that copy to the work list.
-      if (copySet.size() > 0) {
+      if (!copySet.isEmpty()) {
         Copy c = copySet.remove(0);
         OPT_Register tt = ir.regpool.getReg(c.destination.register);
         OPT_SSA.addAtEnd(ir, bb, OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register, 

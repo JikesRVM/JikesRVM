@@ -47,7 +47,7 @@ public class OPT_Stack<T> implements Iterable<T> {
   }
 
   public final boolean isEmpty() {
-    return stack.size() == 0;
+    return stack.isEmpty();
   }
 
   public final boolean empty() {

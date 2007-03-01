@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
     // will need it.  If the reg/spill list is empty, we don't
     // need a map slot, i.e., no references are live at this instruction
     List<OPT_RegSpillListElement> regSpillList = irMapElem.regSpillList();
-    if (regSpillList.size() > 0) {
+    if (!regSpillList.isEmpty()) {
 
       // For efficiency we create our own bit map and then set the
       // appropriate array value

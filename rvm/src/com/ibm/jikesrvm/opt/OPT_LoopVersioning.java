@@ -409,7 +409,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     ArrayList<OPT_Instruction> checksToEliminate =
       new ArrayList<OPT_Instruction>();
     getListOfChecksToEliminate(loop, checksToEliminate);
-    if (checksToEliminate.size() == 0) {
+    if (checksToEliminate.isEmpty()) {
       return false;
     }
     else {
