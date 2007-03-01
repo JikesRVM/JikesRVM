@@ -16,7 +16,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
  * pool, there is only one instance of an OPT_Register with each number.
  * 
  * @see OPT_RegisterOperand
- * @see OPT_RegisterPool
+ * @see com.ibm.jikesrvm.ArchitectureSpecific.OPT_RegisterPool
  * 
  * @author Mauricio Serrano
  * @author John Whaley
