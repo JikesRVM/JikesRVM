@@ -35,7 +35,7 @@ public final class OPT_VCG implements OPT_VCGConstants
    */
   public static String toVCG(OPT_VCGGraph g) {
     OPT_VCGGraph.GraphDesc gd = g.getVCGDescriptor();
-    StringBuffer res = new StringBuffer("graph: {\n");
+    StringBuilder res = new StringBuilder("graph: {\n");
 
     /**
      * Emit graph header
@@ -252,7 +252,7 @@ public final class OPT_VCG implements OPT_VCGConstants
   private static String quote(String value) {
     int k = 0;
     if ((k = value.indexOf('\"')) != -1) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int s = k;
       for (; (k = value.indexOf('\"', s + 1)) != -1; s = k)
         sb.append(value.substring(s, k - 1)).append('\\');

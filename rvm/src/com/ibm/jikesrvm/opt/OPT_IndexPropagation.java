@@ -262,7 +262,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return a string representation of this cell 
      */
     public String toString() {
-      StringBuffer s = new StringBuffer(key.toString());
+      StringBuilder s = new StringBuilder(key.toString());
 
       if (isTOP()) return s.append("{TOP}").toString();
       if (isBOTTOM()) return s.append("{BOTTOM}").toString();
@@ -478,7 +478,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return a string representation of this cell 
      */
     public String toString() {
-      StringBuffer s = new StringBuffer(key.toString());
+      StringBuilder s = new StringBuilder(key.toString());
 
       if (isTOP()) return  s.append("{TOP}").toString();
       if (isBOTTOM()) return s.append("{BOTTOM}").toString();

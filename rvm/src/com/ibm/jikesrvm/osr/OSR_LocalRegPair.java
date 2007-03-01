@@ -80,22 +80,22 @@ public class OSR_LocalRegPair implements OSR_Constants {
    *  ( L/S num, type, valueType, value, oprand )
    */      
   public String toString() {
-    StringBuffer buf = new StringBuffer("(");
-    
+    StringBuilder buf = new StringBuilder("(");
+
     buf.append((char)kind);
-    buf.append(num+" , ");
+    buf.append(num).append(" , ");
 
     char tcode = (char)typeCode;
 
-    buf.append(tcode + " , ");
-    buf.append(valueType + " , ");
-    buf.append(value+" , ");
-    buf.append(operand+")");
+    buf.append(tcode).append(" , ");
+    buf.append(valueType).append(" , ");
+    buf.append(value).append(" , ");
+    buf.append(operand).append(")");
 
     // for long type, append another half
     if (VM.BuildFor32Addr && (tcode == LongTypeCode)) {
-      buf.append("("+_otherHalf.valueType+" , ");
-      buf.append(_otherHalf.value+")");
+      buf.append("(").append(_otherHalf.valueType).append(" , ");
+      buf.append(_otherHalf.value).append(")");
     }
     return buf.toString();
   }

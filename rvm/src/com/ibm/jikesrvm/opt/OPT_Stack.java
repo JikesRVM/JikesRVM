@@ -93,7 +93,7 @@ public class OPT_Stack<T> implements Iterable<T> {
   }
 
   public String toString() {
-    StringBuffer sb = new StringBuffer(" --> ");
+    StringBuilder sb = new StringBuilder(" --> ");
     for (T t : stack) {
       sb.append(t.toString());
       sb.append(' ');

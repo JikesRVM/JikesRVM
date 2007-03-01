@@ -126,7 +126,7 @@ public class OPT_Tree {
     for (int i=0; i < 2 * depth; i++) {
       sb.append(" ");
     }
-    sb.append(node +"\n");
+    sb.append(node).append("\n");
 
     Enumeration<OPT_TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {

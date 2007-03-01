@@ -455,7 +455,7 @@ final class OPT_Scheduler {
    * @param c the character to fill the string with
    */
   private static String dup(int len, char c) {
-    StringBuffer ret = new StringBuffer();
+    StringBuilder ret = new StringBuilder();
     StringBuffer sp2 = new StringBuffer(c);
     int p2 = 1;
     for (int i = 0; i < 32; i++) {

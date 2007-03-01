@@ -1158,11 +1158,11 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * @return string representation of this object
      */
     public String toString() {
-      StringBuffer buf = new StringBuffer("");
-      buf.append(" Gen: " + gen + "\n");
-      buf.append(" BB Kill: " + BBKillSet + "\n");
-      buf.append(" first PEI Kill: " + firstPEIKillSet + "\n");
-      buf.append(" In: " + in + "\n");
+      StringBuilder buf = new StringBuilder("");
+      buf.append(" Gen: ").append(gen).append("\n");
+      buf.append(" BB Kill: ").append(BBKillSet).append("\n");
+      buf.append(" first PEI Kill: ").append(firstPEIKillSet).append("\n");
+      buf.append(" In: ").append(in).append("\n");
       return  buf.toString();
     }
 

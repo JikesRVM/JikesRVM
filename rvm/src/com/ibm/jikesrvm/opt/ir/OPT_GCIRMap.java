@@ -187,7 +187,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    * @return string version of this object
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("");
+    StringBuilder buf = new StringBuilder("");
     if (list.isEmpty()) {
       buf.append("empty"); 
     } else {

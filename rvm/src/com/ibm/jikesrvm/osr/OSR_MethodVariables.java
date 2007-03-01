@@ -40,9 +40,9 @@ public final class OSR_MethodVariables {
   }
 
   public String toString () {
-    StringBuffer buf = new StringBuffer("");
-    
-    buf.append(" pc@"+bcIndex + VM_MemberReference.getMemberRef(methId).getName());
+    StringBuilder buf = new StringBuilder("");
+
+    buf.append(" pc@").append(bcIndex).append(VM_MemberReference.getMemberRef(methId).getName());
     buf.append("\n");
     for (int i=0, n=tupleList.size(); i<n; i++) {
       buf.append(tupleList.get(i).toString());

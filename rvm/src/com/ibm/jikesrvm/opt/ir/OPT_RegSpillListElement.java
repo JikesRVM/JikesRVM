@@ -102,12 +102,12 @@ public class OPT_RegSpillListElement {
    * @return string version of this object
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("");
-    buf.append("(" + symbolicReg + ", ");
+    StringBuilder buf = new StringBuilder("");
+    buf.append("(").append(symbolicReg).append(", ");
     if (isSpill()) {
-      buf.append("Sp: " + getSpill());
+      buf.append("Sp: ").append(getSpill());
     } else {
-      buf.append("Reg: " + getRealRegNumber());
+      buf.append("Reg: ").append(getRealRegNumber());
     }
     buf.append(")  ");
     return  buf.toString();

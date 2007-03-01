@@ -323,7 +323,7 @@ $$$$ END LOOP
   // print the options values
   @org.vmmagic.pragma.NoOptCompile
   public String toString() {
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
 
     // Begin generated option value printing 
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES

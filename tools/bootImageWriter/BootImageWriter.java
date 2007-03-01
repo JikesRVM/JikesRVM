@@ -297,7 +297,7 @@ public class BootImageWriter extends BootImageWriterMessages
      * @return string representation of this context
      */
     public String toString() {
-      StringBuffer message = new StringBuffer();
+      StringBuilder message = new StringBuilder();
       for (int i = 0; i < size(); i++) {
         if (i > 0) message.append(" --> ");
         message.append(elementAt(i));
@@ -309,7 +309,7 @@ public class BootImageWriter extends BootImageWriterMessages
      * Push an entity onto the context
      */
     public void push(String type, String fullName) {
-      StringBuffer sb = new StringBuffer("(");
+      StringBuilder sb = new StringBuilder("(");
       sb.append(type).append(")");
       sb.append(fullName);
       push(sb.toString());
@@ -319,8 +319,8 @@ public class BootImageWriter extends BootImageWriterMessages
      * Push a field access onto the context
      */
     public void push(String type, String decl, String fieldName) {
-      StringBuffer sb = new StringBuffer("(");
-                                         sb.append(type).append(")");
+      StringBuilder sb = new StringBuilder("(");
+      sb.append(type).append(")");
       sb.append(decl).append(".").append(fieldName);
       push(sb.toString());
     }
@@ -329,8 +329,8 @@ public class BootImageWriter extends BootImageWriterMessages
      * Push an array access onto the context
      */
     public void push(String type, String decl, int index) {
-      StringBuffer sb = new StringBuffer("(");
-                                         sb.append(type).append(")");
+      StringBuilder sb = new StringBuilder("(");
+      sb.append(type).append(")");
       sb.append(decl).append("[").append(index).append("]");
       push(sb.toString());
     }

@@ -71,7 +71,7 @@ public final class OPT_OsrTypeInfoOperand extends OPT_Operand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("OsrTypeInfo(");
+    StringBuilder buf = new StringBuilder("OsrTypeInfo(");
     for (int i=0, n=localTypeCodes.length; i<n; i++) {
       buf.append((char)localTypeCodes[i]);
     }

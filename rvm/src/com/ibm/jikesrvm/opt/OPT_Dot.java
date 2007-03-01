@@ -36,7 +36,7 @@ public final class OPT_Dot implements OPT_DotConstants
    */
   public static String toDot(OPT_DotGraph g) {
     OPT_DotGraph.GraphDesc gd = g.getDotDescriptor();
-    StringBuffer res = new StringBuffer("digraph G {\n");
+    StringBuilder res = new StringBuilder("digraph G {\n");
 
     // Emit graph options
 
@@ -298,7 +298,7 @@ public final class OPT_Dot implements OPT_DotConstants
   private static String quote(String value) {
     int k = 0;
     if ((k = value.indexOf('\"')) != -1) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int s = k;
       for (; (k = value.indexOf('\"', s + 1)) != -1; s = k)
         sb.append(value.substring(s, k - 1)).append('\\');

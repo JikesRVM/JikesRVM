@@ -274,14 +274,14 @@ public final class OPT_Instruction
    * @return string representation of this instruction.
    */
   public String toString() {
-    StringBuffer result = new StringBuffer("    ");
+    StringBuilder result = new StringBuilder("    ");
     if (isPEI())
       result.setCharAt(0, 'E');
     if (isGCPoint())
       result.setCharAt(1, 'G');
 
     if (operator == LABEL) {
-      result.append("LABEL"+Label.getBlock(this).block.getNumber());
+      result.append("LABEL").append(Label.getBlock(this).block.getNumber());
       if (Label.getBlock(this).block.getInfrequent()) result.append(" (Infrequent)");
       return result.toString();
     }

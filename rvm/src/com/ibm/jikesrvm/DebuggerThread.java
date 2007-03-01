@@ -220,7 +220,7 @@ class DebuggerThread extends VM_Thread {
   //           String[N] -> N tokens of input
   //
   private static String[] readTokens() {
-    StringBuffer line = new StringBuffer();
+    StringBuilder line = new StringBuilder();
     int    bb = VM_FileSystem.readByte(STDIN);
 
     if (bb < 0)
@@ -234,7 +234,7 @@ class DebuggerThread extends VM_Thread {
       char ch = line.charAt(i);
          
       if (isLetter(ch) || isDigit(ch)) {
-        StringBuffer alphaNumericToken = new StringBuffer();
+        StringBuilder alphaNumericToken = new StringBuilder();
         while (isLetter(ch) || isDigit(ch)) {
           alphaNumericToken.append(ch);
           if (++i == n) break;

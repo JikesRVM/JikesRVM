@@ -307,7 +307,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * @return a string representation of the graph
    */
   public String toString() {
-    StringBuffer res = new StringBuffer();
+    StringBuilder res = new StringBuilder();
     for (OPT_SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext()) {
       res.append("\nNode: ").append(n).append("\n");
       res.append("In nodes:\n");

@@ -121,7 +121,7 @@ final class OPT_ResourceMap {
    * @return a string representation of the resource map
    */
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < size; i++) {
       sb.append(toBinaryPad32(rumap[i])).append("\n");
     }
@@ -157,7 +157,7 @@ final class OPT_ResourceMap {
   // Generates a string of a given length filled by a given character.
   // For internal use only.
   private static String dup(int len, char c) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < len; i++)
       sb.append(c);
     return  sb.toString();

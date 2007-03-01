@@ -59,7 +59,7 @@ public final class OSR_VariableMap {
    * @return string version of this object
    */
   public String toString () {
-    StringBuffer buf = new StringBuffer("");
+    StringBuilder buf = new StringBuilder("");
 
     if (list.isEmpty())
       buf.append("empty"); 

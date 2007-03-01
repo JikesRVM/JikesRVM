@@ -102,14 +102,14 @@ final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   }
 
   public String toString () {
-    StringBuffer s = new StringBuffer("Vertex: " + name + " " + label);
+    StringBuilder s = new StringBuilder("Vertex: " + name + " " + label);
     s.append(" Targets: ");
     for (int i = 0; i < arity; i++) {
       if (targets[i] == null) {
         s.append("null  ");
       } 
       else {
-        s.append(targets[i].getName() + "  ");
+        s.append(targets[i].getName()).append("  ");
       }
     }
     return  s.toString();

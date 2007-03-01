@@ -465,7 +465,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
                                         +" "+this.thread);
     for (int i=0, n=varElms.size(); i<n; i++) {
       OSR_VariableElement var = varElms.get(i);
-      buf.append("\n  "+var);
+      buf.append("\n  ");
+      buf.append(var);
     }
 
     return new String(buf);

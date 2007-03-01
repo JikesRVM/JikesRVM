@@ -399,12 +399,10 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @param instr The instruction to dump
    */
   static String instructionToString(OPT_IR ir, OPT_Instruction instr) {
-    StringBuffer sb = new StringBuffer();
-    sb.append(instr.bcIndex + "\t" +
-              (instr.isPEI() ? "E" : " ") +
-              (instr.isGCPoint() ? "G " : "  "));
+    StringBuilder sb = new StringBuilder();
+    sb.append(instr.bcIndex).append("\t").append(instr.isPEI() ? "E" : " ").append(instr.isGCPoint() ? "G " : "  ");
     if (instr.operator == LABEL) {
-      sb.append("LABEL" + Label.getBlock(instr).block.getNumber());
+      sb.append("LABEL").append(Label.getBlock(instr).block.getNumber());
       if (Label.getBlock(instr).block.getInfrequent()) {
         sb.append(" (Infrequent)");
       }
@@ -412,8 +410,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     else {
       OPT_IREnumeration.AllDefsEnum defs = new OPT_IREnumeration.AllDefsEnum(ir, instr);
       OPT_IREnumeration.AllUsesEnum uses = new OPT_IREnumeration.AllUsesEnum(ir, instr);
-      sb.append(instr.operator +
-                "\n\t     defs: ");
+      sb.append(instr.operator).append("\n\t     defs: ");
       while(defs.hasMoreElements()) {
         sb.append (defs.next().toString());
         if (defs.hasMoreElements()) {

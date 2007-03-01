@@ -107,7 +107,7 @@ class SerializationData implements Serializable {
   }
 
   public String toString() {
-    StringBuffer res = new StringBuffer();
+    StringBuilder res = new StringBuilder();
     res.append("Z:").append(z).append("\n");
     res.append("B:").append(b).append("\n");
     res.append("S:").append(h).append("\n");

@@ -202,8 +202,8 @@ public class OSR_VariableElement implements OSR_Constants {
 
   /* to string */
   public String toString() {
-    StringBuffer buf = new StringBuffer("(");
-    
+    StringBuilder buf = new StringBuilder("(");
+
     if (kind == LOCAL)
       buf.append('L');
     else 

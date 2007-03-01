@@ -25,7 +25,7 @@ public class VM_Services {
    * @param blank
    */
   public static String getHexString(int i, boolean blank) {
-    StringBuffer buf = new StringBuffer(8);
+    StringBuilder buf = new StringBuilder(8);
     for (int j = 0; j < 8; j++, i <<= 4) {
       int n = i >>> 28;
       if (blank && (n == 0) && (j != 7)) {

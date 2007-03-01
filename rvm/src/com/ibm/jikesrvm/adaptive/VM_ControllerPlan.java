@@ -317,19 +317,9 @@ public final class VM_ControllerPlan {
   }
 
   public String toString() {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
-    buf.append("Method: "+ getCompPlan().method
-               +"\n\tCompiled Method ID: " + CMID
-               +"\n\tPrevious Compiled Method ID: " + prevCMID
-               +"\n\tCreated at "+ timeCreated
-               +"\n\tInitiated at "+ timeInitiated
-               +"\n\tCompleted at "+ timeCompleted
-               +"\n\tExpected Speedup: "+ expectedSpeedup
-               +"\n\tExpected Compilation Time: "+ expectedCompilationTime
-               +"\n\tPriority: "+ priority
-               +"\n\tStatus: "+ getStatusString()
-               +"\n\tComp. Plan Level: "+compPlan.options.getOptLevel() +"\n");
+    buf.append("Method: ").append(getCompPlan().method).append("\n\tCompiled Method ID: ").append(CMID).append("\n\tPrevious Compiled Method ID: ").append(prevCMID).append("\n\tCreated at ").append(timeCreated).append("\n\tInitiated at ").append(timeInitiated).append("\n\tCompleted at ").append(timeCompleted).append("\n\tExpected Speedup: ").append(expectedSpeedup).append("\n\tExpected Compilation Time: ").append(expectedCompilationTime).append("\n\tPriority: ").append(priority).append("\n\tStatus: ").append(getStatusString()).append("\n\tComp. Plan Level: ").append(compPlan.options.getOptLevel()).append("\n");
     return buf.toString();
   }
 

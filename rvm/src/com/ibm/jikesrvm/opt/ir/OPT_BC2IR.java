@@ -3303,7 +3303,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Return a string representation of the current basic block set.
    */
   private String printBlocks() {
-    StringBuffer res = new StringBuffer();
+    StringBuilder res = new StringBuilder();
     for (Enumeration<BasicBlockLE> e = blocks.contents(); e.hasMoreElements();) {
       BasicBlockLE b = e.nextElement();
       if (b == currentBBLE)

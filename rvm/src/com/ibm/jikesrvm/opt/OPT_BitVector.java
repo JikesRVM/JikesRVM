@@ -265,7 +265,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
    * Converts the OPT_BitVector to a String.
    */
   public String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     boolean needSeparator = false;
     buffer.append('{');
 //    int limit = length();

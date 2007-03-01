@@ -206,7 +206,7 @@ class OptTestHarness {
           // use for cases when the command line is too long for AIX
           i++;
           BufferedReader in = new BufferedReader(new FileReader(args[i]));
-          StringBuffer s = new StringBuffer("");
+          StringBuilder s = new StringBuilder("");
           while (in.ready()) {
             String line = in.readLine().trim();
             if (!line.startsWith("#")) {

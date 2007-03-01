@@ -1045,7 +1045,7 @@ public final class OPT_IR {
         if(basicBlockMap[j] != null) {
           basicBlockMap[j].printExtended();
         }
-        unreachablesString.append(" BB"+j);
+        unreachablesString.append(" BB").append(j);
       }
     }
     if(hasUnreachableBlocks) {

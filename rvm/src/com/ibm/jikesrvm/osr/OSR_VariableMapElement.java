@@ -33,7 +33,7 @@ public class OSR_VariableMapElement {
  
   public String toString() {
     StringBuffer buf = new StringBuffer("  ");
-    buf.append(this.osr.toString()+"\n");
+    buf.append(this.osr.toString()).append("\n");
     for (int i=0, n=this.mvars.size(); i<n; i++) {
       buf.append(i);
       buf.append("  ");

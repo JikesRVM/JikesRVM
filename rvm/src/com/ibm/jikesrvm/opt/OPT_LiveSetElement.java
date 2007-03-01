@@ -92,7 +92,7 @@ final class OPT_LiveSetElement {
    * @return a string version of this element
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("");
+    StringBuilder buf = new StringBuilder("");
     buf.append(regOp);
     return  buf.toString();
   }

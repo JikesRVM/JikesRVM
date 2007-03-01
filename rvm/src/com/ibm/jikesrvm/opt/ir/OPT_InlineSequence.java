@@ -115,7 +115,7 @@ public final class OPT_InlineSequence {
    * Returns the string representation of this inline sequence.
    */
   public String toString() {
-    StringBuffer sb = new StringBuffer(" ");
+    StringBuilder sb = new StringBuilder(" ");
     for (OPT_InlineSequence is = this; is != null; is = is.caller)
       sb.append(is.method.getDeclaringClass().getDescriptor()).append(" ").
         append(is.method.getName()).append(" ").

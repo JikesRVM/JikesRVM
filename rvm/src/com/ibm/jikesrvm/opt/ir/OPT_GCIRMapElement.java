@@ -121,10 +121,10 @@ public final class OPT_GCIRMapElement {
    * @return a string version of this object
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("");
-    buf.append(" Instruction: " + inst.bcIndex + ", " + inst);
+    StringBuilder buf = new StringBuilder("");
+    buf.append(" Instruction: ").append(inst.bcIndex).append(", ").append(inst);
     for (OPT_RegSpillListElement elem : regSpillList) {
-      buf.append(elem + "  ");
+      buf.append(elem).append("  ");
     }
     buf.append("\n");
     return  buf.toString();

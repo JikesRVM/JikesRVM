@@ -318,13 +318,13 @@ public class OPT_LiveSet {
    * @return the string-i-fied version
    */
   public String toString() {
-    StringBuffer buf = new StringBuffer("");
+    StringBuilder buf = new StringBuilder("");
     if (first == null)
       buf.append("empty"); 
     else {
       OPT_LiveSetElement ptr = first;
       while (ptr != null) {
-        buf.append(ptr.getRegisterOperand() + "  ");
+        buf.append(ptr.getRegisterOperand()).append("  ");
         ptr = ptr.getNext();
       }
     }
