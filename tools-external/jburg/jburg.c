@@ -702,7 +702,7 @@ emitkids(Rule rules_, int nrules_)
             print("%1case %d: // %R\n", r->ern, r);
         print("%s%2break;\n", str[i]);
     }
-    print("%1};\n");
+    print("%1}\n");
     print("%1throw new OPT_OptimizingCompilerException(\"BURS\",\"Bad rule number \",Integer.toString(eruleno));\n");
     print("%} else return null;\n");
     print("%}\n\n");
@@ -737,7 +737,7 @@ emitkids(Rule rules_, int nrules_)
             print("%1case %d: // %R\n", r->ern, r);
         print("%s%2break;\n", str[i]);
     }
-    print("%1};\n");
+    print("%1}\n");
     print("}\n\n");
 
 }
@@ -803,7 +803,7 @@ emitnts(Rule rules_, int nrules_)
     int i, j, *nts_ = alloc((nrules_ + 1)*sizeof *nts_);
     char **str = alloc((nrules_ + 1)*sizeof *str);
     if (oneterminal) {
-        printf("\n\nstatic private final byte nts[][]={};\n\n");
+        printf("\n\n private static final byte[][] nts={};\n\n");
         return;
     }
     for (i = 0, r = rules_; r; r = r->link) {
@@ -813,12 +813,12 @@ emitnts(Rule rules_, int nrules_)
         for (j = 0; str[j] && strcmp(str[j], buf); j++)
             ;
         if (str[j] == NULL) {
-            print("static private final byte nts_%d[] = { %s };\n", j, buf);
+            print(" private static final byte[] nts_%d = { %s };\n", j, buf);
             str[j] = strcpy(alloc(strlen(buf) + 1), buf);
         }
         nts_[i++] = j;
     }
-    print("\nstatic private final byte nts[][] = {\n");
+    print("\nprivate static final byte[][] nts = {\n");
     for (i = j = 0, r = rules_; r; r = r->link) {
         for ( ; j < r->ern; j++)
             print("%1null,%1/* %d */\n", j);

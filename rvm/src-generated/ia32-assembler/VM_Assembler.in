@@ -271,7 +271,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param index the byte offset into which to write
    * @param data the byte data value to write
    */
-  final protected void setMachineCodes(int index, byte data) {
+  protected final void setMachineCodes(int index, byte data) {
     if(index >= machineCodes.length) {
       growMachineCodes(index, data);
     } else {
@@ -402,7 +402,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param bits the number of bits to use.
    * @return true if val can be encoded in bits.
    */
-  protected final static boolean fits (Offset val, int bits) {
+  protected static final boolean fits (Offset val, int bits) {
     Word o = val.toWord().rsha(bits-1);
     return (o.isZero() || o.isMax());
   }
@@ -415,7 +415,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param bits the number of bits to use.
    * @return true if val can be encoded in bits.
    */
-  protected final static boolean fits (int val, int bits) {
+  protected static final boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
@@ -793,7 +793,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param rel32       the new immediate to use in the branch instruction
    *                    the code patcher is going to lay down before patchOffset
    */
-  public final static void patchCode(VM_CodeArray code,
+  public static final void patchCode(VM_CodeArray code,
 			             int patchOffset,
 			             int rel32) {
     byte p0 = (byte)0xE9;

@@ -233,12 +233,12 @@ public abstract class VM_Configuration {
   public static boolean ParanoidGCCheck       = true;
   public static boolean ForceFrequentGC       = true;
   //-#else
-  public final static boolean ParanoidGCCheck = false;
-  public final static boolean ForceFrequentGC = false;
+  public static final boolean ParanoidGCCheck = false;
+  public static final boolean ForceFrequentGC = false;
   //-#endif
 
   /** Do we have the facilities to intercept blocking system calls? */
-  public final static boolean withoutInterceptBlockingSystemCalls =
+  public static final boolean withoutInterceptBlockingSystemCalls =
     //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
     true;
     //-#else
@@ -259,26 +259,24 @@ public abstract class VM_Configuration {
    * old code when we move up to the next version.
    */
   
-  public final static boolean BuildForClasspath_0_93 =
+  public static final boolean BuildForClasspath_0_93 =
     //-#if RVM_WITH_CLASSPATH_0_93
     true;
     //-#else
     false;
    //-#endif
     
-  public final static boolean BuildWithGCTrace = 
+  public static final boolean BuildWithGCTrace = 
     //-#if RVM_WITH_GCTRACE
     true;
     //-#else
     false;
     //-#endif
     
-  public final static boolean BuildWithGCSpy = 
+  public static final boolean BuildWithGCSpy = 
     //-#if RVM_WITH_GCSPY
     true;
     //-#else
     false;
-    //-#endif
-      
-    
+    //-#endif        
 }

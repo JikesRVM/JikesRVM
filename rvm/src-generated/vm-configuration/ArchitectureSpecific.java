@@ -88,7 +88,7 @@ public class ArchitectureSpecific {
   public static final class OPT_MIROptimizationPlanner extends com.ibm.jikesrvm.ia32.opt.OPT_MIROptimizationPlanner {}
   public static final class OPT_NormalizeConstants extends com.ibm.jikesrvm.ia32.opt.OPT_NormalizeConstants {}
   public static interface OPT_PhysicalRegisterConstants extends com.ibm.jikesrvm.ia32.opt.OPT_PhysicalRegisterConstants {}
-  public static abstract class OPT_PhysicalRegisterTools extends com.ibm.jikesrvm.ia32.opt.OPT_PhysicalRegisterTools {}
+  public abstract static class OPT_PhysicalRegisterTools extends com.ibm.jikesrvm.ia32.opt.OPT_PhysicalRegisterTools {}
   public static final class OPT_RegisterPreferences extends com.ibm.jikesrvm.ia32.opt.OPT_RegisterPreferences {}
   public static final class OPT_RegisterRestrictions extends com.ibm.jikesrvm.ia32.opt.OPT_RegisterRestrictions {
     public OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {

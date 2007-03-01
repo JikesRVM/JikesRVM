@@ -279,56 +279,56 @@ $$$$ END IF
    * from OPT_InstructionFormat.java.
    */
   // operator has no interesting traits
-  static final public int none         = 0x00000000;
+  public static final int none         = 0x00000000;
   // operator is a simple move operation from one "register" to another
-  static final private int move         = 0x00000001; 
+  private static final int move         = 0x00000001; 
   // operator is an intraprocedural branch of some form
-  static final private int branch       = 0x00000002; 
+  private static final int branch       = 0x00000002; 
   // operator is some kind of call (interprocedural branch)
-  static final private int call         = 0x00000004; 
+  private static final int call         = 0x00000004; 
   // modifer for branches/calls
-  static final private int conditional  = 0x00000008;
+  private static final int conditional  = 0x00000008;
   // modifier for branches/calls, mostly on MIR
-  static final private int indirect     = 0x00000010;
+  private static final int indirect     = 0x00000010;
   // an explicit load of a value from memory
-  static final private int load         = 0x00000020; 
+  private static final int load         = 0x00000020; 
   // operator is modeled as a load by memory system, mostly on MIR
-  static final private int memAsLoad    = 0x00000040; 
+  private static final int memAsLoad    = 0x00000040; 
   // an explicit store of a value to memory
-  static final private int store        = 0x00000080; 
+  private static final int store        = 0x00000080; 
   // operator is modeled as a store by memory system, mostly on MIR
-  static final private int memAsStore   = 0x00000100; 
+  private static final int memAsStore   = 0x00000100; 
   // is an exception throw
-  static final private int ethrow       = 0x00000200;
+  private static final int ethrow       = 0x00000200;
   // an immediate PEI (null_check, int_zero_check, but _not_ call);
-  static final private int immedPEI     = 0x00000400; 
+  private static final int immedPEI     = 0x00000400; 
   // operator is some kind of compare (val,val)-> cond
-  static final private int compare      = 0x00000800; 
+  private static final int compare      = 0x00000800; 
   // an explicit memory allocation
-  static final private int alloc        = 0x00001000; 
+  private static final int alloc        = 0x00001000; 
   // a return instruction (interprocedural branch)
-  static final private int ret          = 0x00002000; 
+  private static final int ret          = 0x00002000; 
   // operator has a variable number of uses
-  static final public int varUses      = 0x00004000; 
+  public static final int varUses      = 0x00004000; 
   // operator has a variable number of defs
-  static final public int varDefs      = 0x00008000; 
+  public static final int varDefs      = 0x00008000; 
   // operator is a potential thread switch point for some reason
   // other than being a call/immedPEI
-  static final private int tsp          = 0x00010000; 
+  private static final int tsp          = 0x00010000; 
   // operator is an acquire (monitorenter/lock) HIR only
-  static final private int acquire      = 0x00020000; 
+  private static final int acquire      = 0x00020000; 
   // operator is a relase (monitorexit/unlock) HIR only
-  static final private int release      = 0x00040000; 
+  private static final int release      = 0x00040000; 
   // operator either directly or indirectly may casue dynamic linking
-  static final private int dynLink      = 0x00080000; 
+  private static final int dynLink      = 0x00080000; 
   // operator is a yield point
-  static final private int yieldPoint   = 0x00100000; 
+  private static final int yieldPoint   = 0x00100000; 
   // operator pops floating-point stack after performing defs
-  static final private int fpPop        = 0x00200000; 
+  private static final int fpPop        = 0x00200000; 
   // operator pushs floating-point stack before performing defs
-  static final private int fpPush       = 0x00400000; 
+  private static final int fpPush       = 0x00400000; 
   // operator is commutative
-  static final private int commutative  = 0x00800000; 
+  private static final int commutative  = 0x00800000; 
 
   /**
    * Does the operator represent a simple move (the value is unchanged) 
