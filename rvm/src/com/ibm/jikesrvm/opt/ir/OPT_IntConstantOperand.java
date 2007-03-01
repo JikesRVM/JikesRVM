@@ -22,7 +22,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  public int value;
+  public final int value;
 
   /**
    * Constructs a new int constant operand with the specified value.
