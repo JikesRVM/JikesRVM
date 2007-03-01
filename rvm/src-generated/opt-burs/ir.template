@@ -41,7 +41,7 @@ RULE.PRODUCTION		"" RULE.COST
 $$$$ END IF
 $$$$ END FOREACH
 %%
-public static final byte action[]={0
+public static final byte[] action={0
 $$$$ FOREACH RULE THE_RULE_FILE
    ,RULE.FLAGS
 $$$$ END FOREACH

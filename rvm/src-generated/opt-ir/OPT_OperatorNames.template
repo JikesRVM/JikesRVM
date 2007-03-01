@@ -21,7 +21,7 @@ package com.ibm.jikesrvm.opt.ir;
  */
 public abstract class OPT_OperatorNames {
 
-  public static final String operatorName[] = new String[] {
+  public static final String[] operatorName = new String[] {
 $$$$ FOREACH OPERATOR OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
 $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")

@@ -889,7 +889,7 @@ emitrule(Nonterm nts_)
 {
     Nonterm p;
     if (nts_->link) {
-        print("static final char decode[][] = {null,\n");
+        print("static final char[][] decode = {null,\n");
         for (p = nts_; p; p = p->link) {
             Rule r;
             print("%1{// %S_NT\n%10,\n", p);
@@ -966,7 +966,7 @@ emitstring(Rule rules_)
     }
     print("};\n");
 #endif
-    print("public static final String string[] = {\n");
+    print("public static final String[] string = {\n");
     print("%1null,     \t// 0\n");
     for (r = rules_; r; r = r->link)
         print("%1\"%R\",  \t// %d\n", r,r->ern);
