@@ -267,7 +267,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       if (forward && block == cfg.exit()) {
         if (DEBUG) { System.out.println(" Popping");   }
         pop();   // return
-        continue recurse;  
+        continue;
       }
 
       OPT_BasicBlockEnumeration e;
