@@ -554,7 +554,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   outer:
     for (int i = 0; i < bootstrapClassPrefixes.length; i++) {
       byte[] test = bootstrapClassPrefixes[i];
-      if (test.length > val.length) continue outer;
+      if (test.length > val.length) continue;
       for (int j = 0; j < test.length; j++) {
         if (val[j] != test[j]) 
           continue outer;
@@ -574,7 +574,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   outer:
     for (int i = 0; i < rvmClassPrefixes.length; i++) {
       byte[] test = rvmClassPrefixes[i];
-      if (test.length > val.length) continue outer;
+      if (test.length > val.length) continue;
       for (int j = 0; j < test.length; j++) {
         if (val[j] != test[j]) 
           continue outer;

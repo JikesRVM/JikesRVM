@@ -355,12 +355,11 @@ public final class OPT_GlobalValueNumberState {
       // now check that each other target matches the first element
       // if not, add this class to the work list
       //
-      // FIXME: Aren't the break and the label gratuitous ?? 
-      congruenceClass: for (; i.hasNext();) {
+      for (; i.hasNext();) {
         OPT_ValueGraphVertex v = i.next();
         if (!checkCongruence(first, v)) {
           workList.push(c);
-          break  congruenceClass;
+          break;
         }
       }
     }

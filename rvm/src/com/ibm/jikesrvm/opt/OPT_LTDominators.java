@@ -256,7 +256,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       if (block == null) {
         if (DEBUG) { System.out.println(" Popping");   }
         pop();   // return
-        continue recurse;  
+        continue;
       }
 
       // The current Dominance Frontier and SSA code assumes the exit

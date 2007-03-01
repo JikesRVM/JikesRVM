@@ -584,7 +584,7 @@ import org.vmmagic.unboxed.*;
             VM.sysFail(" can't find unusual map !!!!!!! - should never occur");
           } else {
             jsrSiteMap = jsrInfo.unusualMaps[unusualMapIndex];
-            break findJSRSiteMap;
+            break;
           }
         }
       }

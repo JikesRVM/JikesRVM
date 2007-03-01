@@ -198,7 +198,6 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     boolean reiterate = true;
     while (reiterate) {         // /MT/ better think about proper ordering.
       reiterate = false;
-      instructions: 
       for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
            reg != null; reg = elemNext) {
         elemNext = reg.getNext(); // we may remove reg, so get elemNext up front
@@ -218,10 +217,10 @@ public final class OPT_Simple extends OPT_CompilerPhase {
           rhs = Move.getVal(defInstr);
         } else if (defInstr.operator() == PHI) {
           OPT_Operand phiVal = equivalentValforPHI (defInstr);
-          if (phiVal == null)  continue  instructions;
+          if (phiVal == null)  continue;
           rhs = phiVal;
         } else {
-          continue  instructions;
+          continue;
         }
 
         if (rhs.isRegister()) {

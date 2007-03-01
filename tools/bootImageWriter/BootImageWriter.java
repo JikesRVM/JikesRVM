@@ -2210,7 +2210,7 @@ public class BootImageWriter extends BootImageWriterMessages
               }
             }
             constructor = vmCons;
-            break loop_over_all_constructors;
+            break;
           }
         }
         if (constructor == null) {

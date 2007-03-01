@@ -87,7 +87,7 @@ import org.vmmagic.unboxed.*;
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit;
          Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
-minor:  while (0 != retries--) { // repeat if there is contention for thin lock
+         while (0 != retries--) { // repeat if there is contention for thin lock
           Word old = VM_Magic.prepareWord(o, lockOffset);
           Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
           if (id.isZero()) { // o isn't locked
@@ -96,7 +96,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
               if (STATS) slowLocks++;
               break major;  // lock succeeds
             }
-            continue minor; // contention, possibly spurious, try again
+            continue; // contention, possibly spurious, try again
           }
           if (id.EQ(threadId)) { // this thread has o locked already
             Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
@@ -112,7 +112,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
               if (STATS) slowLocks++;
               break major;  // lock succeeds
             }
-            continue minor; // contention, probably spurious, try again (TODO!! worry about this)
+            continue; // contention, probably spurious, try again (TODO!! worry about this)
           }
 
           if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
@@ -145,7 +145,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           }
         }
         // create a heavy lock for o and lock it
-        if (inflateAndLock(o, lockOffset)) break major;
+        if (inflateAndLock(o, lockOffset)) break;
        }
        // o has been locked, must return before an exception can be thrown
   }
