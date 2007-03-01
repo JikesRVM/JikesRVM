@@ -61,7 +61,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isRef() {
+  public boolean isRef() {
     return true;
   }
 

@@ -51,14 +51,14 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return true;
   }
   /**
    * Return a string representation of this phase
    * @return "Dominators + LpStrTree"
    */
-  public final String getName() {
+  public String getName() {
     return  "Dominators + LpStrTree";
   }
 
@@ -68,14 +68,14 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * @param before query control
    * @return true or false
    */
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
   /**
    * Main driver for the dominator calculation.
    */
-  public final void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     try {
       // reset flags in case an exception is thrown inside "perform"
       // and it doesn't return normally

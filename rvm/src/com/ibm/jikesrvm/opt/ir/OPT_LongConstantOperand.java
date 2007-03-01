@@ -58,7 +58,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * 
    * @return VM_TypeReference.Long
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.Long;	 
   }
 
@@ -67,7 +67,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isLong() {
+  public boolean isLong() {
     return true;
   }
 

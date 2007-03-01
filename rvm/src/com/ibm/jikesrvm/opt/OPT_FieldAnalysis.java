@@ -39,11 +39,11 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.FIELD_ANALYSIS;
   }
 
-  public final String getName () {
+  public String getName () {
     return "Field Analysis";
   }
 
@@ -97,7 +97,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  public final void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.

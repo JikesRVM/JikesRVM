@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
    * failure.
    */
   @Inline
-  protected final Address allocPages(int pages) { 
+  protected Address allocPages(int pages) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     int pageOffset = freeList.alloc(pages);
@@ -140,7 +140,7 @@ import org.vmmagic.pragma.*;
    * allocated together.
    */
   @Inline
-  public final void releasePages(Address first) { 
+  public void releasePages(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 
@@ -190,7 +190,7 @@ import org.vmmagic.pragma.*;
    * @param pages The size of the pending allocation in pages
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
-  public final int adjustForMetaData(int pages) { return pages; }
+  public int adjustForMetaData(int pages) { return pages; }
   
   /**
    * Adjust a page request to include metadata requirements, if any.  In the
@@ -202,10 +202,10 @@ import org.vmmagic.pragma.*;
    * allocation
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
-  public final int adjustForMetaData(int pages, Address begin) { return pages; }
+  public int adjustForMetaData(int pages, Address begin) { return pages; }
   
   @Inline
-  final int pages(Address first) { 
+  int pages(Address first) { 
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }
 
@@ -221,7 +221,7 @@ import org.vmmagic.pragma.*;
    * @return the size in bytes
    */
   @Inline
-  public final Extent getSize(Address first) { 
+  public Extent getSize(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 

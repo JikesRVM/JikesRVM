@@ -18,15 +18,15 @@ package com.ibm.jikesrvm.opt;
  */
 public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return  options.SCHEDULE_PREPASS;
   }
 
-  public final String getName() {
+  public String getName() {
     return  "InstrSched (pre-pass)";
   }
 
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return  !before &&          // old interface only printed afterwards
     options.PRINT_SCHEDULE_PRE;
   }
@@ -37,7 +37,7 @@ public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
    *
    * @param ir the IR in question 
    */
-  public final void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
+  public void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir) {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);
   }
 

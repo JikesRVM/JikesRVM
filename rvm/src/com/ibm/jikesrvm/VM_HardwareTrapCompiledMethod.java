@@ -29,16 +29,16 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
   }
 
   @Uninterruptible
-  public final int getCompilerType() { 
+  public int getCompilerType() { 
     return TRAP; 
   }
 
-  public final String getCompilerName() {
+  public String getCompilerName() {
     return "<hardware trap>";
   }
 
   @Uninterruptible
-  public final VM_ExceptionDeliverer getExceptionDeliverer() { 
+  public VM_ExceptionDeliverer getExceptionDeliverer() { 
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -47,12 +47,12 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
-  public final int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     return -1;
   }
    
   @Uninterruptible
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
+  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -60,21 +60,21 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final void printStackTrace(Offset instructionOffset, com.ibm.jikesrvm.PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, com.ibm.jikesrvm.PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, Offset instr) {
+  public void set(VM_StackBrowser browser, Offset instr) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
        
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  public final boolean up(VM_StackBrowser browser) {
+  public boolean up(VM_StackBrowser browser) {
     return false;
   }
 

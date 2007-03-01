@@ -2738,7 +2738,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * HACK: Mark current basic block unsafe for scheduling.
    * TODO: remove when we've got UNINT_BEGIN/END working correctly.
    */
-  final void markBBUnsafeForScheduling () {
+  void markBBUnsafeForScheduling () {
     currentBBLE.block.setUnsafeToSchedule();
   }
 
@@ -2791,7 +2791,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @return the value of a literal constant from the bytecode stream,
    * encoding as a constant IR operand
    */
-  public final OPT_Operand getConstantOperand(int index) {
+  public OPT_Operand getConstantOperand(int index) {
     byte desc = bcodes.getConstantType(index);
     VM_Class declaringClass = bcodes.getDeclaringClass();
     switch (desc) {

@@ -51,7 +51,7 @@ public final class OPT_GCIRMapElement {
    * return the instruction with this entry
    * @return the instruction with this entry
    */
-  public final OPT_Instruction getInstruction() {
+  public OPT_Instruction getInstruction() {
     return inst;
   }
 
@@ -59,21 +59,21 @@ public final class OPT_GCIRMapElement {
    * returns an enumerator to access the registers/spills for this entry
    * @return an enumerator to access the registers/spills for this entry
    */
-  public final List<OPT_RegSpillListElement> regSpillList() {
+  public List<OPT_RegSpillListElement> regSpillList() {
     return regSpillList;
   }
 
   /**
    * Add a new spill list element for this map element
    */
-  public final void addRegSpillElement(OPT_RegSpillListElement e) {
+  public void addRegSpillElement(OPT_RegSpillListElement e) {
     regSpillList.add(e);
   }
 
   /**
    * Delete a spill list element from this map element
    */
-  public final void deleteRegSpillElement(OPT_RegSpillListElement e) {
+  public void deleteRegSpillElement(OPT_RegSpillListElement e) {
     regSpillList.remove(e);
   }
 
@@ -81,7 +81,7 @@ public final class OPT_GCIRMapElement {
    * Counts and returns the number of references for this map
    * @return the number of references, either regs or spills for this map
    */
-  public final int countNumElements() {
+  public int countNumElements() {
     return regSpillList.size();
   }
 
@@ -90,7 +90,7 @@ public final class OPT_GCIRMapElement {
    *     for this entry
    * @return the number of register elements for this entry
    */
-  public final int countNumRegElements() {
+  public int countNumRegElements() {
     int count = 0;
 
     for (OPT_RegSpillListElement elem : regSpillList) {
@@ -105,7 +105,7 @@ public final class OPT_GCIRMapElement {
    * Counts and returns the number of spill for this entry
    * @return the number of spill for this entry
    */
-  public final int countNumSpillElements() {
+  public int countNumSpillElements() {
     int count = 0;
     // traverse the list and compute how many spills exist
     for (OPT_RegSpillListElement elem : regSpillList) {

@@ -53,7 +53,7 @@ public abstract class OPT_MachineSpecificIRPowerPC extends OPT_MachineSpecificIR
   public static final class PPC64 extends OPT_MachineSpecificIRPowerPC {
     public static final PPC64 singleton = new PPC64();
     @Override
-    public final boolean mayEscapeThread(OPT_Instruction instruction) {
+    public boolean mayEscapeThread(OPT_Instruction instruction) {
       switch (instruction.getOpcode()) {
       case DCBST_opcode:case DCBT_opcode:case DCBTST_opcode:
       case DCBZ_opcode:case DCBZL_opcode:case ICBI_opcode:

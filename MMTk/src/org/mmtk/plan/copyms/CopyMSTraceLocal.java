@@ -110,7 +110,7 @@ import org.vmmagic.unboxed.*;
    * @return The allocator to use when copying objects.
    */
   @Inline
-  public final int getAllocator() { 
+  public int getAllocator() { 
     return CopyMS.ALLOC_MS;
   }
 }

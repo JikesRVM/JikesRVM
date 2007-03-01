@@ -31,11 +31,11 @@ public final class OPT_ExpandCallingConvention extends OPT_CompilerPhase {
     return  options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
-  public final String getName() { 
+  public String getName() { 
     return "Expand Calling Convention"; 
   }
 
-  public final void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir)  {
+  public void perform(com.ibm.jikesrvm.opt.ir.OPT_IR ir)  {
     OPT_CallingConvention.expandCallingConventions(ir);
   }
 }

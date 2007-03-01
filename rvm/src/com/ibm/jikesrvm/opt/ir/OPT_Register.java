@@ -284,27 +284,27 @@ public final class OPT_Register {
     return scratch;
   }
 
-  public final int hashCode() {
+  public int hashCode() {
     return number;
   }
 
 
   /* inlined behavior of DoublyLinkedListElement */
   OPT_Register next, prev;
-  public final OPT_Register getNext() { return next; }
-  final void setNext(OPT_Register e) { next = e; }
-  public final OPT_Register getPrev() { return prev; }
-  public final void linkWithNext(OPT_Register Next) {
+  public OPT_Register getNext() { return next; }
+  void setNext(OPT_Register e) { next = e; }
+  public OPT_Register getPrev() { return prev; }
+  public void linkWithNext(OPT_Register Next) {
     next = Next;
     Next.prev = this;
   }
 
-  final void append (OPT_Register l) {
+  void append (OPT_Register l) {
     next = l;
     l.prev = this;
   }
 
-  final OPT_Register remove() {
+  OPT_Register remove() {
     OPT_Register Prev = prev, Next = next;
     if (Prev != null) Prev.next = Next;
     if (Next != null) Next.prev = Prev;

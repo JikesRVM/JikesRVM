@@ -61,21 +61,21 @@ public final class OPT_TypeOperand extends OPT_Operand {
    * 
    * @return VM_TypeReference.VM_Type
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.VM_Type;
   }
 
   /**
    * @return the VM_TypeReference for this type operand
    */
-  public final VM_TypeReference getTypeRef() {
+  public VM_TypeReference getTypeRef() {
     return typeRef;
   }
 
   /**
    * @return the VM_Type for this type operand -- may be null
    */
-  public final VM_Type getVMType() {
+  public VM_Type getVMType() {
     return type;
   }
 

@@ -68,7 +68,7 @@ import org.vmmagic.unboxed.*;
    * in a root.
    * @return The possibly moved reference.
    */
-  public final ObjectReference traceObject(ObjectReference object,
+  public ObjectReference traceObject(ObjectReference object,
                                            boolean root) {
     if (object.isNull()) return object;
     if (Space.isInSpace(GenRC.NS, object)) {
@@ -93,12 +93,12 @@ import org.vmmagic.unboxed.*;
    * @return The new reference to the same object instance.
    */
   @Inline
-  public final ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) { 
     return traceObject(object, false);
   }
 
   @Inline
-  public final int getAllocator() { 
+  public int getAllocator() { 
     return GenRC.ALLOC_RC;
   }
 
@@ -107,7 +107,7 @@ import org.vmmagic.unboxed.*;
     return !(Space.isInSpace(GenRC.NS, object));
   }
 
-  public final ObjectReference precopyObject(ObjectReference object) {
+  public ObjectReference precopyObject(ObjectReference object) {
     if (Space.isInSpace(GenRC.NS, object))
       return GenRC.nurserySpace.traceObject(this, object);
     return object;

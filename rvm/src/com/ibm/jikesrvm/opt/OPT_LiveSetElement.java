@@ -42,7 +42,7 @@ final class OPT_LiveSetElement {
    * Returns the register operand associated with this element
    * @return the register operand associated with this element
    */
-  public final OPT_RegisterOperand getRegisterOperand() {
+  public OPT_RegisterOperand getRegisterOperand() {
     return  regOp;
   }
 
@@ -50,7 +50,7 @@ final class OPT_LiveSetElement {
    * Change the register operand.  New operand must represent the same register
    * This is done to promote something of WordType to ReferenceType for the purposes of GC mapping.
    */
-  public final void setRegisterOperand(OPT_RegisterOperand newRegOp) {
+  public void setRegisterOperand(OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions) VM._assert(regOp.register.number == newRegOp.register.number);
     regOp = newRegOp;
   }
@@ -59,7 +59,7 @@ final class OPT_LiveSetElement {
    * Returns the register associated with this element
    * @return the register associated with this element
    */
-  public final OPT_Register getRegister() {
+  public OPT_Register getRegister() {
     return  regOp.register;
   }
 
@@ -67,7 +67,7 @@ final class OPT_LiveSetElement {
    * Returns the register type associated with this element
    * @return the register type associated with this element
    */
-  public final VM_TypeReference getRegisterType() {
+  public VM_TypeReference getRegisterType() {
     return regOp.type;
   }
 
@@ -75,7 +75,7 @@ final class OPT_LiveSetElement {
    * Returns the next element on this list
    * @return the next element on this list
    */
-  public final OPT_LiveSetElement getNext() {
+  public OPT_LiveSetElement getNext() {
     return  next;
   }
 
@@ -83,7 +83,7 @@ final class OPT_LiveSetElement {
    * Sets the next element field
    * @param newNext the next element field
    */
-  public final void setNext(OPT_LiveSetElement newNext) {
+  public void setNext(OPT_LiveSetElement newNext) {
     next = newNext;
   }
 

@@ -35,15 +35,15 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
     }
   }
 
-  public final float getDefaultProbability() {
+  public float getDefaultProbability() {
     return getProbability(counts.length-1);
   }
 
-  public final float getCaseProbability(int n) {
+  public float getCaseProbability(int n) {
     return getProbability(n);
   }
 
-  final float getProbability(int n) {
+  float getProbability(int n) {
     if (freq > 0) {
       return counts[n] / freq;
     } else {
@@ -51,7 +51,7 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
     }
   }
 
-  public final String toString() {
+  public String toString() {
     String res = bci + "\tswitch     < " + (int)counts[0];
     for (int i=1; i<counts.length; i++) {
       res += ", "+(int)counts[i];

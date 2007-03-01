@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
    * @return The allocator to use when copying objects during this trace.
    */
   @Inline
-  public final int getAllocator() { 
+  public int getAllocator() { 
     return Gen.ALLOC_MATURE_MINORGC;
   }
 

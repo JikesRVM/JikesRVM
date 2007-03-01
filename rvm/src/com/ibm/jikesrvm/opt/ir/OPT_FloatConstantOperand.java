@@ -74,7 +74,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    * 
    * @return VM_TypeReference.Float
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.Float;	 
   }
 
@@ -83,7 +83,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    * 
    * @return <code>true</code>
    */
-  public final boolean isFloat() {
+  public boolean isFloat() {
 	 return true;
   }
 

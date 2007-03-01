@@ -40,15 +40,15 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     return this;
   } 
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.REORDER_CODE;
   }
 
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return DEBUG;
   }
 
-  public final String getName () { 
+  public String getName () { 
     return "Code Reordering"; 
   }
 

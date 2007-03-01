@@ -24,7 +24,7 @@ final class VM_FieldVector {
       
   // Add item.
   //
-  final void addElement(VM_Field item) {
+  void addElement(VM_Field item) {
     if (cnt == array.length)
       adjustLength(cnt << 1); // double size of array
     array[cnt++] = item;
@@ -32,7 +32,7 @@ final class VM_FieldVector {
 
   // Add item if it is not already in the Vector.
   // 
-  public final void addUniqueElement(VM_Field item) {
+  public void addUniqueElement(VM_Field item) {
     for (int i=0; i<cnt; i++) {
       if (array[i] == item) return;
     }
@@ -41,25 +41,25 @@ final class VM_FieldVector {
 
   // Get item.
   //
-  final VM_Field elementAt(int index) {
+  VM_Field elementAt(int index) {
     return array[index];
   }
 
   // Set item.
   //
-  final void setElementAt(VM_Field item, int index) {
+  void setElementAt(VM_Field item, int index) {
     array[index] = item;
   }
 
   // Get number of items added so far.
   //
-  public final int size() {
+  public int size() {
     return cnt;
   }
 
   // Get array, trimmed to size.
   //
-  public final VM_Field[] finish() {
+  public VM_Field[] finish() {
     adjustLength(cnt);
     return array;
   }

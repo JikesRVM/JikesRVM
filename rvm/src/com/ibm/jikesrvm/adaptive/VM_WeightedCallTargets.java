@@ -86,11 +86,11 @@ public abstract class VM_WeightedCallTargets {
       weight = (float)w;
     }
       
-    public final void visitTargets(Visitor func) {
+    public void visitTargets(Visitor func) {
       func.visit(target, weight);
     }
 
-    public final VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
+    public VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
       if (target.equals(t)) {
         weight += v;
         return this;
@@ -102,11 +102,11 @@ public abstract class VM_WeightedCallTargets {
       }
     }
 
-    public final void decay(double rate) {
+    public void decay(double rate) {
       weight /= rate;
     }
 
-    public final double totalWeight() { return weight; }
+    public double totalWeight() { return weight; }
 
     public VM_WeightedCallTargets filter(VM_Method goal) {
       return (goal.equals(target)) ? this : null;
@@ -120,7 +120,7 @@ public abstract class VM_WeightedCallTargets {
     VM_Method[] methods = new VM_Method[5];
     float[] weights = new float[5];
     
-    public final synchronized void visitTargets(Visitor func) {
+    public synchronized void visitTargets(Visitor func) {
       // Typically expect elements to be "almost" sorted due to previous sorting operations.
       // When this is true, expected time for insertion sort is O(n).
       for (int i=1; i<methods.length; i++) {
@@ -145,7 +145,7 @@ public abstract class VM_WeightedCallTargets {
       }
     }      
 
-    public final synchronized VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
+    public synchronized VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
       int empty = -1;
       for (int i=0; i<methods.length; i++) {
         if (methods[i] != null) {
@@ -175,13 +175,13 @@ public abstract class VM_WeightedCallTargets {
       return this;
     }
 
-    public final synchronized void decay(double rate) {
+    public synchronized void decay(double rate) {
       for (int i=0; i<weights.length; i++) {
         weights[i] /= rate;
       }
     }
 
-    public final synchronized double totalWeight() {
+    public synchronized double totalWeight() {
       double sum = 0;
       for (int i=0; i<weights.length; i++) {
         sum += weights[i];
@@ -189,7 +189,7 @@ public abstract class VM_WeightedCallTargets {
       return sum;
     }
 
-    public final synchronized VM_WeightedCallTargets filter(VM_Method goal) {
+    public synchronized VM_WeightedCallTargets filter(VM_Method goal) {
       for (int i=0; i<methods.length; i++) {
         if (goal.equals(methods[i])) {
           return VM_WeightedCallTargets.create(methods[i], weights[i]);

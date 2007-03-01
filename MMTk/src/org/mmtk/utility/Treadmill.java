@@ -58,17 +58,17 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public final void addToTreadmill(Address node) { 
+  public void addToTreadmill(Address node) { 
     nursery.add(node);
   }
 
   @Inline
-  public final Address pop(boolean fromNursery) { 
+  public Address pop(boolean fromNursery) { 
     return (fromNursery) ? nursery.pop() : fromSpace.pop();
   }
 
   @Inline
-  public final void copy(Address node, boolean isInNursery) { 
+  public void copy(Address node, boolean isInNursery) { 
     if (isInNursery) 
       nursery.remove(node);
     else
@@ -77,21 +77,21 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public final boolean toSpaceEmpty() { 
+  public boolean toSpaceEmpty() { 
     return toSpace.isEmpty();
   }
   
   @Inline
-  public final boolean fromSpaceEmpty() { 
+  public boolean fromSpaceEmpty() { 
     return fromSpace.isEmpty();
   }
   
   @Inline
-  public final boolean nurseryEmpty() { 
+  public boolean nurseryEmpty() { 
     return nursery.isEmpty();
   }
   
-  public final void flip() {
+  public void flip() {
     DoublyLinkedList tmp = fromSpace;
     fromSpace = toSpace;
     toSpace = tmp;

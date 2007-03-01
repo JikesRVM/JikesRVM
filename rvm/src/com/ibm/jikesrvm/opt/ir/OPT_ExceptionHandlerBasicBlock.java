@@ -129,10 +129,10 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   public Enumeration<OPT_TypeOperand> getExceptionTypes() {
     return new Enumeration<OPT_TypeOperand>() {
       private int idx = 0;
-      public final boolean hasMoreElements() { 
+      public boolean hasMoreElements() { 
         return idx != exceptionTypes.length; 
       }
-      public final OPT_TypeOperand nextElement() {
+      public OPT_TypeOperand nextElement() {
         try {
           return exceptionTypes[idx++];
         } catch (ArrayIndexOutOfBoundsException e) {

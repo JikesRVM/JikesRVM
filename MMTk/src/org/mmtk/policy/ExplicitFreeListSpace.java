@@ -166,7 +166,7 @@ import org.vmmagic.unboxed.*;
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public final void release(Address start) { 
+  public void release(Address start) { 
     ((FreeListPageResource) pr).releasePages(start);
   }
 
@@ -189,7 +189,7 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public final ObjectReference traceObject(TraceLocal trace,
+  public ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) { 
     return object;
   }

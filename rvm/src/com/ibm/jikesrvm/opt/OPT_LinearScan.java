@@ -70,15 +70,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * Register allocation is required
    */
-  public final boolean shouldPerform(OPT_Options options) { 
+  public boolean shouldPerform(OPT_Options options) { 
     return true; 
   }
 
-  public final String getName() { 
+  public String getName() { 
     return "Linear Scan Composite Phase"; 
   }
 
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
@@ -199,15 +199,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(OPT_Options options) { 
+    public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    public final String getName() { 
+    public String getName() { 
       return "Register Restrictions"; 
     }
 
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -259,15 +259,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       /**
        * Register allocation is required
        */
-      public final boolean shouldPerform(OPT_Options options) { 
+      public boolean shouldPerform(OPT_Options options) { 
         return true; 
       }
 
-      public final String getName() { 
+      public String getName() { 
         return "Linear Scan"; 
       }
 
-      public final boolean printingEnabled(OPT_Options options, boolean before) {
+      public boolean printingEnabled(OPT_Options options, boolean before) {
         return false;
       }
 
@@ -1212,7 +1212,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Is a particular physical register currently allocated to an
      * interval in the active set?
      */
-    final boolean currentlyActive(OPT_Register r) {
+    boolean currentlyActive(OPT_Register r) {
       for (Iterator<BasicInterval> e = iterator(); e.hasNext(); ) {
         MappedBasicInterval i = (MappedBasicInterval)e.next();
         CompoundInterval container = i.container;
@@ -1227,7 +1227,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Given that a physical register r is currently allocated to an
      * interval in the active set, return the interval.
      */
-    final CompoundInterval getCurrentInterval(OPT_Register r) {
+    CompoundInterval getCurrentInterval(OPT_Register r) {
       for (Iterator<BasicInterval> e = iterator(); e.hasNext(); ) {
         MappedBasicInterval i = (MappedBasicInterval)e.next();
         CompoundInterval container = i.container;
@@ -1245,7 +1245,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * try to find a free physical register to allocate to the compound
      * interval.  if no free physical register is found, return null;
      */
-    final OPT_Register findAvailableRegister(CompoundInterval ci) {
+    OPT_Register findAvailableRegister(CompoundInterval ci) {
 
       if (ir.options.FREQ_FOCUS_EFFORT && ci.isInfrequent()) {
         // don't bother trying to find an available register
@@ -1297,7 +1297,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Try to find a free physical register to allocate to a symbolic
      * register.
      */
-    final OPT_Register findAvailableRegister(OPT_Register symb) {
+    OPT_Register findAvailableRegister(OPT_Register symb) {
 
       OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
@@ -1735,17 +1735,17 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * should we perform this phase? yes.
      */
-    public final boolean shouldPerform(OPT_Options options) { return true; }
+    public boolean shouldPerform(OPT_Options options) { return true; }
 
     /**
      * a name for this phase.
      */
-    public final String getName() { return "Interval Analysis"; }
+    public String getName() { return "Interval Analysis"; }
 
     /**
      * should we print the ir?
      */
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2277,7 +2277,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   static final class UpdateGCMaps1 extends OPT_CompilerPhase {
 
-    public final boolean shouldPerform(OPT_Options options) { 
+    public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
@@ -2291,11 +2291,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final String getName() { 
+    public String getName() { 
       return "Update GCMaps 1"; 
     }
 
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2350,15 +2350,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(OPT_Options options) { 
+    public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    public final String getName() { 
+    public String getName() { 
       return "Update GCMaps 2"; 
     }
 
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2461,15 +2461,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(OPT_Options options) { 
+    public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
-    public final String getName() { 
+    public String getName() { 
       return "Spill Code"; 
     }
 
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2523,7 +2523,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   static final class UpdateOSRMaps extends OPT_CompilerPhase {
 
-    public final boolean shouldPerform(OPT_Options options) { 
+    public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
 
@@ -2545,11 +2545,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return constructor;
     }
 
-    public final String getName() { 
+    public String getName() { 
       return "Update OSRMaps"; 
     }
 
-    public final boolean printingEnabled(OPT_Options options, boolean before) {
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -2652,7 +2652,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.ir = null;
     } // end of method
  
-    final void setRealPosition(OSR_LocalRegPair tuple, 
+    void setRealPosition(OSR_LocalRegPair tuple, 
                                       OPT_Register sym_reg) {
       if (VM.VerifyAssertions) VM._assert(sym_reg != null);
 

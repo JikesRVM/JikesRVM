@@ -102,7 +102,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
-  final Address alloc(int blockSizeClass) {
+  Address alloc(int blockSizeClass) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((blockSizeClass >= 0) && 
                            (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
@@ -127,7 +127,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param block The address of the block to be freed
    */
-  final void free(Address block) {
+  void free(Address block) {
     if (PARANOID) sanity(false);
     int blockSizeClass = getBlkSizeClass(block);
     if (PARANOID) usedBlocks[blockSizeClass]--;

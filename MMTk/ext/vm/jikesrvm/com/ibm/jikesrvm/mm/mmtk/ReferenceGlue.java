@@ -63,7 +63,7 @@ import java.lang.ref.PhantomReference;
    * objects (rather than in a table, for example).  In this context
    * references are soft, weak or phantom references.
    */
-  protected final boolean getReferencesAreObjects() { return true; }
+  protected boolean getReferencesAreObjects() { return true; }
 
  private static Lock lock = new Lock("ReferenceProcessor");
 
@@ -236,7 +236,7 @@ import java.lang.ref.PhantomReference;
    * @param semantics the number representing the semantics
    * @param nursery Scan only the newly created references
    */
-  public final void scanReferences(int semantics, boolean nursery) {
+  public void scanReferences(int semantics, boolean nursery) {
     if (VM.VerifyAssertions) {
       VM._assert(ReferenceProcessor.SOFT_SEMANTICS <= semantics &&
                  semantics <= ReferenceProcessor.PHANTOM_SEMANTICS);
@@ -281,7 +281,7 @@ import java.lang.ref.PhantomReference;
    * been enqueued previously it will not be enqueued
    * @return <code>true</code> if the reference was enqueued
    */
-  public final boolean enqueueReference(Address addr,
+  public boolean enqueueReference(Address addr,
                                                boolean onlyOnce) {
     Reference<?> reference = (Reference<?>)VM_Magic.addressAsObject(addr);
     if (!onlyOnce || !reference.wasEverEnqueued())
@@ -328,7 +328,7 @@ import java.lang.ref.PhantomReference;
    * @param addr the address of the reference
    * @return the referent address
    */
-  public final ObjectReference getReferent(Address addr) {
+  public ObjectReference getReferent(Address addr) {
     return addr.loadObjectReference(VM_Entrypoints.referenceReferentField.getOffset());
   }
   
@@ -338,7 +338,7 @@ import java.lang.ref.PhantomReference;
    * @param addr the address of the reference
    * @param referent the referent address
    */
-  public final void setReferent(Address addr, ObjectReference referent) {
+  public void setReferent(Address addr, ObjectReference referent) {
     addr.store(referent, VM_Entrypoints.referenceReferentField.getOffset());
   }
   
@@ -373,7 +373,7 @@ import java.lang.ref.PhantomReference;
    * Scan through all references and forward. Only called when references
    * are objects.
    */
-  public final void forwardReferences() {
+  public void forwardReferences() {
     softReferenceProcessor.forward();
     weakReferenceProcessor.forward();
     phantomReferenceProcessor.forward();

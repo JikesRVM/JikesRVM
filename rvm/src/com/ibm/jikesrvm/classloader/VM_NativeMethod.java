@@ -85,7 +85,7 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Get the native IP for this method
    */
-  public final Address getNativeIP() { 
+  public Address getNativeIP() { 
     return nativeIP;
   }
   

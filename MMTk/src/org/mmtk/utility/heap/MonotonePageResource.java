@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   @Inline
-  protected final Address allocPages(int requestPages) { 
+  protected Address allocPages(int requestPages) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(contiguous);
     int pages = requestPages;
@@ -148,7 +148,7 @@ import org.vmmagic.unboxed.*;
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  public final int adjustForMetaData(int pages) { 
+  public int adjustForMetaData(int pages) { 
     Extent bytes = Conversions.pagesToBytes(pages);
     if (metaDataPagesPerRegion != 0) {
       if (cursor.LE(getRegionStart(cursor.plus(bytes))))
@@ -172,7 +172,7 @@ import org.vmmagic.unboxed.*;
    * request
    * @return The number of required pages, inclusive of any metadata
    */
-  public final int adjustForMetaData(int pages, Address begin) { 
+  public int adjustForMetaData(int pages, Address begin) { 
     if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
       pages += metaDataPagesPerRegion;
     return pages;
@@ -187,7 +187,7 @@ import org.vmmagic.unboxed.*;
    * reserved and committed pages appropriately.
    */
   @Inline
-  public final void reset() { 
+  public void reset() { 
     lock();
     reserved = 0;
     committed = 0;
@@ -200,7 +200,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param pages The number of pages
    */
-  public final void unusePages(int pages) {
+  public void unusePages(int pages) {
     lock();
     reserved -= pages;
     committed -= pages;
@@ -212,7 +212,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @param pages The number of pages
    */
-  public final void reusePages(int pages) {
+  public void reusePages(int pages) {
     lock();
     reserved += pages;
     committed += pages;

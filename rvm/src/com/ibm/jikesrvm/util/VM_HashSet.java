@@ -37,7 +37,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
       buckets = newBucketArray(size);
   }
 
-  public final int size() {
+  public int size() {
     return numElems;
   }
 
@@ -97,7 +97,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
     buckets = newBuckets;
   }
 
-  public final void remove(T key) {
+  public void remove(T key) {
     int bucketIdx = bucketIndex(key, buckets.length);
     Bucket<T> cur = buckets[bucketIdx];
     Bucket<T> prev = null;
@@ -116,7 +116,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
     } 
   }
 
-  public final Iterator<T> iterator() {
+  public Iterator<T> iterator() {
       return new SetIterator();
   }
   

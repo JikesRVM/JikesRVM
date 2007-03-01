@@ -72,15 +72,15 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
    */
   private static final class ReduceOperators extends OPT_CompilerPhase {
 
-    public final String getName () {
+    public String getName () {
       return "Reduce Operators";
     }
 
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != 
              null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
@@ -297,15 +297,15 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
    */
   private static final class NormalizeConstants extends OPT_CompilerPhase {
 
-    public final String getName () {
+    public String getName () {
       return "Normalize Constants";
     }
 
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       OPT_NormalizeConstants.perform(ir);
     }
   }
@@ -314,15 +314,15 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
    */
   private static final class DoLiveness extends OPT_CompilerPhase {
 
-    public final String getName () {
+    public String getName () {
       return "Live Handlers";
     }
 
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       if (ir.options.HANDLER_LIVENESS) {        
         new OPT_LiveAnalysis(false, false, true).perform(ir);
       }
@@ -335,11 +335,11 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
    */
   private static final class DoBURS extends OPT_CompilerPhase {
 
-    public final String getName () {
+    public String getName () {
       return "DepGraph & BURS";
     }
 
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
@@ -353,7 +353,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
     // It isn't verifiable again until after ComplexOperators completes.
     public void verify(OPT_IR ir) { }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       OPT_DefUse.recomputeSpansBasicBlock(ir);
         OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
@@ -411,15 +411,15 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
    */
   private static final class ComplexOperators extends OPT_CompilerPhase {
 
-    public final String getName () {
+    public String getName () {
       return "Complex Operators";
     }
 
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       OPT_ComplexLIR2MIRExpansion.convert(ir);
     }
   }

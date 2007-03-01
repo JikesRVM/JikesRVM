@@ -17,7 +17,7 @@ import com.ibm.jikesrvm.opt.*;
  */
 public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
 
-  public final String getName () { 
+  public String getName () { 
     return "Generate HIR";
   }
 
@@ -26,7 +26,7 @@ public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
    * 
    * @param ir The IR to generate HIR into
    */
-  public final void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     // Generate the cfg into gc
     OPT_GenerationContext gc = 
       new OPT_GenerationContext(ir.method, ir.compiledMethod, 

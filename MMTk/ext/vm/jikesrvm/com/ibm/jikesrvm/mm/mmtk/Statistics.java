@@ -30,42 +30,42 @@ import org.vmmagic.pragma.*;
    * @return The number of collections that have occured.
    */
   @Uninterruptible
-  public final int getCollectionCount() { 
+  public int getCollectionCount() { 
     return MM_Interface.getCollectionCount();
   }
 
   /**
    * Read cycle counter
    */
-  public final long cycles() {
+  public long cycles() {
     return VM_Time.cycles();
   }
 
   /**
    * Convert cycles to milliseconds
    */
-  public final double cyclesToMillis(long c) {
+  public double cyclesToMillis(long c) {
     return VM_Time.cyclesToMillis(c);
   }
 
   /**
    * Convert cycles to seconds
    */
-  public final double cyclesToSecs(long c) {
+  public double cyclesToSecs(long c) {
     return VM_Time.cyclesToSecs(c);
   }
 
   /**
    * Convert milliseconds to cycles
    */
-  public final long millisToCycles(double t) {
+  public long millisToCycles(double t) {
     return VM_Time.millisToCycles(t);
   }
 
   /**
    * Convert seconds to cycles
    */
-  public final long secsToCycles(double t) {
+  public long secsToCycles(double t) {
     return VM_Time.secsToCycles(t);
   }
 }

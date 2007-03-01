@@ -47,9 +47,9 @@ public abstract class OPT_IREnumeration {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_Instruction nextElement() { return next(); }
-      public final OPT_Instruction next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
+      public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
           current = null;
@@ -84,9 +84,9 @@ public abstract class OPT_IREnumeration {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_Instruction nextElement() { return next(); }
-      public final OPT_Instruction next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
+      public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
           current = null;
@@ -111,9 +111,9 @@ public abstract class OPT_IREnumeration {
   public static OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_Instruction nextElement() { return next(); }
-      public final OPT_Instruction next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
+      public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
           current = current.nextInstructionInCodeOrder();
@@ -135,9 +135,9 @@ public abstract class OPT_IREnumeration {
   public static OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_Instruction nextElement() { return next(); }
-      public final OPT_Instruction next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
+      public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
           current = current.prevInstructionInCodeOrder();
@@ -159,9 +159,9 @@ public abstract class OPT_IREnumeration {
   public static OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.firstBasicBlockInCodeOrder();
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_BasicBlock nextElement() { return next(); }
-      public final OPT_BasicBlock next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_BasicBlock nextElement() { return next(); }
+      public OPT_BasicBlock next() {
         try {
           OPT_BasicBlock res = current;
           current = current.nextBasicBlockInCodeOrder();
@@ -183,9 +183,9 @@ public abstract class OPT_IREnumeration {
   public static OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.lastBasicBlockInCodeOrder();
-      public final boolean hasMoreElements() { return current != null; }
-      public final OPT_BasicBlock nextElement() { return next(); }
-      public final OPT_BasicBlock next() {
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_BasicBlock nextElement() { return next(); }
+      public OPT_BasicBlock next() {
         try {
           OPT_BasicBlock res = current;
           current = current.prevBasicBlockInCodeOrder();

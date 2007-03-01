@@ -42,11 +42,11 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 
   static final boolean DEBUG = false;
 
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.LOAD_ELIMINATION;
   }
 
-  public final String getName() {
+  public String getName() {
     return  "Array SSA Load Elimination, round "+round;
   }
 
@@ -56,7 +56,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
   private final int round;
 
   static final class LoadEliminator extends OPT_CompilerPhase {
-    public final String getName() {
+    public String getName() {
       return  "Load Eliminator";
     }
    
@@ -75,7 +75,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
-    public final void perform(OPT_IR ir) {
+    public void perform(OPT_IR ir) {
 
       if (ir.desiredSSAOptions.getAbort()) return;
 

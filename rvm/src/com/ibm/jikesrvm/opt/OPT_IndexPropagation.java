@@ -51,7 +51,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.SSA;
   }
 
@@ -59,7 +59,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * Return the name of this compiler phase.
    * @return "Index Propagation"
    */
-  public final String getName() {
+  public String getName() {
     return  "Index Propagation";
   }
 

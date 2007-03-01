@@ -35,7 +35,7 @@ public final class OSR_MethodVariables {
   }
 
 
-  public final LinkedList<OSR_LocalRegPair> getTupleList() {
+  public LinkedList<OSR_LocalRegPair> getTupleList() {
     return tupleList;
   }
 

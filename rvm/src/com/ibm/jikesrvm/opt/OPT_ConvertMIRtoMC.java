@@ -37,20 +37,20 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
    * A compiler phase that drives final MIR expansion.
    */
   private static final class FinalMIRExpansionDriver extends OPT_CompilerPhase {
-    public final String getName () {
+    public String getName () {
       return "Final MIR Expansion";
     }
   
-    public final boolean printingEnabled (OPT_Options options, boolean before) {
+    public boolean printingEnabled (OPT_Options options, boolean before) {
       return !before && options.PRINT_FINAL_MIR;
     }
   
     // this class has no instance fields.
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
 
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before Final MIR Expansion", true);
       }
@@ -65,21 +65,21 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
   private static final class AssemblerDriver extends OPT_CompilerPhase
     implements VM_Constants {
 
-    public final String getName () {
+    public String getName () {
       return "Assembler Driver";
     }
   
-    public final boolean printingEnabled (OPT_Options options, boolean before) {
+    public boolean printingEnabled (OPT_Options options, boolean before) {
       //don't bother printing afterwards, PRINT_MACHINECODE handles that
       return before && options.DEBUG_CODEGEN;
     }
   
     // this class has no instance fields.
-    public final OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
       return this;
     }
   
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       boolean shouldPrint =
         (options.PRINT_MACHINECODE) &&

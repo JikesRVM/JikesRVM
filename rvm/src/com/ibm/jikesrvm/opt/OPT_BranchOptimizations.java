@@ -78,7 +78,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param bb the containing basic block
    * @return true if an optimization was applied, false otherwise
    */
-  protected final boolean optimizeBranchInstruction(OPT_IR ir,
+  protected boolean optimizeBranchInstruction(OPT_IR ir,
                                                     OPT_Instruction s,
                                                     OPT_BasicBlock bb) {
     if (Goto.conforms(s))

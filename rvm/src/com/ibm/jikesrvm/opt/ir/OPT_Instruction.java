@@ -410,7 +410,7 @@ public final class OPT_Instruction
    * 
    * @param source the instruction to copy the source position from
    */
-  public final void copyPosition(OPT_Instruction source) {
+  public void copyPosition(OPT_Instruction source) {
     bcIndex = source.bcIndex;
     position = source.position;
   }
@@ -667,7 +667,7 @@ public final class OPT_Instruction
   /**
    * Does this instruction hold any memory or stack location operands?
    */
-  public final boolean hasMemoryOperand() {
+  public boolean hasMemoryOperand() {
     for (int i = 0; i<ops.length; i++) {
       OPT_Operand op = getOperand(i);
       if (op instanceof OPT_MemoryOperand ||
@@ -685,7 +685,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's operands.
    */
-  public final OPT_OperandEnumeration getOperands() {
+  public OPT_OperandEnumeration getOperands() {
     // By passing -1 as the last parameter we pretending
     // that treating all operands are uses. Somewhat ugly,
     // but avoids a third OE class.
@@ -697,7 +697,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's operands.
    */
-  public final OPT_OperandEnumeration getMemoryOperands() {
+  public OPT_OperandEnumeration getMemoryOperands() {
     return new MOE(this, 0, getNumberOfOperands()-1);
   }
 
@@ -707,7 +707,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's operands.
    */
-  public final OPT_OperandEnumeration getRootOperands() {
+  public OPT_OperandEnumeration getRootOperands() {
     return new ROE(this, 0, getNumberOfOperands()-1);
   }
 
@@ -716,7 +716,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's defs.
    */
-  public final OPT_OperandEnumeration getDefs() {
+  public OPT_OperandEnumeration getDefs() {
     return new OEDefsOnly(this, 0, getNumberOfDefs()-1);
   }
 
@@ -725,7 +725,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's pure defs.
    */
-  public final OPT_OperandEnumeration getPureDefs() {
+  public OPT_OperandEnumeration getPureDefs() {
     return new OEDefsOnly(this, 0, getNumberOfPureDefs()-1);
   }
 
@@ -734,7 +734,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's pure defs.
    */
-  public final OPT_OperandEnumeration getPureUses() {
+  public OPT_OperandEnumeration getPureUses() {
     return new OEDefsOnly(this, getNumberOfDefs(), getNumberOfOperands()-1);
   }
 
@@ -743,7 +743,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's def/uses.
    */
-  public final OPT_OperandEnumeration getDefUses() {
+  public OPT_OperandEnumeration getDefUses() {
     return new OEDefsOnly(this, getNumberOfPureDefs(), getNumberOfDefs()-1);
   }
 
@@ -753,7 +753,7 @@ public final class OPT_Instruction
    * @return an enumeration of the instruction's uses.
    */
   @Inline
-  public final OPT_OperandEnumeration getUses() { 
+  public OPT_OperandEnumeration getUses() { 
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = 
       operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs()-1;
@@ -765,7 +765,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's uses.
    */
-  public final OPT_OperandEnumeration getRootUses() {
+  public OPT_OperandEnumeration getRootUses() {
     return new ROE(this, getNumberOfPureDefs(), 
                    getNumberOfOperands() - 1);
   }
@@ -1652,7 +1652,7 @@ public final class OPT_Instruction
       }
       advance();
     }
-    protected final void advance() {
+    protected void advance() {
       if (deferredMOReg != null) {
         nextElem = deferredMOReg;
         deferredMOReg = null;
@@ -1697,7 +1697,7 @@ public final class OPT_Instruction
       }
       advance();
     }
-    protected final void advance() {
+    protected void advance() {
       OPT_Operand temp;
       do {
         i++;
@@ -1723,7 +1723,7 @@ public final class OPT_Instruction
       }
       advance();
     }
-    protected final void advance() {
+    protected void advance() {
       OPT_Operand temp;
       do {
         i++;
@@ -1748,7 +1748,7 @@ public final class OPT_Instruction
       }
       advance();
     }
-    protected final void advance() {
+    protected void advance() {
       OPT_Operand temp;
       do {
         i++;

@@ -26,7 +26,7 @@ public final class OSR_VariableMap {
   /* A list of OSR_VariableMapElement */
   public LinkedList<OSR_VariableMapElement> list = new LinkedList<OSR_VariableMapElement>();
 
-  public final int getNumberOfElements() {
+  public int getNumberOfElements() {
     return list.size();
   }
 
@@ -51,7 +51,7 @@ public final class OSR_VariableMap {
    * Creates and returns an enumerator for this object
    * @return an iterator for this object
    */
-  public final ListIterator<OSR_VariableMapElement> iterator() {
+  public ListIterator<OSR_VariableMapElement> iterator() {
     return list.listIterator(0);
   }
 

@@ -29,18 +29,18 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 
-  public final String getName () {
+  public String getName () {
     return "Mutate Splits";
   }
 
   /**
    * The main entrypoint for this pass.
    */
-  public final void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (s.operator == SPLIT) {

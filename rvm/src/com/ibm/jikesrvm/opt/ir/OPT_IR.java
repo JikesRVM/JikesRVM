@@ -277,7 +277,7 @@ public final class OPT_IR {
    * 
    * @return the first instruction in the code order
    */
-  public final OPT_Instruction firstInstructionInCodeOrder() {
+  public OPT_Instruction firstInstructionInCodeOrder() {
     return firstBasicBlockInCodeOrder().firstInstruction();
   }
 
@@ -287,7 +287,7 @@ public final class OPT_IR {
    * 
    * @return the last instruction in the code order
    */
-  public final OPT_Instruction lastInstructionInCodeOrder() {
+  public OPT_Instruction lastInstructionInCodeOrder() {
     return lastBasicBlockInCodeOrder().lastInstruction();
   }
 
@@ -473,9 +473,9 @@ public final class OPT_IR {
         if (number < size && bits.get(number)) stack.push(block);
       }
     }
-    public final boolean hasMoreElements() { return !stack.empty(); }
-    public final OPT_BasicBlock nextElement() { return stack.pop(); }
-    public final OPT_BasicBlock next() {return stack.pop(); }
+    public boolean hasMoreElements() { return !stack.empty(); }
+    public OPT_BasicBlock nextElement() { return stack.pop(); }
+    public OPT_BasicBlock next() {return stack.pop(); }
   }
 
 

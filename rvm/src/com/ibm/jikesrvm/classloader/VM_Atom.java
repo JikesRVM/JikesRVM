@@ -68,7 +68,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    *@return the id of this atom.
    */
-  final int getId() { return id; }
+  int getId() { return id; }
 
   /**
    * Find or create an atom.
@@ -171,21 +171,21 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Return printable representation of "this" atom.
    * Does not correctly handle UTF8 translation.
    */ 
-  public final String toString() {
+  public String toString() {
     return VM_StringUtilities.asciiBytesToString(val);
   }
 
   /** Get at a string-like representation without doing any heap allocation.
    * Hideous but necessary.  We will use it in the PrintContainer class. */
   @Uninterruptible
-  public final byte[] toByteArray() { 
+  public byte[] toByteArray() { 
     return val;
   }
 
   /**
    * Return printable representation of "this" atom.
    */ 
-  public final String toUnicodeString() 
+  public String toUnicodeString() 
     throws java.io.UTFDataFormatException 
   { 
     return VM_UTF8Convert.fromUTF8(val);
@@ -195,8 +195,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Return array descriptor corresponding to "this" array-element descriptor.
    * this: array-element descriptor - something like "I" or "Ljava/lang/Object;"
    * @return array descriptor - something like "[I" or "[Ljava/lang/Object;"
-   */  
-  final VM_Atom arrayDescriptorFromElementDescriptor() {
+   */
+  VM_Atom arrayDescriptorFromElementDescriptor() {
     if (VM.VerifyAssertions)
       VM._assert(val.length > 0);
     byte[] sig = new byte[1 + val.length];
@@ -211,7 +211,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: class name       - something like "java/lang/Object"
    * @return class descriptor - something like "Ljava/lang/Object;"
    */ 
-  public final VM_Atom descriptorFromClassName() {
+  public VM_Atom descriptorFromClassName() {
     if (VM.VerifyAssertions)
       VM._assert(val.length > 0);
     if (val[0] == '[') return this;
@@ -228,7 +228,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class name       - something like "java.lang.String"
    */ 
-  public final String classNameFromDescriptor() {
+  public String classNameFromDescriptor() {
     if (VM.VerifyAssertions){
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
@@ -241,7 +241,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class file name  - something like "java/lang/String.class"
    */ 
-  public final String classFileNameFromDescriptor() {
+  public String classFileNameFromDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
@@ -259,7 +259,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *       At present, only <init> and <clinit> are used.
    */ 
   @Uninterruptible
-  public final boolean isReservedMemberName() { 
+  public boolean isReservedMemberName() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '<';
   }
@@ -268,7 +268,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a class descriptor?
    */ 
   @Uninterruptible
-  public final boolean isClassDescriptor() { 
+  public boolean isClassDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == 'L';
   }
@@ -277,7 +277,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom an array descriptor?
    */ 
   @Uninterruptible
-  public final boolean isArrayDescriptor() { 
+  public boolean isArrayDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '[';
   }
@@ -286,7 +286,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a method descriptor?
    */ 
   @Uninterruptible
-  public final boolean isMethodDescriptor() { 
+  public boolean isMethodDescriptor() { 
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '(';
   }
@@ -301,7 +301,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  public final VM_TypeReference parseForReturnType(ClassLoader cl) {
+  public VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
       VM._assert(val[0] == '(', "Method descriptors start with `(`");
@@ -356,7 +356,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  public final VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
+  public VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
     if (VM.VerifyAssertions)  {
       VM._assert(val.length > 0);
       VM._assert(val[0] == '(', "Method descriptors start with `(`");
@@ -426,7 +426,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * to perform comparisons without requiring the allocation of a string.
    */ 
   @Uninterruptible
-  public final byte[] getBytes() { 
+  public byte[] getBytes() { 
     return val;
   }
 
@@ -455,7 +455,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
-  public final byte parseForTypeCode() 
+  public byte parseForTypeCode() 
     throws IllegalArgumentException
   {
     if (VM.VerifyAssertions)
@@ -469,7 +469,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
    */ 
-  public final int parseForArrayDimensionality() 
+  public int parseForArrayDimensionality() 
   {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
@@ -493,7 +493,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * allegedly uninterruptible method (VM_Array.getLogElementSize()) calls it.
    */ 
   @Uninterruptible
-  public final byte parseForArrayElementTypeCode() { 
+  public byte parseForArrayElementTypeCode() { 
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
       VM._assert(val[0] == '[', "An array descriptor must start with '['");
@@ -504,7 +504,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return the innermost element type reference for an array
    */
-  public final VM_Atom parseForInnermostArrayElementDescriptor() {
+  public VM_Atom parseForInnermostArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
       VM._assert(val[0] == '[', "An array descriptor must start with '['");
@@ -524,7 +524,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: array descriptor         - something like "[I"
    * @return array element descriptor - something like "I"
    */
-  public final VM_Atom parseForArrayElementDescriptor() {
+  public VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
       VM._assert(val[0] == '[', "An array descriptor must start with '['");
@@ -550,7 +550,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return true if this is a class descriptor of a bootstrap class
    * (ie a class that must be loaded by the bootstrap class loader)
    */
-  public final boolean isBootstrapClassDescriptor() {
+  public boolean isBootstrapClassDescriptor() {
   outer:
     for (int i = 0; i < bootstrapClassPrefixes.length; i++) {
       byte[] test = bootstrapClassPrefixes[i];
@@ -570,7 +570,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * defined as one that it would be unwise to invalidate, since invalidating
    * it might make it impossible to recompile.
    */
-  public final boolean isRVMDescriptor() {
+  public boolean isRVMDescriptor() {
   outer:
     for (int i = 0; i < rvmClassPrefixes.length; i++) {
       byte[] test = rvmClassPrefixes[i];
@@ -626,14 +626,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   //-----------//
    
   @Uninterruptible
-  public final void sysWrite() { 
+  public void sysWrite() { 
     for (int i = 0, n = val.length; i < n; ++i) {
       VM.sysWrite((char)val[i]);
     }
   }
 
   @Uninterruptible
-  public final int length() { 
+  public int length() { 
     return val.length;
   }
 
@@ -646,7 +646,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     this.id = id;
   }
 
-  public final int hashCode() {
+  public int hashCode() {
     return hash;
   }
 
@@ -654,7 +654,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * We canonicalize VM_Atoms, therefore we can use == for equals
    */
   @Uninterruptible
-  public final boolean equals(Object other) {
+  public boolean equals(Object other) {
     return this == other;
   }
 

@@ -51,7 +51,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     return true; 
   }
 
-  public final String getName () {
+  public String getName () {
     return  "Expand Runtime Services";
   }
 

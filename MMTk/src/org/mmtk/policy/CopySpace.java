@@ -217,7 +217,7 @@ import org.vmmagic.pragma.*;
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public final void release(Address start) { 
+  public void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
@@ -275,7 +275,7 @@ import org.vmmagic.pragma.*;
    * @param object The object in question
    * @return True if this object is live in this GC (has it been forwarded?)
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     return isForwarded(object);
   }
 
@@ -286,7 +286,7 @@ import org.vmmagic.pragma.*;
    * @param object The object reference.
    * @return True if the object is reachable.
    */
-  public final boolean isReachable(ObjectReference object) {
+  public boolean isReachable(ObjectReference object) {
     return !fromSpace || isForwarded(object);
   }
 
@@ -322,7 +322,7 @@ import org.vmmagic.pragma.*;
    * @param object the object ref to the storage to be initialized
    */
    @Inline
-   public final void postAlloc(ObjectReference object) {} 
+   public void postAlloc(ObjectReference object) {} 
 
   /**
    * Clear the GC portion of the header for an object.

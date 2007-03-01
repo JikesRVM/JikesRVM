@@ -30,7 +30,7 @@ public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
     backwards = bw;
   }
 
-  public final float getTakenProbability() {
+  public float getTakenProbability() {
     if (freq > 0) {
       return taken/freq;
     } else if (backwards) {
@@ -40,7 +40,7 @@ public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
     }
   }
 
-  public final String toString() {
+  public String toString() {
     String ans = bci + (backwards ? "\tbackbranch" : "\tforwbranch");
     ans += " < " + (int)taken + ", " +(int)(freq-taken) + " > ";
     if (freq>0) {

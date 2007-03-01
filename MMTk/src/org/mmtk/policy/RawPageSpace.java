@@ -88,8 +88,8 @@ import org.vmmagic.unboxed.*;
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
 
-  public final void prepare() { }
-  public final void release() { }
+  public void prepare() { }
+  public void release() { }
 
   /**
    * Release a group of pages that were allocated together.
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
    * allocated together.
    */
   @Inline
-  public final void release(Address first) { 
+  public void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -112,13 +112,13 @@ import org.vmmagic.unboxed.*;
    * @return <code>zero</code>: calling this is an error.
    */
   @Inline
-  public final ObjectReference traceObject(TraceLocal trace,
+  public ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     return true;
   }
 }

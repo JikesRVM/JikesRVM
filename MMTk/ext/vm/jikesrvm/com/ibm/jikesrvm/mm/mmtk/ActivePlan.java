@@ -39,25 +39,25 @@ import org.vmmagic.pragma.*;
 
   /** @return The active Plan instance. */
   @Inline
-  public final Plan global() { 
+  public Plan global() { 
     return Selected.Plan.get();
   } 
   
   /** @return The active PlanConstraints instance. */
   @Inline
-  public final PlanConstraints constraints() { 
+  public PlanConstraints constraints() { 
     return Selected.Constraints.get();
   } 
   
   /** @return The active CollectorContext instance. */
   @Inline
-  public final CollectorContext collector() { 
+  public CollectorContext collector() { 
     return Selected.Collector.get();
   }
   
   /** @return The active MutatorContext instance. */
   @Inline
-  public final MutatorContext mutator() { 
+  public MutatorContext mutator() { 
     return Selected.Mutator.get();
   }
 
@@ -73,7 +73,7 @@ import org.vmmagic.pragma.*;
    * @return The specified CollectorContext
    */ 
   @Inline
-  public final CollectorContext collector(int id) { 
+  public CollectorContext collector(int id) { 
     return collectors[id];
   }
   
@@ -84,7 +84,7 @@ import org.vmmagic.pragma.*;
    * @return The specified MutatorContext
    */ 
   @Inline
-  public final MutatorContext mutator(int id) { 
+  public MutatorContext mutator(int id) { 
     return mutators[id];
   }
 
@@ -95,7 +95,7 @@ import org.vmmagic.pragma.*;
    * @return The specified Selected.Collector
    */ 
   @Inline
-  public final Selected.Collector selectedCollector(int id) { 
+  public Selected.Collector selectedCollector(int id) { 
     return collectors[id];
   }
   /**
@@ -105,19 +105,19 @@ import org.vmmagic.pragma.*;
    * @return The specified Selected.Mutator
    */
   @Inline
-  public final Selected.Mutator selectedMutator(int id) { 
+  public Selected.Mutator selectedMutator(int id) { 
     return mutators[id];
   }
 
   
   /** @return The number of registered CollectorContext instances. */
   @Inline
-  public final int collectorCount() { 
+  public int collectorCount() { 
     return collectorCount;
   }
    
   /** @return The number of registered MutatorContext instances. */
-  public final int mutatorCount() {
+  public int mutatorCount() {
     return mutatorCount;
   }
 
@@ -148,7 +148,7 @@ import org.vmmagic.pragma.*;
    * @return The CollectorContext's unique identifier
    */
   @Interruptible
-  public final int registerCollector(CollectorContext collector) { 
+  public int registerCollector(CollectorContext collector) { 
     collectors[collectorCount] = (Selected.Collector) collector;
     return collectorCount++;
   }
@@ -162,7 +162,7 @@ import org.vmmagic.pragma.*;
    * @return The MutatorContext's unique identifier
    */
   @Interruptible
-  public final int registerMutator(MutatorContext mutator) { 
+  public int registerMutator(MutatorContext mutator) { 
     mutators[mutatorCount] = (Selected.Mutator) mutator;
     return mutatorCount++;
   } 

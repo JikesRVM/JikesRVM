@@ -39,7 +39,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    * (1.0 means no boost, 1.1 means a 10% improvement, etc).
    */
   private double boostFactor;
-  public final double getBoostFactor() { return boostFactor; }
+  public double getBoostFactor() { return boostFactor; }
 
   /**
    * @param _cm the compiled method
@@ -62,7 +62,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
   }
 
 
-  public final String toString() {
+  public String toString() {
     return "NewHotEdgeEvent: "+super.toString()+
       ", boost factor = "+getBoostFactor();
   }

@@ -87,7 +87,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
    */
-  public final boolean collectionPhase(int phaseId, boolean primary) {
+  public boolean collectionPhase(int phaseId, boolean primary) {
     boolean filter  = global().cdMode >= TrialDeletion.FILTER_PURPLE;
     boolean collect = global().cdMode >= TrialDeletion.FULL_COLLECTION;
     
@@ -254,7 +254,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  public final void enumerateGrey(ObjectReference object) { 
+  public void enumerateGrey(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       if (VM.VERIFY_ASSERTIONS) {
         // TODO VM.assertions._assert(RCHeader.isLiveRC(object));
@@ -293,7 +293,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  public final void enumerateScan(ObjectReference object) { 
+  public void enumerateScan(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object))
       workQueue.push(object);
   }
@@ -311,7 +311,7 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   @Inline
-  public final void enumerateScanBlack(ObjectReference object) { 
+  public void enumerateScanBlack(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       RCHeader.unsyncIncRC(object);
       if (!RCHeader.isBlack(object))
@@ -343,7 +343,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   
   @Inline
-  public final void enumerateCollect(ObjectReference object) { 
+  public void enumerateCollect(ObjectReference object) { 
     if (RCBase.isRCObject(object)) {
       if (RCHeader.isGreen(object)) {
         ((RCBaseCollector)VM.activePlan.collector()).decBuffer.push(object);

@@ -45,7 +45,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    * instructions we have maps for. 
    * @return the number of GC points in this map
    */
-  public final int getNumInstructionMaps() {
+  public int getNumInstructionMaps() {
     return list.size();
   }
 
@@ -55,7 +55,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    *  in this map.
    *  @return  the number of spill entries in this map
    */
-  public final int countNumSpillElements() {
+  public int countNumSpillElements() {
     // Since spill locations are not determined until after
     // register allocation occurs, i.e., after the initial
     // IR-based maps are created, we actually count the

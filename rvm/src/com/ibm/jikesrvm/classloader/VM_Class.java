@@ -216,7 +216,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Name - something like "java.lang.String".
    */ 
-  public final String toString() {
+  public String toString() {
     return getDescriptor().classNameFromDescriptor();
   }
 
@@ -224,7 +224,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Package name - something like "java.lang".
    * Returns the empty string if the class is a member of the unnamed package.
    */
-  public final String getPackageName() {
+  public String getPackageName() {
     String className = toString();
     int lastDot = className.lastIndexOf(".");
     return (lastDot >= 0) ? className.substring(0, lastDot) : "";
@@ -234,7 +234,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Stack space requirement in words.
    */
   @Uninterruptible
-  public final int getStackWords() { 
+  public int getStackWords() { 
     return 1;
   }
 
@@ -260,7 +260,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * An "interface" description rather than a "class" description?
    */ 
   @Uninterruptible
-  public final boolean isInterface() { 
+  public boolean isInterface() { 
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
 
@@ -268,7 +268,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Usable from other packages?
    */ 
   @Uninterruptible
-  public final boolean isPublic() { 
+  public boolean isPublic() { 
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
@@ -276,7 +276,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Non-subclassable?
    */ 
   @Uninterruptible
-  public final boolean isFinal() { 
+  public boolean isFinal() { 
     return (modifiers & ACC_FINAL) != 0; 
   }
 
@@ -284,7 +284,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Non-instantiable?
    */ 
   @Uninterruptible
-  public final boolean isAbstract() { 
+  public boolean isAbstract() { 
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
 
@@ -292,7 +292,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
   @Uninterruptible
-  public final boolean isSpecial() { 
+  public boolean isSpecial() { 
     return (modifiers & ACC_SUPER) != 0; 
   }
 
@@ -352,7 +352,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Generic type information for class
    */
-  public final VM_Atom getSignature() {
+  public VM_Atom getSignature() {
     return signature;
   }
 
@@ -361,7 +361,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * something like "c:\java\src\java\lang\Object.java".
    * (null --> "unknown - wasn't recorded by compiler").
    */
-  public final VM_Atom getSourceName() { 
+  public VM_Atom getSourceName() { 
     return sourceName;
   }
 
@@ -370,7 +370,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * ie. class is "java/lang/Object").
    */
   @Uninterruptible
-  public final VM_Class getSuperClass() { 
+  public VM_Class getSuperClass() { 
     return superClass;
   }
 
@@ -378,7 +378,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Currently loaded classes that "extend" this class.
    */ 
   @Uninterruptible
-  public final VM_Class[] getSubClasses() { 
+  public VM_Class[] getSubClasses() { 
     return subClasses;
   }
 
@@ -387,7 +387,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * (ie. not including superclasses).
    */
   @Uninterruptible
-  public final VM_Class[] getDeclaredInterfaces() { 
+  public VM_Class[] getDeclaredInterfaces() { 
     return declaredInterfaces;
   }
 
@@ -395,7 +395,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
   @Uninterruptible
-  public final VM_Field[] getDeclaredFields() { 
+  public VM_Field[] getDeclaredFields() { 
     return declaredFields;
   }
 
@@ -403,14 +403,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Methods defined directly by this class (ie. not including superclasses).
    */
   @Uninterruptible
-  public final VM_Method[] getDeclaredMethods() { 
+  public VM_Method[] getDeclaredMethods() { 
     return declaredMethods;
   }
 
   /**
    * Declared inner and static member classes.
    */
-  public final VM_TypeReference[] getDeclaredClasses() {
+  public VM_TypeReference[] getDeclaredClasses() {
     return declaredClasses;
   }
 
@@ -418,7 +418,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Class that declared this class, or null if this is not an
    * inner/nested class. 
    */
-  public final VM_TypeReference getDeclaringClass() {
+  public VM_TypeReference getDeclaringClass() {
     return declaringClass;
   }
 
@@ -426,7 +426,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Class that immediately encloses this class, or null if this is not an
    * inner/nested class.
    */
-  public final VM_TypeReference getEnclosingClass() {
+  public VM_TypeReference getEnclosingClass() {
     return enclosingClass;
   }
 
@@ -435,11 +435,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    *  or initializer already been run).
    */ 
   @Uninterruptible
-  public final VM_Method getClassInitializerMethod() { 
+  public VM_Method getClassInitializerMethod() { 
     return classInitializerMethod;
   }
 
-  final Annotation[] getAnnotationsInternal() {
+  Annotation[] getAnnotationsInternal() {
     final VM_Class parent = getSuperClass();
     if (null == parent) {
       return super.getAnnotationsInternal();
@@ -482,7 +482,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param fieldDescriptor field descriptor - something like "I"
    * @return description (null --> not found)
    */ 
-  public final VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
+  public VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
     for (int i = 0, n = declaredFields.length; i < n; ++i) {
       VM_Field field = declaredFields[i];
       if (field.getName() == fieldName && 
@@ -498,7 +498,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param methodDescriptor method descriptor - something like "()I"
    * @return description (null --> not found)
    */ 
-  public final VM_Method findDeclaredMethod(VM_Atom methodName, VM_Atom methodDescriptor) {
+  public VM_Method findDeclaredMethod(VM_Atom methodName, VM_Atom methodDescriptor) {
     for (int i = 0, n = declaredMethods.length; i < n; ++i) {
       VM_Method method = declaredMethods[i];
       if (method.getName() == methodName && 
@@ -513,7 +513,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * method of this class.
    * @return description (null --> not found)
    */ 
-  public final VM_Method findMainMethod() {
+  public VM_Method findMainMethod() {
     VM_Atom   mainName       = VM_Atom.findOrCreateAsciiAtom(("main"));
     VM_Atom   mainDescriptor = VM_Atom.findOrCreateAsciiAtom
       (("([Ljava/lang/String;)V"));
@@ -599,7 +599,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
-  public final Offset getLiteralOffset(int constantPoolIndex) {
+  public Offset getLiteralOffset(int constantPoolIndex) {
     return getLiteralOffset(this.constantPool, constantPoolIndex);
   }
 
@@ -643,7 +643,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Get description of a literal constant.
    */ 
-  public final byte getLiteralDescription(int constantPoolIndex) {
+  public byte getLiteralDescription(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     byte type = unpackCPType(cpValue);
     return type;
@@ -654,7 +654,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return type that was referenced
    */
   @Uninterruptible
-  public final VM_TypeReference getTypeRef(int constantPoolIndex) { 
+  public VM_TypeReference getTypeRef(int constantPoolIndex) { 
     return getTypeRef(constantPool, constantPoolIndex);
   }
 
@@ -677,7 +677,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "methodRef" constant pool entry.
    */
   @Uninterruptible
-  public final VM_MethodReference getMethodRef(int constantPoolIndex) { 
+  public VM_MethodReference getMethodRef(int constantPoolIndex) { 
     return getMethodRef(constantPool, constantPoolIndex);
   }
 
@@ -696,7 +696,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "fieldRef" constant pool entry.
    */
   @Uninterruptible
-  public final VM_FieldReference getFieldRef(int constantPoolIndex) { 
+  public VM_FieldReference getFieldRef(int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
     return  (VM_FieldReference)
@@ -707,7 +707,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "utf" constant pool entry.
    */
   @Uninterruptible
-  final VM_Atom getUtf(int constantPoolIndex) { 
+  VM_Atom getUtf(int constantPoolIndex) { 
     int cpValue = constantPool[constantPoolIndex];
     if(VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
     return VM_Atom.getAtom(unpackUnsignedCPValue(cpValue));
@@ -727,7 +727,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Return true if the SynchronizedObject annotation is present.
    * @see SynchronizedObject
    */
-  final boolean hasSynchronizedObjectAnnotation() {
+  boolean hasSynchronizedObjectAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SynchronizedObject);
   }
 
@@ -737,7 +737,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see DynamicBridge
    */
   @Uninterruptible
-  public final boolean hasDynamicBridgeAnnotation() {
+  public boolean hasDynamicBridgeAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.DynamicBridge);
   }
 
@@ -747,7 +747,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * a special prolog to interface with the native stack frame.
    */
   @Uninterruptible
-  public final boolean hasBridgeFromNativeAnnotation() {
+  public boolean hasBridgeFromNativeAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.NativeBridge);
   }
 
@@ -755,7 +755,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Should the methods of this class save incoming registers ?
    * @see SaveVolatile
    */
-  public final boolean hasSaveVolatileAnnotation() {
+  public boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SaveVolatile);
   }
 
@@ -785,7 +785,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Does this class override java.lang.Object.finalize()?
    */
   @Uninterruptible
-  public final boolean hasFinalizer() { 
+  public boolean hasFinalizer() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return (finalizeMethod != null);
   }
@@ -795,7 +795,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * if one exists
    */
   @Uninterruptible
-  public final VM_Method getFinalizer() { 
+  public VM_Method getFinalizer() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return finalizeMethod;
   }
@@ -804,7 +804,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Static fields of this class.
    * Values in these fields are shared by all class instances.
    */
-  public final VM_Field[] getStaticFields() {
+  public VM_Field[] getStaticFields() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return staticFields;
   }
@@ -813,7 +813,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Non-static fields of this class (composed with supertypes, if any).
    * Values in these fields are distinct for each class instance.
    */
-  public final VM_Field[] getInstanceFields() {
+  public VM_Field[] getInstanceFields() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceFields;
   }
@@ -821,7 +821,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Statically dispatched methods of this class.
    */
-  public final VM_Method[] getStaticMethods() {
+  public VM_Method[] getStaticMethods() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return staticMethods;
   }
@@ -829,7 +829,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Constructors (<init>) methods of this class.
    */
-  public final VM_Method[] getConstructorMethods() {
+  public VM_Method[] getConstructorMethods() {
     if (VM.VerifyAssertions) VM._assert(isResolved(), "Error class " + this + " is not resolved but " + state);
     return constructorMethods;
   }
@@ -838,7 +838,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Virtually dispatched methods of this class 
    * (composed with supertypes, if any).
    */
-  public final VM_Method[] getVirtualMethods() {
+  public VM_Method[] getVirtualMethods() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return virtualMethods;
   }
@@ -848,7 +848,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * directly or by inheritance from superclass and superinterfaces
    * recursively.
    */
-  public final VM_Class[] getAllImplementedInterfaces() {
+  public VM_Class[] getAllImplementedInterfaces() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     int count = 0;
     int [] doesImplement = getDoesImplement();
@@ -880,7 +880,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * (including object header).
    */
   @Uninterruptible
-  public final int getInstanceSize() { 
+  public int getInstanceSize() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceSize;
   }
@@ -890,7 +890,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * object header). Doesn't perform any verification.
    */
   @Uninterruptible
-  public final int getInstanceSizeInternal() { 
+  public int getInstanceSizeInternal() { 
     return instanceSize;
   }
 
@@ -900,7 +900,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * is already held (ie from resolve).
    */
   @Uninterruptible
-  public final void setInstanceSizeInternal(int size) { 
+  public void setInstanceSizeInternal(int size) { 
     instanceSize = size;
   }
 
@@ -909,7 +909,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
   @Uninterruptible
-  public final int[] getReferenceOffsets() { 
+  public int[] getReferenceOffsets() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
@@ -917,14 +917,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Return int representing available holes in the field layout
    */
-  public final int getFieldLayout() {
+  public int getFieldLayout() {
     return fieldLayout;
   }
 
   /**
    * Set int representing available holes in the field layout
    */
-  public final void setFieldLayout(int newLayout) {
+  public void setFieldLayout(int newLayout) {
     fieldLayout = newLayout;
   }
 
@@ -932,7 +932,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @return alignment for instances of this class type
    */
   @Uninterruptible
-  public final int getAlignment() { 
+  public int getAlignment() { 
     if(BYTES_IN_ADDRESS == BYTES_IN_DOUBLE) {
       return BYTES_IN_ADDRESS;
     } else {
@@ -943,7 +943,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Set the alignment for instances of this class type
    */
-  public final void setAlignment(int align) {
+  public void setAlignment(int align) {
     if(BYTES_IN_ADDRESS != BYTES_IN_DOUBLE) {
       if (VM.VerifyAssertions) VM._assert(align >= alignment);
       alignment = align;
@@ -956,7 +956,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  public final VM_Method findStaticMethod(VM_Atom memberName, 
+  public VM_Method findStaticMethod(VM_Atom memberName, 
                                           VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method[] methods = getStaticMethods();
@@ -974,7 +974,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param  memberDescriptor  init method descriptor - something like "(I)V"
    * @return method description (null --> not found)
    */
-  public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
+  public VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method[] methods = getConstructorMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
@@ -989,7 +989,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Runtime type information for this class type.
    */
   @Uninterruptible
-  public final Object[] getTypeInformationBlock() { 
+  public Object[] getTypeInformationBlock() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -1453,7 +1453,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * method table. 
    * Side effects: superclasses and superinterfaces are resolved.
    */ 
-  public final synchronized void resolve() {
+  public synchronized void resolve() {
     if (isResolved()) return;
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (begin) resolve "+this);
@@ -1757,7 +1757,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // cyclic subclass).
   //
   @Uninterruptible
-  public final boolean isAcyclicReference() { 
+  public boolean isAcyclicReference() { 
     return acyclic && isFinal();
   }
 
@@ -1799,7 +1799,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Compile this class's methods, build type information block, populate jtoc.
    * Side effects: superclasses are instantiated.
    */
-  public final synchronized void instantiate() {
+  public synchronized void instantiate() {
     if (isInstantiated())
       return;
 
@@ -1873,7 +1873,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Side effects: superclasses are initialized, static fields receive 
    * initial values.
    */ 
-  public final synchronized void initialize() 
+  public synchronized void initialize() 
                                  // Doesn't really need declaring.
     throws ExceptionInInitializerError
   {
@@ -2291,7 +2291,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Instantiation status.
    */ 
   @Uninterruptible
-  public final boolean isInstantiated() { 
+  public boolean isInstantiated() { 
     return state >= CLASS_INSTANTIATED; 
   }
 
@@ -2299,14 +2299,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Initialization status.
    */ 
   @Uninterruptible
-  public final boolean isInitialized() { 
+  public boolean isInitialized() { 
     return state == CLASS_INITIALIZED; 
   } 
 
   /**
    * Only intended to be used by the BootImageWriter
    */
-  public final void markAsBootImageClass() {
+  public void markAsBootImageClass() {
     inBootImage = true;
   }
   
@@ -2314,7 +2314,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Is this class part of the virtual machine's boot image?
    */ 
   @Uninterruptible
-  public final boolean isInBootImage() { 
+  public boolean isInBootImage() { 
     return inBootImage;
   }
 
@@ -2323,14 +2323,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * -1 if instances of this type do not have thin lock words.
    */
   @Uninterruptible
-  public final Offset getThinLockOffset() { 
+  public Offset getThinLockOffset() { 
     return thinLockOffset; 
   }
 
   /**
    * Set the thin lock offset for instances of this type
    */
-  public final void setThinLockOffset(Offset offset) {
+  public void setThinLockOffset(Offset offset) {
     if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
     thinLockOffset = offset;
   }

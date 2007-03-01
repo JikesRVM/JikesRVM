@@ -73,14 +73,14 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
     return  options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
-  public final String getName() { 
+  public String getName() { 
     return "Expand Calling Convention"; 
   }
 
   /**
    * Insert the needed dummy defs and uses.
    */
-  public final void perform(OPT_IR ir)  {
+  public void perform(OPT_IR ir)  {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {

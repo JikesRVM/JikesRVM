@@ -42,7 +42,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * 
    * @return the inferred data type of the contents of the register
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return type;
   }
 
@@ -53,7 +53,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isIntLike() {
+  public boolean isIntLike() {
 	 return type.isIntLikeType();
   }
 
@@ -64,7 +64,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isInt() {
+  public boolean isInt() {
 	 return type.isIntType();
   }
 
@@ -75,7 +75,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isLong() {
+  public boolean isLong() {
     return type.isLongType();
   }
 
@@ -86,7 +86,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isFloat() {
+  public boolean isFloat() {
     return type.isFloatType();
   }
 
@@ -97,7 +97,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isDouble() {
+  public boolean isDouble() {
 	 return type.isDoubleType();
   }
 
@@ -108,7 +108,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isRef() {
+  public boolean isRef() {
     return type.isReferenceType();
   }
 
@@ -119,7 +119,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isAddress() {
+  public boolean isAddress() {
     return type.isWordType();
   }
 
@@ -129,7 +129,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @return <code>true</code> if the operand definitely represents
    *         <code>null</code> or <code>false</code> if it does not.
    */
-  public final boolean isDefinitelyNull() {
+  public boolean isDefinitelyNull() {
 	 return type == VM_TypeReference.NULL_TYPE;
   }
 
@@ -222,11 +222,11 @@ public final class OPT_RegisterOperand extends OPT_Operand {
      return other.getFlags() != (getFlags() | other.getFlags());
   }     
 
-  public final int getInfo() {
+  public int getInfo() {
      return scratch & INFO_MASK;
   }
 
-  public final void setInfo(int value) {
+  public void setInfo(int value) {
      scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
   }
 
@@ -278,15 +278,15 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /* since there is not multiple inheritance in Java, I am copying the 
      accessor functions & fields of LinkedListElement.
      This field is used to maintain lists of USEs and DEFs */
-  public final void setNext(OPT_RegisterOperand Next) {
+  public void setNext(OPT_RegisterOperand Next) {
      scratchObject = Next;
   }
 
-  public final void append(OPT_RegisterOperand next) {
+  public void append(OPT_RegisterOperand next) {
      scratchObject = next;
   }
 
-  public final OPT_RegisterOperand getNext() { 
+  public OPT_RegisterOperand getNext() { 
      return (OPT_RegisterOperand)scratchObject;
   }
 

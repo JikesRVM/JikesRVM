@@ -69,7 +69,7 @@ import org.vmmagic.pragma.*;
   /**
    * Display a description of this phase, for debugging purposes.
    */
-  protected final void logPhase() {
+  protected void logPhase() {
     Log.write("complex phase ");
     Log.write(name);
     for (int i = 0; i < subPhases.length; i++) {
@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
    * 
    * TODO are we oversynchronizing here ??
    */
-  protected final void delegatePhase() {
+  protected void delegatePhase() {
     int order = VM.collection.rendezvous(5000 + id);
     if (order == 1 && timer != null) timer.start();
 
@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
    * @param oldId The phase to replace.
    * @param newId The new phase.
    */
-  public final void replacePhase(int oldId, int newId) {
+  public void replacePhase(int oldId, int newId) {
     for (int i = 0; i < subPhases.length; i++) {
       Phase p = getPhase(subPhases[i]);
       if (p.getId() == oldId) {

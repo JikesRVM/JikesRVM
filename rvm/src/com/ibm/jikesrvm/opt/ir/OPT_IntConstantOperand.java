@@ -42,7 +42,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * @return a speculation on the type of the value represented by the
    * operand.
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
     if ((value == 0) || (value == 1))
       return VM_TypeReference.Boolean;
     else if (-128 <= value && value <= 127)
@@ -58,7 +58,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isIntLike() {
+  public boolean isIntLike() {
 	 return true;
   }
 
@@ -67,7 +67,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isInt() {
+  public boolean isInt() {
 	 return true;
   }
 

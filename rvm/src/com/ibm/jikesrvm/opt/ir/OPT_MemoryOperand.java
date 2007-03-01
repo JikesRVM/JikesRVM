@@ -139,7 +139,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   /**
    * Returns a copy of the current operand.
    */
-  public final OPT_Operand copy() { 
+  public OPT_Operand copy() { 
     OPT_RegisterOperand newBase = 
       (base != null) ? (OPT_RegisterOperand)base.copy() : null;
     OPT_RegisterOperand newIndex = 
@@ -157,7 +157,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
    *
    * @param op other operand
    */
-  public final boolean similar(OPT_Operand op) {
+  public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
       if (base == null) {
@@ -182,7 +182,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   /**
    * Return a string rep of the operand (ie the effective address)
    */
-  public final String toString() {
+  public String toString() {
     String addr = (base==null)?"<0":"<["+base+"]";
     if (index != null) {
       addr += "+["+index;

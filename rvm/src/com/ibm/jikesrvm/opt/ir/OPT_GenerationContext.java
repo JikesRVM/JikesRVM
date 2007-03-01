@@ -497,7 +497,7 @@ public final class OPT_GenerationContext
    * @param i local variable number
    * @param type desired data type
    */
-  public final OPT_RegisterOperand makeLocal(int i, VM_TypeReference type) {
+  public OPT_RegisterOperand makeLocal(int i, VM_TypeReference type) {
     return new OPT_RegisterOperand(localReg(i, type), type);
   }
 
@@ -508,7 +508,7 @@ public final class OPT_GenerationContext
    * @param i local variable number
    * @param props OPT_RegisterOperand to inherit flags from
    */
-  final OPT_RegisterOperand makeLocal(int i, OPT_RegisterOperand props) {
+  OPT_RegisterOperand makeLocal(int i, OPT_RegisterOperand props) {
     OPT_RegisterOperand local = makeLocal(i, props.type);
     local.setInheritableFlags(props);
     OPT_BC2IR.setGuard(local, OPT_BC2IR.getGuard(props));
@@ -518,7 +518,7 @@ public final class OPT_GenerationContext
   /**
    * Get the local number for a given register 
    */
-  public final int getLocalNumberFor(OPT_Register reg, VM_TypeReference type) {
+  public int getLocalNumberFor(OPT_Register reg, VM_TypeReference type) {
     OPT_Register[] pool = getPool(type);
     for (int i=0; i< pool.length; i++) {
       if (pool[i] == reg) return i;
@@ -529,7 +529,7 @@ public final class OPT_GenerationContext
   /**
    * Is the operand a particular bytecode local?
    */
-  public final boolean isLocal(OPT_Operand op, int i, VM_TypeReference type) {
+  public boolean isLocal(OPT_Operand op, int i, VM_TypeReference type) {
     if (op instanceof OPT_RegisterOperand) {
       if (getPool(type)[i] == ((OPT_RegisterOperand)op).register) return true;
     }

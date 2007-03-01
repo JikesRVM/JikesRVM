@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  public final void update(int cmid, int callerCmid, int whereFrom) {
+  public void update(int cmid, int callerCmid, int whereFrom) {
     if (VM.UseEpilogueYieldPoints) {
       // Use epilogue yieldpoints.  We increment one sample
       // for every yieldpoint.  On a prologue, we count the caller.
@@ -139,12 +139,12 @@ import org.vmmagic.pragma.*;
   /**
    * @return the buffer of samples
    */
-  public final int[] getSamples() { return samples; }
+  public int[] getSamples() { return samples; }
 
   /**
    * @return how many samples in the array returned by getSamples are valid 
    */
-  public final int getNumSamples() {
+  public int getNumSamples() {
     return (numSamples < sampleSize) ? numSamples : sampleSize;
   }
 } 

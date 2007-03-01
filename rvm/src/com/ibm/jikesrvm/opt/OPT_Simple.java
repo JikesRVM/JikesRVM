@@ -48,15 +48,15 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    */
   private final boolean foldBranches;
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.getOptLevel() >= level;
   }
 
-  public final String getName () {
+  public String getName () {
     return "Simple Opts";
   }
 
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }
 

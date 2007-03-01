@@ -39,7 +39,7 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the containing basic block
    * @return true if an optimization was applied, false otherwise
    */
-  protected final boolean optimizeBranchInstruction(OPT_IR ir,
+  protected boolean optimizeBranchInstruction(OPT_IR ir,
                                                     OPT_Instruction s,
                                                     OPT_BasicBlock bb) {
     if (MIR_Branch.conforms(s)) {

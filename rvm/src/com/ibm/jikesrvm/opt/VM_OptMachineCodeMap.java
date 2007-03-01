@@ -88,7 +88,7 @@ import java.util.ArrayList;
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getBytecodeIndexForMCOffset(Offset MCOffset) {
+  public int getBytecodeIndexForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -102,7 +102,7 @@ import java.util.ArrayList;
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public final VM_NormalMethod getMethodForMCOffset(Offset MCOffset) {
+  public VM_NormalMethod getMethodForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  null;
@@ -119,7 +119,7 @@ import java.util.ArrayList;
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getInlineEncodingForMCOffset(Offset MCOffset) {
+  public int getInlineEncodingForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -192,7 +192,7 @@ import java.util.ArrayList;
    * Returns the GC map information for the GC map information entry passed
    * @param  index     GCmap entry 
    */
-  public final int gcMapInformation(int index) {
+  public int gcMapInformation(int index) {
     return VM_OptGCMap.gcMapInformation(index, gcMaps);
   }
 
@@ -201,14 +201,14 @@ import java.util.ArrayList;
    * @param  entry            map entry
    * @param  registerNumber   the register number
    */
-  public final boolean registerIsSet(int entry, int registerNumber) {
+  public boolean registerIsSet(int entry, int registerNumber) {
     return VM_OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
   }
 
   /**
    * @return the next (relative) location or -1 for no more locations
    */
-  public final int nextLocation(int currentIndex) {
+  public int nextLocation(int currentIndex) {
     return VM_OptGCMap.nextLocation(currentIndex, gcMaps);
   }
 

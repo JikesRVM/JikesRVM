@@ -156,14 +156,14 @@ public final class VM_TypeReference {
   /**
    * Hash value based on name, used for canonical type dictionary
    */
-  public final int hashCode() {
+  public int hashCode() {
     return name.hashCode();
   }
   /**
    * Are two keys equivalent? Used for canonical type dictionary.
    * NB ignores id value
    */
-  public final boolean equals(Object other) {
+  public boolean equals(Object other) {
     if (other instanceof VM_TypeReference) {
       VM_TypeReference that = (VM_TypeReference)other;
       return name == that.name && classloader.equals(that.classloader);
@@ -312,7 +312,7 @@ public final class VM_TypeReference {
    * @return the classloader component of this type reference
    */
   @Uninterruptible
-  public final ClassLoader getClassLoader() { 
+  public ClassLoader getClassLoader() { 
     return classloader;
   }
       
@@ -320,14 +320,14 @@ public final class VM_TypeReference {
    * @return the type name component of this type reference
    */
   @Uninterruptible
-  public final VM_Atom getName() { 
+  public VM_Atom getName() { 
     return name;
   }
 
   /**
    * Get the element type of for this array type
    */
-  public final VM_TypeReference getArrayElementType() {
+  public VM_TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
     
     if (isWordArrayType()) {
@@ -355,7 +355,7 @@ public final class VM_TypeReference {
   /**
    * Get array type corresponding to "this" array element type.
    */ 
-  public final VM_TypeReference getArrayTypeForElementType() {
+  public VM_TypeReference getArrayTypeForElementType() {
     VM_Atom arrayDescriptor = name.arrayDescriptorFromElementDescriptor();
     return findOrCreate(classloader, arrayDescriptor);
   }
@@ -365,7 +365,7 @@ public final class VM_TypeReference {
    * By convention, class types have dimensionality 0,
    * primitves -1, and arrays the number of [ in their descriptor.
    */
-  public final int getDimensionality() {
+  public int getDimensionality() {
     if (isArrayType()) {
       VM_TypeReference elem = getArrayElementType();
       if (elem.isArrayType()) {
@@ -388,7 +388,7 @@ public final class VM_TypeReference {
   /**
    * Return the innermost element type reference for an array
    */
-  public final VM_TypeReference getInnermostElementType() {
+  public VM_TypeReference getInnermostElementType() {
     VM_TypeReference elem = getArrayElementType();
     if (elem.isArrayType()) {
       // NOTE: we must recur instead of attempting to parse
@@ -404,7 +404,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to a class?
    */ 
   @Uninterruptible
-  public final boolean isClassType() { 
+  public boolean isClassType() { 
     return name.isClassDescriptor() &&
       !(isWordArrayType() || isWordType() || isCodeArrayType() || isCodeType());
   }
@@ -413,7 +413,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to an array?
    */ 
   @Uninterruptible
-  public final boolean isArrayType() { 
+  public boolean isArrayType() { 
     return name.isArrayDescriptor() || isWordArrayType() || isCodeArrayType();
   }
 
@@ -421,7 +421,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to a primitive type
    */
   @Uninterruptible
-  public final boolean isPrimitiveType() { 
+  public boolean isPrimitiveType() { 
     return !(isArrayType() || isClassType());
   }
 
@@ -429,7 +429,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to a reference type
    */
   @Uninterruptible
-  public final boolean isReferenceType() { 
+  public boolean isReferenceType() { 
     return !isPrimitiveType();
   }
 
@@ -437,7 +437,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to Word, Address, Offset or Extent
    */
   @Uninterruptible
-  public final boolean isWordType() { 
+  public boolean isWordType() { 
     return this == Word || this == Offset || this == Address || this == Extent;
   }
 
@@ -445,7 +445,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to VM_Code
    */
   @Uninterruptible
-  public final boolean isCodeType() { 
+  public boolean isCodeType() { 
     return this == Code;
   }
 
@@ -453,7 +453,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   @Uninterruptible
-  final boolean isWordArrayType() { 
+  boolean isWordArrayType() { 
     return this == WordArray || this == OffsetArray || this == AddressArray || this == ObjectReferenceArray || this == ExtentArray;
   }
 
@@ -461,14 +461,14 @@ public final class VM_TypeReference {
    * Does 'this' refer to VM_CodeArray
    */
   @Uninterruptible
-  public final boolean isCodeArrayType() { 
+  public boolean isCodeArrayType() { 
     return this == CodeArray;
   }
 
   /**
    * Does 'this' refer to VM_Magic?
    */
-  public final boolean isMagicType() {
+  public boolean isMagicType() {
     return this == Magic || this == SysCall
       || this == ObjectReference || this == ObjectReferenceArray 
       || isWordType() || isWordArrayType() 
@@ -479,7 +479,7 @@ public final class VM_TypeReference {
    * How many java stack/local words do value of this type take?
    */
   @Uninterruptible
-  public final int getStackWords() { 
+  public int getStackWords() { 
     if(isResolved()) {
       // all primitive and magic types are resolved immediately
       return resolvedType.getStackWords();
@@ -494,7 +494,7 @@ public final class VM_TypeReference {
    * How many bytes do values of this type take?
    */
   @Uninterruptible
-  public final int getMemoryBytes() {
+  public int getMemoryBytes() {
     if(isResolved()) {
       // all primitive and magic types are resolved immediately
       return resolvedType.getMemoryBytes();
@@ -509,7 +509,7 @@ public final class VM_TypeReference {
    * @return the id to use for this type
    */
   @Uninterruptible
-  public final int getId() { 
+  public int getId() { 
     return id;
   }
 
@@ -517,63 +517,63 @@ public final class VM_TypeReference {
    * Is this the type reference for the void primitive type?
    */
   @Uninterruptible
-  public final boolean isVoidType() { 
+  public boolean isVoidType() { 
     return this == Void;
   }
   /**
    * Is this the type reference for the boolean primitive type?
    */
   @Uninterruptible
-  public final boolean isBooleanType() { 
+  public boolean isBooleanType() { 
     return this == Boolean;
   }
   /**
    * Is this the type reference for the byte primitive type?
    */
   @Uninterruptible
-  public final boolean isByteType() { 
+  public boolean isByteType() { 
     return this == Byte;
   }
   /**
    * Is this the type reference for the short primitive type?
    */
   @Uninterruptible
-  public final boolean isShortType() { 
+  public boolean isShortType() { 
     return this == Short;
   }
   /**
    * Is this the type reference for the char primitive type?
    */
   @Uninterruptible
-  public final boolean isCharType() { 
+  public boolean isCharType() { 
     return this == Char;
   }
   /**
    * Is this the type reference for the int primitive type?
    */
   @Uninterruptible
-  public final boolean isIntType() { 
+  public boolean isIntType() { 
     return this == Int;
   }
   /**
    * Is this the type reference for the long primitive type?
    */
   @Uninterruptible
-  public final boolean isLongType() { 
+  public boolean isLongType() { 
     return this == Long;
   }
   /**
    * Is this the type reference for the float primitive type?
    */
   @Uninterruptible
-  public final boolean isFloatType() { 
+  public boolean isFloatType() { 
     return this == Float;
   }
   /**
    * Is this the type reference for the double primitive type?
    */
   @Uninterruptible
-  public final boolean isDoubleType() { 
+  public boolean isDoubleType() { 
     return this == Double;
   }
   /**
@@ -581,7 +581,7 @@ public final class VM_TypeReference {
    * int-like (1, 8, 16, or 32 bit integral) primitive type? 
    */
   @Uninterruptible
-  public final boolean isIntLikeType() { 
+  public boolean isIntLikeType() { 
     return isBooleanType() || isByteType() || isCharType() 
       || isShortType() || isIntType();
   } 
@@ -589,7 +589,7 @@ public final class VM_TypeReference {
   /**
    * Do this and that definitely refer to the different types?
    */
-  public final boolean definitelyDifferent(VM_TypeReference that) {
+  public boolean definitelyDifferent(VM_TypeReference that) {
     if (this == that) return false;
     if (name != that.name) return true;
     VM_Type mine = peekResolvedType();
@@ -602,7 +602,7 @@ public final class VM_TypeReference {
   /**
    * Do this and that definitely refer to the same type?
    */
-  public final boolean definitelySame(VM_TypeReference that) {
+  public boolean definitelySame(VM_TypeReference that) {
     if (VM.VerifyAssertions) VM._assert(that != null);
     if (this == that) return true;
     if (name != that.name) return false;
@@ -616,7 +616,7 @@ public final class VM_TypeReference {
    * Has the type reference already been resolved into a type?
    */
   @Uninterruptible
-  public final boolean isResolved() { 
+  public boolean isResolved() { 
     return resolvedType != null;
   }
 
@@ -624,7 +624,7 @@ public final class VM_TypeReference {
    * @return the current value of resolvedType -- null if not yet resolved.
    */
   @Uninterruptible
-  public final VM_Type peekResolvedType() { 
+  public VM_Type peekResolvedType() { 
     return resolvedType;
   }
 
@@ -653,7 +653,7 @@ public final class VM_TypeReference {
    *        validate them as soon as we insert them into a VM_TypeReference.
    *        This stinks. XXX)
    */
-  public final VM_Type resolve() throws NoClassDefFoundError, 
+  public VM_Type resolve() throws NoClassDefFoundError, 
                                         IllegalArgumentException {
    /*
     * Lock the classloader instead of this to avoid conflicting locking order.
@@ -719,7 +719,7 @@ public final class VM_TypeReference {
     return resolvedType;
   }
 
-  public final String toString() {
+  public String toString() {
     return "< " + classloader + ", "+ name + " >";
   }
 }

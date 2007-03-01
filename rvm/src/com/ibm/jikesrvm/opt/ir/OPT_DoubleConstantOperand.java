@@ -74,7 +74,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    * 
    * @return VM_TypeReference.Double
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.Double;
   }
 
@@ -83,7 +83,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    * 
    * @return <code>true</code>
    */
-  public final boolean isDouble() {
+  public boolean isDouble() {
 	 return true;
   }
 

@@ -77,7 +77,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param countBuffer a buffer of compiled method id's
    * @param numCounts the number of valid entries in the buffer
    */
-  public final synchronized void update(int[] countBuffer, int numCounts) {
+  public synchronized void update(int[] countBuffer, int numCounts) {
     for (int i=0; i<numCounts; i++) {
       int cmid = countBuffer[i];
       int index = findOrCreateHeapIdx(cmid);
@@ -94,7 +94,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param cmid compiled method id
    * @param numCounts number of counts
    */
-  public final synchronized void update(int cmid, double numCounts) {
+  public synchronized void update(int cmid, double numCounts) {
     int index = findOrCreateHeapIdx(cmid);
     counts[index] += numCounts;       // Record counts
     heapifyUp(index);                 // Fix up the heap
@@ -106,7 +106,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *  Print the counted (nonzero) methods.
    *  To get a sorted list, pipe the output through sort -n -r.
    */
-  public final synchronized void report() {
+  public synchronized void report() {
     VM.sysWrite("Method counts: A total of "+totalCountsTaken+" samples\n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
@@ -132,14 +132,14 @@ public final class VM_MethodCountData implements VM_Reportable {
   /**
    * @return the total number of samples taken
    */
-  public final double getTotalNumberOfSamples() {
+  public double getTotalNumberOfSamples() {
     return totalCountsTaken;
   }
   
   /**
    * Reset (clear) the method counts
    */
-  public final synchronized void reset() {
+  public synchronized void reset() {
     initialize();
   }
 
@@ -148,7 +148,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *
    * @param cmid compiled method id
    */
-  public final synchronized double getData(int cmid) {
+  public synchronized double getData(int cmid) {
     int index = findHeapIdx(cmid);
     if (index > 0) {
       return counts[index];
@@ -162,7 +162,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *
    * @param cmid compiled method id
    */
-  public final synchronized void reset(int cmid) {
+  public synchronized void reset(int cmid) {
     int index = findHeapIdx(cmid);
     if (index > 0) {
       // Cmid does have a value in the heap. 
@@ -195,7 +195,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param cmid compiled method id
    * @param addVal samples to add
    */
-  public final synchronized void augmentData(int cmid, double addVal) {
+  public synchronized void augmentData(int cmid, double addVal) {
     if (addVal == 0) return; // nothing to do
     int index = findOrCreateHeapIdx(cmid);
     counts[index] += addVal;
@@ -215,7 +215,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
    */
-  public final synchronized void insertHotMethods(int filterOptLevel, 
+  public synchronized void insertHotMethods(int filterOptLevel, 
                                                   double threshold) {
     if (DEBUG) validityCheck();
     insertHotMethodsInternal(1, filterOptLevel, hotnessToCounts(threshold));
@@ -232,7 +232,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *            array of compiled methods and an array of their counts.
    * 
    */
-  public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
+  public synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
                                                                 double threshold) {
     if (DEBUG) validityCheck();
     ArrayList<VM_HotMethodRecompilationEvent> collect = 

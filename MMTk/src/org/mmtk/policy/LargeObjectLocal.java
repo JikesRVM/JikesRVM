@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.*;
    * @param cell The newly allocated cell
    */
   @Inline
-  protected final void postAlloc (Address cell) { 
+  protected void postAlloc (Address cell) { 
     space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
   }
 
@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
    */
-  public final void prepare(boolean fullHeap) {
+  public void prepare(boolean fullHeap) {
   }
 
   /**
@@ -111,7 +111,7 @@ import org.vmmagic.unboxed.*;
    * system.
    */
   @Inline
-  protected final int superPageHeaderSize() { 
+  protected int superPageHeaderSize() { 
     return Treadmill.headerSize();
   }
 
@@ -123,7 +123,7 @@ import org.vmmagic.unboxed.*;
    * size.
    */
   @Inline
-  protected final int cellHeaderSize() { 
+  protected int cellHeaderSize() { 
     return 0;
   }
 

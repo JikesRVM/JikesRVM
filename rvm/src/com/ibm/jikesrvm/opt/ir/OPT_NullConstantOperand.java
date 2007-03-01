@@ -32,7 +32,7 @@ public final class OPT_NullConstantOperand extends OPT_ConstantOperand {
    * 
    * @return VM_TypeReference.NULL_TYPE
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.NULL_TYPE;
   }
 
@@ -41,7 +41,7 @@ public final class OPT_NullConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isRef() {
+  public boolean isRef() {
 	 return true;
   }
 
@@ -50,7 +50,7 @@ public final class OPT_NullConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isDefinitelyNull() {
+  public boolean isDefinitelyNull() {
 	 return true;
   }
 

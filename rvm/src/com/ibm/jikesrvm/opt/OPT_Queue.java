@@ -25,20 +25,20 @@ final class OPT_Queue<T> implements Iterable<T> {
     elements.add(e);
   }
 
-  final T insert(T e) {
+  T insert(T e) {
     elements.add(e);            // Insert at tail
     return e;
   }
 
-  final T remove() {
+  T remove() {
     return elements.remove(0);  // Remove from head
   }
 
-  final boolean isEmpty() {
+  boolean isEmpty() {
     return elements.isEmpty();
   }
 
-  public final Iterator<T> iterator() {
+  public Iterator<T> iterator() {
     return elements.iterator();
   }
 }

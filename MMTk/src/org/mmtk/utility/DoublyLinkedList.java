@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
     return HEADER_SIZE.toInt();
   }
 
-  public final boolean isNode(Address node) {
+  public boolean isNode(Address node) {
     return node.toWord().rshl(logGranularity).lsh(logGranularity).EQ(node.toWord());
   }
 
@@ -109,7 +109,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public final void add(Address node) { 
+  public void add(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
@@ -121,7 +121,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public final void remove(Address node) { 
+  public void remove(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
@@ -140,17 +140,17 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public final Address getHead() { 
+  public Address getHead() { 
     return head;
   }
 
   @Inline
-  public final Address getNext(Address node) { 
+  public Address getNext(Address node) { 
     return node.loadAddress(NEXT_OFFSET);
   }
 
   @Inline
-  public final Address pop() { 
+  public Address pop() { 
     Address first = head;
     if (!first.isZero())
       remove(first);
@@ -158,7 +158,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public final boolean isEmpty() { 
+  public boolean isEmpty() { 
     return head.isZero();
   }
 
@@ -168,7 +168,7 @@ import org.vmmagic.unboxed.*;
    * @param node The cell being searched for
    * @return True if the cell is found on the treadmill
    */
-  public final boolean isMember(Address node) {
+  public boolean isMember(Address node) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
@@ -184,7 +184,7 @@ import org.vmmagic.unboxed.*;
     return result;
   }
 
-  public final void show() {
+  public void show() {
     if (lock != null) lock.acquire();
     Address cur = head;
     Log.write(cur);

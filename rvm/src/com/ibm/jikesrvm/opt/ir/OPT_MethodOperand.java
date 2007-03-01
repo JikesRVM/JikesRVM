@@ -178,35 +178,35 @@ public final class OPT_MethodOperand extends OPT_Operand {
      return new OPT_MethodOperand(ref, target, INTERFACE);
    }
 
-   public final boolean isStatic() {
+   public boolean isStatic() {
      return type == STATIC;
    }
 
-   public final boolean isVirtual() {
+   public boolean isVirtual() {
      return type == VIRTUAL;
    }
 
-   public final boolean isSpecial() {
+   public boolean isSpecial() {
      return type == SPECIAL;
    }
 
-   public final boolean isInterface() {
+   public boolean isInterface() {
      return type == INTERFACE;
    }
 
-   public final boolean hasTarget() {
+   public boolean hasTarget() {
      return target != null;
    }
 
-   public final boolean hasPreciseTarget() {
+   public boolean hasPreciseTarget() {
      return target != null && isPreciseTarget;
    }
 
-   public final VM_Method getTarget() {
+   public VM_Method getTarget() {
      return target;
    }
 
-   public final VM_MemberReference getMemberRef() {
+   public VM_MemberReference getMemberRef() {
      return memRef;
    }
 
@@ -216,7 +216,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
     *
     * @return Does this op represent a call that never returns?
     */
-   public final boolean isNonReturningCall() {
+   public boolean isNonReturningCall() {
      return isNonReturningCall;
    }
 
@@ -224,21 +224,21 @@ public final class OPT_MethodOperand extends OPT_Operand {
     * Record whether this operand represents a method call that never 
     * returns (such as a call to athrow());
     */
-   public final void setIsNonReturningCall(boolean neverReturns) {
+   public void setIsNonReturningCall(boolean neverReturns) {
      isNonReturningCall = neverReturns;
    }
 
    /**
     * Return whether this operand is the off branch of a guarded inline
     */
-   public final boolean isGuardedInlineOffBranch() {
+   public boolean isGuardedInlineOffBranch() {
      return isGuardedInlineOffBranch;
    }
 
    /**
     * Record that this operand is the off branch of a guarded inline
     */
-   public final void setIsGuardedInlineOffBranch(boolean f) {
+   public void setIsGuardedInlineOffBranch(boolean f) {
      isGuardedInlineOffBranch = f;
    }
 
@@ -279,7 +279,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
     * 
     * @return a copy of <code>this</code>
     */
-   public final OPT_Operand copy() {
+   public OPT_Operand copy() {
      OPT_MethodOperand mo = new OPT_MethodOperand(memRef, target, type);
      mo.isPreciseTarget = isPreciseTarget;
      mo.isNonReturningCall = isNonReturningCall;
@@ -295,7 +295,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
     *           are semantically equivalent or <code>false</code> 
     *           if they are not.
     */
-   public final boolean similar(OPT_Operand op) {
+   public boolean similar(OPT_Operand op) {
      if (op instanceof OPT_MethodOperand) {
        OPT_MethodOperand mop = (OPT_MethodOperand)op;
        return memRef == mop.memRef &&
@@ -311,7 +311,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
     *
     * @return a string representation of this operand.
     */
-   public final String toString() {
+   public String toString() {
      String s = "";
      switch(type) {
      case STATIC: 
@@ -344,5 +344,5 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * SPECIALIZATION SUPPORT
    */
   public OPT_SpecializedMethod spMethod;
-  public final boolean hasSpecialVersion(){ return spMethod != null; }
+  public boolean hasSpecialVersion(){ return spMethod != null; }
 }

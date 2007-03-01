@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public final void write(char [] c, int len) {
+  public void write(char [] c, int len) {
     VM.sysWrite(c, len);
   }
 
@@ -39,7 +39,7 @@ import org.vmmagic.pragma.*;
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public final void writeThreadId(char [] c, int len) {
+  public void writeThreadId(char [] c, int len) {
     VM.psysWrite(c, len);
   }
 
@@ -58,7 +58,7 @@ import org.vmmagic.pragma.*;
    * @return the number of characters copied.
    */
   @LogicallyUninterruptible
-  public final int copyStringToChars(String src, char [] dst,
+  public int copyStringToChars(String src, char [] dst,
                                      int dstBegin, int dstEnd) { 
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().disableThreadSwitching();

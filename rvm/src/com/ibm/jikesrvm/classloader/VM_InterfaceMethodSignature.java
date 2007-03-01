@@ -72,31 +72,31 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * @return name of the interface method
    */
-  public final VM_Atom getName() {
+  public VM_Atom getName() {
     return name;
   }
 
   /**
    * @return descriptor of hte interface method
    */
-  public final VM_Atom getDescriptor() {
+  public VM_Atom getDescriptor() {
     return descriptor;
   }
 
   /**
    * @return the id of thie interface method signature.
    */
-  public final int getId() { return id; }
+  public int getId() { return id; }
 
-  public final String toString() {
+  public String toString() {
     return "{" + name + " " + descriptor + "}";
   }
 
-  public final int hashCode() {
+  public int hashCode() {
     return name.hashCode() + descriptor.hashCode();
   }
 
-  public final boolean equals(Object other) {
+  public boolean equals(Object other) {
     if (other instanceof VM_InterfaceMethodSignature) {
       VM_InterfaceMethodSignature that = (VM_InterfaceMethodSignature)other;
       return name == that.name && descriptor == that.descriptor;
@@ -114,7 +114,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * 
    * @return offset in TIB/IMT
    */ 
-  public final Offset getIMTOffset() {
+  public Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;
     if (VM.BuildForEmbeddedIMT) {

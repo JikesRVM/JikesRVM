@@ -221,7 +221,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    * Return a string name for this phase.
    * @return "Loop Versioning"
    */
-  public final String getName() {
+  public String getName() {
     return  "Loop Versioning";
   }
 
@@ -286,7 +286,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    *
    * @param _ir the IR to process
    */
-  public final void perform(OPT_IR _ir) {
+  public void perform(OPT_IR _ir) {
     ir = _ir;
 
     // Create SSA

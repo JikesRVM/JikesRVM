@@ -44,14 +44,14 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   /**
    * Get compiler that generated this method's machine code.
    */ 
-  public final int getCompilerType() {
+  public int getCompilerType() {
     return VM_CompiledMethod.OPT;
   }
 
   /**
    * @return Name of the compiler that produced this compiled method.
    */ 
-  public final String getCompilerName() {
+  public String getCompilerName() {
     return "optimizing compiler";
   }
 
@@ -59,7 +59,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Get handler to deal with stack unwinding and exception delivery 
    * for this method's stackframes.
    */
-  public final VM_ExceptionDeliverer getExceptionDeliverer() {
+  public VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
@@ -67,7 +67,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Find "catch" block for a machine instruction of this method.
    */ 
   @Interruptible
-  public final int findCatchBlockForInstruction(Offset instructionOffset, 
+  public int findCatchBlockForInstruction(Offset instructionOffset, 
                                                 VM_Type exceptionType) { 
     if (eTable == null) {
       return -1;
@@ -83,7 +83,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param instructionOffset offset of machine instruction that issued 
    *                          the call
    */ 
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
+  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
@@ -95,7 +95,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Find source line number corresponding to one of this method's 
    * machine instructions.
    */
-  public final int findLineNumberForInstruction(Offset instructionOffset) {
+  public int findLineNumberForInstruction(Offset instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
@@ -106,7 +106,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Set the stack browser to the innermost logical stack frame of this method
    */
   @Interruptible
-  public final void set(VM_StackBrowser browser, Offset instr) { 
+  public void set(VM_StackBrowser browser, Offset instr) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -133,7 +133,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
   @Interruptible
-  public final boolean up(VM_StackBrowser browser) { 
+  public boolean up(VM_StackBrowser browser) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -167,7 +167,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param out    The PrintStream to print the stack trace to.
    */
   @Interruptible
-  public final void printStackTrace(Offset instructionOffset, PrintLN out) { 
+  public void printStackTrace(Offset instructionOffset, PrintLN out) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -212,7 +212,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/VM_ExceptionTable;"));
 
   @Interruptible
-  public final int size() { 
+  public int size() { 
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
@@ -277,43 +277,43 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
   private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
 
-  public final int getUnsignedNonVolatileOffset() {
+  public int getUnsignedNonVolatileOffset() {
     return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
   }
-  public final int getUnsignedExceptionOffset() {
+  public int getUnsignedExceptionOffset() {
     return (int)((_bits & EXCEPTION_OBJ_MASK) >>> EXCEPTION_OBJ_SHIFT);
   }
-  public final int getFirstNonVolatileGPR() {
+  public int getFirstNonVolatileGPR() {
     int t = (int)((_bits & INTEGER_MASK) >>> INTEGER_SHIFT);
     return (t == NO_INTEGER_ENTRY) ? -1 : t;
   }
-  public final int getFirstNonVolatileFPR() {
+  public int getFirstNonVolatileFPR() {
     int t = (int)((_bits & FLOAT_MASK) >>> FLOAT_SHIFT);
     return (t == NO_FLOAT_ENTRY) ? -1 : t;
   }
-  public final int getOptLevel() {
+  public int getOptLevel() {
     return (int)((_bits & OPT_LEVEL_MASK) >>> OPT_LEVEL_SHIFT);
   }
-  public final boolean isSaveVolatile() {
+  public boolean isSaveVolatile() {
     return (_bits & SAVE_VOLATILE_MASK) != 0L;
   }
-  public final boolean isInstrumentedMethod() {
+  public boolean isInstrumentedMethod() {
     return (_bits & INSTRU_METHOD_MASK) != 0L;
   }
-  public final int getFrameFixedSize() {
+  public int getFrameFixedSize() {
     return (int)((_bits & FIXED_SIZE_MASK) >>> FIXED_SIZE_SHIFT);
   }
 
 
-  public final void setUnsignedNonVolatileOffset(int x) {
+  public void setUnsignedNonVolatileOffset(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
     _bits = (_bits & ~NONVOLATILE_MASK) | (((long)x) << NONVOLATILE_SHIFT);
   }
-  public final void setUnsignedExceptionOffset(int x) {
+  public void setUnsignedExceptionOffset(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
     _bits = (_bits & ~EXCEPTION_OBJ_MASK) | (((long)x) << EXCEPTION_OBJ_SHIFT);
   }
-  public final void setFirstNonVolatileGPR(int x) {
+  public void setFirstNonVolatileGPR(int x) {
     if (x == -1) {
       _bits |= INTEGER_MASK;
     } else {
@@ -321,7 +321,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       _bits = (_bits & ~INTEGER_MASK) | (((long)x) << INTEGER_SHIFT);
     }
   }
-  public final void setFirstNonVolatileFPR(int x) {
+  public void setFirstNonVolatileFPR(int x) {
     if (x == -1) {
       _bits |= FLOAT_MASK;
     } else {
@@ -329,23 +329,23 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       _bits = (_bits & ~FLOAT_MASK) | (((long)x) << FLOAT_SHIFT);
     }
   }
-  public final void setOptLevel(int x) {
+  public void setOptLevel(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
     _bits = (_bits & ~OPT_LEVEL_MASK) | (((long)x) << OPT_LEVEL_SHIFT);
   }
-  public final void setSaveVolatile(boolean sv) {
+  public void setSaveVolatile(boolean sv) {
     if (sv) 
       _bits |= SAVE_VOLATILE_MASK;
     else 
       _bits &= ~SAVE_VOLATILE_MASK;
   }
-  public final void setInstrumentedMethod(boolean sv) {
+  public void setInstrumentedMethod(boolean sv) {
     if (sv) 
       _bits |= INSTRU_METHOD_MASK;
     else 
       _bits &= ~INSTRU_METHOD_MASK;
   }
-  public final void setFrameFixedSize(int x) {
+  public void setFrameFixedSize(int x) {
     if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
     _bits = (_bits & ~FIXED_SIZE_MASK) | (((long)x) << FIXED_SIZE_SHIFT);
   }
@@ -401,14 +401,14 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Print the eTable
    */
   @Interruptible
-  public final void printExceptionTable() { 
+  public void printExceptionTable() { 
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
   /**
    * @return the machine code map for the compiled method.
    */
-  public final VM_OptMachineCodeMap getMCMap () {
+  public VM_OptMachineCodeMap getMCMap () {
     return _mcMap;
   }
 
@@ -419,7 +419,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param machineCodeLength the number of machine code instructions.
    */
   @Interruptible
-  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) { 
+  public void createFinalMCMap (OPT_IR ir, int machineCodeLength) { 
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
   }
 
@@ -428,7 +428,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param ir the ir 
    */
   @Interruptible
-  public final void createFinalExceptionTable (OPT_IR ir) { 
+  public void createFinalExceptionTable (OPT_IR ir) { 
     if (ir.hasReachableExceptionHandlers()) {
       eTable = VM_OptExceptionTable.encode(ir);
     }
@@ -439,7 +439,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param ir the ir 
    */
   @Interruptible
-  public final void createCodePatchMaps(OPT_IR ir) { 
+  public void createCodePatchMaps(OPT_IR ir) { 
     // (1) count the patch points
     int patchPoints = 0;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -485,7 +485,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Apply the code patches to the INSTRUCTION array of cm
    */
   @Interruptible
-  public final void applyCodePatches(VM_CompiledMethod cm) { 
+  public void applyCodePatches(VM_CompiledMethod cm) { 
     if (patchMap != null) {
       for (int idx=0; idx<patchMap.length; idx += 2) {
         VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));

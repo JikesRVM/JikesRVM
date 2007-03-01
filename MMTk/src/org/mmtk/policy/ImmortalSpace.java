@@ -153,7 +153,7 @@ import org.vmmagic.pragma.*;
 
   /** @return the current mark state */
   @Inline
-  public final Word getMarkState() { return markState; } 
+  public Word getMarkState() { return markState; } 
 
   /****************************************************************************
    * 
@@ -166,7 +166,7 @@ import org.vmmagic.pragma.*;
    * 
    * @param object The newly allocated object instance whose header we are initializing
    */
-  public final void initializeHeader(ObjectReference object) {
+  public void initializeHeader(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -198,7 +198,7 @@ import org.vmmagic.pragma.*;
    * @param object The object to be traced.
    */
   @Inline
-  public final ObjectReference traceObject(TraceLocal trace,
+  public ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) { 
     if (testAndMark(object, markState))
       trace.enqueue(object);
@@ -223,13 +223,13 @@ import org.vmmagic.pragma.*;
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public final void release(Address start) { 
+  public void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   @Inline
-  public final boolean isLive(ObjectReference object) { 
+  public boolean isLive(ObjectReference object) { 
     return true;
   }
 

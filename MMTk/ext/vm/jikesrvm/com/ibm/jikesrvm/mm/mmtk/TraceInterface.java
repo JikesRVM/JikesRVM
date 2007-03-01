@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
    *
    * @return True if the RVM is ready for GC, false otherwise.
    */
-  public final boolean gcEnabled() {
+  public boolean gcEnabled() {
     /* This test is based upon a review of the code and trial-and-error */
     return VM_Processor.getCurrentProcessor().threadSwitchingEnabled() && 
       VM_Scheduler.allProcessorsInitialized;
@@ -117,7 +117,7 @@ import org.vmmagic.pragma.*;
    * the update will be stored
    * @return The easy to understand offset of the slot
    */
-  public final Offset adjustSlotOffset(boolean isScalar, 
+  public Offset adjustSlotOffset(boolean isScalar, 
                                               ObjectReference src,
                                               Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
@@ -140,7 +140,7 @@ import org.vmmagic.pragma.*;
    */
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
-  public final Address skipOwnFramesAndDump(ObjectReference typeRef) { 
+  public Address skipOwnFramesAndDump(ObjectReference typeRef) { 
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;
@@ -227,62 +227,62 @@ import org.vmmagic.pragma.*;
    */
 
   @Inline
-  public final void updateDeathTime(Object obj) { 
+  public void updateDeathTime(Object obj) { 
     VM_MiscHeader.updateDeathTime(obj);
   }
 
   @Inline
-  public final void setDeathTime(ObjectReference ref, Word time_) { 
+  public void setDeathTime(ObjectReference ref, Word time_) { 
     VM_MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
   @Inline
-  public final void setLink(ObjectReference ref, ObjectReference link) { 
+  public void setLink(ObjectReference ref, ObjectReference link) { 
     VM_MiscHeader.setLink(ref.toObject(), link);
   }
 
   @Inline
-  public final void updateTime(Word time_) { 
+  public void updateTime(Word time_) { 
     VM_MiscHeader.updateTime(time_);
   }
 
   @Inline
-  public final Word getOID(ObjectReference ref) { 
+  public Word getOID(ObjectReference ref) { 
     return VM_MiscHeader.getOID(ref.toObject());
   }
 
   @Inline
-  public final Word getDeathTime(ObjectReference ref) { 
+  public Word getDeathTime(ObjectReference ref) { 
     return VM_MiscHeader.getDeathTime(ref.toObject());
   }
 
   @Inline
-  public final ObjectReference getLink(ObjectReference ref) { 
+  public ObjectReference getLink(ObjectReference ref) { 
     return VM_MiscHeader.getLink(ref.toObject());
   }
 
   @Inline
-  public final Address getBootImageLink() { 
+  public Address getBootImageLink() { 
     return VM_MiscHeader.getBootImageLink();
   }
 
   @Inline
-  public final Word getOID() { 
+  public Word getOID() { 
     return VM_MiscHeader.getOID();
   }
 
   @Inline
-  public final void setOID(Word oid) { 
+  public void setOID(Word oid) { 
     VM_MiscHeader.setOID(oid);
   }
 
   @Inline
-  public final int getHeaderSize() { 
+  public int getHeaderSize() { 
     return VM_MiscHeader.getHeaderSize();
   }
 
   @Inline
-  public final int getHeaderEndOffset() { 
+  public int getHeaderEndOffset() { 
     return VM_ObjectModel.getHeaderEndOffset();
   }
 }

@@ -25,7 +25,7 @@ public final class OPT_TrueGuardOperand extends OPT_ConstantOperand {
    * 
    * @return VM_TypeReference.VALIDATION_TYPE
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.VALIDATION_TYPE;
   }
 

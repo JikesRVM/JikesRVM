@@ -210,7 +210,7 @@ import org.vmmagic.unboxed.*;
    * @return True if this mark-sweep space is currently being collected.
    */
   @Inline
-  public final boolean inMSCollection() { 
+  public boolean inMSCollection() { 
     return inMSCollection;
   }
 
@@ -220,7 +220,7 @@ import org.vmmagic.unboxed.*;
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public final void release(Address start) { 
+  public void release(Address start) { 
     ((FreeListPageResource) pr).releasePages(start);
   }
 
@@ -243,7 +243,7 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public final ObjectReference traceObject(TraceLocal trace,
+  public ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) { 
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
@@ -278,7 +278,7 @@ import org.vmmagic.unboxed.*;
    * @return The current mark state.
    */
   @Inline
-  public final Word getMarkState() { 
+  public Word getMarkState() { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
     return markState;
   }
@@ -289,7 +289,7 @@ import org.vmmagic.unboxed.*;
    * @return The previous mark state.
    */
   @Inline
-  public final Word getPreviousMarkState() { 
+  public Word getPreviousMarkState() { 
     return deltaMarkState(false);
   }
 
@@ -318,7 +318,7 @@ import org.vmmagic.unboxed.*;
    * @param object the object ref to the storage to be initialized
    */
   @Inline
-  public final void postAlloc(ObjectReference object) { 
+  public void postAlloc(ObjectReference object) { 
     initializeHeader(object, true);
   }
 
@@ -331,7 +331,7 @@ import org.vmmagic.unboxed.*;
    * @param majorGC Is this copy happening during a major gc? 
    */
   @Inline
-  public final void postCopy(ObjectReference object, boolean majorGC) { 
+  public void postCopy(ObjectReference object, boolean majorGC) { 
     initializeHeader(object, false);
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (majorGC) MarkSweepLocal.liveBlock(object);
@@ -348,7 +348,7 @@ import org.vmmagic.unboxed.*;
    * (true) or due to copying (false)?
    */
   @Inline
-  public final void initializeHeader(ObjectReference object, boolean alloc) { 
+  public void initializeHeader(ObjectReference object, boolean alloc) { 
     if (MarkSweepLocal.HEADER_MARK_BITS)
       if (alloc) 
         writeAllocState(object);	

@@ -78,32 +78,32 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //e.g. to load int: load at VM_Compiler.locationToOffset(location) - BYTES_IN_INT 
   //e.g. to load double: load at VM_Compiler.locationToOffset(location) - BYTES_IN_DOUBLE
   @Uninterruptible
-  public final int getGeneralLocalLocation(int localIndex) {
+  public int getGeneralLocalLocation(int localIndex) {
     return VM_Compiler.getGeneralLocalLocation(localIndex, localFixedLocations, (VM_NormalMethod) method);
   }
 
   @Uninterruptible
-  public final int getFloatLocalLocation(int localIndex) {
+  public int getFloatLocalLocation(int localIndex) {
     return VM_Compiler.getFloatLocalLocation(localIndex, localFloatLocations, (VM_NormalMethod) method);
   }
 
   @Uninterruptible
-  public final int getGeneralStackLocation(int stackIndex) {
+  public int getGeneralStackLocation(int stackIndex) {
     return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
-  public final int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
+  public int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
     return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
-  public final int getLastFixedStackRegister() {
+  public int getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
   @Uninterruptible
-  public final int getLastFloatStackRegister() {
+  public int getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
@@ -118,7 +118,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     this.lastFloatStackRegister = -1;
   }
 
-  public final void compile() {
+  public void compile() {
     VM_Compiler comp = new VM_Compiler(this, localFixedLocations, localFloatLocations);
     comp.compile();
     this.lastFixedStackRegister = comp.getLastFixedStackRegister();
@@ -126,20 +126,20 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
   
   @Uninterruptible
-  public final int getCompilerType () { 
+  public int getCompilerType () { 
     return BASELINE;
   }
 
-  public final String getCompilerName() {
+  public String getCompilerName() {
     return "baseline compiler";
   }
 
   @Uninterruptible
-  public final VM_ExceptionDeliverer getExceptionDeliverer () { 
+  public VM_ExceptionDeliverer getExceptionDeliverer () { 
     return exceptionDeliverer;
   }
 
-  public final int findCatchBlockForInstruction (Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction (Offset instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -148,7 +148,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   @Uninterruptible
-  public final void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) { 
+  public void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) { 
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionOffset);
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
@@ -157,7 +157,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Uninterruptible
-  public final int findLineNumberForInstruction (Offset instructionOffset) { 
+  public int findLineNumberForInstruction (Offset instructionOffset) { 
     int bci = findBytecodeIndexForInstruction(instructionOffset);
     if (bci == -1) return 0;
     return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
@@ -178,7 +178,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    *            not available or not found.
    */
   @Uninterruptible
-  public final int findBytecodeIndexForInstruction (Offset instructionOffset) { 
+  public int findBytecodeIndexForInstruction (Offset instructionOffset) { 
     Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
     int candidateIndex = -1;
     int bcIndex = 0;
@@ -210,7 +210,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, Offset instr) {
+  public void set(VM_StackBrowser browser, Offset instr) {
     browser.setMethod(method);
     browser.setCompiledMethod(this);
     browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr));
@@ -226,14 +226,14 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  public final boolean up(VM_StackBrowser browser) {
+  public boolean up(VM_StackBrowser browser) {
     return false;
   }
 
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintLN to print the stack trace to.
-  public final void printStackTrace(Offset instructionOffset, PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, PrintLN out) {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // VM_Class
     out.print('.');
@@ -255,7 +255,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Print the eTable
    */
-  public final void printExceptionTable() {
+  public void printExceptionTable() {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 

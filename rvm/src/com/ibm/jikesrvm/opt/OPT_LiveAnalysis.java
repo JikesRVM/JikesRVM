@@ -95,7 +95,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   private static final boolean verbose = false;
   // End debugging information
 
-  public final String getName() {
+  public String getName() {
     return  "Live Analysis";
   }
 
@@ -1087,7 +1087,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * Returns the kill set
      * @return  the Kill set for this block
      */
-    public final OPT_LiveSet BBKillSet() {
+    public OPT_LiveSet BBKillSet() {
       return  BBKillSet;
     }
 
@@ -1095,7 +1095,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * Returns the first PEI kill set, i.e., the Kill set up to the first PEI
      * @return the Kill set up to the first PEI
      */
-    public final OPT_LiveSet firstPEIKillSet() {
+    public OPT_LiveSet firstPEIKillSet() {
       return  firstPEIKillSet;
     }
 
@@ -1103,7 +1103,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * Returns the Gen set
      * @return  the Gen set for this block
      */
-    public final OPT_LiveSet getGen() {
+    public OPT_LiveSet getGen() {
       return  gen;
     }
 
@@ -1111,7 +1111,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * Returns the In set
      * @return the In set for this block
      */
-    public final OPT_LiveSet getIn() {
+    public OPT_LiveSet getIn() {
       return  in;
     }
 
@@ -1119,21 +1119,21 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * Returns whether this block has a PEI with a handler in this method
      * @return whether this block has a PEI with a handler in this method
      */
-    public final boolean getContainsPEIWithHandler() {
+    public boolean getContainsPEIWithHandler() {
       return containsPEIWithHandler;
     }
 
     /**
      * @param value whether this block has a PEI with a handler in this method
      */
-    public final void setContainsPEIWithHandler(boolean value) {
+    public void setContainsPEIWithHandler(boolean value) {
       containsPEIWithHandler = value;
     }
 
     /**
      * creates (allocates) the Gen and Kill Sets
      */
-    public final void createKillAndGen () {
+    public void createKillAndGen () {
       BBKillSet = new OPT_LiveSet();
       firstPEIKillSet = new OPT_LiveSet();
       gen = new OPT_LiveSet();
@@ -1142,14 +1142,14 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     /**
      * DEPRECIATED: Don't Use
      */
-    public final OPT_LiveSet gen() {
+    public OPT_LiveSet gen() {
       return  gen;
     }
 
     /**
      * DEPRECIATED: Don't Use
      */
-    public final OPT_LiveSet in() {
+    public OPT_LiveSet in() {
       return  in;
     }
 
@@ -1187,7 +1187,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * returns the instruction
      * @return the instruction
      */
-    public final OPT_Instruction getInst() {
+    public OPT_Instruction getInst() {
       return  inst;
     }
 
@@ -1195,7 +1195,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
      * returns the list
      * @return the list 
      */
-    public final List<OPT_RegSpillListElement> getList() {
+    public List<OPT_RegSpillListElement> getList() {
       return  list;
     }
     private OPT_Instruction inst;

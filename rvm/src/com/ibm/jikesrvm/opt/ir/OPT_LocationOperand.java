@@ -165,34 +165,34 @@ public final class OPT_LocationOperand extends OPT_Operand
    * @return this method shouldn't be called and will throw an {@link
    * OPT_OptimizingCompilerException}
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
     throw new OPT_OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
 
-  public final OPT_LocationOperand asFieldAccess()   { return this; }
-  public final OPT_LocationOperand asArrayAccess()   { return this; }
-  public final OPT_LocationOperand asJTOCAccess()    { return this; }
-  public final OPT_LocationOperand asSpillAccess()   { return this; }
-  public final OPT_LocationOperand asALengthAccess() { return this; }
-  public final OPT_LocationOperand asMethodAccess()  { return this; }
+  public OPT_LocationOperand asFieldAccess()   { return this; }
+  public OPT_LocationOperand asArrayAccess()   { return this; }
+  public OPT_LocationOperand asJTOCAccess()    { return this; }
+  public OPT_LocationOperand asSpillAccess()   { return this; }
+  public OPT_LocationOperand asALengthAccess() { return this; }
+  public OPT_LocationOperand asMethodAccess()  { return this; }
 
-  public final VM_FieldReference getFieldRef() { return fieldRef; }
-  public final VM_TypeReference getElementType() { return arrayElementType; }
+  public VM_FieldReference getFieldRef() { return fieldRef; }
+  public VM_TypeReference getElementType() { return arrayElementType; }
   //public final int getIndex() { return JTOCoffset; }
-  public final Offset getJTOCoffset() { return JTOCoffset; }
-  public final int getOffset() { return spillOffset; }
+  public Offset getJTOCoffset() { return JTOCoffset; }
+  public int getOffset() { return spillOffset; }
 
-  public final boolean isFieldAccess()   { return type == FIELD_ACCESS; }
-  public final boolean isArrayAccess()   { return type == ARRAY_ACCESS; }
-  public final boolean isJTOCAccess()    { return type == JTOC_ACCESS; }
-  public final boolean isSpillAccess()   { return type == SPILL_ACCESS; }
-  public final boolean isALengthAccess() { return type == ALENGTH_ACCESS; }
-  public final boolean isMethodAccess() { return type == METHOD_ACCESS; }
+  public boolean isFieldAccess()   { return type == FIELD_ACCESS; }
+  public boolean isArrayAccess()   { return type == ARRAY_ACCESS; }
+  public boolean isJTOCAccess()    { return type == JTOC_ACCESS; }
+  public boolean isSpillAccess()   { return type == SPILL_ACCESS; }
+  public boolean isALengthAccess() { return type == ALENGTH_ACCESS; }
+  public boolean isMethodAccess() { return type == METHOD_ACCESS; }
 
   /**
    * Is the accessed location possibly volatile?
    */
-  public final boolean mayBeVolatile() {
+  public boolean mayBeVolatile() {
     if (!isFieldAccess()) return false;
     VM_Field f = fieldRef.peekResolvedField();
     return f == null || f.isVolatile();

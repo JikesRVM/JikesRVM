@@ -82,8 +82,8 @@ import org.vmmagic.pragma.*;
   private int[] allPreUsedCells;
   private int[] allPostUsedCells;
 
-  protected final boolean preserveFreeList() { return !LAZY_SWEEP; }
-  protected final boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }
+  protected boolean preserveFreeList() { return !LAZY_SWEEP; }
+  protected boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }
 
   /****************************************************************************
    * 
@@ -156,7 +156,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected final Address advanceToBlock(Address block, int sizeClass) {
+  protected Address advanceToBlock(Address block, int sizeClass) {
     if (LAZY_SWEEP)
       return makeFreeListFromLiveBits(block, sizeClass, msSpace.getMarkState());
     else
@@ -172,7 +172,7 @@ import org.vmmagic.pragma.*;
   /**
    * Prepare for a collection. If paranoid, perform a sanity check.
    */
-  public final void prepare() {
+  public void prepare() {
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(true);
     if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
@@ -185,14 +185,14 @@ import org.vmmagic.pragma.*;
    * Finish up after a collection.
    * 
    */
-  public final void releaseCollector() {
+  public void releaseCollector() {
     sweepBlocks(true); // sweep the blocks
   }
   /**
    * Finish up after a collection.
    * 
    */
-  public final void releaseMutator() {
+  public void releaseMutator() {
     restoreFreeLists();
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(false);
@@ -207,7 +207,7 @@ import org.vmmagic.pragma.*;
    * @return True if the cell should be reclaimed
    */
   @Inline
-  protected final boolean reclaimCellForObject(ObjectReference object, 
+  protected boolean reclaimCellForObject(ObjectReference object, 
                                                Word markState) { 
     return !MarkSweepSpace.testMarkState(object, markState);
   }
@@ -473,7 +473,7 @@ import org.vmmagic.pragma.*;
     return bytes;
   }
 
-  public final void exit() {
+  public void exit() {
     if (Options.verboseFragmentationStats.getValue()) {
       finalVerboseFragmentationStatistics(true);
       finalVerboseFragmentationStatistics(false);

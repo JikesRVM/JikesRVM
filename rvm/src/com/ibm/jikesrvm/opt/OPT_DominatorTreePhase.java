@@ -22,7 +22,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     // only perform if the dominators were successfully computed and
     // one of the following options are set.
     return  options.SSA || options.PRINT_DOMINATORS;
@@ -32,7 +32,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * Returns "Dominator Tree"
    * @return "Dominator Tree"
    */
-  public final String getName() {
+  public String getName() {
     return  "Dominator Tree";
   }
 
@@ -42,7 +42,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * @param before query control
    * @return true or false.
    */
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -51,7 +51,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  public final void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed)
       return;

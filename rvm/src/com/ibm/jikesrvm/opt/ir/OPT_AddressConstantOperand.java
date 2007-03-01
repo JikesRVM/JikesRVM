@@ -59,7 +59,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * 
    * @return VM_TypeReference.Address
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
 	 return VM_TypeReference.Address;
   }
 
@@ -68,7 +68,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * 
    * @return <code>true</code>
    */
-  public final boolean isAddress() {
+  public boolean isAddress() {
 	 return true;
   }
 

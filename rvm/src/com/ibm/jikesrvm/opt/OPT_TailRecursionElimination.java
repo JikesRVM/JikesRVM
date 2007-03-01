@@ -51,11 +51,11 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
     return constructor;
   }
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return  options.getOptLevel() >= 1;
   }
-  public final String getName () { return  "Tail Recursion Elimination";  }
-  public final OPT_CompilerPhase newExecution (OPT_IR ir) { return  this;  }
+  public String getName () { return  "Tail Recursion Elimination";  }
+  public OPT_CompilerPhase newExecution (OPT_IR ir) { return  this;  }
 
 
 
@@ -64,7 +64,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    * 
    * @param ir the IR to optimize
    */
-  public final void perform (OPT_IR ir) {
+  public void perform (OPT_IR ir) {
     OPT_BasicBlock target = null;
     OPT_Instruction prologue = null;
     boolean didSomething = false;
@@ -113,7 +113,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    * @return <code>true</code> if call is tail recursive and 
    *         <code>false</code> if it is not.
    */
-  final boolean isTailRecursion(OPT_Instruction call, OPT_IR ir) {
+  boolean isTailRecursion(OPT_Instruction call, OPT_IR ir) {
     if (!Call.hasMethod(call)) return false;
     OPT_MethodOperand methOp = Call.getMethod(call);
     if (!methOp.hasPreciseTarget()) return false;
@@ -157,7 +157,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    * @param target   The loop head
    * @param ir       the containing IR
    */
-  final OPT_Instruction transform(OPT_Instruction call,
+  OPT_Instruction transform(OPT_Instruction call,
                                   OPT_Instruction prologue,
                                   OPT_BasicBlock target,
                                   OPT_IR ir) {

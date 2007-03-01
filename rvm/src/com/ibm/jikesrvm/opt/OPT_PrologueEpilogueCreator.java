@@ -27,12 +27,12 @@ public final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
     return this;
   }
 
-  public final String getName() { return "Insert Prologue/Epilogue"; }
+  public String getName() { return "Insert Prologue/Epilogue"; }
 
   /**
    *  Insert the prologue and epilogue
    */
-  public final void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     ir.stackManager.insertPrologueAndEpilogue();
   }
 }

@@ -803,21 +803,21 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     /**
      * Does this expression use three operands?
      */
-    public final boolean isTernary () {
+    public boolean isTernary () {
       return op3 != null;
     }
 
     /**
      * Does this expression use two or more operands?
      */
-    public final boolean isBinary () {
+    public boolean isBinary () {
       return op2 != null;
     }
 
     /**
      * Does this expression represent the result of a load or store?
      */
-    public final boolean isLoadOrStore () {
+    public boolean isLoadOrStore () {
       return GetField.conforms(opr) || GetStatic.conforms(opr) || 
         PutField.conforms(opr) || PutStatic.conforms(opr);
     }
@@ -825,21 +825,21 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     /**
      * Does this expression represent the result of a load?
      */
-    public final boolean isLoad () {
+    public boolean isLoad () {
       return GetField.conforms(opr) || GetStatic.conforms(opr);
     }
 
     /**
      * Does this expression represent the result of a store?
      */
-    public final boolean isStore () {
+    public boolean isStore () {
       return PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
     /**
      * Does this expression represent the result of a bounds check?
      */
-    public final boolean isBoundsCheck () {
+    public boolean isBoundsCheck () {
       return BoundsCheck.conforms(opr) 
         || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand)op3).isArrayBounds());
     }
@@ -847,7 +847,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     /**
      * Is this expression commutative?
      */
-    public final boolean isCommutative () {
+    public boolean isCommutative () {
       return opr.isCommutative();
     }
   }

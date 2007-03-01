@@ -109,12 +109,12 @@ import org.vmmagic.pragma.*;
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected final Address advanceToBlock(Address block, int sizeClass) {
+  protected Address advanceToBlock(Address block, int sizeClass) {
     return makeFreeListFromLiveBits(block, sizeClass);
   }
 
-  protected final boolean preserveFreeList() { return false; }
-  protected final boolean maintainSideBitmap() { return true; }
+  protected boolean preserveFreeList() { return false; }
+  protected boolean maintainSideBitmap() { return true; }
   
   /**
    * Free an object.
@@ -134,7 +134,7 @@ import org.vmmagic.pragma.*;
   /**
    * Prepare for a collection. If paranoid, perform a sanity check.
    */
-  public final void prepare() {
+  public void prepare() {
     flushFreeLists();
   }
 
@@ -142,7 +142,7 @@ import org.vmmagic.pragma.*;
    * Finish up after a collection.
    * 
    */
-  public final void releaseCollector() {
+  public void releaseCollector() {
     sweepBlocks(true);
   }
   
@@ -150,7 +150,7 @@ import org.vmmagic.pragma.*;
    * Finish up after a collection.
    * 
    */
-  public final void releaseMutator() {
+  public void releaseMutator() {
     restoreFreeLists();
   }
 }

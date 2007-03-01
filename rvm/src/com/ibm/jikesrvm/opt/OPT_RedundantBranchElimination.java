@@ -44,7 +44,7 @@ import static com.ibm.jikesrvm.opt.ir.OPT_Operators.*;
  */
 final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanCompositeElement {
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform (OPT_Options options) {
     return options.REDUNDANT_BRANCH_ELIMINATION;
   }
   
@@ -83,8 +83,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 
   private static final class RBE extends OPT_CompilerPhase {
     private static final boolean DEBUG = false;
-    public final String getName() { return "RBE Transform"; }
-    public final boolean printingEnabled (OPT_Options options, boolean before) {
+    public String getName() { return "RBE Transform"; }
+    public boolean printingEnabled (OPT_Options options, boolean before) {
       return false && DEBUG;
     }
 
@@ -104,7 +104,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * 
      * @param ir   The IR on which to apply the phase
      */
-    public final void perform (OPT_IR ir) {
+    public void perform (OPT_IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs
       OPT_GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       OPT_DominatorTree dt = ir.HIRInfo.dominatorTree;

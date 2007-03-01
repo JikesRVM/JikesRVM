@@ -60,7 +60,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Name - something like "int".
    */ 
-  public final String toString() { 
+  public String toString() { 
     return name.toString();
   }      
 

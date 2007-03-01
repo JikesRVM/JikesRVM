@@ -171,7 +171,7 @@ import org.vmmagic.pragma.*;
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
       if (object.isNull()) return false;
       else if (GCTrace.traceInducedGC) return true;
       else return super.isLive(object);

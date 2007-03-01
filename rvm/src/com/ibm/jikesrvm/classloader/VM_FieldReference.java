@@ -44,14 +44,14 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * @return the type of the field's value
    */
   @Uninterruptible
-  public final VM_TypeReference getFieldContentsType() { 
+  public VM_TypeReference getFieldContentsType() { 
     return fieldContentsType;
   }
   
   /**
    * How many stackslots do value of this type take?
    */
-  public final int getNumberOfStackSlots() {
+  public int getNumberOfStackSlots() {
     return getFieldContentsType().getStackWords();  
   }
     
@@ -59,14 +59,14 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * Get size of the field's value, in bytes.
    */ 
   @Uninterruptible
-  public final int getSize() { 
+  public int getSize() { 
     return fieldContentsType.getMemoryBytes();
   }
 
   /**
    * Do this and that definitely refer to the different fields?
    */
-  public final boolean definitelyDifferent(VM_FieldReference that) {
+  public boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
     if (getName() != that.getName() ||
         getDescriptor() != that.getDescriptor()) return true;
@@ -80,7 +80,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * Do this and that definitely refer to the same field?
    */
-  public final boolean definitelySame(VM_FieldReference that) {
+  public boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
     if (getName() != that.getName() ||
         getDescriptor() != that.getDescriptor()) return false;
@@ -93,14 +93,14 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * Has the field reference already been resolved into a target method?
    */
-  public final boolean isResolved() {
+  public boolean isResolved() {
     return resolvedMember != null;
   }
 
   /**
    * For use by VM_Field constructor
    */
-  final void setResolvedMember(VM_Field it) {
+  void setResolvedMember(VM_Field it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
     resolvedMember = it;
   }
@@ -110,7 +110,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * the search order specified in JVM spec 5.4.3.2.
    * @return the VM_Field that this method ref resolved to or null if it cannot be resolved.
    */
-  public final VM_Field peekResolvedField() {
+  public VM_Field peekResolvedField() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
@@ -124,7 +124,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * the search order specified in JVM spec 5.4.3.2.
    * @return the VM_Field that this method ref resolved to.
    */
-  public final synchronized VM_Field resolve() {
+  public synchronized VM_Field resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.

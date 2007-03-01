@@ -78,7 +78,7 @@ import org.vmmagic.pragma.*;
   /**
    * Display a phase for debugging purposes.
    */
-  protected final void logPhase() {
+  protected void logPhase() {
     Log.write("simple [");
     if (globalFirst) Log.write("G");
     if (perCollector) Log.write("C");
@@ -92,7 +92,7 @@ import org.vmmagic.pragma.*;
    * Execute a phase during a collection.
    */
   @NoInline
-  protected final void delegatePhase() { 
+  protected void delegatePhase() { 
     boolean log = Options.verbose.getValue() >= 6;
     boolean logDetails = Options.verbose.getValue() >= 7;
 

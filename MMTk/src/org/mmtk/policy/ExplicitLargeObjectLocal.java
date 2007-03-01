@@ -78,7 +78,7 @@ import org.vmmagic.unboxed.*;
    * @param cell The newly allocated cell
    */
   @Inline
-  protected final void postAlloc (Address cell) { 
+  protected void postAlloc (Address cell) { 
     space.getCells().add(DoublyLinkedList.payloadToNode(cell));
   }
 
@@ -90,7 +90,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Prepare for a collection. Nothing to be done here
    */
-  public final void prepare() {}
+  public void prepare() {}
 
   /**
    * Finish up after a collection. Nothing to be done
@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.*;
    * system.
    */
   @Inline
-  protected final int superPageHeaderSize() { 
+  protected int superPageHeaderSize() { 
     return DoublyLinkedList.headerSize(); 
   }
 
@@ -136,5 +136,5 @@ import org.vmmagic.unboxed.*;
    * size.
    */
   @Inline
-  protected final int cellHeaderSize() { return 0; } 
+  protected int cellHeaderSize() { return 0; } 
 }

@@ -30,7 +30,7 @@ public final class Options extends org.mmtk.vm.Options {
    * @param name the space delimited name. 
    * @return the vm specific key.
    */
-  public final String getKey(String name) {
+  public String getKey(String name) {
     int space = name.indexOf(' ');
     if (space < 0) return name.toLowerCase();
 
@@ -54,7 +54,7 @@ public final class Options extends org.mmtk.vm.Options {
    * @param o The option that was being set.
    * @param message The error message.
    */
-  public final void fail(Option o, String message) {
+  public void fail(Option o, String message) {
       VM.sysFail("ERROR: Option '" + o.getKey() + "' : " + 
                  message);
   }
@@ -65,7 +65,7 @@ public final class Options extends org.mmtk.vm.Options {
    * @param o The option that was being set.
    * @param message The warning message.
    */
-  public final void warn(Option o, String message) {
+  public void warn(Option o, String message) {
       VM.sysWriteln("WARNING: Option '" + o.getKey() + "' : " + 
                     message);
   }

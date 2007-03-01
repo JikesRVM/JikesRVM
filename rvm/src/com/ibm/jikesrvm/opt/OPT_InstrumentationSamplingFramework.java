@@ -75,21 +75,21 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    *  
    */
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.INSTRUMENTATION_SAMPLING;
   }
 
   /**
    *
    */
-  public final String getName() { return "InstrumentationSamplingFramework"; }
+  public String getName() { return "InstrumentationSamplingFramework"; }
 
   /**
    * Perform this phase
    * 
    * @param ir the governing IR
    */
-  public final void perform(OPT_IR ir) {
+  public void perform(OPT_IR ir) {
 
     DEBUG = ir.options.DEBUG_INSTRU_SAMPLING;
     DEBUG2 = ir.options.DEBUG_INSTRU_SAMPLING_DETAIL;

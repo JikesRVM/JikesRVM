@@ -229,7 +229,7 @@ import org.vmmagic.unboxed.*;
    * allocated together.
    */
   @Inline
-  public final void release(Address first) { 
+  public void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -254,7 +254,7 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public final ObjectReference traceObject(TraceLocal trace,
+  public ObjectReference traceObject(TraceLocal trace,
       ObjectReference object) { 
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
@@ -302,7 +302,7 @@ import org.vmmagic.unboxed.*;
    * @param isPLOSObject the object is allocated in the PLOS
    */
   @Inline
-  public final void initializeHeader(ObjectReference object, boolean isPLOSObject) { 
+  public void initializeHeader(ObjectReference object, boolean isPLOSObject) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT); 
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -356,7 +356,7 @@ import org.vmmagic.unboxed.*;
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
-  public final Extent getSize(Address first) {
+  public Extent getSize(Address first) {
     return ((FreeListPageResource) pr).getSize(first);
   }
   
@@ -368,7 +368,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The cell list associated with this large object space.
    */
-  public final DoublyLinkedList getCells() {
+  public DoublyLinkedList getCells() {
     return this.cells;
   }
   
@@ -380,7 +380,7 @@ import org.vmmagic.unboxed.*;
    * 
    * @return The treadmill associated with this large object space.
    */
-  public final Treadmill getTreadmill() {
+  public Treadmill getTreadmill() {
     return this.treadmill;
   }
 }

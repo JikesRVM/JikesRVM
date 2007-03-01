@@ -43,7 +43,7 @@ public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
    * 
    * @return VM_TypeReference.JavaLangClass
    */
-  public final VM_TypeReference getType() {
+  public VM_TypeReference getType() {
     return VM_TypeReference.JavaLangClass;
   }
 

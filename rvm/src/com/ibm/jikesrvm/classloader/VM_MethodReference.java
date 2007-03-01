@@ -53,7 +53,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * @return return type of the method
    */
   @Uninterruptible
-  public final VM_TypeReference getReturnType() { 
+  public VM_TypeReference getReturnType() { 
     return returnType;
   }
 
@@ -61,7 +61,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * @return parameter types of the method
    */
   @Uninterruptible
-  public final VM_TypeReference[] getParameterTypes() { 
+  public VM_TypeReference[] getParameterTypes() { 
     return parameterTypes;
   }
 
@@ -70,7 +70,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Note: does *not* include implicit "this" parameter, if any.
    */
   @Uninterruptible
-  public final int getParameterWords() { 
+  public int getParameterWords() { 
     int pw = 0;
     for (int i = 0; i<parameterTypes.length; i++)
            pw += parameterTypes[i].getStackWords();
@@ -80,7 +80,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * Do this and that definitely refer to the different methods?
    */
-  public final boolean definitelyDifferent(VM_MethodReference that) {
+  public boolean definitelyDifferent(VM_MethodReference that) {
     if (this == that) return false;
     if (name != that.name || descriptor != that.descriptor) return true;
     VM_Method mine = peekResolvedMethod();
@@ -93,7 +93,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * Do this and that definitely refer to the same method?
    */
-  public final boolean definitelySame(VM_MethodReference that) {
+  public boolean definitelySame(VM_MethodReference that) {
     if (this == that) return true;
     if (name != that.name || descriptor != that.descriptor) return false;
     VM_Method mine = peekResolvedMethod();
@@ -105,7 +105,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * Has the method reference already been resolved into a target method?
    */
-  public final boolean isResolved() {
+  public boolean isResolved() {
     return resolvedMember != null;
   }
 
@@ -114,14 +114,14 @@ public final class VM_MethodReference extends VM_MemberReference {
    * it has already been resolved. Does NOT force resolution.
    */
   @Uninterruptible
-  public final VM_Method getResolvedMember() { 
+  public VM_Method getResolvedMember() { 
     return resolvedMember;
   }
 
   /**
    * For use by VM_Method constructor
    */
-  final void setResolvedMember(VM_Method it) {
+  void setResolvedMember(VM_Method it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
     resolvedMember = it;
   }
@@ -130,7 +130,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Resolve the method reference for an invoke special into a target
    * method, return null if the method cannot be resolved without classloading.
    */
-  public final synchronized VM_Method resolveInvokeSpecial() {
+  public synchronized VM_Method resolveInvokeSpecial() {
     VM_Class thisClass = (VM_Class)type.peekResolvedType();
     if (thisClass == null 
         && name != VM_ClassLoader.StandardObjectInitializerMethodName) 
@@ -165,7 +165,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to or null if it cannot be resolved.
    */
-  public final VM_Method peekResolvedMethod() {
+  public VM_Method peekResolvedMethod() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
@@ -179,7 +179,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  public final synchronized VM_Method resolve() {
+  public synchronized VM_Method resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
@@ -202,7 +202,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * @return boolean		true iff this member method reference 
    * 						is a miranda method
    */
-  public final boolean isMiranda() {
+  public boolean isMiranda() {
 	  
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
     VM_Class declaringClass = (VM_Class)type.peekResolvedType();
@@ -282,7 +282,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.4.
    * @return the VM_Method that this method ref resolved to or null if it cannot be resolved without trigering class loading
    */
-  public final VM_Method peekInterfaceMethod() {
+  public VM_Method peekInterfaceMethod() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Try to do it now.
@@ -301,7 +301,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.4.
    * @return the VM_Method that this method ref resolved to 
    */
-  public final VM_Method resolveInterfaceMethod()
+  public VM_Method resolveInterfaceMethod()
     throws IncompatibleClassChangeError, 
            NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;

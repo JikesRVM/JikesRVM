@@ -48,7 +48,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * that can benefit from PI nodes.
    * @param options controlling compiler options
    */
-  public final boolean shouldPerform(OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.GLOBAL_BOUNDS_CHECK || typeChecks;
   }
 
@@ -70,7 +70,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * A String representation of this phase
    * @return a string representation
    */
-  public final String getName() {
+  public String getName() {
     return  "Pi Nodes " + insertion;
   }
 
@@ -79,7 +79,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @param before control for the query
    */
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 

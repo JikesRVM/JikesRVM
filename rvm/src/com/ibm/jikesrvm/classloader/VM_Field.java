@@ -103,21 +103,21 @@ public final class VM_Field extends VM_Member {
    * Get type of this field's value.
    */ 
   @Uninterruptible
-  public final VM_TypeReference getType() { 
+  public VM_TypeReference getType() { 
     return memRef.asFieldReference().getFieldContentsType();
   }
   
   /**
    * How many stackslots do value of this type take?
    */
-  public final int getNumberOfStackSlots() {
+  public int getNumberOfStackSlots() {
     return getType().getStackWords();  
   }
     
   /**
    * How many bytes of memory words do value of this type take?
    */
-  public final int getSize() {
+  public int getSize() {
     return getType().getMemoryBytes();  
   }
     
@@ -125,7 +125,7 @@ public final class VM_Field extends VM_Member {
    * Shared among all instances of this class?
    */ 
   @Uninterruptible
-  public final boolean isStatic() { 
+  public boolean isStatic() { 
     return (modifiers & ACC_STATIC) != 0;
   }
 
@@ -133,7 +133,7 @@ public final class VM_Field extends VM_Member {
    * May only be assigned once?
    */ 
   @Uninterruptible
-  public final boolean isFinal() { 
+  public boolean isFinal() { 
     return (modifiers & ACC_FINAL) != 0;
   }
 
@@ -141,7 +141,7 @@ public final class VM_Field extends VM_Member {
    * Value not to be cached in a register?
    */ 
   @Uninterruptible
-  public final boolean isVolatile() { 
+  public boolean isVolatile() { 
     return (modifiers & ACC_VOLATILE) != 0;
   }
 
@@ -149,7 +149,7 @@ public final class VM_Field extends VM_Member {
    * Value not to be written/read by persistent object manager?
    */ 
   @Uninterruptible
-  public final boolean isTransient() { 
+  public boolean isTransient() { 
     return (modifiers & ACC_TRANSIENT) != 0;
   }
 
@@ -173,7 +173,7 @@ public final class VM_Field extends VM_Member {
    * @return constant pool index (0 --> field is not a "static final constant")
    */ 
   @Uninterruptible
-  final int getConstantValueIndex() { 
+  int getConstantValueIndex() { 
     return constantValueIndex;
   }
 
@@ -189,7 +189,7 @@ public final class VM_Field extends VM_Member {
    * If the contents of this field is an object, return that object.
    * If the contents of this field is a primitive, get the value and wrap it in an object.
    */
-  public final Object getObjectUnchecked(Object obj) {
+  public Object getObjectUnchecked(Object obj) {
     VM_TypeReference type = getType();
     if (type.isReferenceType()) {
       return getObjectValueUnchecked(obj);
@@ -212,7 +212,7 @@ public final class VM_Field extends VM_Member {
     * or null if the field is static.
     * @return the reference described by this VM_Field from the given object.
     */
-  public final Object getObjectValueUnchecked(Object obj) {
+  public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsObject(getOffset());
     } else {
@@ -220,7 +220,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final boolean getBooleanValueUnchecked(Object obj) {
+  public boolean getBooleanValueUnchecked(Object obj) {
     byte bits;
     if (isStatic()) {
       bits = (byte)VM_Statics.getSlotContentsAsInt(getOffset());
@@ -230,7 +230,7 @@ public final class VM_Field extends VM_Member {
     return (bits != 0);
   }
 
-  public final byte getByteValueUnchecked(Object obj) {
+  public byte getByteValueUnchecked(Object obj) {
     if (isStatic()) {
       return (byte)VM_Statics.getSlotContentsAsInt(getOffset());
     } else {
@@ -238,7 +238,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final char getCharValueUnchecked(Object obj) {
+  public char getCharValueUnchecked(Object obj) {
     if (isStatic()) {
       return (char)VM_Statics.getSlotContentsAsInt(getOffset());
     } else {
@@ -246,7 +246,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final short getShortValueUnchecked(Object obj) {
+  public short getShortValueUnchecked(Object obj) {
     if (isStatic()) {
       return (short)VM_Statics.getSlotContentsAsInt(getOffset());
     } else {
@@ -254,19 +254,19 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final int getIntValueUnchecked(Object obj) {
+  public int getIntValueUnchecked(Object obj) {
     return get32Bits(obj);
   }
 
-  public final long getLongValueUnchecked(Object obj) {
+  public long getLongValueUnchecked(Object obj) {
     return get64Bits(obj);
   }
 
-  public final float getFloatValueUnchecked(Object obj) {
+  public float getFloatValueUnchecked(Object obj) {
     return VM_Magic.intBitsAsFloat(get32Bits(obj));
   }
 
-  public final double getDoubleValueUnchecked(Object obj) {
+  public double getDoubleValueUnchecked(Object obj) {
     return VM_Magic.longBitsAsDouble(get64Bits(obj));
   }
 
@@ -291,7 +291,7 @@ public final class VM_Field extends VM_Member {
    * @param obj the object whose field is to be modified, or null if the field is static.
    * @param ref the object reference to be assigned.
    */
-  public final void setObjectValueUnchecked(Object obj, Object ref) {
+  public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER)
         MM_Interface.putstaticWriteBarrier(getOffset(), ref);
@@ -305,7 +305,7 @@ public final class VM_Field extends VM_Member {
     }
   }
   
-  public final void setBooleanValueUnchecked(Object obj, boolean b) {
+  public void setBooleanValueUnchecked(Object obj, boolean b) {
     if (isStatic()) {
       VM_Statics.setSlotContents(getOffset(), b ? 1 : 0);
     } else {
@@ -313,7 +313,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final void setByteValueUnchecked(Object obj, byte b) {
+  public void setByteValueUnchecked(Object obj, byte b) {
     if (isStatic()) {
       VM_Statics.setSlotContents(getOffset(), b);
     } else {
@@ -321,7 +321,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final void setCharValueUnchecked(Object obj, char c) {
+  public void setCharValueUnchecked(Object obj, char c) {
     if (isStatic()) {
       VM_Statics.setSlotContents(getOffset(), c);
     } else {
@@ -329,7 +329,7 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final void setShortValueUnchecked(Object obj, short i) {
+  public void setShortValueUnchecked(Object obj, short i) {
     if (isStatic()) {
       VM_Statics.setSlotContents(getOffset(), i);
     } else {
@@ -337,19 +337,19 @@ public final class VM_Field extends VM_Member {
     }
   }
 
-  public final void setIntValueUnchecked(Object obj, int i) {
+  public void setIntValueUnchecked(Object obj, int i) {
     put32(obj, i);
   }
 
-  public final void setFloatValueUnchecked(Object obj, float f) {
+  public void setFloatValueUnchecked(Object obj, float f) {
     put32(obj, VM_Magic.floatAsIntBits(f));
   }
 
-  public final void setLongValueUnchecked(Object obj, long l) {
+  public void setLongValueUnchecked(Object obj, long l) {
     put64(obj, l);
   }
 
-  public final void setDoubleValueUnchecked(Object obj, double d) {
+  public void setDoubleValueUnchecked(Object obj, double d) {
     put64(obj, VM_Magic.doubleAsLongBits(d));
   }
 

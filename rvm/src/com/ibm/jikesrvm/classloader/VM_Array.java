@@ -132,7 +132,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /**
    * Name - something like "[I" or "[Ljava.lang.String;"
    */
-  public final String toString() { 
+  public String toString() { 
     return getDescriptor().toString().replace('/','.');
   }
 
@@ -140,7 +140,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return java Expression stack space requirement. 
    */
   @Uninterruptible
-  public final int getStackWords() { 
+  public int getStackWords() { 
     return 1;
   }
 
@@ -156,7 +156,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return element type.
    */
   @Uninterruptible
-  public final VM_Type getElementType() { 
+  public VM_Type getElementType() { 
     return elementType;
   }
 
@@ -164,7 +164,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return innermost element type
    */
   @Uninterruptible
-  public final VM_Type getInnermostElementType() { 
+  public VM_Type getInnermostElementType() { 
     return innermostElementType;
   }
       
@@ -172,7 +172,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return alignment for instances of this array type
    */
   @Uninterruptible
-  public final int getAlignment() { 
+  public int getAlignment() { 
     return alignment;
   }
 
@@ -181,7 +181,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return log base 2 of array element size
    */
   @Uninterruptible
-  public final int getLogElementSize() { 
+  public int getLogElementSize() { 
     return logElementSize;
   }
 
@@ -216,7 +216,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    */
   @Inline
   @Uninterruptible
-  public final int getInstanceSize(int numelts) { 
+  public int getInstanceSize(int numelts) { 
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
@@ -224,35 +224,35 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Does this class override java.lang.Object.finalize()?
    */
   @Uninterruptible
-  public final boolean hasFinalizer() { 
+  public boolean hasFinalizer() { 
     return false;
   }
 
   /**
    * Static fields of this array type.
    */
-  public final VM_Field[] getStaticFields() {
+  public VM_Field[] getStaticFields() {
     return VM_Type.JavaLangObjectType.getStaticFields();
   }
  
   /**
    * Non-static fields of this array type.
    */
-  public final VM_Field[] getInstanceFields() {
+  public VM_Field[] getInstanceFields() {
     return VM_Type.JavaLangObjectType.getInstanceFields();
   }
 
   /**
    * Statically dispatched methods of this array type.
    */
-  public final VM_Method[] getStaticMethods() {
+  public VM_Method[] getStaticMethods() {
     return VM_Type.JavaLangObjectType.getStaticMethods();
   }
  
   /**
    * Virtually dispatched methods of this array type.
    */
-  public final VM_Method[] getVirtualMethods() {
+  public VM_Method[] getVirtualMethods() {
     return VM_Type.JavaLangObjectType.getVirtualMethods();
   }
 
@@ -260,7 +260,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Runtime type information for this array type.
    */
   @Uninterruptible
-  public final Object[] getTypeInformationBlock() { 
+  public Object[] getTypeInformationBlock() { 
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -325,7 +325,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Instantiation status.
    */ 
   @Uninterruptible
-  public final boolean isInstantiated() { 
+  public boolean isInstantiated() { 
     return state >= CLASS_INSTANTIATED; 
   }
 
@@ -333,14 +333,14 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Initialization status.
    */ 
   @Uninterruptible
-  public final boolean isInitialized() { 
+  public boolean isInitialized() { 
     return state == CLASS_INITIALIZED; 
   } 
 
   /**
    * Only intended to be used by the BootImageWriter
    */
-  public final void markAsBootImageClass() {
+  public void markAsBootImageClass() {
     inBootImage = true;
   }
   
@@ -348,7 +348,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Is this class part of the virtual machine's boot image?
    */ 
   @Uninterruptible
-  public final boolean isInBootImage() { 
+  public boolean isInBootImage() { 
     return inBootImage;
   }
 
@@ -357,14 +357,14 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * -1 if instances of this type do not have thin lock words.
    */
   @Uninterruptible
-  public final Offset getThinLockOffset() { 
+  public Offset getThinLockOffset() { 
     return thinLockOffset; 
   }
 
   /**
    * Set the thin lock offset for instances of this type
    */
-  public final void setThinLockOffset(Offset offset) {
+  public void setThinLockOffset(Offset offset) {
     if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
     thinLockOffset = offset;
   }
@@ -445,7 +445,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Resolve an array.  
    * Also forces the resolution of the element type.
    */
-  public final synchronized void resolve() {
+  public synchronized void resolve() {
     if (isResolved()) return;
 
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
@@ -477,7 +477,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * Instantiate an array.
    * Main result is to copy the virtual methods from JavaLangObject's tib.
    */
-  public final synchronized void instantiate() {
+  public synchronized void instantiate() {
     if (isInstantiated()) return;
     
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
@@ -499,7 +499,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   /**
    * Initialization is a no-op (arrays have no <clinit> method).
    */
-  public final void initialize() { }
+  public void initialize() { }
 
 
   //-------------------------------------------------------------------------------------------------//

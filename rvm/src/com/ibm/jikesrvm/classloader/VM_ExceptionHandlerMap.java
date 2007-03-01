@@ -23,18 +23,18 @@ public final class VM_ExceptionHandlerMap {
   // Interface //
   //-----------//
 
-  public final int[] getStartPC() { return startPCs;   }
-  public final int[] getEndPC()   { return endPCs;     }
-  public final int[] getHandlerPC() { return handlerPCs; }
-  public final VM_TypeReference[] getExceptionTypes() { return exceptionTypes; }
-  public final VM_TypeReference getExceptionType(int i) { return exceptionTypes[i]; }
+  public int[] getStartPC() { return startPCs;   }
+  public int[] getEndPC()   { return endPCs;     }
+  public int[] getHandlerPC() { return handlerPCs; }
+  public VM_TypeReference[] getExceptionTypes() { return exceptionTypes; }
+  public VM_TypeReference getExceptionType(int i) { return exceptionTypes[i]; }
    
   /* we need to adjust the exception handler map for pseudo bytecode
    * TODO: OSR redesign; make a subclass of VM_ExceptionHandlerMap with this functionality
    */
-  public final void setStartPC(int[] newPCs) { startPCs = newPCs; }
-  public final void setEndPC(int[] newPCs) { endPCs = newPCs; }
-  public final void setHandlerPC(int[] newPCs) { handlerPCs = newPCs; }
+  public void setStartPC(int[] newPCs) { startPCs = newPCs; }
+  public void setEndPC(int[] newPCs) { endPCs = newPCs; }
+  public void setHandlerPC(int[] newPCs) { handlerPCs = newPCs; }
 
   //----------------//
   // Implementation //

@@ -24,9 +24,9 @@ public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeEl
     });
   }
   
-  public final boolean shouldPerform(OPT_Options options) { return true; }
-  public final String getName() { return "RegAlloc"; }
-  public final boolean printingEnabled(OPT_Options options, boolean before) {
+  public boolean shouldPerform(OPT_Options options) { return true; }
+  public String getName() { return "RegAlloc"; }
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return options.PRINT_REGALLOC;
   }
 

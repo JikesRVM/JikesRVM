@@ -91,7 +91,7 @@ final class OPT_Scheduler {
    *
    * @param _ir the IR in question
    */
-  final void perform(OPT_IR _ir) {
+  void perform(OPT_IR _ir) {
     // Remember the ir to schedule
     ir = _ir;
     if (verbose >= 1)

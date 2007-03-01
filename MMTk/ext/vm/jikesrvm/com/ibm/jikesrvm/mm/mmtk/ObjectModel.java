@@ -39,7 +39,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
 
-  protected final Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
+  protected Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
 
   /**
    * Copy an object using a plan's allocCopy to get space and install
