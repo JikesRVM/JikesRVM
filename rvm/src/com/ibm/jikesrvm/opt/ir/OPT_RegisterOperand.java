@@ -146,7 +146,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
 
   private static final int EXTANT        = 0x04000000; // is this an extant object?
   @SuppressWarnings("unused")  // here as doco
-  static private final int UNUSED_BIT2   = 0x08000000; 
+  private static final int UNUSED_BIT2   = 0x08000000; 
   // type of a RegisterOperand can be in one of three states:
   // a- declared: the type obtained from a getfield,getstatic,putfield,putstatic,array load
   // b- precise:  obtained from a NEW.
