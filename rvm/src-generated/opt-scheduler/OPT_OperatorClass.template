@@ -30,11 +30,11 @@ public final class OPT_OperatorClass implements OPT_Operators {
    // debug level (0 = no debug)
    private static final int verbose = 0;
 
-   private static final void debug(String s) {
+   private static void debug(String s) {
       System.err.println(s);
    }
    private static String SPACES = null;
-   private static final void debug(int depth, String s) {
+   private static void debug(int depth, String s) {
       if (SPACES == null) SPACES = dup(7200, ' ');
       debug(SPACES.substring(0,depth*2)+s);
    }
@@ -42,7 +42,7 @@ public final class OPT_OperatorClass implements OPT_Operators {
    // Padding
    // For internal use only.
    private static final String ZEROS = dup(32, '0');
-   private static final String toBinaryPad32(int value) {
+   private static String toBinaryPad32(int value) {
       String s = Integer.toBinaryString(value);
       return ZEROS.substring(s.length())+s;
    }
@@ -65,7 +65,7 @@ public final class OPT_OperatorClass implements OPT_Operators {
    // ALL to contain all of the masks.
    // For internal use only.
    private static int M = 1;    // current mask
-   private static final int[] genMasks(int number) {
+   private static int[] genMasks(int number) {
       int[] rs = new int[number + 1];
       int rall = 0;
       for (int i = 0; i < number; i++) {
@@ -406,7 +406,7 @@ $$$$ END FOREACH
 
    // Generates a string of a given length filled by a given character.
    // For internal use only.
-   private static final String dup(int len, char c) {
+   private static String dup(int len, char c) {
       StringBuffer sb = new StringBuffer();
       for (int i = 0; i < len; i++)
          sb.append(c);
