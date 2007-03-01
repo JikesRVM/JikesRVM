@@ -422,7 +422,7 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   private void setBooleanInternal(Object object, boolean value) 
-    throws IllegalAccessException, IllegalArgumentException {
+    throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
     if (type.isBooleanType())
       field.setBooleanValueUnchecked(object, value);

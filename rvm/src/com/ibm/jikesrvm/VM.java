@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
    * @exception Exception
    */
   @UninterruptibleNoWarn
-  public static void boot() throws Exception { 
+  public static void boot() { 
     writingBootImage = false;
     runningVM        = true;
     runningAsSubsystem = false;
