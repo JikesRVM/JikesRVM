@@ -256,7 +256,7 @@ import org.vmmagic.pragma.*;
     MUTATOR("mu"), GC("gc"), COMBINED("all");
     
     private final String name;
-    private Phase(String name) { 
+    Phase(String name) { 
       this.name = name; 
     }
     public String toString() { return name; }
