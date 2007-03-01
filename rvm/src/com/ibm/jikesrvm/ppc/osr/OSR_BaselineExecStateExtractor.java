@@ -28,7 +28,6 @@ import com.ibm.jikesrvm.osr.OSR_VariableElement;
 import com.ibm.jikesrvm.ppc.*;
 
 import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 
 /**
  * OSR_BaselineExecStateExtractor retrieves the runtime state from a suspended
