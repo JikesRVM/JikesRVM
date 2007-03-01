@@ -71,7 +71,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         boolean_cmp(s, ir, true);
         break;
       case BOOLEAN_CMP_ADDR_opcode:
-        boolean_cmp(s, ir, VM.BuildFor32Addr?true:false);
+        boolean_cmp(s, ir, VM.BuildFor32Addr);
         break;
       case DOUBLE_CMPL_opcode:
       case FLOAT_CMPL_opcode:
