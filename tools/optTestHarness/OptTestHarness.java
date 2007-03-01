@@ -351,9 +351,8 @@ class OptTestHarness {
   }
 
   private static void executeCommand() 
-   throws InvocationTargetException, 
-          IOException,
-          IllegalAccessException {
+   throws InvocationTargetException,
+      IllegalAccessException {
     compileMethodsInVector();
 
     if(EXECUTE_WITH_REFLECTION == true) {
