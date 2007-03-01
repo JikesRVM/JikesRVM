@@ -297,7 +297,7 @@ import org.vmmagic.unboxed.*;
    * should be called after garbage collection (but before the space has 
    * been reclaimed) and at program termination.  
    */
-  private static final void findDeaths() {
+  private static void findDeaths() {
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */

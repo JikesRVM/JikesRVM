@@ -157,7 +157,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * 
    * @param ir the governing IR
    */
-  private final void performVariationFullDuplication(OPT_IR ir, OPT_CompilerPhase phaseObject) {
+  private void performVariationFullDuplication(OPT_IR ir, OPT_CompilerPhase phaseObject) {
 
     // Initialize
 
@@ -587,7 +587,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param operator The operator to look for
    * @param bb The basic block in which to look
    * @return The first instruction in bb that has operator operator.  */
-  private static final OPT_Instruction getFirstInstWithOperator(OPT_Operator operator,
+  private static OPT_Instruction getFirstInstWithOperator(OPT_Operator operator,
                                              OPT_BasicBlock bb) {
     for (OPT_InstructionEnumeration ie
            = bb.forwardInstrEnumerator();
@@ -651,7 +651,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * code.
    *
    * @param ir the governing IR */
-  private static final void adjustPointersInDuplicatedCode(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
+  private static void adjustPointersInDuplicatedCode(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
 
     // Iterate over the original version of all duplicate blocks
     for (OPT_BasicBlock dupBlock : origToDupMap.values()) {
@@ -703,7 +703,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * yieldpoints!
    *
    * @param ir the governing IR */
-  private static final void removeInstrumentationFromOrig(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
+  private static void removeInstrumentationFromOrig(OPT_IR ir, HashMap<OPT_BasicBlock,OPT_BasicBlock> origToDupMap){
     // Iterate over the original version of all duplicate blocks
 
     for (OPT_BasicBlock origBlock : origToDupMap.keySet()) {
@@ -737,7 +737,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *                OPT_DefUse.recomputeSpansBasicBlock(OPT_IR);
    * 
    */
-  private static final OPT_BasicBlock myCopyWithoutLinks(OPT_BasicBlock bb,
+  private static OPT_BasicBlock myCopyWithoutLinks(OPT_BasicBlock bb,
                                                  OPT_IR ir) {
 
     OPT_BasicBlock newBlock = bb.copyWithoutLinks(ir);
@@ -751,7 +751,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    * Given an basic block, rename all of the temporary registers that are local to the block.
    */
-  private static final void updateTemps(OPT_BasicBlock bb, OPT_IR ir) {
+  private static void updateTemps(OPT_BasicBlock bb, OPT_IR ir) {
 
     // Need to clear the scratch objects before we start using them
     clearScratchObjects(bb,ir);
@@ -791,7 +791,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *  Go through all statements in the basic block and clear the
    *  scratch objects.
    */
-  private static final void clearScratchObjects(OPT_BasicBlock bb, OPT_IR ir) {
+  private static void clearScratchObjects(OPT_BasicBlock bb, OPT_IR ir) {
     // For each instruction in the block
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
          ie.hasMoreElements();) {
@@ -826,7 +826,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * register that is associated with the given register.  If a
    * duplicated register does not exist, it is created and recorded.
    */
-  private static final OPT_RegisterOperand getOrCreateDupReg(OPT_RegisterOperand ro,
+  private static OPT_RegisterOperand getOrCreateDupReg(OPT_RegisterOperand ro,
                                                      OPT_IR ir) {
 
     // Check if the register associated with this regOperand already
@@ -918,7 +918,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * executed only when a sample is being taken.  
    *
    */
-  private static final boolean isInstrumentationInstruction(OPT_Instruction i) {
+  private static boolean isInstrumentationInstruction(OPT_Instruction i) {
     
     //    if (i.bcIndex == INSTRUMENTATION_BCI &&
     // (Call.conforms(i) ||

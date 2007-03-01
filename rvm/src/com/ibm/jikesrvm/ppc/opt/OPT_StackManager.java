@@ -214,7 +214,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    *
    * @param ret the return instruction.
    */
-  private final void insertEpilogue(OPT_Instruction ret) {
+  private void insertEpilogue(OPT_Instruction ret) {
 
     // 1. Restore any saved registers
     if (ir.compiledMethod.isSaveVolatile()) {

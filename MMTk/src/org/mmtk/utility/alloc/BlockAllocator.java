@@ -251,7 +251,7 @@ import org.vmmagic.unboxed.*;
    * blocks) of this size class.
    */
   @Inline
-  private static final int pagesForSizeClass(int blockSizeClass) {
+  private static int pagesForSizeClass(int blockSizeClass) {
     if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
       return 1;
     else

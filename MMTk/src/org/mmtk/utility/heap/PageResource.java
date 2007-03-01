@@ -206,7 +206,7 @@ public abstract class PageResource implements Constants {
    * 
    * @param pages The number of pages to be added.
    */
-  private static final void addToCommitted(int pages) {
+  private static void addToCommitted(int pages) {
     classLock.acquire();
     cumulativeCommitted += pages;
     classLock.release();

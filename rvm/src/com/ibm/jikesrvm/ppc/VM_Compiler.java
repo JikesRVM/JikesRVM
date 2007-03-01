@@ -265,15 +265,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     return lastFloatStackRegister;
   }
 
-  private static final boolean needsFloatRegister(byte type) {
+  private static boolean needsFloatRegister(byte type) {
     return 0 != (type & (FLOAT_TYPE | DOUBLE_TYPE));
   }
 
-  private static final byte stripFloatRegisters(byte type) {
+  private static byte stripFloatRegisters(byte type) {
     return (byte) (type & (~(FLOAT_TYPE | DOUBLE_TYPE)));
   }
 
-  private static final boolean containsLongType(byte type) {
+  private static boolean containsLongType(byte type) {
     return 0 != (type & (LONG_TYPE));
   }
 

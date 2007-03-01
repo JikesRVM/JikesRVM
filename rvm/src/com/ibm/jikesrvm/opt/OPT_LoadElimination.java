@@ -412,7 +412,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param key a key into the map
    * @return the set map(key).  create one if none exists.
    */
-  private static final <T> HashSet<T> findOrCreateIndexSet(HashMap<Object,HashSet<T>> map,
+  private static <T> HashSet<T> findOrCreateIndexSet(HashMap<Object,HashSet<T>> map,
                                                                          Object key) {
     HashSet<T> result = map.get(key);
     if (result == null) {

@@ -75,7 +75,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     this(length, sp, null);
   }
 
-  private static final int maskLower16 (Offset val) {
+  private static int maskLower16 (Offset val) {
     return (val.toInt() & 0xFFFF);
   }
 

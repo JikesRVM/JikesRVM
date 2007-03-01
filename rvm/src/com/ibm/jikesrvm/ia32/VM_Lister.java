@@ -308,11 +308,11 @@ public class VM_Lister implements VM_Constants {
     lockPrefix = false;
   }
 
-  private static final boolean isFP(String op) {
+  private static boolean isFP(String op) {
     return op.startsWith("F");
   }
 
-  private static final String left (String s, int w) {
+  private static String left (String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(0,w);
     for (int i=n; i<w; i++) {
@@ -321,7 +321,7 @@ public class VM_Lister implements VM_Constants {
     return s; 
   }
 
-  private static final String right (String s, int w) {
+  private static String right (String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(n-w);
     for (int i=n; i<w; i++) {
@@ -330,7 +330,7 @@ public class VM_Lister implements VM_Constants {
     return s; 
   }
 
-  private static final String decimal (Offset o) {
+  private static String decimal (Offset o) {
     return decimal(o.toInt());
   }
 
@@ -359,7 +359,7 @@ public class VM_Lister implements VM_Constants {
     return (sign + result);
   }
 
-  private static final String decimal (short s) {
+  private static String decimal (short s) {
     return decimal((int) s);
   }
 

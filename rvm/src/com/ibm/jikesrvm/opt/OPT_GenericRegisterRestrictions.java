@@ -83,7 +83,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  private final void processBlock(OPT_BasicBlock bb) {
+  private void processBlock(OPT_BasicBlock bb) {
     ArrayList<OPT_LiveIntervalElement> symbolic =
       new ArrayList<OPT_LiveIntervalElement>(20);
     ArrayList<OPT_LiveIntervalElement> physical =
