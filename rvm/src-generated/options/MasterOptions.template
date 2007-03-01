@@ -134,7 +134,7 @@ $$$$ END LOOP
        printOptions();
        return true;
     }
-    if (arg.equals("")) {
+    if (arg.length() == 0) {
       printHelp(prefix);
       return true;
     }

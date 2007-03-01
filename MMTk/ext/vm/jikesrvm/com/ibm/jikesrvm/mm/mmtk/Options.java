@@ -90,7 +90,7 @@ public final class Options extends org.mmtk.vm.Options {
        printOptions();
        return true;
     }
-    if (arg.equals("")) {
+    if (arg.length() == 0) {
       printHelp();
       return true;
     }

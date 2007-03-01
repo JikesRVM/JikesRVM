@@ -155,7 +155,7 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   static void init()  { 
     // check to see if the raw rates are specified during boot time
-    if (!VM_Controller.options.COMPILER_DNA_FILE_NAME.equals("")) {
+    if (VM_Controller.options.COMPILER_DNA_FILE_NAME.length() != 0) {
       //  Read the DNA values from disk
       readDNA(VM_Controller.options.COMPILER_DNA_FILE_NAME);
     }
