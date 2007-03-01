@@ -9,9 +9,11 @@
 package org.jikesrvm.tools.ant;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.util.Watchdog;
 import org.apache.tools.ant.taskdefs.ExecTask;
 import org.apache.tools.ant.taskdefs.ExecuteWatchdog;
 import org.apache.tools.ant.taskdefs.Property;
+import java.lang.reflect.Field;
 
 /**
  * ExecTask extension that sets a proeprty when watchdog kills task.
@@ -38,9 +40,34 @@ public class TimeoutRecordingExecTask
       property.execute();
     }
   }
-
+  
   protected ExecuteWatchdog createWatchdog() throws BuildException {
-    watchdog = super.createWatchdog();
+    if (false) {
+      watchdog = super.createWatchdog();
+    } else {
+      try {
+        final Field field = ExecTask.class.getDeclaredField("timeout");
+        field.setAccessible(true);
+        final Long timeout = (Long) field.get(this);
+        watchdog = (timeout == null) ? null : new MyExecuteWatchdog(timeout);
+      } catch (final Exception e) {
+        e.printStackTrace();
+        throw new BuildException("Error getting timeout", e);
+      }
+    }
     return watchdog;
+  }
+
+  static class MyExecuteWatchdog extends ExecuteWatchdog {
+
+    public MyExecuteWatchdog(long l) {
+      super(l);
+    }
+
+    public void timeoutOccured(Watchdog watchdog) {
+      System.out.println("Timeout occured. Attempting to kill process...");
+      super.timeoutOccured(watchdog);
+      System.out.println("Process should be dead...");
+    }
   }
 }
