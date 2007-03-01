@@ -57,10 +57,8 @@ class VM_CompilerAdvice {
           dynamicCallFileName, false);
       // register these sites so that when a compilation is done,
       // these sites use compiler advice
-      //VM_DynamicCallAttribute.registerDynamicCall(dynamicCallInfoList);
     }
   }
-
 }
 
 
