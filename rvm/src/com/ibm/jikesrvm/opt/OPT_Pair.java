@@ -13,8 +13,8 @@ package com.ibm.jikesrvm.opt;
  * @author John Whaley
  */
 class OPT_Pair {
-  Object first;
-  Object second;
+  final Object first;
+  final Object second;
 
   /**
    * Constructor
