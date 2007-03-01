@@ -78,7 +78,7 @@ public final class Field extends AccessibleObject implements Member {
     } else if (type.isByteType()) {
       return new Byte(field.getByteValueUnchecked(object));
     } else if (type.isBooleanType()) {
-      return new Boolean(field.getBooleanValueUnchecked(object));
+      return Boolean.valueOf(field.getBooleanValueUnchecked(object));
     } else {
       throw new InternalError("Huh?  Field of unknown primitive type "+type);
     }

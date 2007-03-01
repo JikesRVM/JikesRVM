@@ -28,7 +28,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * dominators?
    */
   public OPT_DominatorsPhase(boolean unfactor) {
-	 super(new Object[]{new Boolean(unfactor)});
+	 super(new Object[]{Boolean.valueOf(unfactor)});
 	 this.unfactor = unfactor;
   }
 

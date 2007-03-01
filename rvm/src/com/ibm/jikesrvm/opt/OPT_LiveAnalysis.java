@@ -139,8 +139,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
                           boolean skipLocal, 
                           boolean storeLiveAtHandlers,
                           boolean skipGuards) {
-    super(new Object[]{new Boolean(createGCMaps),new Boolean(skipLocal),
-                       new Boolean(storeLiveAtHandlers),new Boolean(skipGuards)});
+    super(new Object[]{Boolean.valueOf(createGCMaps), Boolean.valueOf(skipLocal),
+        Boolean.valueOf(storeLiveAtHandlers), Boolean.valueOf(skipGuards)});
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
