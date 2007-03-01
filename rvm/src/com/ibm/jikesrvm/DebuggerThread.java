@@ -163,7 +163,6 @@ class DebuggerThread extends VM_Thread {
         Object[]   args = new Object[0];
         method.invoke(null, args);
       }
-      return;
     }
   }
 

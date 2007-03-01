@@ -116,9 +116,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
    * @param arg     Command line argument with prefix stripped off
    */
   public static void processCommandLineArg(String prefix, String arg) {
-    if (options.processAsOption(prefix, arg)) {
-      return;
-    } else {
+    if (!options.processAsOption(prefix, arg)) {
       VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }

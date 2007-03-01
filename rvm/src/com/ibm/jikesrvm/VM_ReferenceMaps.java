@@ -539,7 +539,6 @@ import org.vmmagic.unboxed.*;
       if (!replacemap) {
       }
     }
-    return;
   }
 
   /**
@@ -684,7 +683,6 @@ import org.vmmagic.unboxed.*;
       if (!replacemap) {
       }
     }
-    return;
   }
 
 
@@ -1214,7 +1212,6 @@ import org.vmmagic.unboxed.*;
         jsrInfo.unusualReferenceMaps[targetindex+i] = (byte)(jsrInfo.unusualReferenceMaps[targetindex + i] & temp);
       }
     }
-    return;
   }
 
   /**
@@ -1309,7 +1306,6 @@ import org.vmmagic.unboxed.*;
         VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i]);
       VM.sysWrite( "\n");
     }
-    return;
   }
 
   /**

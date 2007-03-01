@@ -25,7 +25,6 @@ import org.vmmagic.pragma.*;
   //
   void setReturnAddressIndex(int index) {
     returnAddressIndex = index;
-    return;
   }
 
   // provide the index in the stack frame of the return address for this map
@@ -38,7 +37,6 @@ import org.vmmagic.pragma.*;
   //
   void setReferenceMapIndex(int index) {
     referenceMapIndex = index;
-    return;
   }
 
   // provide the index in the stackmaps for the refernce map
@@ -51,7 +49,6 @@ import org.vmmagic.pragma.*;
   //
   void setNonReferenceMapIndex(int index) {
     nonReferenceMapIndex = index;
-    return;
   }
 
   // provide the index in the stackmaps for the non-refernce map
@@ -65,7 +62,6 @@ import org.vmmagic.pragma.*;
   //
   void setReturnAddressMapIndex(int index) {
     returnAddressMapIndex = index;
-    return;
   }
 
   // provide the index in the stackmaps for the return Address  map
@@ -84,7 +80,6 @@ import org.vmmagic.pragma.*;
   //
   void setNormalMapIndex(int index) {
     normalMapIndex = index;
-    return;
   }
 
 

@@ -1033,7 +1033,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         // We previously decided to spill the compound interval.  No further
         // action is needed.
         if (verboseDebug) System.out.println("Previously spilled " + container);
-        return;
       } else {
         if (container.isAssigned()) {
           // The compound interval was previously assigned to a physical
@@ -1052,7 +1051,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                                                  getInterval(phys));
             // Mark the physical register as currently allocated
             phys.allocateRegister();
-            return;
           } else {
             // The previous assignment is not OK, since the physical
             // register is now in use elsewhere.  

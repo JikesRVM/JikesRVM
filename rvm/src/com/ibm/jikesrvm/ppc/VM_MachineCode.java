@@ -105,7 +105,6 @@ public abstract class VM_MachineCode {
   
   public void setBytecodeMap(int[] b2m) {
     bytecode_2_machine = b2m;
-    return;
   }
 
 

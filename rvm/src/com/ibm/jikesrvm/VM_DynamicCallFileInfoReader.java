@@ -75,11 +75,9 @@ public class VM_DynamicCallFileInfoReader {
     } catch (java.io.FileNotFoundException e) {
       System.out.println("IO: Couldn't read compiler advice attribute file: " 
                          + file + e);
-      return;// null;
     } catch (java.io.UnsupportedEncodingException e) {
       System.out.println("IO: UTF-16 is not supported: " 
                          + e);
-      return;// null;
     } catch (IOException e) {
       VM.sysFail("Error closing input dynamic call graph file"+file);
     }

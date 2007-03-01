@@ -491,7 +491,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_BinaryAcc.create(IA32_OR, M.copy(), IC(0x00000c00)));
     // Now store the result back into the FPU Control Word
     EMIT(MIR_Nullary.mutate(s,IA32_FLDCW, M.copy()));
-    return;
   }
 
 

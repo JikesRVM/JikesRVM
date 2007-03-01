@@ -349,9 +349,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   private void removeFromRegisterMap(OPT_Register r, 
                                      OPT_LiveIntervalElement i) {
     ArrayList<OPT_LiveIntervalElement> set = registerMap[r.getNumber()];
-    if (set == null) {
-      return;
-    } else {
+    if (set != null) {
       set.remove(i);
     }
   }

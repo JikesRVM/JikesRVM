@@ -62,6 +62,5 @@ class OPT_SpaceEffGraphEdgeListHeader {
     prev._next._edge = edge;
     prev._next._prev = prev;                    // doubly linked list.
     _last = prev._next;
-    return;
   }
 }

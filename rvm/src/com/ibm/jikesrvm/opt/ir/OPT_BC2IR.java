@@ -4945,7 +4945,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
         }
         p.setStackKnown();
-        return;
       } else {
         // A real rectification.
         // We need to update mergedStack such that 
@@ -5745,7 +5744,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       root.setBlack();
       // verifyTree();
-      return;
     }
 
     private void leftRotateBBSet(BasicBlockLE x) {

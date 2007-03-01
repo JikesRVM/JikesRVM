@@ -109,7 +109,6 @@ class MainThread extends Thread {
       VM.sysWriteln("Failed to run the agent's premain: " + e.getMessage());
       e.printStackTrace();
       System.exit(0);
-      return;
     }
   }
 

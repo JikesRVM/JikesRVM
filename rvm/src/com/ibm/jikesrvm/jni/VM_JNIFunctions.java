@@ -3802,7 +3802,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return;
     }
   }
 

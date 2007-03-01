@@ -1694,8 +1694,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     // Indicate that any temporaries can be freed
     referenceMaps.recordingComplete();
 
-    return;
-  }  
+ }  
  
   // -------------------- Private Instance Methods --------------------
 
