@@ -153,23 +153,21 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
 
   /**
    * Return true if annotation present.
-   * WARNING: This method is overidden in VM_Class and it assumes that only @Inherited annotions will be processed.
+   * 
+   * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
+   * may require classloading and instantiation of annotations. Classloading would mean 
+   * that it would not be @Uninterruptible. Instantiation is not desirtable as checking
+   * of annotations occurs prior to the bootimage compiler being ready to instantiate
+   * objects. 
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
-    return declaredAnnotationDatas != null && isAnnotationPresent(annotationTypeRef, declaredAnnotationDatas);
-  }
-
-  /**
-   * Return true if annotation is in specified set.
-   */
-  @Uninterruptible
-  private static boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef,
-                                     final VM_Annotation[] annotations) {
-    for (VM_Annotation annotation : annotations) {
-      if( annotation.getType().equals(annotationTypeRef.getName()) &&
-          annotation.getClassLoader() == annotationTypeRef.getClassLoader() ) {
-        return true;
+    if (null != declaredAnnotationDatas) {
+      for (VM_Annotation annotation : declaredAnnotationDatas) {
+        if (annotation.getType().equals(annotationTypeRef.getName()) &&
+            annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
+          return true;
+        }
       }
     }
     return false;
