@@ -258,7 +258,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     i = 0;
     be = header.getIn();
     while (be.hasMoreElements()) {
-      OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
+      OPT_BasicBlock in = be.nextElement();
       if (!inLoop(in, loop)) res[i++] = in;
     }
     return  res;
@@ -280,7 +280,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     i = 0;
     be = header.getIn();
     while (be.hasMoreElements()) {
-      OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
+      OPT_BasicBlock in = be.nextElement();
       if (inLoop(in, loop)) res[i++] = in;
     }
     return  res;
@@ -301,7 +301,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     i = 0;
     be = header.getOut();
     while (be.hasMoreElements()) {
-      OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
+      OPT_BasicBlock in = be.nextElement();
       if (inLoop(in, loop)) res[i++] = in;
     }
     return  res;

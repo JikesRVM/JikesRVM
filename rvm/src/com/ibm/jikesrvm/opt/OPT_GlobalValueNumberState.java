@@ -121,7 +121,7 @@ public final class OPT_GlobalValueNumberState {
     initializeWorkList();
     // drain the work list
     while (!workList.empty()) {
-      OPT_GVCongruenceClass partition = (OPT_GVCongruenceClass)workList.pop();
+      OPT_GVCongruenceClass partition = workList.pop();
       partitionClass(partition);
     }
     // all done
@@ -141,10 +141,10 @@ public final class OPT_GlobalValueNumberState {
      int val2 = v2.getValueNumber();
      if ( val1 == val2 ) return;
 
-     OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.get(val1);
+     OPT_GVCongruenceClass class1 = B.get(val1);
 
      while ( true ) {
-       OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.get(val2);
+       OPT_GVCongruenceClass class2 = B.get(val2);
        Iterator<OPT_ValueGraphVertex> i = class2.iterator() ;  
        if ( ! i.hasNext() ) break;
        OPT_ValueGraphVertex v = i.next();
@@ -194,8 +194,8 @@ public final class OPT_GlobalValueNumberState {
   boolean DD (int v1, int v2) {
     if ((v1 == -1) || (v2 == -1))
       return  false;
-    OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.get(v1);
-    OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.get(v2);
+    OPT_GVCongruenceClass class1 = B.get(v1);
+    OPT_GVCongruenceClass class2 = B.get(v2);
     Object label1 = class1.getLabel();
     Object label2 = class2.getLabel();
     // if one is a constant, they must both be ...
@@ -262,7 +262,7 @@ public final class OPT_GlobalValueNumberState {
 
   OPT_GVCongruenceClass congruenceClass(Object name) {
     OPT_ValueGraphVertex v = valueGraph.getVertex(name);
-    return ((OPT_GVCongruenceClass)B.get(v.getValueNumber()));
+    return B.get(v.getValueNumber());
   }
 
   /**
@@ -319,7 +319,7 @@ public final class OPT_GlobalValueNumberState {
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
                                                              HashMap<Object,OPT_GVCongruenceClass> labelMap) {
-    OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
+    OPT_GVCongruenceClass result = labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);
       labelMap.put(label, result);

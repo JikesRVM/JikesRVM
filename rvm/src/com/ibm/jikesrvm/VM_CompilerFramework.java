@@ -1934,13 +1934,13 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       }
 
       default:
-        VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
+        VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString(code, false) + "\n");
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
       ending_bytecode();
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();
-    return (VM_MachineCode) asm.finalizeMachineCode(bytecodeMap);
+    return asm.finalizeMachineCode(bytecodeMap);
   }
   
 

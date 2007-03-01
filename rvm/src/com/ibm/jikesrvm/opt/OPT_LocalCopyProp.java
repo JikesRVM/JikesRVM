@@ -109,7 +109,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
                    info.entrySet().iterator();
                  i.hasNext(); ) {
               Map.Entry<OPT_Register,OPT_Operand> entry = i.next();
-              OPT_Register eR = ((OPT_RegisterOperand)entry.getValue()).
+              OPT_Register eR = entry.getValue().
                 asRegister().register;
               if (killPhysicals && eR.isPhysical()) {
                 // delay the removal to avoid ConcurrentModification

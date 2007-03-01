@@ -335,7 +335,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
 
     VM_MachineCode machineCode = asm.makeMachineCode();
-    cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
+    cm.compileComplete(machineCode.getInstructions());
     return cm;
   }
 

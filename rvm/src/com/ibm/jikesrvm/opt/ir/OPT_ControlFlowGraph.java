@@ -93,7 +93,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @return the exit node of the FCFG
    */
   public OPT_BasicBlock exit() {
-    return (OPT_BasicBlock)_exitNode;
+    return _exitNode;
   }
 
 

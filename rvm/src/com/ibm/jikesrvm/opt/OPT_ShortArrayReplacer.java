@@ -74,7 +74,7 @@ public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
+        use = use.getNext()) {
       scalarReplace(use, scalars);
     }
   }
@@ -165,7 +165,7 @@ public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
   private static boolean containsUnsupportedUse (OPT_IR ir, OPT_Register reg,
                                                  int size) {
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-         use = (OPT_RegisterOperand)use.getNext()) {
+         use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case NEWOBJMULTIARRAY_opcode:case OBJARRAY_STORE_CHECK_opcode:
         case OBJARRAY_STORE_CHECK_NOTNULL_opcode:

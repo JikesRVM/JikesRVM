@@ -109,7 +109,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   private void renovateOsrPoints(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
 
     for (int osrIdx=0, osrSize=osrs.size(); osrIdx<osrSize; osrIdx++) {
-      OPT_Instruction osr = (OPT_Instruction)osrs.get(osrIdx);      
+      OPT_Instruction osr = osrs.get(osrIdx);      
       LinkedList<OPT_Instruction> barriers = new LinkedList<OPT_Instruction>();
 
       // Step 1: collect barriers put before inlined method
@@ -167,7 +167,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
       // first iteration, count the size of total locals and stack sizes
       for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
 
-        OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
+        OPT_Instruction bar = barriers.get(barIdx);
         methodids[barIdx] = bar.position.method.getId();
         bcindexes[barIdx] = bar.bcIndex;
 
@@ -201,7 +201,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
       int opIndex = 0;
       for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
 
-        OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
+        OPT_Instruction bar = barriers.get(barIdx);
         for (int elmIdx=0, elmSize=OsrBarrier.getNumberOfElements(bar); 
              elmIdx<elmSize; 
              elmIdx++) {
@@ -234,7 +234,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 */
       // the last OsrBarrier should in the current method
       if (VM.VerifyAssertions) {
-        OPT_Instruction lastBar = (OPT_Instruction)barriers.getLast();
+        OPT_Instruction lastBar = barriers.getLast();
         if (ir.method != lastBar.position.method) {
           VM.sysWriteln("The last barrier is not in the same method as osr:");
           VM.sysWriteln(lastBar+"@"+lastBar.position.method);
@@ -318,7 +318,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   private void fixupCFGForOsr(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
     
     for (int i=0, n=osrs.size(); i<n; i++) {
-      OPT_Instruction osr = (OPT_Instruction)osrs.get(i);
+      OPT_Instruction osr = osrs.get(i);
       OPT_BasicBlock bb = osr.getBasicBlock();
       OPT_BasicBlock newBB = bb.segregateInstruction(osr, ir);
       bb.recomputeNormalOut(ir);

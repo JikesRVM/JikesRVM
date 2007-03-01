@@ -37,7 +37,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
    * find or create a node in the graph corresponding to a register.
    */
   private Node findOrCreateNode(OPT_Register r) {
-    Node n = (Node)nodeMap.get(r);
+    Node n = nodeMap.get(r);
     if (n == null) {
       n = new Node(r);
       nodeMap.put(r,n);
@@ -50,7 +50,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
    * Find the node corresponding to a regsiter.
    */
   Node findNode(OPT_Register r) {
-    return (Node)nodeMap.get(r);
+    return nodeMap.get(r);
   }
 
   /**

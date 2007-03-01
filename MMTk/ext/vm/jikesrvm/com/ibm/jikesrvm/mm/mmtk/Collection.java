@@ -232,8 +232,8 @@ import org.vmmagic.pragma.*;
       if (why == INTERNAL_GC_TRIGGER) {
         if (Options.verbose.getValue() >= 2) {
           VM.sysWriteln("OutOfMemoryError: usage = ", usage);
-          VM.sysWriteln("          reserved (KB) = ",(long)(Plan.reservedMemory().toLong() / 1024));
-          VM.sysWriteln("          total    (KB) = ",(long)(Plan.totalMemory().toLong() / 1024));
+          VM.sysWriteln("          reserved (KB) = ", Plan.reservedMemory().toLong() / 1024);
+          VM.sysWriteln("          total    (KB) = ", Plan.totalMemory().toLong() / 1024);
         }
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");

@@ -108,7 +108,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     // "branches" to catchBlockInstructionAddress
-    VM_Magic.restoreHardwareExceptionState((VM_Registers) registers);
+    VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
   

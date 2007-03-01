@@ -505,7 +505,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       int index = cache.indexOf(ae);
       if (index == -1)
         return null;
-      return ((AvailableExpression)cache.get(index));
+      return cache.get(index);
     }
 
     /**
@@ -598,7 +598,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     private void eliminate (OPT_RegisterOperand op) {
       int i = 0;
       while (i < cache.size()) {
-        AvailableExpression ae = (AvailableExpression)cache.get(i);
+        AvailableExpression ae = cache.get(i);
         OPT_Operand opx = ae.op1;
         if (opx instanceof OPT_RegisterOperand && 
             ((OPT_RegisterOperand)opx).register == op.register) {
@@ -644,8 +644,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
           OPT_LocationOperand sLocation = LocationCarrier.getLocation(s);
           // walk through the cache and invalidate any killed locations
           while (i < cache.size()) {
-            AvailableExpression ae = (AvailableExpression)
-              cache.get(i);
+            AvailableExpression ae = cache.get(i);
             if (ae.inst != s) {   // a store instruction doesn't kill itself 
               boolean killIt = false;
               if (ae.isLoadOrStore()) {
@@ -674,7 +673,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       if (!doMemory) return;
       int i = 0;
       while (i < cache.size()) {
-        AvailableExpression ae = (AvailableExpression)cache.get(i);
+        AvailableExpression ae = cache.get(i);
         if (ae.isLoadOrStore()) {
           cache.remove(i);
           continue;               // don't increment i, since we removed 

@@ -70,7 +70,7 @@ public final class OPT_VCG implements OPT_VCGConstants
       OPT_VCGNode node = nodes.nextElement();
       OPT_VCGNode.NodeDesc nd = node.getVCGDescriptor();
       res.append(indent("node: {", 1));
-      String name = (String) nodeNames.get(node);
+      String name = nodeNames.get(node);
       if (name == null) {
         name = "Node "+(nodenum++);
         nodeNames.put(node, name);
@@ -104,14 +104,14 @@ public final class OPT_VCG implements OPT_VCGConstants
         res.append(indent(eName+": {", 1));
 
         OPT_VisNode fromNode = edge.sourceNode();
-        String fromName = (String) nodeNames.get(fromNode);
+        String fromName = nodeNames.get(fromNode);
         if (fromName == null) {
           fromName = "Node "+(nodenum++);
           nodeNames.put(fromNode, fromName);
         }
         res.append(pair("sourcename", quote(fromName), 2));
         OPT_VisNode toNode = edge.targetNode();
-        String toName = (String) nodeNames.get(toNode);
+        String toName = nodeNames.get(toNode);
         if (toName == null) {
           toName = "Node "+(nodenum++);
           nodeNames.put(toNode, toName);

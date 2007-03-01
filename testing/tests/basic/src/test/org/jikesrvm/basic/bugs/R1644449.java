@@ -18,6 +18,6 @@ public class R1644449 {
   public static float a = 10.57379f;
 
   public static void main(String[] args) {
-    System.out.println(((float) (a * b)));
+    System.out.println(a * b);
   }
 }

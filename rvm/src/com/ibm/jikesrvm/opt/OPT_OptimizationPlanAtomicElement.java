@@ -81,7 +81,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
     if (VM.MeasureCompilation && VM.runningVM) {
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
-    OPT_CompilerPhase cmpPhase=(OPT_CompilerPhase)myPhase.newExecution(ir);
+    OPT_CompilerPhase cmpPhase= myPhase.newExecution(ir);
     cmpPhase.setContainer(this);
     cmpPhase.performPhase(ir);
     if (VM.MeasureCompilation && VM.runningVM) {

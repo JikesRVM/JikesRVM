@@ -190,7 +190,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    */
   private void computeLoopMultipliers(OPT_LSTNode n) {
     for (Enumeration<OPT_LSTNode> e = n.getChildren(); e.hasMoreElements();) {
-      computeLoopMultipliers((OPT_LSTNode)e.nextElement());
+      computeLoopMultipliers(e.nextElement());
     }
     if (n != lst.getRoot()) {
       computeMultiplier(n);

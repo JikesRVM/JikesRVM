@@ -365,7 +365,7 @@ import org.vmmagic.unboxed.*;
   private static byte getBlkSizeClass(Address address) {
     address = Conversions.pageAlign(address);
     byte rtn = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) & BLOCK_SC_MASK);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(rtn >= 0 && rtn <= (byte) MAX_BLOCK_SIZE_CLASS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(rtn >= 0 && rtn <= MAX_BLOCK_SIZE_CLASS);
     return rtn;
   }
 

@@ -43,12 +43,12 @@ public class OPT_UnsyncReplacer {
     synchronized(context){
       // first change the defs
       for (OPT_RegisterOperand def = reg.defList; def != null; 
-           def = (OPT_RegisterOperand)def.getNext()) {
+           def = def.getNext()) {
         transform(def);
       }
       // now fix the uses
       for (OPT_RegisterOperand use = reg.useList; use != null; 
-           use = (OPT_RegisterOperand)use.getNext()) {
+           use = use.getNext()) {
         transform(use);
       }
     }

@@ -220,7 +220,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * volatile physical registers 
    */
   final void forbidAllVolatiles(OPT_Register symb) {
-    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
+    RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
       hash.put(symb,r);
@@ -233,7 +233,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * of a set of physical registers 
    */
   protected final void addRestrictions(OPT_Register symb, OPT_BitSet set) {
-    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
+    RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
       hash.put(symb,r);
@@ -246,7 +246,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * physical register p
    */
   protected final void addRestriction(OPT_Register symb, OPT_Register p) {
-    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
+    RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
       hash.put(symb,r);
@@ -259,7 +259,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * register. Return null if no restrictions.
    */
   final RestrictedRegisterSet getRestrictions(OPT_Register symb) {
-    return (RestrictedRegisterSet)hash.get(symb);
+    return hash.get(symb);
   }
 
   /**

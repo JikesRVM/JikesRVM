@@ -25,7 +25,7 @@ class TestFloatingRem {
       testFREM(   3f,   -2f);
       testFREM(  -3f,   -2f);
       // fringe cases
-      float Inff = (float)(1f/0f), NaNf = (float)(0f/0f);
+      float Inff = 1f/0f, NaNf = 0f/0f;
       testFREM( 5.6f,    0f, NaNf);
       testFREM(   7f,    0f, NaNf);
       testFREM(   0f,  5.6f,   0f);

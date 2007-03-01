@@ -305,7 +305,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     }
     // perform deferred removals
     for (Iterator<OPT_LiveIntervalElement> i = toRemove.iterator(); i.hasNext(); ) {
-      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+      OPT_LiveIntervalElement interval = i.next();
       removeFromRegisterMap(r2,interval);
     }
   }
@@ -616,7 +616,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       // ExceptionBlockSummary.
       for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); 
           bbEnum.hasMoreElements();) {
-        OPT_BasicBlock succ = (OPT_BasicBlock)bbEnum.next();
+        OPT_BasicBlock succ = bbEnum.next();
 
         // sometimes we may have a CFG edge to a handler, but no longer a
         //   PEI that can make the edge realizable.  Thus, we have two
@@ -739,7 +739,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       // statements in this block
       for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); 
           bbEnum.hasMoreElements();) {
-        OPT_BasicBlock succ = (OPT_BasicBlock)bbEnum.next();
+        OPT_BasicBlock succ = bbEnum.next();
         if (succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {
@@ -877,7 +877,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       if (createGCMaps) {
         // empty the stack, insert the information into the map
         while (!blockStack.isEmpty()) {
-          MapElement elem = (MapElement)blockStack.pop();
+          MapElement elem = blockStack.pop();
           map.insert(elem.getInst(), elem.getList());
         }
       }

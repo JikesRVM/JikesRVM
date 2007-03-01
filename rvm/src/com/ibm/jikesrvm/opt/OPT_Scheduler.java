@@ -114,7 +114,7 @@ final class OPT_Scheduler {
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();)
     {
-      bb = (OPT_BasicBlock)e.nextElement();
+      bb = e.nextElement();
       if (bb.isEmpty())
         continue;
       // HACK: temporarily disable scheduling of unsafe basic blocks.

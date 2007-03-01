@@ -57,7 +57,7 @@ class OPT_Coalesce {
     // Merge the defs.
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2);
          e.hasMoreElements(); ) {
-      OPT_RegisterOperand def= (OPT_RegisterOperand)e.nextElement();
+      OPT_RegisterOperand def= e.nextElement();
       OPT_DefUse.removeDef(def);
       def.register = r1;
       OPT_DefUse.recordDef(def);
@@ -65,7 +65,7 @@ class OPT_Coalesce {
     // Merge the uses.
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(r2);
          e.hasMoreElements(); ) {
-      OPT_RegisterOperand use = (OPT_RegisterOperand)e.nextElement();
+      OPT_RegisterOperand use = e.nextElement();
       OPT_DefUse.removeUse(use);
       use.register = r1;
       OPT_DefUse.recordUse(use);
@@ -114,7 +114,7 @@ class OPT_Coalesce {
   private static boolean split(OPT_Register r1, OPT_Register r2) {
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r1);
          e.hasMoreElements(); ) {
-      OPT_RegisterOperand def = (OPT_RegisterOperand)e.nextElement();
+      OPT_RegisterOperand def = e.nextElement();
       OPT_Instruction s = def.instruction;
       if (s.operator == SPLIT) {
         OPT_Operand rhs = Unary.getVal(s);
@@ -123,7 +123,7 @@ class OPT_Coalesce {
     }
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2); 
          e.hasMoreElements(); ) {
-      OPT_RegisterOperand def = (OPT_RegisterOperand)e.nextElement();
+      OPT_RegisterOperand def = e.nextElement();
       OPT_Instruction s = def.instruction;
       if (s.operator == SPLIT) {
         OPT_Operand rhs = Unary.getVal(s);

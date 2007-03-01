@@ -37,7 +37,7 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
         final Iterator<OPT_GraphNode> it = nodes.iterator();
         return new OPT_GraphNodeEnumeration() {
           public boolean hasMoreElements() { return it.hasNext(); }
-          public OPT_GraphNode next() { return (OPT_GraphNode)it.next();}
+          public OPT_GraphNode next() { return it.next();}
           public OPT_GraphNode nextElement() { return next(); }
         };
     }

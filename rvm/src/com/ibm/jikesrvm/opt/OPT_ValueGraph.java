@@ -121,7 +121,7 @@ final class OPT_ValueGraph {
     } else if (name instanceof OPT_TIBConstantOperand) {
       name = ((OPT_TIBConstantOperand)name).value;
     }
-    return (OPT_ValueGraphVertex)nameMap.get(name);
+    return nameMap.get(name);
   }
 
   /**

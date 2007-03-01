@@ -306,8 +306,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         if (verbose) VM.sysWriteln("\tDecide: "+d);
         return d;
       } else if (methodsToInline.size() == 1) {
-        VM_Method target = (VM_Method)methodsToInline.get(0);
-        boolean needsGuard = ((Boolean)methodsNeedGuard.get(0)).booleanValue();
+        VM_Method target = methodsToInline.get(0);
+        boolean needsGuard = methodsNeedGuard.get(0).booleanValue();
         if (needsGuard) {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {

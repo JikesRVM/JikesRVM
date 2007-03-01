@@ -53,7 +53,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @return the loop nesting depth or 0, if not in loop
    */
   public int getLoopNestDepth(OPT_BasicBlock bb) {
-    OPT_LSTNode loop = (OPT_LSTNode)loopMap.get(bb);
+    OPT_LSTNode loop = loopMap.get(bb);
     if (loop == null) return 0;
     return loop.depth;
   }
@@ -64,7 +64,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @return whether the block is in an innermost loop
    */
   public boolean inInnermostLoop(OPT_BasicBlock bb) {
-    OPT_LSTNode node = (OPT_LSTNode)loopMap.get(bb);
+    OPT_LSTNode node = loopMap.get(bb);
     if (node == null) return false;
     if (node.firstOutEdge() == null && node.loop != null) { 
       return true;
@@ -79,8 +79,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param target the basic block that is the target of the edge
    */
   public boolean isLoopExit(OPT_BasicBlock source, OPT_BasicBlock target) {
-    OPT_LSTNode snode = (OPT_LSTNode)loopMap.get(source);
-    OPT_LSTNode tnode = (OPT_LSTNode)loopMap.get(target);
+    OPT_LSTNode snode = loopMap.get(source);
+    OPT_LSTNode tnode = loopMap.get(target);
 
     if (snode == null || snode == rootNode) return false; // source isn't in a loop
     if (tnode == null || tnode == rootNode) return true;  // source is in a loop and target isn't
@@ -96,7 +96,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   }
 
   public OPT_LSTNode getLoop(OPT_BasicBlock b) {
-    return (OPT_LSTNode)loopMap.get(b);
+    return loopMap.get(b);
   }
 
   /**
@@ -115,7 +115,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     String ans = n.toString() + "\n";
     for (Enumeration<OPT_LSTNode> e = n.getChildren();
          e.hasMoreElements();) {
-      ans += dumpIt((OPT_LSTNode)e.nextElement());
+      ans += dumpIt(e.nextElement());
     }
     return ans;
   }
@@ -259,7 +259,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 
   recurse:
     while (!stack.empty()) {
-      bb = (OPT_BasicBlock) stack.peek();
+      bb = stack.peek();
 
       // check if we were already processing this node, if so we would have
       // saved the state of the enumeration in the loop below

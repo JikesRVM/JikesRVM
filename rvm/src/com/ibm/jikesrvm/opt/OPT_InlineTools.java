@@ -81,7 +81,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
         s.push(subClasses[i]);
       }
       while (!s.isEmpty()) {
-        VM_Class subClass = (VM_Class)s.pop();
+        VM_Class subClass = s.pop();
         if (subClass.findDeclaredMethod(callee.getName(), 
             callee.getDescriptor()) != null) {
           return false;        // found an overridding method

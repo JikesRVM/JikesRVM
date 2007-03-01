@@ -58,7 +58,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
     double methodEntryTotal=0;
     double backedgeTotal=0;
     for (String stringName : stringToCounterMap.keySet()) {
-      Integer counterNum = (Integer) stringToCounterMap.get(stringName);
+      Integer counterNum = stringToCounterMap.get(stringName);
       double count = getCounter(counterNum.intValue());
 
       VM.sysWrite(count + " " + stringName + "\n");

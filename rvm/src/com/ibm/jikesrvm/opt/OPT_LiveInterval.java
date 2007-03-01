@@ -47,7 +47,7 @@ final class OPT_LiveInterval {
 
     OPT_LiveSetEnumerator lsEnum = set.enumerator();
     while (lsEnum.hasMoreElements()) {
-      OPT_RegisterOperand regOp = (OPT_RegisterOperand) lsEnum.nextElement();
+      OPT_RegisterOperand regOp = lsEnum.nextElement();
       createEndLiveRange(regOp.register, block, inst);
     }
   }
@@ -103,15 +103,15 @@ final class OPT_LiveInterval {
     }
 
     OPT_LiveIntervalElement prev = null; 
-    OPT_LiveIntervalElement elem = 
-      (OPT_LiveIntervalElement) block.getFirstLiveIntervalElement();
+    OPT_LiveIntervalElement elem =
+        block.getFirstLiveIntervalElement();
     while (elem != null) {
       if (elem.getRegister() == reg && elem.getBegin() == null) {
         break;
       }
 
       prev = elem;
-      elem = (OPT_LiveIntervalElement) elem.getNext(); 
+      elem = elem.getNext(); 
     }
 
     if (elem != null) {
@@ -156,8 +156,8 @@ final class OPT_LiveInterval {
    */
   public static void moveUpwardExposedRegsToFront(OPT_BasicBlock block) {
 
-    OPT_LiveIntervalElement prev = 
-      (OPT_LiveIntervalElement) block.getFirstLiveIntervalElement();
+    OPT_LiveIntervalElement prev =
+        block.getFirstLiveIntervalElement();
     if (prev == null)
       return;
 
@@ -173,10 +173,10 @@ final class OPT_LiveInterval {
         block.prependLiveIntervalElement(elem);
 
         // the next victum is the *new* one after prev
-        elem = (OPT_LiveIntervalElement) prev.getNext(); 
+        elem = prev.getNext(); 
       } else {
         prev = elem;
-        elem = (OPT_LiveIntervalElement) elem.getNext(); 
+        elem = elem.getNext(); 
       }
     }
   }
@@ -201,7 +201,7 @@ final class OPT_LiveInterval {
 
     for (OPT_LiveIntervalElement elem = block.getFirstLiveIntervalElement();
          elem != null;
-         elem = (OPT_LiveIntervalElement) elem.getNext()) {
+         elem = elem.getNext()) {
       // if we got an element, down case it to OPT_LiveIntervalElement
       if (elem.getRegister() == reg && elem.getBegin() == null) {
         return true;
@@ -218,9 +218,9 @@ final class OPT_LiveInterval {
   public static void printLiveIntervalList(OPT_BasicBlock block) {
     System.out.println("Live Interval List for "+ block);
     for (OPT_LiveIntervalElement elem 
-           = (OPT_LiveIntervalElement) block.getFirstLiveIntervalElement();
+           = block.getFirstLiveIntervalElement();
          elem != null;
-         elem = (OPT_LiveIntervalElement) elem.getNext()) {
+         elem = elem.getNext()) {
       System.out.println("  "+ elem);
     }
   }

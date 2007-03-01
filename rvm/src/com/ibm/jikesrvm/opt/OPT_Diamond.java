@@ -88,8 +88,8 @@ final class OPT_Diamond {
       // look for the case where the diamond has four non-empty blocks.
       if (out1.getNumberOfNormalOut() == 1 && 
           out2.getNumberOfNormalOut() == 1) {
-        OPT_BasicBlock b1 = (OPT_BasicBlock)out1.getNormalOut().nextElement();
-        OPT_BasicBlock b2 = (OPT_BasicBlock)out2.getNormalOut().nextElement();
+        OPT_BasicBlock b1 = out1.getNormalOut().nextElement();
+        OPT_BasicBlock b2 = out2.getNormalOut().nextElement();
         if (b1 == b2) {
           return fourElementDiamond(bb,out1,out2,b1);
         }
@@ -97,7 +97,7 @@ final class OPT_Diamond {
     } else if (out1In == 1) {
       // check for a 3-element diamond
       if (out1.getNumberOfNormalOut() == 1) {
-        OPT_BasicBlock b1 = (OPT_BasicBlock)out1.getNormalOut().nextElement();
+        OPT_BasicBlock b1 = out1.getNormalOut().nextElement();
         if (b1 == out2) {
           return threeElementDiamond(bb,out1,out2);
         }
@@ -105,7 +105,7 @@ final class OPT_Diamond {
     } else if (out2In == 1) {
       // check for a 3-element diamond
       if (out2.getNumberOfNormalOut() == 1) {
-        OPT_BasicBlock b2 = (OPT_BasicBlock)out2.getNormalOut().nextElement();
+        OPT_BasicBlock b2 = out2.getNormalOut().nextElement();
         if (b2 == out1) {
           return threeElementDiamond(bb,out2,out1);
         }

@@ -237,8 +237,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       if (e.source.scratchObject != e.target.scratchObject) {
         Object sourceChain = e.source.scratchObject;
         Object targetChain = e.target.scratchObject;
-        ChainInfo sourceInfo = (ChainInfo)chainInfo.get(sourceChain);
-        ChainInfo targetInfo = (ChainInfo)chainInfo.get(targetChain);
+        ChainInfo sourceInfo = chainInfo.get(sourceChain);
+        ChainInfo targetInfo = chainInfo.get(targetChain);
         if (DEBUG) VM.sysWriteln("Inter-chain edge "+sourceChain+"->"+targetChain+" ("+e.weight+")");
         Object value = sourceInfo.outWeights.get(targetInfo);
         float weight = e.weight;
@@ -262,7 +262,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     //     zeros for both. (A node with both zero placedWeight and zero inWeight is something that
     //     the profile data predicts is not reachable via normal control flow from the entry node).
     OPT_BasicBlock lastNode = null;
-    ChainInfo nextChoice = (ChainInfo)chainInfo.get(entry);
+    ChainInfo nextChoice = chainInfo.get(entry);
     int numPlaced = 0;
     ir.cfg._firstNode = entry;
     while (true) {

@@ -65,7 +65,7 @@ class OPT_ExpressionFolding {
     while (didSomething) {
       didSomething = false;
       for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext(); ) {
-        OPT_Register r = (OPT_Register)i.next();
+        OPT_Register r = i.next();
         OPT_Instruction s = r.getFirstDef();
         OPT_Operand val1 = Binary.getVal1(s);
         if (VM.VerifyAssertions) { 
@@ -104,7 +104,7 @@ class OPT_ExpressionFolding {
    */
   private static void pruneCandidates(HashSet<OPT_Register> candidates) {
     for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext(); ) {
-      OPT_Register r = (OPT_Register)i.next();
+      OPT_Register r = i.next();
       OPT_Instruction s = r.getFirstDef();
       OPT_Operand val1 = Binary.getVal1(s);
       OPT_Register v1 = val1.asRegister().register;

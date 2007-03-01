@@ -310,7 +310,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
                                            HashMap<UseRecord,OPT_Register> registers,
                                            OPT_RegisterPool pool, VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
-    OPT_Register result = (OPT_Register)registers.get(key);
+    OPT_Register result = registers.get(key);
     if (result == null) {
       // create a new temp and insert it in the mapping
       result = pool.makeTemp(type).register;
@@ -336,7 +336,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
                                            OPT_RegisterPool pool, 
                                            VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
-    OPT_Register result = (OPT_Register)registers.get(key);
+    OPT_Register result = registers.get(key);
     if (result == null) {
       // create a new temp and insert it in the mapping
       result = pool.makeTemp(type).register;

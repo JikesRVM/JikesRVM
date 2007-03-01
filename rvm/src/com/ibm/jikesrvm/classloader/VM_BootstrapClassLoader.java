@@ -138,7 +138,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);
     }
-    VM_Type loadedType = (VM_Type)loaded.get(className);
+    VM_Type loadedType = loaded.get(className);
     Class<?> loadedClass;
     if (loadedType == null) {
       loadedClass = findClass(className);
@@ -291,7 +291,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
       try {
         String path = tok.nextToken();
         if (path.endsWith(".jar") || path.endsWith(".zip")) {
-          ZipFile zf = (ZipFile) zipFileCache.get(path);
+          ZipFile zf = zipFileCache.get(path);
           if (zf == null) {
             zf = new ZipFile(path);
             if (zf == null) {

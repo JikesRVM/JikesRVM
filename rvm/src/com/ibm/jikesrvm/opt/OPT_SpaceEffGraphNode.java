@@ -676,7 +676,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
     return new Enumeration<OPT_VisEdge>() {
       OutEdgeEnumeration underlying = outEdges(); 
       public boolean hasMoreElements() { return underlying.hasMoreElements(); }
-      public OPT_VisEdge nextElement() { return (OPT_VisEdge)underlying.nextElement(); }
+      public OPT_VisEdge nextElement() { return underlying.nextElement(); }
     };
   }
 

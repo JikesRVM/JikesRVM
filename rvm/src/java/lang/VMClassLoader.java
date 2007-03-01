@@ -126,7 +126,7 @@ final class VMClassLoader
   {
     Enumeration<URL> e = getResources(name);
     if (e.hasMoreElements())
-      return (URL)e.nextElement();
+      return e.nextElement();
     return null;
   }
 
@@ -157,7 +157,7 @@ final class VMClassLoader
         ZipFile zip;
         synchronized(bootjars)
         {
-          zip = (ZipFile) bootjars.get(file.getName());
+          zip = bootjars.get(file.getName());
         }
         if(zip == null)
         {
@@ -211,7 +211,7 @@ final class VMClassLoader
           }
         }
         reader.close();
-        return (String[]) packageSet.toArray(new String[packageSet.size()]);
+        return packageSet.toArray(new String[packageSet.size()]);
       } catch (IOException e) {
         return new String[0];
       }
@@ -231,7 +231,7 @@ final class VMClassLoader
     Iterator<Package> it = definedPackages.valueIterator();
     int idx = 0;
     while (it.hasNext()) {
-      packages[idx++] = (Package)it.next();
+      packages[idx++] = it.next();
     }
     return packages;
   }
@@ -298,7 +298,7 @@ final class VMClassLoader
       }
     }
     Class<?>[] result = new Class[classList.size()];
-    return (Class[])classList.toArray(result);
+    return classList.toArray(result);
   }
 
   static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
@@ -308,13 +308,13 @@ final class VMClassLoader
     for (Class<?> cl : mapForCL.values())
       classList.add(cl);
     Class<?>[] result = new Class[classList.size()];
-    return (Class[])classList.toArray(result);
+    return classList.toArray(result);
   }
 
   static Class<?> findLoadedClass(ClassLoader cl, String name) {
     VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(cl);
     if (mapForCL == null) return null;
-    return (Class<?>)mapForCL.get(name);
+    return mapForCL.get(name);
   }
 
   private static Instrumentation instrumenter = null;

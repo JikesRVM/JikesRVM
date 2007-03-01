@@ -79,7 +79,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
               OPT_Operand use = s.getOperand(idx);
               if (use instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand rUse = (OPT_RegisterOperand)use;
-                OPT_Operand value = (OPT_Operand)info.get(rUse.register);
+                OPT_Operand value = info.get(rUse.register);
                 if (value != null) {
                   didSomething = true;
                   s.putOperand(idx, value.copy());

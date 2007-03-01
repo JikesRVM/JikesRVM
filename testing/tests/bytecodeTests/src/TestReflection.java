@@ -55,7 +55,7 @@ class Visualizer
          }
       else if (type.getName().equals("java.lang.String"))
          { // treat frequently used type as special case
-         prt(indent + name + ": \"" + (String)value + "\"");
+         prt(indent + name + ": \"" + value + "\"");
          }
       else
          { // class (or interface)

@@ -1096,7 +1096,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
           // Does this iterator instruction use the same register as it defines
           OPT_Operand iteratorUse = follow(Binary.getVal1(iteratorInstr));
           // The iterator should be using a phi node of the initial and generated value
-          if (((OPT_RegisterOperand)carriedLoopIterator).similar(iteratorUse) == false){
+          if (carriedLoopIterator.similar(iteratorUse) == false){
             // SSA ok so far, read PHI node
             OPT_Instruction phiInstr = iteratorUse.instruction;
             if (Phi.conforms(phiInstr) == false) {
@@ -1231,7 +1231,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
      * @return next element
      */
     public OPT_BasicBlock next() {
-      OPT_BasicBlock result = (OPT_BasicBlock)blocks.get(currentBlock);
+      OPT_BasicBlock result = blocks.get(currentBlock);
       currentBlock++;
       return result;
     }

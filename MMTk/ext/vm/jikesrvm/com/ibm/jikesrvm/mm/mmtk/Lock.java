@@ -224,7 +224,7 @@ import org.mmtk.utility.Log;
   @Inline
   private void setLocker(long start, VM_Thread thread, int w) {
     VM_Magic.setLongAtOffset(this, startFieldOffset, start);
-    VM_Magic.setObjectAtOffset(this, threadFieldOffset, (Object) thread);
+    VM_Magic.setObjectAtOffset(this, threadFieldOffset, thread);
     where = w;
   }
 

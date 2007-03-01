@@ -3305,7 +3305,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private String printBlocks() {
     StringBuffer res = new StringBuffer();
     for (Enumeration<BasicBlockLE> e = blocks.contents(); e.hasMoreElements();) {
-      BasicBlockLE b = (BasicBlockLE)e.nextElement();
+      BasicBlockLE b = e.nextElement();
       if (b == currentBBLE)
         res.append("*");
       res.append(b.toString());
@@ -4509,7 +4509,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                                 num_llocals+num_lstacks);
 
     for (int i=0, n=livevars.size(); i<n; i++) {
-      OPT_Operand op = (OPT_Operand)livevars.get(i);
+      OPT_Operand op = livevars.get(i);
       if (op instanceof ReturnAddressOperand) {
         int tgtpc = ((ReturnAddressOperand)op).retIndex
                         - gc.method.getOsrPrologueLength();

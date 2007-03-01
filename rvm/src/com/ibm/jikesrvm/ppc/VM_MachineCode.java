@@ -59,7 +59,7 @@ public abstract class VM_MachineCode {
     instructions = ArchitectureSpecific.VM_CodeArray.Factory.create(n, false);
     int k = 0;
     for (int i=0; i<next_bundle; i++){
-      int[] b = (int[]) bundles.get(i);
+      int[] b = bundles.get(i);
       int m = (i == next_bundle-1 ? next : size);
       for (int j=0; j<m; j++) {
         instructions.set(k++, b[j]);
@@ -92,14 +92,14 @@ public abstract class VM_MachineCode {
   public int getInstruction (int k) {
     int i = k >> shift;
     int j = k & mask;
-    int[] b = (int[]) bundles.get(i);
+    int[] b = bundles.get(i);
     return b[j];
   }
 
   public void putInstruction(int k, int instr) {
     int i = k >> shift;
     int j = k & mask;
-    int[] b = (int[]) bundles.get(i);
+    int[] b = bundles.get(i);
     b[j] = instr;
   }
   

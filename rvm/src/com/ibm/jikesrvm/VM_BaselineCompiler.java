@@ -228,7 +228,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     
     
     VM_MachineCode  machineCode  = genCode();
-    VM_CodeArray    instructions = (VM_CodeArray) machineCode.getInstructions();
+    VM_CodeArray    instructions = machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();

@@ -22,7 +22,7 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
   private static final boolean DEBUG = false;
 
   FieldDatabaseEntry findOrCreateEntry(VM_Field f) {
-    FieldDatabaseEntry e = (FieldDatabaseEntry)get(f);
+    FieldDatabaseEntry e = get(f);
     if (e == null) {
       e = new FieldDatabaseEntry(f);
       put(f,e);
@@ -34,7 +34,7 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
    * return the concrete type of a field, or null if none determined
    */
   public VM_TypeReference getConcreteType(VM_Field f) {
-    FieldDatabaseEntry e = (FieldDatabaseEntry)get(f);
+    FieldDatabaseEntry e = get(f);
     if (e == null) return null;
     
     if (e.allMethodsAreAnalyzed()) {

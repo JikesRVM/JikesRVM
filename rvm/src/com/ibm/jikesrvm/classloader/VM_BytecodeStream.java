@@ -814,24 +814,24 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
   private int readUnsignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    return (int)(bcodes[bcIndex++] & 0xFF);
+    return bcodes[bcIndex++] & 0xFF;
   }
   private int getUnsignedByte(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
-    return (int)(bcodes[index] & 0xFF);
+    return bcodes[index] & 0xFF;
   }
 
   private int readSignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
-    return (int)i;
+    return i;
   }
   private int readUnsignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
-    return (int)i;
+    return i;
   }
   private int readSignedInt() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);

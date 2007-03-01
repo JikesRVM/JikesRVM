@@ -159,7 +159,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     result.threadLocal = true;
     result.methodLocal = true;
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
+        use = use.getNext()) {
 
       if (VM.VerifyAssertions && use.type == null) {
           ir.printInstructions();
@@ -181,7 +181,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       }
     }
     for (OPT_RegisterOperand def = reg.defList; def != null; 
-        def = (OPT_RegisterOperand)def.getNext()) {
+        def = def.getNext()) {
 
       if (VM.VerifyAssertions && def.type == null) {
           ir.printInstructions();

@@ -123,7 +123,7 @@ public abstract class VM_UTF8Convert {
     byte[] result = new byte[utfLength(s)];
     int result_index = 0;
     for (int i = 0, n = s.length(); i < n; ++i) {
-      char c = (char)s.charAt(i);
+      char c = s.charAt(i);
       // in all shifts below, c is an (unsigned) char,
       // so either >>> or >> is ok
       if (((!WRITE_PSEUDO_UTF8) || (c >= 0x0001)) && (c <= 0x007F))

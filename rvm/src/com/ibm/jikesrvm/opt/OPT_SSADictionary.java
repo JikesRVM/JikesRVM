@@ -284,7 +284,7 @@ public final class OPT_SSADictionary {
       return newH;
     } else {
       // get old heap operands defined by this instruction
-      OPT_HeapOperand<Object>[] oldH = (OPT_HeapOperand[])defs.get(s);
+      OPT_HeapOperand<Object>[] oldH = defs.get(s);
       OPT_HeapOperand<Object>[] newH = new OPT_HeapOperand[oldH.length];
       // for each old heap variable ..
       for (int i = 0; i < oldH.length; i++) {
@@ -524,7 +524,7 @@ public final class OPT_SSADictionary {
     }
     // record the unique def for each heap variable
     for (Iterator<OPT_HeapOperand<Object>[]> e = defs.values().iterator(); e.hasNext();) {
-      OPT_HeapOperand<Object>[] H = (OPT_HeapOperand[])e.next();
+      OPT_HeapOperand<Object>[] H = e.next();
       if (H == null) continue;
       for (int i = 0; i < H.length; i++) {
         OPT_HeapVariable<Object> v = H[i].getHeapVariable();
@@ -638,7 +638,7 @@ public final class OPT_SSADictionary {
     Iterator<OPT_HeapVariable<Object>> vars = heapVariables.values().iterator();
     OPT_HeapOperand<Object>[] all = new OPT_HeapOperand[heapVariables.size()];
     for (int i = 0; i < all.length; i++) {
-      all[i] = new OPT_HeapOperand<Object>((OPT_HeapVariable<Object>)vars.next());
+      all[i] = new OPT_HeapOperand<Object>(vars.next());
       all[i].setInstruction(s);
       // record that all[i] is def'ed in b
       all[i].getHeapVariable().registerDef(b);
@@ -1241,7 +1241,7 @@ public final class OPT_SSADictionary {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
-    OPT_HeapOperand<Object>[] Hprime = extendHArray ((OPT_HeapOperand<Object>[])defs.get(s));
+    OPT_HeapOperand<Object>[] Hprime = extendHArray (defs.get(s));
     Hprime[0] = new OPT_HeapOperand<Object>(H);
     Hprime[0].setInstruction(s);
     defs.put(s, Hprime);
@@ -1256,7 +1256,7 @@ public final class OPT_SSADictionary {
   void addExceptionStateToUses (OPT_Instruction s) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
-    OPT_HeapOperand<Object>[] Hprime = extendHArray ((OPT_HeapOperand<Object>[])uses.get(s));
+    OPT_HeapOperand<Object>[] Hprime = extendHArray (uses.get(s));
     Hprime[0] = new OPT_HeapOperand<Object>(H);
     Hprime[0].setInstruction(s);
     uses.put(s, Hprime);
@@ -1278,7 +1278,7 @@ public final class OPT_SSADictionary {
     if (DEBUG)
       System.out.print("findOrCreateHeapVariable " + type);
     HeapKey<Object> key = new HeapKey<Object>(0, type);
-    OPT_HeapVariable<Object> H = (OPT_HeapVariable<Object>)heapVariables.get(key);
+    OPT_HeapVariable<Object> H = heapVariables.get(key);
     if (DEBUG)
       System.out.println("...  found " + H);
     if (H == null) {

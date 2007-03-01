@@ -153,7 +153,7 @@ class tInstance {
       System.out.println("================= READY TO CALL: " + omethod);
       methodargs[0] = new String("123");
       Object oresult = omethod.invoke(myInstance, methodargs);
-      if (!(oresult instanceof java.lang.String) || !((java.lang.String) oresult).equals("123abc")) {
+      if (!(oresult instanceof java.lang.String) || !oresult.equals("123abc")) {
         System.out.println("Wrong answer from ouserFunction");
         System.exit(1);
       }

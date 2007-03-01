@@ -74,7 +74,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
-    VM_Magic.restoreHardwareExceptionState((VM_Registers) registers);
+    VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
    

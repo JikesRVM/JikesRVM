@@ -50,7 +50,7 @@ public final class OPT_InvalidationDatabase {
    * a delicate * dance to avoid recursive classloading. --dave.
    */
   public Iterator<Integer> invalidatedByOverriddenMethod(VM_Method m) {
-    MethodSet s = (MethodSet)nonOverriddenHash.get(m);
+    MethodSet s = nonOverriddenHash.get(m);
     return (s == null) ? null : s.iterator();
   }
 
@@ -70,7 +70,7 @@ public final class OPT_InvalidationDatabase {
    */
   public void removeNotOverriddenDependency(VM_Method source, 
                                             int dependent_cmid) {
-    MethodSet s = (MethodSet)nonOverriddenHash.get(source);
+    MethodSet s = nonOverriddenHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
     }
@@ -95,7 +95,7 @@ public final class OPT_InvalidationDatabase {
    * a delicate dance to avoid recursive classloading. --dave.
    */
   public Iterator<Integer> invalidatedBySubclass(VM_Class m) {
-    MethodSet s = (MethodSet)noSubclassHash.get(m);
+    MethodSet s = noSubclassHash.get(m);
     return (s == null) ? null : s.iterator();
   }
 

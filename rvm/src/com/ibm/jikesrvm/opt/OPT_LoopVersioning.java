@@ -561,7 +561,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     for(int i=0; i < oddBoundChecks.size(); i++) {
       OPT_Operand guard = BoundsCheck.getGuard(oddBoundChecks.get(i));
       for(int j=0; j < nullChecks.size(); j++) {
-        if (guard.similar((OPT_Operand)NullCheck.getGuardResult(nullChecks.get(j)))) {
+        if (guard.similar(NullCheck.getGuardResult(nullChecks.get(j)))) {
           instrToEliminate.add(oddBoundChecks.get(i));
           break;
         }

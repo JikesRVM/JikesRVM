@@ -24,7 +24,7 @@ public final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
   
   public final void perform(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock) e.nextElement();
+      OPT_BasicBlock bb = e.nextElement();
       
       if (!bb.isEmpty()) {
         while (bb != null) 

@@ -187,7 +187,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitRET_Imm((parameterWords+1) << LG_WORDSIZE); 
 
     VM_MachineCode machineCode = new VM_MachineCode(asm.getMachineCodes(), null);
-    cm.compileComplete((VM_CodeArray) machineCode.getInstructions());
+    cm.compileComplete(machineCode.getInstructions());
     return cm;
   }
 

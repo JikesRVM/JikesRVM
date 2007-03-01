@@ -269,7 +269,7 @@ public final class VM_TypeReference {
   {
     // Next actually findOrCreate the type reference using the proper classloader.
     VM_TypeReference key = new VM_TypeReference(cl, tn, nextId);
-    VM_TypeReference val = (VM_TypeReference)dictionary.get(key);
+    VM_TypeReference val = dictionary.get(key);
     if (val == null) {
       // Create type reference
       val = key;

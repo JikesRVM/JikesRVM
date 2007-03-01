@@ -349,7 +349,7 @@ public abstract class OPT_IREnumeration {
       }
       else {
         if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
-          OPT_RegisterOperand rop = new OPT_RegisterOperand((OPT_Register)implicitDefs.nextElement(), VM_TypeReference.Int);
+          OPT_RegisterOperand rop = new OPT_RegisterOperand(implicitDefs.nextElement(), VM_TypeReference.Int);
           rop.instruction = instr;
           return rop;
         }
@@ -439,7 +439,7 @@ public abstract class OPT_IREnumeration {
       }
       else {
         if ((implicitUses != null) && implicitUses.hasMoreElements()) {
-          OPT_RegisterOperand rop = new OPT_RegisterOperand((OPT_Register)implicitUses.nextElement(), VM_TypeReference.Int);
+          OPT_RegisterOperand rop = new OPT_RegisterOperand(implicitUses.nextElement(), VM_TypeReference.Int);
           rop.instruction = instr;
           return rop;
         }

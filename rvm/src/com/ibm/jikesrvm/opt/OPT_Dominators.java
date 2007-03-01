@@ -251,7 +251,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
       for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
           e.hasMoreElements();) {
         OPT_BasicBlock bb = e.next();
-        addCellAppearancesToWorkList((OPT_DominatorCell)getCell(bb));
+        addCellAppearancesToWorkList(getCell(bb));
       }
     } 
     else {

@@ -54,7 +54,7 @@ public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
     OPT_RegisterOperand def = reg.defList;
     OPT_Instruction defI = def.instruction;
     for (int i = 0; i < fields.size(); i++) {
-      VM_Field f = (VM_Field)fields.get(i);
+      VM_Field f = fields.get(i);
       OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(f.getType());
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
       scalars[i].type = f.getType();
@@ -65,7 +65,7 @@ public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-         use = (OPT_RegisterOperand)use.getNext()) {
+         use = use.getNext()) {
       scalarReplace(use, scalars, fields);
     }
   }
@@ -182,7 +182,7 @@ public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    */
   private static boolean containsUnsupportedUse (OPT_IR ir, OPT_Register reg) {
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
+        use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case CHECKCAST_opcode:
         case CHECKCAST_UNRESOLVED_opcode:

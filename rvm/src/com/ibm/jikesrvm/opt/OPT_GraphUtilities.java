@@ -111,7 +111,7 @@ class OPT_GraphUtilities {
         return  false;
       Enumeration<OPT_GraphNode> e = cur.outNodes();
       while (e.hasMoreElements()) {
-        OPT_GraphNode out = (OPT_GraphNode)e.nextElement();
+        OPT_GraphNode out = e.nextElement();
         if (forward == s.contains(out))
           return  false;
       }
@@ -125,7 +125,7 @@ class OPT_GraphUtilities {
         return  false;
       Enumeration<OPT_GraphNode> e = cur.outNodes();
       while (e.hasMoreElements()) {
-        OPT_GraphNode out = (OPT_GraphNode)e.nextElement();
+        OPT_GraphNode out = e.nextElement();
         if (forward == s.contains(out))
           return  false;
       }

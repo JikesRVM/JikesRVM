@@ -80,7 +80,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
           // if user's requirement is higher than advice
           if ((((com.ibm.jikesrvm.opt.OPT_Options)VM_RuntimeCompiler.options).getOptLevel() > value.getOptLevel())
               || (VM_Controller.options.MAX_OPT_LEVEL < value.getOptLevel())) {
-            ((VM_NormalMethod)method).compile();
+            method.compile();
           } else {
             // otherwise, follow the advice...
             // VM.sysWrite("Compiler advice for ");
@@ -100,7 +100,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
               VM_AOSLogging.recompilationCompleted(compPlan); 
             } else {
               VM.sysWriteln("Compiler advice file is not followed  ");
-              ((VM_NormalMethod)method).compile();
+              method.compile();
             }
           }
         }

@@ -492,7 +492,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int result = 0;
     // walk over the parameters 
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements(); ) {
-      OPT_Operand param = (OPT_Operand)e.nextElement();
+      OPT_Operand param = e.nextElement();
       if (param.isRegister()) {
         OPT_RegisterOperand symb = (OPT_RegisterOperand)param;
         if (symb.type.isFloatType() || symb.type.isDoubleType()) {

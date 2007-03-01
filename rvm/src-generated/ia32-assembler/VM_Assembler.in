@@ -292,7 +292,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * Create a VM_MachineCode object
    */
   public final VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
-    return new VM_MachineCode((VM_CodeArray) getMachineCodes(), bytecodeMap);
+    return new VM_MachineCode(getMachineCodes(), bytecodeMap);
   }
 
   /**
@@ -307,7 +307,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    */
   public final VM_CodeArray getMachineCodes () {
     int len = getMachineCodeIndex();
-    VM_CodeArray trimmed = (ArchitectureSpecific.VM_CodeArray) ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
+    VM_CodeArray trimmed = ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
     for (int i=0; i<len; i++) {
       trimmed.set(i, machineCodes[i]);
     }
@@ -777,7 +777,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     emitNOP();
     emitNOP();
     emitNOP();
-    r.resolve((ArchitectureSpecific.VM_Assembler) this);
+    r.resolve(this);
   }
 
   /**
@@ -920,7 +920,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    */
   public final void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; // premature optimization
-    forwardRefs = VM_ForwardReference.resolveMatching((ArchitectureSpecific.VM_Assembler) this, forwardRefs, label);
+    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
   // OSR SUPPORT //

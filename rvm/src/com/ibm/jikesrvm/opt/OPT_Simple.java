@@ -308,7 +308,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     OPT_Register elemNext;
     for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = elemNext) {
-      elemNext = (OPT_Register)reg.getNext();
+      elemNext = reg.getNext();
       // Type propagation not possible if reg has no uses
       if (reg.useList == null)
         continue;
@@ -335,7 +335,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
       // Now propagate lhs into all uses; substitute rhs.type for lhs.type
       for (OPT_RegisterOperand use = reg.useList; use != null; 
-          use = (OPT_RegisterOperand)use.getNext()) {
+          use = use.getNext()) {
         // if rhs.type is a supertype of use.type, don't do it
         // because use.type has more detailed information
         if (OPT_ClassLoaderProxy.includesType(rhs.type, use.type) == YES)
@@ -363,7 +363,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     OPT_Register elemNext;
     for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = elemNext) {
-      elemNext = (OPT_Register)reg.getNext();
+      elemNext = reg.getNext();
       if (reg.useList == null)
         continue;
       if (reg.defList == null)
@@ -392,7 +392,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       }
       // Now propagate
       for (OPT_RegisterOperand use = reg.useList; use != null; 
-          use = (OPT_RegisterOperand)use.getNext()) {
+          use = use.getNext()) {
         OPT_Instruction i = use.instruction;
         // bounds-check elimination
         if (boundsCheckOK && i.getOpcode() == BOUNDS_CHECK_opcode) {
@@ -503,7 +503,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       boolean foundRegisterDef = false;
       for (OPT_OperandEnumeration defs = instr.getDefs(); 
           defs.hasMoreElements();) {
-        OPT_Operand def = (OPT_Operand)defs.nextElement();
+        OPT_Operand def = defs.nextElement();
         if (!def.isRegister()) {
           isDead = false;
           break;

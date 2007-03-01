@@ -250,7 +250,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   recurse:
     while (!empty()) {
 
-      block = (OPT_BasicBlock) peek();
+      block = peek();
       if (DEBUG) { System.out.println(" Processing (peek)" + block);   }
 
       if (block == null) {
@@ -352,7 +352,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       java.util.Iterator<OPT_BasicBlock> bucketEnum = 
         OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
       while (bucketEnum.hasNext()) {
-        OPT_BasicBlock block2 = (OPT_BasicBlock)bucketEnum.next();
+        OPT_BasicBlock block2 = bucketEnum.next();
 
         // u = EVAL(block2)
         OPT_BasicBlock u = EVAL(block2);

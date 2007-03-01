@@ -52,7 +52,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
    * Default Constructor
    */
   protected OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
-    super((OPT_PhysicalRegisterSet) phys);
+    super(phys);
   }
 
   /**

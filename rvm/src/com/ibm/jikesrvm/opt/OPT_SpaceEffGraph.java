@@ -142,9 +142,9 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
       if (node == _lastNode)
         _firstNode = _lastNode = null;
       else
-        _firstNode = (OPT_SpaceEffGraphNode) node.getNext();
+        _firstNode = node.getNext();
     } else if (node == _lastNode) {
-      _lastNode = (OPT_SpaceEffGraphNode) node.getPrev();
+      _lastNode = node.getPrev();
     }
     node.remove();
     numberOfNodes--;
@@ -312,7 +312,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
       res.append("\nNode: ").append(n).append("\n");
       res.append("In nodes:\n");
       for (OPT_SpaceEffGraphEdge inEdge = n.firstInEdge(); inEdge != null;
-           inEdge = (OPT_SpaceEffGraphEdge) inEdge.getNextIn()) {
+           inEdge = inEdge.getNextIn()) {
         res.append(inEdge.getTypeString());
         res.append(" ");
         res.append(inEdge.fromNode());

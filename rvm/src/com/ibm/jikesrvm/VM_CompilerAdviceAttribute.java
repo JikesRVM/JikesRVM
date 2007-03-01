@@ -176,7 +176,7 @@ public class VM_CompilerAdviceAttribute {
     ListIterator<VM_CompilerAdviceAttribute> it = compilerAdviceList.listIterator();
     while (it.hasNext()) {
       // pick up an attribute
-      VM_CompilerAdviceAttribute attr = (VM_CompilerAdviceAttribute) it.next();
+      VM_CompilerAdviceAttribute attr = it.next();
       attribMap.put(attr, attr);
       // XXX if already there, should we warn the user?
     }
@@ -194,7 +194,7 @@ public class VM_CompilerAdviceAttribute {
     tempAttr.methodName = method.getName();
     tempAttr.methodSig  = method.getDescriptor();
     VM_CompilerAdviceAttribute value =
-      (VM_CompilerAdviceAttribute)attribMap.get(tempAttr);
+        attribMap.get(tempAttr);
 
     if (value == null)
       return defaultAttr;

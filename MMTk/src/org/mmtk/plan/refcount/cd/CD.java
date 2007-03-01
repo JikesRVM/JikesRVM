@@ -86,7 +86,7 @@ import org.vmmagic.unboxed.*;
   private boolean shouldAct(int thresholdPages) {
     if (RCBase.FORCE_FULL_CD) return true;
     final int LOG_WRIGGLE = 2;
-    int slack = log2((int) VM.activePlan.global().getPagesAvail() / thresholdPages);
+    int slack = log2(VM.activePlan.global().getPagesAvail() / thresholdPages);
     int mask = (1 << slack) - 1;
     boolean rtn = (slack <= LOG_WRIGGLE) && ((Stats.gcCount() & mask) == mask);
     return rtn;

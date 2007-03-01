@@ -244,7 +244,7 @@ public final class VM_MethodCountData implements VM_Reportable {
     double[] numCounts = new double[numHotMethods];
     VM_CompiledMethod[] hotMethods = new VM_CompiledMethod[numHotMethods];
     for (int i=0; i<numHotMethods; i++) {
-      VM_HotMethodEvent event = (VM_HotMethodEvent)collect.get(i);
+      VM_HotMethodEvent event = collect.get(i);
       hotMethods[i] = event.getCompiledMethod();
       numCounts[i] = event.getNumSamples();
     }

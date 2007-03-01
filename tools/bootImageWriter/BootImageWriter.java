@@ -837,9 +837,9 @@ public class BootImageWriter extends BootImageWriterMessages
       if ((a instanceof VM_Type) && (b instanceof VM_Type)) {
         VM_Type typeA = (VM_Type) a;
         VM_Type typeB = (VM_Type) b;
-        DemographicInformation infoA = (DemographicInformation)demographicData.get(typeA);
+        DemographicInformation infoA = demographicData.get(typeA);
         if (infoA == null) return 1;
-        DemographicInformation infoB = (DemographicInformation)demographicData.get(typeB);
+        DemographicInformation infoB = demographicData.get(typeB);
         if (infoB == null) return -1;
 
         if (infoA.size > infoB.size) return -1;
@@ -889,7 +889,7 @@ public class BootImageWriter extends BootImageWriterMessages
     int totalCount = 0, totalBytes = 0;
     for (VM_Type type : tempTypes) {
       if (type == null) continue;
-      DemographicInformation info = (DemographicInformation)demographicData.get(type);
+      DemographicInformation info = demographicData.get(type);
       if (info == null) continue;      
       totalCount += info.count;
       totalBytes += info.size;
@@ -915,7 +915,7 @@ public class BootImageWriter extends BootImageWriterMessages
     VM.sysWriteln();
     for (VM_Type type : tempTypes) {
       if (type == null) continue;
-      DemographicInformation info = (DemographicInformation)demographicData.get(type);
+      DemographicInformation info = demographicData.get(type);
       if (info == null) continue;      
       if (info.count > 0) {
         VM.sysWriteField(60, type.toString());
@@ -1148,7 +1148,7 @@ public class BootImageWriter extends BootImageWriterMessages
           continue;  // won't need the field info
 
         Key key   = new Key(jdkType);
-        fieldInfo = (FieldInfo)bootImageTypeFields.get(key);
+        fieldInfo = bootImageTypeFields.get(key);
         if (fieldInfo != null) {
           fieldInfo.rvmType = rvmType;
         } else {
@@ -1159,7 +1159,7 @@ public class BootImageWriter extends BootImageWriterMessages
           // Can't add them in next loop as Iterator's don't allow updates to collection
           for (Class cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
             key = new Key(cls);
-            fieldInfo = (FieldInfo)bootImageTypeFields.get(key);
+            fieldInfo = bootImageTypeFields.get(key);
             if (fieldInfo != null) {
               break;  
             } else {
@@ -2120,7 +2120,7 @@ public class BootImageWriter extends BootImageWriterMessages
         (rvmFieldType.isIntType())
         ) {
       // Populate String's cachedHashCode value
-      bootImage.setFullWord(rvmFieldAddress, ((String)jdkObject).hashCode());
+      bootImage.setFullWord(rvmFieldAddress, jdkObject.hashCode());
       return true;
     }
     else if (jdkObject instanceof java.lang.Class)   {
@@ -2283,7 +2283,7 @@ public class BootImageWriter extends BootImageWriterMessages
           return getClass() == o.getClass() && hashCode() == o.hashCode();
         }
       };
-      Integer sz = (Integer) traversed.get(key);
+      Integer sz = traversed.get(key);
       if (sz != null) return sz.intValue(); // object already traversed
       traversed.put(key, VISITED);
 
@@ -2462,7 +2462,7 @@ public class BootImageWriter extends BootImageWriterMessages
    *         comprising bootimage)
    */
   private static VM_Type getRvmType(Class jdkType) {
-    return (VM_Type) bootImageTypes.get(jdkType.getName());
+    return bootImageTypes.get(jdkType.getName());
   }
 
   /**
@@ -2497,7 +2497,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return field accessor (null --> host class does not have specified field)
    */
   private static Field getJdkFieldAccessor(Class jdkType, int index, boolean isStatic) {
-    FieldInfo fInfo = (FieldInfo)bootImageTypeFields.get(new Key(jdkType));
+    FieldInfo fInfo = bootImageTypeFields.get(new Key(jdkType));
     Field     f;
     if (isStatic == STATIC_FIELD) {
       f = fInfo.jdkStaticFields[index];
@@ -2661,9 +2661,9 @@ public class BootImageWriter extends BootImageWriterMessages
         if (obj == null){
           details = "(null)";
         } else if (obj instanceof String) {
-          details = "\""+ ((String)obj) + "\"";
+          details = "\""+ obj + "\"";
         } else if (obj instanceof Class) {
-          details = "class "+ ((Class)obj);
+          details = "class "+ obj;
         } else {
           details = "object "+ obj.getClass();
         }

@@ -148,11 +148,11 @@ public class Throwable implements java.io.Serializable {
   }
     
   public void sysWriteStackTrace() {
-    sysWriteStackTrace((Throwable) null, 0);
+    sysWriteStackTrace(null, 0);
   }
 
   public void sysWriteStackTrace(int depth) {
-    printStackTrace(PrintContainer.readyPrinter, (Throwable) null, depth);
+    printStackTrace(PrintContainer.readyPrinter, null, depth);
   }
 
   public void sysWriteStackTrace(Throwable effect, int depth) {
@@ -197,7 +197,7 @@ public class Throwable implements java.io.Serializable {
     
   public synchronized void printStackTrace(PrintLN err) {
     int depth = 0;
-    printStackTrace(err, (Throwable) null, depth);
+    printStackTrace(err, null, depth);
   }
 
   /** How deep can we go? */
@@ -208,7 +208,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   public synchronized void printStackTrace(PrintLN err, int depth) {
-    printStackTrace(err, (Throwable) null, depth);
+    printStackTrace(err, null, depth);
   }
 
   /** Just wraps around <code>doPrintStackTrace()</code>.  Checks for depth;

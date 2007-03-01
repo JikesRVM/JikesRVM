@@ -53,7 +53,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
     initializeLatticeCells();
     initializeWorkList();
     while (!workList.isEmpty()) {
-      OPT_DF_Equation eq = (OPT_DF_Equation)workList.first();
+      OPT_DF_Equation eq = workList.first();
       workList.remove(eq);
       boolean change = eq.evaluate();
       if (DEBUG)
@@ -124,7 +124,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
     if (DEBUG)
       System.out.println("new equations:");
     for (Iterator<OPT_DF_Equation> e = newEquations.iterator(); e.hasNext();) {
-      OPT_DF_Equation eq = (OPT_DF_Equation)e.next();
+      OPT_DF_Equation eq = e.next();
       if (DEBUG)
         System.out.println(eq.toString());
       addToWorkList(eq);
@@ -163,7 +163,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @param key the key for the lattice cell.
    */
   OPT_DF_LatticeCell findOrCreateCell(Object key) {
-    OPT_DF_LatticeCell result = (OPT_DF_LatticeCell)cells.get(key);
+    OPT_DF_LatticeCell result = cells.get(key);
     if (result == null) {
       result = makeCell(key);
       cells.put(key, result);
@@ -315,7 +315,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * @return the LatticeCell if found. null otherwise
    */
   public OPT_DF_LatticeCell getCell(Object key) {
-    return  (OPT_DF_LatticeCell)cells.get(key);
+    return cells.get(key);
   }
 
   /** 
@@ -324,7 +324,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    */
   public void addCellAppearancesToWorkList(OPT_DF_LatticeCell cell) {
     for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
-      OPT_DF_Equation eq = (OPT_DF_Equation)e.nextElement();
+      OPT_DF_Equation eq = e.nextElement();
       if (eq.hasCell(cell)) {
         addToWorkList(eq);
       }
@@ -339,8 +339,8 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   private static final Comparator<OPT_DF_Equation> dfComparator =
     new Comparator<OPT_DF_Equation>() {
     public int compare(OPT_DF_Equation o1, OPT_DF_Equation o2) {
-      OPT_DF_Equation eq1 = (OPT_DF_Equation)o1;
-      OPT_DF_Equation eq2 = (OPT_DF_Equation)o2;
+      OPT_DF_Equation eq1 = o1;
+      OPT_DF_Equation eq2 = o2;
       return  (eq1.topologicalNumber - eq2.topologicalNumber);
     }
   };

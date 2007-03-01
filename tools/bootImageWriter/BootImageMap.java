@@ -139,7 +139,7 @@ public class BootImageMap extends BootImageWriterMessages
 
     synchronized (BootImageMap.class) {
       Key key   = new Key(jdkObject);
-      Entry entry = (Entry) keyToEntry.get(key);
+      Entry entry = keyToEntry.get(key);
       if (entry == null) {
         entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
         keyToEntry.put(key, entry);
@@ -155,7 +155,7 @@ public class BootImageMap extends BootImageWriterMessages
    * @return jdk object
    */
   public static Object getObject(int objectId) {
-    return ((Entry) objectIdToEntry.get(objectId)).jdkObject;
+    return objectIdToEntry.get(objectId).jdkObject;
   }
 
   /**

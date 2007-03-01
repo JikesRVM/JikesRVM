@@ -91,7 +91,7 @@ final class OPT_GVCongruenceClass implements Iterable<OPT_ValueGraphVertex> {
         nParameter--;
       if (representativeV == v) {
         // Try to find an alternate representative
-        representativeV = (OPT_ValueGraphVertex)vertices.iterator().next();
+        representativeV = vertices.iterator().next();
       }
     }
   }

@@ -60,7 +60,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     if (VM.VerifyAssertions) VM._assert(registers.inuse == true); 
 
     registers.inuse = false;
-    VM_Magic.restoreHardwareExceptionState((VM_Registers) registers);
+    VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
    

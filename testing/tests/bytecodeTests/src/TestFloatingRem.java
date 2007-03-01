@@ -28,7 +28,7 @@ public class TestFloatingRem {
       testFREM(   3f,   -2f);
       testFREM(  -3f,   -2f);
       // fringe cases
-      float Inff = (float)(1f/0f), NaNf = (float)(0f/0f);
+      float Inff = 1f/0f, NaNf = 0f/0f;
       testFREM( 5.6f,    0f, NaNf);
       testFREM(   7f,    0f, NaNf);
       testFREM(   0f,  5.6f,   0f);
@@ -81,16 +81,16 @@ public class TestFloatingRem {
   }
 
    private static void testFREM(float a, float b) {
-      float apb = (float) (a % b);
-      float adb = (float) (a / b);
+      float apb = a % b;
+      float adb = a / b;
       int q = (int) adb;
-      float res = (float) (a - b*q);
+      float res = a - b*q;
       System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+q+"; want: "+res+"; got: "+apb);
    }
 
    private static void testFREM(float a, float b, float res) {
-      float apb = (float) (a % b);
-      float adb = (float) (a / b);
+      float apb = a % b;
+      float adb = a / b;
       System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+adb+"; want: "+res+"; got: "+apb);
    }
 

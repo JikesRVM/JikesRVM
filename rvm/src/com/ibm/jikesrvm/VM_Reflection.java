@@ -76,7 +76,7 @@ public class VM_Reflection implements VM_Constants {
       unwrapByte(wrapByte((byte)0));
       unwrapChar(wrapChar((char)0));
       unwrapShort(wrapShort((short)0));
-      unwrapInt(wrapInt((int)0));
+      unwrapInt(wrapInt(0));
       unwrapLong(wrapLong((long)0));
       unwrapFloat(wrapFloat((float)0));
       unwrapDouble(wrapDouble((double)0));

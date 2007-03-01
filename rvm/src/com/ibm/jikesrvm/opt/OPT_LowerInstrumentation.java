@@ -99,7 +99,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
     // the counter manager to convert them into real instructions
     Iterator<OPT_Instruction> itr = instrumentedInstructions.iterator();
     while (itr.hasNext()) {
-      OPT_Instruction i = (OPT_Instruction) itr.next();
+      OPT_Instruction i = itr.next();
       
       // Have the counter manager for this data convert this into the
       // actual counting code.  For now, we'll hard code the counter

@@ -1566,7 +1566,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
             VM_Callbacks.notifyMethodOverride(method, null);
             virtualMethods.addElement(method);                          // append
           } else {
-            VM_Method superc = (VM_Method)virtualMethods.elementAt(superclassMethodIndex);
+            VM_Method superc = virtualMethods.elementAt(superclassMethodIndex);
             if (VM.VerifyUnint) {
               if (!superc.isInterruptible() && method.isInterruptible()) {
                 VM.sysWriteln("WARNING: interruptible "+method+" overrides uninterruptible "+superc);

@@ -184,7 +184,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   /* call before emiting code for the target */
   public final void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; 
-    forwardRefs = VM_ForwardReference.resolveMatching((ArchitectureSpecific.VM_Assembler) this, forwardRefs, label);
+    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
   public final void patchUnconditionalBranch(int sourceMachinecodeIndex) {
@@ -262,7 +262,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     int delta = (mIP - sourceMachinecodeIndex) << 2;
     // correction is number of bytes of source off switch base
     int         correction = (int)mc.getInstruction(sourceMachinecodeIndex);
-    int offset = (int)(delta+correction);
+    int offset = delta+correction;
     mc.putInstruction(sourceMachinecodeIndex, offset);
   }
 
@@ -2316,7 +2316,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
-    fr1.resolve((ArchitectureSpecific.VM_Assembler) this);
+    fr1.resolve(this);
     emitLAddrOffset (0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitLVAL  (S0, STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
@@ -2324,8 +2324,8 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     emitCMPLAddr(0, S0);
     VM_ForwardReference fr3 = emitForwardBC(LE);
     emitTAddrWI ( 1 );                                    // trap if new frame pointer below guard page
-    fr2.resolve((ArchitectureSpecific.VM_Assembler) this);
-    fr3.resolve((ArchitectureSpecific.VM_Assembler) this);
+    fr2.resolve(this);
+    fr3.resolve(this);
   }
 
   public static int getTargetOffset(int instr) {

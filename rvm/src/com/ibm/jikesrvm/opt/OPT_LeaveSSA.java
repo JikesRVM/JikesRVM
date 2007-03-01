@@ -134,7 +134,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
       if (stack == null)
         throw new OPT_OptimizingCompilerException("Failure in translating out of SSA form: trying to pop operand from non-existant stack"); 
       else 
-        return  (OPT_Operand)stack.pop();
+        return stack.pop();
     }
 
     /**
@@ -414,7 +414,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
               currentNames.get(criticalBlock);
             OPT_Register nameForSR = criticalBlockNames.get(sr);
             if (nameForSR == null) {
-              nameForSR = (OPT_Register)bbNames.get(sr);
+              nameForSR = bbNames.get(sr);
               if (nameForSR == null) nameForSR = sr;
             }
             if (DEBUG) VM.sysWriteln("dest(r): " + r);
@@ -424,7 +424,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);
           } else {
             OPT_Register sr = c.source.asRegister().register;
-            OPT_Register nameForSR = (OPT_Register)bbNames.get(sr);
+            OPT_Register nameForSR = bbNames.get(sr);
             if (nameForSR == null) nameForSR = sr;
             if (DEBUG) VM.sysWriteln("not splitting edge: " + bb + "->" + c.phi.getBasicBlock());
             if (DEBUG) VM.sysWriteln("dest(r): " + r);

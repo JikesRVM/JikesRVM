@@ -27,7 +27,7 @@ abstract class OPT_SpillCostEstimator {
    * spilling register r.
    */
   double getCost(OPT_Register r) {
-    Double d = (Double)map.get(r);
+    Double d = map.get(r);
     if (d == null) return 0;
     else return d.doubleValue();
   }

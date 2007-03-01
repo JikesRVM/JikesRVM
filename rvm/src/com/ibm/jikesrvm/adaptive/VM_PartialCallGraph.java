@@ -92,7 +92,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    */
   public VM_WeightedCallTargets getCallTargets(VM_Method caller, int bcIndex) {
     VM_MethodReference callerRef=caller.getMemberRef().asMethodReference();
-    VM_UnResolvedWeightedCallTargets unresolvedTargets = (VM_UnResolvedWeightedCallTargets)unresolvedCallGraph.get(new VM_UnResolvedCallSite(callerRef, bcIndex));
+    VM_UnResolvedWeightedCallTargets unresolvedTargets = unresolvedCallGraph.get(new VM_UnResolvedCallSite(callerRef, bcIndex));
     if (unresolvedTargets != null) {
       final VM_Method fCaller= caller;
       final int fBcIndex=bcIndex;
@@ -114,7 +114,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    * @return the VM_WeightedCallTargets currently associated with callSite.
    */
   public synchronized VM_WeightedCallTargets getCallTargets(VM_CallSite callSite) {
-    return (VM_WeightedCallTargets)callGraph.get(callSite);
+    return callGraph.get(callSite);
   }
 
   /**
@@ -157,7 +157,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    */
   public synchronized void incrementUnResolvedEdge(VM_MethodReference callerRef, int bcIndex, VM_MethodReference calleeRef, float weight) {
     VM_UnResolvedCallSite callSite = new VM_UnResolvedCallSite(callerRef, bcIndex);
-    VM_UnResolvedWeightedCallTargets targets = (VM_UnResolvedWeightedCallTargets)unresolvedCallGraph.get(callSite);
+    VM_UnResolvedWeightedCallTargets targets = unresolvedCallGraph.get(callSite);
     if (targets == null) {
       targets = VM_UnResolvedWeightedCallTargets.create(calleeRef, weight);
       unresolvedCallGraph.put(callSite, targets);
@@ -184,7 +184,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
                            VM_Method callee,
                            double weight) {
     VM_CallSite callSite = new VM_CallSite(caller, bcIndex);
-    VM_WeightedCallTargets targets = (VM_WeightedCallTargets)callGraph.get(callSite);
+    VM_WeightedCallTargets targets = callGraph.get(callSite);
     if (targets == null) {
       targets = VM_WeightedCallTargets.create(callee, weight);
       callGraph.put(callSite, targets);
@@ -211,7 +211,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
     tmp.addAll(callGraph.keySet());
 
     for (final VM_CallSite cs : tmp) {
-      VM_WeightedCallTargets ct = (VM_WeightedCallTargets)callGraph.get(cs);
+      VM_WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
           public void visit(VM_Method callee, double weight) {
             System.out.println(weight+" <"+cs.getMethod()+", "+cs.getBytecodeIndex()+", "+callee+">");
@@ -244,7 +244,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
     tmp.addAll(callGraph.keySet());
 
     for (final VM_CallSite cs : tmp) {
-      VM_WeightedCallTargets ct = (VM_WeightedCallTargets)callGraph.get(cs);
+      VM_WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
           public void visit(VM_Method callee, double weight) {
             VM_CodeArray callerArray = cs.getMethod().getCurrentEntryCodeArray();

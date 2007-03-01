@@ -356,7 +356,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
 
     try {
-      Object obj1 = (Object) env.getJNIRef(objectJREF);
+      Object obj1 = env.getJNIRef(objectJREF);
       return VM_JNIGlobalRefTable.newGlobalRef(obj1);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -557,7 +557,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
 
     try {
-      Object obj = (Object) env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       return env.pushJNIRef(obj.getClass());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -579,7 +579,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      Object obj = (Object) env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       if (obj == null) return 0; // null instanceof T is always false
       VM_Type RHStype = VM_ObjectModel.getObjectType(obj);
       VM_Type LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
@@ -5777,7 +5777,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int NewWeakGlobalRef(VM_JNIEnvironment env, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");   
     try {
-      Object obj1 = (Object) env.getJNIRef(objectJREF);
+      Object obj1 = env.getJNIRef(objectJREF);
       return VM_JNIGlobalRefTable.newWeakRef(obj1);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

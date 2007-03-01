@@ -544,7 +544,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (signers == null) {
       return null;
     } else {
-      return (Object[])signers.clone();
+      return signers.clone();
     }
   }
 

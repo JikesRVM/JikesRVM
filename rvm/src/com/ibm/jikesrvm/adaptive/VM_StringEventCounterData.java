@@ -148,7 +148,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
   public int getCounterIndexForString(String str) {
 
     int counter = -1;
-    Integer counterNum = (Integer) stringToCounterMap.get(str);
+    Integer counterNum = stringToCounterMap.get(str);
     if (counterNum != null) 
       counter = counterNum.intValue();
 

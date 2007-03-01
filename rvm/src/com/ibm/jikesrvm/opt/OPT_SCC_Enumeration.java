@@ -83,11 +83,11 @@ class OPT_SCC_Enumeration
    * @return The next SCC in this enumeration
    */
   public OPT_SCC next () {
-    OPT_GraphNode v = (OPT_GraphNode)rev.nextElement();
+    OPT_GraphNode v = rev.nextElement();
     OPT_SCC currentSCC = new OPT_SCC();
     currentSCC.add(v);
     while (rev.hasMoreElements() && rev.currentRoot != v) {
-      v = (OPT_GraphNode)rev.nextElement();
+      v = rev.nextElement();
       currentSCC.add(v);
     }
     return  currentSCC;

@@ -118,7 +118,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         VM.sysWrite("stack 2: " + s2);
       VM_TypeReference best = VM_TypeReference.JavaLangObject;
       while (!s1.empty() && !s2.empty()) {
-        VM_Class temp = (VM_Class)s1.pop();
+        VM_Class temp = s1.pop();
         if (temp == s2.pop())
           best = temp.getTypeRef(); 
         else 

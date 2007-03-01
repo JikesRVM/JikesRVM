@@ -753,7 +753,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
      if (bb == null) return false;
      for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      OPT_Instruction s = e.nextElement();
       for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
         OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
@@ -889,7 +889,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         OPT_Operand use = e.nextElement();
         if (use != null && use.isRegister()) {
           OPT_Register r = use.asRegister().register;
-          OPT_Register temp = (OPT_Register)map.get(r);
+          OPT_Register temp = map.get(r);
           if (temp != null) {
             use.asRegister().register = temp;
           }
@@ -898,7 +898,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
 
       if (VM.VerifyAssertions) VM._assert(s.getNumberOfDefs() == 1);
 
-      OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
+      OPT_Operand def = s.getDefs().nextElement();
       OPT_RegisterOperand rDef = def.asRegister();
       OPT_RegisterOperand temp = ir.regpool.makeTemp(rDef);
       map.put(rDef.register,temp.register);
@@ -975,11 +975,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
            e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement(); 
         if (s.isBranch()) continue;
-        OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
+        OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
         // that will now be dead
         if (def.asRegister().register.spansBasicBlock()) {
-          OPT_Instruction tempS = (OPT_Instruction)takenInstructions.get(s);
+          OPT_Instruction tempS = takenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand)
             tempS.getDefs().nextElement();
           op = OPT_IRTools.getCondMoveOp(def.asRegister().type);
@@ -1005,15 +1005,15 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
            e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement(); 
         if (s.isBranch()) continue;
-        OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
+        OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
         // that will now be dead
         if (def.asRegister().register.spansBasicBlock()) {
-          OPT_Instruction tempS = (OPT_Instruction)notTakenInstructions.get(s);
+          OPT_Instruction tempS = notTakenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand)
             tempS.getDefs().nextElement();
 
-          OPT_Instruction prevCmov = (OPT_Instruction)takenMap.get(def.asRegister
+          OPT_Instruction prevCmov = takenMap.get(def.asRegister
                                                                    ().register);
           if (prevCmov != null) {
             // if this register was also defined in the taken branch, change

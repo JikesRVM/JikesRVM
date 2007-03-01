@@ -301,7 +301,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     
     // Iterate through the basic blocks in the original code
     for (OPT_BasicBlock bb : origToDupMap.keySet()) {
-      OPT_BasicBlock dup = (OPT_BasicBlock) origToDupMap.get(bb);
+      OPT_BasicBlock dup = origToDupMap.get(bb);
 
       if (dup == null) {
         // Getting here means that for some reason the block was not duplicated.  
@@ -661,7 +661,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
            out.hasMoreElements();) {
         OPT_BasicBlock origSucc = out.next();
 
-        OPT_BasicBlock dupSucc =  (OPT_BasicBlock)origToDupMap.get(origSucc);
+        OPT_BasicBlock dupSucc = origToDupMap.get(origSucc);
 
         // If the successor is not in the duplicated code, then
         // redirect it to stay in the duplicated code. (dupSucc !=

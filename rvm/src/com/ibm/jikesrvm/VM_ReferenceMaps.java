@@ -1201,7 +1201,7 @@ import org.vmmagic.unboxed.*;
     // Merge the maps
     if (Op == COPY) {
       for (i = 0; i < bytesPerMap(); i++)
-        jsrInfo.unusualReferenceMaps[targetindex+i] = (byte)(jsrInfo.unusualReferenceMaps[deltaindex+i] );
+        jsrInfo.unusualReferenceMaps[targetindex+i] = jsrInfo.unusualReferenceMaps[deltaindex+i];
     }
     if (Op == OR) {
       for (i = 0; i < bytesPerMap(); i++)

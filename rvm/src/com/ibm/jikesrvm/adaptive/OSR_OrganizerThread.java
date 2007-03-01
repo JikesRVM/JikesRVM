@@ -131,7 +131,7 @@ public class OSR_OrganizerThread extends VM_Thread {
       if (thread != null) {
         if (thread.requesting_osr) {
           thread.requesting_osr = false;
-          VM_Controller.controllerInputQueue.insert(5.0, (OSR_OnStackReplacementEvent)thread.onStackReplacementEvent);
+          VM_Controller.controllerInputQueue.insert(5.0, thread.onStackReplacementEvent);
         }
       }
     }

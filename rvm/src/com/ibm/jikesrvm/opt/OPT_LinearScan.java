@@ -557,7 +557,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       CompoundInterval result = new CompoundInterval(r);
 
       for (Iterator<BasicInterval> i = iterator(); i.hasNext(); ) {
-        BasicInterval b = (BasicInterval)i.next();
+        BasicInterval b = i.next();
         result.add(b);
       }
       return result;
@@ -571,7 +571,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       CompoundInterval result = new CompoundInterval(r);
 
       for (Iterator<BasicInterval> i = iterator(); i.hasNext(); ) {
-        BasicInterval b = (BasicInterval)i.next();
+        BasicInterval b = i.next();
         result.add(b);
         if (b.sameRange(stop)) return result;
       }
@@ -589,7 +589,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       if (shouldConcatenate(live,bb)) {
         // concatenate with the last basic interval
-        BasicInterval last = (BasicInterval)last();
+        BasicInterval last = last();
         last.setEnd(getDfnEnd(live,bb)); 
         return null;
       } else {
@@ -611,7 +611,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     private boolean shouldConcatenate(OPT_LiveIntervalElement live,
                                       OPT_BasicBlock bb) {
 
-      BasicInterval last = (BasicInterval)last();
+      BasicInterval last = last();
 
       // Make sure the new live range starts after the last basic interval
       if (VM.VerifyAssertions) {
@@ -743,24 +743,24 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       Iterator<BasicInterval> myIterator = iterator();
       Iterator<BasicInterval> otherIterator = i.iterator();
       BasicInterval current = myIterator.hasNext() ?
-        (BasicInterval)myIterator.next(): null;
-      BasicInterval currentI = otherIterator.hasNext() ? 
-        (BasicInterval)otherIterator.next() : null;
+          myIterator.next() : null;
+      BasicInterval currentI = otherIterator.hasNext() ?
+          otherIterator.next() : null;
 
       while (currentI != null && current != null) {
         if (current.startsBefore(currentI)) {
           current = myIterator.hasNext() ?
-            (BasicInterval)myIterator.next(): null;
+              myIterator.next() : null;
         } else if (currentI.startsBefore(current)) {
-          currentI = otherIterator.hasNext() ? 
-            (BasicInterval)otherIterator.next() : null;
+          currentI = otherIterator.hasNext() ?
+              otherIterator.next() : null;
         } else {
           if (VM.VerifyAssertions) VM._assert(current.sameRange(currentI));
 
-          currentI = otherIterator.hasNext() ? 
-            (BasicInterval)otherIterator.next() : null;
+          currentI = otherIterator.hasNext() ?
+              otherIterator.next() : null;
           BasicInterval next = myIterator.hasNext() ?
-            (BasicInterval)myIterator.next(): null;
+              myIterator.next() : null;
           // add the interval to the cache
           result.add(current);
           current = next;
@@ -775,7 +775,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // we migrate to classpath libraries).
       // removeAll(result);
       for (Iterator<BasicInterval> it = result.iterator(); it.hasNext(); ) {
-        BasicInterval b = (BasicInterval)it.next();
+        BasicInterval b = it.next();
         remove(b);
       }
       
@@ -794,7 +794,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     void removeAll(CompoundInterval c) {
       for (Iterator<BasicInterval> i = c.iterator(); i.hasNext(); ) {
-        BasicInterval b = (BasicInterval)i.next();
+        BasicInterval b = i.next();
         remove(b);
       }
     }
@@ -803,7 +803,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Return the lowest DFN in this compound interval.
      */
     int getLowerBound() {
-      BasicInterval b = (BasicInterval)first();
+      BasicInterval b = first();
       return b.getBegin();
     }
 
@@ -811,7 +811,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Return the highest DFN in this compound interval.
      */
     int getUpperBound() {
-      BasicInterval b = (BasicInterval)last();
+      BasicInterval b = last();
       return b.getEnd();
     }
 
@@ -842,9 +842,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       Iterator<BasicInterval> otherIterator = otherTailSet.iterator();
 
       BasicInterval current = myIterator.hasNext() ?
-        (BasicInterval)myIterator.next() : null;
-      BasicInterval currentI = otherIterator.hasNext() ? 
-        (BasicInterval)otherIterator.next() : null;
+          myIterator.next() : null;
+      BasicInterval currentI = otherIterator.hasNext() ?
+          otherIterator.next() : null;
 
       while (current != null && currentI != null) {
         if (current.getBegin() > upper) break;
@@ -853,10 +853,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
         if (current.startsBefore(currentI)) {
           current = myIterator.hasNext() ?
-            (BasicInterval)myIterator.next(): null;
+              myIterator.next() : null;
         } else {
           currentI = otherIterator.hasNext() ?
-            (BasicInterval)otherIterator.next() : null;
+              otherIterator.next() : null;
         }
       }
       return false;
@@ -882,7 +882,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     BasicInterval getBasicInterval(int n) {
       SortedSet<BasicInterval> headSet = headSetInclusive(n);
       if (!headSet.isEmpty()) {
-        BasicInterval last = (BasicInterval)headSet.last();
+        BasicInterval last = headSet.last();
         return last.contains(n) ? last : null;
       } else {
         return null;
@@ -895,7 +895,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     public String toString() {
       String str = "[" + getRegister() + "]:";
       for (Iterator<BasicInterval> i = iterator(); i.hasNext(); ) {
-        BasicInterval b = (BasicInterval)i.next();
+        BasicInterval b = i.next();
         str = str + b;
       }
       return str;
@@ -1007,7 +1007,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       if (container.isSpilled()) {
         // free the spill location iff this is the last interval in the
         // compound interval.
-        BasicInterval last = (BasicInterval)container.last();
+        BasicInterval last = container.last();
         if (last.sameRange(bi)) {
           spillManager.freeInterval(container.getSpillInterval());
         }
@@ -1377,7 +1377,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // if this is a candidate interval, update its weight
           if (allocateNewSymbolicToPhysical(r,neighbor)) {
             int w = edge.getWeight();
-            Integer oldW = (Integer)map.get(neighbor);
+            Integer oldW = map.get(neighbor);
             if (oldW == null) {
               map.put(neighbor,Integer.valueOf(w));
             } else {
@@ -1404,7 +1404,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // if this is a candidate interval, update its weight
           if (allocateNewSymbolicToPhysical(r,neighbor)) {
             int w = edge.getWeight();
-            Integer oldW = (Integer)map.get(neighbor);
+            Integer oldW = map.get(neighbor);
             if (oldW == null) {
               map.put(neighbor,Integer.valueOf(w));
             } else {
@@ -1420,10 +1420,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
            i.hasNext(); ) {
         Map.Entry<OPT_Register,Integer> entry = i.next();
-        int w = ((Integer)entry.getValue()).intValue();
+        int w = entry.getValue().intValue();
         if (w > weight) {
           weight = w;
-          result = (OPT_Register)entry.getKey();
+          result = entry.getKey();
         }
       }
       return result;
@@ -1465,7 +1465,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // if this is a candidate interval, update its weight
           if (allocateToPhysical(ci,neighbor)) {
             int w = edge.getWeight();
-            Integer oldW = (Integer)map.get(neighbor);
+            Integer oldW = map.get(neighbor);
             if (oldW == null) {
               map.put(neighbor,Integer.valueOf(w));
             } else {
@@ -1492,7 +1492,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // if this is a candidate interval, update its weight
           if (allocateToPhysical(ci,neighbor)) {
             int w = edge.getWeight();
-            Integer oldW = (Integer)map.get(neighbor);
+            Integer oldW = map.get(neighbor);
             if (oldW == null) {
               map.put(neighbor,Integer.valueOf(w));
             } else {
@@ -1508,10 +1508,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
            i.hasNext(); ) {
         Map.Entry<OPT_Register,Integer> entry = i.next();
-        int w = ((Integer)entry.getValue()).intValue();
+        int w = entry.getValue().intValue();
         if (w > weight) {
           weight = w;
-          result = (OPT_Register)entry.getKey();
+          result = entry.getKey();
         }
       }
       return result;
@@ -1926,7 +1926,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         setInterval(reg, newInterval);
 
         // add the new interval to the sorted set of intervals.  
-        BasicInterval b = (BasicInterval)newInterval.first();
+        BasicInterval b = newInterval.first();
         ir.MIRInfo.linearScanState.intervals.add(b);
 
         return newInterval;
@@ -1993,7 +1993,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // Now search for any free interval.
       if (result == null) {
         for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-          SpillLocationInterval s = (SpillLocationInterval)i.next();
+          SpillLocationInterval s = i.next();
           if (s.getSize() == spillSize && !s.intersects(ci)) {
             result = s;
             freeIntervals.remove(result);
@@ -2061,11 +2061,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
           for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-            SpillLocationInterval s = (SpillLocationInterval)i.next();
+            SpillLocationInterval s = i.next();
             if (s.getOffset() == spillOffset && 
                 s.getSize() == spillSize && !s.intersects(ci)) {
               int w = edge.getWeight();
-              Integer oldW = (Integer)map.get(s);
+              Integer oldW = map.get(s);
               if (oldW == null) {
                 map.put(s,Integer.valueOf(w));
               } else {
@@ -2087,11 +2087,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
           for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-            SpillLocationInterval s = (SpillLocationInterval)i.next();
+            SpillLocationInterval s = i.next();
             if (s.getOffset() == spillOffset && 
                 s.getSize() == spillSize && !s.intersects(ci)) {
               int w = edge.getWeight();
-              Integer oldW = (Integer)map.get(s);
+              Integer oldW = map.get(s);
               if (oldW == null) {
                 map.put(s,Integer.valueOf(w));
               } else {
@@ -2154,8 +2154,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Redefine hash code for reproducibility.
      */
     public int hashCode() {
-      BasicInterval first = (BasicInterval)first();
-      BasicInterval last = (BasicInterval)last();
+      BasicInterval first = first();
+      BasicInterval last = last();
       return frameOffset + (first.getBegin()<<4) + (last.getEnd()<<12);
     }
   }

@@ -111,7 +111,7 @@ class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
     }
 
     public OPT_GraphNode next() {
-      return  (OPT_GraphNode)e.next();
+      return e.next();
     }
 
     public OPT_GraphNode nextElement() {

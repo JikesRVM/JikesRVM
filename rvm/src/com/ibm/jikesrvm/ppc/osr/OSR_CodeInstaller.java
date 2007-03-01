@@ -126,7 +126,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     // mark the thread as waiting for on stack replacement.
     thread.isWaitingForOsr = true;
-    thread.bridgeInstructions = (VM_CodeArray) mc.getInstructions();
+    thread.bridgeInstructions = mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
     Address bridgeaddr = 

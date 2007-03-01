@@ -245,7 +245,7 @@ public abstract class OPT_AbstractRegisterPool {
    *         if the pairing doesn't already exist then it is created.
    */
   public OPT_Register getSecondReg(OPT_Register reg) {
-    OPT_Register otherHalf = (OPT_Register)_regPairs.get(reg);
+    OPT_Register otherHalf = _regPairs.get(reg);
     if (otherHalf == null) {
       otherHalf = getReg(reg);
       _regPairs.put(reg, otherHalf);

@@ -79,7 +79,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
       push(v);
     }
     recurse: while (!empty()) {
-      OPT_GraphNode v = (OPT_GraphNode)peek();
+      OPT_GraphNode v = peek();
       OPT_GraphNodeEnumeration pendingChildren = info[v.getIndex()];
       for (OPT_GraphNodeEnumeration e = pendingChildren; e.hasMoreElements();) {
         OPT_GraphNode n = e.next();
@@ -94,7 +94,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
       // no more children to visit: finished this vertex
       while (info[theNextElement.getIndex()] != null && e.hasMoreElements())
         theNextElement = e.next();
-      return  (OPT_GraphNode)pop();
+      return pop();
     }
     return  null;
   }

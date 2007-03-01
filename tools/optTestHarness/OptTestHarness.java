@@ -327,7 +327,7 @@ class OptTestHarness {
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for(int i = 0; i < size ; i++) {
       VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i) ;
-      OPT_Options opts = (OPT_Options) optOptionsVector.elementAt(i) ;
+      OPT_Options opts = optOptionsVector.elementAt(i);
       try {
         VM_CompiledMethod cm = null;
         OPT_CompilationPlan cp = 
@@ -364,9 +364,9 @@ class OptTestHarness {
 
       int size = reflectoidVector.size() ;
       for(int i = 0; i < size ; i++) {
-        reflectoid = (java.lang.reflect.Method) reflectoidVector.elementAt(i);
-        reflectMethodArgs = (Object []) reflectMethodArgsVector.elementAt(i);
-        VM_Method method = (VM_Method) reflectMethodVector.elementAt(i);
+        reflectoid = reflectoidVector.elementAt(i);
+        reflectMethodArgs = reflectMethodArgsVector.elementAt(i);
+        VM_Method method = reflectMethodVector.elementAt(i);
         VM.sysWrite("**** START OF EXECUTION of "+method+" ****.\n");
         Object result = null;
         if (perf != null) perf.reset();

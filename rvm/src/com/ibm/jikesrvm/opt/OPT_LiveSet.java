@@ -57,7 +57,7 @@ public class OPT_LiveSet {
     // simply linear search
     OPT_LiveSetEnumerator lsEnum = enumerator();
     while (lsEnum.hasMoreElements()) {
-      OPT_Register elem = ((OPT_RegisterOperand)lsEnum.nextElement()).register;
+      OPT_Register elem = lsEnum.nextElement().register;
       if (item == elem) {
         if (debug) {
           System.out.println("found it, returning true");
@@ -144,11 +144,11 @@ public class OPT_LiveSet {
     if (first == null) {
       // current list is empty, just deep copy the passed list
       // handle the 1st element outside the loop
-      OPT_RegisterOperand newElem = (OPT_RegisterOperand)lsEnum.nextElement();
+      OPT_RegisterOperand newElem = lsEnum.nextElement();
       first = new OPT_LiveSetElement(newElem);
       OPT_LiveSetElement existingPtr = first;
       while (lsEnum.hasMoreElements()) {
-        newElem = (OPT_RegisterOperand)lsEnum.nextElement();
+        newElem = lsEnum.nextElement();
         // copy additionList and add it to first list
         OPT_LiveSetElement elem = new OPT_LiveSetElement(newElem);
         existingPtr.setNext(elem);

@@ -2699,7 +2699,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
                                               indexReg);
 
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );       // trap
-    fr.resolve((VM_Assembler) asm);
+    fr.resolve(asm);
   }
 
   /**

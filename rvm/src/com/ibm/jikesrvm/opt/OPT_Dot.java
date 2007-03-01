@@ -117,7 +117,7 @@ public final class OPT_Dot implements OPT_DotConstants
 
     for (Enumeration<OPT_VCGNode> nodes = g.nodes(); nodes.hasMoreElements();) {
       OPT_DotNode node = (OPT_DotNode) nodes.nextElement();
-      String name = (String) nodeNames.get(node);
+      String name = nodeNames.get(node);
       if (name == null) {
         name = "Node"+(nodenum++);
         nodeNames.put(node, name);
@@ -146,13 +146,13 @@ public final class OPT_Dot implements OPT_DotConstants
         OPT_DotEdge edge = (OPT_DotEdge) edges.nextElement();
         OPT_DotEdge.EdgeDesc ed = edge.getDotDescriptor();
         OPT_VisNode sNode = edge.sourceNode();
-        String sName = (String) nodeNames.get(sNode);
+        String sName = nodeNames.get(sNode);
         if (sName == null) {
           sName = "Node"+(nodenum++);
           nodeNames.put(sNode, sName);
         }
         OPT_VisNode tNode = edge.targetNode();
-        String tName = (String) nodeNames.get(tNode);
+        String tName = nodeNames.get(tNode);
         if (tName == null) {
           tName = "Node"+(nodenum++);
           nodeNames.put(tNode, tName);

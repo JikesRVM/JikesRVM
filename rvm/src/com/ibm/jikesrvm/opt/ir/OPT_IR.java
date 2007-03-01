@@ -1143,7 +1143,7 @@ public final class OPT_IR {
   private void verifyRegisterTypes(String where) {
     for (OPT_Register r = regpool.getFirstSymbolicRegister(); 
          r != null;
-         r = (OPT_Register)r.getNext()) {
+         r = r.getNext()) {
       // don't worry about physical registers
       if (r.isPhysical()) continue;
 

@@ -272,7 +272,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     if (planList == null) {
       return null;
     } else {
-      return (VM_ControllerPlan) planList.getLast();
+      return planList.getLast();
     }
   }
 
@@ -303,7 +303,7 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     // traverse table and give a summary of all actions that have occurred
     for (VM_Method meth : table.keys()) {
-      LinkedList<VM_ControllerPlan> planList = (LinkedList<VM_ControllerPlan>) table.get(meth);
+      LinkedList<VM_ControllerPlan> planList = table.get(meth);
 
       int bitPattern = 0;
       int recompsAtLevel2 = 0;

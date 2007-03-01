@@ -845,7 +845,7 @@ class OPT_LICM extends OPT_CompilerPhase {
       OPT_BasicBlock b = e.next();
       Iterator<OPT_Instruction> pe = ssad.getHeapPhiInstructions(b);
       while (pe.hasNext()) {
-        OPT_Instruction inst = (OPT_Instruction)pe.next();
+        OPT_Instruction inst = pe.next();
         inst.scratch = instructions++;
         inst.scratchObject = null;
       }
@@ -859,7 +859,7 @@ class OPT_LICM extends OPT_CompilerPhase {
       OPT_BasicBlock b = e.next();
       Enumeration<OPT_Instruction> ie = ssad.getAllInstructions(b);
       while (ie.hasMoreElements()) {
-        OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
+        OPT_Instruction inst = ie.nextElement();
         setBlock(inst, b);
         setOrigBlock(inst, b);
         setState(inst, initial);
@@ -874,7 +874,7 @@ class OPT_LICM extends OPT_CompilerPhase {
 
         Enumeration<OPT_Instruction> ie = ssad.getAllInstructions(b);
         while (ie.hasMoreElements()) {
-          OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
+          OPT_Instruction inst = ie.nextElement();
           while (simplify (inst, b));
         }
       }
@@ -1022,7 +1022,7 @@ class OPT_LICM extends OPT_CompilerPhase {
     }
     
     while (!(workList.isEmpty())) {
-      OPT_Instruction y = (OPT_Instruction) workList.remove();
+      OPT_Instruction y = workList.remove();
       if (Phi.conforms (y)) {
         for (int i = Phi.getNumberOfValues (y) - 1;  i >= 0;  --i) {
           OPT_Instruction z = definingInstruction (Phi.getValue (y, i));
@@ -1131,7 +1131,7 @@ class OPT_LICM extends OPT_CompilerPhase {
         for (int i = uses.length - 1;  i >= 0;  --i) {
           if (uses[i].value == H) {
             changed |= replacement.value != H;
-            uses[i] = (OPT_HeapOperand<?>) (replacement.copy());
+            uses[i] = replacement.copy();
             uses[i].setInstruction (user);
           }
         }

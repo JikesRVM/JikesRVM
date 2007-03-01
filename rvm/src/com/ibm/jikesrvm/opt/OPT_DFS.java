@@ -36,7 +36,7 @@ class OPT_DFS extends OPT_Stack<VertexInfo> {
    * Return the discovery time for a vertex.
    */
   public int getDiscover(OPT_GraphNode v) {
-    VertexInfo vInfo = (VertexInfo)info.get(v);
+    VertexInfo vInfo = info.get(v);
     if (vInfo == null) return -1;
     return vInfo.discover;
   }
@@ -45,7 +45,7 @@ class OPT_DFS extends OPT_Stack<VertexInfo> {
    * Return the finish time for a vertex.
    */
   public int getFinish(OPT_GraphNode v) {
-    VertexInfo vInfo = (VertexInfo)info.get(v);
+    VertexInfo vInfo = info.get(v);
     if (vInfo == null) return -1;
     return vInfo.finish;
   }
@@ -84,7 +84,7 @@ class OPT_DFS extends OPT_Stack<VertexInfo> {
     push(v);
 
     recurse: while (!empty()) {
-      VertexInfo vInfo = (VertexInfo) peek();
+      VertexInfo vInfo = peek();
 
       if (vInfo.color == WHITE) {
         // this is the first time we've discovered this vertex.
@@ -95,7 +95,7 @@ class OPT_DFS extends OPT_Stack<VertexInfo> {
        
       for (OPT_GraphNodeEnumeration e = vInfo.pendingChildren; e.hasMoreElements();){
         OPT_GraphNode n = e.next();
-        VertexInfo nInfo = (VertexInfo)info.get(n);
+        VertexInfo nInfo = info.get(n);
         if (nInfo == null) {
           // found a new child: recurse to it.
           nInfo = new VertexInfo(n, info);

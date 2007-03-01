@@ -86,7 +86,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_Constants
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue (VM_Assembler asm) {
-    VM_ObjectModel.baselineEmitLoadTIB((VM_Assembler) asm,ECX,EAX);
+    VM_ObjectModel.baselineEmitLoadTIB(asm,ECX,EAX);
   }
 
   // Generate a subtree covering from low to high inclusive.

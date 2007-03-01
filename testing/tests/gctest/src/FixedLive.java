@@ -165,7 +165,7 @@ class FixedLive {
     System.out.println("Header size is probably " + (Node2I2A.objectSize - 16) + " bytes");
     System.out.println("Note that the results of this test are not too meaningful for a generational collector"); 
 
-    int count = (int) (liveSize << 20) / Node2I2A.objectSize;
+    int count = (liveSize << 20) / Node2I2A.objectSize;
     System.out.println("Creating live data: tree with " + count + " nodes");
     root = Node2I2A.createTree(count);
     long end = System.currentTimeMillis();

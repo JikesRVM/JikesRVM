@@ -298,7 +298,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       OPT_Register nv = null;
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
-        nv = (OPT_Register)e.nextElement();
+        nv = e.nextElement();
       }
       n++;
       OPT_RegisterOperand range = I(nv);
@@ -310,7 +310,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // use a sequence of load instructions
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
-        OPT_Register nv = (OPT_Register)e.nextElement();
+        OPT_Register nv = e.nextElement();
         int offset = getNonvolatileGPROffset(n);
         inst.insertBack(MIR_Store.create (PPC_STAddr, A(nv), A(FP), IC(offset)));
       }
@@ -327,7 +327,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // use a sequence of load instructions
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); 
          e.hasMoreElements() && n >= 0 ; n--) {
-        OPT_Register nv = (OPT_Register)e.nextElement();
+        OPT_Register nv = e.nextElement();
         int offset = getNonvolatileFPROffset(n);
         inst.insertBack(MIR_Store.create(PPC_STFD, D(nv), A(FP), IC(offset)));
       }
@@ -352,7 +352,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       OPT_Register nv = null;
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
-        nv = (OPT_Register)e.nextElement();
+        nv = e.nextElement();
       }
       n++;
       OPT_RegisterOperand range = I(nv);
@@ -363,7 +363,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     } else {
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
            e.hasMoreElements() && n >= 0 ; n--) {
-        OPT_Register nv = (OPT_Register)e.nextElement();
+        OPT_Register nv = e.nextElement();
         int offset = getNonvolatileGPROffset(n);
         inst.insertBack(MIR_Load.create (PPC_LAddr, A(nv), A(FP), IC(offset)));
       }
@@ -376,7 +376,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // use a sequence of load instructions
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); 
            e.hasMoreElements() && n >= 0 ; n--) {
-        OPT_Register nv = (OPT_Register)e.nextElement();
+        OPT_Register nv = e.nextElement();
         int offset = getNonvolatileFPROffset(n);
         inst.insertBack(MIR_Load.create (PPC_LFD, D(nv), A(FP), IC(offset)));
       }
@@ -397,7 +397,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     int i = 0;
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); i++) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       inst.insertBefore(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     }
@@ -405,7 +405,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     i = 0;
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
          e.hasMoreElements(); i++) {
-      OPT_Register r = (OPT_Register)e.nextElement();
+      OPT_Register r = e.nextElement();
       int location = saveVolatileFPRLocation[i];
       inst.insertBefore(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
     }

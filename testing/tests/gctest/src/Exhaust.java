@@ -44,7 +44,7 @@ class Exhaust {
   public static int doInner (int size) { 
     while (true) {
       wasAllocating = size;
-      Object [] next = new Object[((int) size) / 4];
+      Object [] next = new Object[size / 4];
       last[0] = next;
       last = next;
       tot += size;

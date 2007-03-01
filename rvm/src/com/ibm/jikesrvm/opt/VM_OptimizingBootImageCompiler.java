@@ -100,8 +100,8 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
           throw escape;
         long start = System.currentTimeMillis();
         int freeOptimizationPlan = getFreeOptimizationPlan();
-        OPT_OptimizationPlanElement[] optimizationPlan = (OPT_OptimizationPlanElement[])optimizationPlans.get(freeOptimizationPlan);
-        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null,(OPT_Options)options.get(freeOptimizationPlan));
+        OPT_OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
+        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options.get(freeOptimizationPlan));
         cm = OPT_Compiler.compile(cp);
         releaseOptimizationPlan(freeOptimizationPlan);
         if (VM.BuildForAdaptiveSystem) {
@@ -156,7 +156,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     // Find plan
     synchronized(optimizationPlanLocks) {
       for (int i=0; i < optimizationPlanLocks.size(); i++) {
-        if(((Boolean)optimizationPlanLocks.get(i)).booleanValue() == false) {
+        if(optimizationPlanLocks.get(i).booleanValue() == false) {
           optimizationPlanLocks.set(i,Boolean.TRUE);
           return i;
         }

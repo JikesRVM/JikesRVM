@@ -398,7 +398,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       OPT_BasicBlock b = bbe.next();
       for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); 
            e.hasMoreElements();) {
-        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        OPT_Instruction s = e.nextElement();
         // we already handled calls in a previous pass.
         if (Call.conforms(s))
           continue;
@@ -878,7 +878,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
           OPT_HeapOperand<Object>[] newUses = new OPT_HeapOperand[uses.length];
           for (int i = 0; i < uses.length; i++) {
             Stack<OPT_HeapOperand<Object>> S = stacks.get(uses[i].getHeapType());
-            newUses[i] = (OPT_HeapOperand<Object>)S.peek().copy();
+            newUses[i] = S.peek().copy();
             if (DEBUG)
               System.out.println("NORMAL USE PEEK " + newUses[i]);
           }
@@ -1080,7 +1080,7 @@ outer: for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) 
   @SuppressWarnings("unused")
   private void removeUnreachableOperands(HashSet<OPT_Instruction> scalarPhis) {
     for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) {
-      OPT_Instruction phi = (OPT_Instruction)i.next();
+      OPT_Instruction phi = i.next();
       boolean didSomething = true;
       while (didSomething) {
         didSomething = false;

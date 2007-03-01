@@ -37,7 +37,7 @@ public class OPT_InvokeeThreadLocalContext
         OPT_SpecializationDatabase.getSpecialVersions(source);
     if (versions != null) {
       while (versions.hasNext()) {
-        OPT_SpecializedMethod spMethod = (OPT_SpecializedMethod)versions.next();
+        OPT_SpecializedMethod spMethod = versions.next();
         OPT_SpecializationContext context = spMethod.getSpecializationContext();
         if (context == this) {
           return  spMethod;

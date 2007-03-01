@@ -130,7 +130,7 @@ public class OPT_Tree {
 
     Enumeration<OPT_TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {
-      OPT_TreeNode child = (OPT_TreeNode)childEnum.nextElement();
+      OPT_TreeNode child = childEnum.nextElement();
       DFS(sb, child, depth + 1);
     }
     return sb;

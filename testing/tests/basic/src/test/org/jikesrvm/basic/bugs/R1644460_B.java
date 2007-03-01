@@ -30,7 +30,7 @@ public class R1644460_B {
     d *= b;
     check(d);
     System.out.println(c);
-    System.out.println(((float) (a * b)));
+    System.out.println(a * b);
   }
 
   private static void check(float c) {

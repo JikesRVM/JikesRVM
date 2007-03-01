@@ -129,7 +129,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
   private static boolean synchronizesOn (OPT_IR ir, OPT_Register r) {
     // walk through uses of r
     for (OPT_RegisterOperand use = r.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
+        use = use.getNext()) {
       OPT_Instruction s = use.instruction;
       if (s.operator == MONITORENTER)
         return  true;

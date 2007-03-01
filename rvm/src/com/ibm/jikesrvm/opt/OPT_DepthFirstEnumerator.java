@@ -45,10 +45,10 @@ final class OPT_DepthFirstEnumerator
     if (stack == null)
       throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
     while (!stack.isEmpty()) {
-      OPT_GraphNode node = (OPT_GraphNode)stack.pop();
+      OPT_GraphNode node = stack.pop();
       if (node.getScratch() != mark) {
         for (Enumeration<OPT_GraphNode> e = node.outNodes(); e.hasMoreElements();) {
-          OPT_GraphNode n = (OPT_GraphNode)e.nextElement();
+          OPT_GraphNode n = e.nextElement();
           if (n != null)
             stack.push(n);
         }

@@ -106,7 +106,7 @@ public abstract class VM_ForwardReference {
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      ((VM_Assembler) asm).patchUnconditionalBranch(sourceMachinecodeIndex);
+      asm.patchUnconditionalBranch(sourceMachinecodeIndex);
     }
 
   }
@@ -118,7 +118,7 @@ public abstract class VM_ForwardReference {
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      ((VM_Assembler) asm).patchConditionalBranch(sourceMachinecodeIndex);
+      asm.patchConditionalBranch(sourceMachinecodeIndex);
     }
 
   }
@@ -134,7 +134,7 @@ public abstract class VM_ForwardReference {
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      ((VM_Assembler) asm).patchShortBranch(sourceMachinecodeIndex);
+      asm.patchShortBranch(sourceMachinecodeIndex);
     }
 
   }
@@ -146,7 +146,7 @@ public abstract class VM_ForwardReference {
     }
 
     public void resolve (VM_AbstractAssembler asm) {
-      ((VM_Assembler) asm).patchSwitchCase(sourceMachinecodeIndex);
+      asm.patchSwitchCase(sourceMachinecodeIndex);
     }
 
   }

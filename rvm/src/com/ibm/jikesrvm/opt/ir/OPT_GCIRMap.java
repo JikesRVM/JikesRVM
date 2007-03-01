@@ -82,7 +82,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
     List<OPT_RegSpillListElement> regList = new VM_LinkedList<OPT_RegSpillListElement>();
     OPT_LiveSetEnumerator lsEnum = set.enumerator();
     while (lsEnum.hasMoreElements()) {
-      OPT_RegisterOperand regOp = (OPT_RegisterOperand)lsEnum.nextElement();
+      OPT_RegisterOperand regOp = lsEnum.nextElement();
 
       // add this register to the regList, if it is a reference
       //  and not a physcial register

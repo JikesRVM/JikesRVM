@@ -158,8 +158,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         // blocks made on the outgoing edges.
         if (InlineGuard.conforms(instr)) continue;
 
-        OPT_RegisterOperand ifGuard = (OPT_RegisterOperand)
-            IfCmp.getGuardResult(instr);
+        OPT_RegisterOperand ifGuard = IfCmp.getGuardResult(instr);
 
         if (VM.VerifyAssertions)
           VM._assert(ifGuard != null);

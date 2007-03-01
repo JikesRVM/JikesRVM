@@ -85,7 +85,7 @@ class TestClone implements Cloneable
          SystemOut.println();
          }
 
-      TestClone[][] d = (TestClone[][])c.clone();
+      TestClone[][] d = c.clone();
       
       SystemOut.println("clone: ");
       for (int i = 0; i < 2; ++i)
