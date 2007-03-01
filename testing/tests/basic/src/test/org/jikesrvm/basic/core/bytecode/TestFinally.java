@@ -12,6 +12,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  * @author unascribed
  */
 class TestFinally {
+  @SuppressWarnings({"ReturnInsideFinallyBlock", "finally"})
   private static int foo() {
     try {
       int a = 1;
@@ -26,6 +27,7 @@ class TestFinally {
     }
   }
 
+  @SuppressWarnings({"ReturnInsideFinallyBlock", "finally"})
   private static int foo2() {
     try {
       throw new Exception();
@@ -35,6 +37,7 @@ class TestFinally {
     }
   }
 
+  @SuppressWarnings({"UnnecessaryReturnStatement"})
   public static void main(String[] args) {
     System.out.println("TestFinally.main()");
     System.out.println(TestFinally.foo());
