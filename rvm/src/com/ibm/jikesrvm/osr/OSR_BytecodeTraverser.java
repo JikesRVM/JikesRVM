@@ -134,13 +134,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       }
     }
     
-    boolean found = false;
     /* scan start from method entry */
-    {
-      int startpc = 0;
-      found = scanBlocks (method, bytecodes, true, bcpoint, ltypes, stypes, 
-                          startpc, simstacks, null);
-    }
+    boolean found = scanBlocks (method, bytecodes, true, bcpoint, ltypes, stypes, 0, simstacks, null);
     /* scan for exception handler. */
     if (!found) {
       VM_ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
