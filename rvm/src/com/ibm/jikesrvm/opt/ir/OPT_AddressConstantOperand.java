@@ -24,7 +24,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   /**
    * Value of this operand.
    */
-  public Address value;
+  public final Address value;
 
   /**
    * Constructs a new address constant operand with the specified value.
@@ -42,7 +42,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * TODO: make a separte OPT_OffsetConstantOperand 
 	*/
   public OPT_AddressConstantOperand(Offset v) {
-    value = v.toWord().toAddress();
+    this(v.toWord().toAddress());
   }
 
   /**
