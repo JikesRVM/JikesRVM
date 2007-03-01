@@ -12,7 +12,7 @@ package test.org.jikesrvm.basic.core.threads;
  * @author unascribed
  */
 class TestStop {
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     final Worker w = new Worker();
     w.start();
     while (!w.running) {

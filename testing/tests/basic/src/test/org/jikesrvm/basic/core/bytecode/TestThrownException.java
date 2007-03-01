@@ -14,7 +14,7 @@ import java.io.IOException;
  * @author unascribed
  */
 class TestThrownException {
-  private static void testHardwareException() throws Exception {
+  private static void testHardwareException() {
     System.out.println("testHardwareException");
     int i = 1;
     int j = 0;
@@ -22,13 +22,13 @@ class TestThrownException {
     System.out.println(k);
   }
 
-  private static void testSoftwareException() throws Exception {
+  private static void testSoftwareException() {
     System.out.println("testSoftwareException");
     Float f = Float.valueOf("abc");
     System.out.println(f);
   }
 
-  private static void testUserException() throws Exception {
+  private static void testUserException() throws IOException {
     System.out.println("testUserException");
     throw new IOException();
   }
@@ -43,7 +43,8 @@ class TestThrownException {
     }
   }
 
-  private static void testNullException() throws Exception {
+  @SuppressWarnings({"ConstantConditions"})
+  private static void testNullException() {
     System.out.println("testNullException");
     Object foo = null;
     foo.hashCode();

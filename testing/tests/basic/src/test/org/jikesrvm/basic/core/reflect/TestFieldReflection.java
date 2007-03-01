@@ -109,7 +109,7 @@ class TestFieldReflection {
     testType(type, "mdouble", double.class);
   }
 
-  private static void testType(final Class<?> type, final String fieldName, final Class expected) throws Exception {
+  private static void testType(final Class<?> type, final String fieldName, final Class expected) {
     try {
       final Class<?> f = type.getDeclaredField(fieldName).getType();
       if (!expected.equals(f)) System.out.println(expected + " is not equal to " + f);
@@ -118,7 +118,7 @@ class TestFieldReflection {
     }
   }
 
-  private static void printFields(final Object object, final Field[] fields) throws Exception {
+  private static void printFields(final Object object, final Field[] fields) {
     System.out.print("Values:");
     for (final Field field : fields) {
       String value = "";
@@ -134,7 +134,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testBoolean(final Object object, final Field[] fields) throws Exception {
+  private static void testBoolean(final Object object, final Field[] fields) {
     banner("boolean", "false");
     for (final Field field : fields) {
       try {
@@ -145,7 +145,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testByte(final Object object, final Field[] fields) throws Exception {
+  private static void testByte(final Object object, final Field[] fields) {
     banner("byte", "12");
     for (final Field field : fields) {
       try {
@@ -156,7 +156,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testShort(final Object object, final Field[] fields) throws Exception {
+  private static void testShort(final Object object, final Field[] fields) {
     banner("short", "2");
     for (final Field field : fields) {
       try {
@@ -167,7 +167,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testInt(final Object object, final Field[] fields) throws Exception {
+  private static void testInt(final Object object, final Field[] fields) {
     banner("int", "3");
     for (final Field field : fields) {
       try {
@@ -178,7 +178,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testLong(final Object object, final Field[] fields) throws Exception {
+  private static void testLong(final Object object, final Field[] fields) {
     banner("long", "4");
     for (final Field field : fields) {
       try {
@@ -189,7 +189,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testFloat(final Object object, Field[] fields) throws Exception {
+  private static void testFloat(final Object object, Field[] fields) {
     banner("float", "5");
     for (final Field field : fields) {
       try {
@@ -200,7 +200,7 @@ class TestFieldReflection {
     System.out.println();
   }
 
-  private static void testDouble(final Object object, Field[] fields) throws Exception {
+  private static void testDouble(final Object object, Field[] fields) {
     banner("double", "6.0");
     for (final Field field : fields) {
       try {
