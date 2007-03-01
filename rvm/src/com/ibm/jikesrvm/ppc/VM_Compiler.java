@@ -3044,17 +3044,17 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   @Uninterruptible
-  public static final boolean isRegister(int location) {
+  public static boolean isRegister(int location) {
     return location > 0;
   }
       
   @Uninterruptible
-  public static final int locationToOffset(int location) {
+  public static int locationToOffset(int location) {
     return -location;
   }
   
   @Uninterruptible
-  public static final int offsetToLocation(int offset) {
+  public static int offsetToLocation(int offset) {
     return -offset;
   }
   

@@ -41,7 +41,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
    * @return upperbound on number of machine code instructions 
    * that will be generated for this IR
    */
-  public static final int expand (OPT_IR ir) {
+  public static int expand (OPT_IR ir) {
     int instructionCount = 0;
     int conditionalBranchCount = 0;
     int machinecodeLength = 0;
@@ -263,7 +263,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
    * @param whereFrom is this yieldpoint from the PROLOGUE, EPILOGUE, or a 
    * BACKEDGE?
    */
-  static final OPT_BasicBlock findOrCreateYieldpointBlock(OPT_IR ir,
+  static OPT_BasicBlock findOrCreateYieldpointBlock(OPT_IR ir,
                                                           int whereFrom) {
     VM_Method meth = null;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();

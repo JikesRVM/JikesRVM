@@ -1323,7 +1323,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param rel32       the new immediate to use in the branch instruction
    * 
    */
-  public static final void patchCode(VM_CodeArray code,
+  public static void patchCode(VM_CodeArray code,
                               int patchOffset,
                               int rel32) {
 

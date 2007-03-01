@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  public static final Address alignAllocation(Address region, int alignment,
+  public static Address alignAllocation(Address region, int alignment,
                                              int offset, int knownAlignment, 
                                              boolean fillAlignmentGap) { 
     if (VM.VERIFY_ASSERTIONS) {
@@ -122,7 +122,7 @@ import org.vmmagic.pragma.*;
    * @param end A pointer past the end of the region.
    */
   @Inline
-  public static final void fillAlignmentGap(Address start, Address end) {
+  public static void fillAlignmentGap(Address start, Address end) {
     if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
       // At most a single hole
       if (!end.diff(start).isZero()) {
@@ -148,7 +148,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  public static final Address alignAllocation(Address region, int alignment,
+  public static Address alignAllocation(Address region, int alignment,
                                              int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
   }
@@ -165,7 +165,7 @@ import org.vmmagic.pragma.*;
    * @return The aligned up address.
    */
   @Inline
-  public static final Address alignAllocationNoFill(Address region, int alignment,
+  public static Address alignAllocationNoFill(Address region, int alignment,
                                              int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
@@ -178,7 +178,7 @@ import org.vmmagic.pragma.*;
    * @param alignment The requested alignment (some factor of 2).
    */
   @Inline
-  public static final int getMaximumAlignedSize(int size, int alignment) {
+  public static int getMaximumAlignedSize(int size, int alignment) {
     return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
 
@@ -193,7 +193,7 @@ import org.vmmagic.pragma.*;
    * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
    */
   @Inline
-  public static final int getMaximumAlignedSize(int size, int alignment,
+  public static int getMaximumAlignedSize(int size, int alignment,
                                                 int knownAlignment) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);

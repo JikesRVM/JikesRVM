@@ -2683,14 +2683,14 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
     } // end of setRealPosition
 
-    static final void setTupleValue(OSR_LocalRegPair tuple,
+    static void setTupleValue(OSR_LocalRegPair tuple,
                                     int type,
                                     int value) {
       tuple.valueType = type;
       tuple.value     = Word.fromIntSignExtend(value);
     } // end of setTupleValue
 
-    static final void setTupleValue(OSR_LocalRegPair tuple,
+    static void setTupleValue(OSR_LocalRegPair tuple,
                                     int type,
                                     Word value) {
       tuple.valueType = type;

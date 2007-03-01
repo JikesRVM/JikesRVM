@@ -607,7 +607,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param bb The basic block in which to look
    * @return The first instruction in bb that has a yield point
    */
-  public static final OPT_Instruction getFirstInstWithYieldPoint(OPT_BasicBlock bb) {
+  public static OPT_Instruction getFirstInstWithYieldPoint(OPT_BasicBlock bb) {
     for (OPT_InstructionEnumeration ie
            = bb.forwardInstrEnumerator();
          ie.hasMoreElements();) {
@@ -627,7 +627,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *  For now we ignore epilogue yieldpoints since we are only concerned with 
    *  method entries and backedges.
    */
-  public static final boolean isYieldpoint(OPT_Instruction i) {
+  public static boolean isYieldpoint(OPT_Instruction i) {
     if (i.operator() == YIELDPOINT_PROLOGUE ||
         // Skip epilogue yieldpoints.   No checks needed for them
         //        i.operator() == YIELDPOINT_EPILOGUE ||

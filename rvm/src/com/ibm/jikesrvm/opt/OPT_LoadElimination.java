@@ -97,7 +97,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    *
    * @return true if any load is eliminated.
    */
-  static final boolean eliminateLoads(OPT_IR ir, OPT_DF_Solution available) {
+  static boolean eliminateLoads(OPT_IR ir, OPT_DF_Solution available) {
     // maintain a mapping from value number to temporary register
     HashMap<UseRecord,OPT_Register> registers = new HashMap<UseRecord,OPT_Register>();
     UseRecordSet UseRepSet = replaceLoads(ir, available, registers);
@@ -117,7 +117,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
    */
-  static final UseRecordSet replaceLoads(OPT_IR ir, OPT_DF_Solution available,
+  static UseRecordSet replaceLoads(OPT_IR ir, OPT_DF_Solution available,
                                          HashMap<UseRecord,OPT_Register> registers) {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
@@ -205,7 +205,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * @param UseRepSet stores the uses(loads) that have been eliminated
    * @param registers mapping from valueNumber -> temporary register
    */
-  static final void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet,
+  static void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet,
                                  HashMap<UseRecord,OPT_Register> registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
@@ -433,7 +433,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * narrowest common ancestor is Object.
    */
   @SuppressWarnings("unchecked")
-  public static final HashSet<Object> getCandidates(OPT_IR ir) {
+  public static HashSet<Object> getCandidates(OPT_IR ir) {
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
     // which types have we seen loads for?
     HashSet<Object> seenLoad = new HashSet<Object>(10);

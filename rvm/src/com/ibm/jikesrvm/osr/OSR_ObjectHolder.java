@@ -46,7 +46,7 @@ import org.vmmagic.unboxed.Offset;
    * The VM scope descriptor extractor can hand in an object here
    */
   @Interruptible
-  public static final int handinRefs(Object[] objs) {
+  public static int handinRefs(Object[] objs) {
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {
@@ -67,7 +67,7 @@ import org.vmmagic.unboxed.Offset;
    * Get the object handed in before, only called by specialized code.
    */
   @Inline
-  public static final Object getRefAt(int h, int i) {
+  public static Object getRefAt(int h, int i) {
         
         if (VM.TraceOnStackReplacement) {
           VM.sysWriteln("OSR_ObjectHolder getRefAt");
@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.Offset;
    * Uses magic because it must be uninterruptible
    */
   @Inline
-  public static final void cleanRefs(int i) {
+  public static void cleanRefs(int i) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }

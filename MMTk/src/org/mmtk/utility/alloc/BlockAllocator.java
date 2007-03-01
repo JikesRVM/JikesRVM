@@ -238,7 +238,7 @@ import org.vmmagic.unboxed.*;
    * @return The size in bytes of a block of this size class
    */
   @Inline
-  public static final int blockSize(int blockSizeClass) {
+  public static int blockSize(int blockSizeClass) {
     return 1 << (LOG_MIN_BLOCK + blockSizeClass);
   }
 
@@ -654,7 +654,7 @@ import org.vmmagic.unboxed.*;
    * output detailing the composition of the list.
    * @return The length of the list
    */
-  static final int sanityTraverse(Address block, Address prev,
+  static int sanityTraverse(Address block, Address prev,
                                    boolean verbose) {
     if (verbose) Log.write("[");
     boolean first = true;

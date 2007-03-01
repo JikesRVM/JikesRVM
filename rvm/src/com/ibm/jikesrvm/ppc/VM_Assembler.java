@@ -79,26 +79,26 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     return (val.toInt() & 0xFFFF);
   }
 
-  public static final int maskUpper16 (Offset val) {
+  public static int maskUpper16 (Offset val) {
    return maskUpper16(val.toInt());
   }
   
-  public static final int maskUpper16 (int val) {
+  public static int maskUpper16 (int val) {
     short s = (short) (val & 0xFFFF);
     return ((val - (int)s) >>> 16);
   }
 
-  public static final boolean fits (Offset val, int bits) {
+  public static boolean fits (Offset val, int bits) {
     Word o = val.toWord().rsha(bits-1);
     return (o.isZero() || o.isMax());
   }
 
-  public static final boolean fits (long val, int bits) {
+  public static boolean fits (long val, int bits) {
     val = val >> bits-1;
     return (val == 0L || val == -1L);
   }
 
-  public static final boolean fits (int val, int bits) {
+  public static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }

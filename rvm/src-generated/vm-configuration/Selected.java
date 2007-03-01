@@ -34,7 +34,7 @@ public class Selected {
     @Inline
     public final VM_Processor getProcessor() { return processor; } 
     @Inline
-    public static final Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; } 
+    public static Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; } 
   }
 
   @Uninterruptible
@@ -44,6 +44,6 @@ public class Selected {
     @Inline
     public final VM_Processor getProcessor() { return (VM_Processor) this; } 
     @Inline
-    public static final Mutator get() { return VM_Processor.getCurrentProcessor(); } 
+    public static Mutator get() { return VM_Processor.getCurrentProcessor(); } 
   } 
 }

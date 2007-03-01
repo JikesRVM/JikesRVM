@@ -334,7 +334,7 @@ public class VM_Lister implements VM_Constants {
     return decimal(o.toInt());
   }
 
-  static final String decimal (int n) {
+  static String decimal (int n) {
     if (n==0) return "0";
     String sign = "";
     if (n<0) {
@@ -363,19 +363,19 @@ public class VM_Lister implements VM_Constants {
     return decimal((int) s);
   }
 
-  static final String hex (Offset i) {
+  static String hex (Offset i) {
     return (hex((short) (i.toInt()>>16)) + hex((short) i.toInt()));
   }
 
-  public static final String hex (int i) {
+  public static String hex (int i) {
     return (hex((short) (i>>16)) + hex((short) i));
   }
 
-  static final String hex (short i) {
+  static String hex (short i) {
     return (hex((byte) (i>>8)) + hex((byte) i));
   }
 
-  static final String hex (byte b) {
+  static String hex (byte b) {
     int  i = b & 0xFF;
     byte j = (byte) (i/0x10);
     String s;

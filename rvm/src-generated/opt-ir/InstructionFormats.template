@@ -96,7 +96,7 @@ $$$$ END LOOP
    * @param name the name of the instruction format that the 
    *             instruction was expected to conform to.
    */
-  protected static final void fail(OPT_Instruction i, String name) {
+  protected static void fail(OPT_Instruction i, String name) {
       VM.sysWrite("Instruction "+i+" improperly accessed as "+name+"\n");
       throw new OPT_OptimizingCompilerException();
     }
@@ -111,7 +111,7 @@ $$$$ END LOOP
    * @param name the name of the instruction format that the 
    *             operator was expected to conform to.
    */
-  protected static final void fail(OPT_Operator op, String name) {
+  protected static void fail(OPT_Operator op, String name) {
       VM.sysWrite("Improper attempt to create/mutate as "+name+"\n");
       throw new OPT_OptimizingCompilerException();
     }
