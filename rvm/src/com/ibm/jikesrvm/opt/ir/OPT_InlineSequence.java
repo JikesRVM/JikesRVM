@@ -24,22 +24,22 @@ public final class OPT_InlineSequence {
   /**
    * Current method.
    */
-  public VM_NormalMethod method;
+  public final VM_NormalMethod method;
 
   /**
    * Caller info.  null if none.
    */
-  public OPT_InlineSequence caller;
+  public final OPT_InlineSequence caller;
 
   /**
    * bytecode index (in caller) of call site
    */
-  public int bcIndex;
+  public final int bcIndex;
 
   /**
    * We need more detailed information of call site than bcIndex.
    */
-  OPT_Instruction callSite;
+  final OPT_Instruction callSite;
 
   /**
    * @return contents of {@link #method}
@@ -88,6 +88,7 @@ public final class OPT_InlineSequence {
                      int bcIndex) {
     this.method = method;
     this.caller = caller;
+    this.callSite = null;
     this.bcIndex = bcIndex;
   }
 
