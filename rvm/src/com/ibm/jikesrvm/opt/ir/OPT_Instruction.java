@@ -1878,7 +1878,7 @@ public final class OPT_Instruction
    * 
    * @param n the new value for next
    */
-  protected void setNext(OPT_Instruction n) { 
+  void setNext(OPT_Instruction n) { 
     next = n; 
   }
 
@@ -1899,7 +1899,7 @@ public final class OPT_Instruction
    * 
    * @param p the new value for prev
    */
-  protected void setPrev(OPT_Instruction p) { 
+  void setPrev(OPT_Instruction p) { 
     prev = p; 
   }
 
@@ -1909,7 +1909,7 @@ public final class OPT_Instruction
    * Clear the {@link #prev} and {@link #next} fields of the instruction.
    * 
    */
-  protected void clearLinks() {
+  void clearLinks() {
     next = null;
     prev = null;
   }
@@ -1953,7 +1953,7 @@ public final class OPT_Instruction
    * 
    * @param other the instruction to link with.
    */
-  protected void linkWithNext(OPT_Instruction other) {
+  void linkWithNext(OPT_Instruction other) {
     next = other;
     other.prev = this;
   }

@@ -19,7 +19,7 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
    * The number of times that the different arms of a switch were
    * taken. By convention, the default case is the last entry.
    */
-  protected final float[] counts;
+  final float[] counts;
   
   /**
    * @param _bci the bytecode index of the source branch instruction
@@ -43,7 +43,7 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
     return getProbability(n);
   }
 
-  protected final float getProbability(int n) {
+  final float getProbability(int n) {
     if (freq > 0) {
       return counts[n] / freq;
     } else {

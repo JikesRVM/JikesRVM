@@ -1915,13 +1915,13 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     private OPT_BasicBlock[] blocks;
     private int numBlocks;
     private int current;
-    protected ComputedBBEnum(int maxBlocks) {
+    ComputedBBEnum(int maxBlocks) {
       blocks = new OPT_BasicBlock[maxBlocks];
     }
-    protected void addElement(OPT_BasicBlock b) {
+    void addElement(OPT_BasicBlock b) {
       blocks[numBlocks++] = b;
     }
-    protected void addPossiblyDuplicateElement(OPT_BasicBlock b) {
+    void addPossiblyDuplicateElement(OPT_BasicBlock b) {
       for (int i = 0; i< numBlocks; i++) {
         if (blocks[i] == b) return;
       }
@@ -1935,7 +1935,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
       return blocks[current++];
     }
     @NoInline
-    protected static void fail() throws java.util.NoSuchElementException { 
+    static void fail() throws java.util.NoSuchElementException { 
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }
@@ -1969,7 +1969,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   // Enumerate the non-handler blocks in the edge set
   static final class NormalOutEdgeEnum extends BBEnum {
     private OPT_SpaceEffGraphEdge _edge;
-    protected NormalOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
+    NormalOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
       _edge = n.firstOutEdge(); 
       current=advance();
     }
@@ -1987,7 +1987,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   // Enumerate the non-handler blocks in the edge set
   static final class ExceptionOutEdgeEnum extends BBEnum {
     private OPT_SpaceEffGraphEdge _edge;
-    protected ExceptionOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
+    ExceptionOutEdgeEnum(OPT_SpaceEffGraphNode n) { 
       _edge = n.firstOutEdge(); 
       current=advance();
     }

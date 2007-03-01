@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_WORDS_REQUIRED = 1;
-  protected static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
+  static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
 
 
   /* Mask bits to signify the start/finish of logging an object */
@@ -90,10 +90,10 @@ import org.vmmagic.pragma.*;
   public static final int    LIVE_THRESHOLD = FINALIZABLE;
   public static final int         BITS_USED = 7;
 
-  protected static final int INCREMENT_SHIFT = BITS_USED;
-  protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
-  protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
-  protected static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
+  static final int INCREMENT_SHIFT = BITS_USED;
+  static final int INCREMENT = 1<<INCREMENT_SHIFT;
+  static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
+  static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
 
   /****************************************************************************
    *

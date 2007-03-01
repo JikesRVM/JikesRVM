@@ -463,7 +463,7 @@ public final class OPT_IR {
   // TODO: Make this an anonymous local class.
   private static final class BitSetBBEnum implements OPT_BasicBlockEnumeration {
     private final Stack<OPT_BasicBlock> stack;
-    protected BitSetBBEnum(OPT_IR ir, OPT_BitVector bits) {
+    BitSetBBEnum(OPT_IR ir, OPT_BitVector bits) {
       stack = new Stack<OPT_BasicBlock>();
       int size = bits.length();
       Enumeration<OPT_BasicBlock> bbEnum = ir.getBasicBlocks();

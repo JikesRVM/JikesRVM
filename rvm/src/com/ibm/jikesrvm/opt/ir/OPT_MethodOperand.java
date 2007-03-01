@@ -40,33 +40,33 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * internal methods that don't have 'real' Java method but come from
    * VM_OutOfLineMachineCode.
    */
-  protected final VM_MemberReference memRef;
+  final VM_MemberReference memRef;
   
   /**
    * Target VM_Method of invocation.
    */
-  protected VM_Method target;
+  VM_Method target;
 
   /**
    * Is target exactly the method being invoked by this call, or is it
    * a representative for a family of virtual/interface methods?
    */
-  protected boolean isPreciseTarget;
+  boolean isPreciseTarget;
 
   /**
    * Is this the operand of a call that never returns?
    */
-  protected boolean isNonReturningCall;
+  boolean isNonReturningCall;
   
   /**
    * Is this the operand of a call that is the off-branch of a guarded inline?
    */
-  protected boolean isGuardedInlineOffBranch;
+  boolean isGuardedInlineOffBranch;
 
   /**
    * The type of the invoke (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  protected byte type = -1;
+  byte type = -1;
 
   private boolean designatedOffset = false;
   public Offset jtocOffset;

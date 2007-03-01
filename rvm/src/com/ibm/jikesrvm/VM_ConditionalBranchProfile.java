@@ -15,8 +15,8 @@ package com.ibm.jikesrvm;
  */
 public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
 
-  protected final float taken;
-  protected final boolean backwards;
+  final float taken;
+  final boolean backwards;
   
   /**
    * @param _bci the bytecode index of the source branch instruction

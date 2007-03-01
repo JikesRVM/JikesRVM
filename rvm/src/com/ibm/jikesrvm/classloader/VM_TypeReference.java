@@ -38,23 +38,23 @@ public final class VM_TypeReference {
   /**
    * The initiating class loader
    */
-  protected final ClassLoader classloader;
+  final ClassLoader classloader;
 
   /**
    * The type name
    */
-  protected final VM_Atom name;
+  final VM_Atom name;
 
   /**
    * The id of this type reference.
    */
-  protected final int id;
+  final int id;
 
   /**
    * The VM_Type instance that this type reference resolves to.
    * Null if the reference has not yet been resolved.
    */
-  protected VM_Type resolvedType;
+  VM_Type resolvedType;
 
   /**
    * Used to canonicalize TypeReferences

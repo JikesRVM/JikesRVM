@@ -35,18 +35,18 @@ import org.vmmagic.pragma.*;
   /**
    * Number of samples to be gathered before they are processed 
    */
-  protected int sampleSize;  
+  int sampleSize;  
   
   /**
    * Number of samples taken so far
    */
-  protected int numSamples;
+  int numSamples;
   
   /**
    * The sample buffer
    * Key Invariant: samples.length >= sampleSize
    */
-  protected int[] samples;
+  int[] samples;
   
   /**
    * @param sampleSize the initial sampleSize for the listener

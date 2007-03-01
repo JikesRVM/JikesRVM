@@ -35,7 +35,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
   /**
    * Accumulated cycles spent in the element.
    */
-  protected long cycles;
+  long cycles;
 
   /**
    * Counters to be used by myPhase to gather phase specific stats.

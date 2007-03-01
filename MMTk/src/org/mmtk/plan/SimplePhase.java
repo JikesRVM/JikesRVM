@@ -35,13 +35,13 @@ import org.vmmagic.pragma.*;
    */
 
   /* Define the ordering of global and local collection phases */
-  protected final boolean globalFirst;
-  protected final boolean globalLast;
-  protected final boolean perCollector;
-  protected final boolean perMutator;
+  final boolean globalFirst;
+  final boolean globalLast;
+  final boolean perCollector;
+  final boolean perMutator;
 
   /* placeholder plans are no-ops */
-  protected final boolean placeholder;
+  final boolean placeholder;
 
   /**
    * Construct a phase given just a name and a global/local ordering

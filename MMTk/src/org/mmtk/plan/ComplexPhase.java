@@ -40,7 +40,7 @@ import org.vmmagic.pragma.*;
   /**
    * The phases that comprise this phase.
    */
-  protected final int[] subPhases;
+  final int[] subPhases;
 
   /**
    * Construct a complex phase from an array of phase IDs.

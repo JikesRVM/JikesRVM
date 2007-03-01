@@ -57,43 +57,43 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * The type of this location.
    */
-  protected int type;
+  int type;
 
   /**
    * Field that corresponds to this location;
    * null if this is not a field access.
    */
-  protected VM_FieldReference fieldRef;
+  VM_FieldReference fieldRef;
 
   /**
    * Method operand that corresponds to this location;
    * null if this is not a method access.
    */
-  protected OPT_MethodOperand methOp;
+  OPT_MethodOperand methOp;
 
   /**
    * Array element type that corresponds to the type of the array that contains
    * this location; null if this is not an array access.
    */
-  protected VM_TypeReference arrayElementType;
+  VM_TypeReference arrayElementType;
 
   /**
    * JTOC index that corresponds to this location.
    * -1 if this is not a JTOC access.
    */
-  protected Offset JTOCoffset = Offset.max();
+  Offset JTOCoffset = Offset.max();
 
   /**
    * Spill offset that corresponds to this location.
    * -1 if this is not a spill access.
    */
-  protected int spillOffset = -1;
+  int spillOffset = -1;
 
   /**
    * Reference number.  Set by alias analysis.
    * Used to distinguish same-type accesses.
    */
-  protected int refNumber;
+  int refNumber;
 
   /**
    * Constructs a new location operand with the given field.
