@@ -112,7 +112,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Uninterruptible
   @Inline
   private static int getFirstLocalOffset (VM_NormalMethod method) {
-    if (method.getDeclaringClass().isBridgeFromNative())
+    if (method.getDeclaringClass().hasBridgeFromNativeAnnotation())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     else
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
@@ -2516,7 +2516,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   
   private void genPrologue () {
     if (shouldPrint) asm.comment("prologue for " + method);
-    if (klass.isBridgeFromNative()) {
+    if (klass.hasBridgeFromNativeAnnotation()) {
       // replace the normal prologue with a special prolog
       VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method, compiledMethod.getId());
       // set some constants for the code generation of the rest of the method
@@ -2570,7 +2570,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
        * JTOC and EBX saved above.
        */
       // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
-      if (klass.isDynamicBridge()) {
+      if (klass.hasDynamicBridgeAnnotation()) {
         savedRegistersSize += 2 << LG_WORDSIZE;
         asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
         asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
@@ -2641,11 +2641,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
   
   private void genEpilogue (int bytesPopped) {
-    if (klass.isBridgeFromNative()) {
+    if (klass.hasBridgeFromNativeAnnotation()) {
       // pop locals and parameters, get to saved GPR's
       asm.emitADD_Reg_Imm(SP, (this.method.getLocalWords() << LG_WORDSIZE));
       VM_JNICompiler.generateEpilogForJNIMethod(asm, this.method);
-    } else if (klass.isDynamicBridge()) {
+    } else if (klass.hasDynamicBridgeAnnotation()) {
       // we never return from a DynamicBridge frame
       asm.emitINT_Imm(0xFF);
     } else {
@@ -3684,7 +3684,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // baseline invocation
     // one paramater, on the stack  -- actual code
     if (methodName == VM_MagicNames.dynamicBridgeTo) {
-      if (VM.VerifyAssertions) VM._assert(klass.isDynamicBridge());
+      if (VM.VerifyAssertions) VM._assert(klass.hasDynamicBridgeAnnotation());
 
       // save the branch address for later
       asm.emitPOP_Reg (S0);             // S0<-code address

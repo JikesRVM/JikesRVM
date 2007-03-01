@@ -142,7 +142,7 @@ public abstract class VM_RuntimeMeasurements {
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
+          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) { 
         ypTakenInCallerCMID = -1;  
       } 
 
@@ -247,7 +247,7 @@ public abstract class VM_RuntimeMeasurements {
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
+          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) { 
         ypTakenInCallerCMID = -1;  
       } 
  
@@ -296,7 +296,7 @@ public abstract class VM_RuntimeMeasurements {
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) {
+          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
         // drop sample
       } else {
         // Notify all registered listeners

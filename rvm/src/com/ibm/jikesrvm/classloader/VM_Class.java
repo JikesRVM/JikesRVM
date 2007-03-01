@@ -727,7 +727,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Return true if the SynchronizedObject annotation is present.
    * @see SynchronizedObject
    */
-  final boolean isSynchronizedObject() {
+  final boolean hasSynchronizedObjectAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SynchronizedObject);
   }
 
@@ -737,7 +737,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @see DynamicBridge
    */
   @Uninterruptible
-  public final boolean isDynamicBridge () {
+  public final boolean hasDynamicBridgeAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.DynamicBridge);
   }
 
@@ -747,7 +747,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * a special prolog to interface with the native stack frame.
    */
   @Uninterruptible
-  public final boolean isBridgeFromNative() {
+  public final boolean hasBridgeFromNativeAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.NativeBridge);
   }
 
@@ -755,85 +755,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Should the methods of this class save incoming registers ?
    * @see SaveVolatile
    */
-  public final boolean isSaveVolatile() {
+  public final boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SaveVolatile);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * Interruptible pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * Interruptible pragma annotation.
-   * @see Interruptible
-   */
-  public final boolean isInterruptible() {
-    return isAnnotationDeclared(VM_TypeReference.Interruptible);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * LogicallyUninterruptible pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * LogicallyUninterruptible pragma annotation.
-   * @see LogicallyUninterruptible
-   */
-  public final boolean isLogicallyUninterruptible() {
-    return isAnnotationDeclared(VM_TypeReference.LogicallyUninterruptible);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * NoOptCompile pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * NoOptCompile pragma annotation.
-   * @see NoOptCompile
-   */
-  public final boolean isNoOptCompile() {
-    return isAnnotationDeclared(VM_TypeReference.NoOptCompile);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * Preemptable pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * Preemptable pragma annotation.
-   * @see Preemptible
-   */
-  public final boolean isPreemptible() {
-    return isAnnotationDeclared(VM_TypeReference.Preemptible);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * UninterruptibleNoWarn pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * UninterruptibleNoWarn pragma annotation.
-   * @see UninterruptibleNoWarn
-   */
-  public final boolean isUninterruptibleNoWarn() {
-    return isAnnotationDeclared(VM_TypeReference.UninterruptibleNoWarn);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * Uninterruptible pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * Uninterruptible pragma annotation.
-   * @see Uninterruptible
-   */
-  public final boolean isUninterruptible() {
-    return isAnnotationDeclared(VM_TypeReference.Uninterruptible);
-  }
-
-  /**
-   * Does this class, its parents or one of its interfaces have an
-   * Unpreemptable pragma annotation?
-   * @return true if this class, its parents or one of its interfaces has an
-   * Unpreemptable pragma annotation.
-   * @see Unpreemptible
-   */
-  public final boolean isUnpreemptible() {
-    return isAnnotationDeclared(VM_TypeReference.Unpreemptible);
   }
 
   /**
@@ -1561,7 +1484,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       alignment= superClass.alignment;
     }
 
-    if (isSynchronizedObject() || this == VM_Type.JavaLangClassType)
+    if (hasSynchronizedObjectAnnotation() || this == VM_Type.JavaLangClassType)
       VM_ObjectModel.allocateThinLock(this);
 
     if (VM.verboseClassLoading) VM.sysWrite("[Preparing "+this+"]\n");
@@ -1606,7 +1529,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
         if (VM.VerifyUnint) {
           if (method.isUninterruptible() && method.isSynchronized()) {
-            if (VM.ParanoidVerifyUnint || !method.isAnnotationPresent(LogicallyUninterruptible.class)) {
+            if (VM.ParanoidVerifyUnint || !method.hasLogicallyUninterruptibleAnnotation()) {
               VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
             }
           }

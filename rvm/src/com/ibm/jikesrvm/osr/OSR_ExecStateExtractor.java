@@ -61,7 +61,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
         Offset instrOff = cm.getInstructionOffset(ip);
         cm.printStackTrace(instrOff, PrintContainer.get(System.out));
 
-        if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
+        if (cm.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           fp = VM_Runtime.unwindNativeStackFrame(fp);
         }
       }

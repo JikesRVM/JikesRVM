@@ -147,7 +147,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean hasInlinePragma(VM_Method callee, 
                                         OPT_CompilationState state) {
-    if (callee.hasInlinePragma()) return true;
+    if (callee.hasInlineAnnotation()) return true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!

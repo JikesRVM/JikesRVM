@@ -123,7 +123,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeRegisterLocation         = Address.zero();
     bridgeSpilledParamLocation     = Address.zero();
     
-    if (currentMethod.getDeclaringClass().isDynamicBridge()) {
+    if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       Address        ip                       = VM_Magic.getReturnAddress(fp);
                         fp                       = VM_Magic.getCallerFramePointer(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);

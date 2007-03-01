@@ -141,7 +141,7 @@ import org.vmmagic.unboxed.*;
     bridgeRegisterLocation         = Address.zero();
     bridgeSpilledParamLocation     = Address.zero();
 
-    if (currentMethod.getDeclaringClass().isDynamicBridge()) {
+    if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       fp                       = VM_Magic.getCallerFramePointer(fp);
       Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
@@ -397,7 +397,7 @@ import org.vmmagic.unboxed.*;
   
   private void updateCallerRegisterLocations() {
     //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
-    if (!currentMethod.getDeclaringClass().isDynamicBridge()) {
+    if (!currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
       Address addr = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
       addr = addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER +1 ) << LOG_BYTES_IN_DOUBLE); //skip float registers

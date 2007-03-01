@@ -624,7 +624,7 @@ public abstract class OSR_OptExecStateExtractor
                 
         VM.disableGC();
         fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
-        if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
+        if (cm.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           fp = VM_Runtime.unwindNativeStackFrame(fp);
         }
       }

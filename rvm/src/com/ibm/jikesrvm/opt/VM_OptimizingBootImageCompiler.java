@@ -88,7 +88,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
    * @return the compiled method
    */
   protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
-    if (method.hasNoOptCompilePragma()) {
+    if (method.hasNoOptCompileAnnotation()) {
       return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;

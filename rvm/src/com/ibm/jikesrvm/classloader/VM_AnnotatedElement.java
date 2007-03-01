@@ -148,12 +148,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * element?
    */
   public final boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-    if (!VM.runningVM) {
-      final VM_TypeReference reference = VM_TypeReference.findOrCreate(annotationClass);
-      return isAnnotationDeclared(reference);
-    } else {
       return getAnnotation(annotationClass) != null;
-    }
   }
 
   /**
@@ -169,7 +164,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Return true if annotation is in specified set.
    */
   @Uninterruptible
-  static boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef,
+  private static boolean isAnnotationPresent(final VM_TypeReference annotationTypeRef,
                                      final VM_Annotation[] annotations) {
     for (VM_Annotation annotation : annotations) {
       if( annotation.getType().equals(annotationTypeRef.getName()) &&
@@ -178,5 +173,93 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       }
     }
     return false;
+  }
+
+  /**
+   * Return true if this element has a Interruptible annotation.
+   * @see org.vmmagic.pragma.Interruptible
+   */
+  public final boolean hasInterruptibleAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Interruptible);
+  }
+
+  /**
+   * Return true if this element has a LogicallyUninterruptible annotation.
+   * @see org.vmmagic.pragma.LogicallyUninterruptible
+   */
+  public final boolean hasLogicallyUninterruptibleAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.LogicallyUninterruptible);
+  }
+
+  /**
+   * Return true if this element has a NoOptCompile annotation.
+   * @see org.vmmagic.pragma.NoOptCompile
+   */
+  public final boolean hasNoOptCompileAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoOptCompile);
+  }
+
+  /**
+   * Return true if this element has a Preemptible annotation.
+   * @see org.vmmagic.pragma.Preemptible
+   */
+  public final boolean hasPreemptibleAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Preemptible);
+  }
+
+  /**
+   * Return true if this element has a UninterruptibleNoWarn annotation.
+   * @see org.vmmagic.pragma.UninterruptibleNoWarn
+   */
+  public final boolean hasUninterruptibleNoWarnAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.UninterruptibleNoWarn);
+  }
+
+  /**
+   * Return true if this element has a Uninterruptible annotation.
+   * @see org.vmmagic.pragma.Uninterruptible
+   */
+  public final boolean hasUninterruptibleAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Uninterruptible);
+  }
+
+  /**
+   * Return true if this element has a Unpreemptible annotation.
+   * @see org.vmmagic.pragma.Unpreemptible
+   */
+  public final boolean hasUnpreemptibleAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Unpreemptible);
+  }
+
+  /**
+   * Return true if this element has a Inline annotation.
+   * @see org.vmmagic.pragma.Inline
+   */
+  public final boolean hasInlineAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Inline);
+  }
+
+  /**
+   * Return true if this element has a NoInline annotation.
+   * @see org.vmmagic.pragma.NoInline
+   */
+  public final boolean hasNoInlineAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoInline);
+  }
+  
+  /**
+   * Return true if this element has a BaselineNoRegisters annotation.
+   * @see org.vmmagic.pragma.BaselineNoRegisters
+   */
+  public final boolean hasBaselineNoRegistersAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.BaselineNoRegisters);
+  }
+  
+  /**
+   * Return true if this element has a BaselineSaveLSRegisters annotation.
+   * @see org.vmmagic.pragma.BaselineSaveLSRegisters
+   */
+  public final boolean hasBaselineSaveLSRegistersAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.BaselineSaveLSRegisters);
   }
 }

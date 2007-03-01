@@ -109,7 +109,7 @@ public class VM_StackTrace implements VM_Constants {
           if (record) {
             offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip).toInt();
           }
-          if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+          if (compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
             // skip native frames, stopping at last native frame preceeding the
             // Java To C transition frame
             fp = VM_Runtime.unwindNativeStackFrame(fp);  

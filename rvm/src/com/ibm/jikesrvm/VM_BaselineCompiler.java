@@ -218,7 +218,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
 
     // determine if we are going to insert edge counters for this method
     if (options.EDGE_COUNTERS && 
-        !method.getDeclaringClass().isBridgeFromNative() &&
+        !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
         (method.hasCondBranch() || method.hasSwitch())) {
       ((VM_BaselineCompiledMethod)compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
     }

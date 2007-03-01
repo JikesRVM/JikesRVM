@@ -321,22 +321,22 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * If not, throw a non-fatal run-time exception.
    */
   private static void checkSupported (VM_NormalMethod method, OPT_Options options) {
-    if (method.getDeclaringClass().isDynamicBridge()) {
+    if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
-    if (method.getDeclaringClass().isBridgeFromNative()) {
+    if (method.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       String msg = "Native Bridge prologue not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
-    if (method.hasNoOptCompilePragma()) {
+    if (method.hasNoOptCompileAnnotation()) {
       String msg = "Method throws NoOptCompilePragma";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
     if (options.hasEXCLUDE()) {
       String name = method.getDeclaringClass().toString() + "." + method.getName();
       if (options.fuzzyMatchEXCLUDE(name)) {
-        if (!method.getDeclaringClass().isSaveVolatile()) {
+        if (!method.getDeclaringClass().hasSaveVolatileAnnotation()) {
           throw new OPT_OptimizingCompilerException("method excluded", false);
         }
       }

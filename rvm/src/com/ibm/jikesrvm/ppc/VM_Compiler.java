@@ -83,7 +83,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     super(cm);
     localFixedLocations = genLocLoc;
     localFloatLocations = floatLocLoc;
-    use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.isAnnotationPresent(BaselineNoRegisters.class);
+    use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.hasBaselineNoRegistersAnnotation();
  
     if (VM.VerifyAssertions) VM._assert(T6 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
@@ -124,7 +124,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   @Uninterruptible
   private int getInternalFrameSize () {
     int size = startLocalOffset;
-    if (method.getDeclaringClass().isDynamicBridge()) {
+    if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
       size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) << LOG_BYTES_IN_ADDRESS;
     } else {
@@ -143,7 +143,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   public static int getFrameSize (VM_BaselineCompiledMethod bcm) {
     VM_NormalMethod m = (VM_NormalMethod)bcm.getMethod();
     int size = getInternalStartLocalOffset(m);
-    if (m.getDeclaringClass().isDynamicBridge()) {
+    if (m.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
       size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) << LOG_BYTES_IN_ADDRESS;
     } else {
@@ -250,7 +250,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     lastFixedStackRegister =  firstFixedStackRegister -1;
     lastFloatStackRegister =  firstFloatStackRegister -1;
    
-    if(USE_NONVOLATILE_REGISTERS && method.isAnnotationPresent(BaselineSaveLSRegisters.class)) {
+    if(USE_NONVOLATILE_REGISTERS && method.hasBaselineSaveLSRegistersAnnotation()) {
       //methods with SaveLSRegisters pragma need to save/restore ALL registers in their prolog/epilog
       lastFixedStackRegister =  LAST_FIXED_STACK_REGISTER;
       lastFloatStackRegister =  LAST_FLOAT_STACK_REGISTER;
@@ -3264,7 +3264,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // and acquire method synchronization lock.
   //
   private void genPrologue () {
-    if (klass.isBridgeFromNative()) {
+    if (klass.hasBridgeFromNativeAnnotation()) {
       VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method);
     }
 
@@ -3280,7 +3280,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     
     // If this is a "dynamic bridge" method, then save all registers except GPR0, FPR0, JTOC, and FP.
     // 
-    if (klass.isDynamicBridge()) {
+    if (klass.hasDynamicBridgeAnnotation()) {
       int offset = frameSize;
       for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
          asm.emitSTFD (i, offset -= BYTES_IN_DOUBLE, FP);
@@ -3379,7 +3379,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // Emit code to discard stackframe and return to caller.
   //
   private void genEpilogue () {
-    if (klass.isDynamicBridge()) {// Restore non-volatile registers.
+    if (klass.hasDynamicBridgeAnnotation()) {// Restore non-volatile registers.
       // we never return from a DynamicBridge frame
       asm.emitTAddrWI(-1);
     } else {
@@ -4428,7 +4428,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitMTLR(S0);                                         // ...return address
       asm.emitBCLR ();                                           // return to caller
     } else if (methodName == VM_MagicNames.dynamicBridgeTo) {
-      if (VM.VerifyAssertions) VM._assert(klass.isDynamicBridge());
+      if (VM.VerifyAssertions) VM._assert(klass.hasDynamicBridgeAnnotation());
          
       // fetch parameter (address to branch to) into CT register
       //

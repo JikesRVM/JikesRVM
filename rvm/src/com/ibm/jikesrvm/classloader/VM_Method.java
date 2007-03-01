@@ -443,14 +443,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (isObjectInitializerHelper()) return true;
-    if (isAnnotationPresent(Interruptible.class)) return true;
-    if (isAnnotationPresent(Preemptible.class)) return true;
-    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
-    if (isAnnotationPresent(Uninterruptible.class)) return false;
-    if (isAnnotationPresent(Unpreemptible.class)) return false;
-    if (getDeclaringClass().isUnpreemptible()) return false;
-    if (getDeclaringClass().isUninterruptible()) return false;
-    return true;
+    if (hasInterruptibleAnnotation()) return true;
+    if (hasPreemptibleAnnotation()) return true;
+    if (hasUninterruptibleNoWarnAnnotation()) return false;
+    if (hasUninterruptibleAnnotation()) return false;
+    if (hasUnpreemptibleAnnotation()) return false;
+    if (getDeclaringClass().hasUnpreemptibleAnnotation()) return false;
+    return !getDeclaringClass().hasUninterruptibleAnnotation();
   }
 
   /**
@@ -459,13 +458,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isUnpreemptible() {
     if (isClassInitializer() || isObjectInitializer()) return false;
     if (isObjectInitializerHelper()) return false;
-    if (isAnnotationPresent(Interruptible.class)) return false;
-    if (isAnnotationPresent(Preemptible.class)) return false;
-    if (isAnnotationPresent(Uninterruptible.class)) return false;
-    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return false;
-    if (isAnnotationPresent(Unpreemptible.class)) return true;
-    if (getDeclaringClass().isUnpreemptible()) return true;
-    return false;
+    if (hasInterruptibleAnnotation()) return false;
+    if (hasPreemptibleAnnotation()) return false;
+    if (hasUninterruptibleAnnotation()) return false;
+    if (hasUninterruptibleNoWarnAnnotation()) return false;
+    if (hasUnpreemptibleAnnotation()) return true;
+    return getDeclaringClass().hasUnpreemptibleAnnotation();
   }
 
   /**
@@ -474,40 +472,23 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isUninterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return false;
     if (isObjectInitializerHelper()) return false;
-    if (isAnnotationPresent(Interruptible.class)) return false;
-    if (isAnnotationPresent(Preemptible.class)) return false;
-    if (isAnnotationPresent(Unpreemptible.class)) return false;
-    if (isAnnotationPresent(Uninterruptible.class)) return true;
-    if (isAnnotationPresent(UninterruptibleNoWarn.class)) return true;
-    if (getDeclaringClass().isUninterruptible()) return true;
-    return false;
+    if (hasInterruptibleAnnotation()) return false;
+    if (hasPreemptibleAnnotation()) return false;
+    if (hasUnpreemptibleAnnotation()) return false;
+    if (hasUninterruptibleAnnotation()) return true;
+    if (hasUninterruptibleNoWarnAnnotation()) return true;
+    return getDeclaringClass().hasUninterruptibleAnnotation();
   }
 
-  /**
-   * Has this method been marked as mandatory to inline?
-   * ie., it implements the <CODE>Inline</CODE> exception?
-   */
-  public final boolean hasInlinePragma() {
-    return isAnnotationPresent(Inline.class);
-  }
-    
   /**
    * Has this method been marked as forbidden to inline?
    * ie., it is marked with the <CODE>NoInline</CODE> annotation or
    * the <CODE>NoOptCompile</CODE> annotation?
    */
   public final boolean hasNoInlinePragma() {
-    return (isAnnotationPresent(NoInline.class) || isAnnotationPresent(NoOptCompile.class));
+    return (hasNoInlineAnnotation() || hasNoOptCompileAnnotation());
   }
-    
-  /**
-   * Has this method been marked as no opt compile?
-   * ie., it is marked with the <CODE>NoOptCompile</CODE> annotation?
-   */
-  public final boolean hasNoOptCompilePragma() {
-    return isAnnotationPresent(NoOptCompile.class);
-  }
-    
+
   /**
    * @return true if the method may write to a given field
    */

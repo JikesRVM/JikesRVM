@@ -140,6 +140,12 @@ public final class VM_TypeReference {
   public static final VM_TypeReference UninterruptibleNoWarn = findOrCreate("Lorg/vmmagic/pragma/UninterruptibleNoWarn;");
   public static final VM_TypeReference Uninterruptible = findOrCreate("Lorg/vmmagic/pragma/Uninterruptible;");
   public static final VM_TypeReference Unpreemptible = findOrCreate("Lorg/vmmagic/pragma/Unpreemptible;");
+  public static final VM_TypeReference Inline = findOrCreate("Lorg/vmmagic/pragma/Inline;");
+  public static final VM_TypeReference NoInline = findOrCreate("Lorg/vmmagic/pragma/NoInline;");
+  public static final VM_TypeReference BaselineNoRegisters = 
+      VM.BuildForIA32 ? null : findOrCreate("Lorg/vmmagic/pragma/BaselineNoRegisters;");
+  public static final VM_TypeReference BaselineSaveLSRegisters = 
+      VM.BuildForIA32 ? null : findOrCreate("Lorg/vmmagic/pragma/BaselineSaveLSRegisters;");
 
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/jikesrvm/classloader/VM_Array;");
 

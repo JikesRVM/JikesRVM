@@ -175,7 +175,7 @@ public abstract class OSR_BaselineExecStateExtractor
     // the threadswitchfrom... method on the other hand can be baseline or opt! 
     if (cType == VM_CompiledMethod.BASELINE) {
       if (VM.VerifyAssertions){
-        VM._assert(bufCM.getMethod().isAnnotationPresent(BaselineSaveLSRegisters.class));
+        VM._assert(bufCM.getMethod().hasBaselineSaveLSRegistersAnnotation());
         VM._assert(methFPoff.EQ(tsFromFPoff.plus(VM_Compiler.getFrameSize((VM_BaselineCompiledMethod)bufCM))));
       }
 

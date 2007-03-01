@@ -419,7 +419,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
   private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, 
                                                                   OPT_CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
-      if (method.hasNoOptCompilePragma()) return fallback(method);
+      if (method.hasNoOptCompileAnnotation()) return fallback(method);
       try {
         return optCompile(method, plan);
       } catch (OPT_OptimizingCompilerException e) {

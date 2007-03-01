@@ -328,7 +328,7 @@ import org.vmmagic.pragma.*;
     
     /* skip preceeding native frames if this frame is a native bridge */
     if (compiledMethodType != VM_CompiledMethod.TRAP &&
-        compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+        compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       fp = VM_Runtime.unwindNativeStackFrameForGC(fp);
       if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
     }

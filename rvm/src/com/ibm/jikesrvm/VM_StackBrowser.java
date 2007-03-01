@@ -38,7 +38,7 @@ public final class VM_StackBrowser implements VM_Constants {
 
   private boolean upOneFrameInternal(boolean set) {
     Address fp;
-    if (currentMethod != null && currentMethod.getDeclaringClass().isBridgeFromNative()) 
+    if (currentMethod != null && currentMethod.getDeclaringClass().hasBridgeFromNativeAnnotation()) 
       fp = VM_Runtime.unwindNativeStackFrame(currentFramePointer);
     else 
       fp = currentFramePointer;

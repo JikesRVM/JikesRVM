@@ -200,15 +200,15 @@ public abstract class VM_RecompilationStrategy {
       { 
         // Prevent the adaptive system from recompiling certain classes
         // of baseline compiled methods.
-        if (cmpMethod.getMethod().getDeclaringClass().isDynamicBridge()) {
+        if (cmpMethod.getMethod().getDeclaringClass().hasDynamicBridgeAnnotation()) {
           // The opt compiler does not implement this calling convention.
           return -1;
         } 
-        if (cmpMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+        if (cmpMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           // The opt compiler does not implement this calling convention.
           return -1;
         }
-        if (cmpMethod.getMethod().hasNoOptCompilePragma()) {
+        if (cmpMethod.getMethod().hasNoOptCompileAnnotation()) {
           // Explict declaration that the method should not be opt compiled.
           return -1;
         }

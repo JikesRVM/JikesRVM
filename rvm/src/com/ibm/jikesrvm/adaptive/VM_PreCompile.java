@@ -75,7 +75,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
         
         // If found, compile it
         if ((method != null) &&
-            ! method.hasNoOptCompilePragma() &&
+            !method.hasNoOptCompileAnnotation() &&
             (method instanceof com.ibm.jikesrvm.classloader.VM_NormalMethod)) {
           // if user's requirement is higher than advice
           if ((((com.ibm.jikesrvm.opt.OPT_Options)VM_RuntimeCompiler.options).getOptLevel() > value.getOptLevel())
