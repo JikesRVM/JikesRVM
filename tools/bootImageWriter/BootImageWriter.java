@@ -341,19 +341,14 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static TraceContext traceContext = new TraceContext();
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "UnusedDeclaration"})
   private static Object sillyhack;
-
-
-
 
   /**
    * Main.
    * @param args command line arguments
    */
-  public static void main(String[] args)
-    throws Exception
-  {
+  public static void main(String[] args) {
     String   bootImageCodeName     = null;
     String   bootImageDataName     = null;
     String   bootImageRMapName     = null;
@@ -972,7 +967,7 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static void createBootImageObjects(Vector<String> typeNames,
                                             String bootImageTypeNamesFile) 
-    throws IllegalAccessException, ClassNotFoundException {    
+    throws IllegalAccessException {    
       VM_Callbacks.notifyBootImage(typeNames.elements());
       long startTime = 0;
       long stopTime = 0;
@@ -1938,9 +1933,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param rvmFieldName the name of the field
    * @param rvmFieldType the type reference of the field
    */
-  private static boolean copyKnownClasspathStaticField(Class jdkType, String rvmFieldName, VM_TypeReference rvmFieldType, Offset rvmFieldOffset)
-    throws IllegalAccessException
-  {
+  private static boolean copyKnownClasspathStaticField(Class jdkType, String rvmFieldName, VM_TypeReference rvmFieldType, Offset rvmFieldOffset) {
     // java.lang.Number
     if ((jdkType.equals(java.lang.Number.class)) &&
         (rvmFieldName.equals("digits")) &&
