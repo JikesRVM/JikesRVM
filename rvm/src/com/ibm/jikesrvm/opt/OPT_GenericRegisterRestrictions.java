@@ -210,9 +210,8 @@ public abstract class OPT_GenericRegisterRestrictions {
     if (li2.getBegin() != null) {
       begin2 = li2.getBegin().scratch;
     }
-    if (end1 <= begin2 && end1 > -1) return false;
+    return end1 > begin2 || end1 <= -1;
 
-    return true;
   }
 
   /**

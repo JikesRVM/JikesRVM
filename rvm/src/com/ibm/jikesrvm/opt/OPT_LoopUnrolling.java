@@ -730,17 +730,11 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
 		// if no definitions of this register (very strange) give up
-		if(defs.hasMoreElements() == false) return false;
+		if(!defs.hasMoreElements()) return false;
 		OPT_Instruction inst = defs.next().instruction;
 		// if multiple definitions of a register give up as follow may
 		// fail to give the correct invariant
-		if(defs.hasMoreElements() == true) return false;
-		if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop) == false) {
-		  return true;
-		}
-		else {
-		  return false;
-		}
+      return !defs.hasMoreElements() && !OPT_CFGTransformations.inLoop(inst.getBasicBlock(), nloop);
     }
 	 else {
 		return false;

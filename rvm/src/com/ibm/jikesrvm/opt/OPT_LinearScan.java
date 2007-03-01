@@ -623,30 +623,18 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         if (live.getBegin() == bb.firstRealInstruction()) {
           // live starts the basic block.  Now make sure it is contiguous
           // with the last interval.
-          if (last.getEnd() + 1 < dfnBegin) {
-            return false;
-          } else {
-            return true;
-          }
+          return last.getEnd() + 1 >= dfnBegin;
         } else {
           // live does not start the basic block.  Merge with last iff
           // last and live share an instruction.  This happens when a
           // register is def'ed and use'd in the same instruction.
-          if (last.getEnd() == dfnBegin) {
-            return true;
-          } else {
-            return false;
-          }
+          return last.getEnd() == dfnBegin;
         }
       } else {
         // live.getBegin == null.  
         // Merge if it is contiguous with the last interval.
         int dBegin = getDFN(bb.firstInstruction());
-        if (last.getEnd() + 1 < dBegin) {
-          return false;
-        } else {
-          return true;
-        }
+        return last.getEnd() + 1 >= dBegin;
       }
     }
 
@@ -1560,10 +1548,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         if (restrict.isForbidden(symb,p)) System.out.println("forbidden" + symb + p);
       }
 
-      if ((p != null) && p.isAvailable() && !restrict.isForbidden(symb,p)) {
-        return true;
-      }
-      return false;
+      return (p != null) && p.isAvailable() && !restrict.isForbidden(symb, p);
     }
 
 

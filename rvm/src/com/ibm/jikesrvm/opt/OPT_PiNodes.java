@@ -384,10 +384,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
-    if (g.asRegister().isNotTaken()) 
-      return true;
-    else
-      return false;
+    return g.asRegister().isNotTaken();
   }
   /**
    * Is an instruction a Pi node linked to the <em>taken</em> edge of
@@ -397,10 +394,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
-    if (g.asRegister().isTaken()) 
-      return true;
-    else
-      return false;
+    return g.asRegister().isTaken();
   }
   /**
    * Is an instruction a Pi node linked to a bounds-check?
@@ -409,10 +403,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
-    if (g.asRegister().isBoundsCheck()) 
-      return true;
-    else
-      return false;
+    return g.asRegister().isBoundsCheck();
   }
   /**
    * Is an instruction a Pi node linked to a null-check?
@@ -421,9 +412,6 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
-    if (g.asRegister().isNullCheck()) 
-      return true;
-    else
-      return false;
+    return g.asRegister().isNullCheck();
   }
 }

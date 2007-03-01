@@ -1132,15 +1132,10 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    */ 
   public static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method mth) {
     int offset;
-    boolean usesVarargs;
     int varargAmount = 0;
     
     String mthName = mth.getName().toString();
-    if ((mthName.startsWith("Call") && mthName.endsWith("Method")) ||
-        mthName.equals("NewObject"))
-      usesVarargs = true;
-    else
-      usesVarargs = false;
+    final boolean usesVarargs = (mthName.startsWith("Call") && mthName.endsWith("Method")) || mthName.equals("NewObject");
 
     if (VM.BuildForMachOABI) {
       // Find extra amount of space that needs to be added to the frame

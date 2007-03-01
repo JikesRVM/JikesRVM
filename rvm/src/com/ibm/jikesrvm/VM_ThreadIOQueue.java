@@ -235,12 +235,7 @@ import org.vmmagic.pragma.*;
     VM_Processor.getCurrentProcessor().isInSelect = false;
 
     // Did the select() succeed?
-    if (ret == -1) {
-      // VM_Scheduler.trace("VM_ThreadIOQueue", "isReady: select() error");
-      return false; // can happen if foreign host disconnects one of the sockets unexpectedly
-    }
-
-    return true;
+    return ret != -1;
   }
 
   /**

@@ -31,10 +31,7 @@ class OPT_SpaceEffGraphNodeList
   }
 
   public boolean hasMoreElements() {
-    if (_next == null)
-      return  false; 
-    else 
-      return  true;
+    return _next != null;
   }
 
   // return the next GraphNodeList element.

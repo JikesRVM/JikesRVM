@@ -54,10 +54,6 @@ public class OPT_Stack<T> implements Iterable<T> {
     return  isEmpty();
   }
 
-//  public final int search(T obj) {
-//    return stack.indexOf(obj);
-//  }
-
   public final boolean compare(OPT_Stack<T> s2) {
     Iterator<T> i1 = iterator();
     Iterator<T> i2 = s2.iterator();
@@ -70,10 +66,7 @@ public class OPT_Stack<T> implements Iterable<T> {
       if (t1 != t2)
         return false;
     }
-    if (i1.hasNext() || i2.hasNext())
-      return false;
-    else
-      return true;
+    return !i1.hasNext() && !i2.hasNext();
   }
 
   public final OPT_Stack<T> copy() {

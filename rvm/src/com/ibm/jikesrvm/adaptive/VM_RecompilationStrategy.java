@@ -149,13 +149,9 @@ public abstract class VM_RecompilationStrategy {
         transferSamplesToNewPlan(hme);
         return false;
       }
-      if (VM_ControllerMemory.planWithStatus(method, 
-                                             VM_ControllerPlan.ABORTED_COMPILATION_ERROR)) {
-        // AOS failed to successfully recompile this method before.  
-        // Don't try it again.
-        return false;
-      }
-      return true;
+      // if AOS failed to successfully recompile this method before.  
+      // Don't try it again.
+      return !VM_ControllerMemory.planWithStatus(method, VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
     }
   }
 

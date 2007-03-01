@@ -262,8 +262,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     if (current.scratch == searchnum) return false;
     current.scratch = searchnum;
     OPT_BURS_TreeNode root = (OPT_BURS_TreeNode)current.scratchObject;
-    if (reachableChild(root, goal, searchnum)) return true;
-    return false;
+    return reachableChild(root, goal, searchnum);
   }
   private boolean reachableChild(OPT_BURS_TreeNode n,
                                  OPT_SpaceEffGraphNode goal,

@@ -1613,11 +1613,8 @@ public class PPC_Disassembler implements VM_Constants {
     default: /* definitely not a branch */
       link = 0;
     }
-    
-    if (link==0)
-      return false;
-    else
-      return true;
+
+    return link != 0;
   }
 
   /*
@@ -1634,10 +1631,7 @@ public class PPC_Disassembler implements VM_Constants {
     link = bits(inst,31,31);
     switch (opcode) {
     case 16: /* unconditional branch */
-      if (link==1)
-        return true;
-      else
-        return false;
+      return link == 1;
     }
     
     return false;

@@ -170,11 +170,8 @@ public final class OPT_GlobalValueNumberState {
    boolean DS (Object name1, Object name2) {
      OPT_ValueGraphVertex v1 = valueGraph.getVertex(name1);
      OPT_ValueGraphVertex v2 = valueGraph.getVertex(name2);
-     if (v1.getValueNumber() == v2.getValueNumber())
-      return  true; 
-    else 
-      return  false;
-  }
+     return v1.getValueNumber() == v2.getValueNumber();
+   }
 
   /** 
    * Definitely-different relation for two value numbers.

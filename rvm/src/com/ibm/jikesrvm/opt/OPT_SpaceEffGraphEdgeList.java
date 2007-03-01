@@ -27,10 +27,7 @@ class OPT_SpaceEffGraphEdgeList
   OPT_SpaceEffGraphEdgeList _prev;
 
   public boolean hasMoreElements() {
-    if (_next == null)
-      return  false; 
-    else 
-      return  true;
+    return _next != null;
   }
 
   public OPT_SpaceEffGraphEdgeList nextElement() {

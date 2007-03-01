@@ -809,12 +809,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @return true => block is in the loop, false => block not in loop
    */
   public boolean isInLoop (OPT_BasicBlock block){
-    if (OPT_CFGTransformations.inLoop(block, loop) == true) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return OPT_CFGTransformations.inLoop(block, loop);
   }
 
   /**

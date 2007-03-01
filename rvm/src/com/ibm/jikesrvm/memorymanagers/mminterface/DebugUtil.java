@@ -182,12 +182,7 @@ import com.ibm.jikesrvm.VM_Thread;
   }
 
   public static boolean addrInBootImage(Address addr) {
-    if (addr.GE(BOOT_IMAGE_DATA_START) && addr.LT(BOOT_IMAGE_DATA_END)) {
-      return true;
-    }
-    if (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END)) {
-      return true;
-    }
-    return false;
+    return (addr.GE(BOOT_IMAGE_DATA_START) && addr.LT(BOOT_IMAGE_DATA_END)) ||
+        (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END));
   }
 } 

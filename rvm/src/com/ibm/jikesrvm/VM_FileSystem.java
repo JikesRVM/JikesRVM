@@ -518,8 +518,7 @@ public class VM_FileSystem {
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
     int rc = VM_SysCall.sysDelete(asciiName);
-    if (rc == 0) return true;
-    else return false;
+    return rc == 0;
   } 
 
   /**
@@ -538,8 +537,7 @@ public class VM_FileSystem {
 
     int rc = VM_SysCall.sysRename(fromCharStar, toCharStar);
 
-    if (rc == 0) return true;
-    else return false;
+    return rc == 0;
   } 
 
 

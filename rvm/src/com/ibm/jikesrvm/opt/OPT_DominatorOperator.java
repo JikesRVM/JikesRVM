@@ -39,10 +39,7 @@ class OPT_DominatorOperator extends OPT_DF_Operator {
     }
     newDominators.set(bb.getNumber());
     lhs.dominators = newDominators;
-    if (lhs.dominators.equals(oldSet))
-      return  false; 
-    else 
-      return  true;
+    return !lhs.dominators.equals(oldSet);
   }
 
   /** 

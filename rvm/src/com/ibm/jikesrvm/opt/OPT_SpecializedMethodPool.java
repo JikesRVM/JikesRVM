@@ -51,10 +51,7 @@ public class OPT_SpecializedMethodPool {
    * @param smid
    */
   public static boolean hasCompiledVersion (int smid) {
-    if (specializedMethods[smid] != null) {
-      return  true;
-    }
-    return  false;
+    return specializedMethods[smid] != null;
   }
 
   /**

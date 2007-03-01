@@ -25,11 +25,7 @@ class OPT_FI_EscapeSummary {
    */
   boolean isThreadLocal (OPT_Register r) {
     Object result = hash.get(r);
-    if (result == null)
-      return  false;
-    if (result == THREAD_LOCAL)
-      return  true;
-    return  false;
+    return result != null && result == THREAD_LOCAL;
   }
 
   /**
@@ -38,11 +34,7 @@ class OPT_FI_EscapeSummary {
    */
   boolean isMethodLocal (OPT_Register r) {
     Object result = hash2.get(r);
-    if (result == null)
-      return  false;
-    if (result == METHOD_LOCAL)
-      return  true;
-    return  false;
+    return result != null && result == METHOD_LOCAL;
   }
 
   /** 

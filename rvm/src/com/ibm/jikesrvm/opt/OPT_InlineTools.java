@@ -52,7 +52,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     if (callee.isFinal() || 
         callee.getDeclaringClass().isFinal() || 
         callee.isPrivate() || 
-        callee.isObjectInitializer() || callee.isStatic())
+        callee.isObjectInitializer() || 
+        callee.isStatic())
       return false; 
     else 
       return true;

@@ -216,12 +216,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
       // check to see if nextBlock has only one successor, currentBlock.
       // If so, we can reuse the current set and avoid performing a meet.
-      if (nextBlock != null && 
-          bbIter.isSinglePredecessor(currentBlock, nextBlock)) {
-        reuseCurrentSet = true;
-      } else {
-        reuseCurrentSet = false;
-      }
+      reuseCurrentSet = nextBlock != null &&
+          bbIter.isSinglePredecessor(currentBlock, nextBlock);
       currentBlock = nextBlock;
     }
     debugPostGlobal(ir);
@@ -911,11 +907,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
     // during call expansion. 
-    if (regOp.register.isExcludedLiveA()
-        || (regOp.register.isValidation() && skipGuards)) {
-      return  true;
-    }
-    return  false;
+    return regOp.register.isExcludedLiveA() || (regOp.register.isValidation() && skipGuards);
   }
 
   /**

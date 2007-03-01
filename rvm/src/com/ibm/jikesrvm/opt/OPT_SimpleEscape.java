@@ -224,12 +224,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // as long as we don't store this operand elsewhere, all
         // is OK
         OPT_Operand value = AStore.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
       case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
@@ -242,44 +237,24 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case DOUBLE_LOAD_opcode: case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
-        if (result != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+      return result == use;
       case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
-        // the following instructions never cause an object to
+      return value == use;
+      // the following instructions never cause an object to
         // escape
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:
@@ -302,11 +277,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // a return instruction might cause an object to escape,
         // but not a parameter (whose escape properties are determined
         // by caller)
-        if (ir.isParameter(use))
-          return  false; 
-        else {
-          return  true;
-        }
+        return !ir.isParameter(use);
       case CALL_opcode:
         OPT_MethodOperand mop = Call.getMethod(inst);
         if (mop == null)
@@ -323,22 +294,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         }
         // if use is result of the call...
         if (use == Call.getResult(inst)) {
-          if (summ.resultMayEscapeThread()) {
-            return  true;
-          } 
-          else {
-            return  false;
-          }
+          return summ.resultMayEscapeThread();
         }
         // use is a parameter to the call.  Find out which one.
         int p = getParameterIndex(use, inst);
-        if (summ.parameterMayEscapeThread(p)) {
-          // the call may make the parameter escape
-          return  true;
-        } 
-        else {
-          return  false;
-        }
+        return summ.parameterMayEscapeThread(p);
       case REF_MOVE_opcode:case ATHROW_opcode:
       case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
       case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
@@ -386,12 +346,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // as long as we don't store this operand elsewhere, all
         // is OK
         OPT_Operand value = AStore.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
@@ -401,44 +356,24 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case INT_LOAD_opcode:case LONG_LOAD_opcode:case DOUBLE_LOAD_opcode:case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
-        if (result != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+      return result == use;
       case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
+        return value == use;
       case BYTE_STORE_opcode:case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
-        if (value != use) {
-          return  false;
-        } 
-        else {
-          return  true;
-        }
-        // the following instructions never cause an object to
+      return value == use;
+      // the following instructions never cause an object to
         // escape
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:case ARRAYLENGTH_opcode:

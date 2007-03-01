@@ -628,13 +628,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *  method entries and backedges.
    */
   public static boolean isYieldpoint(OPT_Instruction i) {
-    if (i.operator() == YIELDPOINT_PROLOGUE ||
+    return i.operator() == YIELDPOINT_PROLOGUE ||
         // Skip epilogue yieldpoints.   No checks needed for them
         //        i.operator() == YIELDPOINT_EPILOGUE ||
-        i.operator() == YIELDPOINT_BACKEDGE) 
-      return true;
+        i.operator() == YIELDPOINT_BACKEDGE;
 
-    return false;
   }
 
   /**
@@ -924,10 +922,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     // (Call.conforms(i) ||
     // if (InstrumentedCounter.conforms(i)))
 
-    if (InstrumentedCounter.conforms(i))
-      return true;
-
-    return false;
+    return InstrumentedCounter.conforms(i);
   }
 
   /**

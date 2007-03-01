@@ -842,10 +842,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   public final boolean hasNonReturningOsr() {
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
-    if (OsrPoint.conforms(s)) 
-      return true;
-    else 
-      return false;
+    return OsrPoint.conforms(s);
   }
 
   /**

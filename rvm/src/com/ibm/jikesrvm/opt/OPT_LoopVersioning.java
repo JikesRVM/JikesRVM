@@ -580,13 +580,10 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
                                          ArrayList<VM_TypeReference> types,
                                          ArrayList<OPT_Instruction> definingInstructions) {
     OPT_BasicBlockEnumeration blocks = loop.getBasicBlocks();
-    boolean escapes; // can value escape
     while(blocks.hasMoreElements()){
       OPT_BasicBlock block = blocks.next();
-      escapes = false;
-      if ((block == loop.exit) || (ir.HIRInfo.dominatorTree.dominates(block, loop.exit))) {
-        escapes = true;
-      }
+      // can value escape
+      final boolean escapes = (block == loop.exit) || (ir.HIRInfo.dominatorTree.dominates(block, loop.exit));
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, block);
       while(instructions.hasMoreElements()) {
         OPT_Instruction instruction = instructions.next();

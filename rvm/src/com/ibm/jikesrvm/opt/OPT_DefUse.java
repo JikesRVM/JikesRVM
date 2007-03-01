@@ -450,9 +450,7 @@ public final class OPT_DefUse {
    */
   private static boolean seenInDifferentBlock(OPT_Register reg, int bbNum) {
     int bb = reg.scratch;
-    if ((bb == -1) || (bb == bbNum))
-      return false;
-    return true;
+    return (bb != -1) && (bb != bbNum);
   }
 
   /**

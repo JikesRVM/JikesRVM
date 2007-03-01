@@ -141,11 +141,8 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
         bridgeSpilledParamInitialOffset =  4; // return addr
       }
       bridgeSpilledParamInitialOffset  += (4 * bridgeTarget.getParameterWords());
-      if (callingCompiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-        bridgeSpilledParameterMappingRequired = false;
-      } else {
-        bridgeSpilledParameterMappingRequired = true;
-      }
+      bridgeSpilledParameterMappingRequired = 
+          callingCompiledMethod.getCompilerType() != VM_CompiledMethod.BASELINE;
     }
         
     reset();

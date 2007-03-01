@@ -65,12 +65,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    */
   public boolean inInnermostLoop(OPT_BasicBlock bb) {
     OPT_LSTNode node = loopMap.get(bb);
-    if (node == null) return false;
-    if (node.firstOutEdge() == null && node.loop != null) { 
-      return true;
-    } else {
-      return false;
-    }
+    return node != null && node.firstOutEdge() == null && node.loop != null;
   }
 
   /**

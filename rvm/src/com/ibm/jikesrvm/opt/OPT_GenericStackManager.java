@@ -391,8 +391,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     if (bi == null) return true;
     // If the basic interval begins at s, then r is dead before
     // s.
-    else if (bi.getBegin() == OPT_LinearScan.getDFN(s)) return true;
-    else return false;
+    else return bi.getBegin() == OPT_LinearScan.getDFN(s);
   }
 
   /**
@@ -873,11 +872,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
     // Assume that all volatile registers 'appear' in all call 
     // instructions
-    if (s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile()) {
-      return true;
-    }
-
-    return false;
+    return s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile();
   }
 
 
