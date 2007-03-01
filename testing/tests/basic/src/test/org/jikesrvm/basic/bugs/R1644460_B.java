@@ -33,6 +33,7 @@ public class R1644460_B {
     System.out.println(a * b);
   }
 
+  @SuppressWarnings({"DoubleNegation"})
   private static void check(float c) {
     _assert((c == 0.10325967f));
     _assert(!(c != 0.10325967f));
