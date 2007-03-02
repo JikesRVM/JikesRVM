@@ -60,7 +60,6 @@ import org.vmmagic.unboxed.*;
   public static final int ALLOC_MATURE         = StopTheWorld.ALLOCATORS + 1;
   public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
   public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
-  public static int ALLOCATORS                 = ALLOC_MATURE_MAJORGC;
 
   /*****************************************************************************
    * 

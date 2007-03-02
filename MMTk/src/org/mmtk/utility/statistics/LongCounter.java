@@ -33,8 +33,6 @@ import org.vmmagic.pragma.*;
 
   private long startValue = 0;
   protected long totalCount = 0;
-  protected long min = 0;
-  protected long max = 0;
   private boolean running = false;
 
   /****************************************************************************
