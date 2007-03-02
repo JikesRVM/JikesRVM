@@ -55,7 +55,7 @@ final class VM_YieldCounterListener extends VM_NullListener {
   public final void reset() { }
 
   private int yieldThreshold;
-  @SuppressWarnings("unused")  // Accessed via VM_EntryPoints
-  private final int numYields = 0;
+  @SuppressWarnings({"unused", "UnusedDeclaration","CanBeFinal"})// Accessed via VM_EntryPoints
+  private int numYields = 0;
   private int totalYields = 0;
 }
