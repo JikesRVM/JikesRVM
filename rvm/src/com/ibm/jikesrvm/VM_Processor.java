@@ -31,12 +31,6 @@ implements VM_Constants {
   public static final int IN_NATIVE               = 2;
   public static final int BLOCKED_IN_NATIVE       = 3;
 
-  // fields to track attached processors - processors created for user
-  // pthreads that "enter" the VM via attachVM.
-  //
-  public static int            numberAttachedProcessors   = 0;
-  public static final VM_Processor[] attachedProcessors   = new VM_Processor[100];
-
   /**
    * Create data object to be associated with an o/s kernel thread 
    * (aka "virtual cpu" or "pthread").
@@ -706,7 +700,7 @@ implements VM_Constants {
 
   // Scratch area for use for gpr <=> fpr transfers by 
   // PPC baseline compiler
-  @SuppressWarnings("unused") // accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
   private double scratchStorage;
 
   @LogicallyUninterruptible /* GACK --dave */ 

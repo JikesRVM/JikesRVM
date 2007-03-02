@@ -25,16 +25,6 @@ import com.ibm.jikesrvm.classloader.VM_NormalMethod;
  */
 public abstract class OPT_InstrumentationPlan {
   /**
-   * Should the compiler insert basic block instrumentation 
-   */
-  public boolean insert_basic_block_counters = false;
-
-  /**
-   * Should the compiler insert method invocation counters
-   */
-  public boolean insert_method_invocation_counters = false;
-
-  /**
    * Called before at the beginning of compilation
    */
   public abstract void initInstrumentation (VM_NormalMethod method);
