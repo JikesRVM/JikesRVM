@@ -1624,7 +1624,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
           // See if this is a magic method (Address, Word, etc.)
           // If it is, generate the inline code and we are done.
-          if (ref.getType().isMagicType()) {
+          if (ref.isMagic()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
             if (generated) break; // all done.
           }
@@ -1802,7 +1802,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
           // See if this is a magic method (VM_Magic, Address, Word, etc.)
           // If it is, generate the inline code and we are done.
-          if (ref.getType().isMagicType()) {
+          if (ref.isMagic()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
             if (generated) break;
           }

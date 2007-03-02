@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.classloader.*;
@@ -200,7 +202,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     //
     
     if (!VM.singleVirtualProcessor) {
-      VM_SysCall.sysCreateThreadSpecificDataKeys();
+      sysCall.sysCreateThreadSpecificDataKeys();
       if (!VM.withoutInterceptBlockingSystemCalls) {
         /// We now insist on this happening, by using LD_PRELOAD on platforms
         /// that support it.  Do it here for backup.
@@ -208,10 +210,10 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
         System.loadLibrary("syswrap");
       }
     
-      VM_SysCall.sysInitializeStartupLocks(numProcessors);
+      sysCall.sysInitializeStartupLocks(numProcessors);
 
       if (cpuAffinity != NO_CPU_AFFINITY)
-        VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+        sysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
       
       for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
         // create VM_Thread for virtual cpu to execute
@@ -236,14 +238,14 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
           //       the opt compiler from generating code that passes the AIX 
           //       sys toc instead of the RVM jtoc. --dave
           Address toc = VM_Magic.getTocPointer();
-          VM_SysCall.sysVirtualProcessorCreate(toc,
+          sysCall.sysVirtualProcessorCreate(toc,
                                         VM_Magic.objectAsAddress(processors[i]),
                                         target.contextRegisters.ip, 
                                         target.contextRegisters.getInnermostFramePointer());
           if (cpuAffinity != NO_CPU_AFFINITY)
-            VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+            sysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
         } else if (VM.BuildForIA32) {
-          VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+          sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                                VM_Magic.objectAsAddress(processors[i]),
                                                target.contextRegisters.ip, 
                                                target.contextRegisters.getInnermostFramePointer());
@@ -253,7 +255,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 
       // wait for everybody to start up
       //
-      VM_SysCall.sysWaitForVirtualProcessorInitialization();
+      sysCall.sysWaitForVirtualProcessorInitialization();
     }
 
     allProcessorsInitialized = true;
@@ -271,12 +273,12 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
       VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
       VM.sysWriteln();
     }
-    VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
+    sysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
 
     // Allow virtual cpus to commence feeding off the work queues.
     //
     if (! VM.singleVirtualProcessor)
-      VM_SysCall.sysWaitForMultithreadingStart();
+      sysCall.sysWaitForMultithreadingStart();
 
     if (VM.BuildForAdaptiveSystem) {
       OSR_ObjectHolder.boot();
@@ -296,7 +298,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     tt.start();
 
     // Store VM_Processor in pthread
-    VM_SysCall.sysStashVmProcessorInPthread(VM_Processor.getCurrentProcessor());
+    sysCall.sysStashVmProcessorInPthread(VM_Processor.getCurrentProcessor());
   }
 
 
@@ -338,11 +340,11 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
 
     // each join with the expected pthread 
     if (VPtoWaitFor!=null) {
-      VM_SysCall.sysPthreadJoin(VPtoWaitFor.pthread_id);
+      sysCall.sysPthreadJoin(VPtoWaitFor.pthread_id);
     }
 
     // then exit myself with pthread_exit
-    VM_SysCall.sysPthreadExit();
+    sysCall.sysPthreadExit();
 
     // does not return
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -701,7 +703,7 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     } else {
       // Another failure occured while attempting to exit cleanly.  
       // Get out quick and dirty to avoid hanging.
-      VM_SysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 

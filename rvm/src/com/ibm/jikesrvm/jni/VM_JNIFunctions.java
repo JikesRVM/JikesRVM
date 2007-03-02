@@ -10,6 +10,7 @@
 package com.ibm.jikesrvm.jni;
 
 import com.ibm.jikesrvm.*;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
 import com.ibm.jikesrvm.classloader.*;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -3767,7 +3768,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       char[] contents = str.toCharArray();
 
       // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(len*2);
+      Address copyBuffer = sysCall.sysMalloc(len*2);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
@@ -3796,7 +3797,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
 
     try {
-      VM_SysCall.sysFree(bufAddress);
+      sysCall.sysFree(bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3866,7 +3867,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // alloc non moving buffer in C heap for string contents as utf8 array
       // alloc extra byte for C null terminator
-      Address copyBuffer = VM_SysCall.sysMalloc(copyBufferLen);
+      Address copyBuffer = sysCall.sysMalloc(copyBufferLen);
 
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
@@ -3899,7 +3900,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
 
     try {
-      VM_SysCall.sysFree(bufAddress);
+      sysCall.sysFree(bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4202,7 +4203,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = VM_SysCall.sysMalloc(size);
+      Address copyBuffer = sysCall.sysMalloc(size);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
@@ -4240,7 +4241,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size);
+        Address copyBuffer = sysCall.sysMalloc(size);
 
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
@@ -4285,7 +4286,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_CHAR);
+        Address copyBuffer = sysCall.sysMalloc(size*BYTES_IN_CHAR);
         if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4327,7 +4328,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_SHORT);
+        Address copyBuffer = sysCall.sysMalloc(size*BYTES_IN_SHORT);
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4369,7 +4370,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of array contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_INT);
+        Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_INT);
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4410,7 +4411,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
+        Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4451,7 +4452,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
+        Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4493,7 +4494,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
+        Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
         if(copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
@@ -4558,7 +4559,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4596,7 +4597,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       } else {
         // Nothing to be done
@@ -4636,7 +4637,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4673,7 +4674,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4710,7 +4711,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4748,7 +4749,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4785,7 +4786,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {
@@ -4822,7 +4823,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 2:  free the buffer
         if (releaseMode== 0 || releaseMode== 2) {
-          VM_SysCall.sysFree(copyBufferAddress);
+          sysCall.sysFree(copyBufferAddress);
         }
       }
     } catch (Throwable unexpected) {

@@ -10,7 +10,7 @@
 package com.ibm.jikesrvm.mm.mmtk.gcspy;
 
 import org.mmtk.utility.Log;
-import com.ibm.jikesrvm.VM_SysCall;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 import com.ibm.jikesrvm.VM;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
@@ -52,7 +52,7 @@ import org.vmmagic.pragma.*;
               boolean mainSpace) { 
     if (VM.BuildWithGCSpy) {
       spaceId = serverInterpreter.addSpace(this);
-      driver = VM_SysCall.gcspyMainServerAddDriver(serverInterpreter.getServerAddress());
+      driver = sysCall.gcspyMainServerAddDriver(serverInterpreter.getServerAddress());
       
       // Convert Strings to char *
       Address serverNameAddr = GCspy.util.getBytes(serverName);
@@ -65,7 +65,7 @@ import org.vmmagic.pragma.*;
       
       // Add the driver to the server and initialise it
       if (DEBUG) Log.writeln("--   Setting up driver");
-      VM_SysCall.gcspyDriverInit(driver, -1, serverNameAddr, driverNameAddr,
+      sysCall.gcspyDriverInit(driver, -1, serverNameAddr, driverNameAddr,
                                  titleAddr, blockInfoAddr, tileNum, 
                                  unusedAddr, mainSpace ? 1 : 0 );
     }
@@ -86,7 +86,7 @@ import org.vmmagic.pragma.*;
    */
   public void setTilename(int i, Address start, Address end) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverSetTileNameRange(driver, i, start, end);
+      sysCall.gcspyDriverSetTileNameRange(driver, i, start, end);
   }
 
   /**
@@ -97,7 +97,7 @@ import org.vmmagic.pragma.*;
    */
   public void setTilename(int i, Address format, long value) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverSetTileName(driver, i, format, value);
+      sysCall.gcspyDriverSetTileName(driver, i, format, value);
   }
 
   /**
@@ -120,7 +120,7 @@ import org.vmmagic.pragma.*;
    */
   public void resize(int size) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverResize(driver, size);
+      sysCall.gcspyDriverResize(driver, size);
   }
 
   /** 
@@ -128,7 +128,7 @@ import org.vmmagic.pragma.*;
    */
   public void startCommunication() {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverStartComm(driver);
+      sysCall.gcspyDriverStartComm(driver);
   }
 
   /**
@@ -138,7 +138,7 @@ import org.vmmagic.pragma.*;
    */
   public Address addStream(int streamId) {
     if (VM.BuildWithGCSpy) 
-      return VM_SysCall.gcspyDriverAddStream(driver, streamId);
+      return sysCall.gcspyDriverAddStream(driver, streamId);
     else 
       return Address.zero();
   }
@@ -150,7 +150,7 @@ import org.vmmagic.pragma.*;
    */
   public void stream(int streamId, int len) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverStream(driver, streamId, len);
+      sysCall.gcspyDriverStream(driver, streamId, len);
   }
 
   /**
@@ -159,7 +159,7 @@ import org.vmmagic.pragma.*;
    */
   public void streamByteValue(byte value) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverStreamByteValue(driver, value);
+      sysCall.gcspyDriverStreamByteValue(driver, value);
   }
 
   /**
@@ -168,7 +168,7 @@ import org.vmmagic.pragma.*;
    */
   public void streamShortValue(short value) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverStreamShortValue(driver, value);
+      sysCall.gcspyDriverStreamShortValue(driver, value);
   }
   
   /**
@@ -177,7 +177,7 @@ import org.vmmagic.pragma.*;
    */
   public void streamIntValue(int value) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverStreamIntValue(driver, value);
+      sysCall.gcspyDriverStreamIntValue(driver, value);
   }
 
   /**
@@ -185,7 +185,7 @@ import org.vmmagic.pragma.*;
    */
   public void streamEnd () {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverEndOutput(driver);
+      sysCall.gcspyDriverEndOutput(driver);
   }
 
   /**
@@ -195,7 +195,7 @@ import org.vmmagic.pragma.*;
    */
   public void summary (int streamId, int len) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverSummary(driver, streamId, len);
+      sysCall.gcspyDriverSummary(driver, streamId, len);
   }
 
   /**
@@ -203,7 +203,7 @@ import org.vmmagic.pragma.*;
    * @param val The value
    */
   public void summaryValue (int val) {
-    VM_SysCall.gcspyDriverSummaryValue(driver, val);
+    sysCall.gcspyDriverSummaryValue(driver, val);
   }
 
   /**
@@ -211,7 +211,7 @@ import org.vmmagic.pragma.*;
    */
   public void summaryEnd () {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverEndOutput(driver);
+      sysCall.gcspyDriverEndOutput(driver);
   }
 
   /**
@@ -222,8 +222,8 @@ import org.vmmagic.pragma.*;
   public void sendControls (AbstractDriver space, int tileNum) {
     // start the stream
     if (VM.BuildWithGCSpy) {
-      VM_SysCall.gcspyDriverInitOutput(driver);
-      VM_SysCall.gcspyIntWriteControl(
+      sysCall.gcspyDriverInitOutput(driver);
+      sysCall.gcspyIntWriteControl(
                               driver/* NOTE driver->interpreter in sys.C*/, 
                               spaceId, 
                               tileNum); 
@@ -233,7 +233,7 @@ import org.vmmagic.pragma.*;
         streamByteValue(space.getControl(i));
   
       // end the stream
-      VM_SysCall.gcspyDriverEndOutput(driver);  
+      sysCall.gcspyDriverEndOutput(driver);  
     }
   }
 
@@ -243,7 +243,7 @@ import org.vmmagic.pragma.*;
    */
   public void spaceInfo (Address info) {
     if (VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyDriverSpaceInfo(driver, info);
+      sysCall.gcspyDriverSpaceInfo(driver, info);
   }
 
 }

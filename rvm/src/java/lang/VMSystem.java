@@ -12,7 +12,7 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_ObjectModel;
 import com.ibm.jikesrvm.VM_Runtime;
 import com.ibm.jikesrvm.VM_Statics;
-import com.ibm.jikesrvm.VM_SysCall; // for VM_SysCall.sysGetenv
+import static com.ibm.jikesrvm.VM_SysCall.sysCall; // for sysCall.sysGetenv
 import com.ibm.jikesrvm.VM_Time;
 import com.ibm.jikesrvm.VM_UnimplementedError;
 
@@ -134,14 +134,14 @@ final class VMSystem {
 
     byte[] nameBytes = envarName.getBytes();
 
-    int len = VM_SysCall.sysGetenv(nameBytes, buf, buf.length);
+    int len = sysCall.sysGetenv(nameBytes, buf, buf.length);
 
     if (len < 0)                // not set.
       return null;
 
     if (len > buf.length ) {
       buf = new byte[len];
-      VM_SysCall.sysGetenv(nameBytes, buf, len);
+      sysCall.sysGetenv(nameBytes, buf, len);
     }
 
     return new String(buf, 0, len);

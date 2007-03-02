@@ -1253,6 +1253,7 @@ function emitSourceToPreprocessList () {
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/memorymanagers/mminterface
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/util
 	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/jni
+	$RVM_ROOT/rvm/src/com/ibm/jikesrvm/apt/annotations
 
 	# Jikes RVM code in MMTk tree
 	$RVM_ROOT/MMTk/ext/vm/jikesrvm/com/ibm/jikesrvm/mm/mmtk
@@ -1896,6 +1897,9 @@ EOF
 	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-burs ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	run ${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src-generated/opt-scheduler ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 
+	run ${ROOT_DIRECTORY_STR}/bin/rvmant -f ${ROOT_DIRECTORY_STR}/tools/apt/build.xml -q -Djar.name=\"${SCRATCH_DIRECTORY_STR}/apt.jar\" clean jar clean
+
+	run apt -nocompile -cp ${SCRATCH_DIRECTORY_STR}/apt.jar:${ROOT_DIRECTORY_STR}/rvm/src:${ROOT_DIRECTORY_STR}/vmmagic/src -factory com.ibm.jikesrvm.tools.apt.SysCallProcessorFactory -s ${GENERATED_FILES_DIRECTORY_STR} ${ROOT_DIRECTORY_STR}/rvm/src/com/ibm/jikesrvm/VM_SysCall.java
 trap "" EXIT
 EOF
 }

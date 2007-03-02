@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.classloader.*;
@@ -121,9 +123,9 @@ import org.vmmagic.unboxed.*;
     // get pthread_id from OS and store into vm_processor field
     // 
     if (!singleVirtualProcessor) {
-      VM_SysCall.sysPthreadSetupSignalHandling();
+      sysCall.sysPthreadSetupSignalHandling();
       VM_Processor.getCurrentProcessor().pthread_id = 
-        VM_SysCall.sysPthreadSelf();
+        sysCall.sysPthreadSelf();
     }
 
     // Set up buffer locks used by VM_Thread for logging and status dumping.
@@ -674,7 +676,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(char value) { 
     if (runningVM)
-      VM_SysCall.sysWriteChar(value);
+      sysCall.sysWriteChar(value);
     else
       System.err.print(value);
   }
@@ -690,7 +692,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(double value, int postDecimalDigits) { 
     if (runningVM)
-      VM_SysCall.sysWriteDouble(value, postDecimalDigits);
+      sysCall.sysWriteDouble(value, postDecimalDigits);
     else
       System.err.print(value);
   }
@@ -704,7 +706,7 @@ import org.vmmagic.unboxed.*;
   public static void write(int value) { 
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-      VM_SysCall.sysWrite(value, mode);
+      sysCall.sysWrite(value, mode);
     } else {
       System.err.print(value);
     }
@@ -718,7 +720,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeHex(int value) { 
     if (runningVM)
-      VM_SysCall.sysWrite(value, 2 /*just hex*/);
+      sysCall.sysWrite(value, 2 /*just hex*/);
     else {
       System.err.print(Integer.toHexString(value));
     }
@@ -732,7 +734,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeHex(long value) { 
     if (runningVM){
-      VM_SysCall.sysWriteLong(value, 2);
+      sysCall.sysWriteLong(value, 2);
     } else {
       System.err.print(Long.toHexString(value));
     }
@@ -782,7 +784,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeInt(int value) { 
     if (runningVM)
-      VM_SysCall.sysWrite(value, 0 /*just decimal*/);
+      sysCall.sysWrite(value, 0 /*just decimal*/);
     else {
       System.err.print(value);
     }
@@ -798,7 +800,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(int value, boolean hexToo) { 
     if (runningVM)
-      VM_SysCall.sysWrite(value, hexToo?1:0);
+      sysCall.sysWrite(value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -822,7 +824,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(long value, boolean hexToo) { 
     if (runningVM) 
-      VM_SysCall.sysWriteLong(value, hexToo?1:0);
+      sysCall.sysWriteLong(value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -848,7 +850,7 @@ import org.vmmagic.unboxed.*;
     while (temp >= 10) { len++; temp /= 10; }
     while (fieldWidth > len++) write(" ");
     if (runningVM) 
-      VM_SysCall.sysWrite(value, 0);
+      sysCall.sysWrite(value, 0);
     else 
       System.err.print(value);
   }
@@ -1231,7 +1233,7 @@ import org.vmmagic.unboxed.*;
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
     } else {
-      VM_SysCall.sysExit(value);
+      sysCall.sysExit(value);
     }
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
@@ -1342,7 +1344,7 @@ import org.vmmagic.unboxed.*;
                     "; we're stuck in a recursive shutdown/exit.");
     }
     /* Emergency death. */
-    VM_SysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+    sysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     /* And if THAT fails, go into an inf. loop.  Ugly, but it's better than
        returning from this function and leading to yet more cascading errors.
        and misleading error messages.   (To the best of my knowledge, we have
@@ -1357,7 +1359,7 @@ import org.vmmagic.unboxed.*;
    */
   public static void sysVirtualProcessorYield() {
     if (!VM_Properties.singleVirtualProcessor)
-      VM_SysCall.sysVirtualProcessorYield();
+      sysCall.sysVirtualProcessorYield();
   }
 
   //----------------//

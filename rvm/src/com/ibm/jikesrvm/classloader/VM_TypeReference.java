@@ -104,7 +104,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/jikesrvm/VM_Magic;");
-  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/jikesrvm/VM_SysCallMagic;");
+  public static final VM_TypeReference SysCall = findOrCreate("Lorg/vmmagic/pragma/SysCall;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
   public static final VM_TypeReference JavaLangClass = findOrCreate("Ljava/lang/Class;");
@@ -469,7 +469,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to VM_Magic?
    */
   public boolean isMagicType() {
-    return this == Magic || this == SysCall
+    return this == Magic
       || this == ObjectReference || this == ObjectReferenceArray 
       || isWordType() || isWordArrayType() 
       || isCodeType() || isCodeArrayType();

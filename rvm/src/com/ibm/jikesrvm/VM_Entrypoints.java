@@ -75,6 +75,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_NormalMethod lazyMethodInvokerMethod         = getMethod("Lcom/ibm/jikesrvm/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
   public static final VM_NormalMethod unimplementedNativeMethodMethod = getMethod("Lcom/ibm/jikesrvm/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
+  public static final VM_NormalMethod sysCallMethod = getMethod("Lcom/ibm/jikesrvm/VM_DynamicLinker;", "sysCallMethod", "()V");
 
   public static final VM_NormalMethod resolveMemberMethod     = getMethod("Lcom/ibm/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "resolveMember", "(I)I");
   public static final VM_Field  memberOffsetsField      = getField("Lcom/ibm/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "memberOffsets", "[I");   

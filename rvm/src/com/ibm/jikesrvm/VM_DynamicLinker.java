@@ -53,6 +53,15 @@ public class VM_DynamicLinker implements VM_Constants {
   }
 
   /**
+   * Report a magic SysCall has been mistakenly invoked
+   */
+  static void sysCallMethod() {
+    VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
+    VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
+    throw new UnsatisfiedLinkError(targMethod.toString() + " which is a SysCall");
+  }
+
+  /**
    * Helper class that does the real work of resolving method references
    * and compiling a lazy method invocation.  In separate class so
    * that it doesn't implement DynamicBridge magic.

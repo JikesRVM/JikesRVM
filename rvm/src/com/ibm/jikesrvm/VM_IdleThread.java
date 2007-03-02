@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 /**
  * Low priority thread to run when there's nothing else to do.
  * This thread also handles initializing the virtual processor
@@ -85,7 +87,7 @@ class VM_IdleThread extends VM_Thread {
         if (availableWork(myProcessor))
           continue main;
         /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */
-        VM_SysCall.sysNanosleep(1000 * 1000);
+        sysCall.sysNanosleep(1000 * 1000);
       }
     }
   }

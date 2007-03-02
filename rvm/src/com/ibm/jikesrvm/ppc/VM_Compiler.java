@@ -3754,7 +3754,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   private boolean generateInlineCode(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
       
-    if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
+    if (methodToBeCalled.isSysCall()) {
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
 
       // (1) Set up arguments according to OS calling convention, excluding the first

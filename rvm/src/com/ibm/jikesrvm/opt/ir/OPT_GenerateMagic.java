@@ -364,7 +364,7 @@ public class OPT_GenerateMagic {
                                            memAddr, 
                                            new OPT_AddressConstantOperand(Offset.zero()), 
                                            loc));
-    } else if (meth.getType() == VM_TypeReference.SysCall) {
+    } else if (meth.isSysCall()) {
       // All methods of VM_SysCall have the following signature:
       // callNAME(Address functionAddress, <var args to pass via native calling convention>)
       // With POWEROPEN_ABI, functionAddress points to the function descriptor

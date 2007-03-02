@@ -10,9 +10,11 @@ package com.ibm.jikesrvm;
 
 import java.io.*;
 
+import com.ibm.jikesrvm.util.VM_StringUtilities;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import org.vmmagic.pragma.*;
 
-import com.ibm.jikesrvm.util.VM_StringUtilities;
 
 /**
  * Interface to filesystem of underlying operating system.
@@ -94,7 +96,7 @@ public class VM_FileSystem {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-    int rc = VM_SysCall.sysStat(asciiName, kind);
+    int rc = sysCall.sysStat(asciiName, kind);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
   }
@@ -110,7 +112,7 @@ public class VM_FileSystem {
     // (assume file name is ascii, for now)
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
 
-    int rc = VM_SysCall.sysAccess(asciiName, kind);
+    int rc = sysCall.sysAccess(asciiName, kind);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
@@ -123,7 +125,7 @@ public class VM_FileSystem {
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
 
     // convert milliseconds to seconds
-    int rc = VM_SysCall.sysUtime(asciiName, (int) (time / 1000));
+    int rc = sysCall.sysUtime(asciiName, (int) (time / 1000));
     return (rc == 0);
   }
 
@@ -137,7 +139,7 @@ public class VM_FileSystem {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-    int fd = VM_SysCall.sysOpen(asciiName, how);
+    int fd = sysCall.sysOpen(asciiName, how);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
   }
@@ -207,7 +209,7 @@ public class VM_FileSystem {
     // See readBytes() method for an explanation of how the read loop works.
 
     for (;;) {
-      int b = VM_SysCall.sysReadByte(fd);
+      int b = sysCall.sysReadByte(fd);
       if (b >= -1)
         // Either a valid read, or we reached EOF
         return b;
@@ -240,7 +242,7 @@ public class VM_FileSystem {
     // See writeBytes() for an explanation of how the write loop works
 
     for (;;) {
-      int rc = VM_SysCall.sysWriteByte(fd, b);
+      int rc = sysCall.sysWriteByte(fd, b);
       if (rc == 0)
         return 0; // success
       else if (rc == -2) {
@@ -313,7 +315,7 @@ public class VM_FileSystem {
 
     int read = 0;
     for (;;) {
-      int rc = VM_SysCall.sysReadBytes(fd,
+      int rc = sysCall.sysReadBytes(fd,
                                        VM_Magic.objectAsAddress(buf).plus(off),
                                        cnt);
 
@@ -405,7 +407,7 @@ public class VM_FileSystem {
 
     int written = 0;
     for (;;) {
-      int rc = VM_SysCall.sysWriteBytes(fd, 
+      int rc = sysCall.sysWriteBytes(fd, 
                                         VM_Magic.objectAsAddress(buf).plus(off),
                                         cnt);
       if (rc >= 0) {
@@ -436,7 +438,7 @@ public class VM_FileSystem {
    * @return new i/o position, as byte offset from start of file (-1: error)
    */ 
   public static int seek(int fd, int offset, int whence) {
-    return VM_SysCall.sysSeek(fd, offset, whence);
+    return sysCall.sysSeek(fd, offset, whence);
   }
 
   /**
@@ -451,7 +453,7 @@ public class VM_FileSystem {
 
     if (fd == 87 || fd == 88) (new Throwable()).printStackTrace();
 
-    return VM_SysCall.sysClose(fd);
+    return sysCall.sysClose(fd);
   }
 
   /**
@@ -475,7 +477,7 @@ public class VM_FileSystem {
     int    len;
     for (int max = 1024;;) {
       asciiList = new byte[max];
-      len = VM_SysCall.sysList(asciiName, asciiList, max);
+      len = sysCall.sysList(asciiName, asciiList, max);
       if (len < max)
         break;
 
@@ -517,7 +519,7 @@ public class VM_FileSystem {
     // (assume file name is ascii, for now)
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-    int rc = VM_SysCall.sysDelete(asciiName);
+    int rc = sysCall.sysDelete(asciiName);
     return rc == 0;
   } 
 
@@ -535,7 +537,7 @@ public class VM_FileSystem {
 
     byte[] toCharStar = VM_StringUtilities.stringToBytesNullTerminated(toName);
 
-    int rc = VM_SysCall.sysRename(fromCharStar, toCharStar);
+    int rc = sysCall.sysRename(fromCharStar, toCharStar);
 
     return rc == 0;
   } 
@@ -551,28 +553,28 @@ public class VM_FileSystem {
     // (assume file name is ascii, for now)
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);      
-    int rc = VM_SysCall.sysMkDir(asciiName);
+    int rc = sysCall.sysMkDir(asciiName);
     return (rc == 0);
   } 
 
   public static boolean sync(int fd) {
-    return VM_SysCall.sysSyncFile(fd) == 0;
+    return sysCall.sysSyncFile(fd) == 0;
   }
 
   public static int bytesAvailable(int fd) {
-    return VM_SysCall.sysBytesAvailable(fd);
+    return sysCall.sysBytesAvailable(fd);
   }        
 
   public static boolean isValidFD(int fd) {
-    return VM_SysCall.sysIsValidFD(fd) == 0;
+    return sysCall.sysIsValidFD(fd) == 0;
   }        
 
   public static int length(int fd) {
-    return VM_SysCall.sysLength(fd);
+    return sysCall.sysLength(fd);
   }        
 
   public static int setLength(int fd, int len) {
-    return VM_SysCall.sysSetLength(fd, len);
+    return sysCall.sysSetLength(fd, len);
   }        
 
   /**
@@ -603,7 +605,7 @@ public class VM_FileSystem {
     int rc;
 
     // Set the file descriptor to be nonblocking.
-    rc = VM_SysCall.sysNetSocketNoBlock(fd, 1);
+    rc = sysCall.sysNetSocketNoBlock(fd, 1);
     if (rc < 0)
       VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
 
@@ -618,7 +620,7 @@ public class VM_FileSystem {
 
     // If file descriptor will not be shared, set close-on-exec flag
     if (!shared) {
-      rc = VM_SysCall.sysSetFdCloseOnExec(fd);
+      rc = sysCall.sysSetFdCloseOnExec(fd);
       if (rc < 0) {
         VM.sysWrite("VM: warning: could not set close-on-exec flag " +
           "for fd " + fd);

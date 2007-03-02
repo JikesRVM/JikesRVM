@@ -15,7 +15,7 @@ import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_SysCall;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
@@ -77,7 +77,7 @@ import org.vmmagic.unboxed.Address;
       Address tmpPre = GCspy.util.getBytes(stringPre);
       Address tmpPost = GCspy.util.getBytes(stringPost);
   
-      VM_SysCall.gcspyStreamInit(stream, streamId, StreamConstants.SHORT_TYPE, 
+      sysCall.gcspyStreamInit(stream, streamId, StreamConstants.SHORT_TYPE, 
           tmpName, minValue, maxValue, zeroValue, defaultValue, 
           tmpPre, tmpPost, presentation, paintStyle, indexMaxStream, 
           colour.getRed(), colour.getGreen(), colour.getBlue());

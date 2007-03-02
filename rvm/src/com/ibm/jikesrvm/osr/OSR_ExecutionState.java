@@ -365,15 +365,15 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     return tail;
   }
   
-  private int maxStackHeight = 0;
-  public int getMaxStackHeight() {
-        return this.maxStackHeight;
+  private short maxStackHeight = 0;
+  public short getMaxStackHeight() {
+    return this.maxStackHeight;
   }
   
   private int computeStackHeight(OSR_PseudoBytecode head) {
     /* skip the first Nop */
     OSR_PseudoBytecode bcode = head.next;
-    int height = 0;
+    short height = 0;
     while (bcode != null) {
       height += bcode.stackChanges();
       if (height > this.maxStackHeight) {

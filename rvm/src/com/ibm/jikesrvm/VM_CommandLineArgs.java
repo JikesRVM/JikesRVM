@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import com.ibm.jikesrvm.adaptive.VM_Controller;
 
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -424,9 +426,9 @@ public class VM_CommandLineArgs {
       case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
         int nProcs;
         if (arg.equals("all")) {
-          /* Assume VM_SysCall.sysNumProcessors() always returns a sane
+          /* Assume sysCall.sysNumProcessors() always returns a sane
              value.  */
-          nProcs = VM_SysCall.sysNumProcessors();
+          nProcs = sysCall.sysNumProcessors();
         } else {
           nProcs = primitiveParseInt(arg);
         }
@@ -660,7 +662,7 @@ public class VM_CommandLineArgs {
    *         for argument to fit)
    */
   private static int sysArg(int argno, byte[] buf) {
-    return VM_SysCall.sysArg(argno, buf, buf.length);
+    return sysCall.sysArg(argno, buf, buf.length);
   }
 
   /**
@@ -672,7 +674,7 @@ public class VM_CommandLineArgs {
    */
   public static float primitiveParseFloat(String arg) {
     byte[] b = stringToBytes("floating point", arg);
-    return VM_SysCall.sysPrimitiveParseFloat(b);
+    return sysCall.sysPrimitiveParseFloat(b);
   }
 
   /**
@@ -683,7 +685,7 @@ public class VM_CommandLineArgs {
    */
   public static int primitiveParseInt(String arg) {
     byte[] b = stringToBytes("integer or byte", arg);
-    return VM_SysCall.sysPrimitiveParseInt(b);
+    return sysCall.sysPrimitiveParseInt(b);
   }
 
   /**
@@ -700,7 +702,7 @@ public class VM_CommandLineArgs {
     (String sizeName, String sizeFlag, String defaultFactor, int roundTo,
      String fullArg, String subArg) 
   {
-    return VM_SysCall.sysParseMemorySize
+    return sysCall.sysParseMemorySize
       (s2b(sizeName), s2b(sizeFlag), s2b(defaultFactor), 
        roundTo, s2b(fullArg), s2b(subArg));
   }

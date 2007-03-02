@@ -325,6 +325,31 @@ public class VM_BootRecord {
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;
 
+  // VMMath
+  public Address sysVMMathSinIP;
+  public Address sysVMMathCosIP;
+  public Address sysVMMathTanIP;
+  public Address sysVMMathAsinIP;
+  public Address sysVMMathAcosIP;
+  public Address sysVMMathAtanIP;
+  public Address sysVMMathAtan2IP;
+  public Address sysVMMathCoshIP;
+  public Address sysVMMathSinhIP;
+  public Address sysVMMathTanhIP;
+  public Address sysVMMathExpIP;
+  public Address sysVMMathLogIP;
+  public Address sysVMMathSqrtIP;
+  public Address sysVMMathPowIP;
+  public Address sysVMMathIEEEremainderIP;
+  public Address sysVMMathCeilIP;
+  public Address sysVMMathFloorIP;
+  public Address sysVMMathRintIP;
+  public Address sysVMMathCbrtIP;
+  public Address sysVMMathExpm1IP;
+  public Address sysVMMathHypotIP;
+  public Address sysVMMathLog10IP;
+  public Address sysVMMathLog1pIP;
+  
    /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
    // GCspy entry points
    public Address gcspyDriverAddStreamIP;

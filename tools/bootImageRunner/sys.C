@@ -2966,6 +2966,124 @@ getArrayLength(void* ptr)
     return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }
 
+// VMMath
+// @author Ian Rogers 2007
+extern "C" double
+sysVMMathSin(double a) {
+    return sin(a);
+}
+
+extern "C" double
+sysVMMathCos(double a) {
+    return cos(a);
+}
+
+extern "C" double
+sysVMMathTan(double a) {
+    return tan(a);
+}
+
+extern "C" double
+sysVMMathAsin(double a) {
+    return asin(a);
+}
+
+extern "C" double
+sysVMMathAcos(double a) {
+    return acos(a);
+}
+
+extern "C" double
+sysVMMathAtan(double a) {
+    return atan(a);
+}
+
+extern "C" double
+sysVMMathAtan2(double a, double b) {
+    return atan2(a, b);
+}
+
+
+extern "C" double
+sysVMMathCosh(double a) {
+    return cosh(a);
+}
+
+extern "C" double
+sysVMMathSinh(double a) {
+    return sinh(a);
+}
+
+extern "C" double
+sysVMMathTanh(double a) {
+    return tanh(a);
+}
+
+extern "C" double
+sysVMMathExp(double a) {
+    return exp(a);
+}
+
+extern "C" double
+sysVMMathLog(double a) {
+    return log(a);
+}
+
+extern "C" double
+sysVMMathSqrt(double a) {
+    return sqrt(a);
+}
+
+extern "C" double
+sysVMMathPow(double a, double b) {
+    return pow(a, b);
+}
+
+extern "C" double
+sysVMMathIEEEremainder(double a, double b) {
+    return remainder(a, b);
+}
+
+extern "C" double
+sysVMMathCeil(double a) {
+    return ceil(a);
+}
+
+extern "C" double
+sysVMMathFloor(double a) {
+    return floor(a);
+}
+
+extern "C" double
+sysVMMathRint(double a) {
+    return rint(a);
+}
+
+extern "C" double
+sysVMMathCbrt(double a) {
+    return cbrt(a);
+}
+
+extern "C" double
+sysVMMathExpm1(double a) {
+    return cosh(a);
+}
+
+extern "C" double
+sysVMMathHypot(double a, double b) {
+    return hypot(a, b);
+}
+
+extern "C" double
+sysVMMathLog10(double a) {
+    return log10(a);
+}
+
+extern "C" double
+sysVMMathLog1p(double a) {
+    return log1p(a);
+}
+
 #if (defined RVM_WITH_GCSPY)
 // GCspy
 // @author Richard Jones 2002-6

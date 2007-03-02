@@ -233,6 +233,24 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
+   * Is the method reference to a magic method? NB. In the case of
+   * SysCall annotated methods we don't know until they are resolved.
+   */
+  public final boolean isMagic() {
+    return getType().isMagicType() ||
+      ((resolvedMember != null) && (resolvedMember.isSysCall()));
+  }
+
+  /**
+   * Is the method reference to a magic method? NB. In the case of
+   * SysCall annotated methods we don't know until they are resolved.
+   */
+  public final boolean isSysCall() {
+    return (getType()  == VM_TypeReference.SysCall) ||
+      ((resolvedMember != null) && (resolvedMember.isSysCall()));
+  }
+
+  /**
    * Find the VM_Method that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.

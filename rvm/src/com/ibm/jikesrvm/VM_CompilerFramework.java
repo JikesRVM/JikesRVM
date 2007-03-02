@@ -1484,7 +1484,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
         VM_MethodReference methodRef = bcodes.getMethodReference();
         if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
-        if (methodRef.getType().isMagicType()) {
+        if (methodRef.isMagic()) {
           if (emit_Magic(methodRef)) {
             break;
         }

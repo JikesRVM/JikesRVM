@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -228,7 +230,7 @@ import org.vmmagic.pragma.*;
     // Do the select()
     VM_Processor.getCurrentProcessor().isInSelect = true;
     selectInProgressMutex.lock();
-    int ret = VM_SysCall.sysNetSelect(allFds,
+    int ret = sysCall.sysNetSelect(allFds,
                                       readCount,
                                       writeCount,
                                       exceptCount);

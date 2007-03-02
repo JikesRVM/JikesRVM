@@ -11,6 +11,9 @@ package com.ibm.jikesrvm;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
+
 /**
  * Low level memory management functions.
  *
@@ -414,11 +417,11 @@ import org.vmmagic.unboxed.*;
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
-    VM_SysCall.sysCopy(dst, src, cnt);
+    sysCall.sysCopy(dst, src, cnt);
   }
 
   public static void memcopy(Address dst, Address src, int cnt) {
-    VM_SysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
+    sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
 
   /**
@@ -428,7 +431,7 @@ import org.vmmagic.unboxed.*;
    * @param cnt     Number of bytes to fill with <code>pattern</code>
    */
   public static void fill(Address dst, byte pattern, Extent cnt) {
-    VM_SysCall.sysFill(dst, pattern, cnt);
+    sysCall.sysFill(dst, pattern, cnt);
   }
 
   /**
@@ -437,11 +440,11 @@ import org.vmmagic.unboxed.*;
    * @param end of address range   (exclusive)
    */
   public static void zero(Address start, Address end) {
-    VM_SysCall.sysZero(start, end.diff(start).toWord().toExtent());
+    sysCall.sysZero(start, end.diff(start).toWord().toExtent());
   }
 
   public static void zero(Address start, Extent len) {
-    VM_SysCall.sysZero(start, len);
+    sysCall.sysZero(start, len);
   }
 
   /**
@@ -451,7 +454,7 @@ import org.vmmagic.unboxed.*;
    */
   public static void zeroPages(Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
-    VM_SysCall.sysZeroPages(start, len);
+    sysCall.sysZeroPages(start, len);
   }
 
   ////////////////////////
@@ -465,7 +468,7 @@ import org.vmmagic.unboxed.*;
    * @param size     Size of address range (bytes)
    */
   public static void sync(Address address, int size) {
-    VM_SysCall.sysSyncCache(address, size);
+    sysCall.sysSyncCache(address, size);
   }
 
 
@@ -547,7 +550,7 @@ import org.vmmagic.unboxed.*;
                                 int prot, int flags, int fd, Offset offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
-    return VM_SysCall.sysMMapErrno(address,Extent.fromIntSignExtend(size), prot, flags, fd, offset);
+    return sysCall.sysMMapErrno(address,Extent.fromIntSignExtend(size), prot, flags, fd, offset);
   }
 
   /**
@@ -562,7 +565,7 @@ import org.vmmagic.unboxed.*;
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-    return VM_SysCall.sysMMapErrno(address,size,prot,flag,fd,Offset.zero());
+    return sysCall.sysMMapErrno(address,size,prot,flag,fd,Offset.zero());
   }
 
   /**
@@ -576,7 +579,7 @@ import org.vmmagic.unboxed.*;
   public static Address mmap(Address address, Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapErrno(address,size,prot,flags,-1,Offset.zero());
+    return sysCall.sysMMapErrno(address,size,prot,flags,-1,Offset.zero());
   }
 
   /**
@@ -602,7 +605,7 @@ import org.vmmagic.unboxed.*;
     if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-    return VM_SysCall.sysMMapErrno(Address.zero(), size, prot, flag, -1, Offset.zero());
+    return sysCall.sysMMapErrno(Address.zero(), size, prot, flag, -1, Offset.zero());
   }
 
   /**
@@ -614,7 +617,7 @@ import org.vmmagic.unboxed.*;
   public static int munmap(Address address, Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMUnmap(address, size);
+    return sysCall.sysMUnmap(address, size);
   }
 
   /**
@@ -627,7 +630,7 @@ import org.vmmagic.unboxed.*;
   public static boolean mprotect(Address address, Extent size, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMProtect(address, size, prot) == 0;
+    return sysCall.sysMProtect(address, size, prot) == 0;
   }
 
   /**
@@ -640,7 +643,7 @@ import org.vmmagic.unboxed.*;
   public static boolean msync(Address address, Extent size, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMSync(address, size, flags) == 0;
+    return sysCall.sysMSync(address, size, flags) == 0;
   }
 
   /**
@@ -653,7 +656,7 @@ import org.vmmagic.unboxed.*;
   public static boolean madvise(Address address, Extent size, int advice) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMAdvise(address, size, advice) == 0;
+    return sysCall.sysMAdvise(address, size, advice) == 0;
   }
 
   public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
@@ -685,7 +688,7 @@ import org.vmmagic.unboxed.*;
    * @return shared memory segment id 
    */
   public static int shmget(int key, int size, int flags) {
-    return VM_SysCall.sysShmget(key, size, flags);
+    return sysCall.sysShmget(key, size, flags);
   }
 
   /**
@@ -696,7 +699,7 @@ import org.vmmagic.unboxed.*;
    * @return address of attached shared memory segment 
    */
   public static Address shmat(int shmid, Address addr, int flags) {
-    return VM_SysCall.sysShmat(shmid, addr, flags);
+    return sysCall.sysShmat(shmid, addr, flags);
   }
 
   /**
@@ -705,7 +708,7 @@ import org.vmmagic.unboxed.*;
    * @return shared memory segment id 
    */
   public static int shmdt(Address addr) {
-    return VM_SysCall.sysShmdt(addr);
+    return sysCall.sysShmdt(addr);
   }
 
   /**
@@ -715,7 +718,7 @@ import org.vmmagic.unboxed.*;
    * @return shared memory segment id 
    */
   public int shmctl(int shmid, int command) {
-    return VM_SysCall.sysShmctl(shmid, command);
+    return sysCall.sysShmctl(shmid, command);
   }
 
 
@@ -728,7 +731,7 @@ import org.vmmagic.unboxed.*;
    */
   public static int getPagesize() {
     if (pagesize == -1) {
-      pagesize = VM_SysCall.sysGetPageSize();
+      pagesize = sysCall.sysGetPageSize();
       pagesizeLog = -1;
       int temp = pagesize;
       while (temp > 0) {

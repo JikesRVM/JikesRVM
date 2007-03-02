@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import com.ibm.jikesrvm.util.*;
 import org.vmmagic.unboxed.*;
@@ -67,7 +69,7 @@ public class VM_DynamicLibrary {
       }
     }
 
-    libHandler = VM_SysCall.sysDlopen(asciiName);
+    libHandler = sysCall.sysDlopen(asciiName);
 
     if (libHandler.isZero()) {
       VM.sysWriteln("error loading library: " + libraryName);
@@ -139,7 +141,7 @@ public class VM_DynamicLibrary {
     // (assume file name is ascii, for now).
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(symbolName);
-    return VM_SysCall.sysDlsym(libHandler, asciiName);
+    return sysCall.sysDlsym(libHandler, asciiName);
   }
 
   /**

@@ -13,7 +13,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
 import org.mmtk.utility.gcspy.GCspy;
 
-import com.ibm.jikesrvm.VM_SysCall;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 import com.ibm.jikesrvm.VM_JavaHeaderConstants;
 
 import org.vmmagic.unboxed.*;
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
         Log.writeln("-- Initialising main server on port ",port);
       
       Address tmp = GCspy.util.getBytes(name);
-      server = VM_SysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose?1:0);
+      server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose?1:0);
       
       if (DEBUG) {
         Log.writeln("gcspy_main_server_t address = "); Log.writeln(server); 
@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
                        "ServerInterpreter.addEvent: server not initiialised");
       
       Address tmp = GCspy.util.getBytes(name);
-      VM_SysCall.gcspyMainServerAddEvent(server, num, tmp);
+      sysCall.gcspyMainServerAddEvent(server, num, tmp);
       GCspy.util.free(tmp);
     }
   }
@@ -90,7 +90,7 @@ import org.vmmagic.pragma.*;
                        "ServerInterpreter.setGeneralInfo: server not initiialised");
       
       Address tmp = GCspy.util.getBytes(info);
-      VM_SysCall.gcspyMainServerSetGeneralInfo(server, tmp);
+      sysCall.gcspyMainServerSetGeneralInfo(server, tmp);
       GCspy.util.free(tmp);
     }
   } 
@@ -103,8 +103,8 @@ import org.vmmagic.pragma.*;
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
       
-      Address serverOuterLoop = VM_SysCall.gcspyMainServerOuterLoop();
-      VM_SysCall.gcspyStartserver(server, wait?1:0, serverOuterLoop);
+      Address serverOuterLoop = sysCall.gcspyMainServerOuterLoop();
+      sysCall.gcspyStartserver(server, wait?1:0, serverOuterLoop);
     }
   }
 
@@ -120,7 +120,7 @@ import org.vmmagic.pragma.*;
       
       if (!initialised) 
         return false;
-      int res = VM_SysCall.gcspyMainServerIsConnected(server, event);
+      int res = sysCall.gcspyMainServerIsConnected(server, event);
       return (res != 0);
       }
     else 
@@ -137,7 +137,7 @@ import org.vmmagic.pragma.*;
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.startCompensationTimer: server not initiialised");
       
-      VM_SysCall.gcspyMainServerStartCompensationTimer(server);
+      sysCall.gcspyMainServerStartCompensationTimer(server);
     }
   }
   
@@ -151,7 +151,7 @@ import org.vmmagic.pragma.*;
         VM.assertions._assert(initialised, 
                        "ServerInterpreter.stopCompensationTimer: server not initiialised");
       
-      VM_SysCall.gcspyMainServerStopCompensationTimer(server);
+      sysCall.gcspyMainServerStopCompensationTimer(server);
     }
   }
 
@@ -167,7 +167,7 @@ import org.vmmagic.pragma.*;
       
       if (!initialised) 
         return;
-      VM_SysCall.gcspyMainServerSafepoint(server, event);
+      sysCall.gcspyMainServerSafepoint(server, event);
     }
   }
 

@@ -15,7 +15,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
 import com.ibm.jikesrvm.VM_Magic;
-import com.ibm.jikesrvm.VM_SysCall;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 import com.ibm.jikesrvm.VM_Synchronization;
 import com.ibm.jikesrvm.classloader.VM_Array;
 import com.ibm.jikesrvm.VM_ObjectModel;
@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
    */
   public final Address malloc(int size) {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) {
-      Address rtn  = VM_SysCall.sysMalloc(size);
+      Address rtn  = sysCall.sysMalloc(size);
       if (rtn.isZero()) VM.assertions.fail("GCspy malloc failure");
       return rtn;
     } else 
@@ -60,7 +60,7 @@ import org.vmmagic.pragma.*;
   public final void free(Address addr) {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
       if (!addr.isZero())
-        VM_SysCall.sysFree(addr);
+        sysCall.sysFree(addr);
   }
   
   
@@ -137,7 +137,7 @@ import org.vmmagic.pragma.*;
         rtn.store(value, Offset.fromIntSignExtend(offset));
       }
       if (DEBUG_) {
-        VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");
+        sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");
       }
       return rtn;
     }
@@ -156,7 +156,7 @@ import org.vmmagic.pragma.*;
    */
   public final void formatSize(Address buffer, int size) {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
-      VM_SysCall.gcspyFormatSize(buffer, size);
+      sysCall.gcspyFormatSize(buffer, size);
   }
 
   
@@ -218,7 +218,7 @@ import org.vmmagic.pragma.*;
    */
   public final int sprintf(Address str, Address format, Address value) {
     if (com.ibm.jikesrvm.VM.BuildWithGCSpy) 
-      return VM_SysCall.gcspySprintf(str, format, value);
+      return sysCall.gcspySprintf(str, format, value);
     else 
       return 0;
   }

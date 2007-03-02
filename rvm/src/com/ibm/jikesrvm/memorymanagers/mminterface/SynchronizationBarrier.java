@@ -18,7 +18,7 @@ import com.ibm.jikesrvm.VM;
 import com.ibm.jikesrvm.VM_Magic;
 import com.ibm.jikesrvm.VM_Processor;
 import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.VM_SysCall;
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
 
 /**
  * A synchronization barrier used to synchronize collector threads,
@@ -124,7 +124,7 @@ public final class SynchronizationBarrier {
     if (!VM.singleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
       // waitABit() to spin when running with fewer VM_Procssors than real processors
-      numRealProcessors = VM_SysCall.sysNumProcessors();
+      numRealProcessors = sysCall.sysNumProcessors();
     }
     barrier.clearTarget();
     VM_Magic.sync();      // make other threads/processors see the update
@@ -148,7 +148,7 @@ public final class SynchronizationBarrier {
         sum = sum + i;
       return sum;
     } else {
-      VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
+      sysCall.sysVirtualProcessorYield();        // pthread yield 
       return 0;
     }
   }

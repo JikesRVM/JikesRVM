@@ -8,6 +8,8 @@
  */
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import com.ibm.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import com.ibm.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
@@ -68,13 +70,13 @@ implements VM_Constants {
     // bind our execution to a physical cpu
     //
     if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
-      VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + id - 1);
+      sysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + id - 1);
      
-    VM_SysCall.sysPthreadSetupSignalHandling();
+    sysCall.sysPthreadSetupSignalHandling();
 
     /* get pthread_id from the operating system and store into vm_processor
        field  */
-    pthread_id = VM_SysCall.sysPthreadSelf();
+    pthread_id = sysCall.sysPthreadSelf();
     
     //
     // tell VM_Scheduler.boot() that we've left the C startup
@@ -83,7 +85,7 @@ implements VM_Constants {
     isInitialized = true;
     
     if (!VM_Properties.singleVirtualProcessor)
-      VM_SysCall.sysWaitForVirtualProcessorInitialization();
+      sysCall.sysWaitForVirtualProcessorInitialization();
 
     // enable multiprocessing
     //
@@ -92,10 +94,10 @@ implements VM_Constants {
     // wait for all other processors to do likewise
     //
     if (!VM_Properties.singleVirtualProcessor)
-      VM_SysCall.sysWaitForMultithreadingStart();
+      sysCall.sysWaitForMultithreadingStart();
 
     // Store VM_Processor in pthread
-    VM_SysCall.sysStashVmProcessorInPthread(this);
+    sysCall.sysStashVmProcessorInPthread(this);
   }
 
   

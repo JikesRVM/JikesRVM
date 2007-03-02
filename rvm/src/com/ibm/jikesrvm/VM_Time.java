@@ -10,6 +10,8 @@ package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 /**
  * Primitives from which to build interval and absolute timers.
  * 
@@ -114,7 +116,7 @@ import org.vmmagic.pragma.*;
    * Time in microseconds (epoch Jan 1 1970).
    */ 
   public static long currentTimeMicros() {
-    return VM_SysCall.sysGetTimeOfDay();
+    return sysCall.sysGetTimeOfDay();
   }
 
   /**

@@ -3284,7 +3284,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
     
-    if (m.getType() == VM_TypeReference.SysCall) {
+    if (m.isSysCall()) {
       VM_TypeReference[] args = m.getParameterTypes();
       VM_TypeReference rtype = m.getReturnType();
       Offset offsetToJavaArg = THREE_SLOTS; // the three regs saved in (2)

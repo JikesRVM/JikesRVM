@@ -9,6 +9,8 @@
 
 package com.ibm.jikesrvm;
 
+import static com.ibm.jikesrvm.VM_SysCall.sysCall;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -162,7 +164,7 @@ import org.vmmagic.pragma.*;
     waitPidLock.lock();
 
     // Call sysWaitPids() to see which (if any) have finished
-    VM_SysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
+    sysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
                            VM_Magic.objectAsAddress(exitStatusArray),
                            numPids);
 

@@ -69,7 +69,13 @@ public final class VM_NativeMethod extends VM_Method {
    * Generate the code for this method
    */
   protected synchronized VM_CompiledMethod genCode() {
-    if (!resolveNativeMethod()) {
+    if (isSysCall()) {
+      // SysCalls are just place holder methods, the compiler
+      // generates a call to the first argument - the address of a C
+      // function
+      VM_Entrypoints.sysCallMethod.compile();
+      return VM_Entrypoints.sysCallMethod.getCurrentCompiledMethod();      
+    } else if (!resolveNativeMethod()) {
       // if fail to resolve native, get code to throw unsatifiedLinkError
       VM_Entrypoints.unimplementedNativeMethodMethod.compile();
       return VM_Entrypoints.unimplementedNativeMethodMethod.getCurrentCompiledMethod();

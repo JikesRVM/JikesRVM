@@ -392,6 +392,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isNative() { 
     return (modifiers & ACC_NATIVE) != 0;
   }
+
+  /**
+   * Not implemented in Java and use C not JNI calling convention
+   */
+  public final boolean isSysCall() {
+    return isNative() && isStatic() && isAnnotationDeclared(VM_TypeReference.SysCall);
+  }
   
   /**
    * Implemented in subclass?
