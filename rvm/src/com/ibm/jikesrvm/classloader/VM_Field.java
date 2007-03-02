@@ -43,7 +43,7 @@ public final class VM_Field extends VM_Member {
    */
   private VM_Field(VM_TypeReference declaringClass,
                    VM_MemberReference memRef,
-                   int modifiers,
+                   short modifiers,
                    VM_Atom signature,
                    int constantValueIndex,
                    VM_Annotation[] annotations)
@@ -66,7 +66,7 @@ public final class VM_Field extends VM_Member {
    */
   static VM_Field readField(VM_TypeReference declaringClass,
                             int[] constantPool, VM_MemberReference memRef,
-                            int modifiers, DataInputStream input) throws IOException {
+                            short modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
     VM_Atom signature = null;
@@ -88,7 +88,7 @@ public final class VM_Field extends VM_Member {
         input.skipBytes(attLength);
       }
     }
-    return new VM_Field(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS, signature, cvi, annotations);
+    return new VM_Field(declaringClass, memRef, (short)(modifiers & APPLICABLE_TO_FIELDS), signature, cvi, annotations);
   }
 
   /**
@@ -96,7 +96,7 @@ public final class VM_Field extends VM_Member {
    */
   static VM_Field createAnnotationField(VM_TypeReference annotationClass,
                                         VM_MemberReference memRef) {
-    return new VM_Field(annotationClass, memRef, ACC_PRIVATE|ACC_SYNTHETIC, null, 0, null);
+    return new VM_Field(annotationClass, memRef, (short)(ACC_PRIVATE|ACC_SYNTHETIC), null, 0, null);
   }
 
   /**

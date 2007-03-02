@@ -35,7 +35,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   /**
    * The modifiers associated with this member.
    */
-  protected final int modifiers;
+  protected final short modifiers;
 
   /**
    * The signature is a string representing the generic type for this
@@ -59,14 +59,14 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * @param annotations array of runtime visible annotations
    */
   protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      int modifiers, VM_Atom signature,
+                      short modifiers, VM_Atom signature,
                       VM_Annotation[] annotations) {
     super(annotations);
     this.declaringClass = declaringClass;
     this.memRef = memRef;
     this.modifiers = modifiers;
     this.signature = signature;
-    this.offset = -1; // invalid value. Set to valid value during VM_Class.resolve()
+    this.offset = Short.MIN_VALUE+1; // invalid value. Set to valid value during VM_Class.resolve()
   }
 
   //--------------------------------------------------------------------//
@@ -79,7 +79,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * the class is loaded.
    */ 
   @Uninterruptible
-  public final VM_Class getDeclaringClass() { 
+  public final VM_Class getDeclaringClass() {
     return declaringClass.peekResolvedType().asClass();
   }
 

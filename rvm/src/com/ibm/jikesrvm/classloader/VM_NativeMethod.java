@@ -55,7 +55,7 @@ public final class VM_NativeMethod extends VM_Method {
    * @param annotationDefault value for this annotation that appears
    */
   VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                  int modifiers, VM_TypeReference[] exceptionTypes,
+                  short modifiers, VM_TypeReference[] exceptionTypes,
                   VM_Atom signature,
                   VM_Annotation[] annotations,
                   VM_Annotation[] parameterAnnotations,

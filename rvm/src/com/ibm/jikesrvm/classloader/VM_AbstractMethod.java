@@ -33,7 +33,7 @@ public final class VM_AbstractMethod extends VM_Method {
    * @param annotationDefault value for this annotation that appears
    */
   VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                    int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
+                    short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
                     VM_Annotation[] annotations,
                     VM_Annotation[] parameterAnnotations,
                     Object annotationDefault)

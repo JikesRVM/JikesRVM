@@ -68,12 +68,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param annotationDefault value for this annotation that appears
    */
   protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
+                      short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
                       VM_Annotation[] annotations,
                       VM_Annotation[] parameterAnnotations,
                       Object annotationDefault)
   {
-    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS, signature, annotations);
+    super(declaringClass, memRef, (short)(modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
     memRef.asMethodReference().setResolvedMember(this);
@@ -92,9 +92,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param input the DataInputStream to read the method's attributes from
    */
   static VM_Method readMethod(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
-                              int modifiers, DataInputStream input) throws IOException {
-    int tmp_localWords = 0;
-    int tmp_operandWords = 0;      
+                              short modifiers, DataInputStream input) throws IOException {
+    short tmp_localWords = 0;
+    short tmp_operandWords = 0;      
     byte[] tmp_bytecodes = null;       
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     VM_TypeReference[] tmp_exceptionTypes = null;
@@ -111,8 +111,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
 
       // Only bother to interpret non-boring Method attributes
       if (attName == VM_ClassLoader.codeAttributeName) {
-        tmp_operandWords = input.readUnsignedShort();
-        tmp_localWords   = input.readUnsignedShort();
+        tmp_operandWords = input.readShort();
+        tmp_localWords   = input.readShort();
         tmp_bytecodes = new byte[input.readInt()];
         input.readFully(tmp_bytecodes);
         tmp_exceptionHandlerMap = VM_ExceptionHandlerMap.readExceptionHandlerMap(input, constantPool);
@@ -210,8 +210,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       // Xreturn
       (byte)typeRefToReturnBytecode(interfaceMethod.getReturnType())
     };
-    return new VM_NormalMethod(annotationClass, memRef, ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC, null,
-                               1, 2, bytecodes,
+    return new VM_NormalMethod(annotationClass, memRef, (short)(ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC), null,
+                               (short)1, (short)2, bytecodes,
                                null, null,
                                constantPool,
                                null, null, null, null);
@@ -256,8 +256,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       }
     }
     bytecode[bytecode.length-1] = (byte)JBC_return;
-    return new VM_NormalMethod(aClass, memRef, ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC, null,
-                               2, 3, bytecode,
+    return new VM_NormalMethod(aClass, memRef, (short)(ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC), null,
+                               (short)2, (short)3, bytecode,
                                null, null,
                                constantPool,
                                null, null, null, null);
@@ -392,7 +392,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isNative() { 
     return (modifiers & ACC_NATIVE) != 0;
   }
-
+  
   /**
    * Implemented in subclass?
    */

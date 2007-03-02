@@ -87,7 +87,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   private final int[]        constantPool;
   /** {@link VM_ClassLoaderConstants} */
-  private final int          modifiers;
+  private final short        modifiers;
   /** Super class of this class */
   private final VM_Class     superClass;
   /**
@@ -126,7 +126,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * current class-loading stage (loaded, resolved, instantiated,
    * initializing or initialized)
    */
-  private int state;        
+  private byte state;        
 
   //
   // The following are valid only when "state >= CLASS_RESOLVED".
@@ -1078,7 +1078,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * @param signature the generic type name for this class
    * @param annotations array of runtime visible annotations
    */
-  private VM_Class(VM_TypeReference typeRef, int[] constantPool, int modifiers,
+  private VM_Class(VM_TypeReference typeRef, int[] constantPool, short modifiers,
                    VM_Class superClass, VM_Class[] declaredInterfaces,
                    VM_Field[] declaredFields, VM_Method[] declaredMethods,
                    VM_TypeReference[] declaredClasses, VM_TypeReference declaringClass,
@@ -1299,7 +1299,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       }
     }
 
-    int modifiers   = input.readUnsignedShort();
+    short modifiers = input.readShort();
     int myTypeIndex = input.readUnsignedShort();
     VM_TypeReference myTypeRef = getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
@@ -1334,7 +1334,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     } else {
       declaredFields = new VM_Field[numFields];
       for (int i = 0; i<numFields; i++) {
-        int      fmodifiers      = input.readUnsignedShort();
+        short    fmodifiers      = input.readShort();
         VM_Atom  fieldName       = getUtf(constantPool, input.readUnsignedShort());
         VM_Atom  fieldDescriptor = getUtf(constantPool, input.readUnsignedShort());
         VM_MemberReference memRef= VM_MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
@@ -1350,7 +1350,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     } else {
       declaredMethods = new VM_Method[numMethods];
       for (int i = 0; i<numMethods; i++) {
-        int       mmodifiers       = input.readUnsignedShort();
+        short     mmodifiers       = input.readShort();
         VM_Atom   methodName       = getUtf(constantPool, input.readUnsignedShort());
         VM_Atom   methodDescriptor = getUtf(constantPool, input.readUnsignedShort());
         VM_MemberReference memRef  = VM_MemberReference.findOrCreate(typeRef, methodName, methodDescriptor);
@@ -1593,9 +1593,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
               if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
             }
             VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
-            virtualMethods.addElement(new VM_AbstractMethod(getTypeRef(), mRef, ACC_ABSTRACT | ACC_PUBLIC,
-                iMeth.getExceptionTypes(),
-                null, null, null, null));
+            virtualMethods.addElement(new VM_AbstractMethod(getTypeRef(), mRef, (short)(ACC_ABSTRACT | ACC_PUBLIC), 
+                                                            iMeth.getExceptionTypes(),
+                                                            null, null, null, null));
           }
         }
       }
@@ -2250,7 +2250,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // Create class
     VM_Class klass = new VM_Class(annotationClass, constantPool,
-                                  ACC_SYNTHETIC|ACC_PUBLIC|ACC_FINAL, // modifiers
+                                  (short)(ACC_SYNTHETIC|ACC_PUBLIC|ACC_FINAL), // modifiers
                                   baInitMemRef.resolveMember().getDeclaringClass(), // superClass
                                   new VM_Class[]{annotationInterface}, // declaredInterfaces
                                   annotationFields, annotationMethods,
