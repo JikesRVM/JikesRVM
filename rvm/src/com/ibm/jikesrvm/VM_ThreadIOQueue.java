@@ -98,8 +98,9 @@ import org.vmmagic.pragma.*;
    * @return number of descriptors added
    */
   private static int addFileDescriptors(int[] dest, int offset, int[] src) {
-    for (int i = 0; i < src.length; ++i) {
-      dest[offset++] = src[i];
+    //TODO: Remove manual System.arraycopy
+    for (int aSrc : src) {
+      dest[offset++] = aSrc;
     }
     return src.length;
   }

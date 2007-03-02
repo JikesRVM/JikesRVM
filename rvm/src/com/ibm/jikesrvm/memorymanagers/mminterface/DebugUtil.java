@@ -73,16 +73,18 @@ import com.ibm.jikesrvm.VM_Thread;
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks",
                          "dumping stacks for all threads");
-      for (int i=0; i<VM_Scheduler.threads.length; i++) {
-          t = VM_Scheduler.threads[i];
-          if (t == null) continue;
-          VM.sysWrite("\n Thread "); t.dump(); VM.sysWrite("\n");
-          // start stack dump using fp & ip in threads saved context registers
-          ip = t.contextRegisters.getInnermostInstructionAddress();
-          fp = t.contextRegisters.getInnermostFramePointer();
-          VM_Scheduler.dumpStack(ip,fp);
-      }
-      VM.sysWrite("\ndumpAllThreadStacks: end of thread stacks\n\n");
+    for (VM_Thread thread : VM_Scheduler.threads) {
+      t = thread;
+      if (t == null) continue;
+      VM.sysWrite("\n Thread ");
+      t.dump();
+      VM.sysWrite("\n");
+      // start stack dump using fp & ip in threads saved context registers
+      ip = t.contextRegisters.getInnermostInstructionAddress();
+      fp = t.contextRegisters.getInnermostFramePointer();
+      VM_Scheduler.dumpStack(ip, fp);
+    }
+    VM.sysWrite("\ndumpAllThreadStacks: end of thread stacks\n\n");
   }  // dumpAllThreadStacks
 
   /**

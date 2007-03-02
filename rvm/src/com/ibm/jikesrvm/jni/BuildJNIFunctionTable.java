@@ -276,13 +276,12 @@ public class BuildJNIFunctionTable {
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/jikesrvm/jni/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
-    VM_Method[] mths = cls.getDeclaredMethods();
-    for (int i=0; i<mths.length; i++) {
-      String methodName = mths[i].getName().toString();
+    for (VM_Method mth : cls.getDeclaredMethods()) {
+      String methodName = mth.getName().toString();
       int jniIndex = indexOf(names, methodName);
-      if (jniIndex!=-1) {
-        functions[jniIndex] = mths[i].getCurrentEntryCodeArray();
-      } 
+      if (jniIndex != -1) {
+        functions[jniIndex] = mth.getCurrentEntryCodeArray();
+      }
     }
     return functions;
   }

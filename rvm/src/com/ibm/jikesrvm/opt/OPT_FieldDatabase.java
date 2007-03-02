@@ -96,9 +96,7 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
        
       // walk thru each method of the declaring class.  
       // If a method m may write to f, then create a FieldWriterInfo for m
-      VM_Method[] declaredMethods = klass.getDeclaredMethods();
-      for (int i=0; i<declaredMethods.length; i++) {
-        VM_Method m = declaredMethods[i];
+      for (VM_Method m : klass.getDeclaredMethods()) {
         if (m.mayWrite(f)) {
           FieldWriterInfo info = new FieldWriterInfo();
           if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);

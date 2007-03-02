@@ -52,12 +52,12 @@ public class OPT_OptimizationPlanner {
     VM.sysWrite("\t\t\t\t\t   (ms)    (%ofTotal)\n");
     double total = 0.0;
 
-    for (int i = 0; i < masterPlan.length; i++) {
-      total += masterPlan[i].elapsedTime();
+    for (OPT_OptimizationPlanElement element : masterPlan) {
+      total += element.elapsedTime();
     }
 
-    for (int i = 0; i < masterPlan.length; i++) {
-      masterPlan[i].reportStats(8, 40, total);
+    for (OPT_OptimizationPlanElement element : masterPlan) {
+      element.reportStats(8, 40, total);
     }
 
     VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
@@ -85,9 +85,9 @@ public class OPT_OptimizationPlanner {
 
     ArrayList<OPT_OptimizationPlanElement> temp =
       new ArrayList<OPT_OptimizationPlanElement>();
-    for (int i = 0; i < masterPlan.length; i++) {
-      if (masterPlan[i].shouldPerform(options)) {
-        temp.add(masterPlan[i]);
+    for (OPT_OptimizationPlanElement element : masterPlan) {
+      if (element.shouldPerform(options)) {
+        temp.add(element);
       }
     }
     if (VM.writingBootImage)
@@ -100,8 +100,8 @@ public class OPT_OptimizationPlanner {
    *  measuring compilation.
    */
   public static void initializeMeasureCompilation() {
-    for (int i = 0; i < masterPlan.length; i++) {
-      masterPlan[i].initializeForMeasureCompilation();
+    for (OPT_OptimizationPlanElement element : masterPlan) {
+      element.initializeForMeasureCompilation();
     }
   }
 

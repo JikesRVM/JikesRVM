@@ -73,11 +73,8 @@ final class VMClassLoader
       String version =
         SystemProperties.getProperty("java.specification.version");
 
-      Package p;
-
-      for(int i = 0; i < packages.length; i++)
-      {
-        p = new Package(packages[i],
+      for (String packageName : packages) {
+        final Package p = new Package(packageName,
             specName,
             vendor,
             version,
@@ -87,7 +84,7 @@ final class VMClassLoader
             null,
             null);
 
-        definedPackages.put(packages[i], p);
+        definedPackages.put(packageName, p);
       }
     }
   }

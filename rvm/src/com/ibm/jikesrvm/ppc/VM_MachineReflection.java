@@ -39,37 +39,47 @@ public abstract class VM_MachineReflection implements VM_Constants {
       if (gp > LAST_VOLATILE_GPR) Spills++;
       else {GPRs++; gp++;}
     }
-    VM_TypeReference [] types = method.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
-      VM_TypeReference t = types[i];
+    for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
         if (VM.BuildFor64Addr) {
           if (gp > LAST_VOLATILE_GPR) {
             Spills++;
           } else {
-            GPRs++; gp++;
+            GPRs++;
+            gp++;
           }
         } else {
           if (gp > LAST_VOLATILE_GPR) {
-            Spills+=2;
+            Spills += 2;
           } else {
-            GPRs++; gp++;
-            if(gp > LAST_VOLATILE_GPR) {
+            GPRs++;
+            gp++;
+            if (gp > LAST_VOLATILE_GPR) {
               Spills++;
             } else {
-              GPRs++; gp++;
+              GPRs++;
+              gp++;
             }
           }
         }
       } else if (t.isFloatType()) {
         if (fp > LAST_VOLATILE_FPR) Spills++;
-        else {FPRs++; fp++;}
+        else {
+          FPRs++;
+          fp++;
+        }
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) Spills+= VM.BuildFor64Addr ? 1 : 2;
-        else {FPRs++; fp++;}
+        if (fp > LAST_VOLATILE_FPR) Spills += VM.BuildFor64Addr ? 1 : 2;
+        else {
+          FPRs++;
+          fp++;
+        }
       } else { // t is object, int, short, char, byte, or boolean
         if (gp > LAST_VOLATILE_GPR) Spills++;
-        else {GPRs++; gp++;}
+        else {
+          GPRs++;
+          gp++;
+        }
       }
     }
 

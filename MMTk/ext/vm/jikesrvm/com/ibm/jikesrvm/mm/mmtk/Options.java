@@ -224,9 +224,8 @@ public final class Options extends org.mmtk.vm.Options {
         for (int c = key.length(); c<31;c++) {
           VM.sysWrite(" ");
         }
-        String[] vals = ((EnumOption)o).getValues();
-        for(int j=0; j<vals.length; j++) {
-          VM.sysWrite(vals[j]);
+        for (String val : ((EnumOption)o).getValues()) {
+          VM.sysWrite(val);
           VM.sysWrite(" ");
         }
         VM.sysWriteln();

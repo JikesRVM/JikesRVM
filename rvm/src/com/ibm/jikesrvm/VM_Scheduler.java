@@ -752,9 +752,9 @@ import com.ibm.jikesrvm.osr.OSR_ObjectHolder;
     VM.sysWrite("\n");
 
     VM.sysWrite("\n-- Locks in use --\n");
-    for (int i = 0; i < locks.length; ++i)
-      if (locks[i] != null)
-        locks[i].dump();
+    for (VM_Lock lock : locks)
+      if (lock != null)
+        lock.dump();
     VM.sysWrite("\n");
 
     VM.sysWriteln("Dumping stack of active thread\n");

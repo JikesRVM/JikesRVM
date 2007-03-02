@@ -105,8 +105,8 @@ public final class OPT_CompilationPlan {
     if (instrumentationPlan != null) {
       instrumentationPlan.initInstrumentation(method);
     }
-    for (int i = 0; i < optimizationPlan.length; i++) {
-      optimizationPlan[i].perform(ir);
+    for (OPT_OptimizationPlanElement element : optimizationPlan) {
+      element.perform(ir);
     }
     // If instrumentation has occured, perform some
     // cleanup/finalization.  NOTE: This code won't execute when

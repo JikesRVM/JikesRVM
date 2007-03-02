@@ -66,22 +66,22 @@ class OPT_DominatorSystem extends OPT_DF_System {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       OPT_BasicBlock exit = ir.cfg.exit();
       OPT_DominatorCell last = (OPT_DominatorCell)getCell(exit);
-      for (Iterator<OPT_DF_LatticeCell> e = cells.values().iterator(); e.hasNext();) {
-        OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
+      for (final OPT_DF_LatticeCell latticeCell : cells.values()) {
+        OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
         if (cell == last)
-          cell.addSingleBlock(cell.block); 
-        else 
+          cell.addSingleBlock(cell.block);
+        else
           cell.setTOP(ir);
       }
     } 
     else {
       OPT_BasicBlock start = ir.cfg.entry();
       OPT_DominatorCell first = (OPT_DominatorCell)getCell(start);
-      for (Iterator<OPT_DF_LatticeCell> e = cells.values().iterator(); e.hasNext();) {
-        OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
+      for (final OPT_DF_LatticeCell latticeCell : cells.values()) {
+        OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
         if (cell == first)
-          cell.addSingleBlock(cell.block); 
-        else 
+          cell.addSingleBlock(cell.block);
+        else
           cell.setTOP(ir);
       }
     }

@@ -105,12 +105,9 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           if (killPhysicals) {
             HashSet<OPT_Register> toRemove =
               new HashSet<OPT_Register>();
-            for (Iterator<Map.Entry<OPT_Register,OPT_Operand>> i =
-                   info.entrySet().iterator();
-                 i.hasNext(); ) {
-              Map.Entry<OPT_Register,OPT_Operand> entry = i.next();
+            for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
               OPT_Register eR = entry.getValue().
-                asRegister().register;
+                  asRegister().register;
               if (killPhysicals && eR.isPhysical()) {
                 // delay the removal to avoid ConcurrentModification
                 // with iterator.
@@ -118,8 +115,8 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
               }
             }
             // Now perform the removals.
-            for (Iterator<OPT_Register> i = toRemove.iterator(); i.hasNext();) {
-              info.remove(i.next());
+            for (final OPT_Register aToRemove : toRemove) {
+              info.remove(aToRemove);
             }
           }
 
@@ -133,12 +130,9 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
               // I'm being lazy for now in the name of avoiding
               // premature optimization.
               HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
-              for (Iterator<Map.Entry<OPT_Register,OPT_Operand>> i =
-                     info.entrySet().iterator();
-                   i.hasNext(); ) {
-                Map.Entry<OPT_Register,OPT_Operand> entry = i.next();
+              for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
                 OPT_Register eR =
-                  ((OPT_RegisterOperand)entry.getValue()).register;
+                    ((OPT_RegisterOperand) entry.getValue()).register;
                 if (eR == r) {
                   // delay the removal to avoid ConcurrentModification
                   // with iterator.
@@ -146,8 +140,8 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
                 }
               }
               // Now perform the removals.
-              for (Iterator<OPT_Register> i = toRemove.iterator(); i.hasNext();) {
-                info.remove(i.next());
+              for (final OPT_Register register : toRemove) {
+                info.remove(register);
               }
             }
           }

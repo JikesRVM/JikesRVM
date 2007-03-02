@@ -141,9 +141,8 @@ public class VMSystemProperties {
      * some of them in the boot process; otherwise, we could wait for them to
      * be set in VM_CommandLineArgs.lateProcessCommandLineArguments() */
     final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home", "rvm.root", "rvm.build"};
-    
-    for (int i = 0; i < clProps.length; ++i ) {
-      final String prop = clProps[i];
+
+    for (final String prop : clProps) {
       s = VM_CommandLineArgs.getEnvironmentArg(prop);
       if (s != null) {
         p.put(prop, s);

@@ -73,18 +73,18 @@ class tInstance {
     Method omethod = null;
     Method vmethod = null;
 
-    for (int i = 0; i < methods.length; i++) {
-      String methodName = methods[i].getName();
+    for (Method method : methods) {
+      String methodName = method.getName();
       if (methodName.equals("iuserFunction"))
-        imethod = methods[i];
+        imethod = method;
       else if (methodName.equals("duserFunction"))
-        dmethod = methods[i];
+        dmethod = method;
       else if (methodName.equals("buserFunction"))
-        bmethod = methods[i];
+        bmethod = method;
       else if (methodName.equals("ouserFunction"))
-        omethod = methods[i];
+        omethod = method;
       else if (methodName.equals("vuserFunction"))
-        vmethod = methods[i];
+        vmethod = method;
     }
 
     Object[] methodargs = new Object[1];

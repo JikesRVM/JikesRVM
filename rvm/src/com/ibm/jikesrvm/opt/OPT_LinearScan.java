@@ -762,11 +762,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // disturbing.  TODO: fix it.  (Hope the problem goes away if/when
       // we migrate to classpath libraries).
       // removeAll(result);
-      for (Iterator<BasicInterval> it = result.iterator(); it.hasNext(); ) {
-        BasicInterval b = it.next();
+      for (BasicInterval b : result) {
         remove(b);
       }
-      
+
       return result;
     }
 
@@ -781,8 +780,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * In the meantime, here's an ugly hack to get around the problem.
      */
     void removeAll(CompoundInterval c) {
-      for (Iterator<BasicInterval> i = c.iterator(); i.hasNext(); ) {
-        BasicInterval b = i.next();
+      for (BasicInterval b : c) {
         remove(b);
       }
     }
@@ -1403,9 +1401,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // OK, now find the highest preference. 
       OPT_Register result = null;
       int weight = -1;
-      for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
-           i.hasNext(); ) {
-        Map.Entry<OPT_Register,Integer> entry = i.next();
+      for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
         int w = entry.getValue().intValue();
         if (w > weight) {
           weight = w;
@@ -1491,9 +1487,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // OK, now find the highest preference. 
       OPT_Register result = null;
       int weight = -1;
-      for (Iterator<Map.Entry<OPT_Register,Integer>> i = map.entrySet().iterator();
-           i.hasNext(); ) {
-        Map.Entry<OPT_Register,Integer> entry = i.next();
+      for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
         int w = entry.getValue().intValue();
         if (w > weight) {
           weight = w;
@@ -1975,8 +1969,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // Now search for any free interval.
       if (result == null) {
-        for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-          SpillLocationInterval s = i.next();
+        for (SpillLocationInterval s : freeIntervals) {
           if (s.getSize() == spillSize && !s.intersects(ci)) {
             result = s;
             freeIntervals.remove(result);
@@ -2043,16 +2036,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         if (neighbor.isSymbolic() && neighbor.isSpilled()) {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
-          for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-            SpillLocationInterval s = i.next();
-            if (s.getOffset() == spillOffset && 
+          for (SpillLocationInterval s : freeIntervals) {
+            if (s.getOffset() == spillOffset &&
                 s.getSize() == spillSize && !s.intersects(ci)) {
               int w = edge.getWeight();
               Integer oldW = map.get(s);
               if (oldW == null) {
-                map.put(s,Integer.valueOf(w));
+                map.put(s, Integer.valueOf(w));
               } else {
-                map.put(s,Integer.valueOf(oldW.intValue() + w));
+                map.put(s, Integer.valueOf(oldW.intValue() + w));
               }
               break;
             }
@@ -2069,16 +2061,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         if (neighbor.isSymbolic() && neighbor.isSpilled()) {
           int spillOffset = OPT_RegisterAllocatorState.getSpill(neighbor);
           // if this is a candidate interval, update its weight
-          for (Iterator<SpillLocationInterval> i = freeIntervals.iterator(); i.hasNext(); ) {
-            SpillLocationInterval s = i.next();
-            if (s.getOffset() == spillOffset && 
+          for (SpillLocationInterval s : freeIntervals) {
+            if (s.getOffset() == spillOffset &&
                 s.getSize() == spillSize && !s.intersects(ci)) {
               int w = edge.getWeight();
               Integer oldW = map.get(s);
               if (oldW == null) {
-                map.put(s,Integer.valueOf(w));
+                map.put(s, Integer.valueOf(w));
               } else {
-                map.put(s,Integer.valueOf(oldW.intValue() + w));
+                map.put(s, Integer.valueOf(oldW.intValue() + w));
               }
               break;
             }

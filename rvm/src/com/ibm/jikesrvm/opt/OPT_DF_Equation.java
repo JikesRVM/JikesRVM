@@ -58,9 +58,9 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * @return true or false
    */
   public boolean hasCell (OPT_DF_LatticeCell cell) {
-    for (int i = 0; i < operands.length; i++) {
-      if (operands[i] == cell)
-        return  true;
+    for (OPT_DF_LatticeCell operand : operands) {
+      if (operand == cell)
+        return true;
     }
     return  false;
   }

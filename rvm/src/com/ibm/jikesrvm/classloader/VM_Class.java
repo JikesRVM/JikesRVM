@@ -852,11 +852,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(isResolved());
     int count = 0;
     int [] doesImplement = getDoesImplement();
-    for (int i=0; i<doesImplement.length; i++) {
-      int mask = doesImplement[i];
+    for (int mask : doesImplement) {
       while (mask != 0) {
         count++;
-        mask &= (mask-1); // clear lsb 1 bit
+        mask &= (mask - 1); // clear lsb 1 bit
       }
     }
     if (count == 0) return emptyVMClass;
@@ -1464,8 +1463,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (superClass != null) {
       superClass.resolve();
     }
-    for (int i=0; i<declaredInterfaces.length; i++) {
-      declaredInterfaces[i].resolve();
+    for (VM_Class declaredInterface : declaredInterfaces) {
+      declaredInterface.resolve();
     }
 
     if (isInterface()) {
@@ -1583,32 +1582,30 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // interface that this class implements, ensure that a corresponding virtual
       // method is declared.  If one is not, then create an abstract method to fill the void.
       if (!isInterface() && isAbstract()) {
-        for (int i=0; i<declaredInterfaces.length; i++) {
-          VM_Class I = declaredInterfaces[i];
+        for (VM_Class I : declaredInterfaces) {
           VM_Method[] iMeths = I.getVirtualMethods();
-          outer: 
-          for (int j=0; j<iMeths.length; j++) {
-            VM_Method iMeth = iMeths[j];
+          outer:
+          for (VM_Method iMeth : iMeths) {
             VM_Atom iName = iMeth.getName();
             VM_Atom iDesc = iMeth.getDescriptor();
-            for (int k=0; k<virtualMethods.size(); k++) {
+            for (int k = 0; k < virtualMethods.size(); k++) {
               VM_Method vMeth = virtualMethods.elementAt(k);
               if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
             }
             VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
-            virtualMethods.addElement(new VM_AbstractMethod(getTypeRef(), mRef, ACC_ABSTRACT | ACC_PUBLIC, 
-                                                            iMeth.getExceptionTypes(),
-                                                            null, null, null, null));
+            virtualMethods.addElement(new VM_AbstractMethod(getTypeRef(), mRef, ACC_ABSTRACT | ACC_PUBLIC,
+                iMeth.getExceptionTypes(),
+                null, null, null, null));
           }
         }
       }
 
       // If this is an interface, inherit methods from its superinterfaces
       if (isInterface()) {
-        for (int i=0; i<declaredInterfaces.length; i++) {
-          VM_Method[] meths = declaredInterfaces[i].getVirtualMethods();
-          for (int j=0; j<meths.length; j++) {
-            virtualMethods.addUniqueElement(meths[j]);
+        for (VM_Class declaredInterface : declaredInterfaces) {
+          VM_Method[] meths = declaredInterface.getVirtualMethods();
+          for (VM_Method meth : meths) {
+            virtualMethods.addUniqueElement(meth);
           }
         }
       }
@@ -1708,10 +1705,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // RCGC: Determine if class is inherently acyclic
     acyclic = false;    // must initially be false for recursive types
     boolean foundCyclic = false;
-    for (int i = 0; i < instanceFields.length; i++) {
-      VM_TypeReference ft = instanceFields[i].getType();
+    for (VM_Field instanceField : instanceFields) {
+      VM_TypeReference ft = instanceField.getType();
       if (!(ft.isResolved() && ft.peekResolvedType().isAcyclicReference())) {
-        foundCyclic = true; 
+        foundCyclic = true;
         break;
       }
     }
@@ -1817,8 +1814,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // since we don't need to instantiate/initialize for the purposes of 
       // dynamic type checking and interface invocation, defer it until runtime
       // and the class actually refers to a static field of the interface.
-      for (int i=0; i<declaredInterfaces.length; i++) {
-        declaredInterfaces[i].instantiate();
+      for (VM_Class declaredInterface : declaredInterfaces) {
+        declaredInterface.instantiate();
       }
     }
 
@@ -1944,11 +1941,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public void setAllFinalStaticJTOCEntries() {
     if (VM.VerifyAssertions) VM._assert (isInitialized());
-    VM_Field[] fields = getStaticFields();
-    for (int i=0; i<fields.length; i++) {
-      VM_Field f = fields[i];
+    for (VM_Field f : getStaticFields()) {
       if (f.isFinal()) {
-        setFinalStaticJTOCEntry(f,f.getOffset());
+        setFinalStaticJTOCEntry(f, f.getOffset());
       }
     }
   }
@@ -1960,8 +1955,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   private void resolveNativeMethodsInternal(VM_Method[] methods) {
-    for (int i=0; i<methods.length; i++) {
-      VM_Method m = methods[i];
+    for (VM_Method m : methods) {
       if (m.isNative()) {
         m.replaceCompiledMethod(null);
       }
@@ -1974,12 +1968,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public void unregisterNativeMethods() {
     if (VM.VerifyAssertions) VM._assert (isInitialized());
-    for (int i=0; i<declaredMethods.length; i++) {
-      VM_Method m = declaredMethods[i];
+    for (VM_Method m : declaredMethods) {
       if (m.isNative()) {
-        VM_NativeMethod nm = (VM_NativeMethod)m;
-        nm.unregisterNativeSymbol(); 
-        m.replaceCompiledMethod(null); 
+        VM_NativeMethod nm = (VM_NativeMethod) m;
+        nm.unregisterNativeSymbol();
+        m.replaceCompiledMethod(null);
       }
     }
   }
@@ -2069,9 +2062,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (dm != null && dm != m) return;  // this method got overridden
     updateTIBEntry(m);
     if (m.isPrivate()) return; // can't override
-    VM_Class[] subClasses = getSubClasses(); 
-    for (int i = 0; i < subClasses.length; i++) {
-      VM_Class sc = subClasses[i];
+    for (VM_Class sc : getSubClasses()) {
       if (sc.isResolved()) {
         sc.updateVirtualMethod(m);
       }
@@ -2161,8 +2152,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // Count the number of default values for this class
     int numDefaultFields = 0;
-    for(int i=0; i < annotationInterface.declaredMethods.length; i++) {
-      if(annotationInterface.declaredMethods[i].annotationDefault != null) {
+    for (VM_Method declaredMethod : annotationInterface.declaredMethods) {
+      if (declaredMethod.annotationDefault != null) {
         numDefaultFields++;
       }
     }

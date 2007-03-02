@@ -1099,9 +1099,7 @@ public class BootImageWriter extends BootImageWriterMessages
           workers[i].start();
         }
         try {
-          for (int i=0; i<workers.length; i++) {
-            workers[i].join();
-          }
+          for (BootImageWorker worker : workers) { worker.join(); }
         } catch (InterruptedException ie) {
           say("InterruptedException while instantiating");
         }
@@ -1179,8 +1177,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         for (int j = 0; j < rvmFields.length; j++) {
           String  rvmName = rvmFields[j].getName().toString();
-          for (int k = 0; k < fieldInfo.jdkFields.length; k++) {
-            Field f = fieldInfo.jdkFields[k];
+          for (Field f : fieldInfo.jdkFields) {
             if (f.getName().equals(rvmName)) {
               fieldInfo.jdkStaticFields[j] = f;
               f.setAccessible(true);
@@ -1204,8 +1201,7 @@ public class BootImageWriter extends BootImageWriterMessages
           FieldInfo jdkFieldInfo = bootImageTypeFields.get(new Key(jdkType));
           if (jdkFieldInfo == null) continue;
           Field[] jdkFields = jdkFieldInfo.jdkFields;
-          for (int k = 0; k <jdkFields.length; k++) {
-            Field f = jdkFields[k];
+          for (Field f : jdkFields) {
             if (f.getName().equals(rvmName)) {
               fieldInfo.jdkInstanceFields[j] = f;
               f.setAccessible(true);
@@ -2194,15 +2190,13 @@ public class BootImageWriter extends BootImageWriterMessages
           throw new Error("Failed to populate Constructor.constructor for " + cons);
         }
         Class[] consParams = cons.getParameterTypes();
-        VM_Method[] vmConstructors = klass.getConstructorMethods();
         VM_Method constructor = null;
         loop_over_all_constructors:
-        for(int i=0; i < vmConstructors.length; i++) {
-          VM_Method vmCons = vmConstructors[i];
+        for (VM_Method vmCons : klass.getConstructorMethods()) {
           VM_TypeReference[] vmConsParams = vmCons.getParameterTypes();
           if (vmConsParams.length == consParams.length) {
-            for (int j=0; j < vmConsParams.length; j++) {
-              if(!consParams[j].equals(vmConsParams[j].resolve().getClassForType())) {
+            for (int j = 0; j < vmConsParams.length; j++) {
+              if (!consParams[j].equals(vmConsParams[j].resolve().getClassForType())) {
                 continue loop_over_all_constructors;
               }
             }
@@ -2514,9 +2508,7 @@ public class BootImageWriter extends BootImageWriterMessages
         continue;
       if (!type.isResolved())
         continue;
-      VM_Field[] rvmFields = types[i].getStaticFields();
-      for (int j = 0; j < rvmFields.length; ++j) {
-        VM_Field rvmField = rvmFields[j];
+      for (VM_Field rvmField : types[i].getStaticFields()) {
         if (rvmField.getOffset().EQ(jtocOff))
           return rvmField;
       }

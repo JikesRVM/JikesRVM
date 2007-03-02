@@ -90,8 +90,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
     }
 
     // Now remove all dead Move instructions.
-    for (Iterator<OPT_Instruction> i = dead.iterator(); i.hasNext(); ) {
-      OPT_Instruction s = i.next();
+    for (OPT_Instruction s : dead) {
       OPT_DefUse.removeInstructionAndUpdateDU(s);
     }
   }

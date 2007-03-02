@@ -565,11 +565,10 @@ public final class VM_BuildBB
         otherRetCount--;
       }
     }
-    int[] preds = basicBlocks[pred].getPredecessors();
-    for( int i = 0; i < preds.length; i++) {
-      int pred2 = preds[i];
-      if (!seenAlready[pred2])
-        findAndSetJSRCallSite(pred2,retBB,otherRetCount, seenAlready);
+    int[] predecessors = basicBlocks[pred].getPredecessors();
+    for (int predecessor : predecessors) {
+      if (!seenAlready[predecessor])
+        findAndSetJSRCallSite(predecessor, retBB, otherRetCount, seenAlready);
     }
   }
 

@@ -265,20 +265,19 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     }
     // having determine where copies should be inserted, now insert them.
     if (!needed.isEmpty()) {
-      for (Iterator<OPT_Pair> copies = needed.iterator(); copies.hasNext(); ) {
-        OPT_Pair copy = copies.next();
-        OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
-        OPT_RegisterOperand registerOp = (OPT_RegisterOperand)copy.second;
+      for (OPT_Pair copy : needed) {
+        OPT_BasicBlock inBlock = (OPT_BasicBlock) copy.first;
+        OPT_RegisterOperand registerOp = (OPT_RegisterOperand) copy.second;
         VM_TypeReference type = registerOp.type;
         OPT_Register register = registerOp.register;
         OPT_Register temp = ir.regpool.getReg(register);
-        inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, 
-                                                               temp, type));
+        inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register,
+            temp, type));
         OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
         while (outBlocks.hasMoreElements()) {
           OPT_BasicBlock outBlock = outBlocks.next();
-          OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register, 
-                                                          type);
+          OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register,
+              type);
           OPT_SSA.addAtEnd(ir, outBlock, x, true);
         }
       }
@@ -889,11 +888,10 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       if (A.operator() != PHI) {
         OPT_HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
-          OPT_HeapOperand<Object>[] r = dictionary.replaceDefs(A, X);
-          for (int i = 0; i < r.length; i++) {
-            Stack<OPT_HeapOperand<Object>> S = stacks.get(r[i].getHeapType());
-            S.push(r[i]);
-            if (DEBUG) System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
+          for (OPT_HeapOperand<Object> operand : dictionary.replaceDefs(A, X)) {
+            Stack<OPT_HeapOperand<Object>> S = stacks.get(operand.getHeapType());
+            S.push(operand);
+            if (DEBUG) System.out.println("PUSH " + operand + " FOR " + operand.getHeapType());
           }
         }
       } else {
@@ -932,10 +930,10 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       if (A.operator != PHI) {
         OPT_HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
-          for (int i = 0; i < defs.length; i++) {
-            Stack<OPT_HeapOperand<Object>> S = stacks.get(defs[i].getHeapType());
+          for (OPT_HeapOperand<Object> def : defs) {
+            Stack<OPT_HeapOperand<Object>> S = stacks.get(def.getHeapType());
             S.pop();
-            if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
+            if (DEBUG) System.out.println("POP " + def.getHeapType());
           }
         }
       } else {
@@ -1079,24 +1077,23 @@ outer: for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) 
    */
   @SuppressWarnings("unused")
   private void removeUnreachableOperands(HashSet<OPT_Instruction> scalarPhis) {
-    for (Iterator<OPT_Instruction> i = scalarPhis.iterator(); i.hasNext(); ) {
-      OPT_Instruction phi = i.next();
+    for (OPT_Instruction phi : scalarPhis) {
       boolean didSomething = true;
       while (didSomething) {
         didSomething = false;
         for (int j = 0; j < Phi.getNumberOfValues(phi); j++) {
-          OPT_Operand v = Phi.getValue(phi,j);
+          OPT_Operand v = Phi.getValue(phi, j);
           if (v instanceof OPT_UnreachableOperand) {
             // rewrite the phi instruction to remove the unreachable
             // operand
             didSomething = true;
             OPT_Instruction tmpPhi = phi.copyWithoutLinks();
-            Phi.mutate(phi,PHI,Phi.getResult(tmpPhi),Phi.getNumberOfValues(phi)-1);
+            Phi.mutate(phi, PHI, Phi.getResult(tmpPhi), Phi.getNumberOfValues(phi) - 1);
             int m = 0;
             for (int k = 0; k < Phi.getNumberOfValues(phi); k++) {
               if (k == j) continue;
-              Phi.setValue(phi,m,Phi.getValue(tmpPhi,k));
-              Phi.setPred(phi,m,Phi.getPred(tmpPhi,k));
+              Phi.setValue(phi, m, Phi.getValue(tmpPhi, k));
+              Phi.setPred(phi, m, Phi.getPred(tmpPhi, k));
               m++;
             }
           }

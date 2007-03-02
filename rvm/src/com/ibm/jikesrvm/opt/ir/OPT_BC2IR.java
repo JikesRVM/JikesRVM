@@ -4163,26 +4163,25 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     int catchTargets = 0;
     if (DBG_EX) db("\tchecking exceptions of " + currentBBLE.block);
     if (currentBBLE.handlers != null) {
-      for (int i = 0; i < currentBBLE.handlers.length; i++) {
-        HandlerBlockLE xbble = currentBBLE.handlers[i];
+      for (HandlerBlockLE xbble : currentBBLE.handlers) {
         if (DBG_EX) db("\texception block " + xbble.entryBlock);
         byte mustCatch = xbble.mustCatchException(exceptionType);
-        if (mustCatch != NO || 
+        if (mustCatch != NO ||
             xbble.mayCatchException(exceptionType) != NO) {
           if (DBG_EX)
             db("PEI of type " + exceptionType + " could be caught by "
-               + xbble + " rectifying locals");
+                + xbble + " rectifying locals");
           catchTargets++;
           blocks.rectifyLocals(_localState, xbble);
           currentBBLE.block.insertOut(xbble.entryBlock);
           if (DBG_CFG || DBG_SELECTED)
-            db("Added CFG edge from " + currentBBLE.block + 
-               " to " + xbble.entryBlock);
+            db("Added CFG edge from " + currentBBLE.block +
+                " to " + xbble.entryBlock);
         }
         if (mustCatch == YES) {
           if (DBG_EX)
             db("\t" + xbble + " will defintely catch exceptions of type "
-               + exceptionType);
+                + exceptionType);
           if (DBG_EX && catchTargets == 1)
             db("\t  and it is the only target");
           return (catchTargets == 1) ? xbble.entryBlock : null;
@@ -4254,15 +4253,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         db("Added CFG edge from " + currentBBLE.block + " to exit");
     }
     if (currentBBLE.handlers != null) {
-      for (int i = 0; i < currentBBLE.handlers.length; i++) {
-        HandlerBlockLE xbble = currentBBLE.handlers[i];
+      for (HandlerBlockLE xbble : currentBBLE.handlers) {
         if (DBG_EX)
-          db("PEI of unknown type could be caught by " + xbble + 
-             " rectifying locals");
+          db("PEI of unknown type could be caught by " + xbble +
+              " rectifying locals");
         blocks.rectifyLocals(_localState, xbble);
         currentBBLE.block.insertOut(xbble.entryBlock);
         if (DBG_CFG || DBG_SELECTED)
-          db("Added CFG edge from "+currentBBLE.block+" to "+xbble.entryBlock);
+          db("Added CFG edge from " + currentBBLE.block + " to " + xbble.entryBlock);
       }
     }
     // Now, consider the enclosing exception context; ditto NOTE above.
@@ -4371,8 +4369,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // NOTE: No need to add CFG edges (they were added as needed 
     // during generation of the callee)
     if (currentBBLE.handlers != null) {
-      for (int i = 0; i < currentBBLE.handlers.length; i++) {
-        blocks.rectifyLocals(_localState, currentBBLE.handlers[i]);
+      for (HandlerBlockLE handler : currentBBLE.handlers) {
+        blocks.rectifyLocals(_localState, handler);
       }
     }
     if (inlinedContext.epilogue != null) {
@@ -5133,11 +5131,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         // make a new, filtered EHBBB to avoid later confusion.
         if (curr.handlers != null) {
           int notGenerated = 0;
-          for (int i = 0; i < curr.handlers.length; i++) {
-            if (!curr.handlers[i].isGenerated()) {
+          for (HandlerBlockLE handler : curr.handlers) {
+            if (!handler.isGenerated()) {
               if (DBG_EX || DBG_FLATTEN) {
-                db("Will remove unreachable handler " + curr.handlers[i]
-                   + " from " + curr);
+                db("Will remove unreachable handler " + handler
+                    + " from " + curr);
               }
               notGenerated++;
             }
@@ -5361,14 +5359,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private int exceptionEndRange(int bcIndex) {
       int max = bcodes.length();
       if (startPCs != null) {
-        for (int i = 0; i < startPCs.length; i++) {
-          int spc = startPCs[i];
+        for (int spc : startPCs) {
           if (bcIndex < spc && max > spc) {
             max = spc;
           }
         }
-        for (int i = 0; i < endPCs.length; i++) {
-          int epc = endPCs[i];
+        for (int epc : endPCs) {
           if (bcIndex < epc && max > epc) {
             max = epc;
           }
@@ -6065,8 +6061,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         handlers = new HandlerBlockLE[1];
         handlers[0] = handler;
       } else {
-        for (int i = 0; i < handlers.length; i++) {
-          if (handlers[i] == handler)
+        for (HandlerBlockLE handler1 : handlers) {
+          if (handler1 == handler)
             return;             //already there (was in emap more than once)
         }
         int n = handlers.length;

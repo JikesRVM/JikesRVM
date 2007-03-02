@@ -394,9 +394,9 @@ import org.vmmagic.unboxed.*;
    * or a class literal during bootimage writing.
    */
   @Interruptible
-  public static void deferClassObjectCreation(VM_Class c) { 
-    for (int i=0; i<classObjects.length; i++) {
-      if (classObjects[i] == c) return; // already recorded
+  public static void deferClassObjectCreation(VM_Class c) {
+    for (VM_Class classObject : classObjects) {
+      if (classObject == c) return; // already recorded
     }
     VM_Class[] tmp = new VM_Class[classObjects.length+1];
     System.arraycopy(classObjects, 0, tmp, 0, classObjects.length);

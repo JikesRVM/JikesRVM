@@ -141,8 +141,8 @@ class OPT_Dominators {
    * @param solution the solution to the Dominators equations
    */
   public static void updateBlocks (OPT_DF_Solution solution) {
-    for (Iterator<OPT_DF_LatticeCell> e = solution.values().iterator(); e.hasNext();) {
-      OPT_DominatorCell cell = (OPT_DominatorCell)e.next();
+    for (final OPT_DF_LatticeCell latticeCell : solution.values()) {
+      OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
       OPT_BasicBlock b = cell.block;
       b.scratchObject = new OPT_DominatorInfo(cell.dominators);
       if (DEBUG)

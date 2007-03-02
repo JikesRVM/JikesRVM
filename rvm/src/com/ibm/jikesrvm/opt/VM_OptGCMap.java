@@ -328,9 +328,9 @@ import org.vmmagic.pragma.*;
     java.util.Arrays.sort(spillArray);
 
     // 2) add them to the map using addSpillLocation
-    for (int i = 0; i < spillArray.length; i++) {
-      addSpillLocation(spillArray[i]);
-    } 
+    for (int spill : spillArray) {
+      addSpillLocation(spill);
+    }
   }
 
   /**

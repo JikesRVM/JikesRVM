@@ -42,23 +42,34 @@ public abstract class VM_MachineReflection implements VM_Constants {
       parameters++;
     }
 
-    VM_TypeReference [] types = method.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
-      VM_TypeReference t = types[i];
+    for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
         if (gp > 0) {
-          GPRs++; gp--;
-          if (gp > 0) {GPRs++; gp--;}
+          GPRs++;
+          gp--;
+          if (gp > 0) {
+            GPRs++;
+            gp--;
+          }
         }
-        parameters+=2; 
+        parameters += 2;
       } else if (t.isFloatType()) {
-        if (fp > 0) {FPRs++; fp--;}
+        if (fp > 0) {
+          FPRs++;
+          fp--;
+        }
         parameters++;
       } else if (t.isDoubleType()) {
-        if (fp > 0) {FPRs++; fp--;}
-        parameters+=2;
+        if (fp > 0) {
+          FPRs++;
+          fp--;
+        }
+        parameters += 2;
       } else { // t is object, int, short, char, byte, or boolean
-        if (gp > 0) {GPRs++; gp--;}
+        if (gp > 0) {
+          GPRs++;
+          gp--;
+        }
         parameters++;
       }
     }

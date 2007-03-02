@@ -89,12 +89,10 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
     }
     // for each interface implmented by c, note that c provides an overridding
     // implementation
-    VM_Class[] interfaces = c.getAllImplementedInterfaces();
-    for (int i=0; i<interfaces.length; i++) {
-      VM_Method[] ms = interfaces[i].getVirtualMethods();
-      for (int j=0; j<ms.length; j++) {
-        processOverride(ms[j]);
-      }        
+    for (VM_Class intf : c.getAllImplementedInterfaces()) {
+      for (VM_Method m : intf.getVirtualMethods()) {
+        processOverride(m);
+      }
     }
   }
   

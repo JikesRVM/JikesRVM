@@ -64,8 +64,8 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * @param et the exception type to be added
    */
   public void addCaughtException(OPT_TypeOperand et) {
-    for (int i=0; i<exceptionTypes.length; i++) {
-      if (exceptionTypes[i].similar(et)) return;
+    for (OPT_TypeOperand exceptionType : exceptionTypes) {
+      if (exceptionType.similar(et)) return;
     }
     OPT_TypeOperand[] newets = new OPT_TypeOperand[exceptionTypes.length+1];
     for (int i=0; i<exceptionTypes.length; i++) {
@@ -86,11 +86,11 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   public byte mayCatchException(VM_TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
-    for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].getTypeRef(), cand);
+    for (OPT_TypeOperand exceptionType : exceptionTypes) {
+      t = OPT_ClassLoaderProxy.includesType(exceptionType.getTypeRef(), cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
-      t = OPT_ClassLoaderProxy.includesType(cand, exceptionTypes[i].getTypeRef());
+      t = OPT_ClassLoaderProxy.includesType(cand, exceptionType.getTypeRef());
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }
@@ -108,8 +108,8 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   public byte mustCatchException(VM_TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
-    for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.includesType(exceptionTypes[i].getTypeRef(), cand);
+    for (OPT_TypeOperand exceptionType : exceptionTypes) {
+      t = OPT_ClassLoaderProxy.includesType(exceptionType.getTypeRef(), cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }

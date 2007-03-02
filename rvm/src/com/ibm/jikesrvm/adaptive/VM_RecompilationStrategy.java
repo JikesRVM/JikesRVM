@@ -276,41 +276,41 @@ public abstract class VM_RecompilationStrategy {
                                         String[] optCompilerOptions) {
 
     String prefix = "opt"+optLevel+":";
-    for (int j=0; j<optCompilerOptions.length; j++) {
-      if (optCompilerOptions[j].startsWith("opt:")) {
-        String option = optCompilerOptions[j].substring(4);
+    for (String optCompilerOption : optCompilerOptions) {
+      if (optCompilerOption.startsWith("opt:")) {
+        String option = optCompilerOption.substring(4);
         if (!options.processAsOption("-X:recomp:", option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
-                      +option+"\" passed in as "
-                      +optCompilerOptions[j]+"\n");
+              + option + "\" passed in as "
+              + optCompilerOption + "\n");
         }
-      } else if (optCompilerOptions[j].startsWith(prefix)) {
-        String option = optCompilerOptions[j].substring(5);
-        if (!options.processAsOption("-X:recomp:"+prefix, option)) {
+      } else if (optCompilerOption.startsWith(prefix)) {
+        String option = optCompilerOption.substring(5);
+        if (!options.processAsOption("-X:recomp:" + prefix, option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
-                      +option+"\" passed in as "
-                      +optCompilerOptions[j]+"\n");
+              + option + "\" passed in as "
+              + optCompilerOption + "\n");
         }
       }
     }
     // TODO: check for optimization levels that are invalid; that is, 
     // greater than optLevelMax.
     //
-    for (int j=0; j<optCompilerOptions.length; j++) {
-      if (!optCompilerOptions[j].startsWith("opt")) {
+    for (String optCompilerOption1 : optCompilerOptions) {
+      if (!optCompilerOption1.startsWith("opt")) {
         // This should never be the case!
         continue;
       }
-      if (!optCompilerOptions[j].startsWith("opt:")) {
+      if (!optCompilerOption1.startsWith("opt:")) {
         // must specify optimization level!
-        int endPoint = optCompilerOptions[j].indexOf(":");
+        int endPoint = optCompilerOption1.indexOf(":");
         if (endPoint == -1) {
           VM.sysWrite("vm: Unrecognized optimization level in optimizing compiler command line argument: \""
-                      +optCompilerOptions[j]+"\"\n");
+              + optCompilerOption1 + "\"\n");
         }
         String optLevelS;
         try {
-          optLevelS = optCompilerOptions[j].substring(3,endPoint);
+          optLevelS = optCompilerOption1.substring(3, endPoint);
         } catch (IndexOutOfBoundsException e) {
           VM.sysWrite("vm internal error: trying to find opt level has thrown indexOutOfBoundsException\n");
           e.printStackTrace();
@@ -321,13 +321,13 @@ public abstract class VM_RecompilationStrategy {
           int cmdOptLevel = optLevelI.intValue();
           if (cmdOptLevel > maxOptLevel) {
             VM.sysWrite("vm: Invalid optimization level in optimizing compiler command line argument: \""
-                        +optCompilerOptions[j]+"\"\n"+
-                        "  Specified optimization level "+cmdOptLevel+
-                        " must be less than "+maxOptLevel+"\n");
+                + optCompilerOption1 + "\"\n" +
+                "  Specified optimization level " + cmdOptLevel +
+                " must be less than " + maxOptLevel + "\n");
           }
         } catch (NumberFormatException e) {
           VM.sysWrite("vm: Unrecognized optimization level in optimizing compiler command line argument: \""
-                      +optCompilerOptions[j]+"\"\n");
+              + optCompilerOption1 + "\"\n");
         }
       }
     }

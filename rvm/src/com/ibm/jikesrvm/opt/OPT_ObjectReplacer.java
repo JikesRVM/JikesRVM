@@ -88,10 +88,9 @@ public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * @param klass the type of the object
    */
   private static ArrayList<VM_Field> getFieldsAsArrayList (VM_Class klass) {
-    VM_Field[] f = klass.getInstanceFields();
     ArrayList<VM_Field> v = new ArrayList<VM_Field>();
-    for (int i = 0; i < f.length; i++) {
-      v.add(f[i]);
+    for (VM_Field field : klass.getInstanceFields()) {
+      v.add(field);
     }
     return  v;
   }

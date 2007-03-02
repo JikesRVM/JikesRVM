@@ -49,8 +49,8 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 
   public void print(java.io.PrintStream ps) {
     ps.println("M "+numCounters+" "+method.getMemberRef());
-    for (int j=0; j<data.length; j++) {
-      ps.println("\t"+data[j]);
+    for (VM_BranchProfile profile : data) {
+      ps.println("\t" + profile);
     }
   }
 

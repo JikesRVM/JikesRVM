@@ -123,8 +123,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
   public void addNewEquationsToWorkList() {
     if (DEBUG)
       System.out.println("new equations:");
-    for (Iterator<OPT_DF_Equation> e = newEquations.iterator(); e.hasNext();) {
-      OPT_DF_Equation eq = e.next();
+    for (OPT_DF_Equation eq : newEquations) {
       if (DEBUG)
         System.out.println(eq.toString());
       addToWorkList(eq);
@@ -270,10 +269,10 @@ public abstract class OPT_DF_System implements OPT_Solvable {
     newEquations.add(eq);
     // add the operands to the working solution
     //       cells.put(lhs.getKey(),lhs);
-    for (int i = 0; i < rhs.length; i++) {
+    for (OPT_DF_LatticeCell rh : rhs) {
       //        cells.put(rhs[i].getKey(),rhs[i]);
-      rhs[i].addUse(eq);
-      equations.addGraphNode(rhs[i]);
+      rh.addUse(eq);
+      equations.addGraphNode(rh);
     }
     lhs.addDef(eq);
     if (EAGER && eq.evaluate()) changedCell(lhs);

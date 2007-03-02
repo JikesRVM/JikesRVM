@@ -63,9 +63,7 @@ $$$$ FOREACH OPTION VDATFILE
    public final boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
    public final boolean fuzzyMatchFULL_NAME(TYPE q) { 
      if (FULL_NAME == null) return false;
-     java.util.Iterator<String> i = FULL_NAME.iterator();
-     while (i.hasNext()) {
-       String s = i.next();
+     for (final String s : FULL_NAME) {
        if (q.indexOf(s) > -1) return true;
      }
      return false;

@@ -135,8 +135,7 @@ final class OPT_ResourceMap {
     grow(time + usage.length);
     if (verbose >= 1) {
       debug("Pattern (" + usage.length + ")");
-      for (int i = 0; i < usage.length; i++)
-        debug("   " + toBinaryPad32(usage[i]));
+      for (int anUsage : usage) debug("   " + toBinaryPad32(anUsage));
       debug("");
     }
     for (int i = 0; i < usage.length; i++)

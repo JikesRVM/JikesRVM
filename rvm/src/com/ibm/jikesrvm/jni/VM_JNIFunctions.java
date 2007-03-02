@@ -2181,13 +2181,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // list of all instance fields including superclasses
       VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      for (int i = 0; i<fields.length; i++) {
-        VM_Field f = fields[i];
+      for (VM_Field f : fields) {
         if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
-          return f.getId(); 
+          return f.getId();
         }
       }
-      
+
       // create exception and return 0 if not found
       env.recordException(new NoSuchFieldError(fieldString + ", " + descriptorString + " of " + cls));
       return 0;                      
@@ -3331,8 +3330,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // list of all instance fields including superclasses
       VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
-      for (int i = 0; i < fields.length; ++i) {
-        VM_Field field = fields[i];
+      for (VM_Field field : fields) {
         if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
           return field.getId();
         }

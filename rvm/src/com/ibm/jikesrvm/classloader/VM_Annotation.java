@@ -137,12 +137,11 @@ public final class VM_Annotation {
     VM_Reflection.invoke(defaultConstructor, annotationInstance, new VM_Annotation[]{this});
     // Override default values with those given in the element value pairs
     VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
-    for(int i=0; i < elementValuePairs.length; i++) {
-      AnnotationMember evp = elementValuePairs[i];
+    for (AnnotationMember evp : elementValuePairs) {
       VM_Atom evpFieldName = evp.getNameAsFieldName();
-      for(int j=0; j < annotationClassFields.length; j++) {
-        if(annotationClassFields[j].getName() == evpFieldName) {
-          evp.setValueToField(annotationClassFields[j], annotationInstance);
+      for (VM_Field field : annotationClassFields) {
+        if (field.getName() == evpFieldName) {
+          evp.setValueToField(field, annotationInstance);
         }
       }
     }
@@ -309,15 +308,15 @@ public final class VM_Annotation {
       VM_Class annotationInterface = VM_TypeReference.findOrCreate(vmA.classLoader, vmA.type).resolve().asClass();
       VM_Class annotationClass = annotationInterface.getAnnotationClass();
       VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
-      for(int i=0; i < annotationClassFields.length; i++) {
-        Object objA = annotationClassFields[i].getObjectUnchecked(a);
-        Object objB = annotationClassFields[i].getObjectUnchecked(b);
-        if(!objA.getClass().isArray()) {
-          if(!objA.equals(objB)) {
+      for (VM_Field annotationClassField : annotationClassFields) {
+        Object objA = annotationClassField.getObjectUnchecked(a);
+        Object objB = annotationClassField.getObjectUnchecked(b);
+        if (!objA.getClass().isArray()) {
+          if (!objA.equals(objB)) {
             return false;
           }
         } else {
-          return Arrays.equals((Object[])objA, (Object[])objB);
+          return Arrays.equals((Object[]) objA, (Object[]) objB);
         }
       }
       return true;
@@ -337,15 +336,14 @@ public final class VM_Annotation {
     VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
     String typeString = type.toString();
     int result = typeString.substring(1, typeString.length() - 1).hashCode();
-    for(int i=0; i < annotationClassFields.length; i++) {
-      String name = annotationClassFields[i].getName().toString();
-      name = name.substring(0, name.length()-6); // remove "_field" from name
-      Object value = annotationClassFields[i].getObjectUnchecked(a);
+    for (VM_Field field : annotationClassFields) {
+      String name = field.getName().toString();
+      name = name.substring(0, name.length() - 6); // remove "_field" from name
+      Object value = field.getObjectUnchecked(a);
       int part_result = name.hashCode() * 127;
-      if(value.getClass().isArray()) {
-        part_result ^= Arrays.hashCode((Object[])value);
-      }
-      else {
+      if (value.getClass().isArray()) {
+        part_result ^= Arrays.hashCode((Object[]) value);
+      } else {
         part_result ^= value.hashCode();
       }
       result += part_result;

@@ -136,16 +136,14 @@ class OPT_SSA {
           System.out.print("  (Implicit Defs: ");
           OPT_HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
           if (defs != null)
-            for (int i = 0; i < defs.length; i++)
-              System.out.print(defs[i] + " ");
+            for (OPT_HeapOperand<?> def : defs) System.out.print(def + " ");
           System.out.print(" )");
         }
         if (dictionary.usesHeapVariable(s) && s.operator!=PHI) {
           System.out.print("  (Implicit Uses: ");
           OPT_HeapOperand<?>[] uses = dictionary.getHeapUses(s);
           if (uses != null)
-            for (int i = 0; i < uses.length; i++)
-              System.out.print(uses[i] + " ");
+            for (OPT_HeapOperand<?> use : uses) System.out.print(use + " ");
           System.out.print(" )");
         }
         System.out.print("\n");

@@ -881,11 +881,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // Maintain a mapping holding the new name for each register
     HashMap<OPT_Register,OPT_Register> map =
       new HashMap<OPT_Register,OPT_Register>();
-    for (int i=0; i<set.length; i++) {
-      OPT_Instruction s = set[i];
-
+    for (OPT_Instruction s : set) {
       // rewrite the uses to use the new names
-      for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements(); ) {
+      for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
         OPT_Operand use = e.nextElement();
         if (use != null && use.isRegister()) {
           OPT_Register r = use.asRegister().register;
@@ -901,8 +899,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_Operand def = s.getDefs().nextElement();
       OPT_RegisterOperand rDef = def.asRegister();
       OPT_RegisterOperand temp = ir.regpool.makeTemp(rDef);
-      map.put(rDef.register,temp.register);
-      s.replaceOperand(def,temp);
+      map.put(rDef.register, temp.register);
+      s.replaceOperand(def, temp);
     }
   }
 
@@ -910,8 +908,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * Insert each instruction in a list before instruction s
    */ 
   private void insertBefore(OPT_Instruction[] list, OPT_Instruction s) {
-    for (int i=0; i<list.length; i++) {
-      OPT_Instruction x = list[i];
+    for (OPT_Instruction x : list) {
       s.insertBefore(x);
     }
   }

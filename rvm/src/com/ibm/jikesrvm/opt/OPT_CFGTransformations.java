@@ -157,9 +157,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     if (ps.length == 1 && ps[0].getNumberOfOut() == 1) return;
 
     float frequency = 0f;
-    for (int i = 0;  i < ps.length;  ++i) {
-      OPT_BasicBlock p = ps[i];
-      frequency += edgeFrequency (p, n.header);
+    for (OPT_BasicBlock bb : ps) {
+      frequency += edgeFrequency(bb, n.header);
     }
     OPT_BasicBlock newPred;
     newPred = n.header.createSubBlock (n.header.firstInstruction().bcIndex,
@@ -178,8 +177,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       (Goto.create(GOTO, n.header.makeJumpTarget()));
     newPred.recomputeNormalOut(ir);
 
-    for (int i = 0;  i < ps.length;  ++i) {
-      ps[i].redirectOuts (n.header, newPred, ir);
+    for (OPT_BasicBlock bb : ps) {
+      bb.redirectOuts(n.header, newPred, ir);
     }
   }
 

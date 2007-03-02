@@ -3609,23 +3609,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         peekAddr(gp++, stackIndex);
       }
     }
-    VM_TypeReference [] types = m.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
-      VM_TypeReference t = types[i];
+    for (VM_TypeReference t : m.getParameterTypes()) {
       if (t.isLongType()) {
         stackIndex -= 2;
-        if (gp > LAST_VOLATILE_GPR) { 
+        if (gp > LAST_VOLATILE_GPR) {
           genSpillDoubleSlot(stackIndex);
         } else {
           if (VM.BuildFor64Addr) {
             peekLong(gp, gp, stackIndex);
-            gp++;  
+            gp++;
           } else {
             peekInt(gp++, stackIndex);       // lo register := lo mem (== hi order word)
             if (gp > LAST_VOLATILE_GPR) {
               genSpillSlot(stackIndex + 1);
             } else {
-              peekInt(gp++, stackIndex+1);  // hi register := hi mem (== lo order word)
+              peekInt(gp++, stackIndex + 1);  // hi register := hi mem (== lo order word)
             }
           }
         }

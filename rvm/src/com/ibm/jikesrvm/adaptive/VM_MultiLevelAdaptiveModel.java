@@ -98,14 +98,14 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
       // Consider each choice in the list of all choices.
       // If it is greater than cur compiler, add it.
       int curSlot=0;
-      for (int i=0; i<allOptLevelChoices.length; i++) {
-        if (allOptLevelChoices[i].getCompiler() > prevCompiler) {
+      for (VM_RecompileOptChoice choice : allOptLevelChoices) {
+        if (choice.getCompiler() > prevCompiler) {
           // Add the current opt-level as a choice to consider when
           // the previous compiler is prevCompiler
-          temp[curSlot++] = allOptLevelChoices[i];
+          temp[curSlot++] = choice;
         }
       }
-      
+
       // Now that you know how many choices there are, create an array
       // of them and copy the choices in.
       viableChoices[prevCompiler] = new VM_RecompilationChoice[curSlot];

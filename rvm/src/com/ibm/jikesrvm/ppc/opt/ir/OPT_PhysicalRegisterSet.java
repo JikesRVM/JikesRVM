@@ -195,8 +195,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     // 10. set up the condition registers
     int firstCR = -1;
     int prevCR = -1;
-    for (int idx = 0; idx < CR_NUMS.length; idx++) {
-      int i = CR_NUMS[idx];
+    for (int i : CR_NUMS) {
       reg[FIRST_CONDITION + i].setVolatile();
       if (prevCR != -1)
         reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);

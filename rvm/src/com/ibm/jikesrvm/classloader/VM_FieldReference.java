@@ -143,9 +143,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
         return resolvedMember;
       }
       // Look at all interfaces directly and indirectly implemented by this class.
-      VM_Class[] interfaces = c.getDeclaredInterfaces();
-      for (int i=0; i<interfaces.length; i++) {
-        it = searchInterfaceFields(interfaces[i]);
+      for (VM_Class i : c.getDeclaredInterfaces()) {
+        it = searchInterfaceFields(i);
         if (it != null) {
           resolvedMember = it;
           return resolvedMember;
@@ -158,9 +157,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   private VM_Field searchInterfaceFields(VM_Class c) {
     VM_Field it = c.findDeclaredField(name, descriptor);
     if (it != null) return it;
-    VM_Class[] interfaces = c.getDeclaredInterfaces();
-    for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceFields(interfaces[i]);
+    for (VM_Class i : c.getDeclaredInterfaces()) {
+      it = searchInterfaceFields(i);
       if (it != null) return it;
     }
     return null;

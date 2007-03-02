@@ -483,9 +483,9 @@ class OPT_LICM extends OPT_CompilerPhase {
    */
   OPT_Instruction scheduleHeapDefsEarly(OPT_HeapOperand<?>[] op, OPT_Instruction earlyPos, OPT_Instruction me) {
     if (op == null) return  earlyPos;
-    
-    for (int i = 0; i < op.length; ++i) {
-      OPT_Instruction def = definingInstruction(op[i]);
+
+    for (OPT_HeapOperand<?> anOp : op) {
+      OPT_Instruction def = definingInstruction(anOp);
 
       //  if (me.isImplicitLoad() || me.isImplicitStore())
 //      def = _getRealDef(def, me)
@@ -493,9 +493,9 @@ class OPT_LICM extends OPT_CompilerPhase {
 //        else if (me.isPEI()) 
 //      def = _getRealExceptionDef(def)
       //  ;
-      
-      if (VM.VerifyAssertions) VM._assert (def != null);
-      earlyPos = maxDominatorDepth (scheduleEarly (def), earlyPos);      
+
+      if (VM.VerifyAssertions) VM._assert(def != null);
+      earlyPos = maxDominatorDepth(scheduleEarly(def), earlyPos);
     }
     return  earlyPos;
   }
@@ -549,20 +549,20 @@ class OPT_LICM extends OPT_CompilerPhase {
     if (defs == null) return  lateBlock;
     
     //VM.sysWrite (" defs: "+defs.length+"\n");
-    for (int i = 0; i < defs.length; ++i) {
+    for (OPT_Operand def : defs) {
       @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
-      OPT_HeapOperand<Object> dhop = (OPT_HeapOperand) defs[i];
+      OPT_HeapOperand<Object> dhop = (OPT_HeapOperand) def;
       OPT_HeapVariable<Object> H = dhop.value;
-      if (DEBUG) VM.sysWrite ("H: "+H+"\n");
-      Iterator<OPT_HeapOperand<Object>> it = ssad.iterateHeapUses (H);
+      if (DEBUG) VM.sysWrite("H: " + H + "\n");
+      Iterator<OPT_HeapOperand<Object>> it = ssad.iterateHeapUses(H);
       //VM.sysWrite (" H: "+H+" ("+ssad.getNumberOfUses (H)+")\n");
       while (it.hasNext()) {
         OPT_HeapOperand<Object> uhop = it.next();
         //VM.sysWrite (" uhop: "+uhop+"\n");
         OPT_Instruction use = uhop.instruction;
         //VM.sysWrite ("use: "+use+"\n");
-        OPT_BasicBlock _block = useBlock (use, uhop);
-        lateBlock = commonDominator (_block, lateBlock);
+        OPT_BasicBlock _block = useBlock(use, uhop);
+        lateBlock = commonDominator(_block, lateBlock);
       }
     }
     return  lateBlock;
@@ -983,11 +983,10 @@ class OPT_LICM extends OPT_CompilerPhase {
           //VM.sysWrite (" no loc or volatile field\n");          
           return CL_COMPLEX;
         }
-        OPT_HeapOperand<?>[] ops = ssad.getHeapUses (y);
-        for (int j = 0;  j < ops.length;  ++j) {
-          if (ops[j].value.isExceptionHeapType()) continue;
-          if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
-          y = definingInstruction (ops[j]);
+        for (OPT_HeapOperand<?> op : ssad.getHeapUses (y)) {
+          if (op.value.isExceptionHeapType()) continue;
+          if (op.getHeapType() != hop.getHeapType()) return CL_COMPLEX;
+          y = definingInstruction(op);
         }
       }
     }
@@ -1052,15 +1051,14 @@ class OPT_LICM extends OPT_CompilerPhase {
         } else {
           _state |= CL_LOADS_ONLY;
         }
-        OPT_HeapOperand<?>[] ops = ssad.getHeapUses (y);
-        for (int j = 0;  j < ops.length;  ++j) {
-          if (ops[j].value.isExceptionHeapType()) continue;
-          if (ops[j].getHeapType() != hop.getHeapType()) return CL_COMPLEX;
-          y = definingInstruction (ops[j]);
+        for (OPT_HeapOperand<?> op : ssad.getHeapUses (y)) {
+          if (op.value.isExceptionHeapType()) continue;
+          if (op.getHeapType() != hop.getHeapType()) return CL_COMPLEX;
+          y = definingInstruction(op);
           if (y == inst) instUses++;
-          if (!(seen.contains (y))) {
-            seen.add (y);
-            workList.insert (y);
+          if (!(seen.contains(y))) {
+            seen.add(y);
+            workList.insert(y);
           }
         }
       }

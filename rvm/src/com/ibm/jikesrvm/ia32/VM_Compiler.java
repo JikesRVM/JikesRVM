@@ -2804,10 +2804,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       }
       offset=offset.minus(WORDSIZE);
     }
-    VM_TypeReference [] types = method.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
+    for (VM_TypeReference type : method.getParameterTypes()) {
       if (max == 0) return; // quit looking when all registers are full
-      VM_TypeReference t = types[i];
+      VM_TypeReference t = type;
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_Reg_RegDisp(T, SP, offset); // lo register := hi mem (== hi order word)
@@ -2820,21 +2819,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
             max--;
           }
         }
-        offset=offset.minus(2*WORDSIZE);
+        offset = offset.minus(2 * WORDSIZE);
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           asm.emitFLD_Reg_RegDisp(FP0, SP, offset);
           fpr++;
           max--;
         }
-        offset=offset.minus(WORDSIZE);
+        offset = offset.minus(WORDSIZE);
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, offset.minus(WORDSIZE));
           fpr++;
           max--;
         }
-        offset=offset.minus(2*WORDSIZE);
+        offset = offset.minus(2 * WORDSIZE);
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_Reg_RegDisp(T, SP, offset);
@@ -2842,7 +2841,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           gpr++;
           max--;
         }
-        offset=offset.minus(WORDSIZE);
+        offset = offset.minus(WORDSIZE);
       }
     }
     if (VM.VerifyAssertions) VM._assert(offset.EQ(Offset.fromIntSignExtend( - WORDSIZE)));
@@ -2871,20 +2870,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       srcOffset=srcOffset.minus(WORDSIZE);
       dstOffset=dstOffset.minus(WORDSIZE);
     }
-    VM_TypeReference [] types     = method.getParameterTypes();
     //KV: todo: This seems not to work
     //OffsetArray fprOffset = OffsetArray.create(NUM_PARAMETER_FPRS); // to handle floating point parameters in registers
     int [] fprOffset = new int [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     boolean [] is32bit   = new boolean [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
-    for (int i=0; i<types.length; i++) {
-      VM_TypeReference t = types[i];
+    for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
           T = T1;                                       // at most 2 parameters can be passed in general purpose registers
           gpr++;
-          srcOffset=srcOffset.minus(WORDSIZE);
-          dstOffset=dstOffset.minus(WORDSIZE);
+          srcOffset = srcOffset.minus(WORDSIZE);
+          dstOffset = dstOffset.minus(WORDSIZE);
           if (gpr < NUM_PARAMETER_GPRS) {
             asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
             gpr++;
@@ -2895,43 +2892,43 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset=srcOffset.minus(WORDSIZE);
-          dstOffset=dstOffset.minus(WORDSIZE);
+          srcOffset = srcOffset.minus(WORDSIZE);
+          dstOffset = dstOffset.minus(WORDSIZE);
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset=srcOffset.minus(WORDSIZE);
-        dstOffset=dstOffset.minus(WORDSIZE);
+        srcOffset = srcOffset.minus(WORDSIZE);
+        dstOffset = dstOffset.minus(WORDSIZE);
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           //fprOffset.set(fpr, dstOffset);
           fprOffset[fpr] = dstOffset.toInt();
-          is32bit[fpr]   = true;
+          is32bit[fpr] = true;
           fpr++;
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset=srcOffset.minus(WORDSIZE);
-        dstOffset=dstOffset.minus(WORDSIZE);
+        srcOffset = srcOffset.minus(WORDSIZE);
+        dstOffset = dstOffset.minus(WORDSIZE);
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          srcOffset=srcOffset.minus(WORDSIZE);
-          dstOffset=dstOffset.minus(WORDSIZE);
+          srcOffset = srcOffset.minus(WORDSIZE);
+          dstOffset = dstOffset.minus(WORDSIZE);
           //fprOffset.set(fpr,  dstOffset);
           fprOffset[fpr] = dstOffset.toInt();
-          is32bit[fpr]   = false;
+          is32bit[fpr] = false;
           fpr++;
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset=srcOffset.minus(WORDSIZE);
-          dstOffset=dstOffset.minus(WORDSIZE);
+          srcOffset = srcOffset.minus(WORDSIZE);
+          dstOffset = dstOffset.minus(WORDSIZE);
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset=srcOffset.minus(WORDSIZE);
-        dstOffset=dstOffset.minus(WORDSIZE);
+        srcOffset = srcOffset.minus(WORDSIZE);
+        dstOffset = dstOffset.minus(WORDSIZE);
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
@@ -2941,8 +2938,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset=srcOffset.minus(WORDSIZE);
-        dstOffset=dstOffset.minus(WORDSIZE);
+        srcOffset = srcOffset.minus(WORDSIZE);
+        dstOffset = dstOffset.minus(WORDSIZE);
       }
     }
     for (int i=fpr-1; 0<=i; i--) { // unload the floating point register stack (backwards)

@@ -1799,9 +1799,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
         // In any case, the callee routine will map its parameters
         // and we don't have to double map because we are positive that this can't be
         // a dynamically linked call site.
-        VM_TypeReference[] parameterTypes = target.getParameterTypes();
-        for (int i=0; i<parameterTypes.length; i++) {
-          currBBStkTop -= parameterTypes[i].getStackWords();
+        for (VM_TypeReference parameterType : target.getParameterTypes()) {
+          currBBStkTop -= parameterType.getStackWords();
         }
         if (!isStatic) currBBStkTop--; // pop implicit "this" object reference
         popParams = false;

@@ -176,8 +176,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     } else {
       size = t.getSuperClass().getDoesImplement().length;
     }
-    for (int i=0; i<superInterfaces.length; i++) {
-      VM_Class superInterface = superInterfaces[i];
+    for (VM_Class superInterface : superInterfaces) {
       size = Math.max(size, superInterface.getDoesImplement().length);
     }
 
@@ -191,13 +190,13 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
         mine[j] |= parent[j];
       }
     }
-    for (int i=0; i<superInterfaces.length; i++) {
-      int[] parent = superInterfaces[i].getDoesImplement();
-      for (int j=0; j<parent.length; j++) {
+    for (VM_Class superInterface : superInterfaces) {
+      int[] parent = superInterface.getDoesImplement();
+      for (int j = 0; j < parent.length; j++) {
         mine[j] |= parent[j];
       }
     }
-    
+
     return mine;
   }
 

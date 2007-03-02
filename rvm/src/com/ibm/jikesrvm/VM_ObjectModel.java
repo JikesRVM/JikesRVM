@@ -192,8 +192,7 @@ import org.vmmagic.pragma.*;
       VM.sysWriteln(klass.toString());
     }
     // For every field
-    for (int i=0; i < fields.length; i++) {
-      VM_Field field = fields[i];
+    for (VM_Field field : fields) {
       // Should we allocate space in the object?
       if (!field.isStatic()) {
         // size of field
@@ -208,21 +207,18 @@ import org.vmmagic.pragma.*;
           if (intHoleOffset != 0) { // use saved int hole
             offset = intHoleOffset;
             intHoleOffset = 0;
-          }
-          else { // allocate at end of object
+          } else { // allocate at end of object
             offset = totalFieldSize;
             totalFieldSize += 4;
           }
-        }
-        else {
-          if(VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
           // check alignment
           if ((totalFieldSize & 0x7) == 0) {
             // aligned - allocate at end of object
             offset = totalFieldSize;
             totalFieldSize += 8;
-          }
-          else {
+          } else {
             // create hole and allocate at end of object
             intHoleOffset = totalFieldSize;
             offset = totalFieldSize + 4;
@@ -294,8 +290,7 @@ import org.vmmagic.pragma.*;
       VM.sysWriteln(klass.toString());
     }
     // For every field
-    for (int i=0; i < fields.length; i++) {
-      VM_Field field = fields[i];
+    for (VM_Field field : fields) {
       // Should we allocate space in the object?
       if (!field.isStatic()) {
         // size of field
@@ -304,70 +299,60 @@ import org.vmmagic.pragma.*;
         int offset;
         // Adjust alignment
         alignment = max(fieldSize, alignment);
-        if(fieldSize == BYTES_IN_BYTE) {
+        if (fieldSize == BYTES_IN_BYTE) {
           // Try to pack either into a byte hole, short hole or int
           // hole, otherwise place at end of object
           if (byteHoleOffset != 0) { // use saved byte hole
             offset = byteHoleOffset;
-            byteHoleOffset = 0;           
-          }
-          else if (shortHoleOffset != 0) { // use saved short hole
+            byteHoleOffset = 0;
+          } else if (shortHoleOffset != 0) { // use saved short hole
             offset = shortHoleOffset;
             byteHoleOffset = offset + 1; // save upper byte for later
             shortHoleOffset = 0;
-          }
-          else if (intHoleOffset != 0) { // use saved int hole
+          } else if (intHoleOffset != 0) { // use saved int hole
             offset = intHoleOffset;
-            byteHoleOffset  = offset + 1; // save upper byte for later
+            byteHoleOffset = offset + 1; // save upper byte for later
             shortHoleOffset = offset + 2; // save upper 16bits for later
             intHoleOffset = 0;
-          }
-          else { // allocate at end of object
+          } else { // allocate at end of object
             offset = totalFieldSize;
-            byteHoleOffset  = offset + 1; // save upper byte for later
+            byteHoleOffset = offset + 1; // save upper byte for later
             shortHoleOffset = offset + 2; // save upper 16bits for later
             totalFieldSize += 4;
           }
-        }
-        else if (fieldSize == BYTES_IN_SHORT) {
+        } else if (fieldSize == BYTES_IN_SHORT) {
           // Try to pack either into a short hole or int hole,
           // otherwise place at end of object
           if (shortHoleOffset != 0) { // use saved short hole
             offset = shortHoleOffset;
             shortHoleOffset = 0;
-          }
-          else if (intHoleOffset != 0) { // use saved int hole
+          } else if (intHoleOffset != 0) { // use saved int hole
             offset = intHoleOffset;
             shortHoleOffset = offset + 2; // save upper 16bits for later
             intHoleOffset = 0;
-          }
-          else { // allocate at end of object
+          } else { // allocate at end of object
             offset = totalFieldSize;
             shortHoleOffset = offset + 2; // save upper 16bits for later
             totalFieldSize += 4;
           }
-        }
-        else if (fieldSize == BYTES_IN_INT) {
+        } else if (fieldSize == BYTES_IN_INT) {
           // Try to pack either into a int hole otherwise place at end
           // of object
           if (intHoleOffset != 0) { // use saved int hole
             offset = intHoleOffset;
             intHoleOffset = 0;
-          }
-          else { // allocate at end of object
+          } else { // allocate at end of object
             offset = totalFieldSize;
             totalFieldSize += 4;
           }
-        }
-        else {
-          if(VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(fieldSize == BYTES_IN_LONG);
           // check alignment
           if ((totalFieldSize & 0x7) == 0) {
             // aligned - allocate at end of object
             offset = totalFieldSize;
             totalFieldSize += 8;
-          }
-          else {
+          } else {
             // create hole and allocate at end of object
             intHoleOffset = totalFieldSize;
             offset = totalFieldSize + 4;

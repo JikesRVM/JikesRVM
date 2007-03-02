@@ -513,22 +513,20 @@ public final class OPT_SSADictionary {
       UseChain.put(H, u);
     }
     // populate the use chain with each use registered
-    for (Iterator<OPT_HeapOperand<Object>[]> e = uses.values().iterator(); e.hasNext();) {
-      OPT_HeapOperand<Object>[] H = e.next();
-      if (H == null) continue;
-      for (int i = 0; i < H.length; i++) {
-        OPT_HeapVariable<Object> v = H[i].getHeapVariable();
+    for (OPT_HeapOperand<Object>[] operands : uses.values()) {
+      if (operands == null) continue;
+      for (OPT_HeapOperand<Object> operand : operands) {
+        OPT_HeapVariable<Object> v = operand.getHeapVariable();
         HashSet<OPT_HeapOperand<Object>> u = UseChain.get(v);
-        u.add(H[i]);
+        u.add(operand);
       }
     }
     // record the unique def for each heap variable
-    for (Iterator<OPT_HeapOperand<Object>[]> e = defs.values().iterator(); e.hasNext();) {
-      OPT_HeapOperand<Object>[] H = e.next();
-      if (H == null) continue;
-      for (int i = 0; i < H.length; i++) {
-        OPT_HeapVariable<Object> v = H[i].getHeapVariable();
-        DefChain.put(v, H[i]);
+    for (OPT_HeapOperand<Object>[] operands : defs.values()) {
+      if (operands == null) continue;
+      for (OPT_HeapOperand<Object> operand : operands) {
+        OPT_HeapVariable<Object> v = operand.getHeapVariable();
+        DefChain.put(v, operand);
       }
     }
     // handle each HEAP PHI function.
@@ -608,8 +606,8 @@ public final class OPT_SSADictionary {
   void replaceUses (OPT_Instruction s, OPT_HeapOperand<Object>[] H) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     uses.put(s, H);
-    for (int i = 0; i < H.length; i++) {
-      H[i].setInstruction(s);
+    for (OPT_HeapOperand<Object> aH : H) {
+      aH.setInstruction(s);
     }
   }
 

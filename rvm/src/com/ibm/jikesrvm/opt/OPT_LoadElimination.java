@@ -591,12 +591,12 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 
     // If we have found an unresolved field reference, then conservatively
     // remove all fields that it might refer to from the resultSet.
-    for (Iterator i1 = forbidden.iterator(); i1.hasNext(); ) {
-      VM_FieldReference forbid = (VM_FieldReference)i1.next();
-      for (Iterator i2 = resultSet.iterator(); i2.hasNext(); ) {
+    for (final VM_FieldReference fieldReference : forbidden) {
+      for (Iterator i2 = resultSet.iterator(); i2.hasNext();) {
         Object it = i2.next();
         if (it instanceof VM_Field) {
-          if (!forbid.definitelyDifferent(((VM_Field)it).getMemberRef().asFieldReference())) {
+          final VM_Field field = (VM_Field) it;
+          if (!fieldReference.definitelyDifferent(field.getMemberRef().asFieldReference())) {
             i2.remove();
           }
         }

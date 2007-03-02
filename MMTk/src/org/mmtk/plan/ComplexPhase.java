@@ -72,9 +72,9 @@ import org.vmmagic.pragma.*;
   protected void logPhase() {
     Log.write("complex phase ");
     Log.write(name);
-    for (int i = 0; i < subPhases.length; i++) {
+    for (int subPhase : subPhases) {
       Log.write(" ");
-      Log.write(getName(subPhases[i]));
+      Log.write(getName(subPhase));
     }
     Log.writeln();
   }
@@ -93,8 +93,8 @@ import org.vmmagic.pragma.*;
       Log.write("Delegating complex phase ");
       Log.writeln(name);
     }
-    for (int i = 0; i < subPhases.length; i++) {
-      Phase.delegatePhase(subPhases[i]);
+    for (int subPhase : subPhases) {
+      Phase.delegatePhase(subPhase);
     }
 
     if (order == 1 && timer != null) timer.stop();

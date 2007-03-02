@@ -43,13 +43,11 @@ public final class VMStackWalker {
    */
   public static ClassLoader firstNonNullClassLoader()
   {
-    Class<?>[] stack = getClassContext();
-    for (int i = 0; i < stack.length; i++)
-      {
-        ClassLoader loader = stack[i].getClassLoader();
-        if (loader != null)
-          return loader;
-      }
+    for (Class<?> type : getClassContext()) {
+      ClassLoader loader = type.getClassLoader();
+      if (loader != null)
+        return loader;
+    }
     return null;
   }
 

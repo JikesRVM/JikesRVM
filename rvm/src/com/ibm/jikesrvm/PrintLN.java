@@ -145,10 +145,10 @@ public abstract class PrintLN {
     byte[] val;
 	 if (a != null) {
 		val = a.toByteArray();
-		for (int i = 0; i < val.length; ++i) {
-		  print((char) val[i]);
-		}
-	 } else {
+     for (byte aVal : val) {
+       print((char) aVal);
+     }
+   } else {
 		print("(null)");
 	 }
   }

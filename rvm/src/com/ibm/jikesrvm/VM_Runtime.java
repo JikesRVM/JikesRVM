@@ -481,9 +481,7 @@ public class VM_Runtime implements VM_Constants {
         throw new CloneNotSupportedException();
       VM_Class cls   = type.asClass();
       Object newObj  = resolvedNewScalar(cls);
-      VM_Field[] instanceFields = cls.getInstanceFields();
-      for (int i=0; i<instanceFields.length; i++) {
-        VM_Field f = instanceFields[i];
+      for (VM_Field f : cls.getInstanceFields()) {
         VM_TypeReference ft = f.getType();
         if (ft.isReferenceType()) {
           // Do via slower "VM-internal reflection" to enable
@@ -491,7 +489,7 @@ public class VM_Runtime implements VM_Constants {
           // and write barriers.
           f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
         } else if (ft.isLongType() || ft.isDoubleType() ||
-                   (VM.BuildFor64Addr && ft.isWordType())) {
+            (VM.BuildFor64Addr && ft.isWordType())) {
           Offset offset = f.getOffset();
           long bits = VM_Magic.getLongAtOffset(obj, offset);
           VM_Magic.setLongAtOffset(newObj, offset, bits);

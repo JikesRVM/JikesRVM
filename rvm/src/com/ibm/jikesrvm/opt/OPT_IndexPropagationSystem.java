@@ -57,8 +57,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    */
   protected OPT_DF_LatticeCell makeCell(Object o) {
     if (!(o instanceof OPT_HeapVariable))
-      throw  new OPT_OptimizingCompilerException(
-                                                 "OPT_IndexPropagation:makeCell");
+      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation:makeCell");
     OPT_DF_LatticeCell result = null;
     Object heapType = ((OPT_HeapVariable<?>)o).getHeapType();
     if (heapType instanceof VM_TypeReference) {
@@ -101,16 +100,14 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
     // variable
     for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
       OPT_DF_Equation eq = e.nextElement();
-      OPT_DF_LatticeCell[] operands = eq.getOperands();
-      for (int i = 0; i < operands.length; i++) {
-        if (operands[i] instanceof ObjectCell) {
-          if (!((ObjectCell)operands[i]).isTOP()) {
+      for (OPT_DF_LatticeCell operand : eq.getOperands()) {
+        if (operand instanceof ObjectCell) {
+          if (!((ObjectCell) operand).isTOP()) {
             addToWorkList(eq);
             break;
           }
-        } 
-        else {
-          if (!((ArrayCell)operands[i]).isTOP()) {
+        } else {
+          if (!((ArrayCell) operand).isTOP()) {
             addToWorkList(eq);
             break;
           }
@@ -318,14 +315,12 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * TODO: add logic that understands that after a
      * NEW, all fields have their default values.
      */
-    OPT_HeapOperand<?>[] A = ssa.getHeapDefs(s);
-    for (int i = 0; i < A.length; i++) {
-      OPT_DF_LatticeCell c = findOrCreateCell(A[i].getHeapVariable());
+    for (OPT_HeapOperand<?> def : ssa.getHeapDefs(s)) {
+      OPT_DF_LatticeCell c = findOrCreateCell(def.getHeapVariable());
       if (c instanceof ObjectCell) {
-        ((ObjectCell)c).setBOTTOM();
-      } 
-      else {
-        ((ArrayCell)c).setBOTTOM();
+        ((ObjectCell) c).setBOTTOM();
+      } else {
+        ((ArrayCell) c).setBOTTOM();
       }
     }
   }
@@ -339,14 +334,12 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processCall(OPT_Instruction s) {
 
     /** set all lattice cells def'ed by the call to bottom */
-    OPT_HeapOperand<?>[] A = ssa.getHeapDefs(s);
-    for (int i = 0; i < A.length; i++) {
-      OPT_DF_LatticeCell c = findOrCreateCell(A[i].getHeapVariable());
+    for (OPT_HeapOperand<?> operand : ssa.getHeapDefs(s)) {
+      OPT_DF_LatticeCell c = findOrCreateCell(operand.getHeapVariable());
       if (c instanceof ObjectCell) {
-        ((ObjectCell)c).setBOTTOM();
-      } 
-      else {
-        ((ArrayCell)c).setBOTTOM();
+        ((ObjectCell) c).setBOTTOM();
+      } else {
+        ((ArrayCell) c).setBOTTOM();
       }
     }
   }
@@ -530,11 +523,10 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).copyValueNumbers();
 
         if (rhsNumbers != null) {
-          for (int i = 0; i < rhsNumbers.length; i++) {
-            int v = rhsNumbers[i];
+          for (int v : rhsNumbers) {
             lhs.add(v);
             for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
-              ObjectCell r = (ObjectCell)operands[j];
+              ObjectCell r = (ObjectCell) operands[j];
               if (!r.contains(v)) {
                 lhs.remove(v);
                 break;
@@ -547,8 +539,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       if (lhsWasTOP) return true;
       int[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ObjectCell.setsDiffer(oldNumbers, newNumbers);
     }
 
     /**
@@ -601,12 +592,12 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         // here
         OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[firstNonTopRHS]).copyValueNumbers();
         if (rhsNumbers != null) {
-          for (int i = 0; i < rhsNumbers.length; i++) {
-            int v1 = rhsNumbers[i].v1;
-            int v2 = rhsNumbers[i].v2;
+          for (OPT_ValueNumberPair pair : rhsNumbers) {
+            int v1 = pair.v1;
+            int v2 = pair.v2;
             lhs.add(v1, v2);
             for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
-              ArrayCell r = (ArrayCell)operands[j];
+              ArrayCell r = (ArrayCell) operands[j];
               if (!r.contains(v1, v2)) {
                 lhs.remove(v1, v2);
                 break;
@@ -619,8 +610,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       if (lhsWasTOP) return  true;
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ArrayCell.setsDiffer(oldNumbers, newNumbers);
     }
   }
 
@@ -673,9 +663,9 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers that are DD from valueNumber
       if (numbers != null) {
-        for (int i = 0; i < numbers.length; i++) {
-          if (valueNumbers.DD(numbers[i], valueNumber)) {
-            lhs.add(numbers[i]);
+        for (int number : numbers) {
+          if (valueNumbers.DD(number, valueNumber)) {
+            lhs.add(number);
           }
         }
       }
@@ -685,8 +675,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       if (lhsWasTOP) return  true;
       int[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ObjectCell.setsDiffer(oldNumbers, newNumbers);
     }
   }
 
@@ -739,8 +728,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
       if (numbers != null) {
-        for (int i = 0; i < numbers.length; i++) {
-          lhs.add(numbers[i]);
+        for (int number : numbers) {
+          lhs.add(number);
         }
       }
       // add value number generated by this update 
@@ -749,8 +738,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       if (lhsWasTOP) return  true;
       int[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ObjectCell.setsDiffer(oldNumbers, newNumbers);
     }
   }
 
@@ -803,12 +791,11 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs pairs that are DD from either v.v1 or v.v2
       if (numbers != null) {
-        for (int i = 0; i < numbers.length; i++) {
-          if (valueNumbers.DD(numbers[i].v1, v.v1)) {
-            lhs.add(numbers[i].v1, numbers[i].v2);
-          } 
-          else if (valueNumbers.DD(numbers[i].v2, v.v2)) {
-            lhs.add(numbers[i].v1, numbers[i].v2);
+        for (OPT_ValueNumberPair number : numbers) {
+          if (valueNumbers.DD(number.v1, v.v1)) {
+            lhs.add(number.v1, number.v2);
+          } else if (valueNumbers.DD(number.v2, v.v2)) {
+            lhs.add(number.v1, number.v2);
           }
         }
       }
@@ -819,8 +806,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         return  true;
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ArrayCell.setsDiffer(oldNumbers, newNumbers);
     }
   }
 
@@ -874,8 +860,8 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
       if (numbers != null) {
-        for (int i = 0; i < numbers.length; i++) {
-          lhs.add(numbers[i].v1, numbers[i].v2);
+        for (OPT_ValueNumberPair number : numbers) {
+          lhs.add(number.v1, number.v2);
         }
       } 
       // add value number generated by this update 
@@ -885,8 +871,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         return  true;
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
-      boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
-      return  changed;
+      return ArrayCell.setsDiffer(oldNumbers, newNumbers);
     }
   }
 }

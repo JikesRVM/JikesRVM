@@ -300,9 +300,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       toRemove.add(interval);
     }
     // perform deferred removals
-    for (Iterator<OPT_LiveIntervalElement> i = toRemove.iterator(); i.hasNext(); ) {
-      OPT_LiveIntervalElement interval = i.next();
-      removeFromRegisterMap(r2,interval);
+    for (OPT_LiveIntervalElement interval : toRemove) {
+      removeFromRegisterMap(r2, interval);
     }
   }
 

@@ -84,8 +84,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
 
   private void growMap() {
     Bucket<T>[] newBuckets = newBucketArray(buckets.length*2+1);
-    for (int i=0; i<buckets.length; i++) {
-      Bucket<T> cur = buckets[i];
+    for (Bucket<T> cur : buckets) {
       while (cur != null) {
         Bucket<T> next = cur.next;
         int newIdx = bucketIndex(cur.key, newBuckets.length);

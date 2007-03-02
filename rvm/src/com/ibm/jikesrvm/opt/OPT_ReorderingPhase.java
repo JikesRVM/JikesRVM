@@ -142,8 +142,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
     // Re-insert all basic blocks according to new ordering
     ir.cfg.clearCodeOrder();
-    for (int i=0; i<newOrdering.length; i++) {
-      ir.cfg.addLastInCodeOrder(newOrdering[i]);
+    for (OPT_BasicBlock bb : newOrdering) {
+      ir.cfg.addLastInCodeOrder(bb);
     }
   }
 
@@ -190,19 +190,18 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
     // (2) Build chains
     ir.cfg.clearCodeOrder();
-    for (Iterator<Edge> edgesI = edges.iterator(); edgesI.hasNext();) {
-      Edge e = edgesI.next();
+    for (Edge e : edges) {
       // If the source of the edge is the last block in its chain
       // and the target of the edge is the first block in its chain
       // then merge the chains.
-      if (DEBUG) VM.sysWriteln("Processing edge "+e);
+      if (DEBUG) VM.sysWriteln("Processing edge " + e);
       if (e.target == entry) {
         if (DEBUG) VM.sysWriteln("\tCan't put entry block in interior of chain");
-        continue; 
+        continue;
       }
       if (e.source.nextBasicBlockInCodeOrder() != null) {
         if (DEBUG) VM.sysWriteln("\tSource is not at end of a chain");
-        continue; 
+        continue;
       }
       if (e.target.prevBasicBlockInCodeOrder() != null) {
         if (DEBUG) VM.sysWriteln("\tTarget is not at start of a chain");
@@ -217,7 +216,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       ir.cfg.linkInCodeOrder(e.source, e.target);
       // Yuck....we should really use near-linear time union find here
       // Doing this crappy thing makes us O(N^2) in the worst case.
-      OPT_BasicBlock newChain = (OPT_BasicBlock)e.source.scratchObject;
+      OPT_BasicBlock newChain = (OPT_BasicBlock) e.source.scratchObject;
       for (OPT_BasicBlock ptr = e.target;
            ptr != null;
            ptr = ptr.nextBasicBlockInCodeOrder()) {

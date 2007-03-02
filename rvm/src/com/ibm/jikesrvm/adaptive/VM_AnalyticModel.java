@@ -129,29 +129,27 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     
     // Consider all choices in the vector of possibilities
     VM_NormalMethod meth = (VM_NormalMethod)hme.getMethod();
-    for (int i=0; i<recompilationChoices.length; i++) {
-      VM_RecompilationChoice choice = recompilationChoices[i];
-
+    for (VM_RecompilationChoice choice : recompilationChoices) {
       // Get the cost and benefit of this choice
       double cost = choice.getCost(meth);
-      double futureExecutionTime = 
-        choice.getFutureExecutionTime(prevCompiler,futureTimeForMethod);
-      
+      double futureExecutionTime =
+          choice.getFutureExecutionTime(prevCompiler, futureTimeForMethod);
+
       double curActionTime = cost + futureExecutionTime;
-      
+
       VM_AOSLogging.recordControllerEstimateCostOpt
-        (cmpMethod.getMethod(),
-         choice.toString(),
-         cost,
-         curActionTime);
-      
+          (cmpMethod.getMethod(),
+              choice.toString(),
+              cost,
+              curActionTime);
+
       if (curActionTime < bestActionTime) {
         bestActionTime = curActionTime;
         bestActionChoice = choice;
         bestCost = cost;
       }
     }
-    
+
     // if the best action is the previous than we don't need to recompile
     if (bestActionChoice == null) {     
       plan = null;

@@ -64,12 +64,11 @@ class OPT_ExpressionFolding {
     boolean didSomething = true;
     while (didSomething) {
       didSomething = false;
-      for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext(); ) {
-        OPT_Register r = i.next();
+      for (OPT_Register r : candidates) {
         OPT_Instruction s = r.getFirstDef();
         OPT_Operand val1 = Binary.getVal1(s);
-        if (VM.VerifyAssertions) { 
-          if (!val1.isRegister()) 
+        if (VM.VerifyAssertions) {
+          if (!val1.isRegister())
             VM.sysWrite("Expression folding trouble AAA" + s);
           VM._assert(val1.isRegister());
         }
@@ -77,18 +76,18 @@ class OPT_ExpressionFolding {
           OPT_Instruction def = val1.asRegister().register.getFirstDef();
           OPT_Operand def1 = Binary.getVal1(def);
           if (VM.VerifyAssertions) {
-            if (!def1.isRegister()) 
+            if (!def1.isRegister())
               VM.sysWrite("Expression folding trouble BBB" + def);
             VM._assert(def1.isRegister());
           }
           OPT_Operand def2 = Binary.getVal2(def);
           if (VM.VerifyAssertions) {
-            if (!def2.isConstant()) 
+            if (!def2.isConstant())
               VM.sysWrite("Expression folding trouble CCC" + def);
             VM._assert(def2.isConstant());
           }
 
-          OPT_Instruction newS = transform(s,def);
+          OPT_Instruction newS = transform(s, def);
           s.insertAfter(newS);
           OPT_DefUse.updateDUForNewInstruction(newS);
           OPT_DefUse.removeInstructionAndUpdateDU(s);

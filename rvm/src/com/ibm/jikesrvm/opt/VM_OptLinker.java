@@ -66,8 +66,8 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
            NegativeArraySizeException, 
            OutOfMemoryError {
     // validate arguments
-    for (int i = 0; i < dimensions.length; i++) {
-      if (dimensions[i] < 0) throw new NegativeArraySizeException();
+    for (int dimension : dimensions) {
+      if (dimension < 0) throw new NegativeArraySizeException();
     }
     // create array
     //

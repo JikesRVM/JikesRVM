@@ -132,17 +132,15 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
                                                           VM_Atom.findOrCreateAsciiAtom(klassName));
     VM_Class klass = (VM_Class)tRef.peekResolvedType();
-    VM_Method[] methods = klass.getDeclaredMethods();
-    for (int j = 0; j < methods.length; j++) {
-      VM_Method meth = methods[j];
+    for (VM_Method meth : klass.getDeclaredMethods()) {
       if (meth.isClassInitializer())
         continue;
-      if (!meth.isCompiled() || 
+      if (!meth.isCompiled() ||
           meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
-        OPT_CompilationPlan cp = 
-          new OPT_CompilationPlan((VM_NormalMethod)meth, 
-                                  OPT_OptimizationPlanner.createOptimizationPlan(options), 
-                                  null, options);
+        OPT_CompilationPlan cp =
+            new OPT_CompilationPlan((VM_NormalMethod) meth,
+                OPT_OptimizationPlanner.createOptimizationPlan(options),
+                null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }

@@ -29,8 +29,8 @@ class ReferenceTest {
     }
     // Return fraction of ra array whose references are not cleared
     int count = 0;
-    for (int i=0; i<ra.length; i++)
-      if (ra[i].get() != null)
+    for (Reference aRa : ra)
+      if (aRa.get() != null)
         count++;
     return count / ((double) ra.length);
   }

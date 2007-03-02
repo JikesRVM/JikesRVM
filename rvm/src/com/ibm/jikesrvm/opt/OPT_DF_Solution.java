@@ -28,8 +28,7 @@ public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
    */
   public String toString () {
     String result = "";
-    for (Iterator<OPT_DF_LatticeCell> e = values().iterator(); e.hasNext();) {
-      OPT_DF_LatticeCell cell = e.next();
+    for (OPT_DF_LatticeCell cell : values()) {
       result = result + cell + "\n";
     }
     return  result;

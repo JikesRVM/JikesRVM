@@ -308,24 +308,23 @@ $$$$ END FOREACH
    public String toString() {
       StringBuffer sb = new StringBuffer("Size=");
       sb.append(masks.length).append('\n');
-      for (int i = 0; i < masks.length; i++) {
-         for (int j = 0; j < masks[i].length; j++)
-            sb.append(toBinaryPad32(masks[i][j])).append('\n');
-         sb.append('\n');
-      }
+     for (int[] mask : masks) {
+       for (int v : mask) 
+         sb.append(toBinaryPad32(v)).append('\n');
+       sb.append('\n');
+     }
       return sb.toString();
    }
 
    // For internal use only.
-   private final void allocateMasks(OPT_ResourceReservation[] pat) {
+   private void allocateMasks(OPT_ResourceReservation[] pat) {
       OPT_ResourceReservation.sort(pat);
       int maxlen = 0;
       int size = 1;
       OPT_ResourceReservation r = new OPT_ResourceReservation(-1, -1, -1000);
       int len = -1;
       OPT_OperatorClass[] rss = new OPT_OperatorClass[N];
-      for (int i = 0; i < pat.length; i++) {
-         OPT_ResourceReservation p = pat[i];
+      for (OPT_ResourceReservation p : pat) {
          rss[p.rclass()] = res2class[p.rclass()];
          boolean same = p.equals(r);
          if (!p.conflicts(r)) {

@@ -133,9 +133,8 @@ public final class OPT_ScratchMap {
   boolean isScratch(OPT_Register r, int n) {
     ArrayList<Interval> v = map.get(r);
     if (v == null) return false;
-    for (Iterator<Interval> e = v.iterator(); e.hasNext(); ) {
-      PhysicalInterval i = (PhysicalInterval)e.next();
-      if (i.contains(n)) return true;
+    for (final Interval interval : v) {
+      if (interval.contains(n)) return true;
     }
     return false;
   }
@@ -148,8 +147,7 @@ public final class OPT_ScratchMap {
   OPT_Register getScratch(OPT_Register r, int n) {
     ArrayList<Interval> v = map.get(r);
     if (v == null) return null;
-    for (Iterator<Interval> e = v.iterator(); e.hasNext(); ) {
-      Interval i = e.next();
+    for (Interval i : v) {
       if (i.contains(n)) return i.scratch;
     }
     return null;

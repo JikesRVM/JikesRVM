@@ -552,15 +552,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public boolean isBootstrapClassDescriptor() {
   outer:
-    for (int i = 0; i < bootstrapClassPrefixes.length; i++) {
-      byte[] test = bootstrapClassPrefixes[i];
-      if (test.length > val.length) continue;
-      for (int j = 0; j < test.length; j++) {
-        if (val[j] != test[j]) 
-          continue outer;
-      }
-      return true;
+  for (byte[] test : bootstrapClassPrefixes) {
+    if (test.length > val.length) continue;
+    for (int j = 0; j < test.length; j++) {
+      if (val[j] != test[j])
+        continue outer;
     }
+    return true;
+  }
     return false;
   }
     
@@ -572,15 +571,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public boolean isRVMDescriptor() {
   outer:
-    for (int i = 0; i < rvmClassPrefixes.length; i++) {
-      byte[] test = rvmClassPrefixes[i];
-      if (test.length > val.length) continue;
-      for (int j = 0; j < test.length; j++) {
-        if (val[j] != test[j]) 
-          continue outer;
-      }
-      return true;
+  for (byte[] test : rvmClassPrefixes) {
+    if (test.length > val.length) continue;
+    for (int j = 0; j < test.length; j++) {
+      if (val[j] != test[j])
+        continue outer;
     }
+    return true;
+  }
     return false;
   }
     

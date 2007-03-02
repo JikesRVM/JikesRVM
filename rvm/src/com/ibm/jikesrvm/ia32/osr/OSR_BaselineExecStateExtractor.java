@@ -142,12 +142,12 @@ public abstract class OSR_BaselineExecStateExtractor
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("BC Index : "+bcIndex+"\n");
       VM.sysWrite("Local Types :");
-      for (int i=0; i<localTypes.length; i++) {
-        VM.sysWrite(" "+(char)localTypes[i]);
+      for (byte localType : localTypes) {
+        VM.sysWrite(" " + (char) localType);
       }
       VM.sysWrite("\nStack Types :");
-      for (int i=0; i<stackTypes.length; i++) {
-        VM.sysWrite(" "+(char)stackTypes[i]);
+      for (byte stackType : stackTypes) {
+        VM.sysWrite(" " + (char) stackType);
       }
       VM.sysWrite("\n");
     }

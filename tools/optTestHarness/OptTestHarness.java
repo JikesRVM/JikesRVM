@@ -124,9 +124,7 @@ class OptTestHarness {
     VM_Atom methodDesc = 
       methdesc.equals("-") ? null : VM_Atom.findOrCreateAsciiAtom(methdesc);
 
-    VM_Method[] methods = klass.getDeclaredMethods();
-    for (int j = 0 ; j < methods.length; ++j) {
-      VM_Method method = methods[j];
+    for (VM_Method method : klass.getDeclaredMethods()) {
       if (method.getName() == methodName &&
           ((methodDesc == null) || (methodDesc == method.getDescriptor())))
         return method;
@@ -163,10 +161,9 @@ class OptTestHarness {
 
   private static void processClass(VM_Class klass, OPT_Options opts) {
     VM_Method[] methods = klass.getDeclaredMethods();
-    for (int j=0; j<methods.length; ++j) {
-      VM_Method     method = methods[j];
-      if (!method.isAbstract() && !method.isNative()) 
-        processMethod(method, opts) ;
+    for (VM_Method method : methods) {
+      if (!method.isAbstract() && !method.isNative())
+        processMethod(method, opts);
     }
   }
   

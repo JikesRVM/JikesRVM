@@ -53,8 +53,7 @@ class MainThread extends Thread {
     if (agents.length > 0) {
       Instrumentation instrumenter = gnu.java.lang.JikesRVMSupport.createInstrumentation();
       java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-      for (int i = 0; i < agents.length; i++) {
-        String agent = agents[i];
+      for (String agent : agents) {
         /*
          * Parse agent string according to the form
          * given in the java.lang.instrumentation package

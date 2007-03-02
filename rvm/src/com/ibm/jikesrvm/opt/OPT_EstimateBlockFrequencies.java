@@ -292,8 +292,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
   private void computeBlockFrequencies() {
     ir.cfg.entry().setExecutionFrequency(1f);
-    for (int idx =0; idx<topOrder.length; idx++) {
-      OPT_BasicBlock cur = topOrder[idx];
+    for (OPT_BasicBlock cur : topOrder) {
       if (cur == null || cur.isExit()) continue; // ignore exit node.
       if (lst != null) {
         OPT_LSTNode loop = lst.getLoop(cur);

@@ -207,12 +207,11 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    */
   private static IMTDict buildIMTDict(VM_Class klass, VM_Class[] interfaces) {
     IMTDict d = new IMTDict(klass);
-    for (int i=0; i<interfaces.length; i++) {
-      VM_Method[] interfaceMethods = interfaces[i].getDeclaredMethods();
-      for (int j=0; j<interfaceMethods.length; j++) {
-        VM_Method im = interfaceMethods[j];
-        if (im.isClassInitializer()) continue; 
-        if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
+    for (VM_Class i : interfaces) {
+      VM_Method[] interfaceMethods = i.getDeclaredMethods();
+      for (VM_Method im : interfaceMethods) {
+        if (im.isClassInitializer()) continue;
+        if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract());
         VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(im.getMemberRef());
         VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
         // NOTE: if there is some error condition, then we are playing a dirty trick and
@@ -253,13 +252,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    */
   private static void populateITables(VM_Class klass, VM_Class[] interfaces) {
     int maxId = 0;
-    for (int i=0; i<interfaces.length; i++) {
-      int cur = interfaces[i].getInterfaceId();
+    for (VM_Class i : interfaces) {
+      int cur = i.getInterfaceId();
       if (cur > maxId) maxId = cur;
     }
     Object[][] iTables = new Object[maxId+1][];
-    for (int i=0; i<interfaces.length; i++) {
-      VM_Class interf = interfaces[i];
+    for (VM_Class interf : interfaces) {
       iTables[interf.getInterfaceId()] = buildITable(klass, interf);
     }
     Object[] tib = klass.getTypeInformationBlock();
@@ -279,8 +277,8 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       iTables = new Object[2];
       tib[TIB_ITABLES_TIB_INDEX] = iTables;
     } else {
-      for (int i=0; i<iTables.length; i++) {
-        if (((Object[])iTables[i])[0] == I) {
+      for (Object iTable : iTables) {
+        if (((Object[]) iTable)[0] == I) {
           return; // some other thread just built the iTable
         }
       }
@@ -305,11 +303,10 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     VM_Method [] interfaceMethods = I.getDeclaredMethods();
     Object[] tib = C.getTypeInformationBlock();
     Object[] iTable = new Object[interfaceMethods.length+1];
-    iTable[0] = I; 
-    for (int i=0; i<interfaceMethods.length; i++) {
-      VM_Method im = interfaceMethods[i];
-      if (im.isClassInitializer()) continue; 
-      if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
+    iTable[0] = I;
+    for (VM_Method im : interfaceMethods) {
+      if (im.isClassInitializer()) continue;
+      if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract());
       VM_Method vm = C.findVirtualMethod(im.getName(), im.getDescriptor());
       // NOTE: if there is some error condition, then we are playing a dirty trick and
       //       pretending that a static method of VM_Runtime is a virtual method.
@@ -323,7 +320,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         vm.compile();
         iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentEntryCodeArray();
       } else {
-        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = tib[vm.getOffset().toInt()>>LOG_BYTES_IN_ADDRESS];
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = tib[vm.getOffset().toInt() >> LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -380,13 +377,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
         VM_Atom name = m.getName();
         VM_Atom desc = m.getDescriptor();
-        for (int i=0; i<iTables.length; i++) {
-          Object[] iTable = (Object[])iTables[i];
+        for (Object element : iTables) {
+          Object[] iTable = (Object[]) element;
           if (iTable != null) {
-            VM_Class I = (VM_Class)iTable[0];
-            VM_Method [] interfaceMethods = I.getDeclaredMethods();
-            for (int j=0; j<interfaceMethods.length; j++) {
-              VM_Method im = interfaceMethods[j];
+            VM_Class I = (VM_Class) iTable[0];
+            VM_Method[] interfaceMethods = I.getDeclaredMethods();
+            for (VM_Method im : interfaceMethods) {
               if (im.getName() == name && im.getDescriptor() == desc) {
                 iTable[getITableIndex(I, name, desc)] = m.getCurrentEntryCodeArray();
               }

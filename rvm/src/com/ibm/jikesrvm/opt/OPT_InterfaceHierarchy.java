@@ -33,9 +33,8 @@ public class OPT_InterfaceHierarchy {
    */
   public static synchronized void notifyClassInitialized(VM_Class c) {
     if (!c.isInterface()) {
-      VM_Class[] interfaces = c.getAllImplementedInterfaces();
-      for (int i=0; i<interfaces.length; i++) {
-        noteImplements(c, interfaces[i]);
+      for (VM_Class intf : c.getAllImplementedInterfaces()) {
+        noteImplements(c, intf);
       }
     }
   }
@@ -69,10 +68,9 @@ public class OPT_InterfaceHierarchy {
     VM_HashSet<VM_Class> result = findOrCreateSet(I);
     
     // also add any classes that implement a sub-interface of I.
-    VM_Class[] subI = I.getSubClasses();
     // need to do this kludge to avoid recursive concurrent modification
-    for (int i=0; i<subI.length; i++) {
-      result.addAll(allImplementors(subI[i]));
+    for (VM_Class subClass : I.getSubClasses()) {
+      result.addAll(allImplementors(subClass));
     }
 
     // also add any sub-classes of these classes.
@@ -93,10 +91,9 @@ public class OPT_InterfaceHierarchy {
     VM_HashSet<VM_Class> result = new VM_HashSet<VM_Class>(5);
     
     // also add any classes that implement a sub-interface of I.
-    VM_Class[] subC = C.getSubClasses();
-    for (int i=0; i<subC.length; i++) {
-      result.add(subC[i]);
-      result.addAll(allSubClasses(subC[i]));
+    for (VM_Class subClass : C.getSubClasses()) {
+      result.add(subClass);
+      result.addAll(allSubClasses(subClass));
     }
 
     return result;

@@ -97,21 +97,18 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
     
     // Now go through the instructions and "lower" them by calling
     // the counter manager to convert them into real instructions
-    Iterator<OPT_Instruction> itr = instrumentedInstructions.iterator();
-    while (itr.hasNext()) {
-      OPT_Instruction i = itr.next();
-      
+    for (final OPT_Instruction i : instrumentedInstructions) {
       // Have the counter manager for this data convert this into the
       // actual counting code.  For now, we'll hard code the counter
       // manager.  Ideally it should be stored in the instruction,
       // (to allow multiple counter managers.  It would also make this
       // code independant of the adaptive system..)
-      OPT_InstrumentedEventCounterManager counterManager = 
-        VM_Instrumentation.eventCounterManager;
-      
-      counterManager.mutateOptEventCounterInstruction(i,ir);
+      OPT_InstrumentedEventCounterManager counterManager =
+          VM_Instrumentation.eventCounterManager;
+
+      counterManager.mutateOptEventCounterInstruction(i, ir);
     }
-    
+
     /*
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements(); ) {

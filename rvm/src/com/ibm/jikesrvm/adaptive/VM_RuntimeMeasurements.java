@@ -148,22 +148,22 @@ public abstract class VM_RuntimeMeasurements {
 
       // Notify all registered listeners
       VM_NullListener[] nl = timerNullListeners; // side-step dangerous race condition
-      for (int i=0; i<nl.length; i++) {
-        if (nl[i].isActive()) {
-          nl[i].update(whereFrom);
+      for (VM_NullListener aNl : nl) {
+        if (aNl.isActive()) {
+          aNl.update(whereFrom);
         }
       }
       VM_MethodListener[] ml = timerMethodListeners; // side-step dangerous race condition
-      for (int i=0; i<ml.length; i++) {
-        if (ml[i].isActive()) {
-          ml[i].update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
+      for (VM_MethodListener aMl : ml) {
+        if (aMl.isActive()) {
+          aMl.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
         }
       }
       if (ypTakenInCallerCMID != -1) {
         VM_ContextListener[] cl = timerContextListeners; // side-step dangerous race condition
-        for (int i=0; i<cl.length; i++) {
-          if (cl[i].isActive()) {
-            cl[i].update(ypTakenInFP, whereFrom);
+        for (VM_ContextListener aCl : cl) {
+          if (aCl.isActive()) {
+            aCl.update(ypTakenInFP, whereFrom);
           }
         }
       }
@@ -253,9 +253,9 @@ public abstract class VM_RuntimeMeasurements {
  
       // Notify all registered listeners
       VM_MethodListener[] ml = cbsMethodListeners; // side-step dangerous race condition
-      for (int i=0; i<ml.length; i++) {
-        if (ml[i].isActive()) {
-          ml[i].update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
+      for (VM_MethodListener methodListener : ml) {
+        if (methodListener.isActive()) {
+          methodListener.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
         }
       }
     }
@@ -301,9 +301,9 @@ public abstract class VM_RuntimeMeasurements {
       } else {
         // Notify all registered listeners
         VM_ContextListener[] cl = cbsContextListeners; // side-step dangerous race condition
-        for (int i=0; i<cl.length; i++) {
-          if (cl[i].isActive()) {
-            cl[i].update(ypTakenInFP, whereFrom);
+        for (VM_ContextListener listener : cl) {
+          if (listener.isActive()) {
+            listener.update(ypTakenInFP, whereFrom);
           }
         }
       }

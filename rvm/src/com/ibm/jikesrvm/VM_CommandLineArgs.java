@@ -191,10 +191,9 @@ public class VM_CommandLineArgs {
       } 
       
       // Note: This loop will never run to the end.
-      for (int j = 0; j < prefixes.length; j++) {
-        Prefix p = prefixes[j];
+      for (Prefix p : prefixes) {
         String v = p.value;
-        if (!matches(arg, v)) 
+        if (!matches(arg, v))
           continue;
         // Chop off the prefix (which we've already matched) and store the
         // value portion of the string (the unique part) in args[i].  Store
@@ -215,20 +214,20 @@ public class VM_CommandLineArgs {
           VM.sysWrite(arg);
           VM.sysWriteln("\"");
         }
-        
+
         arg_types[i] = p.type;
         p = findPrefix(p.type); // Find the canonical prefix for this type...
         p.count++;              // And increment the usage count for that
-                                // canonical prefix.
+        // canonical prefix.
         if (v.endsWith(" ")) {
-          if (++i >= numArgs) { 
-            VM.sysWriteln("vm: ", v, "needs an argument"); 
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG); 
+          if (++i >= numArgs) {
+            VM.sysWriteln("vm: ", v, "needs an argument");
+            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
-          args[ i - 1 ] += argRdr.getArg(i);
+          args[i - 1] += argRdr.getArg(i);
           args[i] = null;
         }
-        if (p == app_prefix) 
+        if (p == app_prefix)
           app_name_pos = i;
         break;
       }
@@ -269,9 +268,8 @@ public class VM_CommandLineArgs {
   /**
    * Find a Prefix object of a given type.
    */
-  private static Prefix findPrefix(int prefix) {
-    for (int k = 0; k < prefixes.length; k++)
-      if (prefixes[k].type == prefix) return prefixes[k];
+  private static Prefix findPrefix(int type) {
+    for (Prefix prefix : prefixes) if (prefix.type == type) return prefix;
     return null;
   }
 
@@ -305,9 +303,9 @@ public class VM_CommandLineArgs {
     String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
     String prefix = variable + "=";
     if (allEnvArgs != null)
-      for(int i = 0; i < allEnvArgs.length; i++) 
-        if (allEnvArgs[i].startsWith(prefix))
-          return allEnvArgs[i].substring(variable.length()+1);
+      for (String allEnvArg : allEnvArgs)
+        if (allEnvArg.startsWith(prefix))
+          return allEnvArg.substring(variable.length() + 1);
 
     // There are some that we treat specially.
     if (variable.equals("rvm.root"))

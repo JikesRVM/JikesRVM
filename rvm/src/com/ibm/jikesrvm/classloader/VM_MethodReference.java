@@ -72,8 +72,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   @Uninterruptible
   public int getParameterWords() { 
     int pw = 0;
-    for (int i = 0; i<parameterTypes.length; i++)
-           pw += parameterTypes[i].getStackWords();
+    for (VM_TypeReference parameterType : parameterTypes) pw += parameterType.getStackWords();
     return pw;
   }
 
@@ -221,13 +220,12 @@ public final class VM_MethodReference extends VM_MemberReference {
       }
 
       // See if method is in any interfaces of c
-      VM_Class[] interfaces = c.getDeclaredInterfaces();
-      for (int i=0; i<interfaces.length; i++) {
-        if (searchInterfaceMethods(interfaces[i]) != null) {
+      for (VM_Class intf : c.getDeclaredInterfaces()) {
+        if (searchInterfaceMethods(intf) != null) {
           // Found method in interface or superinterface
-  	      return true;
+          return true;
         }
-  	  }
+      }
     }
 	      
     // neither in superclass or interface => not interface method
@@ -335,9 +333,8 @@ public final class VM_MethodReference extends VM_MemberReference {
       resolvedMember = it; 
       return resolvedMember;
     }
-    VM_Class[] interfaces = declaringClass.getDeclaredInterfaces();
-    for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceMethods(interfaces[i]);
+    for (VM_Class intf : declaringClass.getDeclaredInterfaces()) {
+      it = searchInterfaceMethods(intf);
       if (it != null) {
         resolvedMember = it;
         return resolvedMember;
@@ -350,9 +347,8 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (!c.isResolved()) c.resolve();
     VM_Method it = c.findDeclaredMethod(name, descriptor);
     if (it != null) return it;
-    VM_Class[] interfaces = c.getDeclaredInterfaces();
-    for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceMethods(interfaces[i]);
+    for (VM_Class intf : c.getDeclaredInterfaces()) {
+      it = searchInterfaceMethods(intf);
       if (it != null) return it;
     }
     return null;

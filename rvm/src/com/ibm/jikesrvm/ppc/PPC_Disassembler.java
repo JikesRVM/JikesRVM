@@ -1147,12 +1147,11 @@ public class PPC_Disassembler implements VM_Constants {
   }
   
   static opcodeXX searchXX(int key, opcodeXX[] where) {
-    
-    for (int i=0; i<where.length; ++i) {
-      opcodeXX opxx = where[i];
+
+    for (opcodeXX opxx : where) {
       if (opxx.key == key) return opxx;
     }
-    
+
     return null;
     
   }

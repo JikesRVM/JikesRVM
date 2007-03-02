@@ -593,15 +593,15 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
     for (int i = 1;  i <= unrollFactor ;  ++i) {
 
       // copy body
-      for (int k = 0;  k < body.length;  ++k) {
-        seqLast = copyAndLinkBlock (ir, seqLast, body[k]);
-        if (body[k] == t.header) {
+      for (OPT_BasicBlock bb : body) {
+        seqLast = copyAndLinkBlock(ir, seqLast, bb);
+        if (bb == t.header) {
           if (firstHeaderCopy == null) {
             firstHeaderCopy = seqLast;
           }
         }
       }
- 
+
       // redirect internal branches
       currentBlock = seqLast;
       for (int j = 0; j < bodyBlocks; ++j) {
@@ -868,8 +868,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
       }
 
       // copy body
-      for (int k = 0;  k < body.length;  ++k) {
-        seqLast = copyAndLinkBlock (ir, seqLast, body[k]);
+      for (OPT_BasicBlock bb : body) {
+        seqLast = copyAndLinkBlock(ir, seqLast, bb);
       }
 
       // copy exit block

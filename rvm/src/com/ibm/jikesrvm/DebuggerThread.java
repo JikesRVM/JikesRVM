@@ -79,8 +79,7 @@ class DebuggerThread extends VM_Thread {
     switch (command) {
     case 't': // display thread(s)
       if (tokens.length == 1) { //
-        for (int i = 0; i < VM_Scheduler.threads.length; ++i) {
-          VM_Thread thread = VM_Scheduler.threads[i];
+        for (VM_Thread thread : VM_Scheduler.threads) {
           if (thread == null) continue;
           VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) + leftJustify(thread.toString(), 40) + getThreadState(thread) + "\n");
         }

@@ -604,10 +604,9 @@ public class VM_Statics implements VM_Constants {
    * @return type of TIB or null
    */
   public static VM_Type findTypeOfTIBSlot (Offset tibOff) {
-    VM_Type[] types = VM_Type.getTypes();
-    for (int i = 0; i < types.length; ++i) {
-      if (types[i] != null && types[i].getTibOffset().EQ(tibOff)) 
-        return types[i];
+    for (VM_Type type : VM_Type.getTypes()) {
+      if (type != null && type.getTibOffset().EQ(tibOff))
+        return type;
     }
     return null;
   }

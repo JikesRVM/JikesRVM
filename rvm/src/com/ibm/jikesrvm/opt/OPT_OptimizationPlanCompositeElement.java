@@ -77,8 +77,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    */
   public void initializeForMeasureCompilation() {
     // initialize each composite object
-    for (int i = 0; i < myElements.length; i++) {
-      myElements[i].initializeForMeasureCompilation();
+    for (OPT_OptimizationPlanElement myElement : myElements) {
+      myElement.initializeForMeasureCompilation();
     }
   }
 
@@ -105,9 +105,9 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @return true if the plan element should be performed.
    */
   public boolean shouldPerform (OPT_Options options) {
-    for (int i = 0; i < myElements.length; i++) {
-      if (myElements[i].shouldPerform(options)) {
-        return  true;
+    for (OPT_OptimizationPlanElement myElement : myElements) {
+      if (myElement.shouldPerform(options)) {
+        return true;
       }
     }
     return  false;
@@ -140,9 +140,9 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
       }
     }
 
-    for (int i = 0; i < myElements.length; i++) {
-      if (myElements[i].shouldPerform(ir.options)) {
-        myElements[i].perform(ir);
+    for (OPT_OptimizationPlanElement myElement : myElements) {
+      if (myElement.shouldPerform(ir.options)) {
+        myElement.perform(ir);
       }
     }
 
@@ -186,8 +186,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
     }
     VM.sysWrite("\n");
     // (2) print elements
-    for (int i = 0; i < myElements.length; i++) {
-      myElements[i].reportStats(indent + 4, timeCol, totalTime);
+    for (OPT_OptimizationPlanElement myElement : myElements) {
+      myElement.reportStats(indent + 4, timeCol, totalTime);
     }
     // (3) print total
     curCol = 0;
@@ -210,8 +210,8 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    */
   public double elapsedTime () {
     double total = 0.0;
-    for (int i = 0; i < myElements.length; i++) {
-      total += myElements[i].elapsedTime();
+    for (OPT_OptimizationPlanElement myElement : myElements) {
+      total += myElement.elapsedTime();
     }
     return  total;
   }
