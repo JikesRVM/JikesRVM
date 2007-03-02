@@ -89,7 +89,7 @@ import org.vmmagic.unboxed.*;
   protected int id = VM.activePlan.registerMutator(this);
 
   /** Used for printing log information in a thread safe manner */
-  protected Log log = new Log();
+  protected final Log log = new Log();
 
   /** Per-mutator allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);

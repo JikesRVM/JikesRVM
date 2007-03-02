@@ -26,7 +26,7 @@ import com.ibm.jikesrvm.VM_Magic;
   // and for hardware exception reporting/delivery.
   //
   public WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
-  public double[] fprs; // 64-bit floating point registers
+  public final double[] fprs; // 64-bit floating point registers
   public Address ip; // instruction address register
   
   // The following are used by exception delivery.

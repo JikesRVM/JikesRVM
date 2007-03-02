@@ -15,11 +15,11 @@ package org.mmtk.utility.options;
  *
  * @author Daniel Frampton
  */
-public class DummyEnum extends EnumOption {
+public final class DummyEnum extends EnumOption {
 
   // enumeration values.
-  public int FOO = 0;
-  public int BAR = 1;
+  public final int FOO = 0;
+  public final int BAR = 1;
 
   /**
    * Create the option.

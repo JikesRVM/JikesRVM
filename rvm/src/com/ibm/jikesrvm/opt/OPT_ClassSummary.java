@@ -29,6 +29,6 @@ public class OPT_ClassSummary {
   /**
    * class this object tracks
    */
-  VM_Class vmClass; 
+  final VM_Class vmClass; 
 }
 

@@ -235,7 +235,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     OPT_BasicBlock candBB;
     OPT_BasicBlock prevBB;
     OPT_BasicBlock succBB;
-    OPT_Instruction test;
+    final OPT_Instruction test;
     CandInfo next;
 
     CandInfo(OPT_BasicBlock c, OPT_BasicBlock p, 

@@ -119,7 +119,7 @@ public final class OPT_SpecializationDatabase {
    * The following defines a set of methods that share a common "key"
    */
   static class MethodSet<T> {
-    T key;
+    final T key;
 
     /**
      * a set of OPT_SpecializedMethod

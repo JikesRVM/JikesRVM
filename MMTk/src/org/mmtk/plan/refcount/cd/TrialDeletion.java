@@ -73,14 +73,14 @@ import org.vmmagic.unboxed.*;
    * 
    * Instance variables
    */
-  public SharedDeque workPool;
-  public SharedDeque blackPool;
-  public SharedDeque unfilteredPurplePool;
-  public SharedDeque maturePurplePool;
-  public SharedDeque filteredPurplePool;
-  public SharedDeque cyclePoolA;
-  public SharedDeque cyclePoolB;
-  public SharedDeque freePool;
+  public final SharedDeque workPool;
+  public final SharedDeque blackPool;
+  public final SharedDeque unfilteredPurplePool;
+  public final SharedDeque maturePurplePool;
+  public final SharedDeque filteredPurplePool;
+  public final SharedDeque cyclePoolA;
+  public final SharedDeque cyclePoolB;
+  public final SharedDeque freePool;
   public int cdMode;
   private long startCycles;
   

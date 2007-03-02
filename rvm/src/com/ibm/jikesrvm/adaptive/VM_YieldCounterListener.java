@@ -22,7 +22,8 @@ import org.vmmagic.pragma.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-@Uninterruptible class VM_YieldCounterListener extends VM_NullListener {
+@Uninterruptible
+final class VM_YieldCounterListener extends VM_NullListener {
 
   /**
    * Constructor
@@ -55,6 +56,6 @@ import org.vmmagic.pragma.*;
 
   private int yieldThreshold;
   @SuppressWarnings("unused")  // Accessed via VM_EntryPoints
-  private int numYields = 0;
+  private final int numYields = 0;
   private int totalYields = 0;
 }
