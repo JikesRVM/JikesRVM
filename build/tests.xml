@@ -328,7 +328,7 @@
       </condition>
       <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
       <property name="test.@{tag}.rvm.args"
-                value="-Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
+                value="-X:vm:errorsFatal=true -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
