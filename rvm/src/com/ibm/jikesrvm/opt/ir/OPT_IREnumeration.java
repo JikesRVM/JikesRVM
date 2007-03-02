@@ -46,7 +46,7 @@ public abstract class OPT_IREnumeration {
                                                                      final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
-      private OPT_Instruction last = end;
+      private final OPT_Instruction last = end;
       public boolean hasMoreElements() { return current != null; }
       public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
@@ -83,7 +83,7 @@ public abstract class OPT_IREnumeration {
                                                                      final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
-      private OPT_Instruction last = end;
+      private final OPT_Instruction last = end;
       public boolean hasMoreElements() { return current != null; }
       public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
@@ -212,14 +212,14 @@ public abstract class OPT_IREnumeration {
      * An enumeration of the explicit instructions in the IR for a
      * basic block
      */
-    private OPT_InstructionEnumeration explicitInstructions;
+    private final OPT_InstructionEnumeration explicitInstructions;
 
     /**
      * An enumeration of the implicit instructions in the IR for a
      * basic block.  These instructions appear only in the SSA
      * dictionary lookaside structure.
      */
-    private Iterator<OPT_Instruction> implicitInstructions;
+    private final Iterator<OPT_Instruction> implicitInstructions;
 
     /**
      * The label instruction for the basic block - the label is
@@ -238,6 +238,8 @@ public abstract class OPT_IREnumeration {
       explicitInstructions = block.forwardInstrEnumerator();
       if(ir.inSSAForm()) {
         implicitInstructions = ir.HIRInfo.SSADictionary.getHeapPhiInstructions(block);
+      } else {
+        implicitInstructions = null;
       }
       labelInstruction = explicitInstructions.next();
     }
@@ -293,11 +295,11 @@ public abstract class OPT_IREnumeration {
     /**
      * Enumeration of non-heap operands defined by the instruction
      */
-    private OPT_OperandEnumeration instructionOperands;
+    private final OPT_OperandEnumeration instructionOperands;
     /**
      * Array of heap operands defined by the instruction
      */
-    private OPT_HeapOperand<?>[] heapOperands;
+    private final OPT_HeapOperand<?>[] heapOperands;
     /**
      * Current heap operand we're upto for the enumeration
      */
@@ -305,11 +307,11 @@ public abstract class OPT_IREnumeration {
     /**
      * Implicit definitions from the operator
      */
-    private ArchitectureSpecific.OPT_PhysicalDefUse.PDUEnumeration implicitDefs;
+    private final ArchitectureSpecific.OPT_PhysicalDefUse.PDUEnumeration implicitDefs;
     /**
      * Defining instruction
      */
-    private OPT_Instruction instr;
+    private final OPT_Instruction instr;
 
     /**
      * Construct/initialize object    
@@ -322,13 +324,15 @@ public abstract class OPT_IREnumeration {
       instructionOperands = instr.getDefs();
       if(instr.operator().getNumberOfImplicitDefs() > 0) {
         implicitDefs = ArchitectureSpecific.OPT_PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
+      } else {
+        implicitDefs = null;
       }
-      if (ir.inSSAForm()) {
-        if (instr.operator != PHI) {
-          // Phi instructions store the heap SSA in the actual
-          // instruction
-          heapOperands = ir.HIRInfo.SSADictionary.getHeapDefs(instr);
-        }
+      if (ir.inSSAForm() && (instr.operator != PHI)) {
+        // Phi instructions store the heap SSA in the actual
+        // instruction
+        heapOperands = ir.HIRInfo.SSADictionary.getHeapDefs(instr);
+      } else {
+        heapOperands = null;
       }
     }
     /**
@@ -383,11 +387,11 @@ public abstract class OPT_IREnumeration {
     /**
      * Enumeration of non-heap operands defined by the instruction
      */
-    private OPT_OperandEnumeration instructionOperands;
+    private final OPT_OperandEnumeration instructionOperands;
     /**
      * Array of heap operands defined by the instruction
      */
-    private OPT_HeapOperand<?>[] heapOperands;
+    private final OPT_HeapOperand<?>[] heapOperands;
     /**
      * Current heap operand we're upto for the enumeration
      */
@@ -395,11 +399,11 @@ public abstract class OPT_IREnumeration {
     /**
      * Implicit uses from the operator
      */
-    private OPT_PhysicalDefUse.PDUEnumeration implicitUses;
+    private final OPT_PhysicalDefUse.PDUEnumeration implicitUses;
     /**
      * Defining instruction
      */
-    private OPT_Instruction instr;
+    private final OPT_Instruction instr;
 
     /**
      * Construct/initialize object    
@@ -412,13 +416,15 @@ public abstract class OPT_IREnumeration {
       instructionOperands = instr.getUses();
       if(instr.operator().getNumberOfImplicitUses() > 0) {
         implicitUses = OPT_PhysicalDefUse.enumerate(instr.operator().implicitUses, ir);
+      } else {
+        implicitUses = null;
       }
-      if(ir.inSSAForm()) {
-        if (instr.operator != PHI) {
-          // Phi instructions store the heap SSA in the actual
-          // instruction
-          heapOperands = ir.HIRInfo.SSADictionary.getHeapUses(instr);
-        }
+      if(ir.inSSAForm() && (instr.operator != PHI)) {
+        // Phi instructions store the heap SSA in the actual
+        // instruction
+        heapOperands = ir.HIRInfo.SSADictionary.getHeapUses(instr);
+      } else {
+        heapOperands = null;
       }
     }
     /**
