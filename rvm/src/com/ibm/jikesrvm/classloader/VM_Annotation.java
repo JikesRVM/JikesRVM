@@ -183,51 +183,51 @@ public final class VM_Annotation {
     case 'B':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Byte.valueOf((byte)VM_Statics.getSlotContentsAsInt(offset));
+        value = (byte) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
     case 'C':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Character.valueOf((char)VM_Statics.getSlotContentsAsInt(offset));
+        value = (char) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
     case 'D': 
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = VM_Statics.getSlotContentsAsLong(offset);
-        value = Double.valueOf(Double.longBitsToDouble(longValue));
+        value = Double.longBitsToDouble(longValue);
         break;
       }
     case 'F':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = VM_Statics.getSlotContentsAsInt(offset);
-        value = Float.valueOf(Float.intBitsToFloat(intValue));
+        value = Float.intBitsToFloat(intValue);
         break;
       }
     case 'I':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Integer.valueOf(VM_Statics.getSlotContentsAsInt(offset));
+        value = VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
     case 'J':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Long.valueOf(VM_Statics.getSlotContentsAsLong(offset));
+        value = VM_Statics.getSlotContentsAsLong(offset);
         break;
       }
     case 'S':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Short.valueOf((short)VM_Statics.getSlotContentsAsInt(offset));
+        value = (short) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
     case 'Z':
       {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
-        value = Boolean.valueOf(VM_Statics.getSlotContentsAsInt(offset) == 1);
+        value = VM_Statics.getSlotContentsAsInt(offset) == 1;
         break;
       }
     case 's':
@@ -466,28 +466,28 @@ public final class VM_Annotation {
      */
     void setValueToField(VM_Field field, Annotation annotation) {
       if(value instanceof Boolean) {
-        field.setBooleanValueUnchecked(annotation, ((Boolean)value).booleanValue());
+        field.setBooleanValueUnchecked(annotation, (Boolean) value);
       }
       else if(value instanceof Integer) {
-        field.setIntValueUnchecked(annotation, ((Integer)value).intValue());
+        field.setIntValueUnchecked(annotation, (Integer) value);
       }
       else if(value instanceof Long) {
-        field.setLongValueUnchecked(annotation, ((Long)value).longValue());
+        field.setLongValueUnchecked(annotation, (Long) value);
       }
       else if(value instanceof Byte) {
-        field.setByteValueUnchecked(annotation, ((Byte)value).byteValue());
+        field.setByteValueUnchecked(annotation, (Byte) value);
       }
       else if(value instanceof Character) {
-        field.setCharValueUnchecked(annotation, ((Character)value).charValue());
+        field.setCharValueUnchecked(annotation, (Character) value);
       }
       else if(value instanceof Short) {
-        field.setShortValueUnchecked(annotation, ((Short)value).shortValue());
+        field.setShortValueUnchecked(annotation, (Short) value);
       }
       else if(value instanceof Float) {
-        field.setFloatValueUnchecked(annotation, ((Float)value).floatValue());
+        field.setFloatValueUnchecked(annotation, (Float) value);
       }
       else if(value instanceof Double) {
-        field.setDoubleValueUnchecked(annotation, ((Double)value).doubleValue());
+        field.setDoubleValueUnchecked(annotation, (Double) value);
       }
       else {
         field.setObjectValueUnchecked(annotation, value);

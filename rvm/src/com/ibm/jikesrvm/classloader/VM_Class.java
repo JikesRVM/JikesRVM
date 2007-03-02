@@ -2201,7 +2201,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         if(value instanceof Integer) {
           constantPool[nextFreeConstantPoolSlot] =
             packCPEntry(CP_INT,
-                        VM_Statics.findOrCreateIntSizeLiteral(((Integer)value).intValue()));
+                        VM_Statics.findOrCreateIntSizeLiteral((Integer) value));
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;
@@ -2209,7 +2209,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         else if(value instanceof Boolean) {
           constantPool[nextFreeConstantPoolSlot] =
             packCPEntry(CP_INT,
-                        VM_Statics.findOrCreateIntSizeLiteral(((Boolean)value).booleanValue() ? 1 : 0));
+                        VM_Statics.findOrCreateIntSizeLiteral((Boolean) value ? 1 : 0));
           defaultConstants[j] = nextFreeConstantPoolSlot;
           j++;
           nextFreeConstantPoolSlot++;

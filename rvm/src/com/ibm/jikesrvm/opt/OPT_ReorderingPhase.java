@@ -242,9 +242,9 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
         Object value = sourceInfo.outWeights.get(targetInfo);
         float weight = e.weight;
         if (value != null) {
-          weight += ((Float)value).floatValue();
+          weight += (Float) value;
         }
-        sourceInfo.outWeights.put(targetInfo, Float.valueOf(weight));
+        sourceInfo.outWeights.put(targetInfo, weight);
         targetInfo.inWeight += e.weight;
         if (DEBUG) VM.sysWriteln("\t"+targetInfo + ","+sourceInfo.outWeights.get(targetInfo));
       }
@@ -279,7 +279,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       if (chainInfo.isEmpty()) break; // no chains left to place.
       for (ChainInfo target : nextChoice.outWeights.keySet()) {
         if (DEBUG) VM.sysWrite("\toutedge "+target);
-        float weight = ((Float)nextChoice.outWeights.get(target)).floatValue();
+        float weight = (Float) nextChoice.outWeights.get(target);
         if (DEBUG) VM.sysWriteln(" = "+weight);
         target.placedWeight += weight;
         target.inWeight -= weight;

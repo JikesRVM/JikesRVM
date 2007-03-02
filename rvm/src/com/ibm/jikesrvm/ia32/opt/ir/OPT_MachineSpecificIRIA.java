@@ -134,7 +134,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
   }
   @Override
   public int getBURSManagedFPRValue(OPT_Operand operand) {
-    return Integer.valueOf(((OPT_BURSManagedFPROperand)operand).regNum);
+    return ((OPT_BURSManagedFPROperand) operand).regNum;
   }
   
   /**

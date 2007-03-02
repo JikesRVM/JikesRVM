@@ -149,7 +149,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase {
         continue;
       }
       // was this the first definition of the value number?
-      Integer Vn = Integer.valueOf(vn);
+      Integer Vn = vn;
       OPT_Instruction former = avail.get(Vn);
       if (former == null) {
         // first occurance of value number, record it in the available
@@ -209,7 +209,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase {
         inst = next;
         continue;
       }
-      Integer Vn = Integer.valueOf(vn);
+      Integer Vn = vn;
       OPT_Instruction former = avail.get(Vn);
       if (former == inst) {
         avail.remove(Vn);

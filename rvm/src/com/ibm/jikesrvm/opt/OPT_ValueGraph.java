@@ -109,13 +109,13 @@ final class OPT_ValueGraph {
     if (name instanceof OPT_RegisterOperand) {
       name = ((OPT_RegisterOperand)name).asRegister().register;
     } else if (name instanceof OPT_IntConstantOperand) {
-      name = Integer.valueOf(((OPT_IntConstantOperand)name).value);
+      name = ((OPT_IntConstantOperand) name).value;
     } else if (name instanceof OPT_FloatConstantOperand) {
-      name = Float.valueOf(((OPT_FloatConstantOperand)name).value);
+      name = ((OPT_FloatConstantOperand) name).value;
     } else if (name instanceof OPT_LongConstantOperand) {
-      name = Long.valueOf(((OPT_LongConstantOperand)name).value);
+      name = ((OPT_LongConstantOperand) name).value;
     } else if (name instanceof OPT_DoubleConstantOperand) {
-      name = Double.valueOf(((OPT_DoubleConstantOperand)name).value);
+      name = ((OPT_DoubleConstantOperand) name).value;
     } else if (name instanceof OPT_ObjectConstantOperand) {
       name = ((OPT_ObjectConstantOperand)name).value;
     } else if (name instanceof OPT_TIBConstantOperand) {
@@ -624,16 +624,16 @@ final class OPT_ValueGraph {
     Object name;
     if (op.isAddressConstant()) {
       name = (VM.BuildFor32Addr) ?
-		  Integer.valueOf(op.asAddressConstant().value.toInt()) :
-		  Long.valueOf(op.asAddressConstant().value.toLong());
+          op.asAddressConstant().value.toInt() :
+          op.asAddressConstant().value.toLong();
     } else if (op.isIntConstant()) {
-      name = Integer.valueOf(op.asIntConstant().value);
+      name = op.asIntConstant().value;
     } else if (op.isFloatConstant()) {
-      name = Float.valueOf(op.asFloatConstant().value);
+      name = op.asFloatConstant().value;
     } else if (op.isLongConstant()) {
-      name = Long.valueOf(op.asLongConstant().value);
+      name = op.asLongConstant().value;
     } else if (op.isDoubleConstant()) {
-      name = Double.valueOf(op.asDoubleConstant().value);
+      name = op.asDoubleConstant().value;
     } else if (op instanceof OPT_ObjectConstantOperand) {
       name = op.asObjectConstant().value;
     } else if (op instanceof OPT_TIBConstantOperand) {
@@ -709,7 +709,7 @@ final class OPT_ValueGraph {
    * @return a value graph vertex corresponding to this type
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConditionOperand op) {
-    Object name = Integer.valueOf(op.value); // kludge.
+    Object name = op.value; // kludge.
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);

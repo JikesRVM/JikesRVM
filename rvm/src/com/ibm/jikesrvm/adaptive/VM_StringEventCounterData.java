@@ -129,7 +129,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
       // Use new counter
       counterIdx = ++ eventNumber;
       // remember it, and return it
-      stringToCounterMap.put(str,Integer.valueOf(eventNumber));
+      stringToCounterMap.put(str, eventNumber);
     }
 
     return counterIdx;
@@ -150,7 +150,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
     int counter = -1;
     Integer counterNum = stringToCounterMap.get(str);
     if (counterNum != null) 
-      counter = counterNum.intValue();
+      counter = counterNum;
 
     return counter;
   }

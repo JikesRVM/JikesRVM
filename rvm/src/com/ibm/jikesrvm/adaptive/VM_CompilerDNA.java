@@ -264,7 +264,7 @@ public class VM_CompilerDNA implements VM_Constants {
       token = parser.nextToken();
       
       // convert token to a double
-      valueHolder[i] = Double.valueOf(token).doubleValue();
+      valueHolder[i] = Double.valueOf(token);
     }
   }
 

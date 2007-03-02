@@ -84,7 +84,7 @@ class DebuggerThread extends VM_Thread {
           VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) + leftJustify(thread.toString(), 40) + getThreadState(thread) + "\n");
         }
       } else if (tokens.length == 2) { // display specified thread
-        int threadIndex = Integer.valueOf(tokens[1]).intValue();
+        int threadIndex = Integer.valueOf(tokens[1]);
         // !!TODO: danger here - how do we know if thread's context registers are
         //         currently valid (ie. thread is not currently running and 
         //         won't start running while we're looking at it) ?

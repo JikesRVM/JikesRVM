@@ -29,7 +29,7 @@ abstract class OPT_SpillCostEstimator {
   double getCost(OPT_Register r) {
     Double d = map.get(r);
     if (d == null) return 0;
-    else return d.doubleValue();
+    else return d;
   }
 
   /**
@@ -43,6 +43,6 @@ abstract class OPT_SpillCostEstimator {
   protected void update(OPT_Register r, double delta) {
     double c = getCost(r);
     c += delta;
-    map.put(r, Double.valueOf(c));
+    map.put(r, c);
   }
 }

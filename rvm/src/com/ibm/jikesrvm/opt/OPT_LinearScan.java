@@ -1363,9 +1363,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             int w = edge.getWeight();
             Integer oldW = map.get(neighbor);
             if (oldW == null) {
-              map.put(neighbor,Integer.valueOf(w));
+              map.put(neighbor, w);
             } else {
-              map.put(neighbor,Integer.valueOf(oldW.intValue() + w));
+              map.put(neighbor, oldW + w);
             }
             break;
           }
@@ -1390,9 +1390,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             int w = edge.getWeight();
             Integer oldW = map.get(neighbor);
             if (oldW == null) {
-              map.put(neighbor,Integer.valueOf(w));
+              map.put(neighbor, w);
             } else {
-              map.put(neighbor,Integer.valueOf(oldW.intValue() + w));
+              map.put(neighbor, oldW + w);
             }
             break;
           }
@@ -1402,7 +1402,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       OPT_Register result = null;
       int weight = -1;
       for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
-        int w = entry.getValue().intValue();
+        int w = entry.getValue();
         if (w > weight) {
           weight = w;
           result = entry.getKey();
@@ -1449,9 +1449,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             int w = edge.getWeight();
             Integer oldW = map.get(neighbor);
             if (oldW == null) {
-              map.put(neighbor,Integer.valueOf(w));
+              map.put(neighbor, w);
             } else {
-              map.put(neighbor,Integer.valueOf(oldW.intValue() + w));
+              map.put(neighbor, oldW + w);
             }
             break;
           }
@@ -1476,9 +1476,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             int w = edge.getWeight();
             Integer oldW = map.get(neighbor);
             if (oldW == null) {
-              map.put(neighbor,Integer.valueOf(w));
+              map.put(neighbor, w);
             } else {
-              map.put(neighbor,Integer.valueOf(oldW.intValue() + w));
+              map.put(neighbor, oldW + w);
             }
             break;
           }
@@ -1488,7 +1488,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       OPT_Register result = null;
       int weight = -1;
       for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
-        int w = entry.getValue().intValue();
+        int w = entry.getValue();
         if (w > weight) {
           weight = w;
           result = entry.getKey();
@@ -2042,9 +2042,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               int w = edge.getWeight();
               Integer oldW = map.get(s);
               if (oldW == null) {
-                map.put(s, Integer.valueOf(w));
+                map.put(s, w);
               } else {
-                map.put(s, Integer.valueOf(oldW.intValue() + w));
+                map.put(s, oldW + w);
               }
               break;
             }
@@ -2067,9 +2067,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               int w = edge.getWeight();
               Integer oldW = map.get(s);
               if (oldW == null) {
-                map.put(s, Integer.valueOf(w));
+                map.put(s, w);
               } else {
-                map.put(s, Integer.valueOf(oldW.intValue() + w));
+                map.put(s, oldW + w);
               }
               break;
             }

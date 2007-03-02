@@ -382,7 +382,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
         // when socket is closed on this end, wait until unsent 
         // data has been received by other end or timeout expires
         //
-        int rc = VM_SysCall.sysNetSocketLinger(native_fd, 1, ((Integer)val).intValue());
+        int rc = VM_SysCall.sysNetSocketLinger(native_fd, 1, (Integer) val);
         if (rc == -1) throw new SocketException("SO_LINGER");
       } else {
         // when socket is closed on this end, discard any unsent data
@@ -401,14 +401,13 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     case SocketOptions.TCP_NODELAY: { 
       // true:  send data immediately when socket is written to
       // false: delay sending, in order to coalesce packets
-      int rc = VM_SysCall.sysNetSocketNoDelay(native_fd,
-                                              ((Boolean)val).booleanValue() ? 1 : 0);
+      int rc = VM_SysCall.sysNetSocketNoDelay(native_fd, (Boolean) val ? 1 : 0);
 
       if (rc == -1) throw new SocketException("setTcpNoDelay");
     } break;
          
     case SocketOptions.SO_TIMEOUT: {
-      receiveTimeout = ((Integer)val).intValue();
+      receiveTimeout = (Integer) val;
     } break;
 
     default:
@@ -426,11 +425,11 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    */
   public synchronized Object getOption(int optID) throws SocketException {
     if (optID == SocketOptions.SO_TIMEOUT) {
-      return Integer.valueOf(receiveTimeout);
+      return receiveTimeout;
     } else if (optID == SocketOptions.SO_BINDADDR) {
       return localAddress;
     } else if (optID == SocketOptions.SO_SNDBUF) {
-      return Integer.valueOf(VM_SysCall.sysNetSocketSndBuf(native_fd));
+      return VM_SysCall.sysNetSocketSndBuf(native_fd);
     } else {
       throw new VM_UnimplementedError("JikesRVMSocketImpl.getOption: " + optID);
     }

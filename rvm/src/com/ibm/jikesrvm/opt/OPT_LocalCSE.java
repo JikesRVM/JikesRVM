@@ -35,7 +35,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * Constructor
    */
   public OPT_LocalCSE(boolean isHIR) {
-    super(new Object[]{Boolean.valueOf(isHIR)});
+    super(new Object[]{isHIR});
     this.isHIR = isHIR;
   }
 

@@ -49,7 +49,7 @@ class tInstance {
 
   public void vuserFunction(int i, Integer x) {
     gc();
-    ifield = ifield + i + x.intValue();
+    ifield = ifield + i + x;
   }
 
   public static void main(String[] args) throws Exception {
@@ -98,8 +98,8 @@ class tInstance {
       System.exit(1);
     } else {
       System.out.println("================= READY TO CALL: " + imethod);
-      methodargs[0] = new Integer(3);
-      int iresult = ((Integer) imethod.invoke(myInstance, methodargs)).intValue();
+      methodargs[0] = 3;
+      int iresult = (Integer) imethod.invoke(myInstance, methodargs);
       if (iresult != 7) {
         System.out.println("Wrong answer from iuserFunction");
         System.out.println(iresult);
@@ -116,8 +116,8 @@ class tInstance {
       System.exit(1);
     } else {
       System.out.println("================= READY TO CALL: " + dmethod);
-      methodargs[0] = new Double(3.4);
-      double dresult = ((Double) dmethod.invoke(myInstance, methodargs)).doubleValue();
+      methodargs[0] = 3.4;
+      double dresult = (Double) dmethod.invoke(myInstance, methodargs);
       if (dresult < 12.2 || dresult >= 12.2000001) {
         System.out.println("Wrong answer from duserFunction");
         System.out.println(dresult);
@@ -135,7 +135,7 @@ class tInstance {
     } else {
       System.out.println("================= READY TO CALL: " + bmethod);
       methodargs[0] = Boolean.TRUE;
-      boolean bresult = ((Boolean) bmethod.invoke(myInstance, methodargs)).booleanValue();
+      boolean bresult = (Boolean) bmethod.invoke(myInstance, methodargs);
       if (bresult != true) {
         System.out.println("Wrong answer from buserFunction");
         System.exit(1);
@@ -169,8 +169,8 @@ class tInstance {
     } else {
       System.out.println("================= READY TO CALL: " + vmethod);
       Object[] twoargs = new Object[2];
-      twoargs[0] = new Integer(4);
-      twoargs[1] = new Integer(10);
+      twoargs[0] = 4;
+      twoargs[1] = 10;
       Object vresult = vmethod.invoke(myInstance, twoargs);
       if ((vresult != null) || (myInstance.ifield != 18)) {
         System.out.println("Wrong results from vuserFunction");

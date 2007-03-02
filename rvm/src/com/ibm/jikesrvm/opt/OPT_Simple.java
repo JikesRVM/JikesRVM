@@ -124,8 +124,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    * branches?
    */
   public OPT_Simple (int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    super(new Object[]{Integer.valueOf(level), Boolean.valueOf(typeProp),
-                       Boolean.valueOf(foldChecks), Boolean.valueOf(foldBranches)});
+    super(new Object[]{level, typeProp, foldChecks, foldBranches});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;

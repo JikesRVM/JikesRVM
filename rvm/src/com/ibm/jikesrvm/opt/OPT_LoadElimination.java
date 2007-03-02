@@ -463,7 +463,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
                   HashSet<Integer> numbers =
                     findOrCreateIndexSet(indices,f);
                   int v = valueNumbers.getValueNumber(ref);
-                  Integer V = Integer.valueOf(v);
+                  Integer V = v;
                   if (numbers.contains(V)) {
                     resultSet.add(f);
                   } else {
@@ -484,7 +484,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
                   HashSet<Integer> numbers =
                     findOrCreateIndexSet(indices,f);
                   int v = valueNumbers.getValueNumber(ref);
-                  Integer V = Integer.valueOf(v);
+                  Integer V = v;
                   if (numbers.contains(V)) {
                     if (seenLoad.contains(f)) {
                       resultSet.add(f);
@@ -615,7 +615,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
      * Cosntructor
      */
     public LoadEliminationPreparation(int round) {
-      super(new Object[]{Integer.valueOf(round)});
+      super(new Object[]{round});
       this.round = round;
     }
 
@@ -673,7 +673,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
      * Constructor
      */
     public GVNPreparation(int round) {
-      super(new Object[]{Integer.valueOf(round)});
+      super(new Object[]{round});
       this.round = round;
     }
 

@@ -403,21 +403,21 @@ public class BootImageWriter extends BootImageWriterMessages
       if (args[i].equals("-ca")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -ca flag without a following image address");
-        bootImageCodeAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+        bootImageCodeAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
         continue;
       }
       // image data start address
       if (args[i].equals("-da")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -da flag without a following image address");
-        bootImageDataAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+        bootImageDataAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
         continue;
       }
       // image ref map start address
       if (args[i].equals("-ra")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -ra flag without a following image address");
-        bootImageRMapAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+        bootImageRMapAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
         continue;
       }
       // file containing names of types to be placed into bootimage
@@ -1954,7 +1954,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Byte[] java_lang_Byte_byteCache = new Byte[256];
       // Populate table, although unnecessary
       for(int i=-128; i < 128; i++) {
-        Byte value = Byte.valueOf((byte)i);
+        Byte value = (byte) i;
         BootImageMap.findOrCreateEntry(value);
         java_lang_Byte_byteCache[128+i] = value;
       }
@@ -2012,7 +2012,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Integer[] java_lang_Integer_intCache = new Integer[256];
       // Populate table, although unnecessary
       for(int i=-128; i < 128; i++) {
-        Integer value = Integer.valueOf(i);
+        Integer value = i;
         java_lang_Integer_intCache[128+i] = value;
       }
       VM_Statics.setSlotContents(rvmFieldOffset, java_lang_Integer_intCache);
@@ -2056,7 +2056,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Short[] java_lang_Short_shortCache = new Short[256];
       // Populate table, although unnecessary
       for(short i=-128; i < 128; i++) {
-        Short value = Short.valueOf(i);
+        Short value = i;
         BootImageMap.findOrCreateEntry(value);
         java_lang_Short_shortCache[128+i] = value;
       }
@@ -2243,7 +2243,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
   private static final int OBJECT_HEADER_SIZE = 8;
   private static Hashtable<Object,Integer> traversed = null;
-  private static final Integer VISITED = new Integer(0);
+  private static final Integer VISITED = 0;
 
   /**
    * Traverse an object (and, recursively, any of its fields or elements that
@@ -2268,7 +2268,7 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       };
       Integer sz = traversed.get(key);
-      if (sz != null) return sz.intValue(); // object already traversed
+      if (sz != null) return sz; // object already traversed
       traversed.put(key, VISITED);
 
       if (verbose >= 2) depth++;
@@ -2396,7 +2396,7 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       }
 
-      traversed.put(key, Integer.valueOf(size));
+      traversed.put(key, size);
       if (verbose >= 2) depth--;
       return size;
     }

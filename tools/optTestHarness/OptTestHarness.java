@@ -90,7 +90,7 @@ class OptTestHarness {
         } else if (argDesc[argNum].isDoubleType()) {
           methodArgs[argNum] = Double.valueOf(args[++i]);
         } else if (argDesc[argNum].isCharType()) {
-          methodArgs[argNum] = new Character(args[++i].charAt(0));
+          methodArgs[argNum] = args[++i].charAt(0);
         } else if (argDesc[argNum].isClassType()) {
           // TODO
           System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");

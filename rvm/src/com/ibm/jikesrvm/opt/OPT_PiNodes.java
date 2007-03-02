@@ -100,7 +100,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * @param typeChecks If true, we insert PI nodes only for type checks.
    */
   public OPT_PiNodes(boolean insert, boolean typeChecks) {
-    super(new Object[]{Boolean.valueOf(insert), Boolean.valueOf(typeChecks)});
+    super(new Object[]{insert, typeChecks});
     this.insertion = insert;
     this.typeChecks = typeChecks;
   }

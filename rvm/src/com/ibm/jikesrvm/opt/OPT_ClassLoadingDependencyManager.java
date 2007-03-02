@@ -101,7 +101,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
       db.invalidatedByOverriddenMethod(overridden);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
-        int cmid = invalidatedMethods.next().intValue();
+        int cmid = invalidatedMethods.next();
         VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);
@@ -118,7 +118,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
     Iterator<Integer> invalidatedMethods = db.invalidatedBySubclass(sc);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
-        int cmid = invalidatedMethods.next().intValue();
+        int cmid = invalidatedMethods.next();
         VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);

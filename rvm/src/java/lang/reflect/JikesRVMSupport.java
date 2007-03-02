@@ -33,6 +33,7 @@ public class JikesRVMSupport {
   // Make possibly wrapped method argument compatible with expected type
   // throwing IllegalArgumentException if it cannot be.
   //
+  @SuppressWarnings({"UnnecessaryBoxing"})
   static Object makeArgumentCompatible(VM_Type expectedType, Object arg) {
     if (expectedType.isPrimitiveType()) { 
       if (arg instanceof java.lang.Void) {
@@ -41,25 +42,25 @@ public class JikesRVMSupport {
         if (expectedType.isBooleanType()) return arg;
       } else if (arg instanceof java.lang.Byte) {
         if (expectedType.isByteType()) return arg;
-        if (expectedType.isShortType()) return new Short(((java.lang.Byte)arg).byteValue());
-        if (expectedType.isIntType()) return new Integer(((java.lang.Byte)arg).byteValue());
-        if (expectedType.isLongType()) return new Long(((java.lang.Byte)arg).byteValue());
+        if (expectedType.isShortType()) return new Short((Byte) arg);
+        if (expectedType.isIntType()) return new Integer((Byte) arg);
+        if (expectedType.isLongType()) return new Long((Byte) arg);
       } else if (arg instanceof java.lang.Short) {
         if (expectedType.isShortType()) return arg;
-        if (expectedType.isIntType()) return new Integer(((java.lang.Short)arg).shortValue());
-        if (expectedType.isLongType()) return new Long(((java.lang.Short)arg).shortValue());
+        if (expectedType.isIntType()) return new Integer((Short) arg);
+        if (expectedType.isLongType()) return new Long((Short) arg);
       } else if (arg instanceof java.lang.Character) {
         if (expectedType.isCharType()) return arg;
-        if (expectedType.isIntType()) return new Integer(((java.lang.Character)arg).charValue());
-        if (expectedType.isLongType()) return new Long(((java.lang.Character)arg).charValue());
+        if (expectedType.isIntType()) return new Integer((Character) arg);
+        if (expectedType.isLongType()) return new Long((Character) arg);
       } else if (arg instanceof java.lang.Integer) {
         if (expectedType.isIntType()) return arg;
-        if (expectedType.isLongType()) return new Long(((java.lang.Integer)arg).intValue());
+        if (expectedType.isLongType()) return new Long((Integer) arg);
       } else if (arg instanceof java.lang.Long) {
         if (expectedType.isLongType()) return arg;
       } else if (arg instanceof java.lang.Float) {
         if (expectedType.isFloatType()) return arg;
-        if (expectedType.isDoubleType()) return new Double(((java.lang.Float)arg).floatValue());
+        if (expectedType.isDoubleType()) return new Double((Float) arg);
       } else if (arg instanceof java.lang.Double) {
         if (expectedType.isDoubleType()) return arg;
       }

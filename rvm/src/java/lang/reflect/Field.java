@@ -64,21 +64,21 @@ public final class Field extends AccessibleObject implements Member {
     if (type.isReferenceType()) {
       return field.getObjectValueUnchecked(object);
     } else if (type.isCharType()) {
-      return new Character(field.getCharValueUnchecked(object));
+      return field.getCharValueUnchecked(object);
     } else if (type.isDoubleType()) {
-      return new Double(field.getDoubleValueUnchecked(object));
+      return field.getDoubleValueUnchecked(object);
     } else if (type.isFloatType()) {
-      return new Float(field.getFloatValueUnchecked(object));
+      return field.getFloatValueUnchecked(object);
     } else if (type.isLongType()) {
-      return new Long(field.getLongValueUnchecked(object));
+      return field.getLongValueUnchecked(object);
     } else if (type.isIntType()) {
-      return new Integer(field.getIntValueUnchecked(object));
+      return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
-      return new Short(field.getShortValueUnchecked(object));
+      return field.getShortValueUnchecked(object);
     } else if (type.isByteType()) {
-      return new Byte(field.getByteValueUnchecked(object));
+      return field.getByteValueUnchecked(object);
     } else if (type.isBooleanType()) {
-      return Boolean.valueOf(field.getBooleanValueUnchecked(object));
+      return field.getBooleanValueUnchecked(object);
     } else {
       throw new InternalError("Huh?  Field of unknown primitive type "+type);
     }
@@ -176,21 +176,21 @@ public final class Field extends AccessibleObject implements Member {
       }
       field.setObjectValueUnchecked(object, value);
     } else if (value instanceof Character) {
-      setCharInternal(object, ((Character)value).charValue());
+      setCharInternal(object, (Character) value);
     } else if (value instanceof Double) {
-      setDoubleInternal(object, ((Double)value).doubleValue());
+      setDoubleInternal(object, (Double) value);
     } else if (value instanceof Float) {
-      setFloatInternal(object, ((Float)value).floatValue());
+      setFloatInternal(object, (Float) value);
     } else if (value instanceof Long) {
-      setLongInternal(object, ((Long)value).longValue());
+      setLongInternal(object, (Long) value);
     } else if (value instanceof Integer) {
-      setIntInternal(object, ((Integer)value).intValue());
+      setIntInternal(object, (Integer) value);
     } else if (value instanceof Short) {
-      setShortInternal(object, ((Short)value).shortValue());
+      setShortInternal(object, (Short) value);
     } else if (value instanceof Byte) {
-      setByteInternal(object, ((Byte)value).byteValue());
+      setByteInternal(object, (Byte) value);
     } else if (value instanceof Boolean) {
-      setBooleanInternal(object, ((Boolean)value).booleanValue());
+      setBooleanInternal(object, (Boolean) value);
     } else {
       throw new IllegalArgumentException("field type mismatch");
     }

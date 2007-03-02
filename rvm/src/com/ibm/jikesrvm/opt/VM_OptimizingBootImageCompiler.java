@@ -156,7 +156,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     // Find plan
     synchronized(optimizationPlanLocks) {
       for (int i=0; i < optimizationPlanLocks.size(); i++) {
-        if(optimizationPlanLocks.get(i).booleanValue() == false) {
+        if(!optimizationPlanLocks.get(i)) {
           optimizationPlanLocks.set(i,Boolean.TRUE);
           return i;
         }

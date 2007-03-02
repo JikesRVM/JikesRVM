@@ -63,8 +63,7 @@ public class VM_Reflection implements VM_Constants {
     int fprs       = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
     double[] FPRs  = new double[fprs];
 
-    int spills     = triple >> (REFLECTION_GPRS_BITS+REFLECTION_FPRS_BITS);
-    int spillCount = spills;
+    int spillCount = triple >> (REFLECTION_GPRS_BITS+REFLECTION_FPRS_BITS);
      
     WordArray Spills = WordArray.create(spillCount);
 
@@ -129,42 +128,38 @@ public class VM_Reflection implements VM_Constants {
 
     if (returnType.isBooleanType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return Boolean.valueOf(x == 1);
+      return x == 1;
     }
 
     if (returnType.isByteType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return Byte.valueOf((byte)x);
+      return (byte) x;
     }
 
     if (returnType.isShortType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return Short.valueOf((short)x);
+      return (short) x;
     }
 
     if (returnType.isCharType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return Character.valueOf((char)x);
+      return (char) x;
     }
 
     if (returnType.isIntType()) {
-      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return Integer.valueOf(x);
+      return VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
     }
 
     if (returnType.isLongType()) {
-      long x = VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, Spills);
-      return Long.valueOf(x);
+      return VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, Spills);
     }
 
     if (returnType.isFloatType()) {
-      float x = VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, Spills);
-      return Float.valueOf(x);
+      return VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, Spills);
     }
         
     if (returnType.isDoubleType()) {
-      double x = VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, Spills);
-      return Double.valueOf(x);
+      return VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, Spills);
     }
 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -174,42 +169,42 @@ public class VM_Reflection implements VM_Constants {
   // Method parameter wrappers.
   // 
   @NoInline
-  public static Object wrapBoolean(int b) { return Boolean.valueOf(b==1); }
+  public static Object wrapBoolean(int b) { return b == 1; }
   @NoInline
-  public static Object wrapByte(byte b) { return Byte.valueOf(b); } 
+  public static Object wrapByte(byte b) { return b; } 
   @NoInline
-  public static Object wrapChar(char c) { return Character.valueOf(c); } 
+  public static Object wrapChar(char c) { return c; } 
   @NoInline
-  public static Object wrapShort(short s) { return Short.valueOf(s); } 
+  public static Object wrapShort(short s) { return s; } 
   @NoInline
-  public static Object wrapInt(int i) { return Integer.valueOf(i); } 
+  public static Object wrapInt(int i) { return i; } 
   @NoInline
-  public static Object wrapLong(long l) { return Long.valueOf(l); } 
+  public static Object wrapLong(long l) { return l; } 
   @NoInline
-  public static Object wrapFloat(float f) { return Float.valueOf(f); } 
+  public static Object wrapFloat(float f) { return f; } 
   @NoInline
-  public static Object wrapDouble(double d) { return Double.valueOf(d); } 
+  public static Object wrapDouble(double d) { return d; } 
    
   // Method parameter unwrappers.
   //
   @NoInline
   public static int unwrapBooleanAsInt(Object o) { if (unwrapBoolean(o)) return 1; else return 0; } 
   @NoInline
-  public static boolean unwrapBoolean(Object o) { return ((Boolean) o).booleanValue(); } 
+  public static boolean unwrapBoolean(Object o) { return (Boolean) o; } 
   @NoInline
-  public static byte   unwrapByte(Object o) { return ((Byte) o).byteValue(); } 
+  public static byte   unwrapByte(Object o) { return (Byte) o; } 
   @NoInline
-  public static char   unwrapChar(Object o) { return ((Character) o).charValue(); } 
+  public static char   unwrapChar(Object o) { return (Character) o; } 
   @NoInline
-  public static short  unwrapShort(Object o) { return ((Short) o).shortValue(); } 
+  public static short  unwrapShort(Object o) { return (Short) o; } 
   @NoInline
-  public static int    unwrapInt(Object o) { return ((Integer) o).intValue(); } 
+  public static int    unwrapInt(Object o) { return (Integer) o; } 
   @NoInline
-  public static long   unwrapLong(Object o) { return ((Long) o).longValue(); } 
+  public static long   unwrapLong(Object o) { return (Long) o; } 
   @NoInline
-  public static float  unwrapFloat(Object o) { return ((Float) o).floatValue(); } 
+  public static float  unwrapFloat(Object o) { return (Float) o; } 
   @NoInline
-  public static double unwrapDouble(Object o) { return ((Double) o).doubleValue(); } 
+  public static double unwrapDouble(Object o) { return (Double) o; } 
   @NoInline
   public static Address unwrapObject(Object o) { return VM_Magic.objectAsAddress(o); } 
 

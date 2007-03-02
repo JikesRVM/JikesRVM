@@ -194,14 +194,14 @@ public final class VM_Field extends VM_Member {
     if (type.isReferenceType()) {
       return getObjectValueUnchecked(obj);
     } else {
-      if (type.isCharType())     return Character.valueOf(getCharValueUnchecked(obj));
-      if (type.isDoubleType())   return Double.valueOf(getDoubleValueUnchecked(obj));
-      if (type.isFloatType())    return Float.valueOf(getFloatValueUnchecked(obj));
-      if (type.isLongType())     return Long.valueOf(getLongValueUnchecked(obj));
-      if (type.isIntType())      return Integer.valueOf(getIntValueUnchecked(obj));
-      if (type.isShortType())    return Short.valueOf(getShortValueUnchecked(obj));
-      if (type.isByteType())     return Byte.valueOf(getByteValueUnchecked(obj));
-      if (type.isBooleanType())  return Boolean.valueOf(getBooleanValueUnchecked(obj));
+      if (type.isCharType())     return getCharValueUnchecked(obj);
+      if (type.isDoubleType())   return getDoubleValueUnchecked(obj);
+      if (type.isFloatType())    return getFloatValueUnchecked(obj);
+      if (type.isLongType())     return getLongValueUnchecked(obj);
+      if (type.isIntType())      return getIntValueUnchecked(obj);
+      if (type.isShortType())    return getShortValueUnchecked(obj);
+      if (type.isByteType())     return getByteValueUnchecked(obj);
+      if (type.isBooleanType())  return getBooleanValueUnchecked(obj);
       return null;
     }
   }

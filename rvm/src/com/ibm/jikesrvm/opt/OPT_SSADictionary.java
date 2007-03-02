@@ -1305,14 +1305,14 @@ public final class OPT_SSADictionary {
     Integer current = nextNumber.get(type);
     if (current == null) {
       // no number found. Create one.
-      Integer one = Integer.valueOf(1);
+      Integer one = 1;
       nextNumber.put(type, one);
       return  0;
     }
     // bump up the number
-    Integer next = Integer.valueOf(current.intValue() + 1);
+    Integer next = current + 1;
     nextNumber.put(type, next);
-    return  current.intValue();
+    return current;
   }
 
   /** 

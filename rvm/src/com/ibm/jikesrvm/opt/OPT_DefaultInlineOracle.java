@@ -293,7 +293,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
                   }
                   methodsNeedGuard.add(Boolean.FALSE);
                 } else {
-                  methodsNeedGuard.add(Boolean.valueOf(needsGuard));
+                  methodsNeedGuard.add(needsGuard);
                 }
               }
             }
@@ -307,7 +307,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         return d;
       } else if (methodsToInline.size() == 1) {
         VM_Method target = methodsToInline.get(0);
-        boolean needsGuard = methodsNeedGuard.get(0).booleanValue();
+        boolean needsGuard = methodsNeedGuard.get(0);
         if (needsGuard) {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {

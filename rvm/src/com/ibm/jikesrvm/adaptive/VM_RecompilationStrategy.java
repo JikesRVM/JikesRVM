@@ -318,7 +318,7 @@ public abstract class VM_RecompilationStrategy {
         }
         try {
           Integer optLevelI = Integer.valueOf(optLevelS);
-          int cmdOptLevel = optLevelI.intValue();
+          int cmdOptLevel = optLevelI;
           if (cmdOptLevel > maxOptLevel) {
             VM.sysWrite("vm: Invalid optimization level in optimizing compiler command line argument: \""
                 + optCompilerOption1 + "\"\n" +
