@@ -38,7 +38,7 @@ import com.ibm.jikesrvm.apt.annotations.*;
 @GenerateImplementation(generatedClass = "com.ibm.jikesrvm.VM_SysCallImpl")
 public abstract class VM_SysCall { 
 
-  public static final VM_SysCall sysCall = new VM_SysCallImpl();
+  public static final VM_SysCall sysCall = VM_SysCallUtil.getImplementation(VM_SysCall.class);
 
   // lowlevel write to console
   @SysCallTemplate
