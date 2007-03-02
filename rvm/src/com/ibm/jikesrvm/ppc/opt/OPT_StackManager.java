@@ -303,7 +303,6 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       n++;
       OPT_RegisterOperand range = I(nv);
       // YUCK!!! Why is this crap in register operand??
-      range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Store.create(PPC_STMW, range, A(FP), IC(offset)));
     } else {
@@ -357,7 +356,6 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       n++;
       OPT_RegisterOperand range = I(nv);
       // YUCK!!! Why is this crap in register operand??
-      range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Load.create(PPC_LMW, range, A(FP), IC(offset)));
     } else {
