@@ -37,9 +37,9 @@ import com.sun.mirror.util.DeclarationVisitors;
 public class SysCallProcessor implements AnnotationProcessor {
   
   public static final String GEN_IMPL_ANNOTATION = 
-    "com.ibm.jikesrvm.apt.annotations.GenerateImplementation";
+    "org.vmmagic.pragma.GenerateImplementation";
   public static final String SYSCALL_TEMPLATE_ANNOTATION = 
-    "com.ibm.jikesrvm.apt.annotations.SysCallTemplate";
+    "org.vmmagic.pragma.SysCallTemplate";
 
   private final AnnotationProcessorEnvironment env;
   

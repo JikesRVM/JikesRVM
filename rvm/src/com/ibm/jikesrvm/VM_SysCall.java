@@ -10,7 +10,6 @@ package com.ibm.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import com.ibm.jikesrvm.apt.annotations.*;
 
 /**
  * Support for lowlevel (ie non-JNI) invocation of C functions with

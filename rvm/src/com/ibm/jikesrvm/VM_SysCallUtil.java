@@ -16,10 +16,8 @@ public class VM_SysCallUtil {
   public static <T> T getImplementation(Class<T> type) {
     try {
       return (T) Class.forName(type.getName() + "Impl").newInstance();
-    } catch (Exception e) {
-      e.printStackTrace();
-      VM.sysFail("Error creating generated implementation of " + type.getName());
-      return null;
+    } catch (final Exception e) {
+      throw new IllegalStateException("Error creating generated implementation of " + type.getName(), e);
     }
   }
 

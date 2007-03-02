@@ -377,20 +377,13 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="build-apt" depends="check-properties,setup-filter-properties">
+  <target name="build-apt" depends="check-properties">
     <property name="build.scratch.apt" location="${build.dir}/scratch/apt"/>
     <mkdir dir="${build.scratch.apt}"/>
     <javac destdir="${build.scratch.apt}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <src path="${basedir}/tools/apt/src"/>
       <include name="com/ibm/jikesrvm/tools/apt/*.java"/>
-    </javac>
-    <javac srcdir="${main.java}" destdir="${build.scratch.apt}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5"
-           includes="com/ibm/jikesrvm/apt/annotations/*.java">
-      <bootclasspath>
-        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
-      </bootclasspath>
     </javac>
   </target>
 
@@ -760,38 +753,9 @@ Check to make sure all required properties are specified. This includes properti
     </echo>
   </target>
 
-  <!-- Generate the VM_SysCall implementation from the @SysCallTemplate annotation -->
-  
-  <target name="gen-syscalls" depends="check-properties,build-apt,compile-vmmagic-stub">
-    <echo message="running apt"/>
-<!--    
-    This should work ... in ant 1.7+ anyway
-    <apt srcdir="${main.java}" destdir="${generated.java}" preprocessdir="${generated.java}" 
-         factory="com.ibm.jikesrvm.tools.apt.SysCallProcessorFactory" compile="false">
-      <factorypath>
-        <pathelement location="${build.scratch.apt}"/>
-      </factorypath>
-      <include name="${main.java}/com/ibm/jikesrvm/VM_SysCall.java"/>
-    </apt>
--->
-    
-    <!-- in theory we suld be able to discover the right factory class automatically -->
-    <exec executable="apt">
-      <arg value="-factorypath"/> 
-        <arg value="${build.scratch.apt}"/>
-      <arg value="-factory"/> 
-        <arg value="com.ibm.jikesrvm.tools.apt.SysCallProcessorFactory"/>
-      <arg value="-classpath"/> 
-        <arg value="${build.scratch.apt}:${build.classes}:${build.vmmagic-stub.classes}"/>
-      <arg value="-s"/> 
-        <arg value="${generated.java}"/>
-      <arg value="${main.java}/com/ibm/jikesrvm/VM_SysCall.java"/>
-    </exec>
-  </target>
-
   <!-- Control targets for the source generation -->
   <target name="do-gen-source"
-          depends="gen-vmmagic-word,gen-options,gen-opt-ir,gen-ia32-assembler,gen-config-source,gen-syscalls">
+          depends="gen-vmmagic-word,gen-options,gen-opt-ir,gen-ia32-assembler,gen-config-source">
     <touch file="${generated.dir}/SourceGenerated"/>
   </target>
 
@@ -837,7 +801,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source">
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,build-apt">
 
     <condition property="include.opt-test-harness" value="true">
       <and>
@@ -875,17 +839,28 @@ Check to make sure all required properties are specified. This includes properti
       <src path="${opt-test-harness.java}"/>
       <src path="${generated.java}"/>
     </javac>
+
+    <mkdir dir="${build.base}/syscall/java"/>
+    <exec executable="apt" failonerror="true">
+      <arg value="-factorypath"/>
+      <arg value="${build.scratch.apt}"/>
+      <arg value="-nocompile"/>
+      <arg value="-factory"/>
+      <arg value="com.ibm.jikesrvm.tools.apt.SysCallProcessorFactory"/>
+      <arg value="-classpath"/>
+      <arg value="${build.scratch.apt}:${build.vmmagic-stub.classes}:${build.classes}"/>
+      <arg value="-s"/>
+      <arg value="${build.base}/syscall/java"/>
+      <arg value="${main.java}/com/ibm/jikesrvm/VM_SysCall.java"/>
+    </exec>
+    
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${generated.java}">
-      <include name="com/ibm/jikesrvm/VM_SysCallImpl.java"/>
-      <bootclasspath>
-        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
-      </bootclasspath>
+           srcdir="${build.base}/syscall/java">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.classes}"/>

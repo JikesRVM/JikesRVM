@@ -7,16 +7,12 @@
  * (C) Copyright Robin Garner, Australian National University
  */
 //$Id:$
-package com.ibm.jikesrvm.apt.annotations;
+package org.vmmagic.pragma;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.RetentionPolicy.*;
-import static java.lang.annotation.ElementType.*;
-
-@Retention(SOURCE)
-@Target({METHOD})
-public @interface SysCallTemplate {
-
+/**
+ * @author robing
+ *
+ */
+public @interface GenerateImplementation {
+  String generatedClass();
 }
