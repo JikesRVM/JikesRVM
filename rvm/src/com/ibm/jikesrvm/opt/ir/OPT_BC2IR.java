@@ -6121,7 +6121,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * The OPT_RegisterOperand that code should use to access
      * the caught exception object
      */
-    OPT_RegisterOperand exceptionObject;
+    final OPT_RegisterOperand exceptionObject;
 
     /**
      * The synthetic entry basic block for this handler.
