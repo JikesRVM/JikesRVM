@@ -581,7 +581,8 @@ import org.vmmagic.unboxed.*;
     return new String(buf);
   }
 
-  @SuppressWarnings("unused") // accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
+  // accessed via VM_EntryPoints
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 

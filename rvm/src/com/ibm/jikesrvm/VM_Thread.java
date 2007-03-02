@@ -627,7 +627,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
    * Begin execution of current thread by calling its "run" method.
    */ 
   @Interruptible
-  @SuppressWarnings("unused") // Called by back-door methods.
+  @SuppressWarnings({"unused", "UnusedDeclaration"}) // Called by back-door methods.
   private static void startoff () { 
     VM_Thread currentThread = getCurrentThread();
     if (trace) VM.sysWriteln("VM_Thread.startoff(): about to call ", 
@@ -1307,7 +1307,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
   private static char[] dumpBuffer = new char[MAX_DUMP_LEN];
 
-  @SuppressWarnings("unused") // Actually used by indirect means
+  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
   private static int dumpBufferLock = 0;
   
   /** Reset at boot time. */
@@ -1341,7 +1341,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   /** Copy a String into a character array.
    *
    *  This function may be called during GC and may be used in conjunction
-   *  with the MMTk {@link Log} class.   It avoids write barriers and allocation.
+   *  with the MMTk {@link org.mmtk.utility.Log} class.   It avoids write barriers and allocation.
    *  <p>
    *  XXX This function should probably be moved to a sensible location where
    *   we can use it as a utility.   Suggestions welcome.
@@ -1363,7 +1363,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
    * @return  -1 if <code>offset</code> is negative.
    *
    * @author Steven Augart (who swiped the implementation from 
-   * the MMTk {@link Log} class). 
+   * the MMTk {@link org.mmtk.utility.Log} class). 
    */
   public static int sprintf(char[] dest, int destOffset, String s) {
     final char[] sArray = java.lang.JikesRVMSupport.getBackingCharArray(s);
@@ -1420,7 +1420,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
    *  XXX This function should probably be moved to a sensible location where
    *   we can use it as a utility.   Suggestions welcome.
    * <p>
-   *  XXX This method's implementation is stolen from the {@link Log} class.
+   *  XXX This method's implementation is stolen from the {@link org.mmtk.utility.Log} class.
    *   
    * @param dest char array to copy into.
    * @param offset Offset into <code>dest</code> where we start copying
@@ -1499,6 +1499,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   private static final char [] intBuffer = new char[INT_BUFFER_SIZE];
 
   /** A lock for {@link #intBuffer} */
+  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
   private static int intBufferLock = 0;
 
   /** The offset of {@link #intBufferLock} in this class's TIB.
@@ -1695,7 +1696,7 @@ import com.ibm.jikesrvm.ArchitectureSpecific.VM_Registers;
   
   /**
    * A thread is a "gc thread" if it's an instance of 
-   * {@link VM_CollectorThread}
+   * {@link com.ibm.jikesrvm.memorymanagers.mminterface.VM_CollectorThread}
    */ 
   public boolean isGCThread;
 
