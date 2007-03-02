@@ -17,6 +17,7 @@ import java.util.Comparator;
  */
 class TestFieldReflection {
 
+  @SuppressWarnings({"CanBeFinal"})
   static class TypeWithPublicFields {
     public static boolean sboolean = true;
     public static byte sbyte = 127;
@@ -35,7 +36,7 @@ class TestFieldReflection {
     public double mdouble = 1.0;
   }
 
-  @SuppressWarnings({"UnusedDeclaration"})
+  @SuppressWarnings({"CanBeFinal","UnusedDeclaration"})
   static class TypeWithDifferentAccessModifiers {
     public static boolean sboolean = true;
     protected static byte sbyte = 127;
