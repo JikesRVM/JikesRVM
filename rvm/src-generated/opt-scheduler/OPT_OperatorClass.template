@@ -181,7 +181,7 @@ $$$$ END FOREACH
     * @return latency to given operator class
     */
    public final int latency(OPT_OperatorClass opclass) {
-      return ((Integer) latObj(opclass)).intValue();
+      return (Integer) latObj(opclass);
    }
 
    /**
@@ -193,16 +193,15 @@ $$$$ END FOREACH
    public final void setLatency(OPT_OperatorClass opclass, int latency) {
       int latencies_size = latencies.size();
       if (opclass.id < latencies_size) {
-         latencies.set(opclass.id, Integer.valueOf(latency));
+         latencies.set(opclass.id, latency);
       }
       else {
          for(; latencies_size < opclass.id; latencies_size++) {
             latencies.add(null);
          }
-         latencies.add(Integer.valueOf(latency));
+         latencies.add(latency);
       }
    }
-
    /**
     * Sets the latency between instructions in given class and this class
     *
