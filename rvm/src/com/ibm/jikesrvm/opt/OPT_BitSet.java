@@ -22,12 +22,12 @@ public final class OPT_BitSet {
   /**
    * The backing bit vector that determines set membership.
    */
-  private OPT_BitVector vector;
+  private final OPT_BitVector vector;
 
   /**
    * The bijection between integer to object. 
    */
-  private OPT_BitSetMapping map;
+  private final OPT_BitSetMapping map;
 
   /**
    * Constructor: create an empty set corresponding to a given mapping
