@@ -1177,7 +1177,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="build-interface-generator" depends="package,build-preprocessor">
+  <target name="build-interface-generator" depends="package">
     <!-- need to include configuration name as the tool is configured using per configuration settings -->
     <property name="build.interface-generator.dir" value="${build.base}/interface-generator"/>
     <mkdir dir="${build.interface-generator.dir}"/>
@@ -1189,9 +1189,13 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <property name="bir.dir" location="${basedir}/tools/bootImageRunner"/>
-    <preprocess todir="${build.interface-generator.dir}"
-                filelist="${bir.dir}/GenerateInterfaceDeclarations.java ${bir.dir}/GenArch.java ${bir.dir}/GenArch${arch}.java"/>
+    <copy todir="${build.interface-generator.dir}">
+      <fileset dir="${basedir}/tools/bootImageRunner">
+        <include name="GenerateInterfaceDeclarations.java"/>
+        <include name="GenArch.java"/>
+        <include name="GenArch${arch}.java"/>
+      </fileset>
+    </copy>
     <javac srcdir="${build.interface-generator.dir}" destdir="${build.interface-generator.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <classpath>
