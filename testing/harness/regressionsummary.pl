@@ -581,15 +581,20 @@ sub getdata {
   my $checkouttime = gettimefromsvnstr(${$checkout});
   $DAYSECS = 24*60*60;
   for ($d = 1; $d < 7; $d++) {
+    my $archivefile;
     my $day = ($today - $d) % 7;
     if ($xml) {
       my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime ($checkouttime - ($d*$DAYSECS));
       my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday); 
-      $source = "$nightlyreport -x $archivepath/$datestr.xml.gz |";
+      $archivefile = "$archivepath/$datestr.xml.gz";
+      $source = "$nightlyreport -x $archivefile |";
     } else {
-      $source = "tar Oxzf $archivepath/$DAYS[$day].$platform.tar.gz results/report.html |";
+      $archivefile = "$archivepath/$DAYS[$day].$platform.tar.gz";
+      $source = "tar Oxzf $archivefile results/report.html |";
     }
-    getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
+    if (-e $archivefile) {
+      getdaydata($allsanity, $allperf, $allerrors, $allrevisions, $checkout, $day, $source,$javadocerrors);
+    }
   }
   return $today;
 }
@@ -619,8 +624,8 @@ sub gettimefromsvnstr {
   $svnstamp =~ s/\s\s/ /g;
   my ($day, $mon, $mday, $time, $tz, $year) = split(/ /, $svnstamp);
   my ($hr, $min, $sec) = split(/:/,$time);
-  for ($m = 0; $m < @shortmonths && $shortmonths[$m] ne $mon; $m++) {}
-  return timelocal($sec, $min, $hr, $mday, $m+1, $year);
+  for ($m = 0; $m < @SHORTMONTHS && $SHORTMONTHS[$m] ne $mon; $m++) {}
+  return timelocal($sec, $min, $hr, $mday, $m, $year);
 }
 
 #
