@@ -18,9 +18,7 @@ struct AixLinkageLayout
    uint32_t toc;        // value to put in TOC register
    uint32_t environ;    // value to put in R11 (for PASCAL only)
    };
-#endif
-
-#ifdef RVM_FOR_64_ADDR
+#else
 struct AixLinkageLayout
    {
    uint64_t ip;         // value to put in IP register

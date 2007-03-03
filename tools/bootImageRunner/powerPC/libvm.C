@@ -53,7 +53,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define NEED_STRSIGNAL
 #endif
 
-#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
+#ifndef RVM_FOR_AIX
 #include <ucontext.h>
 #include <signal.h>
 #include <errno.h>
@@ -78,13 +78,12 @@ struct linux_sigregs {
 	int		abigap[56];
 };
 
-#endif
-
-#ifdef RVM_FOR_AIX
+#else
 #include <sys/cache.h>
 #include <sys/context.h>
 extern "C" char *sys_siglist[];
 #define NEED_STRSIGNAL
+
 #endif  // RVM_FOR_AIX
 
 #ifdef NEED_STRSIGNAL
@@ -123,11 +122,9 @@ extern "C" char *sys_siglist[];
 
     #if defined RVM_FOR_32_ADDR
         #define FMTrvmPTR FMTrvmPTR32
-    #elif defined RVM_FOR_64_ADDR
-        #define FMTrvmPTR "%016" PRIxPTR
     #else
-        #error "RVM_FOR_64_ADDR or RVM_FOR_32_ADDR must be defined"
-    #endif // RVM_FOR_XX_ADDR
+        #define FMTrvmPTR "%016" PRIxPTR
+    #endif 
 
     #define rvmPTR_ARG(p) ((uintptr_t) (p))
     #define rvmPTR32_ARG(p) rvmPTR_ARG((p))
@@ -138,11 +135,9 @@ extern "C" char *sys_siglist[];
 
     #ifdef RVM_FOR_32_ADDR
         #define FMTrvmPTR FMTrvmPTR32
-    #elif defined RVM_FOR_64_ADDR
-        #define FMTrvmPTR "%016p"
     #else
-        #error "RVM_FOR_64_ADDR or RVM_FOR_32_ADDR must be defined"
-    #endif // RVM_FOR_XX_ADDR
+        #define FMTrvmPTR "%016p"
+    #endif 
 
     #define rvmPTR_ARG(p) ((void *) (p))
 
@@ -162,7 +157,7 @@ extern "C" char *sys_siglist[];
         #define FMTrvmPTR FMTrvmPTR32
         #define rvmPTR_ARG(p) rvmPTR32_ARG(p)
 
-    #elif defined RVM_FOR_64_ADDR
+    #else
 
         // Expands to a nice fat string.
         #  define FMTrvmPTR                             \
@@ -177,9 +172,7 @@ extern "C" char *sys_siglist[];
             (((uintptr_t) (p) >> 32) & (uintptr_t) 0xFFFF),         \
             (((uintptr_t) (p) >> 16) & (uintptr_t) 0xFFFF),             \
             (((uintptr_t) (p) & (uintptr_t) 0xFFFF)) 
-    #else
-        #error "RVM_FOR_64_ADDR or RVM_FOR_32_ADDR must be defined"
-    #endif // RVM_FOR_XX_ADDR
+    #endif 
 
 #else
     #error "One of PTRS_X_WITH_PUNCTUATION, PTRS_X_WITHOUT_PUNCTUATION, or PTRS_VIA_PERCENT_P must be defined." 
@@ -197,7 +190,7 @@ extern "C" char *sys_siglist[];
 #include <InterfaceDeclarations.h>
 extern "C" void setLinkage(VM_BootRecord *);
 
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
 #define GET_GPR(info, r) (*getRegAddress((info), (r)))
 #define SET_GPR(info, r, value) (*getRegAddress((info), (r))=(value))
 
@@ -464,7 +457,7 @@ cSignalHandler(int signum, int UNUSED zero, sigcontext *context)
 #if 0
 } // so emacs knows to match up { and } nicely :)
 #endif
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
 void
 cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 {
@@ -476,7 +469,7 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     
     if (signum == SIGALRM) {     
         processTimerTick();
-#if defined RVM_FOR_OSX
+#ifdef RVM_FOR_OSX
         sigreturn((struct sigcontext*) context);
 #endif
         return;
@@ -487,7 +480,7 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
         if (lib_verbose)
             fprintf(SysTraceFile, "%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
                     Me, rvmPTR_ARG(iar));
-#if defined RVM_FOR_OSX
+#ifdef RVM_FOR_OSX
         sigreturn((struct sigcontext*)context);
 #endif
         return;
@@ -510,7 +503,7 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
                     " a thread switch\n", Me);
             *flag = 1;
         }
-#if defined RVM_FOR_OSX
+#ifdef RVM_FOR_OSX
         sigreturn((struct sigcontext*)context);
 #endif
         return;
@@ -568,9 +561,9 @@ uintptr_t testFaultingAddress = 0xdead1234;
 
 int faultingAddressLocation = -1; // uninitialized
 uintptr_t
-#if defined RVM_FOR_32_ADDR
+#ifdef RVM_FOR_32_ADDR
 getFaultingAddress(mstsave *save) 
-#elif defined RVM_FOR_64_ADDR
+#else
     getFaultingAddress(context64 *save)
 #endif
 {
@@ -628,7 +621,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
 } // for balancing braces { } in the text editor; ignore.
 #endif
 
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
 void
 cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 {
@@ -646,9 +639,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     }
     uintptr_t faultingAddress = (uintptr_t)siginfo->si_addr;
 #endif // RVM_FOR_OSX
-#if 0
-} // for balancing braces { } in the text editor; ignore.
-#endif
      
 #ifdef RVM_FOR_AIX
 void 
@@ -657,8 +647,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     // See "/usr/include/sys/mstsave.h"
 #if defined RVM_FOR_32_ADDR
     mstsave *save = &context->sc_jmpbuf.jmp_context; 
-#endif
-#if defined RVM_FOR_64_ADDR
+#else
     context64 *save = &context->sc_jmpbuf.jmp_context; 
 #endif
     int firstFault = (faultingAddressLocation == -1);
@@ -697,9 +686,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
       // us to treat this as a null pointer exception.
       // NOTE: assumes that first access off a null pointer occurs at offset of +/- 64k.
       //       Could be false for very large scalars; should generate an explicit null check for those.
-#if defined RVM_FOR_32_ADDR
+#ifdef RVM_FOR_32_ADDR
       uintptr_t faultMask = 0xffff0000;
-#elif defined RVM_FOR_64_ADDR
+#else
       uintptr_t faultMask = 0xffffffffffff0000;
 #endif
       if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
@@ -726,7 +715,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
        fprintf(SysTraceFile,"    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
        fprintf(SysTraceFile,"             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
        
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
        fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
   #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -779,7 +768,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         save->link = save->nip + 4; // +4 so it looks like a return address
         save->nip = dumpStack;
 #endif
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
         save->lr = save->srr0 + 4; // +4 so it looks like a return address
         save->srr0 = dumpStack;
 #endif
@@ -850,7 +839,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     int      trapInfo    = 0;
     int      haveFrame   = 1;
     
-#if (defined RVM_FOR_OSX)
+#ifdef RVM_FOR_OSX
     if ((signum == SIGSEGV || signum == SIGBUS) &&
         siginfo->si_addr == (void *) save->srr0)
     {
@@ -1039,7 +1028,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     save->iar = javaExceptionHandler;
 #endif
     
-#if defined RVM_FOR_OSX
+#ifdef RVM_FOR_OSX
     sigreturn((struct sigcontext*)context);
 #endif
 }

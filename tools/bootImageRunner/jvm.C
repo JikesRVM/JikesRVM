@@ -23,7 +23,7 @@
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "pthread-wrappers.h"
 
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 // Address of the single VM_Processor object.
 VM_Address VmProcessor;
 #else
@@ -137,7 +137,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // Return NULL if we are not on a VM pthread
     if (pthread_getspecific(IsVmProcessorKey) == NULL) {
         *penv = NULL;
@@ -147,7 +147,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 
     // Get VM_Processor id.
     void *vmProcessor =
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
       (void *)VmProcessor;
 #else
       pthread_getspecific(VmProcessorKey);

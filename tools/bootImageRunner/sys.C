@@ -105,9 +105,9 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "pthread-wrappers.h"
 
-#if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
+#ifndef RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 # include "syswrap.h"
-#endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+#endif 
 
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
@@ -867,13 +867,13 @@ extern "C" void processTimerTick(void) {
             longest_stuck_ticks = -val;
     }
     
-#if !defined(RVM_WITH_GCSPY)
+#ifndef RVM_WITH_GCSPY
     /* 
      * After 500 timer intervals (often == 10 seconds), print a message
      * every 100 timer intervals (often == 2 second), so we don't
      * just appear to be hung. 
      */
-#if (!defined RVM_FOR_GCTRACE)
+#ifndef RVM_FOR_GCTRACE
     if (longest_stuck_ticks > 5001) {
         fprintf(stderr, "%s: Exiting VM due to suspected deadlock\n", Me);
         sysExit(EXIT_STATUS_TIMER_TROUBLE); }
@@ -889,12 +889,10 @@ extern "C" void processTimerTick(void) {
        * parse.  As this is a normal condition during tracing, and causes
        * a lot of problems to tracing, we elide the warning.
        */
-#if (!defined RVM_FOR_GCTRACE)
-        fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
-                " timer interrupt for %d ms.\n", 
+#ifndef RVM_FOR_GCTRACE
+        fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
-        fprintf(stderr, "This may indicate that a blocking system call"
-                " has occured and the VM is deadlocked\n");
+        fprintf(stderr, "This may indicate that a blocking system call has occured and the VM is deadlocked\n");
 #endif
     }
 #endif
@@ -927,8 +925,7 @@ setTimeSlicer(int msTimerDelay)
 #else
         /* NOTE: This code is ONLY called if we are running in single virtual
          * processor mode. */
-  #if (defined RVM_FOR_LINUX)  || (defined __MACH__)
-
+  #ifndef RVM_FOR_AIX
         // set it to issue a periodic SIGALRM (or 0 to disable timer)
         //
 
@@ -945,7 +942,7 @@ setTimeSlicer(int msTimerDelay)
             perror(NULL);
             sysExit(EXIT_STATUS_TIMER_TROUBLE);
         }
-  #else  /* ! defined RVM_FOR_LINUX && ! defined __MACH__ */
+  #else
         // fetch system timer
         //
         timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
@@ -1106,28 +1103,21 @@ sysNumProcessors()
 {
     int numCpus = -1;  /* -1 means failure. */
 
-//#ifdef RVM_FOR_LINUX
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
-    if (numCpus <= 0) {
-        /* get_nprocs_conf will give us a how many processors the operating
-           system configured.  The number of processors actually online is what
-           we want.  */
-        // numCpus = get_nprocs_conf();
-        errno = 0;
-        numCpus = get_nprocs();
-        // It is not clear if get_nprocs can ever return failure; assume it might.
-        if (numCpus < 1) {
-            fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d"
-                    " (errno=%d)\n", Me, numCpus, errno);
-            /* Continue on.  Try to get a better answer by some other method, not
-               that it's likely, but this should not be a fatal error. */
-            // perror(NULL);
-            // sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
+    /* get_nprocs_conf will give us a how many processors the operating
+       system configured.  The number of processors actually online is what
+       we want.  */
+    // numCpus = get_nprocs_conf();
+    errno = 0;
+    numCpus = get_nprocs();
+    // It is not clear if get_nprocs can ever return failure; assume it might.
+    if (numCpus < 1) {
+       fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+       /* Continue on.  Try to get a better answer by some other method, not
+          that it's likely, but this should not be a fatal error. */
     }
 #endif
 
-//#elif RVM_FOR_OSX
 #if defined(CTL_HW) && defined(HW_NCPU)
     if (numCpus < 1) {
         int mib[2];
@@ -1248,14 +1238,14 @@ sysVirtualProcessorStartup(void *args)
     VM_Address fp       = ((VM_Address *)args)[3];
 
     if (VERBOSE_PTHREAD)
-#ifdef RVM_FOR_64_ADDR
+#ifndef RVM_FOR_32_ADDR
         fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
 #else
         fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
 #endif
     // branch to vm code
     //
-#ifdef RVM_FOR_IA32
+#ifndef RVM_FOR_POWERPC
     {
         *(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
         VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
@@ -1289,7 +1279,7 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
       fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
 
     // bindprocessor() seems to be only on AIX
-#if defined RVM_FOR_AIX
+#ifdef RVM_FOR_AIX
     if (numCpus == -1) {
         fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
         perror(NULL);
@@ -1306,7 +1296,7 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
+#endif
 }
 
 /* These are unused in single virtual procesor mode: */
@@ -1319,7 +1309,7 @@ pthread_mutex_t MultithreadingStartupLock = PTHREAD_MUTEX_INITIALIZER;
 int VirtualProcessorsLeftToStart;
 int VirtualProcessorsLeftToWait;
 
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 // Address of the single VM_Processor object.
 extern VM_Address VmProcessor;
 #else
@@ -1334,7 +1324,7 @@ extern pthread_key_t IsVmProcessorKey;
 extern "C" void
 sysCreateThreadSpecificDataKeys(void)
 {
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     int rc1, rc2;
 
     // Create a key for thread-specific data so we can associate
@@ -1444,7 +1434,7 @@ sysPthreadSetupSignalHandling()
 
     int rc;                     // retval from subfunction.
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+#ifndef RVM_FOR_AIX
     /*
      *  Provide space for this pthread to process exceptions.  This is
      * needed on Linux because multiple pthreads can handle signals
@@ -1474,17 +1464,15 @@ sysPthreadSetupSignalHandling()
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-    /* pthread_sigmask can only return the following errors.  Either of them
-     * indicates serious trouble and is grounds for aborting the process:
-     * EINVAL EFAULT.  */
-#elif defined RVM_FOR_AIX
+#ifdef RVM_FOR_AIX
     rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
     /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
      * EPERM.  Again, these are all good reasons to complain and croak. */
 #else
-    #error "Unsupported Operating System"
+    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
+    /* pthread_sigmask can only return the following errors.  Either of them
+     * indicates serious trouble and is grounds for aborting the process:
+     * EINVAL EFAULT.  */
 #endif
     if (rc) {
         fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
@@ -1578,9 +1566,9 @@ sysPthreadSigWait( int * lockwordAddress,
 
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+#ifndef RVM_FOR_AIX
     rc = pthread_sigmask(SIG_BLOCK, NULL, &output_set);
-#else // RVM_FOR_AIX
+#else 
     rc = sigthreadmask(SIG_BLOCK, NULL, &output_set);
 #endif
     if (rc) {
@@ -1941,38 +1929,36 @@ sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
     fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
 #endif
 
-#ifdef RVM_FOR_AIX
+#ifdef RVM_FOR_POWERPC 
+  #ifdef RVM_FOR_AIX
     _sync_cache_range((caddr_t) address, size);
-#elif (defined RVM_FOR_LINUX || defined RVM_FOR_OSX) && defined RVM_FOR_POWERPC
-    {
-        if (size < 0) {
-            fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
-            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
-
-        /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-        uintptr_t start = (uintptr_t)address;
-        uintptr_t end = start + size;
-        uintptr_t addr;
-
-        /* update storage */
-        /* Note: if one knew the cache line size, one could write a better loop */
-        for (addr=start; addr < end; ++addr)
-            asm("dcbst 0,%0" : : "r" (addr) );
-
-        /* wait for update to commit */
-        asm("sync");
-
-        /* invalidate icache */
-        /* Note: if one knew the cache line size, one could write a better loop */
-        for (addr=start; addr<end; ++addr)
-            asm("icbi 0,%0" : : "r" (addr) );
-
-        /* context synchronization */
-        asm("isync");
+  #else
+    if (size < 0) {
+      fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#else  // only needed on PowerPC platforms; skip here
-    ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(void *address, size_t size)\n");
+
+    /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
+    uintptr_t start = (uintptr_t)address;
+    uintptr_t end = start + size;
+    uintptr_t addr;
+
+    /* update storage */
+    /* Note: if one knew the cache line size, one could write a better loop */
+    for (addr=start; addr < end; ++addr)
+      asm("dcbst 0,%0" : : "r" (addr) );
+
+    /* wait for update to commit */
+    asm("sync");
+
+    /* invalidate icache */
+    /* Note: if one knew the cache line size, one could write a better loop */
+    for (addr=start; addr<end; ++addr)
+      asm("icbi 0,%0" : : "r" (addr) );
+
+    /* context synchronization */
+    asm("isync");
+  #endif
 #endif
 }
 
@@ -2852,29 +2838,8 @@ sysNetSelect(
 
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
-      /* This code has not been active for years, because we haven't had an
-         #ifdef named RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS; it was 
-         RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS.  I am commenting it out
-         so that it is obvious that it is never used.
-         
-         I expect that Jikes RVM has
-         continued to work unscathed because, when we load this file, we link
-         against the existing select().  All new calls must be
-         getting resolved against the fake select.  Otherwise, we could just
-         statically link with our fake select.  However, it also might be the
-         case that select is broken in subtle ways -- we shall see.
-         --Steve Augart, 1 Feb 2005
-      */
-// //#if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-//         SelectFunc_t realSelect = getLibcSelect();
-//         if (realSelect == 0) {
-//             fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
-//             sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-//         }
-// #else
-# define realSelect(n, read, write, except, timeout) \
+#define realSelect(n, read, write, except, timeout) \
     select(n, read, write, except, timeout)
-//#endif
 
         // interrogate
         //
@@ -3084,7 +3049,7 @@ sysVMMathLog1p(double a) {
     return log1p(a);
 }
 
-#if (defined RVM_WITH_GCSPY)
+#ifdef RVM_WITH_GCSPY
 // GCspy
 // @author Richard Jones 2002-6
 
@@ -3184,7 +3149,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long 
 extern "C" void
 gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
   char name[256];
-#ifdef RVM_FOR_64_ADDR
+#ifndef RVM_FOR_32_ADDR
   snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);
 #else
   snprintf(name, sizeof name, "   [%08x-%08x)", start, end); 

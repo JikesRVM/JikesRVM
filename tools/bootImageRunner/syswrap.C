@@ -26,9 +26,9 @@
 
 #define VERBOSE_WRAPPERS 0
 
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-# include <pthread.h>
-# include <errno.h>
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#include <pthread.h>
+#include <errno.h>
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -316,7 +316,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 }
 
 
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 // Wrapper for pthread_mutex_lock
 // If the lock can't be obtained then yield and try again
 int pthread_mutex_lock(pthread_mutex_t *mutex)

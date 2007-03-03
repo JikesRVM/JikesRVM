@@ -33,8 +33,7 @@
        .text    0   // function name
        .globl   bootThread   /* external visibility */
        bootThread:
-#endif
-#ifdef RVM_FOR_64_ADDR
+#else
        .text
        .globl  bootThread
        bootThread:

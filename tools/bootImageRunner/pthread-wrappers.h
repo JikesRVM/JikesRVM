@@ -38,7 +38,7 @@
                                  * we are not doing the
                                  * single-virtual-processor stuff. */  
 
-#if defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR 
 #include <stdio.h>
 
 /* This is the approach that does not work: */
@@ -98,6 +98,6 @@ rvm_never_call(const char funcname[], const char filename[], int lineno)
 #define sigthreadmask(sig, input_set, output_set)          \
     never_call(sigthreadmask)
          
-#endif // #if defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#endif 
 
 #endif // #ifndef _PTHREAD_WRAPPERS_H_

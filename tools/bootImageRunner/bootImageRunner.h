@@ -27,9 +27,9 @@ extern "C" {
 #include "../../include/cAttributePortability.h"
 #include "../../include/jni.h"
 
-#if defined(RVM_FOR_32_ADDR)
+#ifdef RVM_FOR_32_ADDR
 #define VM_Offset int32_t
-#elif defined(RVM_FOR_64_ADDR)
+#else
 #define VM_Offset int64_t
 #endif
 // Sink for messages relating to serious errors detected by C runtime.
@@ -81,15 +81,11 @@ extern int getTimeSlice_msec(void);
 /* sys.C and RunBootImage.C */
 extern void findMappable(void);
 
-#if defined(RVM_FOR_POWERPC)
+#ifdef RVM_FOR_POWERPC
 /* Used in libvm.C, sys.C.  Defined in assembly code: */
 extern void bootThread(int jtoc, int pr, int ti_or_ip, int fp); // assembler routine
-#elif defined(RVM_FOR_IA32)
-extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler routine
 #else
-// Some files (e.g., syswrap.C) don't need bootThread's prototype declared,
-// but do need a few other prototypes here.  So we don't make it an error:
-// #error "Warning: Undefined configuration: neither IA32 nor POWERPC: won't declare bootThread()"
+extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler routine
 #endif
 
 // These are defined in libvm.C.
