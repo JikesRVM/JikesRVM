@@ -1204,7 +1204,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/ppc/initBootRecord.C ${build.native}/bootThread.s ${bl.dir}/ppc/libvm.C">
+               value="${bl.dir}/ppc/initBootRecord.c ${build.native}/bootThread.s ${bl.dir}/ppc/libvm.c">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
