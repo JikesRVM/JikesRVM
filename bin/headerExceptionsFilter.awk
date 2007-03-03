@@ -26,40 +26,37 @@
 
 # Avoid reporting a gazillion bogus violations when
 # this script is run from night-sanity-run
-/\/results\// { next }
-/\/images\// { next }
-/\/doc\/api\// { next }
-/\/MSG/ { next }
+/results\// { next }
+/dist\// { next }
+/generated\// { next }
+/target\// { next }
+/doc\/api\// { next }
 
-/\/doc\/userguide\// { next }
-/\/MMTk\/doc\// { next }
+# don't need an author for all the build scripts
+/build\// { next }
 
-/\/testing\/tests\/javalex\/qb1.lex.ref/ {next}
-/\/testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
-/\/testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
-/\/testing\/tests\/pseudojbb\/pseudojbb/ {next}
-/\/testing\/tests\/pseudojbb\/props/ {next}
-/\/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
-/\/testing\/tests\/javaagent\/src\/MANIFEST.MF/ {next}
+/doc\/userguide\// { next }
+/MMTk\/doc\// { next }
+
+/testing\/tests\/javalex\/qb1.lex.ref/ {next}
+/testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
+/testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
+/testing\/tests\/pseudojbb\/pseudojbb/ {next}
+/testing\/tests\/pseudojbb\/props/ {next}
+/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 # actually has the right headers, but utf8 characters break the checkers
-/\/testing\/tests\/utf8\/src\/utf8test.java/ {next}
+/testing\/tests\/utf8\/src\/utf8test.java/ {next}
 
-/\/tools\/bootImageRunner\/com_ibm_jikesrvm_VM_0005fProcess.h/ { next }
-/\/tools\/bootImageWriter\/rvm.security/ { next }
-/\/tools\/preprocessor\/testFancy.preprocessor/ { next }
-/\/tools\/preprocessor\/testSimple.preprocessor/ { next }
-/\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
-/\/tools\/install\/macros.txt/ { next }
+/tools\/bootImageRunner\/com_ibm_jikesrvm_VM_0005fProcess.h/ { next }
+/tools\/bootImageWriter\/rvm.security/ { next }
+/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
-/\/LICENSE/ { next }
-/\/NEWS/ { next }
+/LICENSE/ { next }
+/NEWS/ { next }
 
-/\/TimeLimit.sanity/ { next }
-/\/TimeLimit.performance/ { next }
-
-/\.properties$/ { next }
-/\.properties\.sample$/ { next }
+/.properties$/ { next }
+/.properties\.sample$/ { next }
 /README$/ { next }
 
 #
