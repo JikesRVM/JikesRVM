@@ -1179,7 +1179,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.gcspy}" arg2="1"/>
     </condition>
 
-    <condition property="arch.includes" value="-I${basedir}/tools/ia32-disassembler">
+    <condition property="arch.includes" value="-I${bl.dir}/IA32">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
     <condition property="arch.includes" value="-I${bl.dir}/powerPC">
@@ -1199,7 +1199,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/IA32/initBootRecord.C ${bl.dir}/IA32/bootThread.S ${bl.dir}/IA32/libvm.C ${basedir}/tools/ia32-disassembler/disasm.C ${basedir}/tools/ia32-disassembler/ihnpdsm.C">
+               value="${bl.dir}/IA32/initBootRecord.C ${bl.dir}/IA32/bootThread.S ${bl.dir}/IA32/libvm.C ${bl.dir}/IA32/disasm.c ${bl.dir}/IA32/ihnpdsm.c">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
