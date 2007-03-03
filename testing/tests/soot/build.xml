@@ -7,7 +7,7 @@
 
   <import file="../../../build/tests.xml"/>
 
-  <property name="main.java" location="${basedir}"/>
+  <property name="main.java" location="src"/>
   <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
