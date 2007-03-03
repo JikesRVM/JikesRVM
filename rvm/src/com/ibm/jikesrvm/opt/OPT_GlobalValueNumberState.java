@@ -413,8 +413,7 @@ public final class OPT_GlobalValueNumberState {
     }
     // place any new congruence classes with size > 1 on the worklist
     // also place any classes which might indirectly be affected
-    for (int j = 0; j < newClasses.size(); j++) {
-      OPT_GVCongruenceClass c = newClasses.get(j);
+    for (OPT_GVCongruenceClass c : newClasses) {
       if (c.size() > 1)
         workList.push(c);
       addDependentClassesToWorklist(c);
@@ -449,10 +448,9 @@ public final class OPT_GlobalValueNumberState {
    * containing v.  -1 iff no such class is found.
    */
   private int findCongruenceMatch (ArrayList<OPT_GVCongruenceClass> vector, OPT_ValueGraphVertex v) {
-    for (int i = 0; i < vector.size(); i++) {
-      OPT_GVCongruenceClass klass = vector.get(i);
+    for (OPT_GVCongruenceClass klass : vector) {
       if (checkCongruence(v, klass)) {
-        return  klass.getValueNumber();
+        return klass.getValueNumber();
       }
     }
     return  -1;

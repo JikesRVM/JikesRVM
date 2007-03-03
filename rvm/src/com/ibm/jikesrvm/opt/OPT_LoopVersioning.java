@@ -418,8 +418,8 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         VM.sysWriteln("Loop being optimised:");
         VM.sysWriteln(loop.toString());
         VM.sysWriteln("Checks to eliminate:");
-        for (int i=0; i < checksToEliminate.size(); i++) {
-          VM.sysWriteln(checksToEliminate.get(i).toString());
+        for (OPT_Instruction instruction : checksToEliminate) {
+          VM.sysWriteln(instruction.toString());
         }
       }
       // 2) Determine the registers defined in the loop.
@@ -558,11 +558,11 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     }
     // Check cases where the null check isn't loop invariant, however,
     // it will be in the optimized loop as we'll have eliminated it
-    for(int i=0; i < oddBoundChecks.size(); i++) {
-      OPT_Operand guard = BoundsCheck.getGuard(oddBoundChecks.get(i));
-      for(int j=0; j < nullChecks.size(); j++) {
-        if (guard.similar(NullCheck.getGuardResult(nullChecks.get(j)))) {
-          instrToEliminate.add(oddBoundChecks.get(i));
+    for (OPT_Instruction oddBoundCheck : oddBoundChecks) {
+      OPT_Operand guard = BoundsCheck.getGuard(oddBoundCheck);
+      for (OPT_Instruction nullCheck : nullChecks) {
+        if (guard.similar(NullCheck.getGuardResult(nullCheck))) {
+          instrToEliminate.add(oddBoundCheck);
           break;
         }
       }
@@ -792,16 +792,16 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       while(instructions.hasMoreElements()) {
         OPT_Instruction instruction = instructions.next();
         if (BoundsCheck.conforms(instruction)){
-          for(int i=0; i < instrToEliminate.size(); i++) {
-            if(instruction.similar(instrToEliminate.get(i))){
+          for (OPT_Instruction anInstrToEliminate : instrToEliminate) {
+            if (instruction.similar(anInstrToEliminate)) {
               instruction.remove();
               continue loop_over_created_instructions;
             }
           }
         }
         else if (NullCheck.conforms(instruction)){
-          for(int i=0; i < instrToEliminate.size(); i++) {
-            if(instruction.similar(instrToEliminate.get(i))){
+          for (OPT_Instruction anInstrToEliminate : instrToEliminate) {
+            if (instruction.similar(anInstrToEliminate)) {
               instruction.remove();
               continue loop_over_created_instructions;
             }
@@ -875,21 +875,19 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    */
   private void fixUpPhiPredecessors(ArrayList<OPT_Instruction> phiInstructions, OPT_BasicBlock unoptimizedLoopExit, OPT_BasicBlock optimizedLoopExit) {
     if (unoptimizedLoopExit != null) {
-      for (int i=0; i<phiInstructions.size(); i++) {
-        OPT_Instruction instruction = phiInstructions.get(i);
+      for (OPT_Instruction instruction : phiInstructions) {
         Phi.setPred(instruction, OPTIMIZED_LOOP_OPERAND, new OPT_BasicBlockOperand(optimizedLoopExit));
         Phi.setPred(instruction, UNOPTIMIZED_LOOP_OPERAND, new OPT_BasicBlockOperand(unoptimizedLoopExit));
       }
     }
     else {
-      for (int i=0; i<phiInstructions.size(); i++) {
-        OPT_Instruction instruction = phiInstructions.get(i);
+      for (OPT_Instruction instruction : phiInstructions) {
         OPT_Operand operand = Phi.getValue(instruction, OPTIMIZED_LOOP_OPERAND);
         Phi.resizeNumberOfPreds(instruction, 1);
         Phi.resizeNumberOfValues(instruction, 1);
         Phi.setValue(instruction, OPTIMIZED_LOOP_OPERAND, operand);
         Phi.setPred(instruction, OPTIMIZED_LOOP_OPERAND, new OPT_BasicBlockOperand(optimizedLoopExit));
-      } 
+      }
     }
   }
 
@@ -1072,10 +1070,9 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     HashMap<OPT_Register,OPT_Operand> refToGuardMap =
       new HashMap<OPT_Register,OPT_Operand>();
     // Iterate over checks
-    for(int i=0; i<checksToEliminate.size(); i++){
-      OPT_Instruction instr = checksToEliminate.get(i);
+    for (OPT_Instruction instr : checksToEliminate) {
       // Is this a null check
-      if(NullCheck.conforms(instr)) {
+      if (NullCheck.conforms(instr)) {
         // the generated branch instruction
         OPT_Instruction branch;
         // the reference to compare
@@ -1089,8 +1086,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
           branch = Move.create(GUARD_MOVE, guardResult, refToGuardMap.get(ref.asRegister().register).copy());
           branch.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
           block.appendInstruction(branch);
-        }
-        else {
+        } else {
           // check if we can just move a guard from the loop predecessors
           OPT_RegisterOperand guard = nullCheckPerformedInLoopPredecessors(loop.header, instr);
           if (guard != null) {
@@ -1098,18 +1094,17 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
             branch = Move.create(GUARD_MOVE, guardResult, guard.copyRO());
             branch.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
             block.appendInstruction(branch);
-          }
-          else {
+          } else {
             // generate explicit null test
             branch = IfCmp.create(REF_IFCMP,
-                                  guardResult,
-                                  ref.copy(),
-                                  new OPT_NullConstantOperand(),
-                                  OPT_ConditionOperand.EQUAL(),
-                                  unoptimizedLoopEntry.makeJumpTarget(),
-                                  OPT_BranchProfileOperand.unlikely()
-                                  );
-            if(ref.isRegister()) {
+                guardResult,
+                ref.copy(),
+                new OPT_NullConstantOperand(),
+                OPT_ConditionOperand.EQUAL(),
+                unoptimizedLoopEntry.makeJumpTarget(),
+                OPT_BranchProfileOperand.unlikely()
+            );
+            if (ref.isRegister()) {
               refToGuardMap.put(ref.asRegister().register, guardResult);
             }
             branch.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
@@ -1117,7 +1112,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
             // Adjust block
             block.insertOut(unoptimizedLoopEntry);
             OPT_BasicBlock new_block = block.createSubBlock(SYNTH_LOOP_VERSIONING_BCI, ir);
-            OPT_BasicBlock temp = (OPT_BasicBlock)block.next;
+            OPT_BasicBlock temp = (OPT_BasicBlock) block.next;
             ir.cfg.breakCodeOrder(block, temp);
             ir.cfg.linkInCodeOrder(block, new_block);
             ir.cfg.linkInCodeOrder(new_block, temp);
