@@ -875,6 +875,7 @@ Check to make sure all required properties are specified. This includes properti
       <src path="${generated.vmmagic.arch.java}"/>
       <classpath>
         <pathelement location="${build.classes}"/>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
       </classpath>
     </javac>
   </target>
@@ -890,6 +891,9 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.classes}">
         <exclude name="java/**"/>
         <exclude name="gnu/**"/>
+      </fileset>
+      <fileset dir="${build.vmmagic-stub.classes}">
+        <include name="org/vmmagic/pragma/**"/>
       </fileset>
       <fileset dir="${build.vmmagic.classes}"/>
     </jar>
