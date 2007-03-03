@@ -7,7 +7,7 @@
 
   <import file="../../../build/tests.xml"/>
 
-  <property name="main.java" location="${basedir}"/>
+  <property name="main.java" location="${basedir}/src"/>
   <property name="build.classes" location="${build.tests.dir}/classes"/>
 
   <property name="CaffeineMark.dir" value="${external.lib.dir}/CaffeineMark-3.0"/>
