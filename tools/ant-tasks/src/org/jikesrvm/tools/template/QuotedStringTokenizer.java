@@ -1,13 +1,18 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp. 2001
+ */
 package org.jikesrvm.tools.template;
 
 import java.util.NoSuchElementException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: peter
- * Date: Mar 3, 2007
- * Time: 11:09:22 PM
- * To change this template use File | Settings | File Templates.
+ * @author John Whaley
+ * @author Igor Pechtchanski
  */
 class QuotedStringTokenizer {
   private String str;
