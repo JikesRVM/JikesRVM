@@ -298,21 +298,14 @@ Check to make sure all required properties are specified. This includes properti
   <macrodef name="GenerateFromTemplate">
     <element name="args"/>
     <sequential>
-      <java classname="GenerateFromTemplate" failonerror="true">
+      <java classname="org.jikesrvm.tools.template.GenerateFromTemplate" failonerror="true">
         <classpath>
-          <pathelement location="${build.expander.dir}"/>
+          <pathelement location="${tasks.classes}"/>
         </classpath>
         <args/>
       </java>
     </sequential>
   </macrodef>
-
-  <target name="build-template-expander" depends="check-properties">
-    <property name="build.expander.dir" location="${build.dir}/expander"/>
-    <mkdir dir="${build.expander.dir}"/>
-    <javac srcdir="${basedir}/tools/templateExpander" destdir="${build.expander.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5"/>
-  </target>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -506,7 +499,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- build ir for target architecture -->
-  <target name="gen-opt-ir" depends="build-template-expander,build-jburg">
+  <target name="gen-opt-ir" depends="build-jburg">
     <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
     <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
 
@@ -544,7 +537,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- build options -->
-  <target name="gen-options" depends="build-template-expander">
+  <target name="gen-options" depends="check-properties">
     <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
 
     <mkdir dir="${generated.java}/com/ibm/jikesrvm/opt"/>
@@ -587,7 +580,7 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
   </target>
 
-  <target name="gen-ia32-assembler" depends="check-properties,build-template-expander,compile-vmmagic-stub">
+  <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub">
     <mkdir dir="${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">

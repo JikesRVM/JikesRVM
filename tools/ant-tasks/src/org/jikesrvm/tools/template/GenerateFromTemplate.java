@@ -6,7 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//GenerateFromTemplate.java
+package org.jikesrvm.tools.template;
+
+import java.io.*;
+import java.util.Vector;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+
 /**
  * Generates output files given a template.  Run from command line.
  *
@@ -146,101 +152,6 @@
  * @author John Whaley
  * @author Igor Pechtchanski
  */
-
-import java.io.*;
-import java.util.Vector;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
-
-class UnterminatedStringException extends RuntimeException {
-  private static final long serialVersionUID = 5639864127476661778L;
-  public UnterminatedStringException() { super(); }
-  public UnterminatedStringException(String msg) { super(msg); }
-}
-
-class QuotedStringTokenizer {
-  private String str;
-  private int curPos;
-  private int maxPos;
-
-  public static final String delim = " \t\n\r\f";
-  public QuotedStringTokenizer(String str) {
-    curPos = 0;
-    this.str = str;
-    maxPos = str.length();
-  }
-
-  private void skipDelimiters() {
-    while (curPos < maxPos && delim.indexOf(str.charAt(curPos)) >= 0)
-      curPos++;
-  }
-
-  public boolean hasMoreTokens() {
-    skipDelimiters();
-    return curPos < maxPos;
-  }
-
-  public String nextToken() {
-    skipDelimiters();
-    if (curPos >= maxPos)
-      throw new NoSuchElementException();
-    int start = curPos;
-    if (str.charAt(curPos) == '\"') {
-      start++;
-      curPos++;
-      boolean quoted = false;
-      while (quoted || str.charAt(curPos) != '\"') {
-        quoted = !quoted && str.charAt(curPos) == '\\';
-        curPos++;
-        if (curPos >= maxPos)
-          throw new UnterminatedStringException();
-      }
-      StringBuffer sb = new StringBuffer();
-      String s = str.substring(start, curPos++);
-      int st = 0;
-      for (;;) {
-        int bs = s.indexOf('\\', st);
-        if (bs == -1) break;
-        sb.append(s.substring(st, bs));
-        sb.append(s.substring(bs+1, bs+2));
-        st = bs + 2;
-      }
-      sb.append(s.substring(st));
-      return sb.toString();
-    }
-    while (curPos < maxPos && delim.indexOf(str.charAt(curPos)) < 0)
-      curPos++;
-    return str.substring(start, curPos);
-  }
-
-  public int countTokens() {
-    int count = 0;
-    int pos = curPos;
-    while (pos < maxPos) {
-      // skip delimiters
-      while (pos < maxPos && delim.indexOf(str.charAt(pos)) >= 0)
-        pos++;
-      if (pos >= maxPos) break;
-      if (str.charAt(pos) == '\"') {
-        pos++;
-        boolean quoted = false;
-        while (quoted || str.charAt(pos) != '\"') {
-          quoted = !quoted && str.charAt(pos) == '\\';
-          pos++;
-          if (pos >= maxPos)
-            throw new UnterminatedStringException();
-        }
-        pos++;
-      } else {
-        while (pos < maxPos && delim.indexOf(str.charAt(pos)) < 0)
-          pos++;
-      }
-      count++;
-    }
-    return count;
-  }
-}
-
 public class GenerateFromTemplate {
 
   static boolean DEBUG = false;
@@ -259,10 +170,9 @@ public class GenerateFromTemplate {
     }
     int argc = args.length;
     if (args[0].equals("-debug")) {
-       DEBUG = true;
-       argc--;
-       for (int i = 0; i < argc; i++)
-          args[i] = args[i+1];
+      DEBUG = true;
+      argc--;
+      System.arraycopy(args, 1, args, 0, argc);
     }
 
     // When driven from ant (on AIX), there's a problem keeping tokens that
@@ -424,7 +334,7 @@ public class GenerateFromTemplate {
       if (isTemplateLine(inLine)) {
         int command = getTemplateCommand(inLine);
         if (command == END) break;
-        region.addElement((Object)buildTemplateRegion(inLine));
+        region.addElement(buildTemplateRegion(inLine));
       } else {
          if (DEBUG) System.out.println("adding line to region :"+inLine);
          region.addElement(inLine);
@@ -591,23 +501,23 @@ public class GenerateFromTemplate {
       // Read in all fields
       int i = 0;
       String[] fieldData = new String[fields.length];
-      for (int j = 0; j < fieldsPerLine.length; j++) {
+      for (int aFieldsPerLine : fieldsPerLine) {
         String line = getNextLine(data);
         if (line == null) break dataFileLoop;
-        if (fieldsPerLine[j] == 1) {
-          if (DEBUG) System.out.println("read field "+fields[i]+" :"+line);
+        if (aFieldsPerLine == 1) {
+          if (DEBUG) System.out.println("read field " + fields[i] + " :" + line);
           fieldData[i++] = line;
         } else {
-          if (DEBUG) System.out.println("reading "+fieldsPerLine[j]+" fields");
+          if (DEBUG) System.out.println("reading " + aFieldsPerLine + " fields");
           StringTokenizer st = new StringTokenizer(line);
           try {
-            for (int k = 0; k < fieldsPerLine[j]; k++) {
+            for (int k = 0; k < aFieldsPerLine; k++) {
               String tok = st.nextToken();
-              if (DEBUG) System.out.println("read field "+fields[i]+": "+tok);
+              if (DEBUG) System.out.println("read field " + fields[i] + ": " + tok);
               fieldData[i++] = tok;
             }
           } catch (NoSuchElementException x) {
-            throw new IOException("Missing field "+fields[i]);
+            throw new IOException("Missing field " + fields[i]);
           }
         }
       }
@@ -628,7 +538,7 @@ public class GenerateFromTemplate {
           }
         }
 
-        if (!inRange) break dataFileLoop;
+        if (!inRange) break;
       }
 
       // Count through each line in region.
@@ -670,7 +580,7 @@ public class GenerateFromTemplate {
     }
     String[] values = new String[valvec.size()];
     for (int i = 0; i < values.length; i++)
-       values[i] = (String) valvec.elementAt(i);
+       values[i] = valvec.elementAt(i);
 
     if (DEBUG) System.out.println("doing loop with varname "+var_name+
                                   " on values :"+
@@ -1030,16 +940,13 @@ public class GenerateFromTemplate {
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
-        String currentLine = (String) region.elementAt(j);
-        String result = currentLine;
+        String result = (String) region.elementAt(j);
         // Loop through vars.
         for (int curVar = 0; curVar < var_names.length; curVar++)
           result = substitute(result, var_names[curVar], values[curVar]);
         out.print(result+"\n");
       } catch (ClassCastException e) {
-        @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
-        Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
-        Vector<Object> newRegion = oldRegion;
+        Vector<Object> newRegion = (Vector<Object>) region.elementAt(j);
         // Loop through vars.
         for (int curVar = 0; curVar < var_names.length; curVar++)
           newRegion = substituteInRegion(newRegion, var_names[curVar],
