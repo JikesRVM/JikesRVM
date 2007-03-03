@@ -483,6 +483,21 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="ADDRESS_MODE=@{addressSize}"/>
         </args>
       </GenerateFromTemplate>
+      
+      <condition property="@{arch}-ppc_quote" value="/**" else="">
+        <equals arg1="@{arch}" arg2="ppc"/>
+      </condition>
+      <condition property="@{arch}-ia32_quote" value="/**" else="">
+        <equals arg1="@{arch}" arg2="ia32"/>
+      </condition>
+      <copy file="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.template"
+            tofile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/ArchitectureSpecific.java">
+        <filterset>
+          <filter token="_ARCH_" value="@{arch}"/>
+          <filter token="_PPC_QUOTE_" value="${@{arch}-ppc_quote}"/>
+          <filter token="_IA32_QUOTE_" value="${@{arch}-ia32_quote}"/>
+        </filterset>
+      </copy>
     </sequential>
   </macrodef>
 
@@ -744,22 +759,6 @@ Check to make sure all required properties are specified. This includes properti
           tofile="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java">
       <filterset>
         <filter token="_PLAN_" value="${config.mmtk.plan}"/>
-      </filterset>
-    </copy>
-    
-    <!-- TODO: the following files should be moved into architecture part of generation. -->
-    <condition property="pp_ppc_quote" value="/**" else="">
-      <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
-    <condition property="pp_ia32_quote" value="/**" else="">
-      <equals arg1="${target.arch}" arg2="ia32"/>
-    </condition>
-    <copy file="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.template"
-          tofile="${generated.config.java}/com/ibm/jikesrvm/ArchitectureSpecific.java">
-      <filterset>
-        <filter token="_ARCH_" value="${target.arch}"/>
-        <filter token="_PPC_QUOTE_" value="${pp_ppc_quote}"/>
-        <filter token="_IA32_QUOTE_" value="${pp_ia32_quote}"/>
       </filterset>
     </copy>
     
