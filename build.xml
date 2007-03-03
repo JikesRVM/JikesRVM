@@ -337,40 +337,6 @@ Check to make sure all required properties are specified. This includes properti
     <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
   </target>
 
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                 Building and using the preprocessor.                     * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <!-- Macro to preprocess source files -->
-  <macrodef name="preprocess">
-    <attribute name="todir"/>
-    <attribute name="filelist"/>
-    <sequential>
-      <exec executable="${build.preprocessor.dir}/preprocessor" failonerror="true">
-        <arg line="${filter}"/>
-        <arg value="--disable-modification-exit-status"/>
-        <arg value="@{todir}"/>
-        <arg line="@{filelist}"/>
-      </exec>
-    </sequential>
-  </macrodef>
-
-  <target name="build-preprocessor" depends="check-properties,setup-filter-properties">
-    <property name="build.preprocessor.dir" location="${build.dir}/${host.name}/preprocessor"/>
-    <mkdir dir="${build.preprocessor.dir}"/>
-
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args}"/>
-      <arg value="-I${basedir}/include"/>
-      <arg value="${basedir}/tools/preprocessor/preprocessModifiedFiles.C"/>
-      <arg value="-o"/>
-      <arg value="${build.preprocessor.dir}/preprocessor"/>
-    </exec>
-  </target>
-
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                 Building the apt preprocessor.                           * -->
@@ -590,7 +556,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- build ir for target architecture -->
-  <target name="gen-opt-ir" depends="build-template-expander,build-jburg,build-preprocessor">
+  <target name="gen-opt-ir" depends="build-template-expander,build-jburg">
     <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
     <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
 
@@ -732,7 +698,7 @@ Check to make sure all required properties are specified. This includes properti
     </java>
   </target>
 
-  <target name="gen-config-source" depends="check-properties,build-preprocessor">
+  <target name="gen-config-source" depends="check-properties">
 
     <mkdir dir="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface"/>
 
@@ -1088,7 +1054,7 @@ Check to make sure all required properties are specified. This includes properti
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
-  <target name="build-bootimage-writer" depends="build-preprocessor,package">
+  <target name="build-bootimage-writer" depends="package">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter" destdir="${build.bootimage-writer.dir}" debug="true"
