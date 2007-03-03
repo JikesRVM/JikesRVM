@@ -230,10 +230,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <target name="setup-filter-properties" depends="check-properties">
-    <condition property="arch.filter" value="-DRVM_FOR_IA32=1">
-      <equals arg1="${target.arch}" arg2="ia32"/>
-    </condition>
-    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1">
+    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
@@ -247,39 +244,8 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.os}" arg2="OSX"/>
     </condition>
 
-    <condition property="runtime_compiler.filter" value="-DRVM_WITH_OPT_COMPILER=1">
-      <equals arg1="${config.runtime.compiler}" arg2="opt"/>
-    </condition>
-    <condition property="runtime_compiler.filter" value="-DRVM_WITH_BASE_RUNTIME_COMPILER=1">
-      <equals arg1="${config.runtime.compiler}" arg2="base"/>
-    </condition>
-
-    <condition property="as.filter" value="-DRVM_WITH_ADAPTIVE_SYSTEM=1" else="">
-      <and>
-        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
-        <equals arg1="${config.include.aos}" arg2="1"/>
-      </and>
-    </condition>
-    <condition property="base_compiler.filter" value="-DRVM_WITH_OPT_BOOTIMAGE_COMPILER=1">
-      <and>
-        <equals arg1="${config.bootimage.compiler}" arg2="opt"/>
-        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
-      </and>
-    </condition>
-    <condition property="base_compiler.filter" value="-DRVM_WITH_BASE_BOOTIMAGE_COMPILER=1">
-      <equals arg1="${config.bootimage.compiler}" arg2="base"/>
-    </condition>
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
-    </condition>
-    <condition property="assertions.filter" value="-DRVM_WITHOUT_ASSERTIONS=1">
-      <equals arg1="${config.assertions}" arg2="none"/>
-    </condition>
-    <condition property="assertions.filter" value="-DRVM_WITH_EXTREME_ASSERTIONS=1" else="">
-      <equals arg1="${config.assertions}" arg2="extreme"/>
-    </condition>
-    <condition property="allclasses.filter" value="-DRVM_WITH_ALL_CLASSES=1" else="">
-      <equals arg1="${config.include.all-classes}" arg2="1"/>
     </condition>
     <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
@@ -290,26 +256,11 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="ipsc.filter" value="-DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1" else="">
       <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
     </condition>
-    <condition property="stressgc.filter" value="-DRVM_FOR_STRESSGC=1" else="">
-      <equals arg1="${config.stress-gc}" arg2="1"/>
-    </condition>
 
-    <property name="ca.filter" value="-DBOOTIMAGE_CODE_ADDRESS=${target.bootimage.code.address}"/>
-    <property name="da.filter" value="-DBOOTIMAGE_DATA_ADDRESS=${target.bootimage.data.address}"/>
-    <property name="ra.filter" value="-DBOOTIMAGE_RMAP_ADDRESS=${target.bootimage.rmap.address}"/>
-    <property name="ma.filter" value="-DMAXIMUM_MAPPABLE_ADDRESS=${target.max-mappable.address}"/>
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
-    <property name="cp.filter" value="-DRVM_WITH_CLASSPATH_0_${classpath.version}=1"/>
-    <property name="mtc.filter" value="-DRVM_WITH_MMTK_COLLECTORCONTEXT=${config.mmtk.plan}Collector"/>
-    <property name="mtx.filter" value="-DRVM_WITH_MMTK_MUTATORCONTEXT=${config.mmtk.plan}Mutator"/>
-    <property name="mtp.filter" value="-DRVM_WITH_MMTK_PLAN=${config.mmtk.plan}"/>
-    <property name="mts.filter" value="-DRVM_WITH_MMTK_PLANCONSTRAINTS=${config.mmtk.plan}Constraints"/>
-    <property name="ci.filter" value="-DRVM_BOOTIMAGE_CODE=${build.base}/RVM.code.image"/>
-    <property name="di.filter" value="-DRVM_BOOTIMAGE_DATA=${build.base}/RVM.data.image"/>
-    <property name="ri.filter" value="-DRVM_BOOTIMAGE_RMAP=${build.base}/RVM.rmap.image"/>
 
     <property name="filter"
-              value="${ca.filter} ${da.filter} ${ra.filter} ${ma.filter} ${arch.filter} ${os.filter} ${addr.filter} ${cp.filter} ${mtc.filter} ${mtp.filter} ${mts.filter} ${mtx.filter} ${runtime_compiler.filter} ${base_compiler.filter} ${gctrace.filter} ${ci.filter} ${di.filter} ${ri.filter} ${assertions.filter} ${allclasses.filter} ${as.filter} ${gcspy.filter} ${svp.filter} ${ipsc.filter} ${stressgc.filter}"/>
+              value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter}  ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
