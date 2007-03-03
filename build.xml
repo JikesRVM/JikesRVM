@@ -1091,11 +1091,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="build-bootimage-writer" depends="build-preprocessor,package">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
-
-    <property name="bti.dir" value="${basedir}/tools/bootImageWriter"/>
-    <preprocess todir="${build.bootimage-writer.dir}"
-                filelist="${bti.dir}/BootImage.java ${bti.dir}/BootImageMap.java ${bti.dir}/BootImageWorker.java ${bti.dir}/BootImageWriter.java ${bti.dir}/BootImageWriterConstants.java ${bti.dir}/BootImageWriterMessages.java"/>
-    <javac srcdir="${build.bootimage-writer.dir}" destdir="${build.bootimage-writer.dir}" debug="true"
+    <javac srcdir="${basedir}/tools/bootImageWriter" destdir="${build.bootimage-writer.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
