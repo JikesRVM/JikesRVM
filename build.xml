@@ -1182,7 +1182,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="arch.includes" value="-I${bl.dir}/ia32">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
-    <condition property="arch.includes" value="-I${bl.dir}/powerPC">
+    <condition property="arch.includes" value="-I${bl.dir}/ppc">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
@@ -1204,7 +1204,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/powerPC/initBootRecord.C ${build.native}/bootThread.s ${bl.dir}/powerPC/libvm.C">
+               value="${bl.dir}/ppc/initBootRecord.C ${build.native}/bootThread.s ${bl.dir}/ppc/libvm.C">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
@@ -1228,7 +1228,7 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
       <arg line="${rvm.common.args} ${cpp.args}"/>
       <arg value="-P"/>
-      <arg value="${basedir}/tools/bootImageRunner/powerPC/bootThread.c"/>
+      <arg value="${basedir}/tools/bootImageRunner/ppc/bootThread.c"/>
     </exec>
   </target>
 
