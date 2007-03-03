@@ -1,0 +1,144 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp. 2001, 2005
+ */
+package com.ibm.jikesrvm;
+
+/**
+ * Flags that specify the configuration of our virtual machine.
+ *
+ * Note: Changing any <code>final</code> flags requires that the whole vm
+ *       be recompiled and rebuilt after their values are changed.
+ *
+ * @author Bowen Alpern
+ * @author Stephen Fink
+ * @author David Grove
+ */
+public abstract class VM_Configuration {
+
+  //TODO: Split target specific configuration into separate file 
+  public static final @_RVM_ARCH_HELPER_@ archHelper = @_RVM_ARCH_HELPER_@.singleton;
+
+  public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
+  public static final boolean BuildForIA32 = !BuildForPowerPC;
+
+  public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
+  public static final boolean BuildFor64Addr = !BuildFor32Addr;
+
+  public static final boolean BuildForAix = @_RVM_FOR_AIX_@;
+  public static final boolean BuildForLinux = @_RVM_FOR_LINUX_@;
+  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux;
+
+  public static final boolean LittleEndian = BuildForIA32;
+
+  /* ABI selection.  Exactly one of these variables will be true in each build. */
+  public static final boolean BuildForMachOABI = BuildForOsx;
+  public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
+  public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
+
+  /**
+   * Can a dereference of a null pointer result in an access
+   * to 'low' memory addresses that must be explicitly guarded because the
+   * target OS doesn't allow us to read protect low memory?
+   */
+  public static final boolean ExplicitlyGuardLowMemory = BuildForAix;
+          
+  /**
+   * Multiprocessor operation?
+   * <dl>
+   * <dt>false</dt>
+   *    <dd>VM will use multiple processors (requires an operating system
+   *            that supports Posix pthreads, and has "floating stacks")</dd>
+   * <dt>true</dt>
+   *    <dd>VM will use just one processor and no
+   *            synchronization instructions</dd>
+   */
+  public static final boolean singleVirtualProcessor = @_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR_@;
+
+  public static final boolean BuildWithAllClasses = @_RVM_WITH_ALL_CLASSES_@;
+
+  
+ /** Assertion checking.
+      <dl>
+      <dt>false</dt>  <dd> no assertion checking at runtime</dd>
+      <dt>true  </dt> <dd> execute assertion checks at runtime</dd>
+      <dl>
+
+      Note: code your assertion checks as 
+      <pre>
+        if (VM.VerifyAssertions) 
+          VM._assert(xxx);
+      </pre> 
+  */
+  public static final boolean VerifyAssertions = @_RVM_WITHOUT_ASSERTIONS_@;
+  public static final boolean ExtremeAssertions = @_RVM_WITH_EXTREME_ASSERTIONS_@;
+
+  /**  
+   * If set, verify that Uninterruptible methods actually cannot be
+   * interrupted.
+   */ 
+  public static final boolean VerifyUnint = VerifyAssertions;
+
+  // If set, ignore the supression pragma and print all warning messages.
+  public static final boolean ParanoidVerifyUnint = false;
+
+  // Is this an adaptive build?
+  public static final boolean BuildForAdaptiveSystem = @_RVM_WITH_ADAPTIVE_SYSTEM_@;
+
+  // Is this an opt compiler build?
+  public static final boolean BuildForOptCompiler = @_RVM_WITH_OPT_COMPILER_@;
+        
+   // build with Opt boot image compiler
+   public static final boolean BuildWithOptBootImageCompiler = @_RVM_WITH_OPT_BOOTIMAGE_COMPILER_@;
+         
+   // build with Base boot image compiler
+   public static final boolean BuildWithBaseBootImageCompiler = !BuildWithOptBootImageCompiler;
+        
+  // Interface method invocation.
+  // We have five mechanisms:
+  //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber). 
+  //    - embedded directly in the TIB
+  //    - indirectly accessed off the TIB
+  //   ITable-based
+  //    - directly indexed (by interface id) iTables. 
+  //    - searched (at dispatch time); 
+  //   Naive, class object is searched for matching method on every dispatch.
+  public static final boolean BuildForIMTInterfaceInvocation = true;
+  public static final boolean BuildForIndirectIMT = BuildForIMTInterfaceInvocation;
+  public static final boolean BuildForEmbeddedIMT = !BuildForIndirectIMT && BuildForIMTInterfaceInvocation;
+  public static final boolean BuildForITableInterfaceInvocation = !BuildForIMTInterfaceInvocation;
+  public static final boolean DirectlyIndexedITables = false;
+
+  /** Epilogue yieldpoints increase sampling accuracy for adaptive
+      recompilation.  In particular, they are key for large, leaf, loop-free
+      methods.  */
+  public static final boolean UseEpilogueYieldPoints = BuildForAdaptiveSystem;
+
+  /** The following configuration objects are final when disabled, but non-final when enabled. */
+  public static @_RVM_FOR_STRESSGC_AM_@ boolean ParanoidGCCheck = @_RVM_FOR_STRESSGC_@;
+  public static @_RVM_FOR_STRESSGC_AM_@ boolean ForceFrequentGC = @_RVM_FOR_STRESSGC_@;
+
+  /** Do we have the facilities to intercept blocking system calls? */
+  public static final boolean withoutInterceptBlockingSystemCalls = @_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_@;
+
+  /*
+   * We often need to slightly tweak the VM boot sequence and/or
+   * the library/VM interface depending on the version of GNU classpath
+   * we are building against.
+   * We always have at least two versions we are supporting (CVS Head and
+   * the most recent release).  Sometimes we also support some back-level
+   * releases of GNU classpath.
+   * For each supported released version, define a static final boolean.
+   * We don't define a boolean for CVS head because we prefer to define
+   * CVS head as the ! of all other variables.
+   * This makes it easier to find an eliminate
+   * old code when we move up to the next version.
+   */
+  public static final boolean BuildForClasspath_0_93 = @_RVM_WITH_CLASSPATH_0_93_@;    
+  public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;    
+  public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
+}

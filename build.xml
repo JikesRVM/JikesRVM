@@ -731,17 +731,133 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-config-source" depends="check-properties,build-preprocessor">
-    <mkdir dir="${generated.config.java}"/>
-    <preprocess todir="${generated.config.java}"
-                filelist="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.java"/>
-    <preprocess todir="${generated.config.java}"
-                filelist="${basedir}/rvm/src-generated/vm-configuration/VM_HeapLayoutConstants.java"/>
-    <preprocess todir="${generated.config.java}"
-                filelist="${basedir}/rvm/src-generated/vm-configuration/Selected.java"/>
-    <!-- TODO: this following should be moved into architecture part of generation. It is not atm as it relies on preprocessor and defines -->
-    <preprocess todir="${generated.config.java}"
-                filelist="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.java"/>
 
+    <mkdir dir="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface"/>
+
+    <condition property="pp_RVM_ARCH_HELPER" value="com.ibm.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="pp_RVM_ARCH_HELPER"
+               value="com.ibm.jikesrvm.ia32.VM_MachineSpecificIA.IA32"
+               else="com.ibm.jikesrvm.ia32.VM_MachineSpecificIA.EM64T">
+      <and>
+        <equals arg1="${target.arch}" arg2="ia32"/>
+        <equals arg1="${target.address.size}" arg2="32"/>
+      </and>
+    </condition>
+    <condition property="pp_RVM_FOR_POWERPC" value="true" else="false">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="pp_RVM_FOR_32_ADDR" value="true" else="false">
+      <equals arg1="${target.address.size}" arg2="32"/>
+    </condition>
+    <condition property="pp_RVM_FOR_AIX" value="true" else="false">
+      <equals arg1="${target.os}" arg2="AIX"/>
+    </condition>
+    <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
+      <equals arg1="${target.os}" arg2="Linux"/>
+    </condition>
+    <condition property="pp_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR" value="true" else="false">
+      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+    </condition>
+    <condition property="pp_RVM_WITH_ALL_CLASSES" value="true" else="false">
+      <equals arg1="${config.include.all-classes}" arg2="1"/>
+    </condition>
+    <condition property="pp_RVM_WITHOUT_ASSERTIONS" value="true" else="false">
+      <equals arg1="${config.assertions}" arg2="none"/>
+    </condition>
+    <condition property="pp_RVM_WITH_EXTREME_ASSERTIONS" value="true" else="false">
+      <equals arg1="${config.assertions}" arg2="extreme"/>
+    </condition>
+    <condition property="pp_RVM_WITH_ADAPTIVE_SYSTEM" value="true" else="false">
+      <equals arg1="${config.include.aos}" arg2="1"/>
+    </condition>
+    <condition property="pp_RVM_WITH_OPT_COMPILER" value="true" else="false">
+      <equals arg1="${config.runtime.compiler}" arg2="opt"/>
+    </condition>
+    <condition property="pp_RVM_WITH_OPT_BOOTIMAGE_COMPILER" value="true" else="false">
+      <equals arg1="${config.bootimage.compiler}" arg2="opt"/>
+    </condition>
+    <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
+      <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
+    </condition>
+    <condition property="pp_RVM_WITH_GCSPY" value="true" else="false">
+      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    </condition>
+    <condition property="pp_RVM_WITH_CLASSPATH_0_93" value="true" else="false">
+      <equals arg1="${classpath.version}" arg2="93"/>
+    </condition>
+    <condition property="pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS" value="true" else="false">
+      <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
+    </condition>
+    <condition property="pp_RVM_FOR_STRESSGC" value="true" else="false">
+      <equals arg1="${config.stress-gc}" arg2="1"/>
+    </condition>
+    <condition property="pp_RVM_FOR_STRESSGC_AM" value="" else="final">
+      <equals arg1="${config.stress-gc}" arg2="1"/>
+    </condition>
+
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
+          tofile="${generated.config.java}/com/ibm/jikesrvm/VM_Configuration.java">
+      <filterset>
+        <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
+        <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
+        <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
+        <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
+        <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
+        <filter token="_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_" value="${pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS}"/>
+        <filter token="_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR_" value="${pp_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR}"/>
+        <filter token="_RVM_WITH_ALL_CLASSES_" value="${pp_RVM_WITH_ALL_CLASSES}"/>
+        <filter token="_RVM_WITHOUT_ASSERTIONS_" value="${pp_RVM_WITHOUT_ASSERTIONS}"/>
+        <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
+        <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${pp_RVM_WITH_ADAPTIVE_SYSTEM}"/>
+        <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
+        <filter token="_RVM_WITH_OPT_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_OPT_BOOTIMAGE_COMPILER}"/>
+        <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
+        <filter token="_RVM_WITH_GCSPY_" value="${pp_RVM_WITH_GCSPY}"/>
+        <filter token="_RVM_WITH_CLASSPATH_0_93_" value="${pp_RVM_WITH_CLASSPATH_0_93}"/>
+        <filter token="_RVM_FOR_STRESSGC_" value="${pp_RVM_FOR_STRESSGC}"/>
+        <filter token="_RVM_FOR_STRESSGC_AM_" value="${pp_RVM_FOR_STRESSGC_AM}"/>
+      </filterset>
+    </copy>
+    
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/Selected.template"
+          tofile="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java">
+      <filterset>
+        <filter token="_PLAN_" value="${config.mmtk.plan}"/>
+      </filterset>
+    </copy>
+    
+    <!-- TODO: the following files should be moved into architecture part of generation. -->
+    <condition property="pp_ppc_quote" value="/**" else="">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="pp_ia32_quote" value="/**" else="">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.template"
+          tofile="${generated.config.java}/com/ibm/jikesrvm/ArchitectureSpecific.java">
+      <filterset>
+        <filter token="_ARCH_" value="${target.arch}"/>
+        <filter token="_PPC_QUOTE_" value="${pp_ppc_quote}"/>
+        <filter token="_IA32_QUOTE_" value="${pp_ia32_quote}"/>
+      </filterset>
+    </copy>
+    
+    <condition property="pp_address.method" value="fromIntZeroExtend" else="fromLong">
+      <equals arg1="${target.address.size}" arg2="32"/>
+    </condition>
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_HeapLayoutConstants.template"
+          tofile="${generated.config.java}/com/ibm/jikesrvm/VM_HeapLayoutConstants.java">
+      <filterset>
+        <filter token="_BOOTIMAGE_DATA_ADDRESS_" value="${target.bootimage.data.address}"/>
+        <filter token="_BOOTIMAGE_CODE_ADDRESS_" value="${target.bootimage.code.address}"/>
+        <filter token="_BOOTIMAGE_RMAP_ADDRESS_" value="${target.bootimage.rmap.address}"/>
+        <filter token="_MAXIMUM_MAPPABLE_ADDRESS_" value="${target.max-mappable.address}"/>
+        <filter token="_ADDRESS_METHOD_" value="${pp_address.method}"/>
+      </filterset>
+    </copy>
+    
     <mkdir dir="${generated.config.native}"/>
     <echo file="${generated.config.native}/RunBootImage.h">
       const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;

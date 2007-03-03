@@ -22,47 +22,19 @@ public interface VM_HeapLayoutConstants {
 
   /** The address of the start of the data section of the boot image. */
   Address BOOT_IMAGE_DATA_START = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value BOOTIMAGE_DATA_ADDRESS
-     );
+    Address.@_ADDRESS_METHOD_@( @_BOOTIMAGE_DATA_ADDRESS_@ );
 
   /** The address of the start of the code section of the boot image. */
-  Address BOOT_IMAGE_CODE_START = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value BOOTIMAGE_CODE_ADDRESS
-     );
+  Address BOOT_IMAGE_CODE_START =
+    Address.@_ADDRESS_METHOD_@( @_BOOTIMAGE_CODE_ADDRESS_@ );
 
   /** The address of the start of the ref map section of the boot image. */
   Address BOOT_IMAGE_RMAP_START = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value BOOTIMAGE_RMAP_ADDRESS
-     );
+    Address.@_ADDRESS_METHOD_@( @_BOOTIMAGE_RMAP_ADDRESS_@ );
 
   /** The address in virtual memory that is the highest that can be mapped. */
   Address MAXIMUM_MAPPABLE = 
-    //-#if RVM_FOR_32_ADDR
-    Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    Address.fromLong
-    //-#endif
-    (
-     //-#value MAXIMUM_MAPPABLE_ADDRESS
-     );
+    Address.@_ADDRESS_METHOD_@( @_MAXIMUM_MAPPABLE_ADDRESS_@ );
   
   /** The maximum boot image data size */
   int BOOT_IMAGE_DATA_SIZE = 48<<20;

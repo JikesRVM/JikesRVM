@@ -6,8 +6,7 @@ import org.vmmagic.pragma.*;
 
 public class Selected {
   @Uninterruptible
-  public static final class Plan extends 
-//-#value RVM_WITH_MMTK_PLAN
+  public static final class Plan extends @_PLAN_@ 
   {
     private static final Plan plan = new Plan(); 
     
@@ -16,8 +15,7 @@ public class Selected {
   }
 
   @Uninterruptible
-  public static final class Constraints extends
-//-#value RVM_WITH_MMTK_PLANCONSTRAINTS
+  public static final class Constraints extends @_PLAN_@Constraints
   {
     private static final Constraints constraints = new Constraints();
     
@@ -26,8 +24,7 @@ public class Selected {
   }
 
   @Uninterruptible
-  public static class Collector extends 
-//-#value RVM_WITH_MMTK_COLLECTORCONTEXT
+  public static class Collector extends @_PLAN_@Collector  
   {
     private VM_Processor processor;
     public Collector(VM_Processor parent) { processor = parent; }
@@ -38,8 +35,7 @@ public class Selected {
   }
 
   @Uninterruptible
-  public static class Mutator extends 
-//-#value RVM_WITH_MMTK_MUTATORCONTEXT
+  public static class Mutator extends @_PLAN_@Mutator 
   {
     @Inline
     public final VM_Processor getProcessor() { return (VM_Processor) this; } 
