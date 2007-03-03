@@ -8,7 +8,7 @@
  */
 //$Id:$
 
-package com.ibm.jikesrvm.tools.apt;
+package org.jikesrvm.tools.apt;
 
 import java.util.Arrays;
 import java.util.Collection;

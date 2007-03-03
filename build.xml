@@ -290,22 +290,6 @@ Check to make sure all required properties are specified. This includes properti
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                 Building the apt preprocessor.                           * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="build-apt" depends="check-properties">
-    <property name="build.scratch.apt" location="${build.dir}/scratch/apt"/>
-    <mkdir dir="${build.scratch.apt}"/>
-    <javac destdir="${build.scratch.apt}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5">
-      <src path="${basedir}/tools/apt/src"/>
-      <include name="com/ibm/jikesrvm/tools/apt/*.java"/>
-    </javac>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
   <!-- *                 Building and using the template-expander.                * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
@@ -835,7 +819,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,build-apt">
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source">
 
     <condition property="include.opt-test-harness" value="true">
       <and>
@@ -877,12 +861,12 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.base}/syscall/java"/>
     <exec executable="apt" failonerror="true">
       <arg value="-factorypath"/>
-      <arg value="${build.scratch.apt}"/>
+      <arg value="${tasks.classes}"/>
       <arg value="-nocompile"/>
       <arg value="-factory"/>
-      <arg value="com.ibm.jikesrvm.tools.apt.SysCallProcessorFactory"/>
+      <arg value="org.jikesrvm.tools.apt.SysCallProcessorFactory"/>
       <arg value="-classpath"/>
-      <arg value="${build.scratch.apt}:${build.vmmagic-stub.classes}:${build.classes}"/>
+      <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
       <arg value="-s"/>
       <arg value="${build.base}/syscall/java"/>
       <arg value="${main.java}/com/ibm/jikesrvm/VM_SysCall.java"/>
