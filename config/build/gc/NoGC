@@ -1,2 +1,0 @@
-   export RVM_WITH_MMTK_PLAN="org.mmtk.plan.nogc.NoGC"
-
