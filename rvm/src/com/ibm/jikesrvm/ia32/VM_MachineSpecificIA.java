@@ -97,7 +97,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    * A thread's stack has been moved or resized.
    * Adjust the ESP register to reflect new position.
    * 
-   * @param VM_Registers The registers for this thread
+   * @param registers The registers for this thread
    * @param delta The displacement to be applied
    * @param traceAdjustments Log all adjustments to stderr if true
    */
