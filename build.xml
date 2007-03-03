@@ -533,16 +533,18 @@ Check to make sure all required properties are specified. This includes properti
         <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/jburg.out"/>
       </exec>
 
-      <!-- FIXME when completely cut across to ant -->
-      <condition property="@{arch}-@{addressSize}.pp-filter" value="-DRVM_FOR_IA32=1" else="">
-        <equals arg1="@{arch}" arg2="ia32"/>
-      </condition>
-
-      <exec executable="${build.preprocessor.dir}/preprocessor" failonerror="true">
-        <arg line="${@{arch}-@{addressSize}.pp-filter} --disable-modification-exit-status"/>
-        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java"/>
-        <arg line="${build.burs.dir}/OPT_BURS_TreeNode.template ${basedir}/tools-external/jburg/burg.template"/>
-      </exec>
+      <copy file="${basedir}/tools-external/jburg/burg.template"
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt">
+        <filterset>
+          <filter token="_ARCH_" value="@{arch}"/>
+        </filterset>
+      </copy>
+      <copy file="${build.burs.dir}/OPT_BURS_TreeNode.template"
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt">
+        <filterset>
+          <filter token="_ARCH_" value="@{arch}"/>
+        </filterset>
+      </copy>
 
       <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/OPT_BURS_TreeNode.java">
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"

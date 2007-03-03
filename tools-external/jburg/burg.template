@@ -2,14 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-//-#if RVM_FOR_IA32
-package com.ibm.jikesrvm.ia32.opt;
-import com.ibm.jikesrvm.ia32.opt.ir.*;
+package com.ibm.jikesrvm.@_ARCH_@.opt;
+
+import com.ibm.jikesrvm.@_ARCH_@.opt.ir.*;
 import com.ibm.jikesrvm.classloader.*;
-//-#else
-package com.ibm.jikesrvm.ppc.opt;
-import com.ibm.jikesrvm.ppc.opt.ir.*;
-//-#endif
 
 import com.ibm.jikesrvm.*;
 import com.ibm.jikesrvm.opt.ir.*;
