@@ -29,8 +29,6 @@
  *      Cleaned up memory management.  Made the handling of numeric args
  *      robust. 
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <assert.h>             // assert()
 #include <stdlib.h>

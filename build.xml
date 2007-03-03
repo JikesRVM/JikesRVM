@@ -1239,9 +1239,6 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.includes"
               value="-I${bl.dir} -I${basedir}/include -I${build.native} -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
 
-    <!-- TODO: -DHAVE_CXX_STRTOLD=1 should be configured -->
-    <echo file="${build.native}/config.h"></echo>
-    
     <property name="rvm.defines" value="-D_REENTRANT ${filter} -DHAVE_CXX_STRTOLD=1 "/>
 
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines}"/>
