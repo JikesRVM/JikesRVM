@@ -686,8 +686,8 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_OPT_COMPILER" value="true" else="false">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
-    <condition property="pp_RVM_WITH_OPT_BOOTIMAGE_COMPILER" value="true" else="false">
-      <equals arg1="${config.bootimage.compiler}" arg2="opt"/>
+    <condition property="pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER" value="true" else="false">
+      <equals arg1="${config.bootimage.compiler}" arg2="base"/>
     </condition>
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
@@ -723,7 +723,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${pp_RVM_WITH_ADAPTIVE_SYSTEM}"/>
         <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
-        <filter token="_RVM_WITH_OPT_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_OPT_BOOTIMAGE_COMPILER}"/>
+        <filter token="_RVM_WITH_BASE_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER}"/>
         <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
         <filter token="_RVM_WITH_GCSPY_" value="${pp_RVM_WITH_GCSPY}"/>
         <filter token="_RVM_WITH_CLASSPATH_0_93_" value="${pp_RVM_WITH_CLASSPATH_0_93}"/>

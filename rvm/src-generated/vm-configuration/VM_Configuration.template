@@ -92,11 +92,8 @@ public abstract class VM_Configuration {
   // Is this an opt compiler build?
   public static final boolean BuildForOptCompiler = @_RVM_WITH_OPT_COMPILER_@;
         
-   // build with Opt boot image compiler
-   public static final boolean BuildWithOptBootImageCompiler = @_RVM_WITH_OPT_BOOTIMAGE_COMPILER_@;
-         
    // build with Base boot image compiler
-   public static final boolean BuildWithBaseBootImageCompiler = !BuildWithOptBootImageCompiler;
+   public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
         
   // Interface method invocation.
   // We have five mechanisms:
