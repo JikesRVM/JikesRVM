@@ -27,9 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if 0                           /* shut up Emacs formatting. */
-}
-#endif
 
 
 #if !defined PJNICALL
@@ -746,28 +743,8 @@ jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *);
 jint JNICALL JNI_CreateJavaVM(JavaVM **, JNIEnv **, void *);
 jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **, jsize, jsize *);
 
-#if 0                           /* Work around Emacs formatting. */
-{
-#endif
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* JNI_H */
-
-
-/* Keep c-font-lock-extra-types in alphabetical order. */
-/* Local Variables: */
-/* c-basic-offset: 4 */
-/* c-font-lock-extra-types: ("\\sw+_t" "JNIEnv"  "JNINativeMethod" "JavaVM"
-   "JavaVMOption"
-   "jarray"
-   "jboolean" "jbooleanArray" "jbyte" "jbyteArray" "jchar"  "jcharArray" 
-   "jclass" "jdouble" "jdoubleArray" "jfieldID" "jfloat" "jfloatArray"
-   "jint" "jintArray"
-   "jlong" "jlongArray" "jmethodID" "jobject" "jobjectArray" 
-   "jshort" "jshortArray" "jsize" "jstring" "jthrowable" "jvalue" "jweak") */
-/* eval: (font-lock-add-keywords 'c-mode
-          '(("\\<\\(P?JNICALL\\)\\>" . font-lock-keyword-face))
-         ) */
-/* End: */
