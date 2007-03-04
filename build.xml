@@ -1018,7 +1018,6 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
 
       <sysproperty key="mmtk.hostjvm" value="com.ibm.jikesrvm.mm.mmtk.Factory"/>
-      <sysproperty key="java.security.policy" value="rvm.security"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
       <jvmarg value="-Xss2m"/>
       <arg value="-classpath"/>
