@@ -92,6 +92,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Return the TIB offset. 
+   */
+  public static Offset getTibOffset() {
+    return TIB_OFFSET;
+  }
+
+  /**
    * What is the offset of the first word after the class?
    * For use by VM_ObjectModel.layoutInstanceFields
    */
