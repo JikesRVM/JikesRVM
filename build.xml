@@ -24,6 +24,8 @@
   <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="vmmagic-stub.java" location="vmmagic/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
+  <!-- TODO: properly conditionalize the library-interface.java property instead of hardwiring to GNU Classpath -->
+  <property name="library-interface.java" location="libraryInterface/GNUClasspath/CPL/src"/>
 
   <!-- Set the properties for intermediate directory -->
   <property name="build.dir" location="target"/>
@@ -824,7 +826,7 @@ Check to make sure all required properties are specified. This includes properti
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${main.java}"
+           srcdir="${main.java}:${library-interface.java}"
            sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${generated.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -912,7 +914,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <fileset id="primordials.main" dir="${build.classes}">
       <include name="**/VM*.class"/>
-      <include name="com/**/*.class" if="include.all"/>
+      <include name="org/**/*.class" if="include.all"/>
       <include name="org/jikesrvm/adaptive/**/*.class" if="include.aos"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
       <include name="org/jikesrvm/opt/**/*.class" if="include.opt"/>
@@ -1411,6 +1413,7 @@ target.dll-prefix=${target.dll-prefix}
       </bootclasspath>
       <exclude name="**/${toexclude}/**"/>
       <src path="${main.java}"/>
+      <src path="${library-interface.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-rvm.java}"/>
@@ -1446,13 +1449,14 @@ target.dll-prefix=${target.dll-prefix}
       <group title="VM Magic Packages" packages="org.vmmmagic.*"/>
       <group title="RVM Packages" packages="org.jikesrvm*"/>
 
-      <packageset dir="${main.java}" defaultexcludes="yes" includes="com/**,org/**" excludes="**/ppc/**"/>
+      <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
+      <packageset dir="${library-interface.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
-      <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="com/**"/>
-      <packageset dir="${generated.java}" includes="com/**"/>
-      <packageset dir="${generated.arch.java}" includes="com/**"/>
-      <packageset dir="${generated.config.java}" includes="com/**"/>
+      <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${generated.java}" includes="org/**"/>
+      <packageset dir="${generated.arch.java}" includes="org/**"/>
+      <packageset dir="${generated.config.java}" includes="org/**"/>
       <packageset dir="${generated.vmmagic.arch.java}" includes="org/**"/>
 
       <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
