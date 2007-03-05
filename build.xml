@@ -24,7 +24,6 @@
   <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="vmmagic-stub.java" location="vmmagic/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
-  <property name="opt-test-harness.java" location="tools/optTestHarness"/>
 
   <!-- Set the properties for intermediate directory -->
   <property name="build.dir" location="target"/>
@@ -826,7 +825,7 @@ Check to make sure all required properties are specified. This includes properti
            source="1.5"
            target="1.5"
            srcdir="${main.java}"
-           sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${generated.java}:${main.java}:${mmtk-rvm.java}:${opt-test-harness.java}">
+           sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${generated.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </bootclasspath>
@@ -840,7 +839,6 @@ Check to make sure all required properties are specified. This includes properti
       <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
       <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
       <src path="${mmtk-rvm.java}"/>
-      <src path="${opt-test-harness.java}"/>
       <src path="${generated.java}"/>
     </javac>
 
