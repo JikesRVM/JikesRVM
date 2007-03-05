@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import java.util.Enumeration;
+import java.util.Iterator;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -41,8 +42,8 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
    * The main entrypoint for this pass.
    */
   public void perform(OPT_IR ir) {
-    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = e.nextElement();
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+      OPT_Instruction s = e.next();
       if (s.operator == SPLIT) {
         OPT_RegisterOperand lhs = Unary.getResult(s);
         OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type);

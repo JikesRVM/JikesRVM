@@ -690,8 +690,8 @@ class OPT_LICM extends OPT_CompilerPhase {
     if (dominator.dominates (_origBlock.getNumber(), to.getNumber())) {
       // moved down, so insert in from
       OPT_Instruction last = null;
-      OPT_InstructionEnumeration e = to.forwardInstrEnumerator();
-      while (e.hasMoreElements()) {
+      Iterator<OPT_Instruction> e = to.forwardInstrEnumerator();
+      while (e.hasNext()) {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
         if ((  !Label.conforms (cand)) // skip labels, phis, and yieldpoints
@@ -702,8 +702,8 @@ class OPT_LICM extends OPT_CompilerPhase {
       cand = last;
     } else {
       // moved up, so insert at end of block
-      OPT_InstructionEnumeration e = to.reverseInstrEnumerator();
-      while (e.hasMoreElements()) {
+      Iterator<OPT_Instruction> e = to.reverseInstrEnumerator();
+      while (e.hasNext()) {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
         if ((  !BBend.conforms(cand))

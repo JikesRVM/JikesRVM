@@ -22,7 +22,6 @@ import org.jikesrvm.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.opt.ir.OPT_BasicBlockEnumeration;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_Instruction;
-import org.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.opt.ir.OPT_MachineSpecificIR;
 import org.jikesrvm.opt.ir.OPT_Operand;
 import org.jikesrvm.opt.ir.OPT_OperandEnumeration;
@@ -31,6 +30,7 @@ import org.jikesrvm.opt.ir.OPT_Register;
 import org.jikesrvm.opt.ir.OPT_RegisterOperand;
 
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
+import java.util.Iterator;
 
 /**
  * Wrappers around IA32-specific IR common to both 32 & 64 bit
@@ -184,8 +184,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
-           inst.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> inst = bb.forwardInstrEnumerator(); inst.hasNext();) {
         OPT_Instruction s = inst.next();
         for (OPT_OperandEnumeration ops = s.getOperands(); 
              ops.hasMoreElements(); ) {

@@ -10,6 +10,7 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
+import java.util.Iterator;
 
 /**
  * Simplify and canonicalize conditional branches with constant operands.
@@ -41,8 +42,7 @@ abstract class OPT_BranchSimplifier {
   public static boolean simplify(OPT_BasicBlock bb, OPT_IR ir) {
     boolean didSomething = false;
 
-    for (OPT_InstructionEnumeration branches = 
-           bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> branches = bb.enumerateBranchInstructions(); branches.hasNext();) {
       OPT_Instruction s = branches.next();
       if (Goto.conforms(s)) {
         // nothing to do, but a common case so test first
@@ -283,8 +283,7 @@ abstract class OPT_BranchSimplifier {
     // identify the first GOTO instruction in the basic block
     OPT_Instruction firstGoto = null;
     OPT_Instruction end = bb.lastRealInstruction();
-    for (OPT_InstructionEnumeration branches = 
-           bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> branches = bb.enumerateBranchInstructions(); branches.hasNext();) {
       OPT_Instruction s = branches.next();
       if (Goto.conforms(s)) {
         firstGoto = s;
@@ -293,10 +292,9 @@ abstract class OPT_BranchSimplifier {
     }
     // remove all instructions after the first GOTO instruction
     if (firstGoto != null) {
-      OPT_InstructionEnumeration ie = 
-        OPT_IREnumeration.forwardIntraBlockIE(firstGoto, end);
+      Iterator<OPT_Instruction> ie = OPT_IREnumeration.forwardIntraBlockIE(firstGoto, end);
       ie.next();
-      for (; ie.hasMoreElements();) {
+      for (; ie.hasNext();) {
         OPT_Instruction s = ie.next();
         if (GuardResultCarrier.conforms (s))
           insertTrueGuard (s, GuardResultCarrier.getGuardResult (s));

@@ -122,8 +122,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
-    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = e.nextElement();
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+      OPT_Instruction s = e.next();
       if (!GetField.conforms(s) 
           && !GetStatic.conforms(s) 
           && !ALoad.conforms(s))
@@ -208,8 +208,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
   static void replaceDefs(OPT_IR ir, UseRecordSet UseRepSet,
                                  HashMap<UseRecord,OPT_Register> registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
-    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = e.nextElement();
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+      OPT_Instruction s = e.next();
       if (!GetField.conforms(s) && !GetStatic.conforms(s) 
           && !PutField.conforms(s)
           && !PutStatic.conforms(s) && !ALoad.conforms(s) 
@@ -449,7 +449,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)be.nextElement();
       if (!ir.options.FREQ_FOCUS_EFFORT || !bb.getInfrequent()) {
-        for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+        for (Iterator<OPT_Instruction> e = bb.forwardInstrEnumerator(); e.hasNext();) {
           OPT_Instruction s = e.next();
           switch (s.operator().opcode) {
             case GETFIELD_opcode:

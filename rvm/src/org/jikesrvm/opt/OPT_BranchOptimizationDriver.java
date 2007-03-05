@@ -11,6 +11,7 @@ import org.jikesrvm.*;
 
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
+import java.util.Iterator;
 
 /**
  * IR level independent driver for 
@@ -135,8 +136,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
          e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (!bb.isEmpty()) {
-        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); 
-             ie.hasMoreElements();) {
+        for (Iterator<OPT_Instruction> ie = bb.enumerateBranchInstructions(); ie.hasNext();) {
           OPT_Instruction s = ie.next();
           if (optimizeBranchInstruction(ir, s, bb)) {
             didSomething = true;

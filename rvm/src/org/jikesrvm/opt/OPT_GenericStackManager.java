@@ -963,13 +963,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // walk over each instruction in the IR
     for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
       OPT_BasicBlock bb = blocks.nextElement();
-      for (Enumeration<OPT_Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> e = bb.forwardInstrEnumerator(); e.hasNext();) {
 
         // If the following is true, don't expend effort trying to
         // optimize scratch assignements
         boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
 
-        OPT_Instruction s = e.nextElement();
+        OPT_Instruction s = e.next();
         if (verboseDebug) {
           System.out.println(s);
         }

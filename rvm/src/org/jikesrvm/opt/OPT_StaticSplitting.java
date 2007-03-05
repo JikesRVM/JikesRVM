@@ -11,6 +11,7 @@ package org.jikesrvm.opt;
 import org.jikesrvm.*;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
+import java.util.Iterator;
 
 /**
  * Static splitting based on very simple hints left by
@@ -164,8 +165,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private OPT_Instruction getCandidateTest(OPT_BasicBlock bb) {
     OPT_Instruction test = null;
-    for (OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
-         e.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> e = bb.enumerateBranchInstructions(); e.hasNext();) {
       OPT_Instruction branch = e.next();
       if (InlineGuard.conforms(branch)) {
         if (test != null) return null; // found multiple tests!
@@ -212,8 +212,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private boolean tooBig(OPT_BasicBlock bb) { 
     int cost = 0;
-    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> e = bb.forwardRealInstrEnumerator(); e.hasNext();) {
       OPT_Instruction s = e.next();
       if (s.isCall()) {
         cost += 3;

@@ -504,8 +504,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    */
   private static Iterator<OPT_Operand> iterateReturnValues (OPT_IR ir) {
     ArrayList<OPT_Operand> returnValues = new ArrayList<OPT_Operand>();
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
       OPT_Instruction s = e.next();
       if (Return.conforms(s)) {
         returnValues.add(Return.getVal(s));

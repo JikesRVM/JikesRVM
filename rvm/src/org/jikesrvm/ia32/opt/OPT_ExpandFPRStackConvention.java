@@ -13,6 +13,7 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.OPT_CompilerPhase;
 import org.jikesrvm.opt.OPT_Options;
 import org.jikesrvm.opt.ir.*;
+import java.util.Iterator;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -101,9 +102,8 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
-           inst.hasMoreElements();) {
-        OPT_Instruction s = inst.nextElement();
+      for (Iterator<OPT_Instruction> inst = bb.forwardInstrEnumerator(); inst.hasNext();) {
+        OPT_Instruction s = inst.next();
         if (s.operator().isFpPop()) {
           // A pop instruction 'ends' a dummy live range.
           OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);

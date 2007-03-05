@@ -11,6 +11,7 @@ package org.jikesrvm.opt;
 import org.jikesrvm.*;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
+import java.util.Iterator;
 
 /**
  * Perform simple peephole optimizations to reduce the overhead of
@@ -68,8 +69,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // visit each instruction in the basic block
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
-           ie.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
         OPT_Instruction s = ie.next();
         if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || 
                                       pushTypeCheckBelowIf(s, ir)))

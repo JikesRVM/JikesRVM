@@ -14,6 +14,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 import java.util.LinkedList;
+import java.util.Iterator;
 
 /**
  * A phase in the OPT compiler for construction OsrPoint instructions
@@ -90,8 +91,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   private LinkedList<OPT_Instruction> collectOsrPoints(OPT_IR ir) {
     LinkedList<OPT_Instruction> osrs = new LinkedList<OPT_Instruction>();
 
-    OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
-    while (instenum.hasMoreElements()) {
+    Iterator<OPT_Instruction> instenum = ir.forwardInstrEnumerator();
+    while (instenum.hasNext()) {
       OPT_Instruction inst = instenum.next();
       
       if (OsrPoint.conforms(inst)) {
@@ -266,8 +267,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
   /** remove OsrBarrier instructions. */
   private void removeOsrBarriers(OPT_IR ir) {
-    OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
-    while (instenum.hasMoreElements()) {
+    Iterator<OPT_Instruction> instenum = ir.forwardInstrEnumerator();
+    while (instenum.hasNext()) {
       OPT_Instruction inst = instenum.next();
       // clean the scratObjects of each instruction
       inst.scratchObject = null;
@@ -280,8 +281,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   @SuppressWarnings("unused") // it's a debugging tool
   private void verifyNoOsrBarriers(OPT_IR ir) {
     VM.sysWrite("Verifying no osr barriers");
-    OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
-    while (instenum.hasMoreElements()) {
+    Iterator<OPT_Instruction> instenum = ir.forwardInstrEnumerator();
+    while (instenum.hasNext()) {
       OPT_Instruction inst = instenum.next();
       if (inst.operator().opcode == OSR_BARRIER_opcode) {
         VM.sysWriteln(" NOT SANE");

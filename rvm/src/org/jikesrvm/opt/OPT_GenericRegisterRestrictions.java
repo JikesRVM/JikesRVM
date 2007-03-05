@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
+import java.util.Iterator;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
 /**
@@ -117,8 +118,7 @@ public abstract class OPT_GenericRegisterRestrictions {
     // 3. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements(); ) {
+    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext(); ) {
       OPT_Instruction s = ie.next();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (OPT_LiveIntervalElement symb : symbolic) {

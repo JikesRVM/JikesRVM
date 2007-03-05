@@ -1407,7 +1407,7 @@ public final class OPT_SSADictionary {
      * An enumeration of the explicit instructions in the IR for a basic
      * block
      */
-    private final OPT_InstructionEnumeration explicitInstructions;
+    private final Iterator<OPT_Instruction> explicitInstructions;
 
     /**
      * An enumeration of the implicit instructions in the IR for a basic
@@ -1440,7 +1440,7 @@ public final class OPT_SSADictionary {
      */
     public boolean hasMoreElements () {
       return  (implicitInstructions.hasNext() 
-               || explicitInstructions.hasMoreElements());
+               || explicitInstructions.hasNext());
     }
 
     /**

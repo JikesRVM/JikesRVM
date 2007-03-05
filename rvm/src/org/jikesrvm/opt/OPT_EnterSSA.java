@@ -197,8 +197,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     while (blocks.hasMoreElements()) {
       HashSet<OPT_Register> killed = new HashSet<OPT_Register>(5);
       OPT_BasicBlock block = blocks.next();
-      OPT_InstructionEnumeration instrs = block.forwardRealInstrEnumerator();
-      while (instrs.hasMoreElements()) {
+      Iterator<OPT_Instruction> instrs = block.forwardRealInstrEnumerator();
+      while (instrs.hasNext()) {
         OPT_Instruction instr = instrs.next();
         OPT_OperandEnumeration uses = instr.getUses();
         while (uses.hasMoreElements()) {
@@ -395,9 +395,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); 
-           e.hasMoreElements();) {
-        OPT_Instruction s = e.nextElement();
+      for (Iterator<OPT_Instruction> e = b.forwardInstrEnumerator(); e.hasNext();) {
+        OPT_Instruction s = e.next();
         // we already handled calls in a previous pass.
         if (Call.conforms(s))
           continue;
@@ -421,8 +420,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); 
-           e.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> e = b.forwardInstrEnumerator(); e.hasNext();) {
         OPT_Instruction s = e.next();
         boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR);
         if (isSynch || Call.conforms(s) || 
@@ -446,8 +444,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); 
-           e.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> e = b.forwardInstrEnumerator(); e.hasNext();) {
         OPT_Instruction s = e.next();
         if (s.isImplicitLoad() || s.isImplicitStore() || s.isAllocation()
             || Phi.conforms(s) || s.isPEI()
@@ -512,8 +509,8 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
       OPT_BasicBlock bb = e.next();
       int bbNumber = bb.getNumber();
       // visit each instruction in the basic block
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
-           ie.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); 
+           ie.hasNext();) {
         OPT_Instruction s = ie.next();
         // record each def in the instruction
         // skip SSA defs
@@ -719,8 +716,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void search(OPT_BasicBlock X, Stack<OPT_RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
-    for (OPT_InstructionEnumeration ie = 
-         X.forwardInstrEnumerator(); ie.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> ie = X.forwardInstrEnumerator(); ie.hasNext();) {
       OPT_Instruction A = ie.next();
       if (A.operator() != PHI) {
         // replace each use
@@ -799,8 +795,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
     } // end of third loop
 
     if (DEBUG) System.out.println("SEARCH (fourth loop) " + X);
-    for (OPT_InstructionEnumeration a = X.forwardInstrEnumerator(); 
-         a.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> a = X.forwardInstrEnumerator(); a.hasNext();) {
       OPT_Instruction A = a.next();
       // loop over each def
       for (int d = 0; d < A.getNumberOfDefs(); d++) {

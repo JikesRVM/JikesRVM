@@ -9,6 +9,8 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.opt.ir.*;
+import java.util.Iterator;
+
 /**
  * Instruction priority representation
  * Used by the scheduler to enumerate over instructions
@@ -17,35 +19,12 @@ import org.jikesrvm.opt.ir.*;
  * @author Igor Pechtchanski
  */
 abstract class OPT_Priority
-    implements OPT_InstructionEnumeration {
+    implements Iterator<OPT_Instruction> {
 
   /**
    * Resets the enumeration to the first instruction in sequence
    */
   public abstract void reset ();
-
-  /**
-   * Returns true if there are more instructions, false otherwise
-   *
-   * @return true if there are more instructions, false otherwise
-   */
-  public abstract boolean hasMoreElements ();
-
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
-  public final OPT_Instruction nextElement () {
-    return  next();
-  }
-
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
-  public abstract OPT_Instruction next ();
 }
 
 

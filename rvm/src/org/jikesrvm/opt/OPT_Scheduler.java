@@ -10,6 +10,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.opt.ir.*;
+import java.util.Iterator;
 
 /**
  * Instruction Scheduler
@@ -107,8 +108,7 @@ final class OPT_Scheduler {
     // Create mapping for dependence graph
     i2gn = new OPT_DepGraphNode[ir.numberInstructions()];
     // Create scheduling info for each instruction
-    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();)
+    for (Iterator<OPT_Instruction> instr = ir.forwardInstrEnumerator(); instr.hasNext();)
       OPT_SchedulingInfo.createInfo(instr.next());
     // iterate over each basic block
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
@@ -142,8 +142,7 @@ final class OPT_Scheduler {
     }
 
     // Remove scheduling info for each instruction
-    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();)
+    for (Iterator<OPT_Instruction> instr = ir.forwardInstrEnumerator(); instr.hasNext();)
       OPT_SchedulingInfo.removeInfo(instr.next());
     // Remove mapping for dependence graph
     i2gn = null;
@@ -383,8 +382,7 @@ final class OPT_Scheduler {
       debug("Scheduling " + bb);
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB BEFORE SCHEDULING ****");
-      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();)
+      for (Iterator<OPT_Instruction> bi = bb.forwardInstrEnumerator(); bi.hasNext();)
         debug(bi.next().toString());
       debug("**** END   OF CURRENT BB BEFORE SCHEDULING ****");
     }
@@ -403,9 +401,7 @@ final class OPT_Scheduler {
       debug("Computing critical path for " + fi);
     computeCriticalPath(getGraphNode(fi), 0);
     int cp = OPT_SchedulingInfo.getCriticalPath(fi);
-    for (OPT_InstructionEnumeration ie = bb.forwardRealInstrEnumerator();
-         ie.hasMoreElements();)
-    {
+    for (Iterator<OPT_Instruction> ie = bb.forwardRealInstrEnumerator(); ie.hasNext();) {
       OPT_Instruction i = ie.next();
       if (verbose >= 5)
         debug("Computing critical path for " + i);
@@ -421,7 +417,7 @@ final class OPT_Scheduler {
                          + ":" + bb);
     OPT_Priority ilist = new OPT_DefaultPriority(bb);
     int maxtime = 0;
-    for (ilist.reset(); ilist.hasMoreElements(); ) {
+    for (ilist.reset(); ilist.hasNext(); ) {
       OPT_Instruction i = ilist.next();
       if (verbose >= 3)
         debug("Scheduling " + i + "[" + OPT_SchedulingInfo.getInfo(i) + "]");
@@ -442,8 +438,7 @@ final class OPT_Scheduler {
       debug("Basic block " + bb + " changed");
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB AFTER SCHEDULING ****");
-      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();)
+      for (Iterator<OPT_Instruction> bi = bb.forwardInstrEnumerator(); bi.hasNext();)
         debug(bi.next().toString());
       debug("**** END   OF CURRENT BB AFTER SCHEDULING ****");
     }

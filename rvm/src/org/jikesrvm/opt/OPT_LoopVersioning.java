@@ -532,7 +532,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     while(blocks.hasMoreElements()){
       OPT_BasicBlock block = blocks.next();
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, block);
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         if (NullCheck.conforms(instruction)) {
           if (loop.isInvariant(NullCheck.getRef(instruction))) {
@@ -585,7 +585,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       // can value escape
       final boolean escapes = (block == loop.exit) || (ir.HIRInfo.dominatorTree.dominates(block, loop.exit));
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, block);
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         OPT_OperandEnumeration operands = instruction.getDefs();
         while(operands.hasMoreElements()) {
@@ -686,7 +686,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       ir.cfg.linkInCodeOrder(ir.cfg.lastInCodeOrder(), copy);
       // Alter register definitions and uses in copy
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, copy);
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         OPT_OperandEnumeration operands = instruction.getDefs();
         while(operands.hasMoreElements()) {
@@ -733,7 +733,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       OPT_BasicBlock block = blocks.next();
       OPT_BasicBlock copy = originalToCloneBBMap.get(block);
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, copy);
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         if (Phi.conforms(instruction)) {
           for(int i = 0; i < Phi.getNumberOfValues(instruction); i++) {
@@ -789,7 +789,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       // Alter register definitions in copy
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, copy);
       loop_over_created_instructions:
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         if (BoundsCheck.conforms(instruction)){
           for (OPT_Instruction anInstrToEliminate : instrToEliminate) {
@@ -851,7 +851,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       OPT_BasicBlock block = blocks.next();
       OPT_BasicBlock copy = originalToCloneBBMap.get(block);
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, copy);
-      while(instructions.hasMoreElements()) {
+      while(instructions.hasNext()) {
         OPT_Instruction instruction = instructions.next();
         if (Phi.conforms(instruction)) {
           for(int i = 0; i < Phi.getNumberOfValues(instruction); i++) {
@@ -1353,7 +1353,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       OPT_BasicBlock block = blocks.next();
       if ((block == loop.header)||(block == loop.exit)) {
         OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, block);
-        while(instructions.hasMoreElements()) {
+        while(instructions.hasNext()) {
           OPT_Instruction instruction = instructions.next();
           if(!BBend.conforms(instruction) && !Label.conforms(instruction)) {
             instruction.remove();

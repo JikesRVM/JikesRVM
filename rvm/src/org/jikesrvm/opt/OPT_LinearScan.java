@@ -2470,8 +2470,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  Also used by ClassWriter
      */
     public static void replaceSymbolicRegisters(OPT_IR ir) {
-      for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
-           inst.hasMoreElements();) {
+      for (Iterator<OPT_Instruction> inst = ir.forwardInstrEnumerator(); inst.hasNext();) {
         OPT_Instruction s = inst.next();
         for (OPT_OperandEnumeration ops = s.getOperands(); 
              ops.hasMoreElements(); ) {

@@ -12,6 +12,7 @@ import org.jikesrvm.*;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
+import java.util.Iterator;
 
 /**
  * @author Rastislav Bodik
@@ -133,12 +134,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    *  @param ir the governing IR
    */
   private void insertPiIfNodes(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements(); /* nothing */
-    ) {
-      OPT_Instruction instr = e.next
-      /*Element*/
-      ();
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();  ) {
+      OPT_Instruction instr = e.next();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 
@@ -352,8 +349,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * @param ir the governing IR
    */
   static void cleanUp(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements();) {
+    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
       OPT_Instruction s = e.next();
       if (s.operator == PI) {
         OPT_RegisterOperand result = GuardedUnary.getResult(s);
