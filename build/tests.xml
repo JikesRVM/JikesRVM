@@ -78,7 +78,6 @@
     <parameter key="config.bootimage.compiler" value="${config.bootimage.compiler}"/>
     <parameter key="config.mmtk.plan" value="${config.mmtk.plan}"/>
     <parameter key="config.include.aos" value="${config.include.aos}"/>
-    <parameter key="config.include.opt-harness" value="${config.include.opt-harness}"/>
     <parameter key="config.include.gcspy" value="${config.include.gcspy}"/>
     <parameter key="config.include.gcspy-stub" value="${config.include.gcspy-stub}"/>
     <parameter key="config.include.gcspy-client" value="${config.include.gcspy-client}"/>

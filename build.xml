@@ -814,13 +814,6 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source">
 
-    <condition property="include.opt-test-harness" value="true">
-      <and>
-        <equals arg1="${config.include.opt-harness}" arg2="1"/>
-        <equals arg1="${config.runtime.compiler}" arg2="opt"/>
-      </and>
-    </condition>
-
     <!--
      FIXME: When we can capture the primordials based on reacability we will not need to delete class dir
      here. We will also be able to compile ALL classes in one sweep.
@@ -845,7 +838,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="gnu/**/*.java"/>
       <include name="java/**/*.java"/>
       <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
-      <include name="OptTestHarness.java" if="include.opt-test-harness"/>
+      <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
       <src path="${mmtk-rvm.java}"/>
       <src path="${opt-test-harness.java}"/>
       <src path="${generated.java}"/>
@@ -1292,7 +1285,6 @@ config.runtime.compiler=${config.runtime.compiler}
 config.bootimage.compiler=${config.bootimage.compiler}
 config.mmtk.plan=${config.mmtk.plan}
 config.include.aos=${config.include.aos}
-config.include.opt-harness=${config.include.opt-harness}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
 config.include.all-classes=${config.include.all-classes}

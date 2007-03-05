@@ -1,4 +1,4 @@
-/*
+package org.jikesrvm.tools.oth;/*
  * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
  * The Jikes RVM project is distributed under the Common Public License (CPL).
  * A copy of the license is included in the distribution, and is also
@@ -23,15 +23,15 @@ import org.jikesrvm.opt.*;
  * debugging of the optimizing compiler.  
  * For example, the following command line:
  * <br>
- *   rvm -X:h=100 OptTestHarness -oc:O2 -oc:phases=true 
+ *   rvm -X:h=100 org.jikesrvm.tools.oth.OptTestHarness -oc:O2 -oc:phases=true 
  *      -class hanoi -er hanoi run  -
  * <br>
  * invokes the opt compiler at Opt level 2 and phases=true to compile
  * the class hanoi, it then executes the run method of class hanoi. 
  * <p>
  * Any command that can be given to the optimizing compiler via -X:irc:<cmd>
- * can be given to the optimizing compiler by OptTestHarness via -oc:<cmd>.
- * In addition, the OptTestHarness supports the following commands:
+ * can be given to the optimizing compiler by org.jikesrvm.tools.oth.OptTestHarness via -oc:<cmd>.
+ * In addition, the org.jikesrvm.tools.oth.OptTestHarness supports the following commands:
  * -useBootOptions           Use the same OptOptions as the bootimage compiler.
  * -longcommandline <filename>    Read commands (one per line) from a file
  * +baseline                      Switch default compiler to baseline
@@ -156,7 +156,7 @@ class OptTestHarness {
   }
 
   static void printFormatString() {
-    System.err.println("Format: rvm OptTestHarness { <command> }");
+    System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
   private static void processClass(VM_Class klass, OPT_Options opts) {

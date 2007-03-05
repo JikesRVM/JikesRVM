@@ -21,7 +21,7 @@ import java.lang.reflect.*;
  * internals of the VM to get access to the generated machine code for
  * the prototypical methods.
  * 
- * It can also be used with OptTestHarness to manually inspect and 
+ * It can also be used with org.jikesrvm.tools.oth.OptTestHarness to manually inspect and 
  * tune the inline allocation sequence.
  *
  * @author Dave Grove
