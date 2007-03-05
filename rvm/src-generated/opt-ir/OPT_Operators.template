@@ -15,12 +15,12 @@
  *  ARCH_OP_LIST
  */
 
-package com.ibm.jikesrvm.opt.ir;
+package org.jikesrvm.opt.ir;
 
 $$$$ IF ARCHITECTURE == "ia32"
-import com.ibm.jikesrvm.ia32.opt.ir.OPT_MachineSpecificIRIA;
+import org.jikesrvm.ia32.opt.ir.OPT_MachineSpecificIRIA;
 $$$$ ELSE
-import com.ibm.jikesrvm.ppc.opt.ir.OPT_MachineSpecificIRPowerPC;
+import org.jikesrvm.ppc.opt.ir.OPT_MachineSpecificIRPowerPC;
 $$$$ END IF
 
 /**

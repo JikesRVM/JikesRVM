@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
- import com.ibm.jikesrvm.VM_Offset;
+ import org.jikesrvm.VM_Offset;
  * Conversions between different units.
  *
  * @author Perry Cheng

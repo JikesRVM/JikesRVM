@@ -1,16 +1,16 @@
-Lcom/ibm/jikesrvm/classloader/ApplicationClassLoader;
+Lorg/jikesrvm/classloader/ApplicationClassLoader;
 
 # VM daemon threads that do not start with VM for historical reasons
-Lcom/ibm/jikesrvm/FinalizerThread;
-Lcom/ibm/jikesrvm/MainThread;
-Lcom/ibm/jikesrvm/DebuggerThread;
+Lorg/jikesrvm/FinalizerThread;
+Lorg/jikesrvm/MainThread;
+Lorg/jikesrvm/DebuggerThread;
 
 # Classes needed for OutOfMemory servicing which we can not afford to load when we are actually out of memory
-Lcom/ibm/jikesrvm/PrintLN;
-Lcom/ibm/jikesrvm/PrintContainer;
-Lcom/ibm/jikesrvm/PrintContainer$WithPrintStream;
-Lcom/ibm/jikesrvm/PrintContainer$WithPrintWriter;
-Lcom/ibm/jikesrvm/PrintContainer$WithSysWrite;
+Lorg/jikesrvm/PrintLN;
+Lorg/jikesrvm/PrintContainer;
+Lorg/jikesrvm/PrintContainer$WithPrintStream;
+Lorg/jikesrvm/PrintContainer$WithPrintWriter;
+Lorg/jikesrvm/PrintContainer$WithSysWrite;
 
 # These next arrays are really arrays of primitves to Jikes RVM
 #  (even though Java does not think they are...)
@@ -20,34 +20,34 @@ Lcom/ibm/jikesrvm/PrintContainer$WithSysWrite;
 [Lorg/vmmagic/unboxed/Offset;
 [Lorg/vmmagic/unboxed/Extent;
 
-[Lcom/ibm/jikesrvm/ArchitectureSpecific$VM_CodeArray;
+[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
 [Lorg/vmmagic/unboxed/AddressArray;
 [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
-[Lcom/ibm/jikesrvm/classloader/VM_Class;
-[Lcom/ibm/jikesrvm/VM_UnusualMaps;
-[Lcom/ibm/jikesrvm/VM_Processor;
-[Lcom/ibm/jikesrvm/VM_Thread;
-[Lcom/ibm/jikesrvm/VM_Lock;
-[Lcom/ibm/jikesrvm/VM_CompiledMethod;
-[Lcom/ibm/jikesrvm/VM_DynamicLibrary;
-[Lcom/ibm/jikesrvm/util/VM_HashMap$Bucket;
-[Lcom/ibm/jikesrvm/util/VM_HashSet$Bucket;
-[Lcom/ibm/jikesrvm/classloader/VM_InterfaceMethodSignature;
-[Lcom/ibm/jikesrvm/classloader/VM_Annotation;
-[Lcom/ibm/jikesrvm/classloader/VM_Annotation$AnnotationMember;
-[Lcom/ibm/jikesrvm/VM_CommandLineArgs$Prefix;
+[Lorg/jikesrvm/classloader/VM_Class;
+[Lorg/jikesrvm/VM_UnusualMaps;
+[Lorg/jikesrvm/VM_Processor;
+[Lorg/jikesrvm/VM_Thread;
+[Lorg/jikesrvm/VM_Lock;
+[Lorg/jikesrvm/VM_CompiledMethod;
+[Lorg/jikesrvm/VM_DynamicLibrary;
+[Lorg/jikesrvm/util/VM_HashMap$Bucket;
+[Lorg/jikesrvm/util/VM_HashSet$Bucket;
+[Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
+[Lorg/jikesrvm/classloader/VM_Annotation;
+[Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
+[Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
 
-[Lcom/ibm/jikesrvm/classloader/VM_Atom;
-[Lcom/ibm/jikesrvm/VM_BasicBlock;
-[Lcom/ibm/jikesrvm/classloader/VM_Field;
-[Lcom/ibm/jikesrvm/classloader/VM_Method;
-[Lcom/ibm/jikesrvm/classloader/VM_MemberReference;
-[Lcom/ibm/jikesrvm/classloader/VM_Type;
-[Lcom/ibm/jikesrvm/classloader/VM_TypeReference;
-[Lcom/ibm/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
-[Lcom/ibm/jikesrvm/memorymanagers/mminterface/Selected$Collector;
-[Lcom/ibm/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
+[Lorg/jikesrvm/classloader/VM_Atom;
+[Lorg/jikesrvm/VM_BasicBlock;
+[Lorg/jikesrvm/classloader/VM_Field;
+[Lorg/jikesrvm/classloader/VM_Method;
+[Lorg/jikesrvm/classloader/VM_MemberReference;
+[Lorg/jikesrvm/classloader/VM_Type;
+[Lorg/jikesrvm/classloader/VM_TypeReference;
+[Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
+[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;
+[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
 
 [Lorg/mmtk/vm/SynchronizedCounter;
 [Lorg/mmtk/plan/Phase;
@@ -60,7 +60,7 @@ Lcom/ibm/jikesrvm/PrintContainer$WithSysWrite;
 [Lorg/mmtk/utility/scan/Scan;
 
 Lorg/vmmagic/pragma/Uninterruptible;
-Lcom/ibm/jikesrvm/classloader/VM_AnnotatedElement;
-Lcom/ibm/jikesrvm/classloader/VM_Annotation;
-Lcom/ibm/jikesrvm/classloader/VM_Annotation$AnnotationMember;
-Lcom/ibm/jikesrvm/classloader/VM_Annotation$BaseAnnotation;
+Lorg/jikesrvm/classloader/VM_AnnotatedElement;
+Lorg/jikesrvm/classloader/VM_Annotation;
+Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
+Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;

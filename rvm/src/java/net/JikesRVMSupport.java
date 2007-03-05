@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2002
  */
 package java.net;
-import com.ibm.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM_SizeConstants;
 
 /**
  * Library support interface of Jikes RVM
@@ -39,7 +39,7 @@ public class JikesRVMSupport implements VM_SizeConstants {
     } else if (inetaddress instanceof Inet6Address) {
       return 10;
     } else {
-      throw new com.ibm.jikesrvm.VM_UnimplementedError("Unknown InetAddress family");
+      throw new org.jikesrvm.VM_UnimplementedError("Unknown InetAddress family");
     }
   }
     

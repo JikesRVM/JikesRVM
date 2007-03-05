@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2005
  */
-package com.ibm.jikesrvm;
+package org.jikesrvm;
 
 /**
  * Flags that specify the configuration of our virtual machine.

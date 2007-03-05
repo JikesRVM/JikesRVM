@@ -8,7 +8,7 @@
  * (C) Copyright IBM Corp. 2003
  *
  */
-package com.ibm.jikesrvm;
+package org.jikesrvm;
 
 import org.vmmagic.pragma.*;
 

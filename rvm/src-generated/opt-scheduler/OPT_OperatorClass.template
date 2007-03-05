@@ -7,10 +7,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //OPT_OperatorClass.java
-package com.ibm.jikesrvm.opt;
+package org.jikesrvm.opt;
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.opt.ir.*;
+import org.jikesrvm.*;
+import org.jikesrvm.opt.ir.*;
 import java.util.ArrayList;
 
 /**

@@ -7,18 +7,18 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package com.ibm.jikesrvm.@_ARCH_@.opt;
+package org.jikesrvm.@_ARCH_@.opt;
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.opt.ir.*;
-import com.ibm.jikesrvm.opt.OPT_DepGraphNode;
+import org.jikesrvm.*;
+import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.opt.OPT_DepGraphNode;
 
 /**
  * An OPT_BURS_TreeNode is a node in a binary tree that is fed 
  * as input to BURS.
  * Machine-generated, do not edit.
  * 
- * @see com.ibm.jikesrvm.opt.OPT_BURS
+ * @see org.jikesrvm.opt.OPT_BURS
  * @see OPT_BURS_STATE
  *
  * @author David Grove

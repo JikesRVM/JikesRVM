@@ -17,18 +17,18 @@
  * @author Derek Lieber
  */
 class Dummy {
-  static com.ibm.jikesrvm.VM a;
-  static com.ibm.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
-  static com.ibm.jikesrvm.VM_DynamicLinker c;
-  static com.ibm.jikesrvm.VM_Reflection e;
-  static com.ibm.jikesrvm.VM_Process f;
-  static com.ibm.jikesrvm.jni.BuildJNIFunctionTable g;
+  static org.jikesrvm.VM a;
+  static org.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
+  static org.jikesrvm.VM_DynamicLinker c;
+  static org.jikesrvm.VM_Reflection e;
+  static org.jikesrvm.VM_Process f;
+  static org.jikesrvm.jni.BuildJNIFunctionTable g;
   static org.vmmagic.pragma.SaveVolatile i;
-  static com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface l;
-  static com.ibm.jikesrvm.VM_RecompilationManager o;
-  static com.ibm.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper r;
+  static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
+  static org.jikesrvm.VM_RecompilationManager o;
+  static org.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper r;
   static org.vmmagic.unboxed.Address s;
-  static com.ibm.jikesrvm.VM_Math t;
+  static org.jikesrvm.VM_Math t;
   static org.vmmagic.unboxed.WordArray x;
   static org.vmmagic.unboxed.OffsetArray y;
   static org.vmmagic.unboxed.ExtentArray z;

@@ -48,9 +48,8 @@
 # actually has the right headers, but utf8 characters break the checkers
 /testing\/tests\/utf8\/src\/utf8test.java/ {next}
 
-/tools\/bootImageRunner\/com_ibm_jikesrvm_VM_0005fProcess.h/ { next }
+/tools\/bootImageRunner\/org_jikesrvm_VM_0005fProcess.h/ { next }
 /tools\/bootImageWriter\/rvm.security/ { next }
-/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
 /LICENSE/ { next }
 /NEWS/ { next }

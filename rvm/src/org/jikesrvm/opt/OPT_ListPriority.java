@@ -1,0 +1,86 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp. 2001
+ */
+package org.jikesrvm.opt;
+
+import org.jikesrvm.opt.ir.*;
+import  java.util.Vector;
+
+/**
+ * List instruction priority representation
+ * Used by the scheduler to enumerate over instructions
+ *
+ * @see OPT_Priority
+ * @see OPT_Scheduler
+ * @author Igor Pechtchanski
+ */
+abstract class OPT_ListPriority extends OPT_Priority {
+  /**
+   * Instruction list.
+   * Subclasses should fill.
+   */
+  protected final Vector<OPT_Instruction> instructionList = new Vector<OPT_Instruction>();
+  // Current enumeration index.
+  private int currIndex = 0;
+
+  /**
+   * Resets the enumeration to the first instruction in sequence
+   */
+  public final void reset () {
+    currIndex = 0;
+  }
+
+  /**
+   * Returns true if there are more instructions, false otherwise
+   *
+   * @return true if there are more instructions, false otherwise
+   */
+  public final boolean hasMoreElements () {
+    return  currIndex < instructionList.size();
+  }
+
+  /**
+   * Returns the next instruction in sequence
+   *
+   * @return the next instruction in sequence
+   */
+  public final OPT_Instruction next () {
+    return  instructionList.elementAt(currIndex++);
+  }
+
+  /**
+   * Counts the instructions in sequence
+   *
+   * @return the number of instructions in sequence
+   */
+  public final int num () {
+    return  instructionList.size();
+  }
+
+  /**
+   * Appends new instruction to the list.
+   *
+   * @param instr new instruction
+   */
+  protected final void append (OPT_Instruction instr) {
+    instructionList.addElement(instr);
+  }
+
+  /**
+   * Inserts new instruction into the list.
+   *
+   * @param instr new instruction
+   * @param i where to insert the new instruction
+   */
+  protected final void insertAt (OPT_Instruction instr, int i) {
+    instructionList.insertElementAt(instr, i);
+  }
+}
+
+
+

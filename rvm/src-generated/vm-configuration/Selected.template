@@ -1,6 +1,6 @@
-package com.ibm.jikesrvm.memorymanagers.mminterface;
+package org.jikesrvm.memorymanagers.mminterface;
 
-import com.ibm.jikesrvm.VM_Processor;
+import org.jikesrvm.VM_Processor;
 
 import org.vmmagic.pragma.*;
 

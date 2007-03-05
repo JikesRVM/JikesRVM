@@ -8,10 +8,10 @@
  */
 package java.lang;
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.classloader.VM_Type;
-import com.ibm.jikesrvm.VM_StackBrowser;
-import com.ibm.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.VM_StackBrowser;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 /**
  * Library support interface of Jikes RVM.

@@ -1,4 +1,4 @@
-[Lcom/ibm/jikesrvm/adaptive/VM_MethodListener;
-[Lcom/ibm/jikesrvm/adaptive/VM_EdgeListener;
-[Lcom/ibm/jikesrvm/adaptive/VM_ContextListener;
-[Lcom/ibm/jikesrvm/adaptive/VM_NullListener;
+[Lorg/jikesrvm/adaptive/VM_MethodListener;
+[Lorg/jikesrvm/adaptive/VM_EdgeListener;
+[Lorg/jikesrvm/adaptive/VM_ContextListener;
+[Lorg/jikesrvm/adaptive/VM_NullListener;

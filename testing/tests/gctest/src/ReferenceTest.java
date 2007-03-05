@@ -8,7 +8,7 @@
  */
 
 import java.lang.ref.*;
-//import com.ibm.jikesrvm.*;
+//import org.jikesrvm.*;
 
 /**
  * A test to test java.lang.ref.*.

@@ -6,9 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm;
+package org.jikesrvm;
 public class ArchitectureSpecific {
-  public static final class VM_Assembler extends com.ibm.jikesrvm.ia32.VM_Assembler {
+  public static final class VM_Assembler extends org.jikesrvm.ia32.VM_Assembler {
     public VM_Assembler (int bytecodeSize) {
       super(bytecodeSize, false);
     }
@@ -19,11 +19,11 @@ public class ArchitectureSpecific {
       super(bytecodeSize, shouldPrint);
     }
   }
-  public static final class VM_CodeArray extends com.ibm.jikesrvm.ia32.VM_CodeArray {}
-  public static final class VM_Compiler extends com.ibm.jikesrvm.ia32.VM_Compiler {}
-  public static final class VM_MachineCode extends com.ibm.jikesrvm.ia32.VM_MachineCode {
+  public static final class VM_CodeArray extends org.jikesrvm.ia32.VM_CodeArray {}
+  public static final class VM_Compiler extends org.jikesrvm.ia32.VM_Compiler {}
+  public static final class VM_MachineCode extends org.jikesrvm.ia32.VM_MachineCode {
     public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
       super(array, bm);
     }}
-  public static interface VM_RegisterConstants extends com.ibm.jikesrvm.ia32.VM_RegisterConstants {}
+  public static interface VM_RegisterConstants extends org.jikesrvm.ia32.VM_RegisterConstants {}
 }

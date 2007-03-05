@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-package com.ibm.jikesrvm.ia32;
+package org.jikesrvm.ia32;
 /**
  * @author Dave Grove
  */

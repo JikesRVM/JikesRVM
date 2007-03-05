@@ -12,11 +12,11 @@ package java.lang;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import com.ibm.jikesrvm.VM;     // for VM.sysWrite()
-import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Thread;
-import com.ibm.jikesrvm.VM_UnimplementedError;
-import com.ibm.jikesrvm.VM_Wait;
+import org.jikesrvm.VM;     // for VM.sysWrite()
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_Thread;
+import org.jikesrvm.VM_UnimplementedError;
+import org.jikesrvm.VM_Wait;
 
 /**
  * Jikes RVM implementation of a Java thread.

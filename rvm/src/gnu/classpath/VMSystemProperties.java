@@ -9,12 +9,12 @@
 package gnu.classpath;
 
 import java.util.Properties;
-import com.ibm.jikesrvm.VM;     // for VM.sysWrite()
-import com.ibm.jikesrvm.VM_CommandLineArgs;
-import com.ibm.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM;     // for VM.sysWrite()
+import org.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.VM_Configuration;
 
-import com.ibm.jikesrvm.classloader.VM_ClassLoader;
-import com.ibm.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 /**
  * Jikes RVM implementation of GNU Classpath's gnu.classpath.VMSystemProperties.

@@ -10,8 +10,8 @@
 import  java.io.*;
 import  java.io.PrintStream;
 import  java.util.*;
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
+import org.jikesrvm.*;
+import org.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -215,7 +215,7 @@ class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
 
     pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
-    pln("#define MAXHEAPS " + com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface.getMaxHeaps());
+    pln("#define MAXHEAPS " + org.jikesrvm.memorymanagers.mminterface.MM_Interface.getMaxHeaps());
     pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
     pln();
 
@@ -316,7 +316,7 @@ class GenerateInterfaceDeclarations {
 
 
   static void emitBootRecordDeclarations () {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/jikesrvm/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("org/jikesrvm/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
@@ -334,7 +334,7 @@ class GenerateInterfaceDeclarations {
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/jikesrvm/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("org/jikesrvm/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
@@ -596,9 +596,9 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     pln("java_net_SocketImpl_port_offset = ", offset);
 
-    // fields in com.ibm.jikesrvm.memorymanagers.JMTk.BasePlan
+    // fields in org.jikesrvm.memorymanagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
-    pln("com_ibm_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset = ", offset);
+    pln("org_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset = ", offset);
 
     arch.emitArchVirtualMachineDeclarations();
   }

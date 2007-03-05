@@ -9,9 +9,9 @@
  */
 package org.vmmagic.unboxed;
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Magic;
-import com.ibm.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.pragma.*;
 

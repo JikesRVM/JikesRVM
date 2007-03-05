@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.ia32.*;
+import org.jikesrvm.*;
+import org.jikesrvm.ia32.*;
 import org.vmmagic.unboxed.*;
 
 /**

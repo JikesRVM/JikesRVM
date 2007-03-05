@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-import com.ibm.jikesrvm.*;
+import org.jikesrvm.*;
 
 /**
  * Test native methods that block in native code

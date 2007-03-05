@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm;
+package org.jikesrvm;
 /**
  * @author Julian Dolby
  */

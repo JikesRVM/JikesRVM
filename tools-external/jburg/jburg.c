@@ -587,7 +587,7 @@ emitdefs(Nonterm nts_)
 {
     Nonterm p;
 
-    print("package com.ibm.jikesrvm.%sopt; \n", arch);
+    print("package org.jikesrvm.%sopt; \n", arch);
     print("interface OPT_BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1byte %S_NT  \t= %d;\n", p, p->number);
@@ -937,7 +937,7 @@ emitstring(Rule rules_)
 //    int k;
 //    Term p;
  
-    print("package com.ibm.jikesrvm.%sopt; \n", arch);
+    print("package org.jikesrvm.%sopt; \n", arch);
     print("public class OPT_BURS_Debug {\n");
  
 #if 0

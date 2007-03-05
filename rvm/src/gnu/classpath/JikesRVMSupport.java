@@ -9,7 +9,7 @@ package gnu.classpath;
 
 import org.vmmagic.unboxed.Address;
 
-import com.ibm.jikesrvm.VM;
+import org.jikesrvm.VM;
 
 /**
  * Library support interface of Jikes RVM

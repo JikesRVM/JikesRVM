@@ -8,7 +8,7 @@
  */
 //BootImageWriterConstants.java
 
-import com.ibm.jikesrvm.*;
+import org.jikesrvm.*;
 import org.vmmagic.unboxed.Address;
 
 /**

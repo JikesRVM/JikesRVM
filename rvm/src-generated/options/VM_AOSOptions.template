@@ -6,10 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package com.ibm.jikesrvm.adaptive;
+package org.jikesrvm.adaptive;
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for the 

@@ -2,7 +2,7 @@ package org.vmmagic.unboxed;
 
 /* machine-generated DO NOT EDIT */
 
-import com.ibm.jikesrvm.VM;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible abstract class ArchitecturalWord {

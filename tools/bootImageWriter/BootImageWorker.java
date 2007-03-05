@@ -8,7 +8,7 @@
  */
 
 import java.util.*;
-import com.ibm.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_Type;
 
 /**
  * Worker thread for parallel compilation

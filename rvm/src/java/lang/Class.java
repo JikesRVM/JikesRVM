@@ -33,12 +33,12 @@ import java.lang.reflect.TypeVariable;
 import java.net.URL;
 import java.util.ArrayList;
 
-import com.ibm.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.*;
 
-import com.ibm.jikesrvm.VM_Callbacks;
-import com.ibm.jikesrvm.VM_Reflection;
-import com.ibm.jikesrvm.VM_Runtime;
-import com.ibm.jikesrvm.VM_UnimplementedError;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_UnimplementedError;
 
 import gnu.java.lang.reflect.ClassSignatureParser;
 

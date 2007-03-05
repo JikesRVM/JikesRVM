@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-import com.ibm.jikesrvm.*;
+import org.jikesrvm.*;
 /**
  * Test stack resize with native methods, various scenarios:
  *  -first entry to native code:  first resize

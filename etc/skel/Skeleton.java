@@ -8,9 +8,9 @@
  * Copyright ? IBM Corp 2006
  *
  */
-package com.ibm.jikesrvm;       // FILL ME IN with the appropriate package.
+package org.jikesrvm;       // FILL ME IN with the appropriate package.
 
-import com.ibm.jikesrvm.classloader.VM_ClassLoader; // FILL ME IN 
+import org.jikesrvm.classloader.VM_ClassLoader; // FILL ME IN 
 
 /** TODO Substitute a brief description of what this program or library does.
  *

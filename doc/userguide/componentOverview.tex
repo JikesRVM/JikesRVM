@@ -38,17 +38,17 @@ the unnamed package.
 The packages in \jrvm{} include:
 %% XXX TODO Add other packages here.
 \begin{description}
-\item[\texttt{com.ibm.jikesrvm}] Classes for the core runtime, except for library
+\item[\texttt{org.jikesrvm}] Classes for the core runtime, except for library
 support.  This package also contains other classes that are not
 included in one of the other packages, such as the baseline compilers. 
 
-\item[\texttt{com.ibm.jikesrvm.adaptive}] Classes for the adaptive optimization system
+\item[\texttt{org.jikesrvm.adaptive}] Classes for the adaptive optimization system
 
-\item[\texttt{com.ibm.jikesrvm.classloader}] Implementation of classloaders
+\item[\texttt{org.jikesrvm.classloader}] Implementation of classloaders
 and associated data structures including the VM representation of classes,
 methods, etc. 
 
-\item[\texttt{com.ibm.jikesrvm.jni}] Implementation of JNI
+\item[\texttt{org.jikesrvm.jni}] Implementation of JNI
 
 \item[\texttt{org.mmtk}] Classes in the newer MMTk
 (Memory Management Toolkit) collection of memory managers
@@ -70,23 +70,23 @@ methods, etc.
 \item[\texttt{\MMpackage\-.\mminterface{}}] Classes related to
 memory management that deal with the interface to the VM
 
-\item[\texttt{com.ibm.jikesrvm.opt}] Classes related to
+\item[\texttt{org.jikesrvm.opt}] Classes related to
 the \link{optimizing compiler}%
 %[  (See Section~\Ref{} (page~\Pageref) for more details)]%
 {section:optdetails}, except for IR-related classes
 
-\item[\texttt{com.ibm.jikesrvm.opt.ir}] Classes related to the IR
+\item[\texttt{org.jikesrvm.opt.ir}] Classes related to the IR
 (intermediate representation) of the \link{optimizing compiler.}%
 %[ See Section~\Ref{} (page~\Pageref) for more details.]%
 {section:optdetails}
 
-\item[\texttt{com.ibm.jikesrvm.osr}] Classes related to On-Stack-Replacement. 
+\item[\texttt{org.jikesrvm.osr}] Classes related to On-Stack-Replacement. 
 
-\item[\texttt{com.ibm.jikesrvm.eclipse.jdt.launching}] Classes related
+\item[\texttt{org.jikesrvm.eclipse.jdt.launching}] Classes related
 to launching Jikes RVM as a subsidiary VM under Eclipse. 
 %% XXX Link me!
 
-\item[\texttt{com.ibm.jikesrvm.eclipse.ui}] Classes related
+\item[\texttt{org.jikesrvm.eclipse.ui}] Classes related
 to the control panel for the Jikes RVM plugin for Eclipse.
 
 \item[\texttt{org.vmmagic.pragma}] Classes for the \link{VM Magic Pragmas (Pragmata)}{uninterruptible_code}
@@ -101,7 +101,7 @@ machine addresses and other such concepts in Java.
 The distributed directory structure
 does not follow the Java\TMweb{} convention that the source file directory tree
 match the package structure, {\it i.e.},
-there is no {\tt com/ibm/jikesrvm} directory anywhere under \texttt{\$RVM\_ROOT/rvm}.  Instead, the source directory structure follows a more logical 
+there is no {\tt org/jikesrvm} directory anywhere under \texttt{\$RVM\_ROOT/rvm}.  Instead, the source directory structure follows a more logical 
 structure.  The boot image builder
 copies the source files from the \texttt{\$RVM\_ROOT/rvm} tree into a build
 directory.  The scripts that perform this copy create the directory

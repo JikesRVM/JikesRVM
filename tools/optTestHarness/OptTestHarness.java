@@ -11,9 +11,9 @@ import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.io.*;
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.opt.*;
+import org.jikesrvm.*;
+import org.jikesrvm.classloader.*;
+import org.jikesrvm.opt.*;
 
 /**
  * A test harness for the optimizing compiler.

@@ -8,18 +8,18 @@
  */
 package java.lang;
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Runtime;
-import com.ibm.jikesrvm.VM_Statics;
-import static com.ibm.jikesrvm.VM_SysCall.sysCall; // for sysCall.sysGetenv
-import com.ibm.jikesrvm.VM_Time;
-import com.ibm.jikesrvm.VM_UnimplementedError;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_Statics;
+import static org.jikesrvm.VM_SysCall.sysCall; // for sysCall.sysGetenv
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM_UnimplementedError;
 
-import com.ibm.jikesrvm.classloader.VM_Array;
-import com.ibm.jikesrvm.classloader.VM_Atom;
-import com.ibm.jikesrvm.classloader.VM_Class;
-import com.ibm.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
 
 import java.io.*;
 import java.util.List;

@@ -10,11 +10,11 @@ package java.lang;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Options;
-import com.ibm.jikesrvm.VM_StackTrace;
-import com.ibm.jikesrvm.PrintLN;
-import com.ibm.jikesrvm.PrintContainer;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Options;
+import org.jikesrvm.VM_StackTrace;
+import org.jikesrvm.PrintLN;
+import org.jikesrvm.PrintContainer;
 
 /**
  * Jikes RVM implementation of java.lang.Throwable.

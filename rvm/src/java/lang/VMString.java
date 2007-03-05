@@ -11,8 +11,8 @@ package java.lang;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_Statics;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Statics;
 
 /**
  * Implementation of string interning for JikesRVM.

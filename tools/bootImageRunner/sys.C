@@ -839,7 +839,7 @@ extern "C" void processTimerTick(void) {
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    int gcStatus = *(int *) ((char *) VmToc + com_ibm_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset);
+    int gcStatus = *(int *) ((char *) VmToc + org_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
     /*

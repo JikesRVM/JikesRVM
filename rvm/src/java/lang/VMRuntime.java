@@ -10,8 +10,8 @@ package java.lang;
 
 import java.io.File;
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.memorymanagers.mminterface.*;
+import org.jikesrvm.*;
+import org.jikesrvm.memorymanagers.mminterface.*;
 
 import org.vmmagic.unboxed.Offset;
 

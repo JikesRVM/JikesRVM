@@ -86,7 +86,7 @@ static const char* nonStandardUsage[] = {
    "          :help              print usage choices for -X:base",
    "    -X:opt:<option>          Pass <option> on to the optimizing compiler",
    "          :help              Print usage choices for -X:opt",
-   "    -X:vmClasses=<path>      Load the com.ibm.jikesrvm.* and java.* classes",
+   "    -X:vmClasses=<path>      Load the org.jikesrvm.* and java.* classes",
    "                             from <path>, a list like one would give to the",
    "                             -classpath argument.",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",

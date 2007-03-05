@@ -31,11 +31,11 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.zip.ZipFile;
 
-import com.ibm.jikesrvm.classloader.VM_BootstrapClassLoader;
-import com.ibm.jikesrvm.classloader.VM_ClassLoader;
-import com.ibm.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Type;
 
-import com.ibm.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_HashMap;
 
 /**
  * Jikes RVM impl of VMClassLoader.

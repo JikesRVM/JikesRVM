@@ -6,9 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-package com.ibm.jikesrvm.ia32;
+package org.jikesrvm.ia32;
 
-import com.ibm.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific;
 
 /**
  * @author Dave Grove

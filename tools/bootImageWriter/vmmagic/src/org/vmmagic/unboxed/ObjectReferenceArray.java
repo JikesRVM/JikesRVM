@@ -9,7 +9,7 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import com.ibm.jikesrvm.VM;
+import org.jikesrvm.VM;
 
 /**
  * The VM front end is not capable of correct handling an array 

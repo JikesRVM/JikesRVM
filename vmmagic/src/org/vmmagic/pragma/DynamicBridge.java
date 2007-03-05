@@ -25,7 +25,7 @@ import java.lang.annotation.ElementType;
  *    (it is assumed that execution is resumed via a call to VM_Magic.dynamicBridgeTo)
  *
  * @author Bowen Alpern
- * @see com.ibm.jikesrvm.VM_Magic#dynamicBridgeTo(com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray)
+ * @see org.jikesrvm.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.VM_CodeArray)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

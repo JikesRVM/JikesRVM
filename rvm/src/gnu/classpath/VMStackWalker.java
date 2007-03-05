@@ -26,11 +26,11 @@ package gnu.classpath;
  * @date   13 January 2005
  */
 
-import com.ibm.jikesrvm.VM;
-import com.ibm.jikesrvm.VM_StackBrowser;
-import com.ibm.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_StackBrowser;
+import org.jikesrvm.VM_Entrypoints;
 
-import com.ibm.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_Type;
 
 
 public final class VMStackWalker {

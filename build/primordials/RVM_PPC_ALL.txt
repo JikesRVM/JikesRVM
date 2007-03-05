@@ -1,2 +1,2 @@
-[Lcom/ibm/jikesrvm/ppc/opcodeXX;
-[Lcom/ibm/jikesrvm/ppc/opcode_tab;
+[Lorg/jikesrvm/ppc/opcodeXX;
+[Lorg/jikesrvm/ppc/opcode_tab;

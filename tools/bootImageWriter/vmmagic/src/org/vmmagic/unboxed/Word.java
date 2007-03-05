@@ -8,7 +8,7 @@
  */
 package org.vmmagic.unboxed; 
 
-import com.ibm.jikesrvm.VM;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
  
 /**

@@ -10,14 +10,14 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-import com.ibm.jikesrvm.classloader.VM_Class;
-import com.ibm.jikesrvm.classloader.VM_Field;
-import com.ibm.jikesrvm.classloader.VM_TypeReference;
-import com.ibm.jikesrvm.classloader.VM_Type;
-import com.ibm.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_Atom;
 
-import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_Runtime;
 
 import gnu.java.lang.ClassHelper;
 import gnu.java.lang.reflect.FieldSignatureParser;

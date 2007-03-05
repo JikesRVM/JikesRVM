@@ -8,9 +8,9 @@
  */
 package java.lang;
 
-import com.ibm.jikesrvm.VM_ObjectModel;
-import com.ibm.jikesrvm.VM_Lock;
-import com.ibm.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_Lock;
+import org.jikesrvm.VM_Runtime;
 
 /**
  * Jikes RVM implementation of java.lang.Object.

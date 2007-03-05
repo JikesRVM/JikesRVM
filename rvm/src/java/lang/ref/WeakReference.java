@@ -8,7 +8,7 @@
  */
 package java.lang.ref;
 
-import com.ibm.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.WeakReference for JikesRVM.

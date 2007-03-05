@@ -8,8 +8,8 @@
  */
 package java.lang.reflect;
 
-import com.ibm.jikesrvm.classloader.VM_Array;
-import com.ibm.jikesrvm.VM_Runtime;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.VM_Runtime;
 
 /**
  * VM dependent Array operations

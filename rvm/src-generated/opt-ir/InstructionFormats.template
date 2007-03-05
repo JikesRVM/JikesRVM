@@ -132,12 +132,12 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
 
 package INSTRFMTPKG;
 
-import com.ibm.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_Configuration;
 $$$$ IF ARCHITECTURE == "ia32"
-import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_IA32ConditionOperand;
+import org.jikesrvm.ARCHPKG.opt.ir.OPT_IA32ConditionOperand;
 $$$$ ELSE
-import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCConditionOperand;
-import com.ibm.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCTrapOperand;
+import org.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCConditionOperand;
+import org.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCTrapOperand;
 $$$$ END IF
 
 
@@ -749,7 +749,7 @@ $$$$ FOREACH CSIG CommonOperands.dat
 
 package INSTRFMTPKG;
 
-import com.ibm.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_Configuration;
 
 /**
  * InstructionFormats that have a CNAME (which is CTYPE)

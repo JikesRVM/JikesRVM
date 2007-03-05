@@ -760,7 +760,7 @@ sub markupstackline {
     ($class, $line) = /^\s+L(\S+)[;]\s.+ at line (\d+)/;
   }
   my $url;
-  if ($class =~ /com.ibm.jikesrvm/) {
+  if ($class =~ /org.jikesrvm/) {
     $url = "$basesfcodeurl/rvm/src/$class.java?view=markup#l_$line";
   } elsif ($class =~ /org.mmtk/) {
     $url = "$basesfcodeurl/MMTk/src/$class.java?view=markup#l_$line";

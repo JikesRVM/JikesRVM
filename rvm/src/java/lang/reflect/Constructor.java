@@ -8,9 +8,9 @@
  */
 package java.lang.reflect;
 
-import com.ibm.jikesrvm.classloader.*;
-import com.ibm.jikesrvm.VM_Reflection;
-import com.ibm.jikesrvm.VM_Runtime;
+import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.VM_Runtime;
 
 import gnu.java.lang.ClassHelper;
 import gnu.java.lang.reflect.MethodSignatureParser;

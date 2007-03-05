@@ -24,10 +24,10 @@ import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.HashSet;
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import com.ibm.jikesrvm.jni.*;
-import com.ibm.jikesrvm.classloader.*;
+import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.jni.*;
+import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
 

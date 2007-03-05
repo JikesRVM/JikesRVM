@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-import com.ibm.jikesrvm.*;
-import com.ibm.jikesrvm.classloader.*;
+import org.jikesrvm.*;
+import org.jikesrvm.classloader.*;
 import java.lang.reflect.*;
 
 /**

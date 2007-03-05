@@ -340,17 +340,17 @@ Check to make sure all required properties are specified. This includes properti
     <attribute name="operatorList"/>
     <attribute name="rulesList"/>
     <sequential>
-      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir"/>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${build.ir.dir}/OPT_Operator.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_Operator.java"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/OPT_Operator.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
-          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
-          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="INSTRFMTPKG=org.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=org.jikesrvm."/>
           <arg value="ARCHPKG=@{arch}"/>
         </args>
       </GenerateFromTemplate>
@@ -358,13 +358,13 @@ Check to make sure all required properties are specified. This includes properti
       <GenerateFromTemplate>
         <args>
           <arg value="${build.ir.dir}/OPT_Operators.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_Operators.java"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/OPT_Operators.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
-          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
-          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="INSTRFMTPKG=org.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=org.jikesrvm."/>
           <arg value="ARCHPKG=@{arch}"/>
         </args>
       </GenerateFromTemplate>
@@ -373,13 +373,13 @@ Check to make sure all required properties are specified. This includes properti
         <args>
           <arg value="${build.ir.dir}/OPT_OperatorNames.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/OPT_OperatorNames.java"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/OPT_OperatorNames.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
-          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
-          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="INSTRFMTPKG=org.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=org.jikesrvm."/>
           <arg value="ARCHPKG=@{arch}"/>
         </args>
       </GenerateFromTemplate>
@@ -388,28 +388,28 @@ Check to make sure all required properties are specified. This includes properti
         <args>
           <arg value="${build.ir.dir}/InstructionFormats.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/InstructionFormats.RAW"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCH_IF_LIST=${build.ir.dir}/@{arch}/InstructionFormatList.dat"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
-          <arg value="INSTRFMTPKG=com.ibm.jikesrvm.opt.ir"/>
-          <arg value="RVMPKG=com.ibm.jikesrvm."/>
+          <arg value="INSTRFMTPKG=org.jikesrvm.opt.ir"/>
+          <arg value="RVMPKG=org.jikesrvm."/>
           <arg value="ARCHPKG=@{arch}"/>
         </args>
       </GenerateFromTemplate>
 
       <exec executable="${perl.exe}" failonerror="true">
         <arg value="${build.ir.dir}/splitInstructionFormats.perl"/>
-        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir"/>
-        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/ir/InstructionFormats.RAW"/>
+        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir"/>
+        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/InstructionFormats.RAW"/>
       </exec>
 
-      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"/>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${build.burs.dir}/ir.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/ir.brg"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/ir.brg"/>
           <arg value="ARCHITECTURE_IR_DIR=${build.ir.dir}/@{arch}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
           <arg value="THE_RULE_FILE=@{rulesList}"/>
@@ -417,45 +417,45 @@ Check to make sure all required properties are specified. This includes properti
       </GenerateFromTemplate>
 
       <exec executable="${build.jburg.dir}/jburg"
-            dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+            dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
             failonerror="true">
         <arg value="-a"/>
         <arg value="@{arch}."/>
         <arg value="-p"/>
         <arg value="BURS"/>
         <arg value="ir.brg"/>
-        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/jburg.out"/>
+        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/jburg.out"/>
       </exec>
 
       <copy file="${basedir}/tools-external/jburg/burg.template"
-            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt">
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
         </filterset>
       </copy>
       <copy file="${build.burs.dir}/OPT_BURS_TreeNode.template"
-            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt">
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
         </filterset>
       </copy>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/OPT_BURS_TreeNode.java">
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/OPT_BURS_TreeNode.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
                   files="OPT_BURS_TreeNode.template"/>
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
                   files="BURS_State.template"/>
       </concat>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt/OPT_BURS_STATE.java">
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt" files="burg.template"/>
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt" files="jburg.out"/>
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/OPT_BURS_STATE.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt" files="burg.template"/>
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt" files="jburg.out"/>
       </concat>
-      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/@{arch}/opt"/>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${basedir}/rvm/src-generated/opt-scheduler/OPT_OperatorClass.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/opt/OPT_OperatorClass.java"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/OPT_OperatorClass.java"/>
           <arg value="ARCHITECTURE_IR_DIR=@{arch}"/>
           <arg value="ADDRESS_MODE=@{addressSize}"/>
         </args>
@@ -468,7 +468,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="@{arch}" arg2="ia32"/>
       </condition>
       <copy file="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecific.template"
-            tofile="${generated.dir}/@{arch}-@{addressSize}/main/java/com/ibm/jikesrvm/ArchitectureSpecific.java">
+            tofile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/ArchitectureSpecific.java">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
           <filter token="_PPC_QUOTE_" value="${@{arch}-ppc_quote}"/>
@@ -540,12 +540,12 @@ Check to make sure all required properties are specified. This includes properti
   <target name="gen-options" depends="check-properties">
     <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
 
-    <mkdir dir="${generated.java}/com/ibm/jikesrvm/opt"/>
-    <mkdir dir="${generated.java}/com/ibm/jikesrvm/adaptive"/>
+    <mkdir dir="${generated.java}/org/jikesrvm/opt"/>
+    <mkdir dir="${generated.java}/org/jikesrvm/adaptive"/>
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_Options.template"/>
-        <arg value="${generated.java}/com/ibm/jikesrvm/VM_Options.java"/>
+        <arg value="${generated.java}/org/jikesrvm/VM_Options.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.vm.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.vm.dat"/>
       </args>
@@ -553,7 +553,7 @@ Check to make sure all required properties are specified. This includes properti
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_BaselineOptions.template"/>
-        <arg value="${generated.java}/com/ibm/jikesrvm/VM_BaselineOptions.java"/>
+        <arg value="${generated.java}/org/jikesrvm/VM_BaselineOptions.java"/>
         <arg
             value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.baseline.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.baseline.dat ${options.dir}/SharedValueOptions.dat"/>
@@ -563,7 +563,7 @@ Check to make sure all required properties are specified. This includes properti
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/OPT_Options.template"/>
-        <arg value="${generated.java}/com/ibm/jikesrvm/opt/OPT_Options.java"/>
+        <arg value="${generated.java}/org/jikesrvm/opt/OPT_Options.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.opt.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.opt.dat ${options.dir}/SharedValueOptions.dat"/>
         <arg value="MYTYPE=OPT_Options"/>
@@ -572,7 +572,7 @@ Check to make sure all required properties are specified. This includes properti
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_AOSOptions.template"/>
-        <arg value="${generated.java}/com/ibm/jikesrvm/adaptive/VM_AOSExternalOptions.java"/>
+        <arg value="${generated.java}/org/jikesrvm/adaptive/VM_AOSExternalOptions.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.aos.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.aos.dat"/>
         <arg value="MYTYPE=VM_AOSExternalOptions"/>
@@ -581,11 +581,11 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub">
-    <mkdir dir="${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/ia32/opt"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
       <arg value="genAssembler.sh"/>
-      <arg value="${generated.ia32.java}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
+      <arg value="${generated.ia32.java}/org/jikesrvm/ia32/VM_Assembler.java"/>
       <arg value="VM_Assembler.in"/>
     </exec>
 
@@ -609,8 +609,8 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
     <copy todir="${build.ia32-assembler-opt.dir}">
       <fileset dir="${main.java}">
-        <include name="com/ibm/jikesrvm/ia32/VM_RegisterConstants.java"/>
-        <include name="com/ibm/jikesrvm/ia32/VM_AssemblerConstants.java"/>
+        <include name="org/jikesrvm/ia32/VM_RegisterConstants.java"/>
+        <include name="org/jikesrvm/ia32/VM_AssemblerConstants.java"/>
       </fileset>
     </copy>
     <copy todir="${build.ia32-assembler-opt.dir}">
@@ -620,10 +620,10 @@ Check to make sure all required properties are specified. This includes properti
         <include name="ArchitectureSpecific.fake"/>
       </fileset>
     </copy>
-    <copy file="${main.java}/com/ibm/jikesrvm/VM_ForwardReference.java"
-          tofile="${build.ia32-assembler-opt.dir}/com/ibm/jikesrvm/VM_ForwardReference.java"/>
-    <copy file="${generated.ia32.java}/com/ibm/jikesrvm/ia32/VM_Assembler.java"
-          tofile="${build.ia32-assembler-opt.dir}/com/ibm/jikesrvm/ia32/VM_Assembler.java"/>
+    <copy file="${main.java}/org/jikesrvm/VM_ForwardReference.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/VM_ForwardReference.java"/>
+    <copy file="${generated.ia32.java}/org/jikesrvm/ia32/VM_Assembler.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/ia32/VM_Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
@@ -637,20 +637,20 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.ia32-assembler-opt.dir}"/>
       </classpath>
-      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/com/ibm/jikesrvm/ia32/opt"/>
+      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/ia32/opt"/>
     </java>
   </target>
 
   <target name="gen-config-source" depends="check-properties">
 
-    <mkdir dir="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface"/>
+    <mkdir dir="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface"/>
 
-    <condition property="pp_RVM_ARCH_HELPER" value="com.ibm.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
+    <condition property="pp_RVM_ARCH_HELPER" value="org.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
     <condition property="pp_RVM_ARCH_HELPER"
-               value="com.ibm.jikesrvm.ia32.VM_MachineSpecificIA.IA32"
-               else="com.ibm.jikesrvm.ia32.VM_MachineSpecificIA.EM64T">
+               value="org.jikesrvm.ia32.VM_MachineSpecificIA.IA32"
+               else="org.jikesrvm.ia32.VM_MachineSpecificIA.EM64T">
       <and>
         <equals arg1="${target.arch}" arg2="ia32"/>
         <equals arg1="${target.address.size}" arg2="32"/>
@@ -709,7 +709,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
-          tofile="${generated.config.java}/com/ibm/jikesrvm/VM_Configuration.java">
+          tofile="${generated.config.java}/org/jikesrvm/VM_Configuration.java">
       <filterset>
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
@@ -733,7 +733,7 @@ Check to make sure all required properties are specified. This includes properti
     </copy>
     
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Selected.template"
-          tofile="${generated.config.java}/com/ibm/jikesrvm/memorymanagers/mminterface/Selected.java">
+          tofile="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface/Selected.java">
       <filterset>
         <filter token="_PLAN_" value="${config.mmtk.plan}"/>
       </filterset>
@@ -743,7 +743,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
     <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_HeapLayoutConstants.template"
-          tofile="${generated.config.java}/com/ibm/jikesrvm/VM_HeapLayoutConstants.java">
+          tofile="${generated.config.java}/org/jikesrvm/VM_HeapLayoutConstants.java">
       <filterset>
         <filter token="_BOOTIMAGE_DATA_ADDRESS_" value="${target.bootimage.data.address}"/>
         <filter token="_BOOTIMAGE_CODE_ADDRESS_" value="${target.bootimage.code.address}"/>
@@ -844,7 +844,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="OptDummy.java"/>
       <include name="gnu/**/*.java"/>
       <include name="java/**/*.java"/>
-      <include name="com/ibm/jikesrvm/mm/mmtk/**/*.java"/>
+      <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
       <include name="OptTestHarness.java" if="include.opt-test-harness"/>
       <src path="${mmtk-rvm.java}"/>
       <src path="${opt-test-harness.java}"/>
@@ -862,7 +862,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
       <arg value="-s"/>
       <arg value="${build.base}/syscall/java"/>
-      <arg value="${main.java}/com/ibm/jikesrvm/VM_SysCall.java"/>
+      <arg value="${main.java}/org/jikesrvm/VM_SysCall.java"/>
     </exec>
     
     <echo message="second compile (from ${generated.java})"/>
@@ -922,21 +922,21 @@ Check to make sure all required properties are specified. This includes properti
     <fileset id="primordials.main" dir="${build.classes}">
       <include name="**/VM*.class"/>
       <include name="com/**/*.class" if="include.all"/>
-      <include name="com/ibm/jikesrvm/adaptive/**/*.class" if="include.aos"/>
-      <exclude name="com/ibm/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
-      <include name="com/ibm/jikesrvm/opt/**/*.class" if="include.opt"/>
-      <exclude name="com/ibm/jikesrvm/opt/**/*.class" unless="include.opt"/>
-      <exclude name="com/ibm/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
-      <include name="com/ibm/jikesrvm/osr/**/*.class" if="include.opt"/>
-      <exclude name="com/ibm/jikesrvm/osr/**/*.class" unless="include.opt"/>
-      <exclude name="com/ibm/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
-      <include name="com/ibm/jikesrvm/memorymanagers/**/*.class"/>
-      <include name="com/ibm/jikesrvm/mm/mmtk/**/*.class"/>
-      <include name="com/ibm/jikesrvm/${target.arch}/**/*.class"/>
-      <include name="com/ibm/jikesrvm/ArchitectureSpecific$VM*.class"/>
-      <include name="com/ibm/jikesrvm/ArchitectureSpecific$OSR*.class" if="include.opt"/>
-      <include name="com/ibm/jikesrvm/ArchitectureSpecific$OPT*.class" if="include.opt"/>
-      <exclude name="com/ibm/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
+      <include name="org/jikesrvm/adaptive/**/*.class" if="include.aos"/>
+      <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
+      <include name="org/jikesrvm/opt/**/*.class" if="include.opt"/>
+      <exclude name="org/jikesrvm/opt/**/*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
+      <include name="org/jikesrvm/osr/**/*.class" if="include.opt"/>
+      <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
+      <include name="org/jikesrvm/memorymanagers/**/*.class"/>
+      <include name="org/jikesrvm/mm/mmtk/**/*.class"/>
+      <include name="org/jikesrvm/${target.arch}/**/*.class"/>
+      <include name="org/jikesrvm/ArchitectureSpecific$VM*.class"/>
+      <include name="org/jikesrvm/ArchitectureSpecific$OSR*.class" if="include.opt"/>
+      <include name="org/jikesrvm/ArchitectureSpecific$OPT*.class" if="include.opt"/>
+      <exclude name="org/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="org/mmtk/**/*.class"/>
     </fileset>
@@ -1017,7 +1017,7 @@ Check to make sure all required properties are specified. This includes properti
         <path refid="rvm.class.path"/>
       </classpath>
 
-      <sysproperty key="mmtk.hostjvm" value="com.ibm.jikesrvm.mm.mmtk.Factory"/>
+      <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
       <jvmarg value="-Xss2m"/>
       <arg value="-classpath"/>
@@ -1104,7 +1104,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
       </classpath>
-      <sysproperty key="mmtk.hostjvm" value="com.ibm.jikesrvm.mm.mmtk.Factory"/>
+      <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
       <jvmarg value="-Xbootclasspath/a:${build.rt.jar}"/>
       <arg value="-da"/>
       <arg value="${target.bootimage.data.address}"/>
@@ -1121,8 +1121,8 @@ Check to make sure all required properties are specified. This includes properti
   <target name="gen-jni-headers" depends="package">
     <mkdir dir="${build.native}"/>
     <javah destdir="${build.native}" classpath="${build.vm.jar}">
-      <class name="com.ibm.jikesrvm.VM_DynamicLibrary"/>
-      <class name="com.ibm.jikesrvm.VM_Process"/>
+      <class name="org.jikesrvm.VM_DynamicLibrary"/>
+      <class name="org.jikesrvm.VM_Process"/>
     </javah>
   </target>
 
@@ -1234,7 +1234,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/com_ibm_jikesrvm_VM_0005fProcess.C"/>
+      <arg value="${bl.dir}/org_jikesrvm_VM_0005fProcess.C"/>
     </exec>
 
     <!-- create rvmdynlib shared library -->
@@ -1245,7 +1245,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg value="${bl.dir}/com_ibm_jikesrvm_VM_0005fDynamicLibrary.C"/>
+      <arg value="${bl.dir}/org_jikesrvm_VM_0005fDynamicLibrary.C"/>
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
@@ -1454,7 +1454,7 @@ target.dll-prefix=${target.dll-prefix}
       <tag name="todo" scope="all" description="To do:"/>
       <group title="MMTk Packages" packages="org.mmtk.*"/>
       <group title="VM Magic Packages" packages="org.vmmmagic.*"/>
-      <group title="RVM Packages" packages="com.ibm.jikesrvm*"/>
+      <group title="RVM Packages" packages="org.jikesrvm*"/>
 
       <packageset dir="${main.java}" defaultexcludes="yes" includes="com/**,org/**" excludes="**/ppc/**"/>
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>

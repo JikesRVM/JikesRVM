@@ -67,7 +67,7 @@ specified below:
 
 	\item add an import statement for the {\tt VM\_Callbacks} class:
         \begin{example}
-        import com.ibm.jikesrvm.VM\_Callbacks;
+        import org.jikesrvm.VM\_Callbacks;
         \end{example}
 
 	\item before the call to {\tt runOnce} add the following:
@@ -95,7 +95,7 @@ jbuild.tool spec/\-har\-ness/\-Pro\-gram\-Run\-ner.java
 
 or create a stub version of VM\_Callbacks.java and place
 it the appropriate directory structure with your modified file, i.e., 
-{\tt com/ibm/jikesrvm/VM\_Callbacks.java}
+{\tt org/jikesrvm/VM\_Callbacks.java}
 
 \item Run Jikes RVM as you normally would using the SPECjvm98 benchmarks.
 \end{enumerate}

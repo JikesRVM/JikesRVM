@@ -1,2 +1,2 @@
-[Lcom/ibm/jikesrvm/ppc/VM_Code;
-[Lcom/ibm/jikesrvm/ppc/VM_CodeArray;
+[Lorg/jikesrvm/ppc/VM_Code;
+[Lorg/jikesrvm/ppc/VM_CodeArray;

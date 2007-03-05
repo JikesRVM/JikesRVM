@@ -10,8 +10,8 @@ package java.io;
 
 import java.lang.reflect.Field;
 
-import com.ibm.jikesrvm.classloader.VM_Field;
-import com.ibm.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Type;
 
 /**
  * java.io.ObjectStream helper implemented for Jikes RVM.
