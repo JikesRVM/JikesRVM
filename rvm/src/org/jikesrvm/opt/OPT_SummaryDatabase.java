@@ -12,35 +12,17 @@ import org.jikesrvm.util.*;
 import org.jikesrvm.classloader.*;
 
 /**
- * Class that holds class and method summary information
- * This class is a Singleton
+ * Class that holds method summary information.
+ * This class is a Singleton.
  *
- * <p> This database holds several types of summaries:
+ * <p> This database holds summaries:
  *  <ul>
- *   <li>OPT_ClassSummary, indexed by VM_Class
  *   <li>OPT_MethodSummary, indexed by VM_Method
  *  </ul>
  *
  * @author Stephen Fink
  */
 public class OPT_SummaryDatabase {
-
-  /** 
-   * Make sure the database is initialized.
-   * Calling this more than once is harmless.
-   */
-  public static void init () {}
-
-//  /** 
-//   * Lookup a given class in the database.
-//   * 
-//   * @return OPT_ClassSummary instance representing class. 
-//   *  null if not found
-//   */
-//  public static synchronized OPT_ClassSummary findClassSummary (VM_Class c) {
-//    return  (OPT_ClassSummary)hash.get(c);
-//  }
-
   /** 
    * Lookup a given method in the database
    * 
@@ -62,8 +44,4 @@ public class OPT_SummaryDatabase {
   /** Implementation */
   private static final VM_HashMap<VM_Method,OPT_MethodSummary> hash = 
     new VM_HashMap<VM_Method,OPT_MethodSummary>();
-
 }
-
-
-
