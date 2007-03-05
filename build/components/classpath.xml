@@ -6,6 +6,10 @@
   <property name="classpath.version" value="93"/>
   <property name="classpath.description" value="GNU Classpath (Generics Branch)"/>
 
+  <property name="classpath.component.dir" location="${components.dir}/classpath"/>
+  <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
+  <property name="classpath.dir" value="${classpath.package.dir}/classpath"/>
+  
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Classpath component             * -->
@@ -15,10 +19,6 @@
   <!-- init properties for downloading classpath from cvs or from web -->
   <target name="init-classpath-properties" depends="prepare-ant-tasks">
     <check-host-and-target-match message="can not download and build Classpath."/>
-    <property name="classpath.component.dir" location="${components.dir}/classpath"/>
-    <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
-    <property name="classpath.dir" value="${classpath.package.dir}/classpath"/>
-
     <condition property="classpath.from-web" value="true">
       <and>
         <not>
@@ -154,7 +154,7 @@
     <setComponentsConfig key="${target.name}.classpath.lib.dir" value="${classpath.package.dir}/${target.name}/lib"/>
   </target>
 
-  <target name="ensure" depends="init-classpath-properties">
+  <target name="ensure" depends="prepare-ant-tasks">
     <ensureUptodate name="classpath" dir="${classpath.package.dir}/${target.name}/lib"/>
   </target>
 

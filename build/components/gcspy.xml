@@ -6,6 +6,10 @@
   <property name="gcspy.version" value="1_01"/>
   <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
 
+  <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
+  <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
+  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing GCSpy component                 * -->
@@ -15,9 +19,6 @@
   <target name="init-gcspy-properties" depends="prepare-ant-tasks">
     <check-host-and-target-match message="can not download and build GCSpy."/>
 
-    <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
-    <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
-    <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
     <condition property="gcspy.from-web" value="true">
       <or>
         <not>
@@ -108,7 +109,7 @@
     <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/server"/>
   </target>
 
-  <target name="ensure-client" depends="init-gcspy-properties">
+  <target name="ensure-client" depends="prepare-ant-tasks">
     <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/client"/>
   </target>
 

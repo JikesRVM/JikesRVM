@@ -5,6 +5,10 @@
   <property name="jai.version" value="1_1_2_01"/>
   <property name="jai.description" value="Java Advanced Imaging Toolkit"/>
 
+  <property name="jai.component.dir" location="${components.dir}/jai"/>
+  <property name="jai.package.dir" value="${jai.component.dir}/${jai.version}"/>
+  <property name="jai.dir" value="${jai.component.dir}/${jai.version}/jai-${jai.version}"/>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *  Downloading and installing Java Advanced Imaging component (for GCSpy)  * -->
@@ -13,9 +17,7 @@
 
   <target name="init-jai-properties" depends="prepare-ant-tasks">
     <check-host-and-target-match message="can not download Java Advanced Imaging component."/>
-    <property name="jai.component.dir" location="${components.dir}/jai"/>
-    <property name="jai.package.dir" value="${jai.component.dir}/${jai.version}"/>
-    <property name="jai.dir" value="${jai.component.dir}/${jai.version}/jai-${jai.version}"/>
+
     <condition property="jai.from-web" value="true">
       <or>
         <not>
@@ -68,7 +70,7 @@
     <setComponentsConfig key="${target.name}.jai.lib.dir" value="${jai.package.dir}/${target.name}/lib"/>
   </target>
 
-  <target name="ensure" depends="init-jai-properties">
+  <target name="ensure" depends="prepare-ant-tasks">
     <ensureUptodate name="jai" dir="${jai.package.dir}/${target.name}/lib"/>
   </target>
 

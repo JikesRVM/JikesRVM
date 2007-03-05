@@ -5,6 +5,8 @@
   <property name="ecj.version" value="3.2"/>
   <property name="ecj.description" value="Eclipse Compiler"/>
 
+  <property name="ecj.dir" location="${components.dir}/ecj/${ecj.version}/ecj-${ecj.version}"/>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Eclipse compiler                * -->
@@ -12,7 +14,6 @@
   <!-- **************************************************************************** -->
 
   <target name="init-ecj-properties" depends="prepare-ant-tasks">
-    <property name="ecj.dir" location="${components.dir}/ecj/${ecj.version}/ecj-${ecj.version}"/>
     <condition property="ecj.from-web" value="true">
       <or>
         <not>
@@ -38,7 +39,7 @@ java -Xmx256m -jar "`dirname "$0"`/ecj.jar" -warn:-unusedPrivate "$@"
     <setComponentsConfig key="ecj.dir" value="${ecj.dir}"/>
   </target>
 
-  <target name="ensure" depends="init-ecj-properties">
+  <target name="ensure" depends="prepare-ant-tasks">
     <ensureUptodate name="ecj" dir="${ecj.dir}"/>
   </target>
 
