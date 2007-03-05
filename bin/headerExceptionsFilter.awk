@@ -22,7 +22,7 @@
 # short as possible, and all exceptions need to be
 # approved by the steering committee.
 #
-/\/tools-external\// { next }
+/\/rvm\/src-generated\/opt-burs\/jburg\// { next }
 
 # Avoid reporting a gazillion bogus violations when
 # this script is run from night-sanity-run

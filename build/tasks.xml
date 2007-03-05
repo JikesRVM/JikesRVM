@@ -8,7 +8,6 @@
 
   <property name="tasks.dir" location="${build.dir}/tasks"/>
   <property name="tasks.classes" location="${tasks.dir}/classes"/>
-  <property name="ant.jar" location="${jikesrvm.dir}/tools-external/apache-ant-1.6.5/lib/ant.jar"/>
 
   <target name="prepare-ant-tasks">
     <mkdir dir="${tasks.classes}"/>

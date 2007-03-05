@@ -426,7 +426,7 @@ Check to make sure all required properties are specified. This includes properti
         <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/jburg.out"/>
       </exec>
 
-      <copy file="${basedir}/tools-external/jburg/burg.template"
+      <copy file="${basedir}/rvm/src-generated/opt-burs/jburg/burg.template"
             todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
@@ -483,16 +483,16 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.jburg.dir}"/>
     <exec executable="${bison.exe}" failonerror="true">
       <arg value="--output=${build.jburg.dir}/gram.c"/>
-      <arg value="${basedir}/tools-external/jburg/gram.y"/>
+      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg/gram.y"/>
     </exec>
     <exec executable="${c.exe}" failonerror="true">
       <arg
           line="-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes -Wno-undef"/>
       <arg value="-I"/>
-      <arg value="${basedir}/tools-external/jburg"/>
+      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg"/>
       <arg value="-o"/>
       <arg value="${build.jburg.dir}/jburg"/>
-      <arg value="${basedir}/tools-external/jburg/jburg.c"/>
+      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg/jburg.c"/>
       <arg value="${build.jburg.dir}/gram.c"/>
     </exec>
   </target>
