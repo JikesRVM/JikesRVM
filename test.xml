@@ -26,7 +26,7 @@
   <property name="mail.to" value="jikesrvm-regression@lists.sourceforge.net"/>
   <property name="mail.host" value="localhost"/>
   <property name="mail.port" value="25"/>
-  <property name="host.name" value="Unknown"/>
+  <property name="reporting.host.name" value="Unknown"/>
   
   <!-- properties defining where to upload -->
   <property name="upload.location" value=""/>
@@ -333,7 +333,7 @@
       <arg value="-p"/>
       <arg value="Linux.i686.32"/>
       <arg value="-h"/>
-      <arg value="${host.name}"/>
+      <arg value="${reporting.host.name}"/>
       <arg value="-s"/>
       <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
       <arg value="-o"/>
