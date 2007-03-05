@@ -1165,7 +1165,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.includes"
               value="-I${bl.dir} -I${basedir}/include -I${build.native} -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
 
-    <property name="rvm.defines" value="-D_REENTRANT ${filter} -DHAVE_CXX_STRTOLD=1 "/>
+    <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
 
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines}"/>
     <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>

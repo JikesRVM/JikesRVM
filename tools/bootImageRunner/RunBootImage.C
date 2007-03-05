@@ -534,17 +534,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                                    prototype for strtold() or strtod().   This
                                    is probably a bug in the specification
                                    of the prototype. */
-#ifdef HAVE_CXX_STRTOLD
-        /* This gets around some nastiness in AIX 5.1, where <stdlib.h> only
-           prototypes strtold() if we're using the 96 or 128 bit "long double"
-           type.  Which is an option to the IBM Visual Age C compiler, but
-           apparently not (yet) available for GCC.  */
-
     userNum = strtold(subtoken, &endp);
-#else
-    userNum = strtod(subtoken, &endp);
-#endif
-
     if (endp == subtoken) {
         fprintf(SysTraceFile, "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
         *fastExit = true;
