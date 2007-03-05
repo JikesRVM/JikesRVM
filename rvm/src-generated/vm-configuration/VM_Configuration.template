@@ -74,7 +74,7 @@ public abstract class VM_Configuration {
           VM._assert(xxx);
       </pre> 
   */
-  public static final boolean VerifyAssertions = @_RVM_WITHOUT_ASSERTIONS_@;
+  public static final boolean VerifyAssertions = @_RVM_WITH_ASSERTIONS_@;
   public static final boolean ExtremeAssertions = @_RVM_WITH_EXTREME_ASSERTIONS_@;
 
   /**  

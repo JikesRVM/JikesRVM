@@ -674,8 +674,8 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_ALL_CLASSES" value="true" else="false">
       <equals arg1="${config.include.all-classes}" arg2="1"/>
     </condition>
-    <condition property="pp_RVM_WITHOUT_ASSERTIONS" value="true" else="false">
-      <equals arg1="${config.assertions}" arg2="none"/>
+    <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
+      <equals arg1="${config.assertions}" arg2="normal"/>
     </condition>
     <condition property="pp_RVM_WITH_EXTREME_ASSERTIONS" value="true" else="false">
       <equals arg1="${config.assertions}" arg2="extreme"/>
@@ -719,7 +719,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_" value="${pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS}"/>
         <filter token="_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR_" value="${pp_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${pp_RVM_WITH_ALL_CLASSES}"/>
-        <filter token="_RVM_WITHOUT_ASSERTIONS_" value="${pp_RVM_WITHOUT_ASSERTIONS}"/>
+        <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${pp_RVM_WITH_ADAPTIVE_SYSTEM}"/>
         <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
