@@ -252,7 +252,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
 
   /**
    * Promotes a light-weight lock to a heavy-weight lock and locks it.
-   * Note: the object is question will normally be locked by another
+   * Note: the object in question will normally be locked by another
    * thread, or it may be unlocked.  If there is already a
    * heavy-weight lock on this object, that lock is returned.
    *
