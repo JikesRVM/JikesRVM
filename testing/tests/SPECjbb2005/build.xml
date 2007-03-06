@@ -7,11 +7,9 @@
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
 
-  <condition property="spec.props" value="perf" else="sanity">
+  <condition property="spec.args" value="-propfile SPECjbb.props" else="-propfile SPECjbb.sanity.props">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-
-  <property name="spec.args" value="-propfile SPECjbb.sanity.props"/>
 
   <import file="../../../build/tests.xml"/>
 
@@ -47,7 +45,7 @@
   <target name="test" depends="prepare-dirs">
 
     <startResults/>
-    <rvm tag="SPECjbb2005" class="spec.jbb.JBBmain" args="-propfile SPECjbb.${spec.props}.props"/>
+    <rvm tag="SPECjbb2005" class="spec.jbb.JBBmain" args="${spec.args}"/>
 
     <outputTestStart tag="SPECjbb2005"/>
     <outputStatisticStart/>
