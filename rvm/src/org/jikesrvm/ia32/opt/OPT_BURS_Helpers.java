@@ -151,44 +151,89 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     }
   }
 
-  protected final int isFPC_ONE(OPT_Instruction s, int trueCost) {
-    return isFPC_ONE(s, trueCost, INFINITE);
-  }
-  protected final int isFPC_ONE(OPT_Instruction s, int trueCost, int falseCost) {
+  private static final double LG2 = Double.parseDouble("0.3010299956639811952256464283594894482");
+  private static final double LN2 = Double.parseDouble("0.6931471805599453094286904741849753009");
+  private static final double L2E = Double.parseDouble("1.4426950408889634073876517827983434472");
+  private static final double L2T = Double.parseDouble("3.3219280948873623478083405569094566090");
+
+  protected final int is387_FPC(OPT_Instruction s, int trueCost) {
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      return fc.value == 1.0f ? trueCost : falseCost;
+      if (fc.value == 1.0f) {
+        return trueCost;
+      } else if (fc.value == 0.0f) {
+      return trueCost;
+      } else if (fc.value == (float)Math.PI) {
+        return trueCost;
+      } else if (fc.value == (float)LG2) {
+        return trueCost;
+      } else if (fc.value == (float)LN2) {
+        return trueCost;
+      } else if (fc.value == (float)L2E) {
+        return trueCost;
+      } else if (fc.value == (float)L2T) {
+        return trueCost;
+      }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      return dc.value == 1.0 ? trueCost : falseCost;
+      if (dc.value == 1.0) {
+        return trueCost;
+      } else if (dc.value == 0.0) {
+        return trueCost;
+      } else if (dc.value == Math.PI) {
+        return trueCost;
+      } else if (dc.value == LG2) {
+        return trueCost;
+      } else if (dc.value == LN2) {
+        return trueCost;
+      } else if (dc.value == L2E) {
+        return trueCost;
+      } else if (dc.value == L2T) {
+        return trueCost;
+      }
     }
+    return INFINITE;
   }
-  protected final int isFPC_ZERO(OPT_Instruction s, int trueCost) {
-    return isFPC_ZERO(s, trueCost, INFINITE);
-  }
-  protected final int isFPC_ZERO(OPT_Instruction s, int trueCost, int falseCost) {
+
+  protected final OPT_Operator get387_FPC(OPT_Instruction s) {
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      return fc.value == 0.0f ? trueCost : falseCost;
+      if (fc.value == 1.0f) {
+        return IA32_FLD1;
+      } else if (fc.value == 0.0f) {
+        return IA32_FLDZ;
+      } else if (fc.value == (float)Math.PI) {
+        return IA32_FLDPI;
+      } else if (fc.value == (float)LG2) {
+        return IA32_FLDLG2;
+      } else if (fc.value == (float)LN2) {
+        return IA32_FLDLN2;
+      } else if (fc.value == (float)L2E) {
+        return IA32_FLDL2E;
+      } else if (fc.value == (float)L2T) {
+        return IA32_FLDL2T;
+      }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      return dc.value == 0.0 ? trueCost : falseCost;
+      if (dc.value == 1.0) {
+        return IA32_FLD1;
+      } else if (dc.value == 0.0) {
+        return IA32_FLDZ;
+      } else if (dc.value == Math.PI) {
+        return IA32_FLDPI;
+      } else if (dc.value == LG2) {
+        return IA32_FLDLG2;
+      } else if (dc.value == LN2) {
+        return IA32_FLDLN2;
+      } else if (dc.value == L2E) {
+        return IA32_FLDL2E;
+      } else if (dc.value == L2T) {
+        return IA32_FLDL2T;
+      }
     }
-  }
-  protected final int isFPC_PI(OPT_Instruction s, int trueCost) {
-    return isFPC_PI(s, trueCost, INFINITE);
-  }
-  protected final int isFPC_PI(OPT_Instruction s, int trueCost, int falseCost) {
-    OPT_Operand val = Binary.getVal2(s);
-    if (val instanceof OPT_FloatConstantOperand) {
-      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      return fc.value == (float)Math.PI ? trueCost : falseCost;
-    } else {
-      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      return dc.value == Math.PI ? trueCost : falseCost;
-    }
+    throw new OPT_OptimizingCompilerException("OPT_BURS_Helpers", "unexpected 387 constant "+val);
   }
 
   protected final OPT_IA32ConditionOperand COND(OPT_ConditionOperand op) {
