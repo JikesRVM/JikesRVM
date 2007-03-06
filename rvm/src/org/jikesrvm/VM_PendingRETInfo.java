@@ -23,12 +23,17 @@ public final class VM_PendingRETInfo {
 
   // --------------------- Instance Data -------------------
 
-  public int JSRSubStartByteIndex;
-  public int JSRBBNum;
-  public int returnAddressLocation;  // index into map - represents either a local
-                                     // variable or a stack position
+  public final int JSRSubStartByteIndex;
+  public final int JSRBBNum;
+  /**
+   * index into map - represents either a local variable or a stack
+   * position
+   */
+  public int returnAddressLocation;
+  /** Sanity check the return address location is only updated once */
   private boolean updatedOnce;
-  public short JSRNextBBNum;     // Block number of block after JSR
+  /** Block number of block after JSR */
+  public final short JSRNextBBNum;
 
   // --------------------- Constructors ----------------------------
 
