@@ -24,7 +24,7 @@ extern "C" {
 } /* un-confuse the auto-indenter */
 #endif
 
-#include "../../include/cAttributePortability.h"
+#include "cAttributePortability.h"
 #include "../../include/jni.h"
 
 #ifdef RVM_FOR_32_ADDR

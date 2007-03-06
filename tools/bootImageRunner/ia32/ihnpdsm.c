@@ -80,7 +80,7 @@
 #include <limits.h>
 
 #include "ihnpdsm.h"
-#include "../../../include/cAttributePortability.h"
+#include "../cAttributePortability.h"
 
 /***************************************************************************/
 /*       Set the default state of the conditionally invalid opcodes        */
