@@ -676,7 +676,9 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.all-classes}" arg2="1"/>
     </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
-      <equals arg1="${config.assertions}" arg2="normal"/>
+      <not>
+        <equals arg1="${config.assertions}" arg2="normal"/>
+      </not>
     </condition>
     <condition property="pp_RVM_WITH_EXTREME_ASSERTIONS" value="true" else="false">
       <equals arg1="${config.assertions}" arg2="extreme"/>
