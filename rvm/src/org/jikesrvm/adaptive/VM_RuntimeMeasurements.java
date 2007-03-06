@@ -147,21 +147,18 @@ public abstract class VM_RuntimeMeasurements {
       } 
 
       // Notify all registered listeners
-      VM_NullListener[] nl = timerNullListeners; // side-step dangerous race condition
-      for (VM_NullListener aNl : nl) {
+      for (VM_NullListener aNl : timerNullListeners) {
         if (aNl.isActive()) {
           aNl.update(whereFrom);
         }
       }
-      VM_MethodListener[] ml = timerMethodListeners; // side-step dangerous race condition
-      for (VM_MethodListener aMl : ml) {
+      for (VM_MethodListener aMl : timerMethodListeners) {
         if (aMl.isActive()) {
           aMl.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
         }
       }
       if (ypTakenInCallerCMID != -1) {
-        VM_ContextListener[] cl = timerContextListeners; // side-step dangerous race condition
-        for (VM_ContextListener aCl : cl) {
+        for (VM_ContextListener aCl : timerContextListeners) {
           if (aCl.isActive()) {
             aCl.update(ypTakenInFP, whereFrom);
           }
@@ -252,8 +249,7 @@ public abstract class VM_RuntimeMeasurements {
       } 
  
       // Notify all registered listeners
-      VM_MethodListener[] ml = cbsMethodListeners; // side-step dangerous race condition
-      for (VM_MethodListener methodListener : ml) {
+      for (VM_MethodListener methodListener : cbsMethodListeners) {
         if (methodListener.isActive()) {
           methodListener.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
         }
@@ -300,8 +296,7 @@ public abstract class VM_RuntimeMeasurements {
         // drop sample
       } else {
         // Notify all registered listeners
-        VM_ContextListener[] cl = cbsContextListeners; // side-step dangerous race condition
-        for (VM_ContextListener listener : cl) {
+        for (VM_ContextListener listener : cbsContextListeners) {
           if (listener.isActive()) {
             listener.update(ypTakenInFP, whereFrom);
           }
