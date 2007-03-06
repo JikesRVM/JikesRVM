@@ -511,11 +511,23 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 
     if (signum == SIGTERM) {
 
-        fprintf(SysTraceFile, "%s: kill requested: (exiting)\n", Me);
-        /* This process was killed from the command line with a DumpStack
-           signal.
-
-           Dump the stack by returning to VM_Scheduler.dumpStackAndDie(),
+        // Presumably we received this signal because someone wants us
+        // to shut down.  Exit directly (unless the lib_verbose flag is set).
+        // TODO: Run the shutdown hooks instead.
+        if (!lib_verbose) {
+            /* Now reraise the signal.  We reactivate the signal's
+               default handling, which is to terminate the process.
+               We could just call `exit' or `abort',
+               but reraising the signal sets the return status
+               from the process correctly.
+               TODO: Go run shutdown hooks before we re-raise the signal. */
+            signal(signum, SIG_DFL);
+            raise(signum);
+            return;
+        }
+        
+        fprintf(SysTraceFile, "%s: kill requested: invoking dumpStackAndDie\n", Me);
+        /* Dump the stack by returning to VM_Scheduler.dumpStackAndDie(),
            passing it the FP of the current thread.
 
            Note that "jtoc" is not necessarily valid, because we might have
