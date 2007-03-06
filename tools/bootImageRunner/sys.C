@@ -1267,7 +1267,7 @@ sysVirtualProcessorStartup(void *args)
 // Returned: nothing
 //
 extern "C" void
-sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
+sysVirtualProcessorBind(int UNUSED cpuId)
 {
 #ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
@@ -1923,7 +1923,7 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 extern "C" void
-sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
+sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 {
 #ifdef DEBUG_SYS
     fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
@@ -2077,9 +2077,9 @@ sysMSync(char *start, size_t length, int flags)
 //        advice (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMAdvise(char POSSIBLY_UNUSED      *start,
-           size_t POSSIBLY_UNUSED   length,
-           int POSSIBLY_UNUSED      advice)
+sysMAdvise(char UNUSED      *start,
+           size_t UNUSED   length,
+           int UNUSED      advice)
 {
   return madvise(start, length, advice);
 }

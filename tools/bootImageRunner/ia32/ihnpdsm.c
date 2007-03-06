@@ -80,14 +80,7 @@
 #include <limits.h>
 
 #include "ihnpdsm.h"
-
-#ifndef UNUSED                  // we're having trouble with some g++ versions
-                                // doing "unused"
-#define UNUSED __attribute__((unused))
-/* In GNU C, __attribute__((unused)) really means "possibly unused". */
-#define POSSIBLY_UNUSED UNUSED
-#endif
-
+#include "../../../include/cAttributePortability.h"
 
 /***************************************************************************/
 /*       Set the default state of the conditionally invalid opcodes        */
