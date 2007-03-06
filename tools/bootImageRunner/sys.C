@@ -3031,7 +3031,7 @@ sysVMMathCbrt(double a) {
 
 extern "C" double
 sysVMMathExpm1(double a) {
-    return cosh(a);
+    return expm1(a);
 }
 
 extern "C" double
