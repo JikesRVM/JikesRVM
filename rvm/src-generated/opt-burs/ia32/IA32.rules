@@ -363,6 +363,12 @@ EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
 
+r:	MATERIALIZE_FP_CONSTANT(riv)
+isFPC_PI(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDPI, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
 # Use FLD1/FLDZ to avoid loading from the JTOC
 r:	MATERIALIZE_FP_CONSTANT(GET_JTOC(r))
 isFPC_ONE(P(p), 26)
@@ -374,6 +380,12 @@ r:	MATERIALIZE_FP_CONSTANT(GET_JTOC(r))
 isFPC_ZERO(P(p), 26)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
+r:	MATERIALIZE_FP_CONSTANT(GET_JTOC(r))
+isFPC_PI(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDPI, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
 
 ##################################

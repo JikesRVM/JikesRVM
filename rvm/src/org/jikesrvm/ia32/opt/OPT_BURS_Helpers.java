@@ -177,6 +177,19 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
       return dc.value == 0.0 ? trueCost : falseCost;
     }
   }
+  protected final int isFPC_PI(OPT_Instruction s, int trueCost) {
+    return isFPC_PI(s, trueCost, INFINITE);
+  }
+  protected final int isFPC_PI(OPT_Instruction s, int trueCost, int falseCost) {
+    OPT_Operand val = Binary.getVal2(s);
+    if (val instanceof OPT_FloatConstantOperand) {
+      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
+      return fc.value == (float)Math.PI ? trueCost : falseCost;
+    } else {
+      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
+      return dc.value == Math.PI ? trueCost : falseCost;
+    }
+  }
 
   protected final OPT_IA32ConditionOperand COND(OPT_ConditionOperand op) {
     return new OPT_IA32ConditionOperand(op);
