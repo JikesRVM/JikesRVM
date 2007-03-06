@@ -10,7 +10,6 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.opt.ir.*;
 import java.util.Enumeration;
-import java.util.Iterator;
 
 /**
  * An object that returns an estimate of the relative cost of spilling a 
@@ -41,8 +40,8 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
   void calculate(OPT_IR ir) {
     for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock bb = e.nextElement();
-      for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator();ie.hasNext();) {
-        OPT_Instruction s = ie.next();
+      for (Enumeration<OPT_Instruction> ie = bb.forwardInstrEnumerator();ie.hasMoreElements();) {
+        OPT_Instruction s = ie.nextElement();
         double factor = (bb.getInfrequent()) ? 0.0 : 1.0;
         if (s.isMove()) {
           factor *= MOVE_FACTOR;

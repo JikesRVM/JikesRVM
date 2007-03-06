@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.ia32.opt;
 
-import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.opt.OPT_CompilerPhase;
@@ -17,6 +16,7 @@ import org.jikesrvm.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.opt.ir.OPT_BasicBlockEnumeration;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_Instruction;
+import org.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.opt.ir.OPT_Operand;
 import org.jikesrvm.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.opt.ir.OPT_Operators;
@@ -74,7 +74,8 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
 
     for (OPT_BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
       OPT_BasicBlock bb = be.nextElement();
-      for (Iterator<OPT_Instruction> ie  = bb.forwardInstrEnumerator(); ie.hasNext(); ) {
+      for (OPT_InstructionEnumeration ie  = bb.forwardInstrEnumerator(); 
+           ie.hasMoreElements(); ) {
         OPT_Instruction s = ie.next();
 
         // clear the cache of register assignments

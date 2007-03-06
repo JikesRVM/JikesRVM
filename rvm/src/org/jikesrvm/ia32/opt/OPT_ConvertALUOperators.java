@@ -16,7 +16,6 @@ import org.jikesrvm.opt.OPT_Simplifier;
 import org.jikesrvm.opt.ir.*;
 
 import org.vmmagic.pragma.*;
-import java.util.Iterator;
 
 /**
  * <ul>
@@ -107,8 +106,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // chance we've missed an opportunity...)
     // BURS assumes that this has been done, so we must do it even if
     // OPTIMIZE is false.
-    Iterator<OPT_Instruction> instrs = ir.forwardInstrEnumerator();
-    for (; instrs.hasNext();) {
+    for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator();
+         instrs.hasMoreElements();) {
       OPT_Instruction s = instrs.next(); 
       OPT_Simplifier.simplify(ir.regpool, s);
     }

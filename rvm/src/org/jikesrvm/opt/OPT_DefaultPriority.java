@@ -9,8 +9,6 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.opt.ir.*;
-import java.util.Iterator;
-
 /**
  * Default (IR-order) instruction list
  * Used by the scheduler to enumerate over instructions
@@ -23,11 +21,12 @@ class OPT_DefaultPriority extends OPT_Priority {
   // Underlying enumeration.
   private OPT_BasicBlock bb;
   private OPT_Instruction i;
-  private Iterator<OPT_Instruction> instr;
+  private OPT_InstructionEnumeration instr;
 
   /**
    * Creates new priority object for a given basic block
    *
+   * @param ir IR in question
    * @param bb basic block
    */
   public OPT_DefaultPriority (OPT_BasicBlock bb) {
@@ -49,8 +48,8 @@ class OPT_DefaultPriority extends OPT_Priority {
    *
    * @return true if there are more instructions, false otherwise
    */
-  public final boolean hasNext() {
-    return  i != null || instr.hasNext();
+  public final boolean hasMoreElements () {
+    return  i != null || instr.hasMoreElements();
   }
 
   /**
@@ -58,7 +57,7 @@ class OPT_DefaultPriority extends OPT_Priority {
    *
    * @return the next instruction in sequence
    */
-  public final OPT_Instruction next() {
+  public final OPT_Instruction next () {
     if (i != null) {
       OPT_Instruction r = i;
       i = null;
@@ -66,8 +65,6 @@ class OPT_DefaultPriority extends OPT_Priority {
     }
     return  instr.next();
   }
-
-  public void remove() { throw new UnsupportedOperationException(); }
 }
 
 

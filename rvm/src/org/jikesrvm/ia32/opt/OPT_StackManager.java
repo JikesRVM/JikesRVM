@@ -26,6 +26,7 @@ import org.jikesrvm.opt.ir.MIR_TrapIf;
 import org.jikesrvm.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_Instruction;
+import org.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.opt.ir.OPT_Operand;
 import org.jikesrvm.opt.ir.OPT_OperandEnumeration;
@@ -783,7 +784,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
 
     boolean seenReturn = false;
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       
       if (s.isReturn()) {

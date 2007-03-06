@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Stack;
-import java.util.Iterator;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
 import org.vmmagic.pragma.*;
@@ -256,7 +255,8 @@ public final class OPT_IR {
    * Print the instructions in this IR to System.out.
    */
   public void printInstructions() {
-    for (Iterator<OPT_Instruction> e = forwardInstrEnumerator(); e.hasNext(); ) {
+    for (OPT_InstructionEnumeration e = forwardInstrEnumerator(); 
+         e.hasMoreElements(); ) {
       OPT_Instruction i = e.next();
       System.out.print(i.bcIndex+"\t"+i);
 
@@ -319,10 +319,10 @@ public final class OPT_IR {
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
-   * @return an Iterator&lt;OPT_Instruction&gt; that enumerates the
+   * @return an OPT_InstructionEnumeration that enumerates the
    *         instructions in forward code order.
    */
-  public Iterator<OPT_Instruction> forwardInstrEnumerator() {
+  public OPT_InstructionEnumeration forwardInstrEnumerator() {
     return OPT_IREnumeration.forwardGlobalIE(this);
   }
 
@@ -331,10 +331,10 @@ public final class OPT_IR {
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
-   * @return an Iterator&lt;OPT_Instruction&gt; that enumerates the
+   * @return an OPT_InstructionEnumeration that enumerates the
    *         instructions in reverse code order.
    */
-  public Iterator<OPT_Instruction> reverseInstrEnumerator() {
+  public OPT_InstructionEnumeration reverseInstrEnumerator() {
     return OPT_IREnumeration.reverseGlobalIE(this);
   }
 
@@ -912,7 +912,7 @@ public final class OPT_IR {
       OPT_BasicBlock block = bbEnum.nextElement();
       OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(this, block);
       boolean startingInstructionsPassed = false;
-      while (instructions.hasNext()) {
+      while (instructions.hasMoreElements()) {
         OPT_Instruction instruction = instructions.next();
         // Perform (1) and (3)
         OPT_IREnumeration.AllUsesEnum useOperands = new OPT_IREnumeration.AllUsesEnum(this, instruction);
@@ -984,7 +984,7 @@ public final class OPT_IR {
               verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
             }
           }
-          if(instructions.hasNext()) {
+          if(instructions.hasMoreElements()) {
             verror(where, "Unexpected instructions after BBEND " + instructions.next());
           }
           break;
@@ -1004,12 +1004,12 @@ public final class OPT_IR {
           if(BBend.conforms(next) == false) {
             verror(where, "Unexpected instruction after " + instruction + "\n" + next);
           }
-          if(instructions.hasNext()) {
+          if(instructions.hasMoreElements()) {
             verror(where, "Unexpected instructions after BBEND " + instructions.next());
           }
           break;
         case BBEND_opcode:
-          if(instructions.hasNext()) {
+          if(instructions.hasMoreElements()) {
             verror(where, "Unexpected instructions after BBEND " + instructions.next());
           }
           break;
@@ -1202,7 +1202,7 @@ public final class OPT_IR {
     path.add(curBB);
     // Process instructions in block
     OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(this, curBB);
-    while (instructions.hasNext()) {
+    while (instructions.hasMoreElements()) {
       OPT_Instruction instruction = instructions.next();
       // Special phi handling case
       if(Phi.conforms(instruction)) {

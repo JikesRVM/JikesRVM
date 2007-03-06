@@ -10,7 +10,6 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
-import java.util.Iterator;
 
 /**
  * This pass adjusts branch probabilities derived from static estimates
@@ -53,7 +52,8 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
           // Found an edge to an infrequent block.
           // Look to see if there is a conditional branch that we need to adjust
           OPT_Instruction condBranch = null;
-          for (Iterator<OPT_Instruction> ie = source.enumerateBranchInstructions(); ie.hasNext();) {
+          for (OPT_InstructionEnumeration ie = source.enumerateBranchInstructions(); 
+               ie.hasMoreElements();) {
             OPT_Instruction s = ie.next();
             if (IfCmp.conforms(s) && 
                 IfCmp.getBranchProfile(s).takenProbability == 0.5f) {
@@ -80,7 +80,8 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
   }
 
   private boolean findInfrequentInstruction(OPT_BasicBlock bb) {
-    for (Iterator<OPT_Instruction> e2 = bb.forwardRealInstrEnumerator(); e2.hasNext();) {
+    for (OPT_InstructionEnumeration e2 = bb.forwardRealInstrEnumerator();
+         e2.hasMoreElements();) {
       OPT_Instruction s = e2.next();
       if (Call.conforms(s)) {
         OPT_MethodOperand op = Call.getMethod(s);

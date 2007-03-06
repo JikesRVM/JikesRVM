@@ -12,7 +12,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.classloader.*;
 import java.util.Enumeration;
-import java.util.Iterator;
 import org.vmmagic.unboxed.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 /**
@@ -459,7 +458,8 @@ public abstract class OPT_IRTools {
     boolean foundGoto = false;
     OPT_BranchOperand target = bb.makeJumpTarget();
     OPT_BranchOperand outTarget = out.makeJumpTarget();
-    for (Iterator<OPT_Instruction> e = in.reverseRealInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = in.reverseRealInstrEnumerator(); 
+        e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (IfCmp2.conforms(s)) {
         if (IfCmp2.getTarget1(s).similar(outTarget))

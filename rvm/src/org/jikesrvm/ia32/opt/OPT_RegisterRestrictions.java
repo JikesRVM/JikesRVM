@@ -8,12 +8,9 @@
  */
 package org.jikesrvm.ia32.opt;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.ia32.opt.ir.OPT_BURSManagedFPROperand;
+import org.jikesrvm.ia32.opt.ir.*;
 import org.jikesrvm.opt.OPT_GenericRegisterRestrictions;
 import org.jikesrvm.opt.OPT_LiveIntervalElement;
 import org.jikesrvm.opt.ir.MIR_BinaryAcc;
@@ -27,12 +24,16 @@ import org.jikesrvm.opt.ir.MIR_Unary;
 import org.jikesrvm.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.opt.ir.OPT_Instruction;
+import org.jikesrvm.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.opt.ir.OPT_Operand;
 import org.jikesrvm.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.opt.ir.OPT_Operators;
 import org.jikesrvm.opt.ir.OPT_Register;
 import org.jikesrvm.opt.ir.OPT_RegisterOperand;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 /**
  * An instance of this class encapsulates restrictions on register
@@ -69,7 +70,8 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
     // catch block remain valid.  For now, we do this by forcing any
     // register used in such a PEI as not spilled.  TODO: relax this
     // restriction for better code.
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext(); ) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
       if (s.isPEI() && s.operator != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
@@ -113,7 +115,8 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions im
           break;
       }
     }
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext(); ) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
       if (s.operator == IA32_FNINIT) {
         // No floating point register survives across an FNINIT

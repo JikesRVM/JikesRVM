@@ -188,8 +188,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
   private void performRename(OPT_BasicBlock bb, OPT_DominatorTree dom, VariableStacks s) {
     if (DEBUG) VM.sysWriteln("performRename: " + bb);
 
-    Iterator<OPT_Instruction> e = bb.forwardRealInstrEnumerator();
-    while (e.hasNext()) {
+    OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+    while (e.hasMoreElements()) {
       OPT_Instruction i = e.next();
       OPT_OperandEnumeration ee = i.getUses();
       while (ee.hasMoreElements()) {
@@ -209,7 +209,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
 
     // record renamings required in children
     e = bb.forwardRealInstrEnumerator();
-    while (e.hasNext()) {
+    while (e.hasMoreElements()) {
       OPT_Instruction i = e.next();
       if (globalRenameTable.contains(i)) {
         OPT_Register original = Move.getVal(i).asRegister().register;
@@ -228,7 +228,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
 
     // pop renamings from this block off stack
     e = bb.forwardRealInstrEnumerator();
-    while (e.hasNext()) {
+    while (e.hasMoreElements()) {
       OPT_Instruction i = e.next();
       if (globalRenameTable.contains(i)) {
         OPT_Register original = Move.getVal(i).asRegister().register;
@@ -238,8 +238,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
   }
 
   private boolean usedBelowCopy(OPT_BasicBlock bb, OPT_Register r) {
-    Iterator<OPT_Instruction> ie = bb.reverseRealInstrEnumerator();
-    while (ie.hasNext() ) {
+    OPT_InstructionEnumeration ie = bb.reverseRealInstrEnumerator();
+    while (ie.hasMoreElements() ) {
       OPT_Instruction inst = ie.next();
       if (inst.isBranch()) {
         OPT_OperandEnumeration oe = inst.getUses();
@@ -591,11 +591,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
    */
   private void unSSAGuardsInit(OPT_IR ir) {
     guardPhis = null;
-    Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator();
+    OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
 
     // visit all instructions, looking for guard phis
 
-    while (e.hasNext()) {
+    while (e.hasMoreElements()) {
       OPT_Instruction inst = e.next();
       if (! Phi.conforms (inst)) continue;
       OPT_Operand res = Phi.getResult(inst);

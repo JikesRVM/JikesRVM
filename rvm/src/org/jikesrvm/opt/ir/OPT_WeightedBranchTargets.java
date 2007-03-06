@@ -10,7 +10,6 @@ package org.jikesrvm.opt.ir;
 
 import org.jikesrvm.*;
 import org.jikesrvm.opt.*;
-import java.util.Iterator;
 
 /**
  * Used to iterate over the branch targets (including the fall through edge) 
@@ -40,7 +39,8 @@ public final class OPT_WeightedBranchTargets {
     max = 0;
 
     float prob = 1f;
-    for (Iterator<OPT_Instruction> ie = bb.enumerateBranchInstructions(); ie.hasNext();) {
+    for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions();
+         ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (IfCmp.conforms(s)) {
         OPT_BasicBlock target = IfCmp.getTarget(s).target.getBasicBlock();

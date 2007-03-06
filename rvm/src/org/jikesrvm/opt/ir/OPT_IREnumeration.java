@@ -42,13 +42,13 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static Iterator<OPT_Instruction> forwardIntraBlockIE(final OPT_Instruction start,
+  public static OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
                                                                      final OPT_Instruction end) {
-    return new Iterator<OPT_Instruction>() {
+    return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
-      public void remove() { throw new UnsupportedOperationException(); }
-      public boolean hasNext() { return current != null; }
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -79,13 +79,13 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static Iterator<OPT_Instruction> reverseIntraBlockIE(final OPT_Instruction start,
+  public static OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
                                                                      final OPT_Instruction end) {
-    return new Iterator<OPT_Instruction>() {
+    return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
-      public void remove() { throw new UnsupportedOperationException(); }
-      public boolean hasNext() { return current != null; }
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -108,11 +108,11 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  public static Iterator<OPT_Instruction> forwardGlobalIE(final OPT_IR ir) {
-    return new Iterator<OPT_Instruction>() {
+  public static OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
+    return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
-      public void remove() { throw new UnsupportedOperationException(); }
-      public boolean hasNext() { return current != null; }
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -132,11 +132,11 @@ public abstract class OPT_IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */ 
-  public static Iterator<OPT_Instruction> reverseGlobalIE(final OPT_IR ir) {
-    return new Iterator<OPT_Instruction>() {
+  public static OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
+    return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
-      public void remove() { throw new UnsupportedOperationException(); }
-      public boolean hasNext() { return current != null; }
+      public boolean hasMoreElements() { return current != null; }
+      public OPT_Instruction nextElement() { return next(); }
       public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -199,7 +199,7 @@ public abstract class OPT_IREnumeration {
   }
   
   /**
-   * This class implements an {@link Iterator<OPT_Instruction>} over
+   * This class implements an {@link OPT_InstructionEnumeration} over
    * all instructions for a basic block. This enumeration includes
    * explicit instructions in the IR and implicit phi instructions for
    * heap variables, which are stored only in this lookaside
@@ -207,12 +207,12 @@ public abstract class OPT_IREnumeration {
    * @see org.jikesrvm.opt.OPT_SSADictionary
    * @author Ian Rogers
    */
-  public static final class AllInstructionsEnum implements Iterator<OPT_Instruction> {
+  public static final class AllInstructionsEnum implements OPT_InstructionEnumeration {
     /**
      * An enumeration of the explicit instructions in the IR for a
      * basic block
      */
-    private final Iterator<OPT_Instruction> explicitInstructions;
+    private final OPT_InstructionEnumeration explicitInstructions;
 
     /**
      * An enumeration of the implicit instructions in the IR for a
@@ -249,9 +249,9 @@ public abstract class OPT_IREnumeration {
      *
      * @return true or false
      */
-    public boolean hasNext() {
+    public boolean hasMoreElements () {
       return  (((implicitInstructions != null) && implicitInstructions.hasNext()) ||
-               explicitInstructions.hasNext());
+               explicitInstructions.hasMoreElements());
     }
 
     /**
@@ -259,7 +259,7 @@ public abstract class OPT_IREnumeration {
      *
      * @return the next instruction
      */
-    public OPT_Instruction next() {
+    public OPT_Instruction next () {
       if (labelInstruction != null) {
         OPT_Instruction temp = labelInstruction;
         labelInstruction = null;
@@ -272,7 +272,15 @@ public abstract class OPT_IREnumeration {
         return explicitInstructions.next();
       }
     }
-    public void remove() { throw new UnsupportedOperationException(); }
+
+    /**
+     * Get the next instruction in the enumeration
+     *
+     * @return the next instruction
+     */
+    public OPT_Instruction nextElement () {
+      return next();
+    }
   }
   /**
    * This class implements an {@link OPT_OperandEnumeration}. It used

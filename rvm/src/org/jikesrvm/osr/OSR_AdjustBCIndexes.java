@@ -11,8 +11,6 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.opt.*;
 import org.jikesrvm.opt.ir.*;
-import java.util.Iterator;
-
 /**
  * OSR_AdjustBCIndex is an optimizing phase performed on HIR.
  * It adjust the byte code index of instructions from specialized
@@ -43,7 +41,8 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
     if (!ir.method.isForOsrSpecialization()) return;    
     int offset = ir.method.getOsrPrologueLength();
 
-    for (Iterator<OPT_Instruction> ie = ir.forwardInstrEnumerator(); ie.hasNext();) {
+    for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator(); 
+         ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
 
       if ((s.position != null) && (s.position.method != ir.method)) {

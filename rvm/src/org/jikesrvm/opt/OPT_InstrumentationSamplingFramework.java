@@ -16,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
 /** 
@@ -590,8 +589,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @return The first instruction in bb that has operator operator.  */
   private static OPT_Instruction getFirstInstWithOperator(OPT_Operator operator,
                                              OPT_BasicBlock bb) {
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
-      OPT_Instruction i = ie.next();                                       
+    for (OPT_InstructionEnumeration ie
+           = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
+      OPT_Instruction i = ie.next();
+      
       if (i.operator() == operator) {
         return i;
       } 
@@ -606,8 +608,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @return The first instruction in bb that has a yield point
    */
   public static OPT_Instruction getFirstInstWithYieldPoint(OPT_BasicBlock bb) {
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
-      OPT_Instruction i = ie.next();      
+    for (OPT_InstructionEnumeration ie
+           = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
+      OPT_Instruction i = ie.next();
+      
       if (isYieldpoint(i)) {
         return i;
       } 
@@ -703,7 +708,9 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     
       // Remove all instrumentation instructions.  They already have
       // been transfered to the duplicated code.
-      for (Iterator<OPT_Instruction> ie = origBlock.forwardInstrEnumerator(); ie.hasNext();) {
+      for (OPT_InstructionEnumeration ie
+             = origBlock.forwardInstrEnumerator();
+           ie.hasMoreElements();) {
         OPT_Instruction i = ie.next();
         if (isInstrumentationInstruction(i) ||
             (isYieldpoint(i) && ir.options.REMOVE_YP_FROM_CHECKING)) {
@@ -748,7 +755,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     clearScratchObjects(bb,ir);
 
     // For each instruction in the block
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
       OPT_Instruction inst = ie.next();
 
       // Look at each register operand
@@ -783,7 +791,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   private static void clearScratchObjects(OPT_BasicBlock bb, OPT_IR ir) {
     // For each instruction in the block
-    for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
       OPT_Instruction inst = ie.next();
 
       // Look at each register operand
@@ -845,8 +854,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
          allBB.hasMoreElements(); ) {
       OPT_BasicBlock bb = allBB.next();
 
-      for (Iterator<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasNext();) {
+      for (OPT_InstructionEnumeration ie
+             = bb.forwardInstrEnumerator();
+           ie.hasMoreElements();) {
         OPT_Instruction i = ie.next();          
+
         // If it's an instrumentation operation, remember the instruction 
         if (isInstrumentationInstruction(i))
           instrumentationOperations.add(i);

@@ -206,7 +206,8 @@ class OPT_SSA {
    */
   static void purgeBlockFromPHIs(OPT_BasicBlock source,
                                  OPT_BasicBlock target) {
-    for (Iterator<OPT_Instruction> e = target.forwardRealInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
@@ -240,7 +241,8 @@ class OPT_SSA {
    */
   static void replaceBlockInPhis(OPT_BasicBlock target,
                                  OPT_BasicBlock B1, OPT_BasicBlock B2) {
-    for (Iterator<OPT_Instruction> e = target.forwardRealInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);

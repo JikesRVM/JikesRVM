@@ -11,7 +11,6 @@ package org.jikesrvm.opt;
 import org.jikesrvm.*;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
-import java.util.Iterator;
 
 /**
  * Flow-insensitive, context-insensitive, interprocedural analysis
@@ -102,7 +101,8 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+        e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
         OPT_LocationOperand l = PutField.getLocation(s);

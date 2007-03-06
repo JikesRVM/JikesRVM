@@ -70,8 +70,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
     HashSet<OPT_Instruction> dead = new HashSet<OPT_Instruction>(5);
 
     // for each Move instruction ...
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
-      OPT_Instruction s = e.next();
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       if (s.operator.isMove()) {
         OPT_Register r = Move.getResult(s).asRegister().register;
         if (r.isSymbolic()) {

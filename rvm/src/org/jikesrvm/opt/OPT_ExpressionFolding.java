@@ -47,8 +47,8 @@ class OPT_ExpressionFolding {
     // Create a set of potential computations to fold.
     HashSet<OPT_Register> candidates = new HashSet<OPT_Register>(20);
 
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
-      OPT_Instruction s = e.next();
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
       // Check if s is a fixed-point add/subtract instruction with 
       // a constant second operand
       OPT_Register r = isCandidateExpression(s);

@@ -11,7 +11,6 @@ import org.jikesrvm.*;
 
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
@@ -57,8 +56,9 @@ final class OPT_ValueGraph {
     addRegisterNodes(ir);
     // go through the IR and add nodes and edges to the value graph
     // for each instruction, as needed
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
-      processInstruction(e.next());
+    for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      OPT_Instruction s = e.nextElement();
+      processInstruction(s);
     }
 
     computeClosure();

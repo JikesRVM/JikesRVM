@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.opt.ir;
 import static org.jikesrvm.opt.ir.OPT_Operators.BOUNDS_CHECK;
-import java.util.Iterator;
 
 /**
  * General utilities to summarize an IR
@@ -21,7 +20,8 @@ public final class OPT_IRSummary {
    * Does this IR have a bounds check expression?
    */
   public static boolean hasBoundsCheck (OPT_IR ir) {
-    for (Iterator<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+        e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator == BOUNDS_CHECK)
         return  true;

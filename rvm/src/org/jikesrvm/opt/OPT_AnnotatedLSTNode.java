@@ -375,7 +375,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     VM.sysWrite("Block #" + block.getNumber() + ":\n");
     // Print the instructions
     OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(ir, block);
-    while (instructions.hasNext()) {
+    while (instructions.hasMoreElements()) {
       OPT_Instruction instr = instructions.next();
       dumpInstruction(ir, instr);
     }

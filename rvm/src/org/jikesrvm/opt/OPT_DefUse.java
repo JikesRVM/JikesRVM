@@ -9,7 +9,6 @@
 package org.jikesrvm.opt;
 import org.jikesrvm.*;
 import java.util.Enumeration;
-import java.util.Iterator;
 
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
@@ -404,7 +403,8 @@ public final class OPT_DefUse {
         bb = bb.nextBasicBlockInCodeOrder()) {
       int bbNum = bb.getNumber();
       // enumerate the instructions in the basic block
-      for (Iterator<OPT_Instruction> e = bb.forwardRealInstrEnumerator(); e.hasNext();) {
+      for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); 
+          e.hasMoreElements();) {
         OPT_Instruction inst = e.next();
         // check each Operand in the instruction
         for (OPT_OperandEnumeration ops = inst.getOperands(); 

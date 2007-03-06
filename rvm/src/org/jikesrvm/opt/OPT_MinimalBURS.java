@@ -15,7 +15,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_BURS_STATE;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 import org.jikesrvm.opt.ir.*;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
-import java.util.Iterator;
 
 /**
  * This class contains code for quick and dirty instruction selection
@@ -50,7 +49,8 @@ final class OPT_MinimalBURS extends OPT_BURS {
    */
   public void invoke (OPT_BasicBlock bb) {
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
-    for (Iterator<OPT_Instruction> e = bb.forwardRealInstrEnumerator(); e.hasNext();) {
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       OPT_BURS_TreeNode tn = buildTree(s);
       burs.label(tn);
