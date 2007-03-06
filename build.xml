@@ -14,6 +14,7 @@
 
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
+  <property name="classlib.provider" value="GNU Classpath"/>
 
   <setBuildName property="build.name" config="${config.name}"/>
 
@@ -24,8 +25,6 @@
   <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="vmmagic-stub.java" location="vmmagic/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
-  <!-- TODO: properly conditionalize the library-interface.java property instead of hardwiring to GNU Classpath -->
-  <property name="library-interface.java" location="libraryInterface/GNUClasspath/CPL/src"/>
 
   <!-- Set the properties for intermediate directory -->
   <property name="build.dir" location="target"/>
@@ -815,7 +814,21 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source">
+
+  <!-- Set properties for class libraries -->
+  <target name="choose-classlib" depends="prepare-ant-tasks">
+    <property name="classlib.library-interface.common.java" location="libraryInterface/Common/src"/>
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
+      </conditions>
+      <sequential>
+        <property name="classlib.library-interface.java" location="${classlib.library-interface.common.java}:libraryInterface/GNUClasspath/CPL/src:libraryInterface/GNUClasspath/LGPL/src"/>
+      </sequential>
+    </if>  
+  </target>
+
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib">
 
     <!--
      FIXME: When we can capture the primordials based on reacability we will not need to delete class dir
@@ -828,7 +841,7 @@ Check to make sure all required properties are specified. This includes properti
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${main.java}:${library-interface.java}"
+           srcdir="${main.java}:${classlib.library-interface.java}"
            sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${generated.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -1402,7 +1415,7 @@ target.dll-prefix=${target.dll-prefix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile-for-apidocs" depends="prepare-config-source">
+  <target name="compile-for-apidocs" depends="prepare-config-source,choose-classlib">
     <condition property="toexclude" value="ppc" else="ia32">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
@@ -1419,7 +1432,7 @@ target.dll-prefix=${target.dll-prefix}
       </bootclasspath>
       <exclude name="**/${toexclude}/**"/>
       <src path="${main.java}"/>
-      <src path="${library-interface.java}"/>
+      <src path="${classlib.library-interface.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-rvm.java}"/>
@@ -1456,7 +1469,7 @@ target.dll-prefix=${target.dll-prefix}
       <group title="RVM Packages" packages="org.jikesrvm*"/>
 
       <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
-      <packageset dir="${library-interface.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="org/**"/>
