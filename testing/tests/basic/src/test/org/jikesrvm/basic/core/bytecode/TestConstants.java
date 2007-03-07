@@ -116,6 +116,26 @@ class TestConstants {
 
     System.out.print("Expected: X98 Actual: ");
     System.out.println(new TestConstants().s());  // ldc_w
+
+    // Intel FPU constants
+    System.out.print("Expected: 3.141592653589793 Actual: ");
+    System.out.println(Math.PI);
+    
+    final double LG2 = 0.3010299956639811952256464283594894482;
+    System.out.print("Expected: 0.3010299956639812 Actual: ");
+    System.out.println(LG2);
+    
+    final double LN2 = 0.6931471805599453094286904741849753009;
+    System.out.print("Expected: 0.6931471805599453 Actual: ");
+    System.out.println(LN2);
+    
+    final double L2E = 1.4426950408889634073876517827983434472;
+    System.out.print("Expected: 1.4426950408889634 Actual: ");
+    System.out.println(L2E);
+
+    final double L2T = 3.3219280948873623478083405569094566090;
+    System.out.print("Expected: 3.321928094887362 Actual: ");
+    System.out.println(L2T);
   }
 
   public final String x0 = "X0";
