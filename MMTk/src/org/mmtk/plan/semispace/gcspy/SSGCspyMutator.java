@@ -391,11 +391,6 @@ import org.vmmagic.unboxed.*;
     SSGCspy.reportSpaces();
   }
   
-  /** @return the driver for fromSpace */
-  private LinearSpaceDriver fromSpaceDriver() { 
-    return SSGCspy.hi ? SSGCspy.ss0Driver : SSGCspy.ss1Driver;
-  }
-
   /** @return the driver for toSpace */
   private LinearSpaceDriver toSpaceDriver() { 
     return SSGCspy.hi ? SSGCspy.ss1Driver : SSGCspy.ss0Driver;
