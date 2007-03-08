@@ -109,7 +109,7 @@ public final class OPT_IR {
   /**
    * The compiled method created to hold the result of this compilation.
    */
-  public VM_OptCompiledMethod compiledMethod;
+  public final VM_OptCompiledMethod compiledMethod;
 
   /**
    * The compiler {@link OPT_Options options} that apply
@@ -237,6 +237,7 @@ public final class OPT_IR {
     options = opts;
     inlinePlan = ip;
     instrumentationPlan = null;
+    compiledMethod = (VM_OptCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
   }
 
   /**
@@ -248,6 +249,7 @@ public final class OPT_IR {
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
+    compiledMethod = (VM_OptCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
   }
 
   
