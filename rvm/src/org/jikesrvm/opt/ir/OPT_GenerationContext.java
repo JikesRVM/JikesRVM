@@ -12,6 +12,7 @@ import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.*;
+import org.vmmagic.unboxed.Offset;
 import java.util.*;
 
 /**
@@ -625,7 +626,7 @@ public final class OPT_GenerationContext
       // do nothing
     } else if (method.isSynchronized() && !options.MONITOR_NOP
                && !options.INVOKEE_THREAD_LOCAL) {
-      OPT_Operand lockObject = getLockObject(PROLOGUE_BCI, prologue);
+      OPT_Operand lockObject = getLockObject();
       OPT_Instruction s = 
         MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(prologue, s, SYNCHRONIZED_MONITORENTER_BCI);
@@ -641,7 +642,7 @@ public final class OPT_GenerationContext
     // Deal with implicit monitorexit for synchronized methods.
     if (method.isSynchronized() && !options.MONITOR_NOP 
                                 && !options.INVOKEE_THREAD_LOCAL) {
-      OPT_Operand lockObject = getLockObject(EPILOGUE_BCI, epilogue);
+      OPT_Operand lockObject = getLockObject();
       OPT_Instruction s = MonitorOp.create(MONITOREXIT, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
     }
@@ -676,7 +677,7 @@ public final class OPT_GenerationContext
       OPT_RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
-      OPT_Operand lockObject = getLockObject(SYNTH_CATCH_BCI, rethrow);
+      OPT_Operand lockObject = getLockObject();
 
       VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
@@ -713,15 +714,15 @@ public final class OPT_GenerationContext
   }
 
 
-  // Get either the class object or the this ptr...
-  private OPT_Operand getLockObject(int bcIndex, OPT_BasicBlock target) {
+  /**
+   * Get the object for locking for synchronized methods.
+   * either the class object or the this ptr.
+   */
+  private OPT_Operand getLockObject() {
     if (method.isStatic()) {
-      VM_Class c = method.getDeclaringClass();
-      OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
-                                       temps.makeTemp(VM_TypeReference.JavaLangClass),
-                                       new OPT_TypeOperand(c));
-      appendInstruction(target, s, bcIndex);
-      return Unary.getResult(s).copyD2U();
+      Class klass = method.getDeclaringClass().getClassForType();
+      Offset offs = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass));
+      return new OPT_ClassConstantOperand(klass,offs);
     } else {
       return makeLocal(0, arguments[0].getType());
     }
