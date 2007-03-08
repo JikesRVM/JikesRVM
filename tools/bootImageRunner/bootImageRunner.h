@@ -12,17 +12,12 @@
  * touched files in that directory.
  *
  */
-// #include "bootImageRunner.h"	// In tools/bootImageRunner
-
 #include <stdio.h>
 #include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif    
-#if 0
-} /* un-confuse the auto-indenter */
-#endif
 
 #include "cAttributePortability.h"
 #include "../../include/jni.h"
@@ -100,9 +95,6 @@ extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
 
-#if 0
-{ /* un-confuse the auto-indenter */
-#endif
 #ifdef __cplusplus
 }
 #endif    
