@@ -27,8 +27,18 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
   implements VM_BaselineConstants {
 
-  private static final int HAS_COUNTERS = 0x00800000;
-  private static final int LOCK_OFFSET  = 0x00000fff;
+  /** Does the baseline compiled method have a counters array? */
+  private boolean hasCounters;
+  /**
+   * The lock acquistion offset for synchronized methods.  For
+   * synchronized methods, the offset (in the method prologue) after
+   * which the monitor has been obtained.  At, or before, this point,
+   * the method does not own the lock.  Used by deliverException to
+   * determine whether the lock needs to be released.  Note: for this
+   * scheme to work, VM_Lock must not allow a yield after it has been
+   * obtained.
+   */
+  private char lockOffset;
 
   /**
    * Baseline exception deliverer object
@@ -258,30 +268,26 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public void printExceptionTable() {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
-
-  // We use the available bits in bitField1 to encode the lock acquistion offset
-  // for synchronized methods
-  // For synchronized methods, the offset (in the method prologue) after which
-  // the monitor has been obtained.  At, or before, this point, the method does
-  // not own the lock.  Used by deliverException to determine whether the lock
-  // needs to be released.  Note: for this scheme to work, VM_Lock must not
-  // allow a yield after it has been obtained.
+  /** Set the lock acquistion offset for synchronized methods */
   public void setLockAcquisitionOffset(int off) {
-    if (VM.VerifyAssertions) VM._assert((off & LOCK_OFFSET) == off);
-    bitField1 |= (off & LOCK_OFFSET);
+    if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
+    lockOffset = (char)off;
   }
 
+  /** Get the lock acquistion offset */
   public Offset getLockAcquisitionOffset() {
-    return Offset.fromIntSignExtend(bitField1 & LOCK_OFFSET);
+    return Offset.fromIntZeroExtend(lockOffset);
   }
 
+  /** Set the method has a counters array */
   void setHasCounterArray() {
-    bitField1 |= HAS_COUNTERS;
+    hasCounters = true;
   }
 
+  /** Does the method have a counters array? */
   @Uninterruptible
   public boolean hasCounterArray() { 
-    return (bitField1 & HAS_COUNTERS) != 0;
+    return hasCounters;
   }
 
   // Taken: method that was compiled

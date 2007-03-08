@@ -35,17 +35,22 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public static final int NUM_COMPILER_TYPES = 4;
 
   /*
-   * constants for bitField1
+   * constants for flags
    */
-  private static final int COMPILED        = 0x80000000;
-  private static final int INVALID         = 0x40000000;
-  private static final int OBSOLETE        = 0x20000000;
-  private static final int ACTIVE_ON_STACK = 0x10000000;
-  // flags the compiled method as outdated, needs OSR
-  private static final int OUTDATED        = 0x08000000;
-
-  /** Bits in bitfield1 available for use by subclasses */
-  protected static final int AVAIL_BITS    = 0x00ffffff;
+  private static final byte COMPILED        = 0x08;
+  private static final byte INVALID         = 0x04;
+  private static final byte OBSOLETE        = 0x02;
+  private static final byte ACTIVE_ON_STACK = 0x01;
+  /** flags the compiled method as outdated, needs OSR */
+  private static final byte OUTDATED        = 0x10;
+  /**
+   * Has the method sample data for this compiled method been reset?
+   */
+  private static final byte SAMPLES_RESET   = 0x20;
+  private static final byte SPECIAL_FOR_OSR = 0x40;
+  
+  /** Flags bit field */
+  private byte flags;
 
   /**
    * The compiled method id of this compiled method (index into VM_CompiledMethods)
@@ -63,50 +68,42 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   protected VM_CodeArray instructions; 
 
   /**
-   * Has the method sample data for this compiled method been reset?
-   * TODO: This should be folded bitField1 to save space.
+   * the offset of instructions in JTOC, for osr-special compiled
+   * method only. all osr-ed method is treated like static.
+   * @todo OSR redesign: put in subclass?  Stick somewhere else?
+   *       Don't want to waste space for this on every compiled
+   *       method.
    */
-  private boolean samplesReset = false;
- 
-  public void setSamplesReset() { samplesReset = true; }
-  public boolean getSamplesReset() { return samplesReset; }
-
-  
-  /* the offset of instructions in JTOC, for osr-special compiled method
-   * only. all osr-ed method is treated like static.
-   * TODO: OSR redesign:  put in subclass?  Stick somewhere else?
-   *       Don't want to waste space for this on every compiled method.
-   */
-  protected boolean isSpecialForOSR = false;
   protected int osrJTOCoffset = 0;
-  public void setSpecialForOSR() {
-    this.isSpecialForOSR = true;
 
+  /**
+   * The time in milliseconds taken to compile the method.
+   */
+  protected float compilationTime;
+  
+  public void setSamplesReset() {
+    flags |= SAMPLES_RESET;
+  }
+  
+  public boolean getSamplesReset() {
+    return (flags & SAMPLES_RESET) != 0;
+  }
+
+  public void setSpecialForOSR() {
+    flags |= SPECIAL_FOR_OSR;
     // set jtoc
     this.osrJTOCoffset = VM_Statics.allocateReferenceSlot().toInt();
     VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 
   public boolean isSpecialForOSR() {
-    return this.isSpecialForOSR;
+    return (flags & SPECIAL_FOR_OSR) != 0;
   }
 
   public final Offset getOsrJTOCoffset() {
-    if (VM.VerifyAssertions) VM._assert(this.isSpecialForOSR);
+    if (VM.VerifyAssertions) VM._assert(isSpecialForOSR());
     return Offset.fromIntSignExtend(this.osrJTOCoffset);
   }
-
-  /**
-   * The time in milliseconds taken to compile the method.
-   */
-  protected float compilationTime;
-
-  /**
-   * A bit field.  The upper 8 bits are reserved for use by 
-   * VM_CompiledMethod.  Subclasses may use the lower 24 bits for their own
-   * purposes.
-   */
-  protected int bitField1;
 
   /**
    * Set the cmid and method fields
@@ -139,7 +136,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   @Deprecated
   @Uninterruptible
   public final VM_CodeArray getInstructions() { 
-    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
+    if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions; 
   }
   
@@ -149,7 +146,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final VM_CodeArray getEntryCodeArray() { 
-    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
+    if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions;
   }
 
@@ -159,7 +156,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final int numberOfInstructions() { 
-    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
+    if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions.length();
   }
 
@@ -247,14 +244,14 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   public final void compileComplete(VM_CodeArray code) {
     instructions = code;
-    bitField1 |= COMPILED;
+    flags |= COMPILED;
   }
 
   /**
    * Mark the compiled method as invalid
    */
   public final void setInvalid() {
-    bitField1 |= INVALID;
+    flags |= INVALID;
   }
 
   /**
@@ -262,17 +259,17 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final void setObsolete() { 
-    bitField1 |= OBSOLETE;
+    flags |= OBSOLETE;
   }
 
   @Uninterruptible
   public final void setActiveOnStack() { 
-    bitField1 |= ACTIVE_ON_STACK;
+    flags |= ACTIVE_ON_STACK;
   }
 
   @Uninterruptible
   public final void clearActiveOnStack() { 
-    bitField1 &= ~ACTIVE_ON_STACK;
+    flags &= ~ACTIVE_ON_STACK;
   }
   
   /**
@@ -282,7 +279,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   @Uninterruptible
   public final void setOutdated() { 
     if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
-    bitField1 |= OUTDATED;
+    flags |= OUTDATED;
   }
   
   /**
@@ -291,7 +288,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final boolean isOutdated() { 
-    return (bitField1 & OUTDATED) != 0;
+    return (flags & OUTDATED) != 0;
   }
   
   /**
@@ -299,7 +296,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final boolean isCompiled() { 
-    return (bitField1 & COMPILED) != 0;
+    return (flags & COMPILED) != 0;
   }
 
   /**
@@ -307,7 +304,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final boolean isInvalid() { 
-    return (bitField1 & INVALID) != 0;
+    return (flags & INVALID) != 0;
   }
 
   /**
@@ -315,12 +312,12 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final boolean isObsolete() { 
-    return (bitField1 & OBSOLETE) != 0;
+    return (flags & OBSOLETE) != 0;
   }
 
   @Uninterruptible
   public final boolean isActiveOnStack() { 
-    return (bitField1 & ACTIVE_ON_STACK) != 0;
+    return (flags & ACTIVE_ON_STACK) != 0;
   }
   
   public final double getCompilationTime() { return (double)compilationTime; }

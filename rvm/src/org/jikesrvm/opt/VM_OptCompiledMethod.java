@@ -247,107 +247,92 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   private int[] eTable;
   private int[] patchMap;
 
-  // 64 bits to encode other tidbits about the method. Current usage is:
-  // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
-  // N = unsigned offset (off the framepointer) of nonvolatile save area in bytes
-  // E = unsigned offset (off the framepointer) of caught exception object in bytes
-  // I = first saved nonvolatile integer register (assume 64 or fewer int registers).
-  // F = first saved nonvolatile floating point register (assume 64 or  fewer fp registers)
-  // O = opt level at which the method was compiled (assume max of 8 opt levels)
-  // V = were the volatile registers saved? (1 = true, 0 = false)
-  // U = Is the current method executing with instrumentation (1 = yes, 0 = no)
-  // S = size of the fixed portion of the stackframe.
-
-  private long _bits;
-  private static final long NONVOLATILE_MASK     = 0x000000000000ffffL;
-  private static final int  NONVOLATILE_SHIFT    = 0;
-  private static final long EXCEPTION_OBJ_MASK   = 0x00000000ffff0000L;
-  private static final int  EXCEPTION_OBJ_SHIFT  = 16;
-  private static final long INTEGER_MASK         = 0x0000003f00000000L;
-  private static final int  INTEGER_SHIFT        = 32;   
-  private static final long FLOAT_MASK           = 0x00000fc000000000L;
-  private static final int  FLOAT_SHIFT          = 38;
-  private static final long OPT_LEVEL_MASK       = 0x0000700000000000L;
-  private static final int  OPT_LEVEL_SHIFT      = 44;
-  private static final long SAVE_VOLATILE_MASK   = 0x0000800000000000L;
-  private static final long INSTRU_METHOD_MASK   = 0x0001000000000000L;
-  private static final long FIXED_SIZE_MASK      = 0xfffe000000000000L;
-  private static final int  FIXED_SIZE_SHIFT     = 49;
+  /**
+   * unsigned offset (off the framepointer) of nonvolatile save area
+   * in bytes
+   */
+  private char nonvolatileOffset;
+  /**
+   * unsigned offset (off the framepointer) of caught exception
+   * object in bytes
+   */
+  private char exceptionObjectOffset;
+  /**
+   * size of the fixed portion of the stackframe
+   */
+  private char stackFrameFixedSize;
+  /**
+   * first saved nonvolatile integer register (-1 if no nonvolatile
+   * GPRs)
+   */
+  private byte firstNonvolatileGPR;
+  /**
+   * first saved nonvolatile floating point register (-1 if no
+   * nonvolatile FPRs)
+   */
+  private byte firstNonvolatileFPR;
+  /** opt level at which the method was compiled */
+  private byte optLevel;
+  /** were the volatile registers saved? */
+  private boolean volatilesSaved;
+  /** is the current method executing with instrumentation */
+  private boolean instrumented;
   
-  private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
-  private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
-
   public int getUnsignedNonVolatileOffset() {
-    return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
+    return nonvolatileOffset;
   }
   public int getUnsignedExceptionOffset() {
-    return (int)((_bits & EXCEPTION_OBJ_MASK) >>> EXCEPTION_OBJ_SHIFT);
+    return exceptionObjectOffset;
   }
   public int getFirstNonVolatileGPR() {
-    int t = (int)((_bits & INTEGER_MASK) >>> INTEGER_SHIFT);
-    return (t == NO_INTEGER_ENTRY) ? -1 : t;
+    return firstNonvolatileGPR;
   }
   public int getFirstNonVolatileFPR() {
-    int t = (int)((_bits & FLOAT_MASK) >>> FLOAT_SHIFT);
-    return (t == NO_FLOAT_ENTRY) ? -1 : t;
+    return firstNonvolatileFPR;
   }
   public int getOptLevel() {
-    return (int)((_bits & OPT_LEVEL_MASK) >>> OPT_LEVEL_SHIFT);
+    return optLevel;
   }
   public boolean isSaveVolatile() {
-    return (_bits & SAVE_VOLATILE_MASK) != 0L;
+    return volatilesSaved;
   }
   public boolean isInstrumentedMethod() {
-    return (_bits & INSTRU_METHOD_MASK) != 0L;
+    return instrumented;
   }
   public int getFrameFixedSize() {
-    return (int)((_bits & FIXED_SIZE_MASK) >>> FIXED_SIZE_SHIFT);
+    return stackFrameFixedSize;
   }
 
 
   public void setUnsignedNonVolatileOffset(int x) {
-    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
-    _bits = (_bits & ~NONVOLATILE_MASK) | (((long)x) << NONVOLATILE_SHIFT);
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < 0xFFFF);
+    nonvolatileOffset = (char)x;
   }
   public void setUnsignedExceptionOffset(int x) {
-    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
-    _bits = (_bits & ~EXCEPTION_OBJ_MASK) | (((long)x) << EXCEPTION_OBJ_SHIFT);
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < 0xFFFF);
+    exceptionObjectOffset = (char)x;
   }
   public void setFirstNonVolatileGPR(int x) {
-    if (x == -1) {
-      _bits |= INTEGER_MASK;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_INTEGER_ENTRY);
-      _bits = (_bits & ~INTEGER_MASK) | (((long)x) << INTEGER_SHIFT);
-    }
+    if (VM.VerifyAssertions) VM._assert(x >= -1 && x < 0x7F);
+    firstNonvolatileGPR = (byte)x;
   }
   public void setFirstNonVolatileFPR(int x) {
-    if (x == -1) {
-      _bits |= FLOAT_MASK;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_FLOAT_ENTRY);
-      _bits = (_bits & ~FLOAT_MASK) | (((long)x) << FLOAT_SHIFT);
-    }
+    if (VM.VerifyAssertions) VM._assert(x >= -1 && x < 0x7F);
+    firstNonvolatileFPR = (byte)x;
   }
   public void setOptLevel(int x) {
-    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
-    _bits = (_bits & ~OPT_LEVEL_MASK) | (((long)x) << OPT_LEVEL_SHIFT);
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < 0x7F);
+    optLevel = (byte)x;
   }
   public void setSaveVolatile(boolean sv) {
-    if (sv) 
-      _bits |= SAVE_VOLATILE_MASK;
-    else 
-      _bits &= ~SAVE_VOLATILE_MASK;
+    volatilesSaved = sv;
   }
-  public void setInstrumentedMethod(boolean sv) {
-    if (sv) 
-      _bits |= INSTRU_METHOD_MASK;
-    else 
-      _bits &= ~INSTRU_METHOD_MASK;
+  public void setInstrumentedMethod(boolean _instrumented) {
+    instrumented = _instrumented;
   }
   public void setFrameFixedSize(int x) {
-    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
-    _bits = (_bits & ~FIXED_SIZE_MASK) | (((long)x) << FIXED_SIZE_SHIFT);
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < 0xFFFF);
+    stackFrameFixedSize = (char)x;
   }
   
   /**
