@@ -239,14 +239,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
     </condition>
-    <condition property="ipsc.filter" value="-DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1" else="">
-      <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
-    </condition>
-
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
-    <property name="filter"
-              value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter}  ${gcspy.filter} ${ipsc.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -683,9 +678,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_CLASSPATH_0_93" value="true" else="false">
       <equals arg1="${classpath.version}" arg2="93"/>
     </condition>
-    <condition property="pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS" value="true" else="false">
-      <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
-    </condition>
     <condition property="pp_RVM_FOR_STRESSGC" value="true" else="false">
       <equals arg1="${config.stress-gc}" arg2="1"/>
     </condition>
@@ -701,7 +693,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
-        <filter token="_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_" value="${pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${pp_RVM_WITH_ALL_CLASSES}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
@@ -1133,7 +1124,9 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="include.syswrap" value="true">
-      <equals arg1="${config.intercept.blocking.system-calls}" arg2="1"/>
+      <not>
+        <equals arg1="${target.os}" arg2="AIX"/>
+      </not>
     </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
@@ -1293,7 +1286,6 @@ config.assertions=${config.assertions}
 config.default-heapsize.initial=${config.default-heapsize.initial}
 config.default-heapsize.maximum=${config.default-heapsize.maximum}
 config.bootimage.compiler.args=${config.bootimage.compiler.args}
-config.intercept.blocking.system-calls=${config.intercept.blocking.system-calls}
 config.stress-gc=${config.stress-gc}
 target.name=${target.name}
 target.arch=${target.arch}

@@ -105,7 +105,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#ifndef RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+#ifndef RVM_FOR_AIX
 # include "syswrap.h"
 #endif 
 

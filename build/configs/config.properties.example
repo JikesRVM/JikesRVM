@@ -32,8 +32,5 @@ config.default-heapsize.maximum=
 # Any extra args to pass to bootimage compiler. Default to "".
 config.bootimage.compiler.args=
 
-# Set to 1 to intercept blocking system calls and replace with non-blocking equivs. Defaults to 1.
-config.intercept.blocking.system-calls=
-
 # Set to 1 to stress test the GC subsystem. Defaults to 0.
 config.stress-gc=

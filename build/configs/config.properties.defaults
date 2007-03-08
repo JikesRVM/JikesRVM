@@ -10,5 +10,4 @@ config.assertions=normal
 config.default-heapsize.initial=20
 config.default-heapsize.maximum=100
 config.bootimage.compiler.args=
-config.intercept.blocking.system-calls=1
 config.stress-gc=0

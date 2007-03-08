@@ -40,6 +40,9 @@ public abstract class VM_Configuration {
   public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
   public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
 
+  /** Do we have the facilities to intercept blocking system calls? */
+  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix;
+
   /**
    * Can a dereference of a null pointer result in an access
    * to 'low' memory addresses that must be explicitly guarded because the
@@ -106,9 +109,6 @@ public abstract class VM_Configuration {
   /** The following configuration objects are final when disabled, but non-final when enabled. */
   public static @_RVM_FOR_STRESSGC_AM_@ boolean ParanoidGCCheck = @_RVM_FOR_STRESSGC_@;
   public static @_RVM_FOR_STRESSGC_AM_@ boolean ForceFrequentGC = @_RVM_FOR_STRESSGC_@;
-
-  /** Do we have the facilities to intercept blocking system calls? */
-  public static final boolean withoutInterceptBlockingSystemCalls = @_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_@;
 
   /*
    * We often need to slightly tweak the VM boot sequence and/or
