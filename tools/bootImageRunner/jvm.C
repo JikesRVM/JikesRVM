@@ -21,18 +21,13 @@
 #include <stdlib.h>
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include "pthread-wrappers.h"
+#include <pthread.h>
 
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-// Address of the single VM_Processor object.
-VM_Address VmProcessor;
-#else
 // Thread-specific data key in which to stash the id of
 // the pthread's VM_Processor.  This allows the system call library
 // to find the VM_Processor object at runtime.
 pthread_key_t VmProcessorKey;
 pthread_key_t IsVmProcessorKey;
-#endif
 
 // Fish out an address stored in an instance field of an object.
 static void *
@@ -137,22 +132,14 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // Return NULL if we are not on a VM pthread
     if (pthread_getspecific(IsVmProcessorKey) == NULL) {
         *penv = NULL;
         return JNI_EDETACHED;
     }
-#endif
 
     // Get VM_Processor id.
-    void *vmProcessor =
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      (void *)VmProcessor;
-#else
-      pthread_getspecific(VmProcessorKey);
-#endif
-
+    void *vmProcessor = pthread_getspecific(VmProcessorKey);
     // Get the JNIEnv from the VM_Processor object
     JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
  

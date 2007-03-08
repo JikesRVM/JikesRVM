@@ -78,8 +78,7 @@ implements VM_Constants {
     //
     isInitialized = true;
     
-    if (!VM_Properties.singleVirtualProcessor)
-      sysCall.sysWaitForVirtualProcessorInitialization();
+    sysCall.sysWaitForVirtualProcessorInitialization();
 
     // enable multiprocessing
     //
@@ -87,8 +86,7 @@ implements VM_Constants {
 
     // wait for all other processors to do likewise
     //
-    if (!VM_Properties.singleVirtualProcessor)
-      sysCall.sysWaitForMultithreadingStart();
+    sysCall.sysWaitForMultithreadingStart();
 
     // Store VM_Processor in pthread
     sysCall.sysStashVmProcessorInPthread(this);

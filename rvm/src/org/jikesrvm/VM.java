@@ -122,11 +122,8 @@ import org.vmmagic.unboxed.*;
     
     // get pthread_id from OS and store into vm_processor field
     // 
-    if (!singleVirtualProcessor) {
-      sysCall.sysPthreadSetupSignalHandling();
-      VM_Processor.getCurrentProcessor().pthread_id = 
-        sysCall.sysPthreadSelf();
-    }
+    sysCall.sysPthreadSetupSignalHandling();
+    VM_Processor.getCurrentProcessor().pthread_id = sysCall.sysPthreadSelf();
 
     // Set up buffer locks used by VM_Thread for logging and status dumping.
     //    This can happen at any point before we start running
@@ -1359,8 +1356,7 @@ import org.vmmagic.unboxed.*;
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
-    if (!VM_Properties.singleVirtualProcessor)
-      sysCall.sysVirtualProcessorYield();
+    sysCall.sysVirtualProcessorYield();
   }
 
   //----------------//

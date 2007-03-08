@@ -43,7 +43,7 @@
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
-#include "../pthread-wrappers.h" // In tools/bootImageRunner
+#include <pthread.h>
 
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
@@ -254,18 +254,13 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
     }   
 }
 
-
-
-
 void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
     unsigned int localInstructionAddress;
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        pthread_mutex_lock( &exceptionLock );
-#endif        
+    pthread_mutex_lock( &exceptionLock );
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
@@ -480,9 +475,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         gregs[REG_EIP] = dumpStack;
         *vmr_inuse = false;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-            pthread_mutex_unlock( &exceptionLock );
-#endif
+        pthread_mutex_unlock( &exceptionLock );
         return;
     }
 
@@ -594,16 +587,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      * returning  */ 
     gregs[REG_ESP] = (int) sp;
     gregs[REG_EBP] = (int) fp;
-    *(unsigned int *) 
-        (localVirtualProcessorAddress + VM_Processor_framePointer_offset) 
-        = (int) fp;
+    *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
 
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        pthread_mutex_unlock( &exceptionLock );
-#endif        
+    pthread_mutex_unlock( &exceptionLock );
 }
 
 
@@ -612,15 +601,6 @@ softwareSignalHandler(int signo,
                       siginfo_t UNUSED *si, 
                       void *context) 
 {
-//    bool croak_with_signo = false;
-    
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    if (signo == SIGALRM) { /* asynchronous signal used for time slicing */
-       processTimerTick();
-       return;
-    }
-#endif
-
     // asynchronous signal used to awaken internal debugger
     if (signo == SIGQUIT) { 
         // Turn on debug-request flag.

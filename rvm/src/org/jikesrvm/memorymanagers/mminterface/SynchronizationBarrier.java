@@ -120,12 +120,7 @@ public final class SynchronizationBarrier {
    */
   @Uninterruptible
   public void resetRendezvous () { 
-
-    if (!VM.singleVirtualProcessor) {
-      // Set number of Real processors on the running computer. This will allow
-      // waitABit() to spin when running with fewer VM_Procssors than real processors
-      numRealProcessors = sysCall.sysNumProcessors();
-    }
+    numRealProcessors = sysCall.sysNumProcessors();
     barrier.clearTarget();
     VM_Magic.sync();      // make other threads/processors see the update
   }

@@ -200,63 +200,61 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 
     // Create virtual cpu's.
     //
-    
-    if (!VM.singleVirtualProcessor) {
-      sysCall.sysCreateThreadSpecificDataKeys();
-      if (!VM.withoutInterceptBlockingSystemCalls) {
-        /// We now insist on this happening, by using LD_PRELOAD on platforms
-        /// that support it.  Do it here for backup.
-        // Enable spoofing of blocking native select calls
-        System.loadLibrary("syswrap");
-      }
-    
-      sysCall.sysInitializeStartupLocks(numProcessors);
 
-      if (cpuAffinity != NO_CPU_AFFINITY)
-        sysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-      
-      for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
-        // create VM_Thread for virtual cpu to execute
-        //
-        VM_Thread target = processors[i].idleQueue.dequeue();
-        
-        // Create a virtual cpu and wait for execution to enter the target's
-        // code/stack. 
-        // This is done with GC disabled to ensure that the garbage collector
-        // doesn't move code or stack before the C startoff function has a
-        // chance to transfer control into the VM image.
-        //
-        if (VM.TraceThreads)
-          trace("VM_Scheduler.boot", "starting processor id", i);
-
-        processors[i].activeThread = target;
-        processors[i].activeThreadStackLimit = target.stackLimit;
-        target.registerThread(); // let scheduler know that thread is active.
-        if (VM.BuildForPowerPC) {
-          // NOTE: It is critical that we acquire the tocPointer explicitly
-          //       before we start the SysCall sequence. This prevents 
-          //       the opt compiler from generating code that passes the AIX 
-          //       sys toc instead of the RVM jtoc. --dave
-          Address toc = VM_Magic.getTocPointer();
-          sysCall.sysVirtualProcessorCreate(toc,
-                                        VM_Magic.objectAsAddress(processors[i]),
-                                        target.contextRegisters.ip, 
-                                        target.contextRegisters.getInnermostFramePointer());
-          if (cpuAffinity != NO_CPU_AFFINITY)
-            sysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
-        } else if (VM.BuildForIA32) {
-          sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                               VM_Magic.objectAsAddress(processors[i]),
-                                               target.contextRegisters.ip, 
-                                               target.contextRegisters.getInnermostFramePointer());
-        } else if (VM.VerifyAssertions)
-          VM._assert(VM.NOT_REACHED);
-      }
-
-      // wait for everybody to start up
-      //
-      sysCall.sysWaitForVirtualProcessorInitialization();
+    sysCall.sysCreateThreadSpecificDataKeys();
+    if (!VM.withoutInterceptBlockingSystemCalls) {
+      /// We now insist on this happening, by using LD_PRELOAD on platforms
+      /// that support it.  Do it here for backup.
+      // Enable spoofing of blocking native select calls
+      System.loadLibrary("syswrap");
     }
+
+    sysCall.sysInitializeStartupLocks(numProcessors);
+
+    if (cpuAffinity != NO_CPU_AFFINITY)
+      sysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+
+    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors;) {
+      // create VM_Thread for virtual cpu to execute
+      //
+      VM_Thread target = processors[i].idleQueue.dequeue();
+
+      // Create a virtual cpu and wait for execution to enter the target's
+      // code/stack. 
+      // This is done with GC disabled to ensure that the garbage collector
+      // doesn't move code or stack before the C startoff function has a
+      // chance to transfer control into the VM image.
+      //
+      if (VM.TraceThreads)
+        trace("VM_Scheduler.boot", "starting processor id", i);
+
+      processors[i].activeThread = target;
+      processors[i].activeThreadStackLimit = target.stackLimit;
+      target.registerThread(); // let scheduler know that thread is active.
+      if (VM.BuildForPowerPC) {
+        // NOTE: It is critical that we acquire the tocPointer explicitly
+        //       before we start the SysCall sequence. This prevents 
+        //       the opt compiler from generating code that passes the AIX 
+        //       sys toc instead of the RVM jtoc. --dave
+        Address toc = VM_Magic.getTocPointer();
+        sysCall.sysVirtualProcessorCreate(toc,
+            VM_Magic.objectAsAddress(processors[i]),
+            target.contextRegisters.ip,
+            target.contextRegisters.getInnermostFramePointer());
+        if (cpuAffinity != NO_CPU_AFFINITY)
+          sysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+      } else if (VM.BuildForIA32) {
+        sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+            VM_Magic.objectAsAddress(processors[i]),
+            target.contextRegisters.ip,
+            target.contextRegisters.getInnermostFramePointer());
+      } else if (VM.VerifyAssertions)
+        VM._assert(VM.NOT_REACHED);
+    }
+
+    // wait for everybody to start up
+    //
+    sysCall.sysWaitForVirtualProcessorInitialization();
 
     allProcessorsInitialized = true;
 
@@ -277,8 +275,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 
     // Allow virtual cpus to commence feeding off the work queues.
     //
-    if (! VM.singleVirtualProcessor)
-      sysCall.sysWaitForMultithreadingStart();
+    sysCall.sysWaitForMultithreadingStart();
 
     if (VM.BuildForAdaptiveSystem) {
       OSR_ObjectHolder.boot();

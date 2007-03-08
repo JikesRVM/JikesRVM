@@ -71,9 +71,6 @@
       Configuration file ${config.file} not present. Please set config.name to the name of file in ${jikesrvm.dir}/build/configs directory without the .properties suffix.
     </fail>
     <test-property name="config.mmtk.plan" location="${config.file}"/>
-    <condition property="is.svp" value="true">
-      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
-    </condition>
   </target>
 
   <target name="check-target-properties">
@@ -134,14 +131,6 @@
         </not>
       </and>
     </condition>
-
-    <condition property="gcspy-and-svp" value="1">
-      <and>
-        <isset property="include.gcspy"/>
-        <isset property="is.svp"/>
-      </and>
-    </condition>
-    <fail if="gcspy-and-svp">GCSpy can not be combined with a single virtual processor.</fail>
   </target>
 
   <target name="check-components-properties" depends="include-gcspy-check,prepare-ant-tasks">
@@ -250,9 +239,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
       <equals arg1="${config.include.gcspy}" arg2="1"/>
     </condition>
-    <condition property="svp.filter" value="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1" else="">
-      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
-    </condition>
     <condition property="ipsc.filter" value="-DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1" else="">
       <equals arg1="${config.intercept.blocking.system-calls}" arg2="0"/>
     </condition>
@@ -260,7 +246,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
     <property name="filter"
-              value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter}  ${gcspy.filter} ${svp.filter} ${ipsc.filter}"/>
+              value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter}  ${gcspy.filter} ${ipsc.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -668,9 +654,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
-    <condition property="pp_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR" value="true" else="false">
-      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
-    </condition>
     <condition property="pp_RVM_WITH_ALL_CLASSES" value="true" else="false">
       <equals arg1="${config.include.all-classes}" arg2="1"/>
     </condition>
@@ -719,7 +702,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
         <filter token="_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS_" value="${pp_RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS}"/>
-        <filter token="_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR_" value="${pp_RVM_FOR_SINGLE_VIRTUAL_PROCESSOR}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${pp_RVM_WITH_ALL_CLASSES}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
@@ -1312,7 +1294,6 @@ config.default-heapsize.initial=${config.default-heapsize.initial}
 config.default-heapsize.maximum=${config.default-heapsize.maximum}
 config.bootimage.compiler.args=${config.bootimage.compiler.args}
 config.intercept.blocking.system-calls=${config.intercept.blocking.system-calls}
-config.single.virtual.processor=${config.single.virtual.processor}
 config.stress-gc=${config.stress-gc}
 target.name=${target.name}
 target.arch=${target.arch}

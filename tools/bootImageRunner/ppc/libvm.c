@@ -348,11 +348,7 @@ VM_Offset DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequest
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
 
-#include "../pthread-wrappers.h"     // We do not include 
-                                     // pthread-wrappers.h until the last
-                                     // possible minutes, since other include
-                                     // files may include <pthread.h>.  We
-                                     // will fail to compile if that happens.
+#include <pthread.h>
 
 pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 
@@ -730,9 +726,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #ifdef RVM_FOR_OSX
        fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
-  #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-           fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
-  #endif           
+       fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
 #endif // ! RVM_FOR_OSX
        
        if (isRecoverable) {
@@ -1404,11 +1398,6 @@ createVM(int vmInSeparateThread)
         // clear flag for synchronization
         bootRecord.bootCompleted = 0;
 
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-            fprintf(stderr, "%s: createVM(vmInSeparateThread = %d): Unsupported operation (no pthreads available)\n", Me, vmInSeparateThread);
-            exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-    
         pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);
      
         // wait for the JNIStartUp code to set the completion flag before returning
