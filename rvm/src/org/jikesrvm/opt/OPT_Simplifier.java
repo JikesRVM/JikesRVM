@@ -1982,7 +1982,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isLongConstant()) {
         long val = op.asLongConstant().value;
         // CONSTANT: FOLD
-        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(~val));
+        Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(~val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
