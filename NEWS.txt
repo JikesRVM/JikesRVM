@@ -5,12 +5,22 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.X.Y Release Notes (future)
+*Jikes RVM 2.9.0 Release Notes (March ??, 2007)
 ** Highlights
 *** The recommended version of GNU classpath is 0.93-generics.
     Earlier versions of GNU classpath are not supported.
 
+*** New build system
+
+*** New test system
+
+*** New user guide
+
+*** Large scale changes in source tree
+
 ** Bug fixes
+
+*** Yes...many :)
 
 ** Other Notes
 
