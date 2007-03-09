@@ -40,8 +40,6 @@ import org.jikesrvm.VM_Reflection;
 import org.jikesrvm.VM_Runtime;
 import org.jikesrvm.VM_UnimplementedError;
 
-import gnu.java.lang.reflect.ClassSignatureParser;
-
 /**
  * Implementation of java.lang.Class for JikesRVM.
  *
@@ -890,16 +888,13 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       // arrays implement JavaLangSerializable & JavaLangCloneable
       return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
                            VM_Type.JavaIoSerializableType.getClassForType()};
-    }
-    else {
+    } else {
       VM_Class klass = type.asClass();
       VM_Atom sig = klass.getSignature();
       if (sig == null) {
         return getInterfaces();
-      }
-      else {
-        ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
-        return p.getInterfaceTypes();
+      } else {
+        return JikesRVMHelpers.getInterfaceTypesFromSignature(this, sig);
       }
     }
   }
@@ -915,18 +910,16 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       {
         return null;
       }
-    else
-      {
-        VM_Class klass = type.asClass();
-        VM_Atom sig = klass.getSignature();
-        if (sig == null) {
-          return getSuperclass();
-        }
-        else {
-          ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
-          return p.getSuperclassType();
-        }
+    else {
+      VM_Class klass = type.asClass();
+      VM_Atom sig = klass.getSignature();
+      if (sig == null) {
+        return getSuperclass();
       }
+      else {
+        return JikesRVMHelpers.getSuperclassType(this, sig);
+      }
+    }
   }
   
   public TypeVariable<?>[] getTypeParameters() {
@@ -938,10 +931,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       VM_Atom sig = klass.getSignature();
       if (sig == null) {
         return new TypeVariable[0];
-      }
-      else {
-        ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
-        return p.getTypeParameters();
+      } else {
+        return JikesRVMHelpers.getTypeParameters(this, sig);
       }
     }
   }

@@ -15,9 +15,6 @@ import org.jikesrvm.VM_Reflection;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Runtime;
 
-import gnu.java.lang.ClassHelper;
-import gnu.java.lang.reflect.MethodSignatureParser;
-
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
@@ -155,15 +152,15 @@ public final class Method extends AccessibleObject implements Member {
   public String toString() {
     StringBuilder sb = new StringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
-    sb.append(ClassHelper.getUserName(getReturnType())).append(' ');
+    sb.append(JikesRVMHelpers.getUserName(getReturnType())).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');
     sb.append(getName()).append('(');
     Class<?>[] c = getParameterTypes();
     if (c.length > 0)
       {
-        sb.append(ClassHelper.getUserName(c[0]));
+        sb.append(JikesRVMHelpers.getUserName(c[0]));
         for (int i = 1; i < c.length; i++)
-          sb.append(',').append(ClassHelper.getUserName(c[i]));
+          sb.append(',').append(JikesRVMHelpers.getUserName(c[i]));
       }
     sb.append(')');
     c = getExceptionTypes();
@@ -190,34 +187,38 @@ public final class Method extends AccessibleObject implements Member {
 
   public TypeVariable<?>[] getTypeParameters() {
     VM_Atom sig = method.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return new TypeVariable[0];
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getTypeParameters();
+    } else {
+      return JikesRVMHelpers.getTypeParameters(this, sig);
+    }
   }
 
   public Type[] getGenericExceptionTypes() {
     VM_Atom sig = method.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return getExceptionTypes();
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getGenericExceptionTypes();
+    } else {
+      return JikesRVMHelpers.getGenericExceptionTypes(this, sig);
+    }
   }
 
   public Type[] getGenericParameterTypes() {
     VM_Atom sig = method.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return getParameterTypes();
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getGenericParameterTypes();
+    } else {
+      return JikesRVMHelpers.getGenericParameterTypes(this, sig);
+    }
   }
 
   public Type getGenericReturnType() {
     VM_Atom sig = method.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return getReturnType();
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getGenericReturnType();
+    } else {
+      return JikesRVMHelpers.getGenericReturnType(this, sig);
+    }
   }
 
   public String toGenericString() {

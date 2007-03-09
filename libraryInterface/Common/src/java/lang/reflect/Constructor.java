@@ -12,9 +12,6 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM_Reflection;
 import org.jikesrvm.VM_Runtime;
 
-import gnu.java.lang.ClassHelper;
-import gnu.java.lang.reflect.MethodSignatureParser;
-
 /**
  * Implementation of java.lang.reflect.Constructor for JikesRVM.
  *
@@ -145,9 +142,9 @@ public final class Constructor<T> extends AccessibleObject
     Class<?>[] c = getParameterTypes();
     if (c.length > 0)
       {
-        sb.append(ClassHelper.getUserName(c[0]));
+        sb.append(JikesRVMHelpers.getUserName(c[0]));
         for (int i = 1; i < c.length; i++)
-          sb.append(',').append(ClassHelper.getUserName(c[i]));
+          sb.append(',').append(JikesRVMHelpers.getUserName(c[i]));
       }
     sb.append(')');
     c = getExceptionTypes();
@@ -164,26 +161,29 @@ public final class Constructor<T> extends AccessibleObject
 
   public TypeVariable<?>[] getTypeParameters() {
     VM_Atom sig = constructor.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return new TypeVariable[0];
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getTypeParameters();
+    } else {
+      return JikesRVMHelpers.getTypeParameters(this, sig);
+    }
   }
 
   public Type[] getGenericExceptionTypes() {
     VM_Atom sig = constructor.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return getExceptionTypes();
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getGenericExceptionTypes();
+    } else {
+      return JikesRVMHelpers.getGenericExceptionTypes(this, sig);
+    }
   }
 
   public Type[] getGenericParameterTypes() {
     VM_Atom sig = constructor.getSignature();
-    if (sig == null)
+    if (sig == null) {
       return getParameterTypes();
-    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
-    return p.getGenericParameterTypes();
+    } else {
+      return JikesRVMHelpers.getGenericParameterTypes(this, sig);
+    }
   }
 
   public String toGenericString() {

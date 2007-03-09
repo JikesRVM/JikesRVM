@@ -19,9 +19,6 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Runtime;
 
-import gnu.java.lang.ClassHelper;
-import gnu.java.lang.reflect.FieldSignatureParser;
-
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
@@ -247,7 +244,7 @@ public final class Field extends AccessibleObject implements Member {
   public String toString() {
     StringBuilder sb = new StringBuilder(64);
     Modifier.toString(getModifiers(), sb).append(' ');
-    sb.append(ClassHelper.getUserName(getType())).append(' ');
+    sb.append(JikesRVMHelpers.getUserName(getType())).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');
     sb.append(getName());
     return sb.toString();
@@ -542,12 +539,12 @@ public final class Field extends AccessibleObject implements Member {
 
   public Type getGenericType() {
     VM_Atom signature = field.getSignature();
-    if (signature == null)
+    if (signature == null) {
       return getType();
-    FieldSignatureParser p = new FieldSignatureParser(getDeclaringClass(),
-                                                      signature.toString());
-    return p.getFieldType();
-   }
+    } else {
+      return JikesRVMHelpers.getFieldType(this, signature);
+    }
+  }
 
   public String toGenericString() {
     StringBuilder sb = new StringBuilder(64);
