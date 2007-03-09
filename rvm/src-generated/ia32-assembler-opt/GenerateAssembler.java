@@ -1137,7 +1137,7 @@ public class GenerateAssembler {
             System.exit(1 );
         }
 
-        emit("package org.jikesrvm.ia32.opt;\n\n");
+        emit("package org.jikesrvm.opt.ia32;\n\n");
         emit("import org.jikesrvm.*;\n\n");
         emit("import org.jikesrvm.opt.*;\n\n");
         emit("import org.jikesrvm.opt.ir.*;\n\n");

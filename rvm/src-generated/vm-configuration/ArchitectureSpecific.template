@@ -61,49 +61,49 @@ public class ArchitectureSpecific {
       super(registerLocations);
     }}
   public static final class VM_JNIHelpers extends org.jikesrvm.@_ARCH_@.jni.VM_JNIHelpers {}
-  public static final class OPT_Assembler extends org.jikesrvm.@_ARCH_@.opt.OPT_Assembler {
+  public static final class OPT_Assembler extends org.jikesrvm.opt.@_ARCH_@.OPT_Assembler {
   @_PPC_QUOTE_@
     public OPT_Assembler(int bcSize, boolean print, OPT_IR ir) {
       super(bcSize, print, ir);
     }
   //*/
   }
-  public static final class OPT_BURS_Debug extends org.jikesrvm.@_ARCH_@.opt.OPT_BURS_Debug {}
-  public static final class OPT_BURS_STATE extends org.jikesrvm.@_ARCH_@.opt.OPT_BURS_STATE {
+  public static final class OPT_BURS_Debug extends org.jikesrvm.opt.@_ARCH_@.OPT_BURS_Debug {}
+  public static final class OPT_BURS_STATE extends org.jikesrvm.opt.@_ARCH_@.OPT_BURS_STATE {
     public OPT_BURS_STATE(OPT_BURS b) {
       super(b);
     }}
-  public static class OPT_BURS_TreeNode extends org.jikesrvm.@_ARCH_@.opt.OPT_BURS_TreeNode {
+  public static class OPT_BURS_TreeNode extends org.jikesrvm.opt.@_ARCH_@.OPT_BURS_TreeNode {
     public OPT_BURS_TreeNode(OPT_DepGraphNode node) {
       super(node);
     }
     public OPT_BURS_TreeNode(char int_constant_opcode) {
       super(int_constant_opcode);
     }}
-  public static final class OPT_CallingConvention extends org.jikesrvm.@_ARCH_@.opt.OPT_CallingConvention {}
-  public static final class OPT_ComplexLIR2MIRExpansion extends org.jikesrvm.@_ARCH_@.opt.OPT_ComplexLIR2MIRExpansion {}
-  public static final class OPT_ConvertALUOperators extends org.jikesrvm.@_ARCH_@.opt.OPT_ConvertALUOperators {}
-  public static final class OPT_FinalMIRExpansion extends org.jikesrvm.@_ARCH_@.opt.OPT_FinalMIRExpansion {}
-  public static final class OPT_MIROptimizationPlanner extends org.jikesrvm.@_ARCH_@.opt.OPT_MIROptimizationPlanner {}
-  public static final class OPT_NormalizeConstants extends org.jikesrvm.@_ARCH_@.opt.OPT_NormalizeConstants {}
-  public static interface OPT_PhysicalRegisterConstants extends org.jikesrvm.@_ARCH_@.opt.OPT_PhysicalRegisterConstants {}
-  public abstract static class OPT_PhysicalRegisterTools extends org.jikesrvm.@_ARCH_@.opt.OPT_PhysicalRegisterTools {}
-  public static final class OPT_RegisterPreferences extends org.jikesrvm.@_ARCH_@.opt.OPT_RegisterPreferences {}
-  public static final class OPT_RegisterRestrictions extends org.jikesrvm.@_ARCH_@.opt.OPT_RegisterRestrictions {
+  public static final class OPT_CallingConvention extends org.jikesrvm.opt.@_ARCH_@.OPT_CallingConvention {}
+  public static final class OPT_ComplexLIR2MIRExpansion extends org.jikesrvm.opt.@_ARCH_@.OPT_ComplexLIR2MIRExpansion {}
+  public static final class OPT_ConvertALUOperators extends org.jikesrvm.opt.@_ARCH_@.OPT_ConvertALUOperators {}
+  public static final class OPT_FinalMIRExpansion extends org.jikesrvm.opt.@_ARCH_@.OPT_FinalMIRExpansion {}
+  public static final class OPT_MIROptimizationPlanner extends org.jikesrvm.opt.@_ARCH_@.OPT_MIROptimizationPlanner {}
+  public static final class OPT_NormalizeConstants extends org.jikesrvm.opt.@_ARCH_@.OPT_NormalizeConstants {}
+  public static interface OPT_PhysicalRegisterConstants extends org.jikesrvm.opt.@_ARCH_@.OPT_PhysicalRegisterConstants {}
+  public abstract static class OPT_PhysicalRegisterTools extends org.jikesrvm.opt.@_ARCH_@.OPT_PhysicalRegisterTools {}
+  public static final class OPT_RegisterPreferences extends org.jikesrvm.opt.@_ARCH_@.OPT_RegisterPreferences {}
+  public static final class OPT_RegisterRestrictions extends org.jikesrvm.opt.@_ARCH_@.OPT_RegisterRestrictions {
     public OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
       super(phys);
     }}
-  public static final class OPT_StackManager extends org.jikesrvm.@_ARCH_@.opt.OPT_StackManager {}
-  public static final class VM_OptExceptionDeliverer extends org.jikesrvm.@_ARCH_@.opt.VM_OptExceptionDeliverer {}
-  public static final class VM_OptGCMapIterator extends org.jikesrvm.@_ARCH_@.opt.VM_OptGCMapIterator {
+  public static final class OPT_StackManager extends org.jikesrvm.opt.@_ARCH_@.OPT_StackManager {}
+  public static final class VM_OptExceptionDeliverer extends org.jikesrvm.opt.@_ARCH_@.VM_OptExceptionDeliverer {}
+  public static final class VM_OptGCMapIterator extends org.jikesrvm.opt.@_ARCH_@.VM_OptGCMapIterator {
     public VM_OptGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
-  public static interface VM_OptGCMapIteratorConstants extends org.jikesrvm.@_ARCH_@.opt.VM_OptGCMapIteratorConstants {}
-  public static final class OPT_GenerateMachineSpecificMagic extends org.jikesrvm.@_ARCH_@.opt.ir.OPT_GenerateMachineSpecificMagic {}
-  public static final class OPT_PhysicalDefUse extends org.jikesrvm.@_ARCH_@.opt.ir.OPT_PhysicalDefUse {}
-  public static final class OPT_PhysicalRegisterSet extends org.jikesrvm.@_ARCH_@.opt.ir.OPT_PhysicalRegisterSet {}
-  public static final class OPT_RegisterPool extends org.jikesrvm.@_ARCH_@.opt.ir.OPT_RegisterPool {
+  public static interface VM_OptGCMapIteratorConstants extends org.jikesrvm.opt.@_ARCH_@.VM_OptGCMapIteratorConstants {}
+  public static final class OPT_GenerateMachineSpecificMagic extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_GenerateMachineSpecificMagic {}
+  public static final class OPT_PhysicalDefUse extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_PhysicalDefUse {}
+  public static final class OPT_PhysicalRegisterSet extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_PhysicalRegisterSet {}
+  public static final class OPT_RegisterPool extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_RegisterPool {
     public OPT_RegisterPool(VM_Method meth) {
       super(meth);
     }}

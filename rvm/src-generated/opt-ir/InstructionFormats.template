@@ -134,10 +134,10 @@ package INSTRFMTPKG;
 
 import org.jikesrvm.VM_Configuration;
 $$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.ARCHPKG.opt.ir.OPT_IA32ConditionOperand;
+import org.jikesrvm.opt.ARCHPKG.ir.OPT_IA32ConditionOperand;
 $$$$ ELSE
-import org.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCConditionOperand;
-import org.jikesrvm.ARCHPKG.opt.ir.OPT_PowerPCTrapOperand;
+import org.jikesrvm.opt.ARCHPKG.ir.OPT_PowerPCConditionOperand;
+import org.jikesrvm.opt.ARCHPKG.ir.OPT_PowerPCTrapOperand;
 $$$$ END IF
 
 

@@ -386,11 +386,11 @@ Check to make sure all required properties are specified. This includes properti
         <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/ir/InstructionFormats.RAW"/>
       </exec>
 
-      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"/>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${build.burs.dir}/ir.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/ir.brg"/>
+          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}/ir.brg"/>
           <arg value="ARCHITECTURE_IR_DIR=${build.ir.dir}/@{arch}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
           <arg value="THE_RULE_FILE=@{rulesList}"/>
@@ -398,41 +398,41 @@ Check to make sure all required properties are specified. This includes properti
       </GenerateFromTemplate>
 
       <exec executable="${build.jburg.dir}/jburg"
-            dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
+            dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}"
             failonerror="true">
         <arg value="-a"/>
-        <arg value="@{arch}."/>
+        <arg value="@{arch}"/>
         <arg value="-p"/>
         <arg value="BURS"/>
         <arg value="ir.brg"/>
-        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/jburg.out"/>
+        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}/jburg.out"/>
       </exec>
 
       <copy file="${basedir}/rvm/src-generated/opt-burs/jburg/burg.template"
-            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt">
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
         </filterset>
       </copy>
       <copy file="${build.burs.dir}/OPT_BURS_TreeNode.template"
-            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt">
+            todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
         </filterset>
       </copy>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/OPT_BURS_TreeNode.java">
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}/OPT_BURS_TreeNode.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}"
                   files="OPT_BURS_TreeNode.template"/>
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}"
                   files="BURS_State.template"/>
       </concat>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt/OPT_BURS_STATE.java">
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt" files="burg.template"/>
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt" files="jburg.out"/>
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}/OPT_BURS_STATE.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}" files="burg.template"/>
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}" files="jburg.out"/>
       </concat>
-      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/@{arch}/opt"/>
+      <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/opt/@{arch}"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${basedir}/rvm/src-generated/opt-scheduler/OPT_OperatorClass.template"/>
@@ -562,7 +562,8 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub">
-    <mkdir dir="${generated.ia32.java}/org/jikesrvm/ia32/opt"/>
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/ia32"/>
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/opt/ia32"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
       <arg value="genAssembler.sh"/>
@@ -618,7 +619,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.ia32-assembler-opt.dir}"/>
       </classpath>
-      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/ia32/opt"/>
+      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/opt/ia32"/>
     </java>
   </target>
 

@@ -2,9 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package org.jikesrvm.@_ARCH_@.opt;
+package org.jikesrvm.opt.@_ARCH_@;
 
-import org.jikesrvm.@_ARCH_@.opt.ir.*;
+import org.jikesrvm.opt.@_ARCH_@.ir.*;
 import org.jikesrvm.classloader.*;
 
 import org.jikesrvm.*;
