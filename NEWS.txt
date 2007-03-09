@@ -18,9 +18,32 @@ on October 14, 2001,
 
 *** Large scale changes in source tree
 
+*** Switched to generic version of Classpath
+
+*** Rewrite of large parts of the source tree using Java 1.5 language features
+
+*** Switch from using interface and exceptions to mark pragmas to using
+    annotations
+
+*** Refactor of type system and JTOC
+
+*** Support for packing subword sized fields in objects. Removal of hand
+    packed fields. Various memory savings.
+
+*** System calls now supported in any file using SysCall annotation on a
+    native method. VM_SysCall now generates implementation from annotation.
+    VMMath now implemented using system calls.
+
+*** Support for chasing final fields reached from literal or static final
+    fields. Greater optimization of object constant operands.
+
+*** Greater support for 387 constants. Simplification of 387 BURS rules.
+
 ** Bug fixes
 
 *** Yes...many :)
+
+*** Race condition in dynamic linking of unresolved static class members.
 
 ** Other Notes
 
