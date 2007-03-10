@@ -3340,16 +3340,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // Emit code to acquire method synchronization lock.
   //
   private void genSynchronizedMethodPrologue() {
-    if (method.isStatic()) { // put java.lang.Class object for VM_Type into T0
-      if (VM.writingBootImage) {
-        VM.deferClassObjectCreation(klass);
-      } else {
-        klass.getClassForType();
-      }
-      Offset tibOffset = klass.getTibOffset();
-      asm.emitLAddrToc(T0, tibOffset);
-      asm.emitLAddr(T0, 0, T0);
-      asm.emitLAddrOffset(T0, T0, VM_Entrypoints.classForTypeField.getOffset()); 
+    if (method.isStatic()) { // put java.lang.Class object into T0
+      Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
+      asm.emitLAddrToc(T0, klassOffset);
     } else { // first local is "this" pointer
       copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, T0);
     }

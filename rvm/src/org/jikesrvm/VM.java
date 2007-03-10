@@ -386,23 +386,6 @@ import org.vmmagic.unboxed.*;
     VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
-
-  private static VM_Class[] classObjects = new VM_Class[0];
-  /**
-   * Called by the compilers when compiling a static synchronized method
-   * or a class literal during bootimage writing.
-   */
-  @Interruptible
-  public static void deferClassObjectCreation(VM_Class c) {
-    for (VM_Class classObject : classObjects) {
-      if (classObject == c) return; // already recorded
-    }
-    VM_Class[] tmp = new VM_Class[classObjects.length+1];
-    System.arraycopy(classObjects, 0, tmp, 0, classObjects.length);
-    tmp[classObjects.length] = c;
-    classObjects = tmp;
-  }
-
   /**
    * Run <clinit> method of specified class, if that class appears 
    * in bootimage and actually has a clinit method (we are flexible to
