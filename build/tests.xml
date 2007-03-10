@@ -237,8 +237,10 @@
       <res><![CDATA[<result>${test.@{tag}.result}</result>]]></res>
       <res><![CDATA[<result-explanation>${test.@{tag}.result.explanation}</result-explanation>]]></res>
       <res><![CDATA[<output><]]>![CDATA[</res>
+      <copy file="${test.@{tag}.output.file}" tofile="${build.tests.dir}/deleteme.txt"/>
+      <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
       <concat destfile="${results.file}" append="true">
-        <path path="${test.@{tag}.output.file}"/>
+        <path path="${build.tests.dir}/deleteme.txt"/>
       </concat>
       <res>]]<![CDATA[></output>]]></res>
     </sequential>
