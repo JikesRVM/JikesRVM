@@ -212,13 +212,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
         VM.sysWrite("\t");
         // Ratio of machine code bytes to bytecode bytes
         if (i != JNI_COMPILER) {
-          VM.sysWrite((double)(totalMCLength[i] << LG_INSTRUCTION_WIDTH)/(double)totalBCLength[i], 2);
+          VM.sysWrite((double)(totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH)/(double)totalBCLength[i], 2);
         } else {
           VM.sysWrite("NA");
         }
         VM.sysWrite("\t");
         // Generated machine code Kbytes
-        VM.sysWrite((double)(totalMCLength[i] << LG_INSTRUCTION_WIDTH)/1024, 1);
+        VM.sysWrite((double)(totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH)/1024, 1);
         VM.sysWrite("\t");
         // Compiled bytecode Kbytes
         if (i != JNI_COMPILER) {

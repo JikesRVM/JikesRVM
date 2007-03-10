@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.opt.ia32.ir;
 
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_MagicNames;
+import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.opt.ir.*;
@@ -23,7 +23,7 @@ import org.jikesrvm.opt.ir.*;
  * 
  * @author Dave Grove
  */
-public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
+public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_StackframeLayoutConstants {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class.

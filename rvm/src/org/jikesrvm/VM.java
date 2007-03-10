@@ -102,7 +102,7 @@ import org.vmmagic.unboxed.*;
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
-    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).plus(STACK_SIZE_GUARD);
+    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
     currentThread.isBootThread = true;
     
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
@@ -1459,11 +1459,11 @@ import org.vmmagic.unboxed.*;
 
     // 1.
     //
-    if (VM_Magic.getFramePointer().minus(STACK_SIZE_GCDISABLED)
+    if (VM_Magic.getFramePointer().minus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) 
         && !myThread.hasNativeStackFrame()) 
       {
-      VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GCDISABLED, null);
+      VM_Thread.resizeCurrentStack(myThread.stack.length + ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
     }
 
     // 2.

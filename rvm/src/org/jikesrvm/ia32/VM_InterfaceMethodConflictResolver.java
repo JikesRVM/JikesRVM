@@ -9,7 +9,6 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.ArchitectureSpecific;
@@ -32,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Bowen Alpern
  * @author Dave Grove
  */
-public abstract class VM_InterfaceMethodConflictResolver implements VM_Constants {
+public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 

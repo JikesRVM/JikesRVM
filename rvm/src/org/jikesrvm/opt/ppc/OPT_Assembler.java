@@ -11,6 +11,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
+import org.jikesrvm.ia32.*;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 
 import org.jikesrvm.opt.OPT_Compiler;
@@ -42,6 +43,7 @@ import org.jikesrvm.opt.ir.OPT_Instruction;
 import org.jikesrvm.opt.ir.OPT_Operators;
 import org.jikesrvm.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.ppc.*;
+import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.opt.ppc.ir.*;
 
 /**
@@ -52,7 +54,7 @@ import org.jikesrvm.opt.ppc.ir.*;
  * @author Igor Pechtchanski
  * @author Mauricio Serrano
  */
-public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
+public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_ArchConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;

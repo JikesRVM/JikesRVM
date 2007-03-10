@@ -7,9 +7,12 @@
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
 
-import org.jikesrvm.*;
-import org.jikesrvm.ia32.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_RegisterConstants;
+import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
+import org.jikesrvm.ia32.VM_TrapConstants;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Emit the architecture-specific part of a header file containing declarations
@@ -26,27 +29,27 @@ final class GenArchIA extends GenArch {
     pln("VM_Registers_fp_offset = ", offset);
 
       p("static const int VM_Constants_EAX                    = "
-          + VM_Constants.EAX + ";\n");
+          + VM_RegisterConstants.EAX + ";\n");
       p("static const int VM_Constants_ECX                    = "
-          + VM_Constants.ECX + ";\n");
+          + VM_RegisterConstants.ECX + ";\n");
       p("static const int VM_Constants_EDX                    = "
-          + VM_Constants.EDX + ";\n");
+          + VM_RegisterConstants.EDX + ";\n");
       p("static const int VM_Constants_EBX                    = "
-          + VM_Constants.EBX + ";\n");
+          + VM_RegisterConstants.EBX + ";\n");
       p("static const int VM_Constants_ESP                    = "
-          + VM_Constants.ESP + ";\n");
+          + VM_RegisterConstants.ESP + ";\n");
       p("static const int VM_Constants_EBP                    = "
-          + VM_Constants.EBP + ";\n");
+          + VM_RegisterConstants.EBP + ";\n");
       p("static const int VM_Constants_ESI                    = "
-          + VM_Constants.ESI + ";\n");
+          + VM_RegisterConstants.ESI + ";\n");
       p("static const int VM_Constants_EDI                    = "
-          + VM_Constants.EDI + ";\n");
+          + VM_RegisterConstants.EDI + ";\n");
       p("static const int VM_Constants_STACKFRAME_BODY_OFFSET             = "
-          + VM_Constants.STACKFRAME_BODY_OFFSET + ";\n");
+          + VM_StackframeLayoutConstants.STACKFRAME_BODY_OFFSET + ";\n");
       p("static const int VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = "
-          + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET   + ";\n");    
+          + VM_StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET   + ";\n");    
       p("static const int VM_Constants_RVM_TRAP_BASE  = "
-          + VM_Constants.RVM_TRAP_BASE   + ";\n");    
+          + VM_TrapConstants.RVM_TRAP_BASE   + ";\n");    
 
       offset = VM_Entrypoints.framePointerField.getOffset();
       pln("VM_Processor_framePointer_offset = ", offset);

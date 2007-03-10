@@ -12,7 +12,6 @@ package org.jikesrvm.ia32.osr;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
@@ -35,7 +34,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Feng Qian
  */
-public abstract class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
+public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   public static boolean install(OSR_ExecutionState state,
                          VM_CompiledMethod cm) {

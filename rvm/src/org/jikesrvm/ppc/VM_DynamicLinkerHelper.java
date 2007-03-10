@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Machine specific helper functions for dynamic linking.
@@ -22,7 +21,7 @@ import org.jikesrvm.VM_Magic;
  * @date 17 Sep 1999  
  */
 @Uninterruptible
-public abstract class VM_DynamicLinkerHelper implements VM_Constants {
+public abstract class VM_DynamicLinkerHelper implements VM_RegisterConstants {
 
   /**
    * Reach up two stack frames into a frame that is compiled

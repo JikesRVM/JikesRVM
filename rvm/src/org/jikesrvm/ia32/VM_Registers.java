@@ -11,7 +11,6 @@ package org.jikesrvm.ia32;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
 
@@ -21,7 +20,7 @@ import org.jikesrvm.VM_Magic;
  * @author Bowen Alpern
  * @author David Grove
  */
-@Uninterruptible public abstract class VM_Registers implements VM_Constants {
+@Uninterruptible public abstract class VM_Registers implements VM_RegisterConstants {
 
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.

@@ -11,9 +11,9 @@ package org.jikesrvm.ppc.osr;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
+import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.*;
  */
 public abstract class OSR_OptExecStateExtractor 
   extends OSR_ExecStateExtractor 
-  implements VM_Constants, 
+  implements VM_ArchConstants, 
              OSR_Constants,
              OPT_PhysicalRegisterConstants {
   

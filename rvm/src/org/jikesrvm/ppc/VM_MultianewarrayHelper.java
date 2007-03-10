@@ -49,7 +49,7 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
     VM.disableGC();
     Address argp = VM_Magic.getFramePointer().loadAddress().plus(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
-      int offset = (BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
+      int offset = (VM_StackframeLayoutConstants.BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
       numElements[i] = argp.minus(offset).loadInt();
     }
     VM.enableGC();

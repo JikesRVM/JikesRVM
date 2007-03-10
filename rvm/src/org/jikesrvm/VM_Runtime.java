@@ -52,7 +52,7 @@ import org.vmmagic.pragma.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Runtime implements VM_Constants {
+public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
    
   // Trap codes for communication with C trap handler.
   //

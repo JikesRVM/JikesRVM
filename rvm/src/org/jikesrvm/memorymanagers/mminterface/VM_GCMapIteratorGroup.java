@@ -9,7 +9,6 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
@@ -18,6 +17,7 @@ import org.jikesrvm.VM_HardwareTrapGCMapIterator;
 import org.jikesrvm.VM_Thread;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ArchitectureSpecific;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -61,7 +61,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   private final VM_GCMapIterator jniIterator;
   
   public VM_GCMapIteratorGroup() { 
-    registerLocations         = WordArray.create(VM_Constants.NUM_GPRS);
+    registerLocations         = WordArray.create(ArchitectureSpecific.VM_ArchConstants.NUM_GPRS);
     
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     if (VM.BuildForOptCompiler) {
@@ -88,7 +88,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    */
   @Uninterruptible
   public void newStackWalk(VM_Thread thread, Address registerLocation) { 
-    for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
+    for (int i = 0; i < ArchitectureSpecific.VM_ArchConstants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }

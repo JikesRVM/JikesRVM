@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @author Julian Dolby
  * @date May 20, 2002
  */
-public final class VM_StackBrowser implements VM_Constants {
+public final class VM_StackBrowser implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
   private VM_Method currentMethod;
   private int currentBytecodeIndex;

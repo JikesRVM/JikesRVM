@@ -25,6 +25,7 @@ import org.jikesrvm.VM_Processor;
 import org.jikesrvm.VM_Thread;
 import org.jikesrvm.VM_Time;
 import org.jikesrvm.VM_Synchronization;
+import org.jikesrvm.ArchitectureSpecific;
 
 /**
  * System thread used to preform garbage collections.
@@ -190,7 +191,7 @@ public class VM_CollectorThread extends VM_Thread {
    */
   @Interruptible
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) { 
-    byte[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
+    byte[] stack =  MM_Interface.newStack(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_COLLECTOR, true);
     return new VM_CollectorThread(stack, true, processorAffinity);
   }
   

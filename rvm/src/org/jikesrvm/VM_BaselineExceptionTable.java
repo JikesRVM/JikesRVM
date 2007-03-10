@@ -35,9 +35,9 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
     int[] eTable = new int[tableSize*4];
     
     for (int i=0; i<tableSize; i++) {
-      eTable[i*4 + TRY_START] = bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
-      eTable[i*4 + TRY_END] = bytecodeMap[endPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
-      eTable[i*4 + CATCH_START] = bytecodeMap[handlerPCs[i]] << VM.LG_INSTRUCTION_WIDTH;
+      eTable[i*4 + TRY_START] = bytecodeMap[startPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
+      eTable[i*4 + TRY_END] = bytecodeMap[endPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
+      eTable[i*4 + CATCH_START] = bytecodeMap[handlerPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
       try {
         eTable[i*4 + EX_TYPE] = exceptionTypes[i].resolve().getId();
       } catch (NoClassDefFoundError except) {

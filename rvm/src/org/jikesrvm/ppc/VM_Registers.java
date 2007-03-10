@@ -8,12 +8,12 @@
  */
 package org.jikesrvm.ppc;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * The machine state comprising a thread's execution context.
@@ -21,7 +21,7 @@ import org.jikesrvm.VM_Magic;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-@Uninterruptible public abstract class VM_Registers implements VM_Constants {
+@Uninterruptible public abstract class VM_Registers implements VM_ArchConstants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //

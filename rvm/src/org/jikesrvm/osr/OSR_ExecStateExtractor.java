@@ -17,8 +17,8 @@ import org.vmmagic.unboxed.*;
  * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor) 
  * of a method activation. The implementation depends on compilers and 
  * hardware architectures
- * @see OSR_BaselineExecStateExtractor
- * @see OSR_OptExecStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor
  * 
  * It returns a compiler and architecture neutered runtime state 
  * OSR_ExecutionState.
@@ -51,10 +51,10 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
     Address fp = VM_Magic.objectAsAddress(stack).plus(osrFPoff);
     Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);
 
-      if (cmid == INVISIBLE_METHOD_ID) {
+      if (cmid == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
         VM.sysWriteln(" invisible method ");
       } else {
         VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);

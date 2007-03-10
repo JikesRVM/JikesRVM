@@ -9,11 +9,10 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Machine specific helper functions for dynamic linking.
@@ -23,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Anthony Cocchi
  */
 @Uninterruptible
-public abstract class VM_DynamicLinkerHelper implements VM_Constants {
+public abstract class VM_DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled
@@ -38,7 +37,7 @@ public abstract class VM_DynamicLinkerHelper implements VM_Constants {
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
     Address location = Address.zero();
-    if (0 < NUM_PARAMETER_GPRS) {
+    if (0 < VM_RegisterConstants.NUM_PARAMETER_GPRS) {
       location = callingFrame.plus(VM_BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET).loadAddress();
 
     } else {

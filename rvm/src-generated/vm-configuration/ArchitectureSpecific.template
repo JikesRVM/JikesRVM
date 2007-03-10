@@ -19,6 +19,7 @@ public class ArchitectureSpecific {
       super(bytecodeSize, shouldPrint);
     }
   }
+  public static interface VM_ArchConstants extends org.jikesrvm.@_ARCH_@.VM_ArchConstants {} 
   public static interface VM_BaselineConstants extends org.jikesrvm.@_ARCH_@.VM_BaselineConstants {}
   public static final class VM_BaselineExceptionDeliverer extends org.jikesrvm.@_ARCH_@.VM_BaselineExceptionDeliverer {}
   public static final class VM_BaselineGCMapIterator extends org.jikesrvm.@_ARCH_@.VM_BaselineGCMapIterator {

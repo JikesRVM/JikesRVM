@@ -32,7 +32,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
  *  
  * @author Derek Lieber
  */
-@Uninterruptible public class VM_Thread implements VM_Constants {
+@Uninterruptible public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
   /**
    * debug flag
@@ -1151,7 +1151,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
            MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                                threadSlot, this);
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                                    Offset.fromIntZeroExtend(threadSlot << LOG_BYTES_IN_ADDRESS), this);
+                                    Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), this);
          return;
          }
        }
@@ -1182,7 +1182,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
       MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                           threadSlot, null);
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads, 
-                               Offset.fromIntZeroExtend(threadSlot << LOG_BYTES_IN_ADDRESS), null);
+                               Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), null);
     if (threadSlot < VM_Scheduler.threadAllocationIndex)
       VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again

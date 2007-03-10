@@ -9,6 +9,8 @@
 package org.jikesrvm.opt.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.opt.VM_OptGenericGCMapIterator;
 
 import org.vmmagic.pragma.*;
@@ -130,7 +132,7 @@ import org.vmmagic.unboxed.*;
    *  @return the first spill location
    */
   public Address getFirstSpillLoc() {
-    return framePtr.minus(-VM.STACKFRAME_BODY_OFFSET);
+    return framePtr.minus(-VM_StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
 
   /** 
@@ -146,5 +148,5 @@ import org.vmmagic.unboxed.*;
   }
 
   static final int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + VM.FPU_STATE_SIZE;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + VM_StackframeLayoutConstants.FPU_STATE_SIZE;
 }

@@ -99,7 +99,7 @@ import org.vmmagic.unboxed.*;
    */
   public int locateGCPoint(Offset machCodeOffset, VM_Method method)  {
 
-    machCodeOffset = machCodeOffset.minus(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.minus(1 << LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -171,7 +171,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @param offset offset in the reference stack frame,
+   * @param index offset in the reference stack frame,
    * @param siteindex index that indicates the callsite (siteindex),
    * @return return the offset where the next reference can be found.
    * @return NOMORE when no more pointers can be found
@@ -226,7 +226,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @param offset offset in the JSR reference map,
+   * @param index offset in the JSR reference map,
    * @return The offset where the next reference can be found.
    * @return <code>NOMORE</code> when no more pointers can be found
    * <p>
@@ -847,7 +847,7 @@ import org.vmmagic.unboxed.*;
    */
   public void translateByte2Machine(int[] b2m) {
     for (int i=0; i< MCSites.length; i++) {
-      MCSites[i] = b2m[MCSites[i]] << VM.LG_INSTRUCTION_WIDTH;
+      MCSites[i] = b2m[MCSites[i]] << LG_INSTRUCTION_WIDTH;
     }
   }
 

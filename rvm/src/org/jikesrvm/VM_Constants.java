@@ -24,11 +24,8 @@ import org.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
 public interface VM_Constants
 extends   VM_ThinLockConstants,         // architecture-neutral
           VM_TIBLayoutConstants,        // architecture-neutral
-          VM_StackframeLayoutConstants, // architecture-neutral
           VM_HeapLayoutConstants,       // architecture-neutral
-          VM_SizeConstants,             // 'semi-'architecture-neutral
-          VM_RegisterConstants,         // architecture-specific
-          VM_TrapConstants              // architecture-specific
+          VM_SizeConstants             // 'semi-'architecture-neutral
 {
   /**
    * For assertion checking things that should never happen.

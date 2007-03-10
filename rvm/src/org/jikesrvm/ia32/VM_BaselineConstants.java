@@ -19,7 +19,7 @@ import org.jikesrvm.VM_Constants;
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-public interface VM_BaselineConstants extends VM_Constants {
+public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   
   int    WORDSIZE = 4; // bytes
   int LG_WORDSIZE = 2;
@@ -32,7 +32,7 @@ public interface VM_BaselineConstants extends VM_Constants {
 
   // Volatile (parameter) registers.
   //
-  byte T0   =  EAX;  // DO NOT CHANGE THIS ASSIGNMENT
+  byte T0   = EAX;  // DO NOT CHANGE THIS ASSIGNMENT
   byte T1   =  EDX;
   
   // scratch register

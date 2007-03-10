@@ -561,7 +561,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
     }
     
     VM.sysWrite("-- Stack --\n");
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ){
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
@@ -573,7 +573,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
       } 
 
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-      if (compiledMethodId == INVISIBLE_METHOD_ID) {
+      if (compiledMethodId == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
         showMethod("invisible method", fp);
       } else {
         // normal java frame(s)

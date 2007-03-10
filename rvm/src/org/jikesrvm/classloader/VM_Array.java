@@ -191,7 +191,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    */
   private int computeLogElementSize() {
     if (elementType.getTypeRef().equals(VM_TypeReference.Code)) {
-      return LG_INSTRUCTION_WIDTH;
+      return ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
     case VM_Atom.ClassTypeCode:   return LOG_BYTES_IN_ADDRESS;

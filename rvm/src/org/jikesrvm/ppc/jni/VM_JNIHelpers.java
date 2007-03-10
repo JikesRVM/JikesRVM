@@ -19,6 +19,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Reflection;
 import org.jikesrvm.VM_Thread;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -245,9 +246,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
       // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-      Address gluefp = VM_Magic.getFramePointer().plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      Address gluefp = VM_Magic.getFramePointer().plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      gluefp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      gluefp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
 
       // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
       // skipping the args which are not part of the arguments for the target method
@@ -325,10 +326,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
       // get the FP for this stack frame and traverse 2 frames to get to the glue frame
       Address currentfp = VM_Magic.getFramePointer(); 
-      Address gluefp = VM_Magic.getFramePointer().plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      Address gluecallerfp = gluefp.plus(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      Address gluefp = VM_Magic.getFramePointer().plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      gluefp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      gluefp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+      Address gluecallerfp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
       // compute the offset into the spill area of the native caller frame, 
       // skipping the args which are not part of the arguments for the target method
 

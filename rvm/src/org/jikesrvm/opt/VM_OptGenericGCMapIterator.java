@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
  *
- * @see VM_OptGCMapIterator 
+ * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
  *
  * @author Michael Hind
  */
@@ -111,7 +111,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       if (instructionOffset.sLT(Offset.zero())) {
         VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-        Offset possibleLen = Offset.fromIntZeroExtend(cm.numberOfInstructions() << VM.LG_INSTRUCTION_WIDTH);
+        Offset possibleLen = Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
           VM.sysWriteln("offset is", instructionOffset);

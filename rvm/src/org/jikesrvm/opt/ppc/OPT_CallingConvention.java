@@ -11,6 +11,7 @@ package org.jikesrvm.opt.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_ConvertToLowLevelIR;
 import org.jikesrvm.opt.OPT_DefUse;
@@ -184,7 +185,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     int int_index = 0;
     int double_index = 0;
     int spilledArgumentCounter = 
-      (-256 - VM_Constants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
+      (-256 - ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     for (OPT_OperandEnumeration symParams = prologueInstr.getDefs();

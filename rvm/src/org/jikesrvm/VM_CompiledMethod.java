@@ -172,7 +172,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
       return Offset.zero();
     } else {
       Offset offset = ip.diff(VM_Magic.objectAsAddress(instructions));
-      int max = (instructions.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
+      int max = (instructions.length()+1)<< ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
         Address instructionStart = VM_Magic.objectAsAddress(instructions);
         VM.sysWriteln("\ngetInstructionOffset: ip is not within compiled code for method");
@@ -230,7 +230,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   @Uninterruptible
   public final boolean containsReturnAddress(Address ip) { 
     Address beg = VM_Magic.objectAsAddress(instructions);
-    Address end = beg.plus(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+    Address end = beg.plus(instructions.length() << ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH);
 
     // note that "ip" points to a return site (not a call site)
     // so the range check here must be "ip <= beg || ip >  end"

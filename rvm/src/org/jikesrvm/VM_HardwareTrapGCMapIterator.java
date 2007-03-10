@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
     // saved all registers into the thread's "hardwareExceptionRegisters" object
     //
     Address registerLocation = VM_Magic.objectAsAddress(thread.hardwareExceptionRegisters.gprs);
-    for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
+    for (int i = 0; i < ArchitectureSpecific.VM_ArchConstants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }

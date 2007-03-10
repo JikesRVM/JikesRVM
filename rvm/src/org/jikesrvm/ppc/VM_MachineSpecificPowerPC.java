@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Steve Blackburn
  */
-public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific implements VM_Constants {
+public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific implements VM_ArchConstants {
 
   /**
    * Wrappers around PPC32-specific code (32-bit specific)

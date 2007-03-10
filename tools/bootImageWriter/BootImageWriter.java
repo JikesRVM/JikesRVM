@@ -1224,7 +1224,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // It's actually useless to set the name of the primordial thread here;
       // that data is really stored as part of the java.lang.Thread structure,
       // which we can not safely create yet.
-      VM_Thread startupThread = new VM_Thread(new byte[STACK_SIZE_BOOT], null, "Jikes_RVM_Boot_Thread");
+      VM_Thread startupThread = new VM_Thread(new byte[ArchitectureSpecific.VM_ArchConstants.STACK_SIZE_BOOT], null, "Jikes_RVM_Boot_Thread");
       VM_Scheduler.processors[initProc].activeThread = startupThread;
       // sanity check for bootstrap loader
       int idx = startupThread.stack.length - 1;

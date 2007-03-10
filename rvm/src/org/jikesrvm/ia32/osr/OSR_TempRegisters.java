@@ -10,8 +10,8 @@
 package org.jikesrvm.ia32.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ia32.VM_Registers;
+import org.jikesrvm.ia32.VM_ArchConstants;
 
 import org.vmmagic.unboxed.*;
 
@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Feng Qian
  */
-public class OSR_TempRegisters implements VM_Constants {
+public class OSR_TempRegisters implements VM_ArchConstants {
 
   Address ip;        // next instruction address
   WordArray gprs;

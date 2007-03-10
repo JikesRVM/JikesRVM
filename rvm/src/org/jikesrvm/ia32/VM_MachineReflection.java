@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Maria Butrico
  */
-public abstract class VM_MachineReflection implements VM_Constants {
+public abstract class VM_MachineReflection implements VM_RegisterConstants {
 
   /** 
    * Determine number/type of registers and parameters required to
@@ -75,8 +75,8 @@ public abstract class VM_MachineReflection implements VM_Constants {
     }
 
     // hack to return triple
-    return (parameters<<(REFLECTION_FPRS_BITS+REFLECTION_GPRS_BITS)) |
-      (FPRs<<REFLECTION_GPRS_BITS) | GPRs;
+    return (parameters<<(VM_Constants.REFLECTION_FPRS_BITS+VM_Constants.REFLECTION_GPRS_BITS)) |
+      (FPRs<<VM_Constants.REFLECTION_GPRS_BITS) | GPRs;
   }
   
 
@@ -186,7 +186,7 @@ public abstract class VM_MachineReflection implements VM_Constants {
         Parameters.set(parameter++, val);
 
       } else  {
-        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(VM_Constants.NOT_REACHED);
       }
     }
   }

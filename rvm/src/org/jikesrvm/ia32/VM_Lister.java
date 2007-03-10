@@ -9,14 +9,12 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ia32.VM_Assembler;
 import org.vmmagic.unboxed.Offset;
 
 /** 
  * @author Julian Dolby
  */
-public class VM_Lister implements VM_Constants {
+public class VM_Lister implements VM_RegisterConstants {
 
   private static final int PREFIX_AREA_SIZE = 4;
   private static final int OP_AREA_SIZE     = 9;

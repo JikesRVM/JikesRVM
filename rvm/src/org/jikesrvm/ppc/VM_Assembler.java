@@ -8,6 +8,7 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.ppc.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_AbstractAssembler;
 import org.jikesrvm.VM_BaselineCompiler;
@@ -2271,7 +2272,7 @@ public abstract class VM_Assembler
   //
 
   public void emitStackOverflowCheck (int frameSize) {
-    emitLAddrOffset ( 0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadStackLimitField.getOffset());   // R0 := &stack guard page
+    emitLAddrOffset ( 0, VM_RegisterConstants.PROCESSOR_REGISTER, VM_Entrypoints.activeThreadStackLimitField.getOffset());   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
@@ -2297,10 +2298,10 @@ public abstract class VM_Assembler
   // After:    R0, S0 destroyed
   //
   public void emitNativeStackOverflowCheck (int frameSize) {
-    emitLAddrOffset   (S0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
+    emitLAddrOffset   (S0, VM_RegisterConstants.PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
     emitLAddrOffset   (S0, S0, VM_Entrypoints.jniEnvField.getOffset());      // S0 := thread.jniEnv
     emitLIntOffset   ( 0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // R0 := thread.jniEnv.JNIRefsTop
-    emitLAddrOffset   (S0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
+    emitLAddrOffset   (S0, VM_RegisterConstants.PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
     emitCMPI ( 0, 0);                                    // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
@@ -2312,7 +2313,7 @@ public abstract class VM_Assembler
     // check for enough space for STACK_SIZE_JNINATIVE 
     fr1.resolve(this);
     emitLAddrOffset (0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
-    emitLVAL  (S0, STACK_SIZE_JNINATIVE);
+    emitLVAL  (S0, VM_StackframeLayoutConstants.STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
 
     emitCMPLAddr(0, S0);

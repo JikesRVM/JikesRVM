@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @author Steven Augart
  */
-public class VM_StackTrace implements VM_Constants {
+public class VM_StackTrace {
 
   /** Index of the next stack trace; incremented every time we create one
       afresh. */
@@ -97,9 +97,9 @@ public class VM_StackTrace implements VM_Constants {
       ip = VM_Magic.getReturnAddress(fp);
     }
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+      if (compiledMethodId != ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
         VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         if (record) {
           compiledMethods[stackFrameCount] = compiledMethod;

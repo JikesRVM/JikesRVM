@@ -1359,7 +1359,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
 
     // check to see if this frame address is the sentinel since there
     // may be no further Java frame below
-    asm.emitCMPAddrI(T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
+    asm.emitCMPAddrI(T3, ArchitectureSpecific.VM_ArchConstants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     fr4.resolve(asm);

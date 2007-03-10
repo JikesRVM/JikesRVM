@@ -22,12 +22,13 @@ import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_BaselineCompiledMethod;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
 
 import org.jikesrvm.VM_MiscHeader;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Processor;
 import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_TIBLayoutConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -38,7 +39,7 @@ import org.vmmagic.pragma.*;
  *
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
-@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements VM_Constants {
+@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.VM_ArchConstants {
 
   /***********************************************************************
    *
@@ -214,7 +215,7 @@ import org.vmmagic.pragma.*;
       VM.write(':');
       VM.writeHex(bci);
       VM.write('\t');
-      VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+      VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
       type.getDescriptor().sysWrite();
       VM.write('\n');
     }

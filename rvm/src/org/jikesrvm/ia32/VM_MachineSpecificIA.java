@@ -9,10 +9,10 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_MachineSpecific;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Steve Blackburn
  */
-public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements VM_Constants {
+public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements VM_ArchConstants {
 
   /**
    * A well-known memory location used to manipulate the FPU control word.
@@ -77,11 +77,11 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
   public final void initializeStack(ArchitectureSpecific.VM_Registers contextRegisters, Address ip, Address sp) {
     Address fp;
     sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
+    fp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
     VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp = sp.minus(BYTES_IN_ADDRESS);                                 // allow for one local
+    sp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
     contextRegisters.gprs.set(ESP, sp.toWord());
     contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
                               VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());

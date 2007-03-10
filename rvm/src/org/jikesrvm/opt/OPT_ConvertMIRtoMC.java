@@ -121,7 +121,7 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
       
       if (VM.runningVM)
         VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode), 
-                     codeLength << LG_INSTRUCTION_WIDTH);
+                     codeLength << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
   
     public void verify(OPT_IR ir) {

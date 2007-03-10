@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_Constants;
-
 /**
  * Disassembler for Rios instruction set.
  * @author Ton Ngo
@@ -112,7 +110,7 @@ import org.jikesrvm.VM_Constants;
  *    Cleaned up some old power instructions.
  */
 
-public class PPC_Disassembler implements VM_Constants {
+public class PPC_Disassembler implements VM_ArchConstants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
   static final int MSR = 129;

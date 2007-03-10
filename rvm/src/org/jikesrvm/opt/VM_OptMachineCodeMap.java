@@ -69,7 +69,7 @@ import java.util.ArrayList;
     generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      recordStats(ir.method, size(), machineCodeSize << LG_INSTRUCTION_WIDTH);
+      recordStats(ir.method, size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {

@@ -78,7 +78,7 @@ class GenerateInterfaceDeclarations {
           System.err.println("Error: The -da flag requires an argument");
           System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageDataAddress = Integer.decode(args[i]).intValue();
+        bootImageDataAddress = Integer.decode(args[i]);
         continue;
       }
       if (args[i].equals("-ca")) {              // image address
@@ -86,7 +86,7 @@ class GenerateInterfaceDeclarations {
           System.err.println("Error: The -ca flag requires an argument");
           System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageCodeAddress = Integer.decode(args[i]).intValue();
+        bootImageCodeAddress = Integer.decode(args[i]);
         continue;
       }
       if (args[i].equals("-ra")) {              // image address
@@ -94,7 +94,7 @@ class GenerateInterfaceDeclarations {
           System.err.println("Error: The -ra flag requires an argument");
           System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageRMapAddress = Integer.decode(args[i]).intValue();
+        bootImageRMapAddress = Integer.decode(args[i]);
         continue;
       }
       if (args[i].equals("-out")) {              // output file
@@ -243,8 +243,8 @@ class GenerateInterfaceDeclarations {
     //
     VM_Field[] allFields = cls.getDeclaredFields();
     int fieldCount = 0;
-    for (int i=0; i<allFields.length; i++)
-      if (!allFields[i].isStatic())
+    for (VM_Field field : allFields)
+      if (!field.isStatic())
         fieldCount++;
 
     // Sort them in ascending offset order
@@ -306,7 +306,7 @@ class GenerateInterfaceDeclarations {
         p("   JavaObject_t " + name + ";\n");
         current=current.plus(addrSize);
       } else {
-        System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
+        System.err.println("Unexpected field " + name + " with type " + t);
         throw new RuntimeException("unexpected field type");
       }
     }
@@ -409,20 +409,20 @@ class GenerateInterfaceDeclarations {
     // values in VM_Constants, from VM_Configuration
     //
     p("static const int VM_Constants_STACK_SIZE_GUARD          = "
-        + VM_Constants.STACK_SIZE_GUARD + ";\n");
+        + ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD + ";\n");
 
     p("static const int VM_Constants_INVISIBLE_METHOD_ID       = "
-        + VM_Constants.INVISIBLE_METHOD_ID + ";\n");
+        + ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID + ";\n");
     p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= "
         + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
     p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = "
-        + VM_Constants.STACKFRAME_HEADER_SIZE + ";\n");
+        + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + ";\n");
     p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = "
-        + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
+        + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
-        + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
+        + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
     pln("VM_Constants_STACKFRAME_SENTINEL_FP             = ",
-         VM_Constants.STACKFRAME_SENTINEL_FP);
+         ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
     // values in VM_ObjectModel

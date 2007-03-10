@@ -29,6 +29,7 @@ import org.jikesrvm.VM_Processor;
 import org.jikesrvm.VM_Scheduler;
 import org.jikesrvm.VM_Thread;
 import org.jikesrvm.VM_Time;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
@@ -292,7 +293,7 @@ import org.vmmagic.pragma.*;
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
       Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) 
         VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);

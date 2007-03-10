@@ -15,6 +15,7 @@ import org.jikesrvm.VM_ExceptionDeliverer;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Processor;
 import org.jikesrvm.VM_Thread;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 
@@ -27,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer 
-  implements VM_Constants {
+  implements ArchitectureSpecific.VM_ArchConstants {
 
   private static final boolean TRACE = false;
   
@@ -110,7 +111,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // "branches" to catchBlockInstructionAddress
     VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM_Constants.NOT_REACHED);
   }
   
 

@@ -8,6 +8,7 @@
  */
 package org.jikesrvm.opt.ppc;
 import org.jikesrvm.VM;
+import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.opt.VM_OptGenericGCMapIterator;
 
 import org.vmmagic.pragma.*;
@@ -23,7 +24,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Michael Hind
  */
-@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
+@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
 
   private static final boolean DEBUG = false;
 

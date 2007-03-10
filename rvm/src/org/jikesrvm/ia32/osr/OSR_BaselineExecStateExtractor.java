@@ -36,6 +36,7 @@ import org.vmmagic.unboxed.*;
 
 public abstract class OSR_BaselineExecStateExtractor 
   extends OSR_ExecStateExtractor implements VM_Constants, 
+                                            VM_ArchConstants,
                                             OSR_Constants,
                                             OPT_PhysicalRegisterConstants {
 

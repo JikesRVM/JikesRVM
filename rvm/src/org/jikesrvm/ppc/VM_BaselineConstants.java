@@ -16,7 +16,7 @@ import org.jikesrvm.VM_Constants;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public interface VM_BaselineConstants extends VM_Constants {
+public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 
   // Dedicated registers
   int FP   = FRAME_POINTER;

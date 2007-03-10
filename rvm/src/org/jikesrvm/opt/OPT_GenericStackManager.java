@@ -1163,7 +1163,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Spill pointer (in bytes) relative to the beginning of the 
    * stack frame (starts after the header).
    */
-  protected int spillPointer = VM_Constants.STACKFRAME_HEADER_SIZE; 
+  protected int spillPointer = ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE; 
 
   /**
    * Have we decided that a stack frame is required for this method?

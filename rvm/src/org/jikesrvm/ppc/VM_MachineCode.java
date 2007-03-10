@@ -68,7 +68,7 @@ public abstract class VM_MachineCode {
     // synchronize icache with generated machine code that was written through dcache
     //
     if (VM.runningVM)
-      VM_Memory.sync(VM_Magic.objectAsAddress(instructions), instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+      VM_Memory.sync(VM_Magic.objectAsAddress(instructions), instructions.length() << VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
 
     // release work buffers
     //
