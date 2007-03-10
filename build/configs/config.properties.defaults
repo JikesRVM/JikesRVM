@@ -1,13 +1,13 @@
 # This file defines the default values for config properties
 config.runtime.compiler=base
 config.bootimage.compiler=base
-config.include.aos=0
-config.include.gcspy=0
-config.include.gcspy-stub=0
-config.include.gcspy-client=0
-config.include.all-classes=0
+config.include.aos=false
+config.include.gcspy=false
+config.include.gcspy-stub=false
+config.include.gcspy-client=false
+config.include.all-classes=false
 config.assertions=normal
 config.default-heapsize.initial=20
 config.default-heapsize.maximum=100
 config.bootimage.compiler.args=
-config.stress-gc=0
+config.stress-gc=false

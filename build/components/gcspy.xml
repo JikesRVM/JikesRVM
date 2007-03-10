@@ -27,7 +27,7 @@
         <isset property="gcspy.force-download"/>
       </or>
     </condition>
-    <condition property="include.gcspy-client" value="1">
+    <condition property="include.gcspy-client" value="true">
       <not>
         <isset property="gcspy.skip-client"/>
       </not>

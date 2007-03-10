@@ -105,29 +105,29 @@
   </target>
 
   <target name="include-gcspy-check">
-    <condition property="include.gcspy-java" value="1">
-      <equals arg1="${config.include.gcspy}" arg2="1"/>
+    <condition property="include.gcspy-java" value="true">
+      <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
-    <condition property="include.gcspy-stub" value="1">
+    <condition property="include.gcspy-stub" value="true">
       <and>
-        <equals arg1="${config.include.gcspy}" arg2="1"/>
-        <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+        <equals arg1="${config.include.gcspy}" arg2="true"/>
+        <equals arg1="${config.include.gcspy-stub}" arg2="true"/>
       </and>
     </condition>
-    <condition property="include.gcspy" value="1">
+    <condition property="include.gcspy" value="true">
       <and>
-        <equals arg1="${config.include.gcspy}" arg2="1"/>
+        <equals arg1="${config.include.gcspy}" arg2="true"/>
         <not>
-          <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+          <equals arg1="${config.include.gcspy-stub}" arg2="true"/>
         </not>
       </and>
     </condition>
-    <condition property="include.gcspy-client" value="1">
+    <condition property="include.gcspy-client" value="true">
       <and>
-        <equals arg1="${config.include.gcspy}" arg2="1"/>
-        <equals arg1="${config.include.gcspy-client}" arg2="1"/>
+        <equals arg1="${config.include.gcspy}" arg2="true"/>
+        <equals arg1="${config.include.gcspy-client}" arg2="true"/>
         <not>
-          <equals arg1="${config.include.gcspy-stub}" arg2="1"/>
+          <equals arg1="${config.include.gcspy-stub}" arg2="true"/>
         </not>
       </and>
     </condition>
@@ -157,7 +157,7 @@
       </conditions>
       <sequential>
         <ant antfile="build/components/gcspy.xml" target="ensure">
-          <property name="gcspy.skip-client" value="1"/>
+          <property name="gcspy.skip-client" value="true"/>
         </ant>
       </sequential>
     </if>
@@ -199,14 +199,14 @@ Check to make sure all required properties are specified. This includes properti
 
     <!-- set include.* properties if corresponding feature is in use. Properties used by if/unless guards. -->
     <condition property="include.all" value="true">
-      <equals arg1="${config.include.all-classes}" arg2="1"/>
+      <equals arg1="${config.include.all-classes}" arg2="true"/>
     </condition>
     <condition property="include.opt" value="true">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
     <condition property="include.aos" value="true">
       <and>
-        <equals arg1="${config.include.aos}" arg2="1"/>
+        <equals arg1="${config.include.aos}" arg2="true"/>
         <equals arg1="${config.runtime.compiler}" arg2="opt"/>
       </and>
     </condition>
@@ -237,7 +237,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
     <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
-      <equals arg1="${config.include.gcspy}" arg2="1"/>
+      <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
@@ -650,9 +650,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
-    <condition property="pp_RVM_WITH_ALL_CLASSES" value="true" else="false">
-      <equals arg1="${config.include.all-classes}" arg2="1"/>
-    </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
         <equals arg1="${config.assertions}" arg2="normal"/>
@@ -661,26 +658,11 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_EXTREME_ASSERTIONS" value="true" else="false">
       <equals arg1="${config.assertions}" arg2="extreme"/>
     </condition>
-    <condition property="pp_RVM_WITH_ADAPTIVE_SYSTEM" value="true" else="false">
-      <equals arg1="${config.include.aos}" arg2="1"/>
-    </condition>
     <condition property="pp_RVM_WITH_OPT_COMPILER" value="true" else="false">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
     <condition property="pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER" value="true" else="false">
       <equals arg1="${config.bootimage.compiler}" arg2="base"/>
-    </condition>
-    <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
-      <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
-    </condition>
-    <condition property="pp_RVM_WITH_GCSPY" value="true" else="false">
-      <equals arg1="${config.include.gcspy}" arg2="1"/>
-    </condition>
-    <condition property="pp_RVM_WITH_CLASSPATH_0_93" value="true" else="false">
-      <equals arg1="${classpath.version}" arg2="93"/>
-    </condition>
-    <condition property="pp_RVM_FOR_STRESSGC" value="true" else="false">
-      <equals arg1="${config.stress-gc}" arg2="1"/>
     </condition>
     <condition property="pp_RVM_FOR_STRESSGC_AM" value="" else="final">
       <equals arg1="${config.stress-gc}" arg2="1"/>
@@ -694,16 +676,16 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
-        <filter token="_RVM_WITH_ALL_CLASSES_" value="${pp_RVM_WITH_ALL_CLASSES}"/>
+        <filter token="_RVM_WITH_ALL_CLASSES_" value="${config.include.all-classes}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
-        <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${pp_RVM_WITH_ADAPTIVE_SYSTEM}"/>
+        <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${config.include.aos}"/>
         <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
         <filter token="_RVM_WITH_BASE_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER}"/>
-        <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
-        <filter token="_RVM_WITH_GCSPY_" value="${pp_RVM_WITH_GCSPY}"/>
-        <filter token="_RVM_WITH_CLASSPATH_0_93_" value="${pp_RVM_WITH_CLASSPATH_0_93}"/>
-        <filter token="_RVM_FOR_STRESSGC_" value="${pp_RVM_FOR_STRESSGC}"/>
+        <filter token="_RVM_MMTK_PLAN_" value="${config.mmtk.plan}"/>
+        <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
+        <filter token="_RVM_CLASSPATH_VERSION_" value="${classpath.version}"/>
+        <filter token="_RVM_FOR_STRESSGC_" value="${config.stress-gc}"/>
         <filter token="_RVM_FOR_STRESSGC_AM_" value="${pp_RVM_FOR_STRESSGC_AM}"/>
       </filterset>
     </copy>
@@ -747,7 +729,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-source-check" depends="check-properties">
-    <condition property="generated-source.present" value="1">
+    <condition property="generated-source.present" value="true">
       <and>
         <available file="${generated.dir}/SourceGenerated"/>
         <not>
@@ -767,7 +749,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-config-source-check" depends="check-properties">
-    <condition property="generated-config-source.present" value="1">
+    <condition property="generated-config-source.present" value="true">
       <and>
         <available file="${generated.config.dir}/SourceGenerated"/>
         <not>
@@ -1134,13 +1116,13 @@ Check to make sure all required properties are specified. This includes properti
       <isset property="include.gcspy-stub"/>
     </condition>
     <condition property="gcspy.includes.dir" value="-I${gcspy.server.dir}/include" else="">
-      <equals arg1="${config.include.gcspy}" arg2="1"/>
+      <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
     <condition property="gcspy.lib.dir" value="-L${build.native} -lgcspy">
       <isset property="include.gcspy-stub"/>
     </condition>
     <condition property="gcspy.lib.dir" value="-L${gcspy.server.dir} -lgcspy" else="">
-      <equals arg1="${config.include.gcspy}" arg2="1"/>
+      <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
 
     <condition property="arch.includes" value="-I${bl.dir}/ia32">
@@ -1159,7 +1141,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>
 
     <condition property="pthread.lib" value="" else="-lpthread">
-      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
+      <equals arg1="${config.single.virtual.processor}" arg2="true"/>
     </condition>
 
     <condition property="rvm.arch.src"
@@ -1260,15 +1242,10 @@ Check to make sure all required properties are specified. This includes properti
         <include name="RVM.*.image"/>
       </fileset>
     </copy>
-    <condition property="preload"
-               value=""
-               else="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_DIR/${target.dll-prefix}syswrap${target.dll-ext}&quot;">
-      <equals arg1="${config.single.virtual.processor}" arg2="1"/>
-    </condition>
-
     <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">
       <filterset>
-        <filter token="PRELOAD" value="${preload}"/>
+        <filter token="PRELOAD" 
+                value="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_DIR/${target.dll-prefix}syswrap${target.dll-ext}&quot;"/>
       </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
