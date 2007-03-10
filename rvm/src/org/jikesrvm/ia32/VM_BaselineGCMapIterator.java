@@ -15,7 +15,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_DynamicLink;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_ReferenceMaps;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 

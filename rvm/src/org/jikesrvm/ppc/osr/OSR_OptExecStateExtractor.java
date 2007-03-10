@@ -14,7 +14,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_Constants;

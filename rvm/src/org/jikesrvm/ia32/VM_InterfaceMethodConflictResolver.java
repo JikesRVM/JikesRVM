@@ -12,9 +12,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.Offset;
@@ -38,10 +36,10 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_Constants
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  public static VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
+  public static ArchitectureSpecific.VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
-    VM_Assembler asm = new VM_Assembler(numEntries); 
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(numEntries); 
     
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
@@ -86,7 +84,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_Constants
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue (VM_Assembler asm) {
-    VM_ObjectModel.baselineEmitLoadTIB(asm,ECX,EAX);
+    VM_ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.VM_Assembler) asm,ECX,EAX);
   }
 
   // Generate a subtree covering from low to high inclusive.

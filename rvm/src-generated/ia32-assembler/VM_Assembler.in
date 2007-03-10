@@ -11,10 +11,7 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import org.jikesrvm.ArchitectureSpecific;
 
 
 import org.vmmagic.pragma.*;
@@ -291,8 +288,8 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   /**
    * Create a VM_MachineCode object
    */
-  public final VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
-    return new VM_MachineCode(getMachineCodes(), bytecodeMap);
+  public final ArchitectureSpecific.VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
+    return new ArchitectureSpecific.VM_MachineCode(getMachineCodes(), bytecodeMap);
   }
 
   /**
@@ -305,9 +302,9 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * Return a copy of the generated code as a VM_CodeArray.
    * @return a copy of the generated code as a VM_CodeArray.
    */
-  public final VM_CodeArray getMachineCodes () {
+  public final ArchitectureSpecific.VM_CodeArray getMachineCodes () {
     int len = getMachineCodeIndex();
-    VM_CodeArray trimmed = ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
+    ArchitectureSpecific.VM_CodeArray trimmed = ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
     for (int i=0; i<len; i++) {
       trimmed.set(i, machineCodes[i]);
     }

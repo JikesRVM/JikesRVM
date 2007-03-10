@@ -9,7 +9,6 @@
 package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.OPT_DefUse;
 import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.opt.ppc.ir.*;

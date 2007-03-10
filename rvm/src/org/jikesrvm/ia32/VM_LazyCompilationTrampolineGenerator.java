@@ -9,10 +9,7 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import org.jikesrvm.ArchitectureSpecific;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
@@ -28,8 +25,8 @@ import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
   /** Generate a new lazy compilation trampoline. */
-  public static VM_CodeArray getTrampoline (){
-    VM_Assembler asm = new VM_Assembler(0); 
+  public static ArchitectureSpecific.VM_CodeArray getTrampoline (){
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0); 
     // get JTOC into ECX
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX,
                                               VM_Entrypoints.jtocField.getOffset());

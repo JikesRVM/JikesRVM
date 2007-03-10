@@ -11,7 +11,6 @@ package org.jikesrvm.opt.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_ConvertToLowLevelIR;
 import org.jikesrvm.opt.OPT_DefUse;
@@ -40,6 +39,7 @@ import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.*;
 import static org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants.*;
+import org.jikesrvm.opt.ppc.ir.OPT_PhysicalRegisterSet;
 
 /**
  * This class contains PowerPC Calling conventions.

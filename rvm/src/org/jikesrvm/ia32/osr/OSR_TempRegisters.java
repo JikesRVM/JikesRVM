@@ -11,7 +11,7 @@ package org.jikesrvm.ia32.osr;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ia32.VM_Registers;
 
 import org.vmmagic.unboxed.*;
 

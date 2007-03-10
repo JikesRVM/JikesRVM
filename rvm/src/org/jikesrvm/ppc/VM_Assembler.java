@@ -8,17 +8,13 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_AbstractAssembler;
 import org.jikesrvm.VM_BaselineCompiler;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import org.jikesrvm.ArchitectureSpecific;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -48,8 +44,9 @@ import org.vmmagic.unboxed.*;
  * @modified Daniel Frampton
  * @modified Ian Rogers
  */
-public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_BaselineConstants,
-                                    VM_AssemblerConstants {
+public abstract class VM_Assembler 
+    extends VM_AbstractAssembler 
+    implements VM_BaselineConstants, VM_AssemblerConstants {
 
   /** Machine code being assembled */
   private final VM_MachineCode mc;
@@ -65,7 +62,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
 
   public VM_Assembler (int length, boolean sp, VM_Compiler comp) {
-    mc = new VM_MachineCode();
+    mc = new ArchitectureSpecific.VM_MachineCode();
     shouldPrint = sp;
     compiler = comp;
     mIP = 0;
@@ -1583,16 +1580,16 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   // Convert generated machine code into final form.
   //
-  public VM_MachineCode finalizeMachineCode (int[] bytecodeMap) {
+  public ArchitectureSpecific.VM_MachineCode finalizeMachineCode (int[] bytecodeMap) {
     mc.setBytecodeMap(bytecodeMap);
     return makeMachineCode();
   }
 
-  public VM_MachineCode makeMachineCode () {
+  public ArchitectureSpecific.VM_MachineCode makeMachineCode () {
     mc.finish();
     if (shouldPrint) {
       VM.sysWriteln();
-      VM_CodeArray instructions = mc.getInstructions();
+      ArchitectureSpecific.VM_CodeArray instructions = mc.getInstructions();
       boolean saved = VM_BaselineCompiler.options.PRINT_MACHINECODE;
       try {
         VM_BaselineCompiler.options.PRINT_MACHINECODE = false;
@@ -1608,28 +1605,25 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
         VM_BaselineCompiler.options.PRINT_MACHINECODE = saved;
       }
     }
-    return mc;
+    return (ArchitectureSpecific.VM_MachineCode) mc;
   }
 
 
   public void disassemble(int start, int stop) {
-      try {
-        for (int i = start; i < stop; i++) {
-          VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
-          VM.sysWrite(" : ");
-          VM.sysWrite(VM_Services.getHexString(mc.getInstruction(i), false));
-          VM.sysWrite("  ");
-          VM.sysWrite(PPC_Disassembler.disasm(mc.getInstruction(i), i << LG_INSTRUCTION_WIDTH));
-          VM.sysWrite("\n");
-        }
-      } finally {
-      }
+    for (int i = start; i < stop; i++) {
+      VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+      VM.sysWrite(" : ");
+      VM.sysWrite(VM_Services.getHexString(mc.getInstruction(i), false));
+      VM.sysWrite("  ");
+      VM.sysWrite(PPC_Disassembler.disasm(mc.getInstruction(i), i << LG_INSTRUCTION_WIDTH));
+      VM.sysWrite("\n");
+    }
   }
 
   /**
    * Append a VM_CodeArray to the current machine code
    */
-  public void appendInstructions (VM_CodeArray instructionSegment) {
+  public void appendInstructions (ArchitectureSpecific.VM_CodeArray instructionSegment) {
     for (int i=0; i<instructionSegment.length(); i++) {
       mIP++;
       mc.addInstruction(instructionSegment.get(i));

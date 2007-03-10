@@ -9,7 +9,7 @@
 package org.jikesrvm.opt.ppc.ir;
 
 import org.jikesrvm.VM_MagicNames;
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
+import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.opt.ir.Binary;
@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class implements the machine-specific magics for the opt compiler. 
  *
- * @see OPT_GenerateMagic for the machine-independent magics.
+ * @see org.jikesrvm.opt.ir.OPT_GenerateMagic for the machine-independent magics.
  * 
  * @author Dave Grove
  * @author Mauricio Serrano

@@ -12,7 +12,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 import org.jikesrvm.opt.OPT_Compiler;
 import org.jikesrvm.opt.OPT_OperationNotImplementedException;

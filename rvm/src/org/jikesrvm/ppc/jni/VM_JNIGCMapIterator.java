@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.ppc.jni;
 
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.VM;

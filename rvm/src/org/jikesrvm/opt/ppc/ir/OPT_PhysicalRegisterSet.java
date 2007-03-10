@@ -9,8 +9,8 @@
 package org.jikesrvm.opt.ppc.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.ppc.VM_RegisterConstants;
+import org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.opt.OPT_BitSet;
 import org.jikesrvm.opt.OPT_CompoundEnumerator;
 import org.jikesrvm.opt.OPT_EmptyEnumerator;

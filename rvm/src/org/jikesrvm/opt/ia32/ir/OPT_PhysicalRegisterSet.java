@@ -9,8 +9,8 @@
 package org.jikesrvm.opt.ia32.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.ia32.VM_RegisterConstants;
+import org.jikesrvm.opt.ia32.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.opt.OPT_BitSet;
 import org.jikesrvm.opt.OPT_CompoundEnumerator;
 import org.jikesrvm.opt.OPT_EmptyEnumerator;
@@ -27,8 +27,9 @@ import java.util.Enumeration;
  *
  * @author Stephen Fink
  */
-public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
-implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
+public abstract class OPT_PhysicalRegisterSet
+    extends OPT_GenericPhysicalRegisterSet
+    implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers

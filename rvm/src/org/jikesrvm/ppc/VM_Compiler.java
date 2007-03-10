@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_BaselineCompiledMethod;
 import org.jikesrvm.VM_BaselineCompiler;
@@ -22,9 +21,9 @@ import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ppc.VM_Assembler;
+import org.jikesrvm.ppc.jni.VM_JNICompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.ppc.jni.*;

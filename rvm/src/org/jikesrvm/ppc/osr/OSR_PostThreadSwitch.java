@@ -8,10 +8,11 @@
  */
 
 package org.jikesrvm.ppc.osr;
+
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_CodeArray;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

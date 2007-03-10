@@ -12,8 +12,8 @@ import java.lang.reflect.*;
 
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.jni.VM_JNIGenericHelpers;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
+import org.jikesrvm.ppc.VM_RegisterConstants;
+import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * (cannot be placed in VM_JNIFunctions because methods 
  * there are specially compiled to be called from native).
  * 
- * @see VM_JNIFunctions
+ * @see org.jikesrvm.jni.VM_JNIFunctions
  *
  * @author Dave Grove
  * @author Ton Ngo 
@@ -545,9 +545,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     }
     
     // now invoke the method
-    Object returnObj = VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
-    
-    return returnObj;
+    return VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
   }
 
 

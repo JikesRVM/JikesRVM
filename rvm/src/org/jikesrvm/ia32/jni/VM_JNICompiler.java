@@ -14,11 +14,11 @@ import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_JNICompiledMethod;
 import org.jikesrvm.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
-import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_ProcessorLocalState;
+import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.ia32.VM_MachineCode;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -64,7 +64,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
-    VM_Assembler asm     = new VM_Assembler(100);   // some size for the instruction array
+    VM_Assembler asm     = new ArchitectureSpecific.VM_Assembler(100);   // some size for the instruction array
     Address nativeIP         = method.getNativeIP();
     // recompute some constants
     int parameterWords   = method.getParameterWords();
@@ -186,7 +186,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     else
       asm.emitRET_Imm((parameterWords+1) << LG_WORDSIZE); 
 
-    VM_MachineCode machineCode = new VM_MachineCode(asm.getMachineCodes(), null);
+    VM_MachineCode machineCode = new ArchitectureSpecific.VM_MachineCode(asm.getMachineCodes(), null);
     cm.compileComplete(machineCode.getInstructions());
     return cm;
   }

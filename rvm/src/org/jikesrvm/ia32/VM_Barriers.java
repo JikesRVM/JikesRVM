@@ -11,8 +11,8 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.vmmagic.unboxed.Offset;
 
 /**

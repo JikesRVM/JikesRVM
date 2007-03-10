@@ -17,10 +17,10 @@ import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ppc.VM_Assembler;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.ppc.*;
@@ -54,7 +54,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
-    VM_Assembler asm = new VM_Assembler(0, VM.TraceOnStackReplacement);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0, VM.TraceOnStackReplacement);
     
     /////////////////////////////////////
     ////// recover saved registers.

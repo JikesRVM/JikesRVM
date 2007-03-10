@@ -14,9 +14,7 @@ import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_ExceptionDeliverer;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;
@@ -37,7 +35,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
   public void deliverException(VM_CompiledMethod compiledMethod,
                                Address        catchBlockInstructionAddress,
                                Throwable         exceptionObject,
-                               VM_Registers      registers) {
+                               ArchitectureSpecific.VM_Registers      registers) {
     Address fp    = registers.getInnermostFramePointer();
     VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
 
@@ -67,7 +65,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
   /**
    * Unwind a stackframe.
    */
-  public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
+  public void unwindStackFrame(VM_CompiledMethod compiledMethod, ArchitectureSpecific.VM_Registers registers) {
     VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
     VM_BaselineCompiledMethod bcm = (VM_BaselineCompiledMethod)compiledMethod;
     if (method.isSynchronized()) { 

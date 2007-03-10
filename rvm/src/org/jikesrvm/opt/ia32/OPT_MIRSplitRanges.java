@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
-import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.opt.OPT_CompilerPhase;
 import org.jikesrvm.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.opt.ir.OPT_BasicBlock;

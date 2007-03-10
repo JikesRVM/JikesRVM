@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.opt.ia32.ir;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.opt.OPT_LiveIntervalElement;

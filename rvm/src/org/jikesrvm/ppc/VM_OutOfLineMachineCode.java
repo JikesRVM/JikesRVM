@@ -13,9 +13,7 @@ import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.jni.VM_JNIStackframeLayoutConstants;
 
 import org.vmmagic.unboxed.Offset;
@@ -80,7 +78,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //   R0, volatile, and scratch registers destroyed
   //
   private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
       
     //
     // free registers: 0, S0
@@ -183,7 +181,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //   T1 destroyed
   //
   private static VM_CodeArray generateSaveThreadStateInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save return address
     // 
@@ -230,7 +228,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
   private static VM_CodeArray generateThreadSwitchInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     Offset fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
@@ -295,7 +293,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
   //
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // restore LR
     //
@@ -359,7 +357,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
    *  return values from native call stored in stackframe
    */
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // move native code address to CTR reg;
     // do this early so that S1 will be available as a scratch.

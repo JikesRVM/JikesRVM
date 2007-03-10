@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.opt.ia32;
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 import org.jikesrvm.opt.OPT_CompilerPhase;
 import org.jikesrvm.opt.OPT_Options;
+import org.jikesrvm.opt.ia32.ir.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.ir.*;
 
 /**

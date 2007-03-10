@@ -10,10 +10,7 @@ package org.jikesrvm.opt.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
-import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_ConvertToLowLevelIR;
 import org.jikesrvm.opt.OPT_DefUse;

@@ -7,11 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.opt.ia32;
-import org.jikesrvm.VM_Entrypoints;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.opt.ia32.ir.*;
 import org.jikesrvm.opt.OPT_GenericStackManager;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;

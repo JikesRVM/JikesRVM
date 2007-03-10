@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific;
 import java.util.ArrayList;
 
 /*
@@ -31,7 +30,7 @@ public abstract class VM_MachineCode {
   /**
    * Get the instructions comprising this block of machine code.
    */ 
-  public VM_CodeArray getInstructions() {
+  public ArchitectureSpecific.VM_CodeArray getInstructions() {
     if (VM.VerifyAssertions) VM._assert(instructions != null); // must call "finish" first
     return instructions;
   }
@@ -120,7 +119,7 @@ public abstract class VM_MachineCode {
   private static final int  size = mask+1;
   private static final int shift = 8;
 
-  private VM_CodeArray instructions;
+  private ArchitectureSpecific.VM_CodeArray instructions;
   private ArrayList<int[]> bundles;
   private int[]         current_bundle;
   private int           next;

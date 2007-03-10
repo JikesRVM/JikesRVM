@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.opt.ppc;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
-
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC
  *

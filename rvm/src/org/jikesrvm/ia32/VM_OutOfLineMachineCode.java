@@ -13,11 +13,8 @@ import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
-import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ia32.jni.VM_JNICompiler;
 
 import org.vmmagic.unboxed.Offset;
 
@@ -125,7 +122,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *
   */
   private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
-    VM_Assembler asm = new VM_Assembler(100);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(100);
 
     /* write at most 2 parameters from registers in the stack.  This is
      * logically equivalent to ParamaterRegisterUnload in the compiler
@@ -241,7 +238,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    */
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     Offset   fpOffset = VM_Entrypoints.registersFPField.getOffset();
     Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
@@ -278,7 +275,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    */
   private static VM_CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
     Offset fpOffset = VM_Entrypoints.registersFPField.getOffset();
     Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
@@ -326,7 +323,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    execution resumes at "registers.ip"
    */
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersFPField.getOffset()); 
@@ -367,7 +364,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //   S0  = address of native function to branch to
   //
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save callers ret addr in glue frame
     asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);

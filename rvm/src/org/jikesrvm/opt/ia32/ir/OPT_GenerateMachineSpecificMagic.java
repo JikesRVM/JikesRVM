@@ -12,7 +12,6 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_MagicNames;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.opt.ir.*;

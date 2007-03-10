@@ -11,8 +11,7 @@ package org.jikesrvm.ia32.jni;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 

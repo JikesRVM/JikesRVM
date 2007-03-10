@@ -12,9 +12,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_MachineSpecific;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ArchitectureSpecific;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -62,7 +60,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    * @param tibOffset the offset of the tib from the object header
    */
   @Interruptible
-  public final void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object, Offset tibOffset) { 
+  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) { 
     asm.emitMOV_Reg_RegDisp((byte) dest, (byte) object, tibOffset);
   }
   
@@ -76,7 +74,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    * @param sp The base of the stack
   */
   @Uninterruptible
-  public final void initializeStack(VM_Registers contextRegisters, Address ip, Address sp) {
+  public final void initializeStack(ArchitectureSpecific.VM_Registers contextRegisters, Address ip, Address sp) {
     Address fp;
     sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
     fp = sp.minus(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
@@ -103,7 +101,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    */
   @Uninterruptible
   @Override
-  public final void adjustESP(VM_Registers registers, Offset delta, boolean traceAdjustments) {
+  public final void adjustESP(ArchitectureSpecific.VM_Registers registers, Offset delta, boolean traceAdjustments) {
     Word old = registers.gprs.get(ESP);
     registers.gprs.set(ESP, old.plus(delta));
     if (traceAdjustments) {

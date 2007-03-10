@@ -11,7 +11,7 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

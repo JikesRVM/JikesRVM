@@ -10,7 +10,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import org.jikesrvm.ia32.VM_Assembler;
 import org.vmmagic.unboxed.Offset;
 
 /** 

@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.ia32.ir.*;
 import org.jikesrvm.opt.OPT_GenericRegisterRestrictions;

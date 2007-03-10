@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import org.jikesrvm.ia32.VM_RegisterConstants;
 
 /**
  * This class holds constants that describe IA32 physical register set.

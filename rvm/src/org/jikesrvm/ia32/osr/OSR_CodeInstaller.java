@@ -18,8 +18,9 @@ import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_Assembler;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.adaptive.*;
@@ -59,7 +60,7 @@ public abstract class OSR_CodeInstaller implements VM_Constants, VM_BaselineCons
 
     // should given an estimated length, and print the instructions 
     // for debugging
-    VM_Assembler asm = new VM_Assembler(50, VM.TraceOnStackReplacement);
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(50, VM.TraceOnStackReplacement);
 
     // 1. generate bridge instructions to recover saved registers
     if (cType == VM_CompiledMethod.BASELINE) {

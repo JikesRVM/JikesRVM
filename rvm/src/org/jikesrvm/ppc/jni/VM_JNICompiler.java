@@ -17,10 +17,10 @@ import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_JNICompiledMethod;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ppc.VM_Assembler;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.ppc.*;
 
@@ -157,7 +157,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
-    VM_Assembler asm    = new VM_Assembler(0);
+    VM_Assembler asm    = new ArchitectureSpecific.VM_Assembler(0);
     int frameSize       = getFrameSize(method);
     VM_Class klass      = method.getDeclaringClass();
 
@@ -552,7 +552,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
         int spillSizeOSX = 0;          /* TODO: ONLY USED ON OS X */
         int nextOsxGprIncrement = 1;   /* TODO: ONLY USED ON OS X */
       
-        asmForArgs[arg] = new VM_Assembler(0);
+        asmForArgs[arg] = new ArchitectureSpecific.VM_Assembler(0);
         VM_Assembler asmArg = asmForArgs[arg];
 
         // For 32-bit float arguments, must be converted to
@@ -845,8 +845,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = asmForArgs.length-1; arg >= 0; arg--) {
-        VM_MachineCode codeForArg = asmForArgs[arg].makeMachineCode();
-        asm.appendInstructions(codeForArg.getInstructions());
+        asm.appendInstructions(asmForArgs[arg].makeMachineCode().getInstructions());
       }
     }
   }
@@ -891,7 +890,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
 
       for (int arg = 0; arg < numArguments; arg++) {
         boolean mustSaveFloatToSpill;
-        asmForArgs[arg] = new VM_Assembler(0);
+        asmForArgs[arg] = new ArchitectureSpecific.VM_Assembler(0);
         VM_Assembler asmArg = asmForArgs[arg];
 
         // For 32-bit float arguments
@@ -1109,8 +1108,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = numArguments-1; arg >= 0; arg--) {
-        VM_MachineCode codeForArg = asmForArgs[arg].makeMachineCode();
-        asm.appendInstructions(codeForArg.getInstructions());
+        asm.appendInstructions(asmForArgs[arg].makeMachineCode().getInstructions());
       }
     }
   }

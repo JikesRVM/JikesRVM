@@ -12,9 +12,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 
 /**
@@ -29,10 +27,10 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  public static VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
+  public static ArchitectureSpecific.VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
-    VM_Assembler asm = new VM_Assembler(numEntries); // pretend each entry is a bytecode
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(numEntries); // pretend each entry is a bytecode
 
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
@@ -51,7 +49,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
     insertStubPrologue(asm);
     insertStubCase(asm, sigIds, targets, bcIndices, 0, numEntries-1);
     
-    VM_CodeArray stub = asm.makeMachineCode().getInstructions();
+    ArchitectureSpecific.VM_CodeArray stub = asm.makeMachineCode().getInstructions();
 
     // (5) synchronize icache with generated machine code that was written through dcache
     if (VM.runningVM)    
@@ -82,7 +80,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue (VM_Assembler asm) {
-    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
+    VM_ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.VM_Assembler)asm, S0, T0);
   }
 
   // Generate a subtree covering from low to high inclusive.

@@ -10,9 +10,6 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 
 import org.vmmagic.unboxed.Offset;
 

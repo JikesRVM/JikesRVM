@@ -10,11 +10,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_OptExceptionDeliverer;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.osr.*;
@@ -223,8 +219,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   //----------------//
   // implementation //
   //----------------//
-  private static final VM_OptExceptionDeliverer exceptionDeliverer = 
-    new VM_OptExceptionDeliverer();
+  private static final ArchitectureSpecific.VM_OptExceptionDeliverer exceptionDeliverer = 
+    new ArchitectureSpecific.VM_OptExceptionDeliverer();
 
   private OSR_EncodedOSRMap _osrMap;
 
@@ -340,9 +336,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC)
-      return VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+      return ArchitectureSpecific.VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     else if (VM.BuildForIA32)
-      return VM_RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
+      return ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
     else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return -1;
@@ -352,9 +348,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC)
-      return VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+      return ArchitectureSpecific.VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     else if (VM.BuildForIA32)
-      return VM_RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
+      return ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
     else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return -1;
@@ -364,9 +360,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    */
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC)
-      setFirstNonVolatileGPR(VM_RegisterConstants.NUM_GPRS - n);
+      setFirstNonVolatileGPR(ArchitectureSpecific.VM_RegisterConstants.NUM_GPRS - n);
     else if (VM.BuildForIA32)
-      setFirstNonVolatileGPR(VM_RegisterConstants.NUM_NONVOLATILE_GPRS - n);
+      setFirstNonVolatileGPR(ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_GPRS - n);
     else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
@@ -375,9 +371,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    */
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC)
-      setFirstNonVolatileFPR(VM_RegisterConstants.NUM_FPRS - n);
+      setFirstNonVolatileFPR(ArchitectureSpecific.VM_RegisterConstants.NUM_FPRS - n);
     else if (VM.BuildForIA32)
-      setFirstNonVolatileFPR(VM_RegisterConstants.NUM_NONVOLATILE_FPRS - n);
+      setFirstNonVolatileFPR(ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_FPRS - n);
     else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
@@ -456,9 +452,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
            * is adjusted for one word
            */ 
           patchMap[idx++] = 
-            (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
+            (patchPoint >> ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
           patchMap[idx++] = (newTarget - patchPoint 
-                            + (1<<VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
+                            + (1<<ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
           } else if (VM.VerifyAssertions)
             VM._assert(VM.NOT_REACHED);
         }
@@ -473,11 +469,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   public void applyCodePatches(VM_CompiledMethod cm) { 
     if (patchMap != null) {
       for (int idx=0; idx<patchMap.length; idx += 2) {
-        VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
+        ArchitectureSpecific.VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         if (VM.BuildForIA32)
-          VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+          ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
         else if (VM.BuildForPowerPC)
-          OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+          ArchitectureSpecific.OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
         else if (VM.VerifyAssertions)
           VM._assert(VM.NOT_REACHED);
       }

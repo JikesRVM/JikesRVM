@@ -11,8 +11,8 @@ package org.jikesrvm.ia32.osr;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_CodeArray;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

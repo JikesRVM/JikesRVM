@@ -12,7 +12,6 @@ import org.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_Operator;
 import org.jikesrvm.opt.ir.OPT_Register;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import java.util.Enumeration;
 
 /**

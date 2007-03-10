@@ -11,7 +11,7 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_MachineSpecific;
 import org.jikesrvm.VM_Memory;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 
 import org.vmmagic.pragma.*;
@@ -55,7 +55,7 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
    * @param tibOffset the offset of the tib from the object header
    */
   @Interruptible
-  public final void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object, Offset tibOffset) { 
+  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) { 
     asm.emitLAddrOffset(dest, object, tibOffset);
   }
   

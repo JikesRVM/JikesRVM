@@ -10,7 +10,7 @@
 package org.jikesrvm.ppc.osr;
 
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ppc.VM_Registers;
 
 import org.vmmagic.unboxed.*;
 

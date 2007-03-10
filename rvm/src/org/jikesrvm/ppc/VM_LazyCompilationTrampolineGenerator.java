@@ -9,9 +9,7 @@
 package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
@@ -29,8 +27,8 @@ public abstract class VM_LazyCompilationTrampolineGenerator implements VM_Baseli
   /** 
    * Generate a new lazy compilation trampoline. 
    */
-  public static VM_CodeArray getTrampoline () {
-    VM_Assembler asm = new VM_Assembler(0);
+  public static ArchitectureSpecific.VM_CodeArray getTrampoline () {
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     asm.emitLAddrToc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitBCCTR ();

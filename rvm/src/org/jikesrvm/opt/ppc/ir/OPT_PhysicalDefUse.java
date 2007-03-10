@@ -9,7 +9,6 @@
 package org.jikesrvm.opt.ppc.ir;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_Register;
 

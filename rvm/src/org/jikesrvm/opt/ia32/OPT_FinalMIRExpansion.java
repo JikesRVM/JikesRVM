@@ -11,7 +11,6 @@ package org.jikesrvm.opt.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ia32.ir.*;
 
@@ -31,7 +30,7 @@ import static org.jikesrvm.opt.ir.OPT_Operators.*;
  * is little choice for relocatable IA32 code that does this.  And the
  * details of this code are shared with the baseline compiler and
  * dependent in detail on the VM_Assembler (see {@link
- * VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
+ * org.jikesrvm.ia32.VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
  * it, you will probably need to mess with them as well.
  *
  * @author Dave Grove
