@@ -62,17 +62,6 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Zero a page-aligned region of memory
-   * 
-   * @param start The start of the region to be zeroed (must be page aligned)
-   * @param bytes The number of bytes to be zeroed (must be page aligned)
-   */
-  @Inline
-  public static void zeroPages(Address start, int bytes) { 
-    VM.memory.zeroPages(start, bytes);
-  }
-
-  /**
    * Zero a small region of memory
    * 
    * @param start The start of the region to be zeroed (must be 4-byte aligned)

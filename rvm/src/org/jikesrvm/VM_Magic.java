@@ -27,6 +27,7 @@ import org.jikesrvm.classloader.VM_Type;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class VM_Magic {
 
   //---------------------------------------//
@@ -43,12 +44,6 @@ public class VM_Magic {
   public static Address getTocPointer() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return VM_BootRecord.the_boot_record.tocRegister;
-  }
-
-  /** Set contents of "jtoc" register. */
-  public static void setTocPointer(Address addr) {
-    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    //TODOreturn Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
   }
 
   /** Get contents of "jtoc" register */
@@ -137,15 +132,6 @@ public class VM_Magic {
   public static Address getNextInstructionAddress(Address fp) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
-  }
-
-  /**
-   * Set next instruction address for a frame 
-   * @param fp its frame pointer 
-   * @param newAddr new next instruction address
-   */
-  public static void setNextInstructionAddress(Address fp, Address newAddr) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -334,15 +320,6 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  /**
-   * Set contents of memory location.
-   * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
-   */
-  @Deprecated
-  public static void setMemoryAddress(Address address, Address value, int locationMetadata) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   //---------------------------------------//
   //    Atomic Memory Access Primitives.   //
   //---------------------------------------//
@@ -481,46 +458,11 @@ public class VM_Magic {
   }
 
   /**
-   * Cast bits.
-   * @param address  Object reference as bits
-   * @return object reference as type (no checking on cast)
-   * @deprecated  Use <code>{@link #objectAsType}( {@link #addressAsObject} (</code>...<code>))</code>
-   */
-  @Deprecated
-  public static VM_Type addressAsType(Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
    * Cast object.
    * @param object object reference
    * @return object reference as type (no checking on cast)
    */
   public static VM_Type objectAsType(Object object) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast bits.
-   * @param address object reference as bits
-   * @return object reference as thread (no checking on cast)
-   * @deprecated  Use objectAsThread.
-   */
-  @Deprecated
-  public static VM_Thread addressAsThread(Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast object.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param object object reference
-   * @return object reference as thread (no checking on cast)
-   */
-  public static VM_Thread objectAsThread(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -532,28 +474,6 @@ public class VM_Magic {
    * @return object reference as processor (no checking on cast)
    */
   public static VM_Processor objectAsProcessor(Object object) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast bits. 
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param address object reference as bits
-   * @return object reference as VM_Registers (no checking on cast)
-   */
-  public static VM_Registers addressAsRegisters(Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast bits.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param address object reference as bits
-   * @return object reference as <code>int[]</code> (no checking on cast)
-   */
-  public static int[] addressAsStack(Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -624,17 +544,6 @@ public class VM_Magic {
    * Cast object.
    * Note:     for use in dynamic type checking (avoid dynamic type checking in impl. of dynamic type checking)
    * @param object
-   * @return byte array (byte[])  object reference
-   */
-  public static byte[] objectAsByteArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return (byte[])object;
-  }
-
-  /**
-   * Cast object.
-   * Note:     for use in dynamic type checking (avoid dynamic type checking in impl. of dynamic type checking)
-   * @param object
    * @return short array (short[])  object reference
    */
   public static short[] objectAsShortArray(Object object) {
@@ -651,14 +560,6 @@ public class VM_Magic {
   public static int[] objectAsIntArray(Object object) {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return (int[])object;
-  }
-
-  /**
-   * To allow noncopying collectors to treat blocks array as array of ints
-   */
-  public static int[] addressAsIntArray(Address int_array) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
   }
 
   //---------------------------------------//
@@ -825,13 +726,6 @@ public class VM_Magic {
   }
 
    /**
-    * Set the floating-point rounding mode to round-towards-zero. NOTE: IA-specific 
-    */
-   public static void roundToZero() {
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-   }
-
-   /**
     * Clear the hardware floating point state. NOTE: IA-specific 
     */
    public static void clearFloatingPointState() {
@@ -860,6 +754,5 @@ public class VM_Magic {
   public static void isync() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
-
 }
 

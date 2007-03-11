@@ -1691,14 +1691,6 @@ sysCopy(void *dst, const void *src, VM_Extent cnt)
     memcpy(dst, src, cnt);
 }
 
-// Memory fill.
-//
-extern "C" void
-sysFill(void *dst, int pattern, VM_Extent cnt)
-{
-    memset(dst, pattern, cnt);
-}
-
 // Allocate memory.
 //
 extern "C" void *
@@ -1839,36 +1831,6 @@ sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 }
 
 //-----------------//
-// SHM* operations //
-//-----------------//
-extern "C" int
-sysShmget(int key, int size, int flags)
-{
-    return shmget(key, size,flags);
-}
-
-extern "C" void *
-sysShmat(int shmid, char * addr, int flags)
-{
-    return shmat(shmid, addr, flags);
-}
-
-extern "C" int
-sysShmdt(char * addr)
-{
-    if (shmdt(addr) == 1)
-        return errno;
-    return 0;
-}
-
-extern "C" int
-sysShmctl(int shmid, int command)
-{
-    return shmctl(shmid, command, NULL);
-}
-
-
-//-----------------//
 // MMAP operations //
 //-----------------//
 
@@ -1915,16 +1877,6 @@ sysMMapErrno(char *start , size_t length ,
   }
 }
 
-// munmap
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMUnmap(char *start, size_t length)
-{
-    return munmap(start, length);
-}
-
 // mprotect
 // Taken: start address (Java ADDRESS)
 //        length of region (Java EXTENT)
@@ -1934,30 +1886,6 @@ extern "C" int
 sysMProtect(char *start, size_t length, int prot)
 {
     return mprotect(start, length, prot);
-}
-
-// msync
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        flags (Java int)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMSync(char *start, size_t length, int flags)
-{
-    return msync(start, length, flags);
-}
-
-// madvise
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        advice (Java int)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMAdvise(char UNUSED      *start,
-           size_t UNUSED   length,
-           int UNUSED      advice)
-{
-  return madvise(start, length, advice);
 }
 
 // getpagesize

@@ -425,24 +425,10 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   }
 
   /**
-   * Fill a region of memory.
-   * @param dst     Destination address
-   * @param pattern <code>byte</code> to fill the region with.
-   * @param cnt     Number of bytes to fill with <code>pattern</code>
-   */
-  public static void fill(Address dst, byte pattern, Extent cnt) {
-    sysCall.sysFill(dst, pattern, cnt);
-  }
-
-  /**
    * Zero a region of memory.
    * @param start of address range (inclusive)
-   * @param end of address range   (exclusive)
+   * @param len extent to zero.
    */
-  public static void zero(Address start, Address end) {
-    sysCall.sysZero(start, end.diff(start).toWord().toExtent());
-  }
-
   public static void zero(Address start, Extent len) {
     sysCall.sysZero(start, len);
   }
@@ -482,24 +468,13 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
-  public static final int MAP_FILE      =  0;
-  public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : 256;
   public static final int MAP_ANONYMOUS = (VM.BuildForLinux) ? 32 : (VM.BuildForOsx) ? 0x1000 :  16;
 
-  public static final int MS_ASYNC      = (VM.BuildForLinux) ?  1 : (VM.BuildForOsx) ?      1 :  16;
-  public static final int MS_INVALIDATE = (VM.BuildForLinux) ?  2 : (VM.BuildForOsx) ?      2 :  32;
-  public static final int MS_SYNC       = (VM.BuildForLinux) ?  4 : (VM.BuildForOsx) ?      0 :  64;
-
   public static boolean isPageMultiple(int val) {
     int pagesizeMask = getPagesize() - 1;
     return ((val & pagesizeMask) == 0);
-  }
-
-  public static boolean isPageMultiple(long val) {
-    int pagesizeMask = getPagesize() - 1;
-    return ((val & ((long) pagesizeMask)) == 0);
   }
 
   public static boolean isPageMultiple(Extent val) {
@@ -515,57 +490,6 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   public static boolean isPageAligned(Address addr) {
     Word pagesizeMask = Word.fromIntZeroExtend(getPagesize() - 1);
     return addr.toWord().and(pagesizeMask).isZero();
-  }
-
-  // Round size (interpreted as an unsigned int) up to the next page
-  public static int roundDownPage(int size) {     
-    size &= ~(getPagesize() - 1);   
-    return size;
-  }
-
-  public static Address roundDownPage(Address addr) { 
-     return VM_Memory.alignDown(addr , getPagesize());
-  }
-
-  public static int roundUpPage(int size) {     // Round size up to the next page
-    return roundDownPage(size + getPagesize() - 1);
-  }
-
-  public static Address roundUpPage(Address addr) {
-    return VM_Memory.alignUp(addr, getPagesize() );
-  }
-
-  /**
-   * Do mmap general memory mapping call.
-   * Please consult your system's mmap system call documentation for semantics.
-   * @param address Start of address range (Address)
-   * @param size    Size of address range
-   * @param prot    Protection 
-   * @param flags
-   * @param fd      File descriptor
-   * @param offset
-   * @return Address (of region) if successful; errno (1 to 127) otherwise
-   */
-  public static Address mmap(Address address, int size, 
-                                int prot, int flags, int fd, Offset offset) {
-    if (VM.VerifyAssertions)
-      VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
-    return sysCall.sysMMapErrno(address,Extent.fromIntSignExtend(size), prot, flags, fd, offset);
-  }
-
-  /**
-   * Do mmap file memory mapping call
-   * @param address Start of address range ({@link Address})
-   * @param size    Size of address range
-   * @param fd      File desciptor of file to be mapped
-   * @param prot    Protection (int)
-   * @return Address (of region) if successful; errno (1 to 127) otherwise
-   */
-  public static Address mmapFile(Address address, Extent size, int fd, int prot) {
-    if (VM.VerifyAssertions)
-      VM._assert(isPageAligned(address) && isPageMultiple(size));
-    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-    return sysCall.sysMMapErrno(address,size,prot,flag,fd,Offset.zero());
   }
 
   /**
@@ -597,30 +521,6 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   }
 
   /**
-   * Do mmap demand zero any address memory mapping call
-   * @param size Size of the address range (Address)
-   * @return Address (of region) if successful; errno (1 to 127) otherwise 
-   */
-  public static Address mmap(Extent size) {
-    if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
-    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-    return sysCall.sysMMapErrno(Address.zero(), size, prot, flag, -1, Offset.zero());
-  }
-
-  /**
-   * Do munmap system call
-   * @param address Start of address range ({@link Address})
-   * @param size Size of the address range 
-   * @return 0 if successfull; errno otherwise
-   */
-  public static int munmap(Address address, Extent size) {
-    if (VM.VerifyAssertions)
-      VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return sysCall.sysMUnmap(address, size);
-  }
-
-  /**
    * Do mprotect system call
    * @param address Start of address range (Address)
    * @param size Size of address range 
@@ -632,95 +532,6 @@ import static org.jikesrvm.VM_SysCall.sysCall;
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     return sysCall.sysMProtect(address, size, prot) == 0;
   }
-
-  /**
-   * Do msync system call
-   * @param address Address of address range ({@link Address})
-   * @param size Size of address range 
-   * @param flags (int)
-   * @return true iff success
-   */
-  public static boolean msync(Address address, Extent size, int flags) {
-    if (VM.VerifyAssertions)
-      VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return sysCall.sysMSync(address, size, flags) == 0;
-  }
-
-  /**
-   * Do madvise system call (UNIMPLEMENTED IN LINUX)
-   * @param address Start of address range (Address)
-   * @param size    The size of the address range 
-   * @param advice (int)
-   * @return true iff success
-   */
-  public static boolean madvise(Address address, Extent size, int advice) {
-    if (VM.VerifyAssertions)
-      VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return sysCall.sysMAdvise(address, size, advice) == 0;
-  }
-
-  public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
-  public static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
-  public static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
-
-  public static final int SHMGET_IRUSR      = 4 * 64;   // 0000400 self can read
-  public static final int SHMGET_IWUSR      = 2 * 64;   // 0000200 self can write
-  public static final int SHMGET_IRGRP      = 4 * 8;    // 0000040 group can read
-  public static final int SHMGET_IWGRP      = 2 * 8;    // 0000020 group can write
-  public static final int SHMGET_IROTH      = 4;        // 0000004 others can read
-  public static final int SHMGET_IWOTH      = 2;        // 0000002 others can write
-
-  public static final int SHMAT_RDONLY      = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-  public static final int SHMAT_RND         = 2 * 4096; // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-  public static final int SHMAT_REMAP       = 4 * 4096; // 040000 take-over region on attach
-  public static final int SHMAT_MAP         = (VM.BuildForAix) ? 4 * 512 : -1;   // can't find this in linux's shm.h
-  public static final int SHMAT_LBA         = (VM.BuildForAix) ? 268435456 : -1; // 0x10000000 Specifies the low boundary address multiple of a segment. 
-
-  public static final int SHMCTL_IPC_RMID   = 0;        // Removes the shared memory identifier specified by the shmid.
-  // There are other SHMCTL that are not included for now.
-
-
-  /**
-   * Do shmget call
-   * @param key  key or IPC_PRIVATE
-   * @param size size of address range
-   * @param flags Segment attributes
-   * @return shared memory segment id 
-   */
-  public static int shmget(int key, int size, int flags) {
-    return sysCall.sysShmget(key, size, flags);
-  }
-
-  /**
-   * Do shmat call
-   * @param shmid  Obtained from {@link #shmget}
-   * @param addr   Size of address range
-   * @param flags  Access attributes.
-   * @return address of attached shared memory segment 
-   */
-  public static Address shmat(int shmid, Address addr, int flags) {
-    return sysCall.sysShmat(shmid, addr, flags);
-  }
-
-  /**
-   * Do shmdt call
-   * @param addr address of mapped region
-   * @return shared memory segment id 
-   */
-  public static int shmdt(Address addr) {
-    return sysCall.sysShmdt(addr);
-  }
-
-  /**
-   * Do shmctl call
-   * @param shmid obtained from {@link #shmget}
-   * @param command  The command to perform
-   * @return shared memory segment id 
-   */
-  public int shmctl(int shmid, int command) {
-    return sysCall.sysShmctl(shmid, command);
-  }
-
 
   private static int pagesize = -1;
   private static int pagesizeLog = -1;
@@ -743,12 +554,6 @@ import static org.jikesrvm.VM_SysCall.sysCall;
     return pagesize;
   }
 
-  static int getPagesizeLog() {
-    if (pagesize == -1) 
-      getPagesize();
-    return pagesizeLog;
-  }
-
   public static void dumpMemory(Address start, int beforeBytes, int afterBytes) {
 
     beforeBytes = alignDown(beforeBytes , BYTES_IN_ADDRESS );
@@ -766,106 +571,6 @@ import static org.jikesrvm.VM_SysCall.sysCall;
     }
   }
 
-  static void dumpMemory(Address start, int afterBytes) {
-    dumpMemory(start, 0, afterBytes);
-  }
-
-  // test routine
-  static void test_mmap() {
-    int psize = VM_Memory.getPagesize();
-    Extent size = Extent.fromIntZeroExtend(1024 * 1024);
-    int ro = VM_Memory.PROT_READ;
-    Address base = Address.fromIntZeroExtend(0x38000000);
-    Address addr = VM_Memory.dzmmap(base, size);
-    VM.sysWrite("page size = ");
-    VM.sysWrite(psize);
-    VM.sysWrite("\n");
-    VM.sysWrite("requested ");
-    VM.sysWrite(size);
-    VM.sysWrite(" bytes at ");
-    VM.sysWrite(base);
-    VM.sysWrite("\n");
-    VM.sysWrite("mmap call returned ");
-    VM.sysWrite(addr);
-    VM.sysWrite("\n");
-    if (addr.NE(Address.fromIntSignExtend(-1)) ){
-      addr.store(17);
-      if (addr.loadInt() == 17) {
-        VM.sysWrite("write and read in memory region succeeded\n");
-      } else {
-        VM.sysWrite("read in memory region did not return value written\n");
-      }
-
-      if (!VM_Memory.mprotect(addr, size, ro)) {
-        VM.sysWrite("mprotect failed\n");
-      } else {
-        VM.sysWrite("mprotect succeeded!\n");
-      }
-      if (addr.loadInt() == 17) {
-        VM.sysWrite("read in memory region succeeded\n");
-      } else {
-        VM.sysWrite("read in memory region did not return value written\n");
-      }
-
-      if (VM_Memory.munmap(addr, size) == 0) 
-        VM.sysWrite("munmap succeeded!\n");
-      else 
-        VM.sysWrite("munmap failed\n");
-    }
-
-    addr = VM_Memory.mmap(size);
-    VM.sysWrite("requested ");
-    VM.sysWrite(size);
-    VM.sysWrite(" bytes at any address\n");
-    VM.sysWrite("mmap call returned ");
-    VM.sysWrite(addr);
-    VM.sysWrite("\n");
-
-    if (addr.NE(Address.fromIntSignExtend(-1)) ){
-      addr.store(17);
-      if (addr.loadInt() == 17) {
-        VM.sysWrite("write and read in memory region succeeded\n");
-      } else {
-        VM.sysWrite("read in memory region did not return value written\n");
-      }
-
-      if (!VM_Memory.mprotect(addr, size, ro)) {
-        VM.sysWrite("mprotect failed\n");
-      } else {
-        VM.sysWrite("mprotect succeeded!\n");
-      }
-
-      if (addr.loadInt() == 17) {
-        VM.sysWrite("read in memory region succeeded\n");
-      } else {
-        VM.sysWrite("read in memory region did not return value written\n");
-      }
-
-      if (VM_Memory.munmap(addr, size) == 0) 
-        VM.sysWrite("munmap succeeded!\n");
-      else
-        VM.sysWrite("munmap failed\n");
-    }
-
-    VM.sysWrite("mmap tests done\n");
-  }
-
-  /**
-  * @deprecated use alignUp(..) instead
-  */
-  @Deprecated
-  @Inline
-  public static Address align (Address address, int alignment) { 
-        return alignUp(address, alignment); }
-     
-  /**
-  * @deprecated use alignUp(..) instead
-  */
-  @Deprecated
-  @Inline
-  public static int align (int address, int alignment) { 
-        return alignUp(address, alignment); }
-  
   @Inline
   public static Address alignUp (Address address, int alignment) { 
     return address.plus(alignment-1).toWord().and(Word.fromIntSignExtend(~(alignment - 1))).toAddress();

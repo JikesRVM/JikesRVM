@@ -116,8 +116,6 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
                                             fp,
                                             new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.roundToZero) {
-      bc2ir.appendInstruction(Empty.create(ROUND_TO_ZERO));
     } else if (methodName == VM_MagicNames.clearFloatingPointState) {
       bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
     } else {

@@ -4180,10 +4180,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0);                                  // pop  frame pointer of callee frame
       asm.emitLAddr(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
       pushAddr(T1);                                  // push frame pointer of caller frame
-    } else if (methodName == VM_MagicNames.setNextInstructionAddress) {
-      popAddr(T1); // value
-      popAddr(T0); // fp
-      asm.emitSTAddr(T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       popAddr(T0);                                  // pop  frame pointer of callee frame
       asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
@@ -4340,8 +4336,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // value
       popAddr(T0); // address
       asm.emitSTW(T1,  0, T0); // *address := value
-    } else if (methodName == VM_MagicNames.setMemoryWord ||
-               methodName == VM_MagicNames.setMemoryAddress) {
+    } else if (methodName == VM_MagicNames.setMemoryWord) {
       if (methodToBeCalled.getParameterTypes().length == 3) {
         discardSlot(); // discard locationMetadata parameter
       }
@@ -4455,20 +4450,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitBCCTR(); // branch always, through count register
     } else if (methodName == VM_MagicNames.objectAsAddress         ||
                methodName == VM_MagicNames.addressAsByteArray      ||
-               methodName == VM_MagicNames.addressAsIntArray       ||
                methodName == VM_MagicNames.addressAsObject         ||
                methodName == VM_MagicNames.addressAsObjectArray    ||
-               methodName == VM_MagicNames.addressAsType           ||
                methodName == VM_MagicNames.objectAsType            ||
-               methodName == VM_MagicNames.objectAsByteArray       ||
                methodName == VM_MagicNames.objectAsShortArray      ||
                methodName == VM_MagicNames.objectAsIntArray        ||
-               methodName == VM_MagicNames.addressAsThread         ||
-               methodName == VM_MagicNames.objectAsThread          ||
                methodName == VM_MagicNames.objectAsProcessor       ||
                methodName == VM_MagicNames.threadAsCollectorThread ||
-               methodName == VM_MagicNames.addressAsRegisters      ||
-               methodName == VM_MagicNames.addressAsStack          ||
                methodName == VM_MagicNames.floatAsIntBits          ||
                methodName == VM_MagicNames.intBitsAsFloat          ||
                methodName == VM_MagicNames.doubleAsLongBits        ||

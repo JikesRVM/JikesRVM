@@ -217,7 +217,6 @@ public class VM_BootRecord {
 
   // memory
   public Address sysCopyIP;         
-  public Address sysFillIP;
   public Address sysMallocIP;
   public Address sysFreeIP;
   public Address sysZeroIP;
@@ -247,19 +246,11 @@ public class VM_BootRecord {
   public Address sysSetFdCloseOnExecIP;
   
   public Address sysAccessIP;
-  // shm* - memory mapping
-  public Address sysShmgetIP;
-  public Address sysShmctlIP;
-  public Address sysShmatIP;
-  public Address sysShmdtIP;
 
   // mmap - memory mapping
   public Address sysMMapIP;
   public Address sysMMapErrnoIP;
-  public Address sysMUnmapIP;
   public Address sysMProtectIP;
-  public Address sysMSyncIP;
-  public Address sysMAdviseIP;
   public Address sysGetPageSizeIP;
 
   // threads

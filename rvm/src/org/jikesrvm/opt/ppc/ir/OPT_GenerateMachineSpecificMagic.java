@@ -98,13 +98,6 @@ public abstract class OPT_GenerateMachineSpecificMagic
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(STACKFRAME_NEXT_INSTRUCTION_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setNextInstructionAddress) {
-      OPT_Operand val = bc2ir.popAddress();
-      OPT_Operand fp = bc2ir.popAddress();
-      bc2ir.appendInstruction(Store.create(REF_STORE, val, 
-                                           fp, 
-                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(STACKFRAME_NEXT_INSTRUCTION_OFFSET)),
-                                           null));
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand callerFP = gc.temps.makeTemp(VM_TypeReference.Address);

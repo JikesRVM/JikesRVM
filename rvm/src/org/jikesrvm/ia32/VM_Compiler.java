@@ -3555,8 +3555,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     }
 
     if (methodName == VM_MagicNames.setMemoryInt ||
-        methodName == VM_MagicNames.setMemoryWord ||
-        methodName == VM_MagicNames.setMemoryAddress) {
+        methodName == VM_MagicNames.setMemoryWord ) {
       if (m.getParameterTypes().length == 3) {
         // discard locationMetadata parameter
         asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
@@ -3569,20 +3568,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     
     if (methodName == VM_MagicNames.objectAsAddress         ||
         methodName == VM_MagicNames.addressAsByteArray      ||
-        methodName == VM_MagicNames.addressAsIntArray       ||
         methodName == VM_MagicNames.addressAsObject         ||
         methodName == VM_MagicNames.addressAsObjectArray    ||
-        methodName == VM_MagicNames.addressAsType           ||
         methodName == VM_MagicNames.objectAsType            ||
         methodName == VM_MagicNames.objectAsShortArray      ||
-        methodName == VM_MagicNames.objectAsByteArray       ||
         methodName == VM_MagicNames.objectAsIntArray       ||
-        methodName == VM_MagicNames.addressAsThread         ||
-        methodName == VM_MagicNames.objectAsThread          ||
         methodName == VM_MagicNames.objectAsProcessor       ||
         methodName == VM_MagicNames.threadAsCollectorThread ||
-        methodName == VM_MagicNames.addressAsRegisters      ||
-        methodName == VM_MagicNames.addressAsStack          ||
         methodName == VM_MagicNames.floatAsIntBits          ||
         methodName == VM_MagicNames.intBitsAsFloat          ||
         methodName == VM_MagicNames.doubleAsLongBits        ||
@@ -3721,17 +3713,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
 
-    if (methodName == VM_MagicNames.roundToZero) {
-      // Store the FPU Control Word to a JTOC slot
-      asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordField.getOffset());
-      // Set the bits in the status word that control round to zero.
-      // Note that we use a 32-bit OR, even though we only care about the
-      // low-order 16 bits
-      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordField.getOffset(), 0x00000c00);
-      // Now store the result back into the FPU Control Word
-      asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordField.getOffset());
-      return true;
-    }
     if (methodName == VM_MagicNames.clearFloatingPointState) {
       // Clear the hardware floating-point state
       asm.emitFNINIT();

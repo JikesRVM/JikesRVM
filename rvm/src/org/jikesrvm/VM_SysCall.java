@@ -67,8 +67,6 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract void sysCopy(Address dst, Address src, Extent cnt);
   @SysCallTemplate
-  public abstract void sysFill(Address dst, int pattern, Extent cnt);
-  @SysCallTemplate
   public abstract Address sysMalloc(int length);
   @SysCallTemplate
   public abstract void sysFree(Address location);
@@ -123,16 +121,6 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract int sysAccess(byte[] name, int kind);
 
-  // shm* - memory mapping
-  @SysCallTemplate
-  public abstract int sysShmget(int key, int size, int flags);
-  @SysCallTemplate
-  public abstract int sysShmctl(int shmid, int command);
-  @SysCallTemplate
-  public abstract Address sysShmat(int shmid, Address addr, int flags);
-  @SysCallTemplate
-  public abstract int sysShmdt(Address addr);
-
   // mmap - memory mapping
   @SysCallTemplate
   public abstract Address sysMMap(Address start, Extent length, int protection,
@@ -141,13 +129,7 @@ public abstract class VM_SysCall {
   public abstract Address sysMMapErrno(Address start, Extent length, int protection,
       int flags, int fd, Offset offset);
   @SysCallTemplate
-  public abstract int sysMUnmap(Address start, Extent length);
-  @SysCallTemplate
   public abstract int sysMProtect(Address start, Extent length, int prot);
-  @SysCallTemplate
-  public abstract int sysMSync(Address start, Extent length, int flags);
-  @SysCallTemplate
-  public abstract int sysMAdvise(Address start, Extent length, int advice);
   @SysCallTemplate
   public abstract int sysGetPageSize();
 
