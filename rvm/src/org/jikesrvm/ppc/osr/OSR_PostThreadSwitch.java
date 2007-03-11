@@ -11,8 +11,8 @@ package org.jikesrvm.ppc.osr;
 
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.ppc.VM_CodeArray;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
      * the new code get executed.
      */
     // add branch instruction from CTR.
-    VM_CodeArray bridge   = myThread.bridgeInstructions;
+    ArchitectureSpecific.VM_CodeArray bridge   = myThread.bridgeInstructions;
       
     Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 

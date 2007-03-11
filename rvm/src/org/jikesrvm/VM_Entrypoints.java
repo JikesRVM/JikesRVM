@@ -97,7 +97,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field I2DconstantField    = getField("Lorg/jikesrvm/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
   public static final VM_Field FPUControlWordField = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/"+ arch +"/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
    
-  public static final String ArchCodeArrayName = "Lorg/jikesrvm/" + arch + "/VM_CodeArray;";
+  public static final String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;";
   public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lorg/jikesrvm/"+ arch +"/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", ArchCodeArrayName);
   public static final VM_Field saveThreadStateInstructionsField               = getField("Lorg/jikesrvm/"+ arch +"/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", ArchCodeArrayName);
   public static final VM_Field threadSwitchInstructionsField                  = getField("Lorg/jikesrvm/"+ arch +"/VM_OutOfLineMachineCode;", "threadSwitchInstructions", ArchCodeArrayName);

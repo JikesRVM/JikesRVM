@@ -59,15 +59,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //----------------//
 
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static ArchitectureSpecific.VM_CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray saveThreadStateInstructions;
+  private static ArchitectureSpecific.VM_CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray threadSwitchInstructions;
+  private static ArchitectureSpecific.VM_CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray invokeNativeFunctionInstructions;
+  private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
    
   private static final Offset PARAMS_FP_OFFSET     = Offset.fromIntSignExtend(WORDSIZE * 2);
   private static final Offset FPRS_FP_OFFSET       = Offset.fromIntSignExtend(WORDSIZE * 3);
@@ -121,7 +121,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *   volatile, and scratch registers destroyed
    *
   */
-  private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(100);
 
     /* write at most 2 parameters from registers in the stack.  This is
@@ -236,7 +236,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    S0, T1 destroyed
    *    Thread state stored into VM_Registers object 
    */
-  private static VM_CodeArray generateSaveThreadStateInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -273,7 +273,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static VM_CodeArray generateThreadSwitchInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -322,7 +322,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    all registers are restored except PROCESSOR_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
    */
-  private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // Set PR.framePointer to be registers.fp
@@ -363,7 +363,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   // on entry assume:
   //   S0  = address of native function to branch to
   //
-  private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save callers ret addr in glue frame

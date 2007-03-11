@@ -51,15 +51,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   }
 
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static ArchitectureSpecific.VM_CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray saveThreadStateInstructions;
+  private static ArchitectureSpecific.VM_CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray threadSwitchInstructions;
+  private static ArchitectureSpecific.VM_CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private static VM_CodeArray invokeNativeFunctionInstructions;
+  private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
    
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
@@ -77,7 +77,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //   artificial stackframe created and destroyed
   //   R0, volatile, and scratch registers destroyed
   //
-  private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
       
     //
@@ -166,7 +166,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitADDI  (S0, -BYTES_IN_ADDRESS, T1);   // predecrement gpr index (to prepare for update instruction)
     asm.emitBCLR  ();                            // branch to gpr loading instructions
      
-    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
+    return asm.makeMachineCode().getInstructions();
   }
 
   // Machine code to implement "VM_Magic.saveThreadState()".
@@ -180,7 +180,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   // Side effects at runtime:
   //   T1 destroyed
   //
-  private static VM_CodeArray generateSaveThreadStateInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save return address
@@ -208,7 +208,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitBCLR();
      
-    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
+    return asm.makeMachineCode().getInstructions();
   }
       
   /**
@@ -227,7 +227,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static VM_CodeArray generateThreadSwitchInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -276,7 +276,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitMTLR(T0);
     asm.emitBCLR();
 
-    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
+    return asm.makeMachineCode().getInstructions();
   }
   
       
@@ -292,7 +292,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //   all registers are restored except condition registers, count register,
   //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
   //
-  private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // restore LR
@@ -338,7 +338,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitBCCTR();
 
-    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
+    return asm.makeMachineCode().getInstructions();
   }
 
   /**
@@ -356,7 +356,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
    *  RVM JTOC and PR restored
    *  return values from native call stored in stackframe
    */
-  private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
+  private static ArchitectureSpecific.VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // move native code address to CTR reg;
@@ -459,6 +459,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitMTLR  (S0);
     asm.emitBCLR   ();
 
-    return (VM_CodeArray) asm.makeMachineCode().getInstructions();
+    return asm.makeMachineCode().getInstructions();
   }
 }

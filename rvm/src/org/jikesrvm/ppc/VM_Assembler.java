@@ -2825,7 +2825,7 @@ public abstract class VM_Assembler
   /************************************************************************
    * Stub/s added for IA32 compatability
    */
-  public static void patchCode(VM_CodeArray code, int indexa, int indexb) {
+  public static void patchCode(ArchitectureSpecific.VM_CodeArray code, int indexa, int indexb) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 }
