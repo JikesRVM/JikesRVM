@@ -81,12 +81,6 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract int sysStat(byte[] name, int kind);
   @SysCallTemplate
-  public abstract int sysList(byte[] name, byte[] buf, int limit);
-  @SysCallTemplate
-  public abstract int sysOpen(byte[] name, int how);
-  @SysCallTemplate
-  public abstract int sysUtime(byte[] fileName, int modTimeSec);
-  @SysCallTemplate
   public abstract int sysReadByte(int fd);
   @SysCallTemplate
   public abstract int sysWriteByte(int fd, int data);
@@ -95,27 +89,9 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract int sysWriteBytes(int fd, Address buf, int cnt);
   @SysCallTemplate
-  public abstract int sysSeek(int fd, int offset, int whence);
-  @SysCallTemplate
-  public abstract int sysClose(int fd);
-  @SysCallTemplate
-  public abstract int sysDelete(byte[] name);
-  @SysCallTemplate
-  public abstract int sysRename(byte[] fromName, byte[] toName);
-  @SysCallTemplate
-  public abstract int sysMkDir(byte[] name);
-  @SysCallTemplate
   public abstract int sysBytesAvailable(int fd);
   @SysCallTemplate
-  public abstract int sysIsValidFD(int fd);
-  @SysCallTemplate
-  public abstract int sysLength(int fd);
-  @SysCallTemplate
-  public abstract int sysSetLength(int fd, int len);
-  @SysCallTemplate
   public abstract int sysSyncFile(int fd);
-  @SysCallTemplate
-  public abstract int sysIsTTY(int fd);
   @SysCallTemplate
   public abstract int sysSetFdCloseOnExec(int fd);
   @SysCallTemplate
@@ -242,11 +218,7 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract Address sysDlopen(byte[] libname);
   @SysCallTemplate
-  public abstract void sysDlclose();
-  @SysCallTemplate
   public abstract Address sysDlsym(Address libHandler, byte[] symbolName);
-  @SysCallTemplate
-  public abstract void sysSlibclean();
 
   // network
   @SysCallTemplate

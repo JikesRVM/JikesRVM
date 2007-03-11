@@ -119,32 +119,6 @@ public class VM_FileSystem {
   }
 
   /**
-   * Set the modification time on given file.
-   */
-  public static boolean setLastModified(String fileName, long time) {
-    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-
-    // convert milliseconds to seconds
-    int rc = sysCall.sysUtime(asciiName, (int) (time / 1000));
-    return (rc == 0);
-  }
-
-  /**
-   * Open a file.
-   * @param fileName file name
-   * @param how      access/creation mode (one of OPEN_XXX, above)
-   * @return file descriptor (-1: not found or couldn't be created)
-   */ 
-  public static int open(String fileName, int how) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
-    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-    int fd = sysCall.sysOpen(asciiName, how);
-    if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
-    return fd;
-  }
-
-  /**
    * Is the given fd returned from an ioWaitRead() or ioWaitWrite()
    * ready?
    */
@@ -430,132 +404,6 @@ public class VM_FileSystem {
     }
   }
 
-  /**
-   * Change i/o position on file.
-   * @param fd file descriptor
-   * @param offset number of bytes by which to adjust position
-   * @param whence how to interpret adjustment (one of SEEK_XXX, above)
-   * @return new i/o position, as byte offset from start of file (-1: error)
-   */ 
-  public static int seek(int fd, int offset, int whence) {
-    return sysCall.sysSeek(fd, offset, whence);
-  }
-
-  /**
-   * Close file.
-   * @param fd file descriptor
-   * @return 0: success
-   *        -1: file not currently open
-   *        -2: i/o error
-   */ 
-  public static int close(int fd) {
-    if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.close: fd=" + fd + "\n");
-
-    if (fd == 87 || fd == 88) (new Throwable()).printStackTrace();
-
-    return sysCall.sysClose(fd);
-  }
-
-  /**
-   * List contents of a directory.
-   * @param dirName directory name
-   * @return names of files and subdirectories
-   */ 
-  public static String[] list(String dirName) {
-    // convert directory name from unicode to filesystem character set
-    // (assume directory name is ascii, for now)
-    //
-    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(dirName);
-
-    // fill buffer with list of null terminated names, resizing as needed to fit
-    // (List will be in filesystem character set, assume that this is the
-    //  same as the default charset -- this, like every other Unix program,
-    //  will not handle it very well if someone is operating in UTF-8 but has
-    //  a filesystem whose names are encoded in ISO-8859-1.)
-    //
-    byte[] asciiList;
-    int    len;
-    for (int max = 1024;;) {
-      asciiList = new byte[max];
-      len = sysCall.sysList(asciiName, asciiList, max);
-      if (len < max)
-        break;
-
-      // results didn't fit, try again with more space
-      //
-      max *= 2;
-    }
-
-    if (len <= 0) { // i/o error or empty directory
-      return new String[0]; // !!TODO: does JDK return null or empty list 
-      // for this case?
-    }
-
-    // pass 1: count names
-    //
-    int cnt = 0;
-    for (int i = 0; i < len; ++i)
-      if (asciiList[i] == 0)
-        ++cnt;
-
-    // pass 2: extract names
-    //
-    String[] names = new String[cnt];
-    for (int beg = 0, end = cnt = 0; beg < len; beg = end + 1) {
-      for (end = beg; asciiList[end] != 0; ++end);
-      names[cnt++] = new String(asciiList, beg, end - beg);
-    }
-
-    return names;
-  }
-
-  /**
-   * Delete file.
-   * @param fileName file name
-   * @return true -- delete; false -- not delete
-   */ 
-  public static boolean delete(String fileName) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
-    //
-    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);
-    int rc = sysCall.sysDelete(asciiName);
-    return rc == 0;
-  } 
-
-  /**
-   * Rename a file
-   * @param fromName from file name
-   * @param toName to file name
-   * @return true -- renamed; false -- not renamed
-   */ 
-  public static boolean rename(String fromName, String toName) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
-    //
-    byte[] fromCharStar = VM_StringUtilities.stringToBytesNullTerminated(fromName);
-
-    byte[] toCharStar = VM_StringUtilities.stringToBytesNullTerminated(toName);
-
-    int rc = sysCall.sysRename(fromCharStar, toCharStar);
-
-    return rc == 0;
-  } 
-
-
-  /**
-   * Make a directory.
-   * @param fileName file name
-   * @return true -- created; false -- not created
-   */ 
-  public static boolean mkdir(String fileName) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
-    //
-    byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(fileName);      
-    int rc = sysCall.sysMkDir(asciiName);
-    return (rc == 0);
-  } 
 
   public static boolean sync(int fd) {
     return sysCall.sysSyncFile(fd) == 0;
@@ -563,18 +411,6 @@ public class VM_FileSystem {
 
   public static int bytesAvailable(int fd) {
     return sysCall.sysBytesAvailable(fd);
-  }        
-
-  public static boolean isValidFD(int fd) {
-    return sysCall.sysIsValidFD(fd) == 0;
-  }        
-
-  public static int length(int fd) {
-    return sysCall.sysLength(fd);
-  }        
-
-  public static int setLength(int fd, int len) {
-    return sysCall.sysSetLength(fd, len);
   }        
 
   /**

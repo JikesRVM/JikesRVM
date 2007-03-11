@@ -1334,14 +1334,6 @@ import org.vmmagic.unboxed.*;
       ;
   }
 
-
-  /**
-   * Yield execution of current virtual processor back to o/s.
-   */
-  public static void sysVirtualProcessorYield() {
-    sysCall.sysVirtualProcessorYield();
-  }
-
   //----------------//
   // implementation //
   //----------------//

@@ -83,7 +83,7 @@ class VM_IdleThread extends VM_Thread {
       
       /* Now go into the long-term sleep/check-for-work loop. */
       for (;;) {
-        VM.sysVirtualProcessorYield();
+        sysCall.sysVirtualProcessorYield();
         if (availableWork(myProcessor))
           continue main;
         /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */

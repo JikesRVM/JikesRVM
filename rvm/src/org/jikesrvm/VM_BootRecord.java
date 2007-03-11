@@ -225,24 +225,12 @@ public class VM_BootRecord {
 
   // files
   public Address sysStatIP;         
-  public Address sysListIP;
-  public Address sysOpenIP;                
-  public Address sysUtimeIP;                
   public Address sysReadByteIP;            
   public Address sysWriteByteIP;
   public Address sysReadBytesIP;
   public Address sysWriteBytesIP;
-  public Address sysSeekIP;
-  public Address sysCloseIP;
-  public Address sysDeleteIP;
-  public Address sysRenameIP;
-  public Address sysMkDirIP;
   public Address sysBytesAvailableIP;
-  public Address sysIsValidFDIP;
-  public Address sysLengthIP;
-  public Address sysSetLengthIP;
   public Address sysSyncFileIP;
-  public Address sysIsTTYIP;
   public Address sysSetFdCloseOnExecIP;
   
   public Address sysAccessIP;
@@ -286,9 +274,7 @@ public class VM_BootRecord {
 
   // shared libraries
   Address sysDlopenIP;
-  Address sysDlcloseIP;
   Address sysDlsymIP;
-  Address sysSlibcleanIP;
 
   // network
   public Address sysNetSocketSndBufIP;

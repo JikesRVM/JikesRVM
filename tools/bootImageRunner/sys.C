@@ -315,58 +315,6 @@ loadResultBuf(char * dest, int limit, const char *src)
 // Filesystem operations. //
 //------------------------//
 
-// List contents of a filesystem directory (with names delimited by nulls).
-// Taken:    null terminated directory name
-//           buffer in which to place results
-//           buffer size
-// Returned: number of bytes written to buffer (-1=i/o error)
-// Note:     a full buffer indicates a partial list, in which
-//           case caller should make a bigger buffer and retry
-//
-extern "C" int
-sysList(char *dirName, char *buf, int limit)
-{
-
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: list %s 0x%08x %d\n", Me, dirName, buf, limit);
-#endif
-
-    char DELIMITER = '\0';
-    int  cnt = 0;
-    DIR *dir = opendir(dirName);
-    for (dirent *dp = readdir(dir); dp; dp = readdir(dir)) {
-        // POSIX says that d_name is NULL-terminated
-        char *name = dp->d_name;
-        int len = strlen( name );
-
-#ifdef DEBUG_SYS
-        fprintf(SysTraceFile, "%s: found %s\n", Me, name);
-#endif
-
-
-        if (len == 2 && name[0] == '.' && name[1] == '.') 
-            continue; // skip ".."
-        if (len == 1 && name[0] == '.'                  ) 
-            continue;  // skip "."
-
-        while (len--) {
-            if (cnt == limit) 
-                break;
-            *buf++ = *name++;
-            cnt +=1;
-        }
-
-        if (cnt == limit) 
-            break;
-        *buf++ = DELIMITER;
-        cnt += 1;
-        if (cnt == limit) 
-            break;
-    }
-    closedir(dir);
-    return cnt;
-}
-
 // Get file status.
 // Taken:    null terminated filename
 //           kind of info desired (see VM_FileSystem.STAT_XXX)
@@ -419,95 +367,6 @@ sysAccess(char *name, int kind)
     return access(name, kind);
 }
 
-// Set modification time (and access time) to given value
-// (representing seconds after the epoch).
-extern "C" int
-sysUtime(const char *fileName, int modTimeSec)
-{
-    struct utimbuf buf;
-    buf.actime = modTimeSec;
-    buf.modtime = modTimeSec;
-    return utime(fileName, &buf);
-}
-
-// Open file.
-// Taken:    null terminated filename
-//           access/creation mode (see VM_FileSystem.OPEN_XXX)
-// Returned: file descriptor (-1: not found or couldn't create)
-//
-extern "C" int
-sysOpen(char *name, int how)
-{
-    int fd;
-
-    switch (how) {
-    case VM_FileSystem_OPEN_READ:   
-        fd = open(name, O_RDONLY                         ); // "read"
-        break;
-    case VM_FileSystem_OPEN_WRITE:  
-        fd = open(name, O_RDWR | O_CREAT | O_TRUNC,  0666); // "write"
-        break;
-    case VM_FileSystem_OPEN_MODIFY: 
-        fd = open(name, O_RDWR | O_CREAT,            0666); // "modify"
-        break;
-    case VM_FileSystem_OPEN_APPEND: 
-        fd = open(name, O_RDWR | O_CREAT | O_APPEND, 0666); // "append"
-        break;
-    default: 
-        return -1;
-    }
-
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: open %s %d, fd=%d\n", Me, name, how, fd);
-#endif
-
-    return fd;
-}
-
-// Delete file.
-// Taken:    null terminated filename
-// Returned:
-//
-extern "C" int
-sysDelete(char *name)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: delete %s\n", Me, name);
-#endif
-
-    return remove(name);
-}
-
-// Rename file.
-// Taken:    null terminated from and to filenames
-// Returned:
-//
-extern "C" int
-sysRename(char *fromName, char *toName)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: rename %s to %s\n", Me, fromName, toName);
-#endif
-
-    return rename(fromName, toName);
-}
-
-// Make directory.
-// Taken:    null terminated filename
-// Returned: status (-1=error)
-//
-extern "C" int
-sysMkDir(char *name)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: mkdir %s\n", Me, name);
-#endif
-
-    return mkdir(name, 0777); // Give all user/group/other permissions.
-    // mkdir will modify them according to the
-    // file mode creation mask (umask (1)).
-}
-
 // How many bytes can be read from file/socket without blocking?
 // Taken:    file/socket descriptor
 // Returned: >=0: count, VM_ThreadIOConstants_FD_INVALID: bad file descriptor,
@@ -526,43 +385,6 @@ sysBytesAvailable(int fd)
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
 }
-
-extern "C" int
-sysIsValidFD(int fd)
-{
-    int rc;
-    struct stat sb;
-
-    rc = fstat(fd, &sb);
-    if (rc == -1)
-        return -1;
-    else
-        return 0;
-}
-
-extern "C" int
-sysLength(int fd)
-{
-    int rc;
-    struct stat sb;
-
-    rc = fstat(fd, &sb);
-    if (rc == -1)
-        return -1;
-    else
-        return sb.st_size;
-}
-
-extern "C" int
-sysSetLength(int fd, int len)
-{
-    int rc = ftruncate(fd, len);
-    if (rc == -1)
-        return -1;
-    else
-        return 0;
-}
-
 
 extern "C" int
 sysSyncFile(int fd)
@@ -690,67 +512,19 @@ again:
     return -2;
 }
 
-// Change i/o position on file.
-// Taken:    file descriptor
-//           number of bytes by which to adjust position
-//           how to interpret adjustment (see VM_FileSystem.SEEK_XXX)
-// Returned: new i/o position, as byte offset from start of file (-1: error)
-//
-extern "C" int
-sysSeek(int fd, int offset, int whence)
-{
-    // fprintf(SysTraceFile, "%s: seek %d %d %d\n", Me, fd, offset, whence);
-    switch (whence) {
-    case VM_FileSystem_SEEK_SET: 
-        return lseek(fd, offset, SEEK_SET);
-    case VM_FileSystem_SEEK_CUR: 
-        return lseek(fd, offset, SEEK_CUR);
-    case VM_FileSystem_SEEK_END: 
-        return lseek(fd, offset, SEEK_END);
-    default:                     
-        return -1;
-    }
-}
-
 // Close file or socket.
 // Taken:    file/socket descriptor
 // Returned:  0: success
 //           -1: file/socket not currently open
 //           -2: i/o error
 //
-extern "C" int
-sysClose(int fd)
+static int sysClose(int fd)
 {
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: close %d\n", Me, fd);
-#endif
-
     if ( -1 == fd ) return -1;
-
     int rc = close(fd);
-
-    if (rc == 0)
-        return 0; // success
-
-    if (errno == EBADF)
-        return -1; // not currently open
-
-    fprintf(SysErrorFile, "%s: close on %d failed: %s (errno=%d)\n", Me,
-            fd, strerror(errno), errno);
+    if (rc == 0) return 0; // success
+    if (errno == EBADF) return -1; // not currently open
     return -2; // some other error
-}
-
-
-// Determine whether or not given file descriptor is
-// connected to a TTY.
-//
-// Taken: the file descriptor to query
-// Returned: 1 if it's connected to a TTY, 0 if not
-//
-extern "C" int
-sysIsTTY(int fd)
-{
-    return isatty(fd);
 }
 
 // Set the close-on-exec flag for given file descriptor.
@@ -1971,26 +1745,6 @@ sysDlsym(VM_Address libHandler, char *symbolName)
 #else
     return dlsym((void *) libHandler, symbolName);
 #endif
-}
-
-// Unload dynamic library.
-// Taken:
-// Returned:
-//
-extern "C" void
-sysDlclose()
-{
-    fprintf(SysTraceFile, "%s: dlclose not implemented yet\n", Me);
-}
-
-// Tell OS to remove shared library.
-// Taken:
-// Returned:
-//
-extern "C" void
-sysSlibclean()
-{
-    fprintf(SysTraceFile, "%s: slibclean not implemented yet\n", Me);
 }
 
 //---------------------//
