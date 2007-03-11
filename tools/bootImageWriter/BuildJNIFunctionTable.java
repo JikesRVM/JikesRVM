@@ -6,9 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
-package org.jikesrvm.jni;
 
 import org.jikesrvm.*;
+import org.jikesrvm.jni.VM_JNIFunctions;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.*;
 

@@ -22,7 +22,6 @@ class Dummy {
   static org.jikesrvm.VM_DynamicLinker c;
   static org.jikesrvm.VM_Reflection e;
   static org.jikesrvm.VM_Process f;
-  static org.jikesrvm.jni.BuildJNIFunctionTable g;
   static org.vmmagic.pragma.SaveVolatile i;
   static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
   static org.jikesrvm.VM_RecompilationManager o;
