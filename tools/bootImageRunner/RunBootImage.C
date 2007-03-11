@@ -42,9 +42,6 @@
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #include <sys/utsname.h>        // for uname(2)
-#if (defined __linux__)
-  #include <asm/cache.h>
-#endif
 #if (defined __linux__) || (defined __MACH__)
 #include <ucontext.h>
 #include <signal.h>

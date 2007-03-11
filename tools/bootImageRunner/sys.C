@@ -44,7 +44,6 @@ extern "C" int sched_yield(void);
 #include <utime.h>
 
 #ifdef RVM_FOR_LINUX
-#include <asm/cache.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
