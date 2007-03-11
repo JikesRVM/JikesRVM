@@ -1118,10 +1118,6 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines}"/>
     <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>
 
-    <condition property="pthread.lib" value="" else="-lpthread">
-      <equals arg1="${config.single.virtual.processor}" arg2="true"/>
-    </condition>
-
     <condition property="rvm.arch.src"
                value="${bl.dir}/ia32/initBootRecord.c ${bl.dir}/ia32/bootThread.S ${bl.dir}/ia32/libvm.c ${bl.dir}/ia32/disasm.c ${bl.dir}/ia32/ihnpdsm.c">
       <equals arg1="${target.arch}" arg2="ia32"/>
@@ -1197,7 +1193,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${pthread.lib} ${rvm.src} -rdynamic -O2 -g"/>
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${rvm.src} -rdynamic -O2 -g"/>
       <arg value="-o"/>
       <arg value="${build.base}/JikesRVM"/>
       <arg value="-L${build.base}"/>
