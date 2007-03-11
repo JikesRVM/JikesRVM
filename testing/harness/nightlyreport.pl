@@ -33,6 +33,9 @@ my $basesfcodeurl = "http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk";
 my $host = hostname();
 
 # key variables
+my @builds = ();
+my @builderror = ();
+my @buildstackid = ();
 my @sanity = ();
 my @error = ();
 my @results = ();
@@ -56,7 +59,7 @@ my $passed = 0;
 #
 if ($opt_x ne "") {
   # use an xml report as input
-  getxml($opt_x, \@sanity, \@error, \@results, \@cmd, \@stackid, \@stacks, \$ran, \$passed, \%perf, \%jvm98details, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \%imagesize);
+  getxml($opt_x, \@sanity, \@builds, \@error, \@builderror, \@results, \@cmd, \@stackid, \@buildstackid, \@stacks, \$ran, \$passed, \%perf, \%jvm98details, \@javadocerrs, \@optdetails, \$svnstamp, \$svnrevision, \%imagesize);
 } else {
   # dig it out of unstructured data within the specified root directory
   my $root = $opt_r;
@@ -85,7 +88,7 @@ if ($opt_o ne "") {
 # create the html
 printhtmlhdr($html);
 gensummary($html, \%perf, \%imagesize, $ran, $passed, $svnstamp, $svnrevision, $sanityconfig, $perfconfig);
-genbuildfailures($html, \@sanity, \@error, \@stackid);
+genbuildfailures($html, \@builds, \@builderror, \@buildstackid);
 gentestfailures($html, \@sanity, \@error, \@stackid);
 genperfdetails($html, \%perf, \%jvm98details);
 genstacks($html, \@sanity, \@error, \@cmd, \@stackid, \@stacks);
@@ -251,10 +254,10 @@ sub genbuildfailures {
   my ($html, $sanity, $errors, $stackid) = @_;
   $errnum = 0;
   for($s = 0; $s <= $#{$sanity}; $s++) {
-    my $error = ${$errors}[$s];
-    if ($error =~ /FAILED to build/) {
+   my $error = ${$errors}[$s];
+   if ($error =~ /FAILED/) {
       $errnum++;
-    }
+   }
   }
   print $html "<h2><a id=\"buildfailures\">$errnum Build Failures</a></h2>\n";
   if ($errnum > 0) {
@@ -416,19 +419,37 @@ sub getdatestr {
 # read in data from the xml report
 #
 sub getxml {
-  my ($reportfilename, $sanity, $error, $results, $cmd, $stackidx, $stacks, $ran, $passed, $perf, $jvm98details, $javadocerrs, $optdetails, $svnstamp, $svnrevision, $imagesize) = @_;
+  my ($reportfilename, $sanity, $builds, $error, $builderror, $results, $cmd, $stackidx, $buildstackidx, $stacks, $ran, $passed, $perf, $jvm98details, $javadocerrs, $optdetails, $svnstamp, $svnrevision, $imagesize) = @_;
   if ($reportfilename =~ /[.]gz/) {
     open(XML, "zcat $reportfilename |") or die "Could not open $reportfilename";
   } else {
     open(XML, "$reportfilename") or die "Could not open $reportfilename";
   }
-  my ($intest, $thistest, $test, $result, $output, $command, $time, $configuration);
-  $intest = $thistest = $time = 0;
+  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration);
+  $intest = $inbuild = $thistest = $thisbuild = $time = 0;
   while (<XML>) {
     if (/<revision>/) {
       (${$svnrevision}) = /<revision>(\d+)<\/revision>/;
     } elsif ($intest == 0 && /<time>[A-Z][a-z][a-z]\s/) {
       (${$svnstamp}) = /<time>(.+)<\/time>/;
+    } elsif (/<build>/) {
+      $inbuild = 1;
+    } elsif (/<\/build>/) {
+      ${$builds}[$thisbuild] = "$configuration";
+      if ($result ne "EXCLUDED") {
+	if ($result eq "FAILURE") {
+	  my $stackid = -1;
+	  my $errmsg = getxmlerrmsg($result, $time, $output, \$stackid, $stacks);
+#	  print "$thisbuild $configuration $stackid $result\n";
+	  ${$builderror}[$thisbuild] = "FAILED to build: $errmsg";
+	  ${$buildstackidx}[$thisbuild] = $stackid;
+	}
+      }
+      $thisbuild++;
+      $inbuild = 0;
+    } elsif (/<configuration>/) {
+      $intest = 0;
+      ($configuration) = /<configuration>(.+)<\/configuration/;
     } elsif (/<test-configuration>/) {
       $_ = <XML>;
       while (!/<id>/) { $_ = <XML>; }
@@ -461,10 +482,10 @@ sub getxml {
       ($command) = /<command>(.+)<\/command>/;
     } elsif (/<time>/ && $intest) {
       ($time) = /<time>(.+)<\/time>/;
-    } elsif (/<result>/ && $intest) {
+    } elsif (/<result>/ && ($intest || $inbuild)) {
       ($result) = /<result>(.+)<\/result>/;
  #     print "$test $configuration $result\n";
-    } elsif (/<output>/ && $intest) {
+    } elsif (/<output>/ && ($intest || $inbuild)) {
       ($output) = /<output>(.+)$/;
       $output .= "\n";
       $_ = <XML>;
@@ -689,6 +710,8 @@ sub scanerrorstring {
   my $stack = "";
   my $linesleft = 100;  # max stack dump depth
   foreach $line (split('\n', $errstr)) {
+    $line =~ s/\s+\[echo\]\s+//g;
+    if ($line eq "") { next; }
     $_ = $line."\n";
     if (!$inerror) {
       if (/Exception in thread/) {
@@ -703,7 +726,11 @@ sub scanerrorstring {
         $inerror = 1;
         $error = "java.lang.NullPointerException";
         $stack = $_;
-      } elsif (/-- Stack --/) {
+      } elsif (/java.lang.RuntimeException/) {
+        $inerror = 1;
+        $error = "java.lang.RuntimeException";
+        $stack = $_;
+      }  elsif (/-- Stack --/) {
         $inerror = 2;
         $error = "-- Stack --";
       } elsif (/REF outside heap/) {
@@ -712,7 +739,7 @@ sub scanerrorstring {
         $stack = $_;
       }
     } elsif ($linesleft > 0) {
-      if ((($inerror == 1) && /^\s+at .+[:]\d+[)]\s*$/) ||
+      if ((($inerror == 1) && /^\s*at .+[:]\d+[)]\s*$/) ||
           (($inerror == 2) && /^\s+L.+ at line \d+$/)) {
 	if ((/sysFail/ || /Assert; fail/) && $error eq "-- Stack --") {
 	   $error = "Assertion failure";
