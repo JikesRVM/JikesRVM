@@ -1271,14 +1271,10 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
       offset = sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
     if (isMainThread)    
       offset = sprintf(dest, offset, "-main");    // Main Thread
-    if (isNativeIdleThread)    
-      offset = sprintf(dest, offset, "-nativeIdle");    // NativeIdle
     if (isIdleThread)          
       offset = sprintf(dest, offset, "-idle");       // idle thread?
     if (isGCThread)            
       offset = sprintf(dest, offset, "-collector");  // gc thread?
-    if (isNativeDaemonThread)  
-      offset = sprintf(dest, offset, "-nativeDaemon");  
     if (beingDispatched)
       offset = sprintf(dest, offset, "-being_dispatched");
     if ( ! isAlive )
@@ -1704,18 +1700,6 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
    * A thread is an "idle thread" if it's an instance of {@link VM_IdleThread}.
    */ 
   boolean isIdleThread;
-
-  /**
-   * A thread is an "native idle  thread" if it's an instance of 
-   * VM_NativeIdleThread
-   */ 
-  boolean isNativeIdleThread;
-  
-  /**
-   * A thread is a "native daemon  thread" if it's an instance of 
-   * VM_NativedaemonThread
-   */ 
-  boolean isNativeDaemonThread;
   
   /**
    * The virtual machine terminates when the last non-daemon (user) 
