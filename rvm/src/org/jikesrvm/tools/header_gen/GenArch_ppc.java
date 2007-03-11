@@ -6,6 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
+package org.jikesrvm.tools.header_gen;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Entrypoints;
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Derek Lieber
  */
-final class GenArchPPC extends GenArch {
+final class GenArch_ppc extends GenArch {
   public final void emitArchVirtualMachineDeclarations() {
     Offset offset;
     offset = VM_Entrypoints.registersLRField.getOffset();

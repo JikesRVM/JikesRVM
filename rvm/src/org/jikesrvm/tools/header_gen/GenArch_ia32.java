@@ -6,6 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
+package org.jikesrvm.tools.header_gen;
 
 import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.ia32.VM_BaselineConstants;
@@ -21,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @author Derek Lieber
  */
-final class GenArchIA extends GenArch {
+final class GenArch_ia32 extends GenArch {
   public final void emitArchVirtualMachineDeclarations() {
     Offset offset;
 

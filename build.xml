@@ -770,7 +770,6 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-
   <!-- Set properties for class libraries -->
   <target name="choose-classlib" depends="prepare-ant-tasks">
     <property name="classlib.library-interface.common.java" location="libraryInterface/Common/src"/>
@@ -786,6 +785,10 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib">
 
+    <condition property="exclude-arch" value="IA" else="PPC">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    
     <!--
      FIXME: When we can capture the primordials based on reacability we will not need to delete class dir
      here. We will also be able to compile ALL classes in one sweep.
@@ -811,6 +814,8 @@ Check to make sure all required properties are specified. This includes properti
       <include name="java/**/*.java"/>
       <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
       <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
+      <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
+      <exclude name="org/jikesrvm/tools/header_gen.GenerateInterfaceDeclarations.java"/>
       <src path="${mmtk-rvm.java}"/>
       <src path="${generated.java}"/>
     </javac>
@@ -1035,40 +1040,12 @@ Check to make sure all required properties are specified. This includes properti
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="build-interface-generator" depends="package">
-    <!-- need to include configuration name as the tool is configured using per configuration settings -->
-    <property name="build.interface-generator.dir" value="${build.base}/interface-generator"/>
-    <mkdir dir="${build.interface-generator.dir}"/>
-
-    <condition property="arch" value="IA">
-      <equals arg1="${target.arch}" arg2="ia32"/>
-    </condition>
-    <condition property="arch" value="PPC">
-      <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
-
-    <copy todir="${build.interface-generator.dir}">
-      <fileset dir="${basedir}/tools/bootImageRunner">
-        <include name="GenerateInterfaceDeclarations.java"/>
-        <include name="GenArch.java"/>
-        <include name="GenArch${arch}.java"/>
-      </fileset>
-    </copy>
-    <javac srcdir="${build.interface-generator.dir}" destdir="${build.interface-generator.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5">
-      <classpath>
-        <pathelement location="${build.rt.jar}"/>
-        <pathelement location="${build.vm.jar}"/>
-      </classpath>
-    </javac>
-  </target>
-
   <!-- Generate InterfaceDeclarations.h for booter -->
-  <target name="gen-interface" depends="build-interface-generator">
+  <target name="gen-interface" depends="package">
     <mkdir dir="${build.native}"/>
-    <java classname="GenerateInterfaceDeclarations" fork="yes" maxmemory="200M" failonerror="true">
+    <java classname="org.jikesrvm.tools.header_gen.GenerateInterfaceDeclarations" fork="yes" maxmemory="200M" failonerror="true">
       <classpath>
-        <pathelement location="${build.interface-generator.dir}"/>
+        <pathelement location="${build.classes}"/>
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
       </classpath>

@@ -6,6 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2003
  */
+package org.jikesrvm.tools.header_gen;
 
 /**
  * Emit the architecture-specific part of a header file containing declarations
