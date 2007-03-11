@@ -696,7 +696,7 @@ They are benign; ignore them.
 *Bug Fixes in Jikes RVM 2.3.1:
 
 ***Debugging output no longer can drift into InterfaceDeclarations.h;
-org.jikesrvm.tools.header_gen.GenerateInterfaceDeclarations.java takes a new "-out" option.
+GenerateInterfaceDeclarations.java takes a new "-out" option.
 
 ***--trace=preprocessor now lists all of the directories consistently.
 
