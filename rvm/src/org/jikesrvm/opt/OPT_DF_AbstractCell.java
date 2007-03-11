@@ -128,15 +128,8 @@ abstract class OPT_DF_AbstractCell
     return  index;
   }
 
-  private Object scratchObject;
   private int scratch;
 
-  public Object getScratchObject () {
-    return  scratchObject;
-  }
-  public Object setScratchObject (Object o) {
-    return  (scratchObject = o);
-  }
   public int getScratch () {
     return  scratch;
   }

@@ -114,7 +114,6 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   protected float freq;
 
-
   /**
    * Creates a new basic block at the specified location.
    * It initially contains a single label instruction pointed to 

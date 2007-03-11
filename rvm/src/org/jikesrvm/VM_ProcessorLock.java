@@ -197,13 +197,6 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A synonym for unlock.
-   * @deprecated (was to avoid the "sync" of unlock)
-   */
-  @Deprecated
-  public void release () { unlock(); }
-
-  /**
    * An attempt to lock or unlock a processor lock has failed,
    * presumably due to contention with another processor.  Backoff a
    * little to increase the likelihood that a subsequent retry will

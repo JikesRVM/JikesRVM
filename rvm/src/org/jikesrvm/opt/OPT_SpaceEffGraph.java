@@ -343,41 +343,11 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   }
 
   /**
-   * WARNING: this enumerator does not get nodes that are not
-   *          reachable from _firstNode.  Use with caution.
-   */
-  OPT_BreadthFirstEnumerator getNodesBreadthFirst() {
-    if (_firstNode == null) return OPT_BreadthFirstEnumerator.EMPTY;
-    markNumber = getNewMark();
-    return new OPT_BreadthFirstEnumerator(_firstNode, markNumber);
-  }
-
-  /**
-   * WARNING: this enumerator does not get nodes that are not
-   *          reachable from _firstNode.  Use with caution.
-   *
-   * Return a depth-first enumeration of the nodes
-   */
-  OPT_DepthFirstEnumerator getNodesDepthFirst() {
-    if (_firstNode == null) return OPT_DepthFirstEnumerator.EMPTY;
-    markNumber = getNewMark();
-    return new OPT_DepthFirstEnumerator(_firstNode, markNumber);
-  }
-
-  /**
    * Print, to System.out, the basic blocks in depth first order.
    */
   public void printDepthFirst() {
     markNumber = getNewMark();
     print(new OPT_DepthFirstEnumerator(_firstNode, markNumber));
-  }
-
-  /**
-   * Print, to System.out, the basic blocks in breadth first order.
-   */
-  public void printBreadthFirst() {
-    markNumber = getNewMark();
-    print(new OPT_BreadthFirstEnumerator(_firstNode, markNumber));
   }
 
   /**

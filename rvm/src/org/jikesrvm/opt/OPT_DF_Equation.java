@@ -248,15 +248,8 @@ public class OPT_DF_Equation implements OPT_GraphNode {
           };
   }
 
-  private Object scratchObject;
   private int scratch;
 
-  public Object getScratchObject () {
-    return  scratchObject;
-  }
-  public Object setScratchObject (Object o) {
-    return  (scratchObject = o);
-  }
   public int getScratch () {
     return  scratch;
   }

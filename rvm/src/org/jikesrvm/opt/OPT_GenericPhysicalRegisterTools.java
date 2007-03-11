@@ -54,16 +54,9 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    *    ... Load.create(INT_LOAD, I(2), A(1), IC(4)) ...
    * </pre>
    * 
-   * @deprecated : use I(int regnum) instead
    * @param regnum the given GPR register number
    * @return integer register operand
    */
-  @Deprecated
-  protected final OPT_RegisterOperand R(int regnum) {
-    OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
-    return I(phys.getGPR(regnum));
-  }
-
   protected final OPT_RegisterOperand I(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return I(phys.getGPR(regnum));

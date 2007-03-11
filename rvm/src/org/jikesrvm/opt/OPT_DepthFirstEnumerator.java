@@ -58,8 +58,4 @@ final class OPT_DepthFirstEnumerator
     }
     throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
   }
-
-  private OPT_DepthFirstEnumerator () {
-  }
-  public static OPT_DepthFirstEnumerator EMPTY = new OPT_DepthFirstEnumerator();
 }

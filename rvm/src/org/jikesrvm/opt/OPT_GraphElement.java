@@ -26,22 +26,6 @@ package org.jikesrvm.opt;
 interface OPT_GraphElement {
 
   /** 
-   * read the scratch field of object type
-   * @return the contents of the Object scratch field
-   * @deprecated
-   */
-  @Deprecated
-  Object getScratchObject ();
-
-  /** 
-   * set the scratch field of object type
-   * @param obj the new contents of the Object scratch field
-   * @deprecated
-   */
-  @Deprecated
-  Object setScratchObject (Object obj);
-
-  /** 
    * read the scratch field of int type
    * @return the contents of the int scratch field
    * @deprecated

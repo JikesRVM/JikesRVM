@@ -45,15 +45,9 @@ public abstract class OPT_IRTools {
    * <pre>
    *    ... Load.create(INT_LOAD, I(r2), A(r1), IC(4)) ...
    * </pre>
-   * @deprecated : use I(OPT_Register) instead
    * @param reg the given register
    * @return integer register operand
    */
-  @Deprecated
-  public static OPT_RegisterOperand R(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
-  }
-
   public static OPT_RegisterOperand I(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }

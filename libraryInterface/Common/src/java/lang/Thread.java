@@ -66,22 +66,6 @@ public class Thread implements Runnable {
     contextClassLoader = ClassLoader.getSystemClassLoader();
   }
     
-  /** 
-   * This constructor is only used to create the system threads.
-   *
-   * @deprecated This constructor should go away in favor of the two-argument
-   * form. 
-   */
-  @Deprecated
-  Thread(VM_Thread vmdata) {
-    /* Initialize the name to NULL, then set it after the initializer is run.
-     * This is awkward, but Java won't let us invoke the toString()
-     * method on this object until the initializer it calls has been run.   */
-    this(vmdata, null);
-    this.name = "Jikes_RVM_Miscellaneous_System_Thread: " + toString();
-  }
-  
-
   /** This is only used to create the system threads.
    *
    * This is only used by 

@@ -950,15 +950,6 @@ public final class OPT_Instruction
     return operator.isImplicitLoad(); 
   }
 
-  /** 
-   * @deprecated use {@link #isExplicitLoad()} or {@link #isImplicitLoad()}
-   */ 
-  @Deprecated
-  public boolean isLoad() {
-    return isImplicitLoad(); 
-  }
-  
-
   /**
    * Is the instruction an explicit store of a finite set of values to
    * a finite set of memory locations (store, store multiple, _not_ call)?
@@ -979,14 +970,6 @@ public final class OPT_Instruction
    */
   public boolean isImplicitStore() { 
     return operator.isImplicitStore(); 
-  }
-
-  /** 
-   * @deprecated use {@link #isExplicitStore()} or {@link #isImplicitStore()}
-   */ 
-  @Deprecated
-  public boolean isStore() {
-    return isImplicitStore(); 
   }
 
   /**

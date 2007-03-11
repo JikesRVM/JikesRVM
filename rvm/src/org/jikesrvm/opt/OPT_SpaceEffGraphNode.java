@@ -64,12 +64,6 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   public int setScratch(int scratch) { return this.scratch = scratch; }
 
-  public Object getScratchObject() { return scratchObject; }
-
-  public Object setScratchObject(Object scratch) {
-    return this.scratchObject = scratch;
-  }
-
   public final void setNumber(int value) {
     info = (info & ~INFO_MASK) | (value & INFO_MASK);
   }

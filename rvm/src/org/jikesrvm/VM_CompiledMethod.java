@@ -130,17 +130,6 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * Return the machine code for this compiled method
-   * @deprecated 
-   */
-  @Deprecated
-  @Uninterruptible
-  public final VM_CodeArray getInstructions() { 
-    if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
-    return instructions; 
-  }
-  
-  /**
    * @return the VM_CodeArray to jump to to invoke this method (ie, 
    *         code_array[0] contains the first instruction of the method's prologue).
    */
