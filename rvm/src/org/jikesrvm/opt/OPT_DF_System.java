@@ -29,7 +29,7 @@ import  java.util.Comparator;
  * @author Stephen Fink
  *
  */
-public abstract class OPT_DF_System implements OPT_Solvable {
+public abstract class OPT_DF_System {
   static final boolean DEBUG = false;
 
   final boolean EAGER;
