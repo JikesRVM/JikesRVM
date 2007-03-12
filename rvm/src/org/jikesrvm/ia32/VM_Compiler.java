@@ -21,7 +21,7 @@ import org.jikesrvm.VM_Runtime;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Thread;
-import org.jikesrvm.ia32.jni.VM_JNICompiler;
+import org.jikesrvm.jni.ia32.VM_JNICompiler;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

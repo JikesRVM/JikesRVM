@@ -14,7 +14,7 @@ import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ia32.jni.VM_JNICompiler;
+import org.jikesrvm.jni.ia32.VM_JNICompiler;
 
 import org.vmmagic.unboxed.Offset;
 

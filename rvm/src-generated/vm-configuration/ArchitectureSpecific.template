@@ -56,12 +56,12 @@ public class ArchitectureSpecific {
   public static final class VM_Registers extends org.jikesrvm.@_ARCH_@.VM_Registers {}
   public static interface VM_StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.VM_StackframeLayoutConstants {}
   public static interface VM_TrapConstants extends org.jikesrvm.@_ARCH_@.VM_TrapConstants {}
-  public static final class VM_JNICompiler extends org.jikesrvm.@_ARCH_@.jni.VM_JNICompiler {}
-  public static final class VM_JNIGCMapIterator extends org.jikesrvm.@_ARCH_@.jni.VM_JNIGCMapIterator {
+  public static final class VM_JNICompiler extends org.jikesrvm.jni.@_ARCH_@.VM_JNICompiler {}
+  public static final class VM_JNIGCMapIterator extends org.jikesrvm.jni.@_ARCH_@.VM_JNIGCMapIterator {
     public VM_JNIGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
-  public static final class VM_JNIHelpers extends org.jikesrvm.@_ARCH_@.jni.VM_JNIHelpers {}
+  public static final class VM_JNIHelpers extends org.jikesrvm.jni.@_ARCH_@.VM_JNIHelpers {}
   public static final class OPT_Assembler extends org.jikesrvm.opt.@_ARCH_@.OPT_Assembler {
   @_PPC_QUOTE_@
     public OPT_Assembler(int bcSize, boolean print, OPT_IR ir) {

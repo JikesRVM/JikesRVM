@@ -14,7 +14,7 @@ import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ppc.jni.VM_JNIStackframeLayoutConstants;
+import org.jikesrvm.jni.ppc.VM_JNIStackframeLayoutConstants;
 
 import org.vmmagic.unboxed.Offset;
 

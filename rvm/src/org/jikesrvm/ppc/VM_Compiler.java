@@ -23,10 +23,10 @@ import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_Assembler;
-import org.jikesrvm.ppc.jni.VM_JNICompiler;
+import org.jikesrvm.jni.ppc.VM_JNICompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.ppc.jni.*;
+import org.jikesrvm.jni.ppc.*;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.pragma.*;

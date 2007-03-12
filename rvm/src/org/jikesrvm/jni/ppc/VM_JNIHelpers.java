@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001,2003, 2004
  */
-package org.jikesrvm.ppc.jni;
+package org.jikesrvm.jni.ppc;
 
 import java.lang.reflect.*;
 

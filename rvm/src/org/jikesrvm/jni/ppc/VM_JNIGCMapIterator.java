@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ppc.jni;
+package org.jikesrvm.jni.ppc;
 
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.jni.VM_JNIEnvironment;

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2003, 2004
  */
-package org.jikesrvm.ia32.jni;
+package org.jikesrvm.jni.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
