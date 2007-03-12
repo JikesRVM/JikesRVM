@@ -61,7 +61,7 @@ import org.jikesrvm.opt.ir.Prologue;
 import org.jikesrvm.opt.ir.Trap;
 import org.jikesrvm.opt.ir.TrapIf;
 import org.jikesrvm.opt.ir.Unary;
-import org.jikesrvm.opt.ppc.ir.*;
+import org.jikesrvm.opt.ir.ppc.*;
 
 import org.vmmagic.unboxed.*;
 

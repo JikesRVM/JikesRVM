@@ -101,10 +101,10 @@ public class ArchitectureSpecific {
       super(registerLocations);
     }}
   public static interface VM_OptGCMapIteratorConstants extends org.jikesrvm.opt.@_ARCH_@.VM_OptGCMapIteratorConstants {}
-  public static final class OPT_GenerateMachineSpecificMagic extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_GenerateMachineSpecificMagic {}
-  public static final class OPT_PhysicalDefUse extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_PhysicalDefUse {}
-  public static final class OPT_PhysicalRegisterSet extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_PhysicalRegisterSet {}
-  public static final class OPT_RegisterPool extends org.jikesrvm.opt.@_ARCH_@.ir.OPT_RegisterPool {
+  public static final class OPT_GenerateMachineSpecificMagic extends org.jikesrvm.opt.ir.@_ARCH_@.OPT_GenerateMachineSpecificMagic {}
+  public static final class OPT_PhysicalDefUse extends org.jikesrvm.opt.ir.@_ARCH_@.OPT_PhysicalDefUse {}
+  public static final class OPT_PhysicalRegisterSet extends org.jikesrvm.opt.ir.@_ARCH_@.OPT_PhysicalRegisterSet {}
+  public static final class OPT_RegisterPool extends org.jikesrvm.opt.ir.@_ARCH_@.OPT_RegisterPool {
     public OPT_RegisterPool(VM_Method meth) {
       super(meth);
     }}

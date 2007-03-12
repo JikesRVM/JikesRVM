@@ -15,7 +15,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_Bits;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.opt.ir.*;
-import org.jikesrvm.opt.ppc.ir.*;
+import org.jikesrvm.opt.ir.ppc.*;
 
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;

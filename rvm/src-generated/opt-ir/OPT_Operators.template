@@ -18,9 +18,9 @@
 package org.jikesrvm.opt.ir;
 
 $$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.opt.ia32.ir.OPT_MachineSpecificIRIA;
+import org.jikesrvm.opt.ir.ia32.OPT_MachineSpecificIRIA;
 $$$$ ELSE
-import org.jikesrvm.opt.ppc.ir.OPT_MachineSpecificIRPowerPC;
+import org.jikesrvm.opt.ir.ppc.OPT_MachineSpecificIRPowerPC;
 $$$$ END IF
 
 /**

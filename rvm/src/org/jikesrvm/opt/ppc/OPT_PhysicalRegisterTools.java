@@ -9,7 +9,7 @@
 package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.opt.OPT_GenericPhysicalRegisterTools;
-import org.jikesrvm.opt.ppc.ir.OPT_PhysicalRegisterSet;
+import org.jikesrvm.opt.ir.ppc.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.ir.OPT_RegisterOperand;
 
 /**

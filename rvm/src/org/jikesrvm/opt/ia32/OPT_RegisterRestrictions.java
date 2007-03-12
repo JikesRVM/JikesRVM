@@ -9,7 +9,7 @@
 package org.jikesrvm.opt.ia32;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.opt.ia32.ir.*;
+import org.jikesrvm.opt.ir.ia32.*;
 import org.jikesrvm.opt.OPT_GenericRegisterRestrictions;
 import org.jikesrvm.opt.OPT_LiveIntervalElement;
 import org.jikesrvm.opt.ir.MIR_BinaryAcc;

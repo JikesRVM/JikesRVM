@@ -4,7 +4,7 @@
 
 package org.jikesrvm.opt.@_ARCH_@;
 
-import org.jikesrvm.opt.@_ARCH_@.ir.*;
+import org.jikesrvm.opt.ir.@_ARCH_@.*;
 import org.jikesrvm.classloader.*;
 
 import org.jikesrvm.*;

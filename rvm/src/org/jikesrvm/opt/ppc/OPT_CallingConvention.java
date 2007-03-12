@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.*;
 import static org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants.*;
-import org.jikesrvm.opt.ppc.ir.OPT_PhysicalRegisterSet;
+import org.jikesrvm.opt.ir.ppc.OPT_PhysicalRegisterSet;
 
 /**
  * This class contains PowerPC Calling conventions.

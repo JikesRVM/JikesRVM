@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.opt.ia32.ir.*;
+import org.jikesrvm.opt.ir.ia32.*;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.opt.ir.MIR_Branch;

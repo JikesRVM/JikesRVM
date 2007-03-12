@@ -13,7 +13,7 @@ import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Runtime;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.ia32.ir.*;
+import org.jikesrvm.opt.ir.ia32.*;
 import org.jikesrvm.opt.OPT_BURS;
 import org.jikesrvm.opt.OPT_BURS_MemOp_Helpers;
 import org.jikesrvm.opt.OPT_DefUse;

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2006
  */
-package org.jikesrvm.opt.ppc.ir;
+package org.jikesrvm.opt.ir.ppc;
 
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 

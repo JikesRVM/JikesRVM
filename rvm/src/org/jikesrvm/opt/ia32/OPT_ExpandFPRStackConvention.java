@@ -11,7 +11,7 @@ import org.jikesrvm.VM;
 
 import org.jikesrvm.opt.OPT_CompilerPhase;
 import org.jikesrvm.opt.OPT_Options;
-import org.jikesrvm.opt.ia32.ir.OPT_PhysicalRegisterSet;
+import org.jikesrvm.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.opt.ir.*;
 
 /**

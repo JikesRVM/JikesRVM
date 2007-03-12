@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2006
  */
-package org.jikesrvm.opt.ia32.ir;
+package org.jikesrvm.opt.ir.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;

@@ -11,7 +11,7 @@ package org.jikesrvm.opt.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.opt.OPT_DefUse;
 import org.jikesrvm.opt.ir.*;
-import org.jikesrvm.opt.ppc.ir.*;
+import org.jikesrvm.opt.ir.ppc.*;
 
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 

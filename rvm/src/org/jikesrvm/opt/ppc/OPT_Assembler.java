@@ -44,7 +44,7 @@ import org.jikesrvm.opt.ir.OPT_Operators;
 import org.jikesrvm.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.ppc.*;
 import org.jikesrvm.ppc.VM_ArchConstants;
-import org.jikesrvm.opt.ppc.ir.*;
+import org.jikesrvm.opt.ir.ppc.*;
 
 /**
  * Assemble PowerPC MIR into binary code.

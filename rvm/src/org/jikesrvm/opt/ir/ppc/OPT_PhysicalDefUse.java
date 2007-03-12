@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.opt.ppc.ir;
+package org.jikesrvm.opt.ir.ppc;
 
 import java.util.Enumeration;
 import org.jikesrvm.opt.ir.OPT_IR;

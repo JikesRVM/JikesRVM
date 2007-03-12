@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.opt.ia32.ir;
+package org.jikesrvm.opt.ir.ia32;
 
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.opt.ir.OPT_IR;

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.opt.ppc.ir;
+package org.jikesrvm.opt.ir.ppc;
 
 import org.jikesrvm.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.opt.ir.OPT_Operand;
