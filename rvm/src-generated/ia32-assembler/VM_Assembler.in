@@ -790,7 +790,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param rel32       the new immediate to use in the branch instruction
    *                    the code patcher is going to lay down before patchOffset
    */
-  public static void patchCode(VM_CodeArray code,
+  public static void patchCode(ArchitectureSpecific.VM_CodeArray code,
 			             int patchOffset,
 			             int rel32) {
     byte p0 = (byte)0xE9;
