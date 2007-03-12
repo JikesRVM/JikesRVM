@@ -8,7 +8,10 @@
  */
 package org.jikesrvm.opt;
 
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.opt.ir.OPT_Instruction;
+import org.jikesrvm.opt.ir.OPT_InstructionEnumeration;
+
 /**
  * Default (IR-order) instruction list
  * Used by the scheduler to enumerate over instructions
@@ -26,13 +29,10 @@ class OPT_DefaultPriority extends OPT_Priority {
   /**
    * Creates new priority object for a given basic block
    *
-   * @param ir IR in question
    * @param bb basic block
    */
   public OPT_DefaultPriority (OPT_BasicBlock bb) {
     this.bb = bb;
-    // i = bb.firstInstruction();
-    // instr = bb.forwardRealInstrEnumerator();
   }
 
   /**
@@ -66,6 +66,3 @@ class OPT_DefaultPriority extends OPT_Priority {
     return  instr.next();
   }
 }
-
-
-
