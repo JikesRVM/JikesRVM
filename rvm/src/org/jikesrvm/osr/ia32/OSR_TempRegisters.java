@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2002
  */
 
-package org.jikesrvm.ia32.osr;
+package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ia32.VM_Registers;

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2002
  */
 
-package org.jikesrvm.ppc.osr;
+package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.ppc.VM_Registers;
 import org.jikesrvm.ppc.VM_RegisterConstants;

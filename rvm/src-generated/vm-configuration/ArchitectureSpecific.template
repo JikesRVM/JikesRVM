@@ -108,8 +108,8 @@ public class ArchitectureSpecific {
     public OPT_RegisterPool(VM_Method meth) {
       super(meth);
     }}
-  public static final class OSR_BaselineExecStateExtractor extends org.jikesrvm.@_ARCH_@.osr.OSR_BaselineExecStateExtractor {}
-  public static final class OSR_CodeInstaller extends org.jikesrvm.@_ARCH_@.osr.OSR_CodeInstaller {}
-  public static final class OSR_OptExecStateExtractor extends org.jikesrvm.@_ARCH_@.osr.OSR_OptExecStateExtractor {}
-  public static final class OSR_PostThreadSwitch extends org.jikesrvm.@_ARCH_@.osr.OSR_PostThreadSwitch {}
+  public static final class OSR_BaselineExecStateExtractor extends org.jikesrvm.osr.@_ARCH_@.OSR_BaselineExecStateExtractor {}
+  public static final class OSR_CodeInstaller extends org.jikesrvm.osr.@_ARCH_@.OSR_CodeInstaller {}
+  public static final class OSR_OptExecStateExtractor extends org.jikesrvm.osr.@_ARCH_@.OSR_OptExecStateExtractor {}
+  public static final class OSR_PostThreadSwitch extends org.jikesrvm.osr.@_ARCH_@.OSR_PostThreadSwitch {}
 }

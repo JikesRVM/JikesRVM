@@ -7,25 +7,27 @@
  * (C) Copyright IBM Corp 2002
  */
 
-package org.jikesrvm.ppc.osr;
-
+package org.jikesrvm.osr.ia32;
+import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Code used for recover register value after on stack replacement.
+ * A class helps schedule OSRed method, it is called right after thread switch
+ * and highly depends on the calling convention. It should not be interrupted
+ * because it deals with row instruction address.
  *
  * @author Feng Qian
  */
-
 @Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
-  /* This method must be inlined to keep the correctness 
+  /**
+   * This method must not be inlined to keep the correctness 
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom<...>
    */
@@ -41,12 +43,18 @@ import org.vmmagic.unboxed.*;
       
     Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 
-    Offset offset = myThread.fooFPOffset.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-    VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWrite("osr post processing\n");
+    }
         
-    myThread.fooFPOffset = Offset.zero();
+    Offset offset = myThread.tsFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);
+    VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
+
+    myThread.tsFPOffset = Offset.zero();
 
     myThread.isWaitingForOsr = false;
     myThread.bridgeInstructions = null;
+
+    // no GC should happen until the glue code gets executed.
   }
 }

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2002
  */
 
-package org.jikesrvm.ppc.osr;
+package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_BaselineCompiledMethod;
