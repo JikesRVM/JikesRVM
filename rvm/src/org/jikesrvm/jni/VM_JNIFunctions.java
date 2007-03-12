@@ -81,7 +81,8 @@ import org.vmmagic.pragma.NativeBridge;
  * @modified Steven Augart
  * @date June 2004 -- JNI 1.2 and 1.4 largely implemented
  */
-@SuppressWarnings("unused")  // called from native code
+@SuppressWarnings({"unused", "UnusedDeclaration"})
+// called from native code
 @NativeBridge
 public class VM_JNIFunctions implements VM_SizeConstants {
   // one message for each JNI function called from native
@@ -118,7 +119,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int DefineClass(VM_JNIEnvironment env, Address classNameAddress, int classLoader, Address data, int dataLen) {
     if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
 
-    VM_Type vmType = null;
     try {
       String classString = null;
       if (!classNameAddress.isZero())
@@ -132,7 +132,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       byte[]  bytecode = new byte[dataLen];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
 
-      vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
+      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
       return env.pushJNIRef(vmType.getClassForType());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -211,9 +211,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       Class<?> cls1 = (Class<?>) env.getJNIRef(firstClassJREF);
       Class<?> cls2 = (Class<?>) env.getJNIRef(secondClassJREF);
-      if (cls1==null || cls2==null)
-        return false;
-      return cls2.isAssignableFrom(cls1);
+      return !(cls1 == null || cls2 == null) && cls2.isAssignableFrom(cls1);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -628,7 +626,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       }
 
       // Find the target method
-      VM_Method meth = null;
+      final VM_Method meth;
       if (methodString.equals("<init>")) {
         meth = klass.findInitializerMethod(sigName);
       } else {
@@ -3714,16 +3712,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
 
     try {
-      char[] contents = new char[len];
+      final char[] contents = new char[len];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
-      String s = new String(contents);
-
-      if (s != null) {
-        return env.pushJNIRef(s);
-      } else {
-        env.recordException(new OutOfMemoryError());
-        return 0;
-      }
+      return env.pushJNIRef(new String(contents));
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5820,9 +5811,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       //  if (((ByteBuffer)buffer).isDirect())
       //    VM.sysWrite("Direct, ");
       //}
-      Address result = java.nio.JikesRVMSupport.getDirectBufferAddress(buffer);
       //VM.sysWriteln("Direct buffer address = ",result);
-      return result;
+      return java.nio.JikesRVMSupport.getDirectBufferAddress(buffer);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
