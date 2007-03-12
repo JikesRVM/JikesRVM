@@ -72,7 +72,7 @@ public class Throwable implements java.io.Serializable {
     
   private int numWeirdErrors = 0;
   /** just a guess.  Resettable if you really want to. */
-  public  int maxWeirdErrors = 4; 
+  private int maxWeirdErrors = 4; 
   public void tallyWeirdError() {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
@@ -196,16 +196,11 @@ public class Throwable implements java.io.Serializable {
   } 
     
   public synchronized void printStackTrace(PrintLN err) {
-    int depth = 0;
-    printStackTrace(err, null, depth);
+    printStackTrace(err, null, 0);
   }
 
   /** How deep can we go? */
   private static final int maxDepth = 7;
-  
-  public static synchronized int getMaxDepth() {
-    return maxDepth;
-  }
 
   public synchronized void printStackTrace(PrintLN err, int depth) {
     printStackTrace(err, null, depth);
@@ -354,21 +349,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   void printlnMyClassAndMessage(PrintLN out, int depth) {
-    printMyClassAndMessage(out, depth);
-    out.println();
-  }
-
-  void printMyClassAndMessage(PrintLN out, int depth) {
-    // depth is unused.
-    out.print(toString());
-//     out.print(classNameAsVM_Atom(this));
-//     /* Avoid diving into the contents of detailMessage since a subclass MIGHT
-//      * override getMessage(). */
-//     String msg = getMessage();
-//     if (msg != null) {
-//       out.print(": ");
-//       out.print(msg);
-//     }
+    out.println(toString());
   }
   
   public void sysWrite() {
@@ -388,70 +369,8 @@ public class Throwable implements java.io.Serializable {
     VM.sysWriteln();
   }
 
-//   public static VM_Atom classNameAsVM_Atom(Object o) {
-//     VM_Type me_type = VM_ObjectModel.getObjectType(o);
-//     VM_TypeReference me_tRef = me_type.getTypeRef();
-//     VM_Atom me_name = me_tRef.getName();
-//     return me_name;
-//   }
-
-//   public void sysWriteClassName() {
-//     VM_Atom me_name = classNameAsVM_Atom(this);
-//     me_name.sysWrite();
-//   }
-
   public String toString() {
     return getClass().getName() 
       + (getMessage() == null ? "" : (": " + getMessage()) );
   }
-
-//   /* We could make this more functional in the face of running out of memory,
-//    * but probably not worth the hassle. */
-//   public String toString() {
-//     String msg;
-//     final String messageIfOutOfMemory 
-//       = "<getMessage() ran out of memory; no text available>";
-//     String classname;
-//     final String classnameIfOutOfMemory
-//       = "<getClass.getName() ran out of memory; no text available>";
-
-//     try {
-//       msg = getMessage();
-//     } catch (OutOfMemoryError oom) {
-//       tallyOutOfMemoryError();
-//       /* This will only happen if a subclass overrides getMessage(). */
-//       msg = messageIfOutOfMemory;
-//     }
-//     try {
-//       classname = getClass().getName();
-//     } catch (OutOfMemoryError oom) {
-//       tallyOutOfMemoryError();
-//       /* We could certainly do more to recover from this, such as dumping the
-//       info via VM.sysWrite() or by getting the class's
-//       name via some means that does not involve memory allocation.   But we
-//       won't.  */
-//       classname = classnameIfOutOfMemory;
-//     }
-      
-//     if (msg == null || msg == messageIfOutOfMemory) {
-//       return classname;
-//     } else {
-//       // msg, at least, must contain useful information.
-//       try {
-//      return classname + ": " + msg;
-//       } catch (OutOfMemoryError oom) {
-//      tallyOutOfMemoryError();
-//      /* We could be more clever about this recovery, but it seems like too
-//       * much hassle for too little gain. */
-//      VM.sysWriteln("Throwable.toString(): No memory to concatenate two strings");
-//      VM.sysWrite("Throwable.toString(): Will return just the message from this exception \"");
-//      VM.sysWrite(msg);
-//      VM.sysWriteln("\"");
-//      VM.sysWrite("Throwable.toString(): without the associated classname \"");
-//      VM.sysWrite(classname);
-//      VM.sysWriteln("\".");
-//      return msg;
-//       }
-//     }
-//   }
 }
