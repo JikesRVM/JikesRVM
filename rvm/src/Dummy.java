@@ -20,6 +20,7 @@ class Dummy {
   static org.jikesrvm.VM a;
   static org.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
   static org.jikesrvm.VM_DynamicLinker c;
+  static org.jikesrvm.jni.VM_JNIFunctions d;
   static org.jikesrvm.VM_Reflection e;
   static org.jikesrvm.VM_Process f;
   static org.vmmagic.pragma.SaveVolatile i;
