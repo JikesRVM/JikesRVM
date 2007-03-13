@@ -239,8 +239,10 @@
       <res><![CDATA[<output><]]>![CDATA[</res>
       <copy file="${test.@{tag}.output.file}" tofile="${build.tests.dir}/deleteme.txt"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
+      <!-- may need to set an encoding -->
+      <native2ascii src="${build.tests.dir}" dest="${build.tests.dir}" includes="deleteme.txt" ext=".ascii"/>
       <concat destfile="${results.file}" append="true">
-        <path path="${build.tests.dir}/deleteme.txt"/>
+        <path path="${build.tests.dir}/deleteme.ascii"/>
       </concat>
       <res>]]<![CDATA[></output>]]></res>
     </sequential>
