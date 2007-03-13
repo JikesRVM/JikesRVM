@@ -29,7 +29,7 @@
         <arg value="-I${build.native}"/>
         <arg value="-I${jikesrvm.dir}/include"/>
         <arg value="-o"/>
-        <arg value="${build.tests.dir}/${target.dll-prefix}@{class}${target.dll-ext}"/>
+        <arg value="${build.tests.dir}/${target.dll-prefix}@{class}${target.jni-suffix}"/>
         <arg value="${main.java}/@{class}.c"/>
       </exec>
       <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.tests.dir}"/>

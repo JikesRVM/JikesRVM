@@ -87,6 +87,7 @@
     <test-property name="target.address.size" location="${target.file}"/>
     <test-property name="target.dll-prefix" location="${target.file}"/>
     <test-property name="target.dll-ext" location="${target.file}"/>
+    <test-property name="target.jni-suffix" location="${target.file}"/>
   </target>
 
   <target name="check-host-properties"  depends="check-host-name">
@@ -1085,9 +1086,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="include.syswrap" value="true">
-      <not>
-        <equals arg1="${target.os}" arg2="AIX"/>
-      </not>
+      <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
@@ -1173,7 +1172,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <!-- create rvmexec shared library -->
-    <property name="rvmexec.dll" value="${target.dll-prefix}rvmexec${target.dll-ext}"/>
+    <property name="rvmexec.dll" value="${target.dll-prefix}rvmexec${target.jni-suffix}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
@@ -1182,7 +1181,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <!-- create rvmdynlib shared library -->
-    <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.dll-ext}"/>
+    <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.jni-suffix}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
@@ -1257,18 +1256,20 @@ target.dll-prefix=${target.dll-prefix}
     <mkdir dir="${dist.base}"/>
     <copy todir="${dist.base}">
       <fileset dir="${classpath.lib.dir}">
-        <include name="*${target.dll-ext}"/>
+        <include name="*${target.jni-suffix}"/>
       </fileset>
     </copy>
     <copy todir="${dist.base}">
       <fileset dir="${build.base}">
         <include name="*${target.dll-ext}"/>
+        <include name="*${target.jni-suffix}"/>        
         <include name="JikesRVM"/>
       </fileset>
     </copy>
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
         <include name="*${target.dll-ext}"/>
+        <include name="*${target.jni-suffix}"/>        
         <include name="JikesRVM"/>
       </fileset>
     </chmod>
@@ -1277,7 +1278,7 @@ target.dll-prefix=${target.dll-prefix}
   <target name="gcspy-stub-to-runtime-dir" depends="build-gcspy-stub" if="include.gcspy-stub">
     <copy todir="${dist.base}">
       <fileset dir="${build.native}">
-        <include name="${target.dll-prefix}gcspy${target.dll-ext}"/>
+        <include name="${target.dll-prefix}gcspy${target.jni-suffix}"/>
       </fileset>
     </copy>
   </target>
@@ -1295,12 +1296,12 @@ target.dll-prefix=${target.dll-prefix}
           if="include.gcspy">
     <copy todir="${dist.base}">
       <fileset dir="${gcspy.server.dir}">
-        <include name="${target.dll-prefix}*${target.dll-ext}"/>
+        <include name="${target.dll-prefix}*${target.jni-suffix}"/>        
       </fileset>
     </copy>
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
-        <include name="*${target.dll-ext}"/>
+        <include name="*${target.jni-suffix}"/>        
       </fileset>
     </chmod>
   </target>

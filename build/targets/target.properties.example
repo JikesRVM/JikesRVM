@@ -16,3 +16,6 @@ target.dll-ext=
 
 # prefix for shared libraries
 target.dll-prefix=
+
+# suffix for jni shared libraries (differs from dll suffix on OSX)
+target.jni-suffix=

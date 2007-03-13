@@ -144,7 +144,7 @@
 
     <copy todir="${classpath.package.dir}/${target.name}/lib" flatten="true">
       <regexpmapper from="^(.*${file.separator})lib([^${file.separator}]+)${library.suffix}$$"
-                    to="${target.dll-prefix}\2${target.dll-ext}"/>
+                    to="${target.dll-prefix}\2${target.jni-suffix}"/>
       <fileset dir="${classpath.dir}">
         <include name="native/jni/**/.libs/*${library.suffix}"/>
         <include name="native/jawt/.libs/*${library.suffix}"/>
