@@ -106,6 +106,10 @@
       <equals arg1="${target.name}" arg2="ppc64-aix"/>
     </condition>
 
+    <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}">
+       <arg value="distclean"/>
+    </exec>
+    
     <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
       <!-- need to pass thru compiler settings so if we are building on
       64 bit system the libraries are created appropriately -->
