@@ -1327,8 +1327,11 @@ target.dll-prefix=${target.dll-prefix}
     <delete dir="${dist.base}"/>
   </target>
 
-  <target name="real-clean" depends="clean" description="Delete all the generated files.">
+  <target name="very-clean" depends="clean" description="Delete all the intermediate and image files.">
     <delete dir="${generated.dir}"/>
+  </target>
+
+  <target name="real-clean" depends="very-clean" description="Delete all the generated files.">
     <delete dir="${dist.dir}"/>
     <delete>
       <fileset dir="." includes="**/*~" defaultexcludes="false"/>
