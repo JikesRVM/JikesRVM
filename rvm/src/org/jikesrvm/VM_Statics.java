@@ -101,7 +101,13 @@ public class VM_Statics implements VM_Constants {
   /** Next available numeric slot number */
   private static int nextNumericSlot = middleOfTable - 1;
 
-  /** next available reference slot number */
+  /**
+   * Numeric slot hole. Holes are created to align 8byte values. We
+   * allocate into a hole rather than consume another numeric slot.
+   */
+  private static int numericSlotHole = middleOfTable;
+
+  /** Next available reference slot number */
   private static int nextReferenceSlot = middleOfTable + (VM.BuildFor32Addr ? 1 : 2);
 
   /**
@@ -328,18 +334,32 @@ public class VM_Statics implements VM_Constants {
    * (two slots are allocated for longs and doubles)
    */ 
   public static synchronized Offset allocateNumericSlot(int size) {
+    // Result slot
+    int slot;
     // Allocate two slots for wide items after possibly blowing
     // another slot for alignment.  Wide things are longs or doubles
     if (size == BYTES_IN_LONG) {
       // widen for a wide
       nextNumericSlot--;
       // check alignment
-      if((nextNumericSlot & 1) == 1) {
+      if((nextNumericSlot & 1) != 0) {
+        // slot isn't 8byte aligned so increase by 1 and record hole
+        nextNumericSlot--;
+        numericSlotHole = nextNumericSlot+2;
+      }
+      // Remember the slot and adjust the next available slot
+      slot = nextNumericSlot;
+      nextNumericSlot--;
+    } else {
+      // 4byte quantity, try to reuse hole if one is available
+      if (numericSlotHole != middleOfTable) {
+        slot = numericSlotHole;
+        numericSlotHole = middleOfTable;
+      } else {
+        slot = nextNumericSlot;
         nextNumericSlot--;
       }
     }
-    int slot = nextNumericSlot;
-    nextNumericSlot--;
     if (nextNumericSlot < 0) {
       enlargeTable();
     }
@@ -561,10 +581,10 @@ public class VM_Statics implements VM_Constants {
    */ 
   @UninterruptibleNoWarn
   public static void setSlotContents(Offset offset, Object object) { 
-	 // NB uninterruptible warnings are disabled for this method due to
-	 // the array store which could cause a fault - this can't actually
-	 // happen as the fault would only ever occur when not running the
-	 // VM. We suppress the warning as we know the error can't happen.
+    // NB uninterruptible warnings are disabled for this method due to
+    // the array store which could cause a fault - this can't actually
+    // happen as the fault would only ever occur when not running the
+    // VM. We suppress the warning as we know the error can't happen.
 
     setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
     if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
