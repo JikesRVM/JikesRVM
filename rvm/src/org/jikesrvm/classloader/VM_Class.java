@@ -1151,9 +1151,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     int minor = input.readUnsignedShort();
     int major = input.readUnsignedShort();
     switch (major) {
-    case 45: case 46: case 47:  case 48: // we support all variants of these major versions so the minor number doesn't matter.
+    case 45: case 46: case 47:  case 48: case 49: // we support all variants of these major versions so the minor number doesn't matter.
       break;
-    case 49: // we only support up to 49.0 (ie Java 1.5.0)
+    case 50: // we only support up to 50.0 (ie Java 1.6.0)
       if (minor == 0) break;
     default:
       throw new UnsupportedClassVersionError("unsupported class file version " + major + "." + minor);
