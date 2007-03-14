@@ -934,12 +934,6 @@ Check to make sure all required properties are specified. This includes properti
         <isset property="include.all"/>
       </and>                              
     </condition>
-    <condition property="primordials.ppc-all" value=",RVM_PPC_ALL.txt" else="">
-      <and>
-        <equals arg1="${target.arch}" arg2="ppc"/>
-        <isset property="include.all"/>
-      </and>
-    </condition>
     <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -947,7 +941,7 @@ Check to make sure all required properties are specified. This includes properti
     <concat destfile="${build.base}/Primordials.txt">
       <filelist dir="${build.base}" files="ClassesForImage.txt"/>
       <filelist dir="${primordials.dir}"
-                files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.opt-all}${primordials.ppc-all}${primordials.arch}"/>
+                files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.opt-all}${primordials.arch}"/>
     </concat>
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>

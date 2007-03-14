@@ -1,2 +1,0 @@
-[Lorg/jikesrvm/ppc/opcodeXX;
-[Lorg/jikesrvm/ppc/opcode_tab;
