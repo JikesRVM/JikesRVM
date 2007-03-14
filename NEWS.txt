@@ -5,25 +5,32 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.9.0 Release Notes (March ??, 2007)
+*Jikes RVM 2.9.0 Release Notes (March 15, 2007)
 ** Highlights
+
+*** The five months since the release of 2.4.6 have been one of the most
+    active periods in the open source history of the project.  A number
+    of significant changes have been made to clean up and modernize the 
+    code base to enable future evolution. 
+
+*** We have made large scale changes to the structure of the source code
+    to prepare for development of Jikes RVM from within standard Java IDEs.
+
+*** There is a new, ant-based, build and test system that have replaced 
+    jconfigure and RunSanityTests.
+
+*** The userguide has been moved from latex into a wiki.  It has been updated
+    to describe the new build and test systems. 
+    The release tarball contains a pdf and html version of the userguide.
+
+*** We now support Java5, we have switched to using the generics branch
+    of GNU Classpath, and much of Jikes RVM has been rewritten to use
+    Java 5 language features and generic types. 
+
+*** We have switched to using Java5 annotations for pragmas/magic. 
+
 *** The recommended version of GNU classpath is 0.93-generics.
     Earlier versions of GNU classpath are not supported.
-
-*** New build system
-
-*** New test system
-
-*** New user guide
-
-*** Large scale changes in source tree
-
-*** Switched to generic version of Classpath
-
-*** Rewrite of large parts of the source tree using Java 1.5 language features
-
-*** Switch from using interface and exceptions to mark pragmas to using
-    annotations
 
 *** Refactor of type system and JTOC
 
@@ -43,8 +50,6 @@ on October 14, 2001,
 
 *** Yes...many :)
 
-*** Race condition in dynamic linking of unresolved static class members.
-
 ** Other Notes
 
 *** The Quick compiler has been deleted.  It is now available as a
@@ -54,6 +59,11 @@ on October 14, 2001,
 *** The HPM (Hardware Performance Monitor) code has been deleted.
     It is now available on the research tracker (item 1613215),
     by svn diff -r11162:11161, or in releases through 2.4.6.
+
+*** This release is know to not work on OS X.  We would like to get this 
+    platform working again;  if you use Jikes RVM on OS X and are willing to
+    help fix it, please let us know.
+
 
 
 *Jikes RVM 2.4.6 Release Notes (released October 19, 2006)
