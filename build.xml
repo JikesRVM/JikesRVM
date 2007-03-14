@@ -1242,6 +1242,7 @@ target.bootimage.rmap.address=${target.bootimage.rmap.address}
 target.max-mappable.address=${target.max-mappable.address}
 target.dll-ext=${target.dll-ext}
 target.dll-prefix=${target.dll-prefix}
+target.jni-suffix=${target.jni-suffix}
 ]]></echo>
   </target>
 
