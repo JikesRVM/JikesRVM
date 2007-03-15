@@ -6,14 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.mm.mmtk.ScanBootImage;
+import org.jikesrvm.*;
+import org.jikesrvm.classloader.*;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mmtk.ScanBootImage;
 
 import org.vmmagic.unboxed.*;
 
@@ -24,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @version 03 Jan 2000
  */
-public class BootImage extends BootImageWriterMessages
+public class BootImage extends BootImageWriterMessages 
   implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {
 
   /**
@@ -82,8 +81,6 @@ public class BootImage extends BootImageWriterMessages
    */
   private int numNulledReferences;
 
-  private int markedReferences;
-
   /**
    * @param ltlEndian write words low-byte first?
    * @param t turn tracing on?
@@ -107,7 +104,7 @@ public class BootImage extends BootImageWriterMessages
       say((numAddresses / 1024) + "k non-null object references");
       say(numNulledReferences + " references nulled because they are "+
           "non-jdk fields or point to non-bootimage objects");
-      say((VM_Statics.getNumberOfSlots() / 1024) + "k jtoc slots");
+      say(((VM_Statics.getNumberOfReferenceSlots()+VM_Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
       say((getDataSize() / 1024) + "k data in image");
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);
@@ -182,8 +179,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateScalar(VM_Class klass) {
     numObjects++;
-    klass.bootCount++;
-    klass.bootBytes += klass.getInstanceSize();
+    BootImageWriter.logAllocation(klass, klass.getInstanceSize());
     return VM_ObjectModel.allocateScalar(this, klass);
   }
 
@@ -196,8 +192,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateArray(VM_Array array, int numElements) {
     numObjects++;
-    array.bootCount++;
-    array.bootBytes += array.getInstanceSize(numElements);
+    BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateArray(this, array, numElements);
   }
 
@@ -210,8 +205,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public Address allocateCode(VM_Array array, int numElements) {
     numObjects++;
-    array.bootCount++;
-    array.bootBytes += array.getInstanceSize(numElements);
+    BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateCode(this, array, numElements);
   }
 
@@ -380,14 +374,11 @@ public class BootImage extends BootImageWriterMessages
   public void setAddressWord(Address address, Word value, boolean objField) {
     if (objField) 
       markReferenceMap(address);
-//-#if RVM_FOR_32_ADDR
-    setFullWord(address, value.toInt());
+    if (VM.BuildFor32Addr)
+      setFullWord(address, value.toInt());
+    else
+      setDoubleWord(address, value.toLong());
     numAddresses++;
-//-#endif
-//-#if RVM_FOR_64_ADDR
-    setDoubleWord(address, value.toLong());
-    numAddresses++;
-//-#endif
   }
 
   /**

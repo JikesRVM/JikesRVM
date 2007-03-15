@@ -37,18 +37,15 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class GCTraceCollector extends SSCollector implements Uninterruptible {
+@Uninterruptible public class GCTraceCollector extends SSCollector {
   /****************************************************************************
    * Instance fields
    */
@@ -78,11 +75,6 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE) {
-      super.collectionPhase(phaseId, primary);
-      return;
-    }
-
     if (phaseId == GCTrace.START_CLOSURE) {
       inducedTrace.startTrace();
       return;
@@ -106,12 +98,10 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
         ((phaseId != StopTheWorld.SOFT_REFS) &&
          (phaseId != StopTheWorld.WEAK_REFS) &&
          (phaseId != StopTheWorld.PHANTOM_REFS) &&
-         (phaseId != StopTheWorld.FORWARD_REFS) &&
-         (phaseId != StopTheWorld.FORWARD_FINALIZABLE) &&
-         (phaseId != StopTheWorld.FINALIZABLE))) {
+         (phaseId != StopTheWorld.FINALIZABLE) &&
+         (phaseId != SS.PREPARE))) {
       // Delegate up.
       super.collectionPhase(phaseId, primary);
-      return;
     }
   }
 
@@ -121,7 +111,8 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
    */
 
   /** @return The active global plan as a <code>GCTrace</code> instance. */
-  private static final GCTrace global() throws InlinePragma {
+  @Inline
+  private static GCTrace global() {
     return (GCTrace) VM.activePlan.global();
   }
 

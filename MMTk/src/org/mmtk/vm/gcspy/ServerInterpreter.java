@@ -18,13 +18,10 @@ import org.vmmagic.unboxed.Address;
  * 
  * Implementing classes will mostly forward calls to the C gcspy library.
  * 
- * $Id: ServerInterpreter.java 10806 2006-09-22 12:17:46Z dgrove-oss $
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
-public abstract class ServerInterpreter implements Uninterruptible {
+@Uninterruptible public abstract class ServerInterpreter {
 
   protected static final int MAX_LEN = 64 * 1024; // Buffer size
   protected static final int MAX_SPACES = 32;     // Maximum number of spaces
@@ -35,20 +32,14 @@ public abstract class ServerInterpreter implements Uninterruptible {
 
   protected static final boolean DEBUG = false;
 
-
-  /*
-   * Create a new ServerInterpreter.
-   */
-  public ServerInterpreter() {}
-  
   /**
    * Create a new ServerInterpreter singleton.
    * @param name The name of the server
    * @param port The number of the port on which to communicate
    * @param verbose Whether the server is to run verbosely
    */
-  public abstract void init (String name, int port, boolean verbose)
-      throws InterruptiblePragma;
+  @Interruptible
+  public abstract void init (String name, int port, boolean verbose); 
   
   /** 
    * Add an event to the ServerInterpreter.
@@ -80,7 +71,8 @@ public abstract class ServerInterpreter implements Uninterruptible {
    * @exception IndexOutOfBoundsException on attempt to add more than 
    * MAX_SPACES spaces
    */
-  public int addSpace(ServerSpace space) throws InterruptiblePragma { 
+  @Interruptible
+  public int addSpace(ServerSpace space) { 
     int id = 0;
     while (id < MAX_SPACES) {
       if (spaces[id] == null) {

@@ -1,0 +1,115 @@
+<!--
+common build component for setting up and checking propertys that common across all builds - even nightly builds.
+ jikesrvm.dir MUST be set to base directory before importing project.  
+-->
+<project name="base">
+
+  <property file="${jikesrvm.dir}/.ant.properties"/>
+
+  <!-- If not set, default the target.name to the host.name -->
+  <property name="target.name" value="${host.name}"/>
+  <property name="target.file" location="${jikesrvm.dir}/build/targets/${target.name}.properties"/>
+
+  <!-- load host specific properties -->
+  <property name="host.file" location="${jikesrvm.dir}/build/hosts/${host.name}.properties"/>
+  <property file="${host.file}"/>
+
+  <!-- location of components -->
+  <property name="components.dir" location="${jikesrvm.dir}/components"/>
+  <property name="components.file" location="${components.dir}/components.properties"/>
+  
+  <!-- location of intermediate directory -->
+  <property name="build.dir" location="${jikesrvm.dir}/target"/>
+
+  <!-- location for image directory -->
+  <property name="dist.dir" location="${jikesrvm.dir}/dist"/>
+
+  <!-- base location for all test results -->
+  <property name="results.dir" location="${jikesrvm.dir}/results"/>
+  
+  <!-- by default not working on patch -->
+  <property name="patch.name" value=""/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *      Utility macros common across testing and building infrastructure.   * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Macro to setup build name -->
+  <macrodef name="setBuildName">
+    <attribute name="property"/>
+    <attribute name="config"/>
+    <sequential>
+      <condition property="@{property}"
+                 value="@{config}_${target.name}"
+                 else="@{config}_${target.name}_${patch.name}">
+        <equals arg1="${patch.name}" arg2=""/>
+      </condition>
+    </sequential>
+  </macrodef>
+
+  <!-- recursive property expansion macro -->
+  <macrodef name="propertycopy">
+    <attribute name="name"/>
+    <attribute name="from"/>
+    <sequential>
+      <property name="@{name}" value="${@{from}}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- Macro to test target property is set -->
+  <macrodef name="test-property">
+    <attribute name="name"/>
+    <attribute name="location"/>
+    <sequential>
+      <fail unless="@{name}">
+        @{name} property not specified. Please specify property in @{location}.
+      </fail>
+    </sequential>
+  </macrodef>
+
+  <!-- Macro to test property set to name of executable -->
+  <macrodef name="test-file">
+    <attribute name="name"/>
+    <attribute name="location"/>
+    <attribute name="msg" default=""/>
+    <sequential>
+      <test-property name="@{name}" location="@{location}"/>
+      <condition property="@{name}_invalid" value="1">
+        <not>
+          <available file="${@{name}}"/>
+        </not>
+      </condition>
+      <fail if="@{name}_invalid">
+        Value of @{name} property is invalid. (${@{name}}).
+        @{msg}
+      </fail>
+    </sequential>
+  </macrodef>
+
+  <target name="check-host-name">
+    <fail unless="host.name">
+      host.name property not specified. Please specify property on commandline or in ${jikesrvm.dir}/.ant.properties.
+    </fail>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *    Check host and target are identical when building native components   * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="check-host-and-target-match">
+    <attribute name="message"/>
+    <sequential>
+      <condition property="host_and_target_same" value="true">
+        <equals arg1="${host.name}" arg2="${target.name}"/>
+      </condition>
+      <fail unless="host_and_target_same">
+        Host and target are not the same and thus @{message}
+      </fail>
+    </sequential>
+  </macrodef>
+
+</project>

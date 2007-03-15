@@ -21,11 +21,8 @@ import org.vmmagic.pragma.*;
  * address pairs
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class AddressPairDeque extends LocalDeque implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class AddressPairDeque extends LocalDeque implements Constants {
 
   /****************************************************************************
    * 

@@ -38,13 +38,10 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class MC extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public class MC extends StopTheWorld {
 
   /****************************************************************************
    * Class variables
@@ -105,7 +102,8 @@ public class MC extends StopTheWorld implements Uninterruptible {
   /**
    * Boot-time initialization
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
     super.boot();
   }
 
@@ -120,7 +118,8 @@ public class MC extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public final void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId) { 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       markTrace.prepare();
@@ -157,8 +156,8 @@ public class MC extends StopTheWorld implements Uninterruptible {
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public final boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }

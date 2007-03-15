@@ -15,13 +15,9 @@ import org.vmmagic.pragma.*;
  * This class implements the <i>per-mutator thread</i> 
  * behavior for a null cycle detector. 
  * 
- * $Id: MSCollector.java,v 1.3 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public final class NullCDMutator extends CDMutator 
-  implements Uninterruptible {
+@Uninterruptible public final class NullCDMutator extends CDMutator {
 }
 

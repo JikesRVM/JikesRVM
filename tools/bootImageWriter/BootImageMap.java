@@ -6,12 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import com.ibm.JikesRVM.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -28,12 +26,12 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * Key->Entry map
    */
-  private static final Hashtable keyToEntry;
+  private static final Hashtable<Key,Entry> keyToEntry;
 
   /**
    * objectId->Entry map
    */
-  private static final ArrayList objectIdToEntry;
+  private static final ArrayList<Entry> objectIdToEntry;
 
   /**
    * Entry used to represent null object
@@ -56,8 +54,8 @@ public class BootImageMap extends BootImageWriterMessages
    * Prepare for use.
    */
   static {
-    keyToEntry      =  new Hashtable(5000);
-    objectIdToEntry =  new ArrayList(5000);
+    keyToEntry      =  new Hashtable<Key,Entry>(5000);
+    objectIdToEntry =  new ArrayList<Entry>(5000);
     idGenerator = 0;
     // predefine "null" object
     nullEntry = new Entry(newId(), null, Address.zero());
@@ -141,7 +139,7 @@ public class BootImageMap extends BootImageWriterMessages
 
     synchronized (BootImageMap.class) {
       Key key   = new Key(jdkObject);
-      Entry entry = (Entry) keyToEntry.get(key);
+      Entry entry = keyToEntry.get(key);
       if (entry == null) {
         entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
         keyToEntry.put(key, entry);
@@ -157,7 +155,7 @@ public class BootImageMap extends BootImageWriterMessages
    * @return jdk object
    */
   public static Object getObject(int objectId) {
-    return ((Entry) objectIdToEntry.get(objectId)).jdkObject;
+    return objectIdToEntry.get(objectId).jdkObject;
   }
 
   /**

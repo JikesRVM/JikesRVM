@@ -1,0 +1,2 @@
+[Lorg/jikesrvm/ia32/VM_Code;
+[Lorg/jikesrvm/ia32/VM_CodeArray;

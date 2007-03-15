@@ -23,20 +23,17 @@ import org.vmmagic.unboxed.*;
  * 
  * Discontigious spaces are currently unsupported.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class Map implements Constants, Uninterruptible {
+@Uninterruptible public class Map implements Constants {
 
   /****************************************************************************
    * 
    * Class variables
    */
-  private static int[] descriptorMap;
-  private static Space[] spaceMap;
+  private static final int[] descriptorMap;
+  private static final Space[] spaceMap;
 
   /****************************************************************************
    * 
@@ -66,8 +63,9 @@ public class Map implements Constants, Uninterruptible {
    * @param descriptor The descriptor for this space
    * @param space The space to be associated with this region
    */
+  @Interruptible
   public static void insert(Address start, Extent extent, int descriptor,
-      Space space) throws InterruptiblePragma {
+      Space space) { 
     Extent e = Extent.zero();
     while (e.LT(extent)) {
       int index = hashAddress(start.plus(e));
@@ -90,8 +88,8 @@ public class Map implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The space in which the object resides
    */
-  public static Space getSpaceForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static Space getSpaceForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
@@ -102,7 +100,8 @@ public class Map implements Constants, Uninterruptible {
    * @param address The address in question
    * @return The space in which the address resides
    */
-  public static Space getSpaceForAddress(Address address) throws InlinePragma {
+  @Inline
+  public static Space getSpaceForAddress(Address address) { 
     int index = hashAddress(address);
     return (Space) VM.barriers.getArrayNoBarrier(spaceMap, index);
   }
@@ -115,8 +114,8 @@ public class Map implements Constants, Uninterruptible {
    * @return The space descriptor for the space in which the object
    * resides
    */
-  public static int getDescriptorForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static int getDescriptorForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     int index = hashAddress(VM.objectModel.refToAddress(object));
     return VM.barriers.getArrayNoBarrier(descriptorMap, index);
@@ -128,7 +127,8 @@ public class Map implements Constants, Uninterruptible {
    * @param address The address to be hashed
    * @return The chunk number that this address hashes into
    */
-  private static int hashAddress(Address address) throws InlinePragma {
+  @Inline
+  private static int hashAddress(Address address) { 
     return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
   }
 }

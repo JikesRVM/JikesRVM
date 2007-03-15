@@ -6,7 +6,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 #
 # @author Julian Dolby
 #
@@ -42,6 +41,13 @@ BEGIN {
 /^method causing resize/ { next }
 /^Growing native stack before entry/ { next }
 /Number of threads found stuck in native code/ { next }
+
+#
+# GCSpy system messages
+#
+/^GCspy.startGCspyServer/ { next }
+/^GCspy server on port [0-9]*/ { next }
+/^GCspy safepoint for event [0-9]*/ { next }
 
 #
 # GC system messages

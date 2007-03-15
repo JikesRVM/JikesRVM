@@ -15,15 +15,12 @@ import org.vmmagic.pragma.Uninterruptible;
 
 
 /**
- * $Id: Statistics.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $ 
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class Statistics implements Uninterruptible {
+@Uninterruptible public abstract class Statistics {
   /**
    * Returns the number of collections that have occured.
    * 

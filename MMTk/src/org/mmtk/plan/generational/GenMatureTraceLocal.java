@@ -22,16 +22,12 @@ import org.vmmagic.pragma.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenMatureTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public abstract class GenMatureTraceLocal extends TraceLocal {
 
   /****************************************************************************
    * 
@@ -65,7 +61,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * @param object The object.
    * @return True if the object is live.
    */
-  public boolean isLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
@@ -102,8 +99,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
@@ -119,7 +116,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * 
    * @return The allocator for copied objects
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return Gen.ALLOC_MATURE_MAJORGC;
   }
 

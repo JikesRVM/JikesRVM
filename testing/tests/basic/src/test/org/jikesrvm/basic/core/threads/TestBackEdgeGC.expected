@@ -1,0 +1,27 @@
+Thread 0 Main: Creating Looper
+Thread 0 Main: Creating CallGC
+Thread 0 Main: Starting Looper
+Thread 0 Main: Looper running -starting CallGC
+Thread 0 Main: waiting for join with callGC
+Thread 0 Main: bye
+Thread 1 Looper: creating
+Thread 1 Looper: starting
+Thread 1 Looper: run starting
+Thread 1 Looper: 2nd CallGC created
+Thread 1 Looper: Starting 2nd CallGC
+Thread 1 Looper: 2nd CallGC started - exiting Looper
+Thread 1 Looper: run finishing
+Thread 2 CallGC: creating
+Thread 2 CallGC: starting
+Thread 2 CallGC: run starting
+Thread 2 CallGC: calling GC id = 1
+Thread 2 CallGC: GC complete- id = 1
+Thread 2 CallGC: exiting id = 1
+Thread 2 CallGC: run finishing
+Thread 3 CallGC: creating
+Thread 3 CallGC: starting
+Thread 3 CallGC: run starting
+Thread 3 CallGC: calling GC id = 2
+Thread 3 CallGC: GC complete- id = 2
+Thread 3 CallGC: exiting id = 2
+Thread 3 CallGC: run finishing

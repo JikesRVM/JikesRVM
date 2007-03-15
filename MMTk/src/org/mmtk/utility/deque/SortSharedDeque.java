@@ -24,17 +24,13 @@ import org.vmmagic.unboxed.*;
  * Matthew Hertz for GCTk.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public abstract class SortSharedDeque extends SharedDeque 
-  implements Uninterruptible {
+@Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
-  public final static String Id = "$Id$"; 
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final Offset INSERTION_SORT_LIMIT = Offset.fromInt(80);
+  private static final Offset INSERTION_SORT_LIMIT = Offset.fromIntSignExtend(80);
 
   /***********************************************************************
    * 
@@ -64,13 +60,13 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  abstract protected Word getKey(Address obj);
+  protected abstract Word getKey(Address obj);
 
-  private final static Word mask16 = Word.fromIntZeroExtend(0xffff0000);
-  private final static Word mask8 = Word.fromIntZeroExtend(0x0000ff00);
-  private final static Word mask4 = Word.fromIntZeroExtend(0x000000f0);
-  private final static Word mask2 = Word.fromIntZeroExtend(0x0000000c);
-  private final static Word mask1 = Word.fromIntZeroExtend(0x00000002);
+  private static final Word mask16 = Word.fromIntZeroExtend(0xffff0000);
+  private static final Word mask8 = Word.fromIntZeroExtend(0x0000ff00);
+  private static final Word mask4 = Word.fromIntZeroExtend(0x000000f0);
+  private static final Word mask2 = Word.fromIntZeroExtend(0x0000000c);
+  private static final Word mask1 = Word.fromIntZeroExtend(0x00000002);
 
   /**
    * Find the highest bit that is set in a longword and return a mask
@@ -79,7 +75,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param addr Value for which the mask needs to be found
    * @return The highest bit set in the parameter
    */
-  private static final Word getBitMask(Word addr) {
+  private static Word getBitMask(Word addr) {
     int shift = 0;
     if (!addr.and(mask16).isZero()) {
       addr = addr.rshl(16);
@@ -109,7 +105,7 @@ public abstract class SortSharedDeque extends SharedDeque
    *  @param begin Start address of the range to be sorted
    *  @param end End address of the range to be sorted
    */
-  private final void insertionSort(Address begin, Address end) {
+  private void insertionSort(Address begin, Address end) {
     Address rPtr = begin.minus(BYTES_IN_ADDRESS);
     Address lPtr;
 
@@ -182,7 +178,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param endLinkAddr The address where the end block has its next field
    * @param bitMask The mask in which the bit to be commpared is set
    */
-  private final void partition(Address startAddr, Address startLinkAddr,
+  private void partition(Address startAddr, Address startLinkAddr,
                                Address endAddr, Address endLinkAddr,
                                Word bitMask) {
     Address travPtr = endAddr;
@@ -293,11 +289,10 @@ public abstract class SortSharedDeque extends SharedDeque
    * Allocate memory for the stack and intialize it with the first range
    * to partition
    */
-  private final void initStack() {
+  private void initStack() {
     stackLoc = 0;
 
     Address endOfBlock = tail;
-    Address trailer = tail;
     Address startPtr = bufferStart(endOfBlock);
     Word min = Word.max();
     Word max = Word.zero();
@@ -332,7 +327,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * 
   * @param val The address to be pushed
    */
-  private final void pushOnStack(Address val) {
+  private void pushOnStack(Address val) {
     stackBase.set(stackLoc, val);
     stackLoc++;
   }
@@ -342,7 +337,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * 
    * @return The address at the top of the stack, or 0 if stack is empty
    */
-  private final Address popStack() {
+  private Address popStack() {
     if (stackLoc == 0)
       return Address.zero();
     stackLoc--;
@@ -354,9 +349,9 @@ public abstract class SortSharedDeque extends SharedDeque
    * decreasing final reference deletion time
    * 
    */
-  private final void checkIfSorted() {
+  private void checkIfSorted() {
     if (VM.VERIFY_ASSERTIONS) {
-      Address next, buf, end;
+      Address buf, end;
       Word prevKey = Word.max();
       end = tail;
       buf = bufferStart(end);

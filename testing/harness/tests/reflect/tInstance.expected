@@ -1,7 +1,0 @@
-class tInstance
-================= READY TO CALL: public int tInstance.iuserFunction(int)
-================= READY TO CALL: public double tInstance.duserFunction(double)
-================= READY TO CALL: public boolean tInstance.buserFunction(boolean)
-================= READY TO CALL: public java.lang.Object tInstance.ouserFunction(java.lang.String)
-================= READY TO CALL: public void tInstance.vuserFunction(int,java.lang.Integer)
-Test success

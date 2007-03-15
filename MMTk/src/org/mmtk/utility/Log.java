@@ -9,10 +9,7 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
-//$Id$
 package org.mmtk.utility;
-
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -24,10 +21,8 @@ import org.vmmagic.pragma.*;
  * 
  * @author Derek Lieber
  * @author Andrew Gray
- * @version $Revision$
- * @date $Date$
  */
-public class Log implements Constants, Uninterruptible {
+@Uninterruptible public class Log implements Constants {
 
   /****************************************************************************
    * 
@@ -426,7 +421,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes the start of an array of characters and a new-line, then
    * flushes the buffer.
-   * @see #write(char [], int)
+   * @see #write(char[], int)
    * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
@@ -437,7 +432,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an array of bytes and a new-line, then
    * flushes the buffer.
-   * @see #write(byte [])
+   * @see #write(byte[])
    * 
    * @param b the array of bytes to be logged
    */
@@ -580,7 +575,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes the start of an array of characters and a new-line, then
    * optionally flushes the buffer.
-   * @see #write(char [], int)
+   * @see #write(char[], int)
    * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
@@ -595,7 +590,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an array of bytes and a new-line, then optionally flushes the
    * buffer.
-   * @see #write(byte [])
+   * @see #write(byte[])
    * 
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer

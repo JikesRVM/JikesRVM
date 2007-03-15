@@ -38,11 +38,8 @@ import org.vmmagic.unboxed.*;
  * underflows will always arise when then cursor is buffer-size aligned.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible class LocalQueue extends LocalSSB implements Constants {
 
   /**
    * Constructor
@@ -76,7 +73,8 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * @param arity The arity of the values stored in this queue: the
    * buffer must contain enough space for this many words.
    */
-  protected final boolean checkDequeue(int arity) throws InlinePragma {
+  @Inline
+  protected final boolean checkDequeue(int arity) { 
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
@@ -92,8 +90,8 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * 
    * @return The first entry on the queue.
    */
-  protected final Address uncheckedDequeue() 
-    throws InlinePragma{
+  @Inline
+  protected final Address uncheckedDequeue(){ 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();
@@ -141,7 +139,8 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * @return True if there the head buffer has been successfully
    * replenished.
    */
-  private final boolean dequeueUnderflow(int arity) throws NoInlinePragma {
+  @NoInline
+  private boolean dequeueUnderflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))

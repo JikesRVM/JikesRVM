@@ -1,0 +1,8 @@
+Thread 0 Main: sending interrupt
+Thread 0 Main: waiting for TestStopWorker to die
+Thread 0 Main: bye
+Thread 1 Worker: creating
+Thread 1 Worker: starting
+Thread 1 Worker: run starting
+Thread 1 Worker: received interrupt java.lang.ClassNotFoundException
+Thread 1 Worker: run finishing

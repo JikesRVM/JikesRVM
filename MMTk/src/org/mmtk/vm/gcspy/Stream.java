@@ -24,14 +24,11 @@ import org.vmmagic.unboxed.Address;
  * Implementing classes will mostly forward calls
  * to the gcspy C library
  * 
- * $Id: Stream.java 10806 2006-09-22 12:17:46Z dgrove-oss $
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
 
-public abstract class Stream implements  Uninterruptible {
+@Uninterruptible public abstract class Stream {
   
   /****************************************************************************
   *
@@ -108,7 +105,7 @@ public abstract class Stream implements  Uninterruptible {
       int paintStyle, 
       int indexMaxStream, 
       Color colour, 
-      boolean summary) throws InterruptiblePragma {
+      boolean summary) { 
 
     serverSpace = driver.getServerSpace();
     summaryEnabled = summary;
@@ -153,7 +150,8 @@ public abstract class Stream implements  Uninterruptible {
    * Setup the summary array.
    * @param presentation the presentation style
    */
-  private void setupSummary(int presentation) throws InterruptiblePragma {
+  @Interruptible
+  private void setupSummary(int presentation) { 
     switch (presentation) {
       case StreamConstants.PRESENTATION_PLAIN:
       case StreamConstants.PRESENTATION_PLUS:

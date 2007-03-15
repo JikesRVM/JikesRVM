@@ -65,16 +65,13 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class CollectorContext implements Uninterruptible, Constants {
+@Uninterruptible public abstract class CollectorContext implements Constants {
 
   /****************************************************************************
    * Instance fields
@@ -140,9 +137,9 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
    * @param allocator The allocator statically assigned to this allocation.
    * @return The allocator dyncamically assigned to this allocation.
    */
+  @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
-      int align, int allocator)
-  throws InlinePragma {
+      int align, int allocator) { 
     return allocator;
   }
 
@@ -180,5 +177,6 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
   }
 
   /** @return the unique identifier for this collector context. */
-  public int getId() throws InlinePragma { return id; }
+  @Inline
+  public int getId() { return id; } 
 }

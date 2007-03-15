@@ -20,12 +20,9 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class AddressDeque extends LocalDeque 
-  implements Constants, Uninterruptible {
-   public final static String Id = "$Id$"; 
+@Uninterruptible public class AddressDeque extends LocalDeque 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -50,7 +47,8 @@ public class AddressDeque extends LocalDeque
    * 
    * @param addr the address to be inserted into the address queue
    */
-  public final void insert(Address addr) throws InlinePragma {
+  @Inline
+  public final void insert(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
@@ -63,7 +61,8 @@ public class AddressDeque extends LocalDeque
    * 
    * @param addr the address to be inserted into the address queue
    */
-  public final void insertOOL(Address addr) throws NoInlinePragma {
+  @NoInline
+  public final void insertOOL(Address addr) { 
     insert(addr);
   }
 
@@ -72,7 +71,8 @@ public class AddressDeque extends LocalDeque
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(Address addr) throws InlinePragma {
+  @Inline
+  public final void push(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -85,7 +85,8 @@ public class AddressDeque extends LocalDeque
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void pushOOL(Address addr) throws NoInlinePragma {
+  @NoInline
+  public final void pushOOL(Address addr) { 
     push(addr);
   }
 
@@ -96,7 +97,8 @@ public class AddressDeque extends LocalDeque
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public final Address pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     }
@@ -105,11 +107,13 @@ public class AddressDeque extends LocalDeque
     }
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 
-  public final boolean isNonEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isNonEmpty() { 
     return checkDequeue(1);
   }
 

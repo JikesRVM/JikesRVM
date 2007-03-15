@@ -20,16 +20,12 @@ import org.vmmagic.unboxed.*;
  * This class implments the thread-local core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class NoGCTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class NoGCTraceLocal extends TraceLocal {
 
   /**
    * Constructor
@@ -68,8 +64,8 @@ public final class NoGCTraceLocal extends TraceLocal
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(NoGC.DEF, object))
       return NoGC.defSpace.traceObject(this, object);

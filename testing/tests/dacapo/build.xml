@@ -1,0 +1,49 @@
+<project name="dacapo" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1800" else="480">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
+  <property name="test.class.path" value="${dacapo.jar}"/>
+
+  <macrodef name="dacapo">
+    <attribute name="name"/>
+    <attribute name="timeLimit" default=""/>
+    <sequential>
+      <rvm tag="@{name}" class="Harness" args="@{name}" timeLimit="@{timeLimit}"/>
+      <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <startResults/>
+
+    <dacapo name="antlr"/>
+    <dacapo name="bloat"/>
+    <dacapo name="chart"/>
+    <dacapo name="fop"/>
+    <dacapo name="hsqldb"/>
+    <dacapo name="jython"/>
+    <dacapo name="luindex"/>
+    <dacapo name="lusearch"/>
+    <dacapo name="pmd"/>
+    <dacapo name="xalan"/>
+    <dacapo name="eclipse"/>
+
+    <finishResults/>
+  </target>
+
+</project>

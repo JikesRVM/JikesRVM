@@ -34,15 +34,12 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class CopyMSMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public abstract class CopyMSMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
@@ -80,8 +77,8 @@ public abstract class CopyMSMutator extends StopTheWorldMutator implements Unint
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return nursery.alloc(bytes, align, offset, false);
     if (allocator == CopyMS.ALLOC_MS)
@@ -100,8 +97,10 @@ public abstract class CopyMSMutator extends StopTheWorldMutator implements Unint
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @SuppressWarnings({"UnnecessaryReturnStatement"})
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return;
     else if (allocator == CopyMS.ALLOC_MS)
@@ -153,8 +152,8 @@ public abstract class CopyMSMutator extends StopTheWorldMutator implements Unint
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == CopyMS.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();

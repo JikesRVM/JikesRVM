@@ -24,27 +24,24 @@ import org.vmmagic.pragma.*;
  * and/or all thread-local plan instances, and performs synchronization
  * and timing.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class SimplePhase extends Phase
-  implements Uninterruptible, Constants {
+@Uninterruptible public final class SimplePhase extends Phase
+  implements Constants {
   /****************************************************************************
    * Instance fields
    */
 
   /* Define the ordering of global and local collection phases */
-  protected final boolean globalFirst;
-  protected final boolean globalLast;
-  protected final boolean perCollector;
-  protected final boolean perMutator;
+  final boolean globalFirst;
+  final boolean globalLast;
+  final boolean perCollector;
+  final boolean perMutator;
 
   /* placeholder plans are no-ops */
-  protected final boolean placeholder;
+  final boolean placeholder;
 
   /**
    * Construct a phase given just a name and a global/local ordering
@@ -81,7 +78,7 @@ public final class SimplePhase extends Phase
   /**
    * Display a phase for debugging purposes.
    */
-  protected final void logPhase() {
+  protected void logPhase() {
     Log.write("simple [");
     if (globalFirst) Log.write("G");
     if (perCollector) Log.write("C");
@@ -94,7 +91,8 @@ public final class SimplePhase extends Phase
   /**
    * Execute a phase during a collection.
    */
-  protected final void delegatePhase() throws NoInlinePragma {
+  @NoInline
+  protected void delegatePhase() { 
     boolean log = Options.verbose.getValue() >= 6;
     boolean logDetails = Options.verbose.getValue() >= 7;
 

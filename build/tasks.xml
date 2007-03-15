@@ -1,0 +1,29 @@
+<project name="tasks">
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                           Build the ant tasks                            * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <property name="tasks.dir" location="${build.dir}/tasks"/>
+  <property name="tasks.classes" location="${tasks.dir}/classes"/>
+
+  <target name="prepare-ant-tasks">
+    <mkdir dir="${tasks.classes}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" classpath="${ant.jar}"/>
+    <!-- forEach is used in the test harness -->
+    <taskdef name="forEach" classname="org.jikesrvm.tools.ant.ForEachTask" classpath="${tasks.classes}"/>
+    <!-- selectRegex is used to get results from some benchmark tests -->
+    <taskdef name="selectRegex" classname="org.jikesrvm.tools.ant.SelectRegexTask" classpath="${tasks.classes}"/>
+    <!-- timer used recording the duration of rvm run -->
+    <taskdef name="timer" classname="org.jikesrvm.tools.ant.TimerTask" classpath="${tasks.classes}"/>
+    <!-- custom exec task will store value in property when timeout occurs. Used in running rvm. -->
+    <taskdef name="texec" classname="org.jikesrvm.tools.ant.TimeoutRecordingExecTask" classpath="${tasks.classes}"/>
+    <!-- Task that makes it easier for conditional task execution within macros. -->
+    <taskdef name="if" classname="org.jikesrvm.tools.ant.IfTask" classpath="${tasks.classes}"/>
+    <!-- Task that makes determining whether an ant build failed easier. Used in test infrastructure. -->
+    <taskdef name="erant" classname="org.jikesrvm.tools.ant.ErrorRecordingAntTask" classpath="${tasks.classes}"/>
+  </target>
+
+</project>

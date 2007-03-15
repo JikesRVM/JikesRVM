@@ -15,17 +15,16 @@ package org.mmtk.plan.semispace.gcspy;
 import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.BumpPointer;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 
-import org.vmmagic.pragma.InlinePragma;
-import org.vmmagic.pragma.Uninterruptible;
-
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for the
@@ -41,20 +40,20 @@ import org.vmmagic.unboxed.ObjectReference;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-public class SSGCspyMutator extends SSMutator implements Uninterruptible {
+@Uninterruptible public class SSGCspyMutator extends SSMutator {
 
   /*****************************************************************************
    * Instance fields
    */
 
   private static final boolean DEBUG = false;
+
+  private static final boolean LOS_TOSPACE = true;    // gather from tospace
+  private static final boolean LOS_FROMSPACE = false; // gather from fromspace
 
   /** Per-mutator allocator into GCspy's space */
   private BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
@@ -76,8 +75,8 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
    * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == SSGCspy.ALLOC_GCSPY)
       return gcspy.alloc(bytes, align, offset, false);
     else
@@ -92,12 +91,47 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
-                        int bytes, int allocator) throws InlinePragma {
+                        int bytes, int allocator) { 
     if (allocator == SSGCspy.ALLOC_GCSPY)
       SSGCspy.gcspySpace.initializeHeader(object);
     else
       super.postAlloc(object, typeRef, bytes, allocator);
+  }
+  
+  /**
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
+   * 
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
+   * @param a An allocator
+   * @return The space into which <code>a</code> is allocating, or
+   *         <code>null</code> if there is no space associated with
+   *         <code>a</code>.
+   */
+  public final Space getSpaceFromAllocator(Allocator a) {
+    if (a == gcspy) return SSGCspy.gcspySpace;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  /**
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
+   * 
+   * @see MutatorContext#getOwnAllocator(Allocator)
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
+   */
+  public Allocator getAllocatorFromSpace(Space space) {
+    if (space == SSGCspy.gcspySpace) return gcspy;
+    return super.getAllocatorFromSpace(space);
   }
 
   /*****************************************************************************
@@ -121,24 +155,24 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
    * <li>all large objects allocated by the mutator
    * </ul>
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }
     
     // TODO do we need to worry any longer about primary??
     if (phaseId == SSGCspy.PREPARE_MUTATOR) {
       //if (primary) 
-        gcspyGatherData(SSGCspy.BEFORE_COLLECTION, true);
+        gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
     }
 
     if (phaseId == SSGCspy.RELEASE_MUTATOR) {
       //if (primary) 
-        gcspyGatherData(SSGCspy.SEMISPACE_COPIED, true);
+        gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
       super.collectionPhase(phaseId, primary);
       //if (primary) 
-        gcspyGatherData(SSGCspy.AFTER_COLLECTION, true);
+        gcspyGatherData(SSGCspy.AFTER_COLLECTION);
       return;
     }
 
@@ -161,7 +195,7 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
    *          AFTER_COLLECTION
    * @param fullHeap full heap collection
    */
-  private void gcspyGatherData(int event, boolean fullHeap) {
+  private void gcspyGatherData(int event) {
     if(DEBUG) {
       Log.writeln("SSGCspyMutator.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyMutator.gcspyGatherData, port=", GCspy.getGCspyPort());
@@ -186,16 +220,21 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
       }
       
       if (event == SSGCspy.BEFORE_COLLECTION) {       
+        // Before the flip
+        // Mutator has not rebound toSpace yet
         GCspy.server.startCompensationTimer();
         
         // -- Handle the semispaces
         // Here I need to scan newly allocated objects      
         if (DEBUG) {
-          debugSpaces(SSGCspy.fromSpace());
+          //debugSpaces(SSGCspy.fromSpace());
+          debugSpaces(SSGCspy.toSpace());
           Log.write("SSGCspyMutator.gcspyGatherData reset, gather and transmit driver ");
-          Log.writeln(SSGCspy.fromSpace().getName());
+          //Log.writeln(SSGCspy.fromSpace().getName());
+          Log.writeln(SSGCspy.toSpace().getName());
         }       
-        ss.gcspyGatherData(fromSpaceDriver(), SSGCspy.fromSpace());
+        //ss.gcspyGatherData(fromSpaceDriver(), SSGCspy.fromSpace());
+        ss.gcspyGatherData(toSpaceDriver(), SSGCspy.toSpace());
         
         // -- Handle the immortal space --
         gatherImmortal(event);
@@ -206,17 +245,18 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
         SSGCspy.losNurseryDriver.resetData();
         los.gcspyGatherData(event, SSGCspy.losNurseryDriver); 
         SSGCspy.losDriver.resetData();
-        los.gcspyGatherData(event, SSGCspy.losDriver, true); 
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE); 
         
         // reset, collect and scan plos data for the nursery and tospace
         SSGCspy.plosNurseryDriver.resetData();
         plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver); 
         SSGCspy.plosDriver.resetData();
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true); 
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE); 
         
         // transmit the data
         GCspy.server.stopCompensationTimer();
-        fromSpaceDriver().transmit(event);
+        //fromSpaceDriver().transmit(event);
+        toSpaceDriver().transmit(event);
         SSGCspy.immortalDriver.transmit(event);
         SSGCspy.losNurseryDriver.transmit(event);
         SSGCspy.losDriver.transmit(event);
@@ -231,9 +271,13 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
       
       
       else if (event == SSGCspy.SEMISPACE_COPIED) {
+        // We have flipped
+	// toSpace still has not been rebound
+	
         // -- Handle the semispaces
         if (DEBUG) {
-          debugSpaces(SSGCspy.toSpace());
+          //debugSpaces(SSGCspy.toSpace());
+          debugSpaces(SSGCspy.fromSpace());
           Log.writeln("SSGCspyMutator.gcspyGatherData: do nothing");
         }
         
@@ -246,18 +290,16 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
         SSGCspy.losNurseryDriver.resetData();
         los.gcspyGatherData(event, SSGCspy.losNurseryDriver); 
         SSGCspy.losDriver.resetData();
-        if (fullHeap)
-          los.gcspyGatherData(event, SSGCspy.losDriver, false);
-        los.gcspyGatherData(event, SSGCspy.losDriver, true);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_FROMSPACE);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
         
         // reset, scan and send the plos for the nursery and tospace
         // and fromspace as well if full heap collection
         SSGCspy.plosNurseryDriver.resetData();
         plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver); 
         SSGCspy.plosDriver.resetData();
-        if (fullHeap)
-          plos.gcspyGatherData(event, SSGCspy.plosDriver, false);
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_FROMSPACE);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
         
         // transmit
         GCspy.server.stopCompensationTimer();
@@ -274,6 +316,9 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
       }
       
       else if (event == SSGCspy.AFTER_COLLECTION) {
+        // We have flipped
+	// And toSpace has been rebound
+	
         GCspy.server.startCompensationTimer();
         
         // -- Handle the semispaces
@@ -288,13 +333,13 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
         SSGCspy.losNurseryDriver.resetData();
         SSGCspy.losDriver.resetData();
         // no need to scan empty nursery
-        los.gcspyGatherData(event, SSGCspy.losDriver, true);
+        los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
         
         // reset, scan and send the plos
         SSGCspy.plosNurseryDriver.resetData();
         SSGCspy.plosDriver.resetData();
         // no need to scan empty nursery
-        plos.gcspyGatherData(event, SSGCspy.plosDriver, true);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
         
         //transmit
         GCspy.server.stopCompensationTimer();
@@ -346,9 +391,9 @@ public class SSGCspyMutator extends SSMutator implements Uninterruptible {
     SSGCspy.reportSpaces();
   }
   
-  /** @return the driver for fromSpace */
-  private LinearSpaceDriver fromSpaceDriver() { 
-    return SSGCspy.hi ? SSGCspy.ss0Driver : SSGCspy.ss1Driver;
+  /** @return the driver for toSpace */
+  private LinearSpaceDriver toSpaceDriver() { 
+    return SSGCspy.hi ? SSGCspy.ss1Driver : SSGCspy.ss0Driver;
   }
 
 }

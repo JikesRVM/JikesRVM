@@ -26,15 +26,12 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  * 
- * $Id$ 
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class ImmortalSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class ImmortalSpace extends Space 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -155,7 +152,8 @@ public final class ImmortalSpace extends Space
   }
 
   /** @return the current mark state */
-  public final Word getMarkState() throws InlinePragma { return markState; }
+  @Inline
+  public Word getMarkState() { return markState; } 
 
   /****************************************************************************
    * 
@@ -168,7 +166,7 @@ public final class ImmortalSpace extends Space
    * 
    * @param object The newly allocated object instance whose header we are initializing
    */
-  public final void initializeHeader(ObjectReference object) {
+  public void initializeHeader(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -178,8 +176,8 @@ public final class ImmortalSpace extends Space
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  private static boolean testAndMark(ObjectReference object, Word value) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -199,9 +197,9 @@ public final class ImmortalSpace extends Space
    * @param trace The trace being conducted.
    * @param object The object to be traced.
    */
-  public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object) { 
     if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
@@ -224,12 +222,14 @@ public final class ImmortalSpace extends Space
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
-  public final boolean isLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     return true;
   }
 

@@ -38,22 +38,19 @@ import org.vmmagic.unboxed.*;
  * behaviors, so most of the collection logic in GenRCMutator should really
  * be per-collector thread, not per-mutator thread.
  *
- * @see RCBaseMutator
+ * @see org.mmtk.plan.refcount.RCBaseMutator
  * @see GenRC
  * @see GenRCCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  *
- * $Id$
  *
  * @author Steve Blackburn
  * @author Robin Garner
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenRCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+@Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * Instance fields
    */
@@ -75,8 +72,8 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * @param site Allocation site.
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
-  throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == GenRC.ALLOC_NURSERY) {
       return nursery.alloc(bytes, align, offset, false);
     }
@@ -92,9 +89,9 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator != GenRC.ALLOC_NURSERY) {
       super.postAlloc(ref,typeRef,bytes,allocator);
     }
@@ -105,9 +102,9 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
-   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
    *
-   * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    * <code>null</code> if there is no space associated with
@@ -121,9 +118,9 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
-   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
    *
-   * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -145,8 +142,8 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == GenRC.PREPARE_MUTATOR) {
       nursery.rebind(GenRC.nurserySpace);
@@ -176,10 +173,10 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode)
-  throws InlinePragma {
+                                 int metaDataB, int mode) { 
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
@@ -206,10 +203,10 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
                                     ObjectReference dst, Offset dstOffset,
-                                    int bytes)
-  throws InlinePragma {
+                                    int bytes) { 
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(dst))
       writeBarrierSlow(dst);
@@ -227,8 +224,8 @@ public abstract class GenRCMutator extends RCBaseMutator implements Uninterrupti
    *
    * @param src The object being mutated.
    */
-  private final void writeBarrierSlow(ObjectReference src)
-  throws NoInlinePragma {
+  @NoInline
+  private void writeBarrierSlow(ObjectReference src) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(!Space.isInSpace(GenRC.NS, src));
     }

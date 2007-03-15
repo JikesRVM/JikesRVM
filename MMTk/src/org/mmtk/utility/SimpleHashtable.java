@@ -10,9 +10,6 @@
 package org.mmtk.utility;
 
 import org.mmtk.policy.RawPageSpace;
-
-import org.mmtk.vm.Assert;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -24,21 +21,18 @@ import org.vmmagic.unboxed.*;
  * 
  * This class is not thread safe.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public abstract class SimpleHashtable implements Uninterruptible, Constants {
+@Uninterruptible public abstract class SimpleHashtable implements Constants {
   /** The number of low order bits to ignore */
   private static final int HASH_SHIFT = 3;
 
   /** Offset to the key */
-  private static final Offset KEY_OFFSET = Offset.fromInt(0);
+  private static final Offset KEY_OFFSET = Offset.zero();
 
   /** Offset to the data */
-  private static final Offset DATA_OFFSET = Offset.fromInt(BYTES_IN_WORD);
+  private static final Offset DATA_OFFSET = Offset.fromIntSignExtend(BYTES_IN_WORD);
 
   /** The size of each entry in the table */
   private Extent entrySize;
@@ -66,9 +60,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @param es The size of each entry.
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
-    mask = Word.fromInt((1 << logSize) - 1);
+    mask = Word.fromIntZeroExtend((1 << logSize) - 1);
     entrySize = es.plus(BYTES_IN_WORD);
-    size = Extent.fromInt((1 << logSize) * entrySize.toInt());
+    size = Extent.fromIntZeroExtend((1 << logSize) * entrySize.toInt());
     base = Address.zero();
     space = rps;
     valid = false;
@@ -108,7 +102,8 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @param create Create a new entry if not found.
    * @return A pointer to the reference or null.
    */
-  public final Address getEntry(Word key, boolean create) throws InlinePragma {
+  @Inline
+  public final Address getEntry(Word key, boolean create) { 
     int startIndex = computeHash(key);
     int index = startIndex;
     Word curAddress;
@@ -139,7 +134,8 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @param key The key.
    * @return The index.
    */
-  private final int computeHash(Word key) throws InlinePragma {
+  @Inline
+  private int computeHash(Word key) {
     return key.rshl(HASH_SHIFT).and(mask).toInt();
   }
 
@@ -149,8 +145,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @param index The index of the entry.
    * @return An address to the entry.
    */
-  private final Address getEntry(int index) throws InlinePragma {
-    return base.plus(Extent.fromInt(index * entrySize.toInt()));
+  @Inline
+  private Address getEntry(int index) {
+    return base.plus(Extent.fromIntZeroExtend(index * entrySize.toInt()));
   }
 
   /**

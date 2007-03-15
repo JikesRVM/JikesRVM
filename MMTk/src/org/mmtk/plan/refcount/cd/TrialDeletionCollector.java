@@ -13,7 +13,6 @@ import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.utility.scan.Scan;
 
@@ -26,13 +25,10 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements <i>per-collector thread</i> behavior 
  * and state for a trial deletion cycle detector.
  * 
- * $Id: MSCollector.java,v 1.3 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public final class TrialDeletionCollector extends CDCollector implements Uninterruptible, Constants {
+@Uninterruptible public final class TrialDeletionCollector extends CDCollector implements Constants {
 
   /****************************************************************************
    * 
@@ -91,7 +87,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
    */
-  public final boolean collectionPhase(int phaseId, boolean primary) {
+  public boolean collectionPhase(int phaseId, boolean primary) {
     boolean filter  = global().cdMode >= TrialDeletion.FILTER_PURPLE;
     boolean collect = global().cdMode >= TrialDeletion.FULL_COLLECTION;
     
@@ -145,18 +141,18 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     return false;
   }
 
-  private final void filterPurpleBufs() {
+  private void filterPurpleBufs() {
     filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer);
     maturePurpleBuffer.flushLocal();
   }
   
-  private final void filterMaturePurpleBufs() {
+  private void filterMaturePurpleBufs() {
     if (filteredPurpleBuffer.isEmpty()) {
       filterPurpleBufs(maturePurpleBuffer, filteredPurpleBuffer);
     }
   }
 
-  private final void filterPurpleBufs(ObjectReferenceDeque src, ObjectReferenceDeque tgt) {
+  private void filterPurpleBufs(ObjectReferenceDeque src, ObjectReferenceDeque tgt) {
     ObjectReference object = ObjectReference.nullReference();
     src.flushLocal();
     while (!(object = src.pop()).isNull()) {
@@ -165,7 +161,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     tgt.flushLocal();
   }
 
-  private final void flushFilteredPurpleBufs() {
+  private void flushFilteredPurpleBufs() {
     ObjectReference object = ObjectReference.nullReference();
     while (!(object = filteredPurpleBuffer.pop()).isNull()) {
       maturePurpleBuffer.push(object);
@@ -173,7 +169,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     maturePurpleBuffer.flushLocal();
   }
 
-  private final void filter(ObjectReference object, ObjectReferenceDeque tgt) {
+  private void filter(ObjectReference object, ObjectReferenceDeque tgt) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCHeader.isBuffered(object));
     if (RCHeader.isLiveRC(object)) {
@@ -188,7 +184,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
 
-  private final void processFreeBufs() {
+  private void processFreeBufs() {
     ObjectReference object;
     while (!(object = freeBuffer.pop()).isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isBuffered(object));
@@ -215,19 +211,16 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
    * grey. This means "pretending" that the initial object is dead,
    * and thus applying temporary decrements to each of the object's
    * decendents.
-   * 
-   * @param timeCap The time by which we must stop marking
-   * grey.
    */
-  private final void doMarkGreyPhase() {
+  private void doMarkGreyPhase() {
     ObjectReference object = ObjectReference.nullReference();
     while (!(object = filteredPurpleBuffer.pop()).isNull()) {
       processGreyObject(object, cycleBufferA);
     }
   }
-  private final boolean processGreyObject(ObjectReference object,
-                                          ObjectReferenceDeque tgt)
-    throws InlinePragma {
+  @Inline
+  private boolean processGreyObject(ObjectReference object,
+                                          ObjectReferenceDeque tgt) { 
    // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
     if (RCHeader.isPurpleNotGrey(object)) {
@@ -246,8 +239,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     return true;
   }
   
-  private final void markGrey(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  private void markGrey(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -260,8 +253,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
   
-  public final void enumerateGrey(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public void enumerateGrey(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       if (VM.VERIFY_ASSERTIONS) {
         // TODO VM.assertions._assert(RCHeader.isLiveRC(object));
@@ -271,7 +264,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
 
-  private final void doScanPhase() {
+  private void doScanPhase() {
     ObjectReference object;
     ObjectReferenceDeque src = cycleBufferA;
     ObjectReferenceDeque tgt = cycleBufferB;
@@ -282,8 +275,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
 
-  private final void scan(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private void scan(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -299,14 +292,14 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
   
-  public final void enumerateScan(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public void enumerateScan(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object))
       workQueue.push(object);
   }
   
-  private final void scanBlack(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private void scanBlack(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(blackQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
@@ -317,8 +310,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
       object = blackQueue.pop();
     }
   }
-  public final void enumerateScanBlack(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public void enumerateScanBlack(ObjectReference object) { 
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       RCHeader.unsyncIncRC(object);
       if (!RCHeader.isBlack(object))
@@ -326,7 +319,7 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
 
-  private final void doCollectPhase() {
+  private void doCollectPhase() {
     ObjectReference object;
     ObjectReferenceDeque src = cycleBufferB;
     while (!(object = src.pop()).isNull()) {
@@ -336,8 +329,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
   
-  private final void collectWhite(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  private void collectWhite(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (RCHeader.isWhite(object) && !RCHeader.isBuffered(object)) {
@@ -349,8 +342,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
     }
   }
   
-  public final void enumerateCollect(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public void enumerateCollect(ObjectReference object) { 
     if (RCBase.isRCObject(object)) {
       if (RCHeader.isGreen(object)) {
         ((RCBaseCollector)VM.activePlan.collector()).decBuffer.push(object);
@@ -374,7 +367,8 @@ public final class TrialDeletionCollector extends CDCollector implements Uninter
   }
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final TrialDeletion global() throws InlinePragma {
+  @Inline
+  private static TrialDeletion global() {
     return (TrialDeletion)((RCBase)VM.activePlan.global()).cycleDetector();
   }
 }

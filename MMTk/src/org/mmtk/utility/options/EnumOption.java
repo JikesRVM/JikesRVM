@@ -11,7 +11,7 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option that is a selection of several strings. The mapping
@@ -20,11 +20,8 @@ import org.vmmagic.pragma.UninterruptiblePragma;
  * 
  * Enumerations are case sensitive.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class EnumOption extends Option {
   // values
@@ -67,7 +64,8 @@ public class EnumOption extends Option {
    * 
    * @return The option value.
    */
-  public int getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getValue() { 
     return this.value;
   }
 
@@ -76,7 +74,8 @@ public class EnumOption extends Option {
    * 
    * @return The option value.
    */
-  public String getValueString() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getValueString() { 
     return this.values[this.value];
   }
 
@@ -85,7 +84,8 @@ public class EnumOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultValue() { 
     return this.defaultValue;
   }
 
@@ -94,7 +94,8 @@ public class EnumOption extends Option {
    * 
    * @return The default value.
    */
-  public String getDefaultValueString() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getDefaultValueString() { 
     return this.values[this.defaultValue];
   }
 
@@ -138,5 +139,22 @@ public class EnumOption extends Option {
    */
   public String[] getValues() {
     return this.values;
+  }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(values[value]);
+        break;
+      default:
+        super.log(format);
+    }
   }
 }

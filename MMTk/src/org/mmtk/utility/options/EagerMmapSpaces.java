@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * Should spaces be eagerly demand zero mmapped?
  * 
- * $Id: FullHeapSystemGC.java 10806 2006-09-22 12:17:46Z dgrove-oss $
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 22:17:46 +1000 (Fri, 22 Sep 2006) $
  */
 public class EagerMmapSpaces extends BooleanOption {
   /**

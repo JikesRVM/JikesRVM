@@ -25,14 +25,11 @@ import org.vmmagic.unboxed.*;
  * This class provides access to raw memory for managing internal meta
  * data.
  * 
- *  $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class RawPageSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class RawPageSpace extends Space 
+  implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for
@@ -91,8 +88,8 @@ public final class RawPageSpace extends Space
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
 
-  public final void prepare() { }
-  public final void release() { }
+  public void prepare() { }
+  public void release() { }
 
   /**
    * Release a group of pages that were allocated together.
@@ -100,7 +97,8 @@ public final class RawPageSpace extends Space
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void release(Address first) throws InlinePragma {
+  @Inline
+  public void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -113,14 +111,14 @@ public final class RawPageSpace extends Space
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
-  public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     return true;
   }
 }

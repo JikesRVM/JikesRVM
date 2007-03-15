@@ -14,13 +14,11 @@ import org.vmmagic.pragma.*;
 /**
  * Constraints specific to Stop-the-world collectors.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public abstract class StopTheWorldConstraints extends PlanConstraints
-  implements Uninterruptible {
+@Uninterruptible public abstract class StopTheWorldConstraints extends PlanConstraints {
 }

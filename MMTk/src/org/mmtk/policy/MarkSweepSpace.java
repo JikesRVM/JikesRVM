@@ -30,14 +30,11 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  * 
- *  $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class MarkSweepSpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class MarkSweepSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -212,7 +209,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @return True if this mark-sweep space is currently being collected.
    */
-  public final boolean inMSCollection() throws InlinePragma {
+  @Inline
+  public boolean inMSCollection() { 
     return inMSCollection;
   }
 
@@ -221,7 +219,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public void release(Address start) { 
     ((FreeListPageResource) pr).releasePages(start);
   }
 
@@ -243,9 +242,9 @@ public final class MarkSweepSpace extends Space
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object) { 
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
         MarkSweepLocal.liveBlock(object);
@@ -264,8 +263,8 @@ public final class MarkSweepSpace extends Space
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-  public boolean isLive(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     if (MarkSweepLocal.HEADER_MARK_BITS) {
 	return testMarkState(object, markState);
     } else {
@@ -278,7 +277,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @return The current mark state.
    */
-  public final Word getMarkState() throws InlinePragma {
+  @Inline
+  public Word getMarkState() { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
     return markState;
   }
@@ -288,8 +288,8 @@ public final class MarkSweepSpace extends Space
    *  
    * @return The previous mark state.
    */
-  public final Word getPreviousMarkState() 
-  throws InlinePragma {
+  @Inline
+  public Word getPreviousMarkState() { 
     return deltaMarkState(false);
   }
 
@@ -299,8 +299,8 @@ public final class MarkSweepSpace extends Space
    * @param increment If true, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */
-  private final Word deltaMarkState(boolean increment) {
-    Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
+  private Word deltaMarkState(boolean increment) {
+    Word mask = Word.fromIntZeroExtend((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
     Word rtn = increment ? markState.plus(MARK_COUNT_INCREMENT) : markState.minus(MARK_COUNT_INCREMENT);
     rtn = rtn.and(mask);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
@@ -317,8 +317,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public final void postAlloc(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public void postAlloc(ObjectReference object) { 
     initializeHeader(object, true);
   }
 
@@ -330,8 +330,8 @@ public final class MarkSweepSpace extends Space
    * @param object the object ref to the storage to be initialized
    * @param majorGC Is this copy happening during a major gc? 
    */
-  public final void postCopy(ObjectReference object, boolean majorGC) 
-    throws InlinePragma {
+  @Inline
+  public void postCopy(ObjectReference object, boolean majorGC) { 
     initializeHeader(object, false);
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (majorGC) MarkSweepLocal.liveBlock(object);
@@ -347,8 +347,8 @@ public final class MarkSweepSpace extends Space
    * @param alloc is this initialization occuring due to (initial) allocation
    * (true) or due to copying (false)?
    */
-  public final void initializeHeader(ObjectReference object, boolean alloc)
-      throws InlinePragma {
+  @Inline
+  public void initializeHeader(ObjectReference object, boolean alloc) { 
     if (MarkSweepLocal.HEADER_MARK_BITS)
       if (alloc) 
         writeAllocState(object);	
@@ -363,8 +363,8 @@ public final class MarkSweepSpace extends Space
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bits will be set
    */
-  private static boolean testAndMark(ObjectReference object, Word value)
-    throws InlinePragma {
+  @Inline
+  private static boolean testAndMark(ObjectReference object, Word value) { 
     Word oldValue, markBits;
     oldValue = VM.objectModel.readAvailableBitsWord(object);
     markBits = oldValue.and(MARK_BITS_MASK);
@@ -380,8 +380,8 @@ public final class MarkSweepSpace extends Space
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  public static boolean testMarkState(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  public static boolean testMarkState(ObjectReference object, Word value) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_COUNT_MASK.not()).isZero());
     return VM.objectModel.readAvailableBitsWord(object).and(MARK_COUNT_MASK).EQ(value);
   }
@@ -392,7 +392,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @param object The object whose mark state is to be written
    */
-  private final void writeAllocState(ObjectReference object) throws InlinePragma {
+  @Inline
+  private void writeAllocState(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -404,7 +405,8 @@ public final class MarkSweepSpace extends Space
    * 
    * @param object The object whose mark state is to be written
    */
-  private final void writeMarkState(ObjectReference object) throws InlinePragma {
+  @Inline
+  private void writeMarkState(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);

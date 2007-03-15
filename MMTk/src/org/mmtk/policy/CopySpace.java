@@ -23,19 +23,16 @@ import org.vmmagic.pragma.*;
  * space.  Since no state needs to be held globally or locally, all
  * methods are static.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove
  * 
- * @version $Revision$
- * @date $Date$
  */
-public final class CopySpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class CopySpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -219,7 +216,8 @@ public final class CopySpace extends Space
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
@@ -243,8 +241,8 @@ public final class CopySpace extends Space
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) { 
     /* If the object in question is already in to-space, then do nothing */
     if (!fromSpace) return object;
 
@@ -277,7 +275,7 @@ public final class CopySpace extends Space
    * @param object The object in question
    * @return True if this object is live in this GC (has it been forwarded?)
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     return isForwarded(object);
   }
 
@@ -288,7 +286,7 @@ public final class CopySpace extends Space
    * @param object The object reference.
    * @return True if the object is reachable.
    */
-  public final boolean isReachable(ObjectReference object) {
+  public boolean isReachable(ObjectReference object) {
     return !fromSpace || isForwarded(object);
   }
 
@@ -304,8 +302,9 @@ public final class CopySpace extends Space
    * @param object The object to be marked
    * @param markState The sense of the mark bit (flips from 0 to 1)
    */
+  @Inline
   public static void markObject(TraceLocal trace, ObjectReference object,
-      Word markState) throws InlinePragma {
+      Word markState) { 
     if (testAndMark(object, markState))
       trace.enqueue(object);
   }
@@ -322,15 +321,16 @@ public final class CopySpace extends Space
    * 
    * @param object the object ref to the storage to be initialized
    */
-   public final void postAlloc(ObjectReference object) 
-        throws InlinePragma {}
+   @Inline
+   public void postAlloc(ObjectReference object) {} 
 
   /**
    * Clear the GC portion of the header for an object.
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public static void clearGCBits(ObjectReference object) throws InlinePragma {
+  @Inline
+  public static void clearGCBits(ObjectReference object) { 
     Word header = VM.objectModel.readAvailableBitsWord(object);
     VM.objectModel.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
   }
@@ -341,8 +341,8 @@ public final class CopySpace extends Space
    * @param object The object to be checked
    * @return True if the object has been forwarded
    */
-  public static boolean isForwarded(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public static boolean isForwarded(ObjectReference object) { 
     return stateIsForwarded(getForwardingWord(object));
   }
 
@@ -352,8 +352,8 @@ public final class CopySpace extends Space
    * @param object The object to be checked
    * @return True if the object has been forwarded or is being forwarded
    */
-  public static boolean isForwardedOrBeingForwarded(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean isForwardedOrBeingForwarded(ObjectReference object) { 
     return stateIsForwardedOrBeingForwarded(getForwardingWord(object));
   }
 
@@ -364,8 +364,8 @@ public final class CopySpace extends Space
    * @return The forwarding word stored in <code>object</code>'s
    * header.
    */
-  private static Word getForwardingWord(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  private static Word getForwardingWord(ObjectReference object) { 
     return VM.objectModel.readAvailableBitsWord(object);
   }
 
@@ -376,8 +376,8 @@ public final class CopySpace extends Space
    * @return The forwarding pointer stored in <code>object</code>'s
    * header.
    */
-  public static ObjectReference getForwardingPointer(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static ObjectReference getForwardingPointer(ObjectReference object) { 
     return getForwardingWord(object).and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
   }
 
@@ -388,8 +388,8 @@ public final class CopySpace extends Space
    * @param object The object to be marked
    * @param value The value to store in the mark bit
    */
-  private static boolean testAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  private static boolean testAndMark(ObjectReference object, Word value) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -409,8 +409,8 @@ public final class CopySpace extends Space
    * @return The forwarding pointer for the object if it has already
    * been forwarded.
    */
-  private static Word attemptToForward(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  private static Word attemptToForward(ObjectReference object) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -426,8 +426,8 @@ public final class CopySpace extends Space
    * @param fword A forwarding word.
    * @return True if the forwarding word's state is being forwarded.
    */
-  private static boolean stateIsBeingForwarded(Word fword)
-    throws InlinePragma {
+  @Inline
+  private static boolean stateIsBeingForwarded(Word fword) { 
     return fword.and(GC_FORWARDING_MASK).EQ(GC_BEING_FORWARDED);
   }
 
@@ -437,8 +437,8 @@ public final class CopySpace extends Space
    * @param fword A forwarding word.
    * @return True if the forwarding word's state is forwarded.
    */
-  private static boolean stateIsForwarded(Word fword)
-    throws InlinePragma {
+  @Inline
+  private static boolean stateIsForwarded(Word fword) { 
     return fword.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED);
   }
 
@@ -449,8 +449,8 @@ public final class CopySpace extends Space
    * @return True if the forwarding word's state is forwarded or being
    *         forwarded.
    */
-  public static boolean stateIsForwardedOrBeingForwarded(Word fword)
-      throws InlinePragma {
+  @Inline
+  public static boolean stateIsForwardedOrBeingForwarded(Word fword) { 
     return !(fword.and(GC_FORWARDED).isZero());
   }
 
@@ -463,9 +463,9 @@ public final class CopySpace extends Space
    * @param ptr The forwarding pointer to be stored in the object's
    * forwarding word
    */
+  @Inline
   private static void setForwardingPointer(ObjectReference object,
-                                           ObjectReference ptr)
-    throws InlinePragma {
+                                           ObjectReference ptr) { 
     VM.objectModel.writeAvailableBitsWord(object, ptr.toAddress().toWord().or(GC_FORWARDED));
   }
 }

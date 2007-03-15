@@ -73,17 +73,14 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
 
-public abstract class MutatorContext implements Uninterruptible, Constants {
+@Uninterruptible  public abstract class MutatorContext implements Constants {
   /****************************************************************************
    * Instance fields
    */
@@ -92,7 +89,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   protected int id = VM.activePlan.registerMutator(this);
 
   /** Used for printing log information in a thread safe manner */
-  protected Log log = new Log();
+  protected final Log log = new Log();
 
   /** Per-mutator allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
@@ -134,13 +131,13 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * @param allocator The allocator statically assigned to this allocation
    * @return The allocator dyncamically assigned to this allocation
    */
-  public int checkAllocator(int bytes, int align, int allocator)
-      throws InlinePragma {
+  @Inline
+  public int checkAllocator(int bytes, int align, int allocator) { 
     if (allocator == Plan.ALLOC_DEFAULT &&
         Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD) 
       return Plan.ALLOC_LOS;
     else if (allocator == Plan.ALLOC_NON_REFERENCE) {
-        if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
+        if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.PLOS_SIZE_THRESHOLD)
           return Plan.ALLOC_PRIMITIVE_LOS;
     else
           return Plan.ALLOC_DEFAULT;
@@ -158,8 +155,8 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * @param site Allocation site
    * @return The low address of the allocated chunk.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
@@ -179,8 +176,9 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     switch (allocator) {
     case           Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref, false); return;
     case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref, true); return;
@@ -342,9 +340,9 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * @param context The context in which the read arose (getfield, for example)
    * @return The reference that was read.
    */
+  @Inline
   public Address readBarrier(ObjectReference src, Address slot,
-      int context)
-      throws InlinePragma {
+      int context) { 
     // read barrier currently unimplemented
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return Address.max();
@@ -376,5 +374,6 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    */
 
   /** @return the unique identifier for this mutator context. */
-  public int getId() throws InlinePragma { return id; }
+  @Inline
+  public int getId() { return id; } 
 }

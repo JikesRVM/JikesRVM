@@ -17,15 +17,12 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id: ObjectModel.java,v 1.7 2006/06/21 07:38:13 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class ObjectModel implements Uninterruptible {
+@Uninterruptible public abstract class ObjectModel {
   /**
    * Copy an object using a plan's allocCopy to get space and install
    * the forwarding pointer.  On entry, <code>from</code> must have

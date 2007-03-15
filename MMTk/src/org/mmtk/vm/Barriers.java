@@ -15,15 +15,12 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id: Barriers.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class Barriers implements Uninterruptible {
+@Uninterruptible public abstract class Barriers {
   /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be

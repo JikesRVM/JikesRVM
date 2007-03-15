@@ -10,7 +10,9 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
+import org.mmtk.utility.DoublyLinkedList;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.Constants;
 
@@ -30,14 +32,11 @@ import org.vmmagic.unboxed.*;
  * and called on a per-thread basis, where each instance of
  * TreadmillLocal corresponds to one thread operating over one space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class LargeObjectSpace extends Space 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class LargeObjectSpace extends Space 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -46,8 +45,8 @@ public final class LargeObjectSpace extends Space
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   private static final Word MARK_BIT = Word.one(); // ...01
-  private static final Word NURSERY_BIT = Word.fromInt(2); // ...10
-  private static final Word LOS_BIT_MASK = Word.fromInt(3); // ...11
+  private static final Word NURSERY_BIT = Word.fromIntZeroExtend(2); // ...10
+  private static final Word LOS_BIT_MASK = Word.fromIntZeroExtend(3); // ...11
 
   /****************************************************************************
    * 
@@ -55,6 +54,8 @@ public final class LargeObjectSpace extends Space
    */
   private Word markState;
   private boolean inNurseryGC;
+  private DoublyLinkedList cells;
+  private Treadmill treadmill;
 
   /****************************************************************************
    * 
@@ -75,7 +76,7 @@ public final class LargeObjectSpace extends Space
   public LargeObjectSpace(String name, int pageBudget, Address start,
       Extent bytes) {
     super(name, false, false, start, bytes);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -92,7 +93,7 @@ public final class LargeObjectSpace extends Space
    */
   public LargeObjectSpace(String name, int pageBudget, int mb) {
     super(name, false, false, mb);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -111,7 +112,7 @@ public final class LargeObjectSpace extends Space
    */
   public LargeObjectSpace(String name, int pageBudget, float frac) {
     super(name, false, false, frac);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -134,7 +135,7 @@ public final class LargeObjectSpace extends Space
    */
   public LargeObjectSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, false, mb, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+    init(pageBudget);
   }
 
   /**
@@ -159,7 +160,14 @@ public final class LargeObjectSpace extends Space
   public LargeObjectSpace(String name, int pageBudget, float frac, 
                           boolean top) {
     super(name, false, false, frac, top);
+    init(pageBudget);
+  }
+  
+  @Interruptible
+  private void init(int pageBudget) {
     pr = new FreeListPageResource(pageBudget, this, start, extent);
+    cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
+    treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }
 
   /****************************************************************************
@@ -174,8 +182,13 @@ public final class LargeObjectSpace extends Space
    * 
    */
   public void prepare(boolean fullHeap) {
-    if (fullHeap) 
+    if (fullHeap) { 
+      if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
+      }
       markState = MARK_BIT.minus(markState);
+      treadmill.flip();          
+    }
     inNurseryGC = !fullHeap;
   }
 
@@ -184,16 +197,39 @@ public final class LargeObjectSpace extends Space
    * collector this means we can perform the sweep phase.
    * 
    */
-  public void release() {
+  public void release(boolean fullHeap) {
+    // sweep the large objects
+    sweepLargePages(true);                // sweep the nursery
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());   
+    if (fullHeap) sweepLargePages(false); // sweep the mature space
   }
 
+  /**
+   * Sweep through the large pages, releasing all superpages on the
+   * "from space" treadmill.
+   */
+  private void sweepLargePages(boolean sweepNursery) {
+    while (true) {
+      Address cell = treadmill.pop(sweepNursery);
+      if (cell.isZero()) break;
+      release(LargeObjectAllocator.getSuperPage(cell));
+    }
+    if (VM.VERIFY_ASSERTIONS) {
+      if (sweepNursery)                                                      
+        VM.assertions._assert(treadmill.nurseryEmpty());
+      else                                                                   
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
+    }                                                                       
+  }
+  
   /**
    * Release a group of pages that were allocated together.
    * 
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void release(Address first) throws InlinePragma {
+  @Inline
+  public void release(Address first) { 
     ((FreeListPageResource) pr).releasePages(first);
   }
 
@@ -217,8 +253,9 @@ public final class LargeObjectSpace extends Space
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object) throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace,
+      ObjectReference object) { 
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
       if (testAndMark(object, markState)) {
@@ -233,8 +270,8 @@ public final class LargeObjectSpace extends Space
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(ObjectReference object)
-    throws InlinePragma {
+   @Inline
+   public boolean isLive(ObjectReference object) { 
     return testMarkBit(object, markState);
   }
 
@@ -245,13 +282,12 @@ public final class LargeObjectSpace extends Space
    * 
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(ObjectReference object, boolean nurseryObject)
-      throws InlinePragma {
+  @Inline
+  private void internalMarkObject(ObjectReference object, boolean nurseryObject) {
 
     Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
-    Treadmill tm = Treadmill.getTreadmill(node);
-    tm.copy(node, nurseryObject);
+    treadmill.copy(node, nurseryObject);
   }
 
   /****************************************************************************
@@ -265,8 +301,8 @@ public final class LargeObjectSpace extends Space
    * @param object the object ref to the storage to be initialized
    * @param isPLOSObject the object is allocated in the PLOS
    */
-  public final void initializeHeader(ObjectReference object, boolean isPLOSObject)
-      throws InlinePragma {
+  @Inline
+  public void initializeHeader(ObjectReference object, boolean isPLOSObject) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT); 
     VM.objectModel.writeAvailableBitsWord(object, newValue);
@@ -279,8 +315,8 @@ public final class LargeObjectSpace extends Space
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  private final boolean testAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
+  @Inline
+  private boolean testAndMark(ObjectReference object, Word value) {
     Word oldValue, markBit;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -298,8 +334,8 @@ public final class LargeObjectSpace extends Space
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  private final boolean testMarkBit(ObjectReference object, Word value)
-    throws InlinePragma {
+  @Inline
+  private boolean testMarkBit(ObjectReference object, Word value) {
     return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT).EQ(value);
   }
 
@@ -309,8 +345,8 @@ public final class LargeObjectSpace extends Space
    * @param object The object whose status is to be tested                    
    * @return True if the object is in the logical nursery                     
    */                                                                         
-  private final boolean isInNursery(ObjectReference object)                   
-      throws InlinePragma {
+  @Inline
+  private boolean isInNursery(ObjectReference object) {
      return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
   }
 
@@ -320,7 +356,31 @@ public final class LargeObjectSpace extends Space
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
-  public final Extent getSize(Address first) {
+  public Extent getSize(Address first) {
     return ((FreeListPageResource) pr).getSize(first);
+  }
+  
+  /**
+   * This is the cell list for this large object space. 
+   * 
+   * Note that it depends on the specific local in use whether this
+   * is being used.
+   * 
+   * @return The cell list associated with this large object space.
+   */
+  public DoublyLinkedList getCells() {
+    return this.cells;
+  }
+  
+  /**
+   * This is the treadmill used by the large object space. 
+   * 
+   * Note that it depends on the specific local in use whether this
+   * is being used.
+   * 
+   * @return The treadmill associated with this large object space.
+   */
+  public Treadmill getTreadmill() {
+    return this.treadmill;
   }
 }

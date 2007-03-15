@@ -1,0 +1,85 @@
+
+-- itest --
+Expected: 4 Actual: 4
+Expected: 2 Actual: 2
+Expected: 9 Actual: 9
+Expected: 1 Actual: 1
+Expected: 1 Actual: 1
+Expected: -3 Actual: -3
+Expected: 4 Actual: 4
+Expected: 1 Actual: 1
+Expected: 273 Actual: 273
+Expected: 272 Actual: 272
+Expected: -6 Actual: -6
+Expected: -2 Actual: -2
+Expected: 2147483646 Actual: 2147483646
+
+-- ltest --
+Expected: 10000000002 Actual: 10000000002
+Expected: 9999999998 Actual: 9999999998
+Expected: 20000000000 Actual: 20000000000
+Expected: 5000000000 Actual: 5000000000
+Expected: 0 Actual: 0
+Expected: -2 Actual: -2
+Expected: -10000000000 Actual: -10000000000
+Expected: 4503599627370497 Actual: 4503599627370497
+Expected: 1229482698272145681 Actual: 1229482698272145681
+Expected: 1224979098644775184 Actual: 1224979098644775184
+Expected: -6 Actual: -6
+Expected: -2 Actual: -2
+Expected: -1 Actual: -1
+Expected: 9223372036854775806 Actual: 9223372036854775806
+
+-- ftest --
+Expected: 40400000 Actual: 40400000
+Expected: bf800000 Actual: bf800000
+Expected: 40000000 Actual: 40000000
+Expected: 3f000000 Actual: 3f000000
+Expected: bf800000 Actual: bf800000
+Expected: 3f19999a Actual: 3f19999a
+
+-- dtest --
+Expected: 4008000000000000 Actual: 4008000000000000
+Expected: bff0000000000000 Actual: bff0000000000000
+Expected: 4000000000000000 Actual: 4000000000000000
+Expected: 3fe0000000000000 Actual: 3fe0000000000000
+Expected: bff0000000000000 Actual: bff0000000000000
+Expected: 3fe3333333333333 Actual: 3fe3333333333333
+
+-- nanTestFloat --
+  expr     expected    got    
+---------- -------- ----------
+NaN <  NaN  false     false
+NaN <= NaN  false     false
+NaN == NaN  false     false
+NaN != NaN  true      true
+NaN >= NaN  false     false
+NaN >  NaN  false     false
+
+-- nanTestDouble --
+  expr     expected    got    
+---------- -------- ----------
+NaN <  NaN  false     false
+NaN <= NaN  false     false
+NaN == NaN  false     false
+NaN != NaN  true      true
+NaN >= NaN  false     false
+NaN >  NaN  false     false
+
+-- remTest --
+2.0  /  3.0=3fe5555555555555
+2.0  %  3.0=4000000000000000
+2.0 rem 3.0=bff0000000000000
+
+2.0  /  -3.0=bfe5555555555555
+2.0  %  -3.0=4000000000000000
+2.0 rem -3.0=bff0000000000000
+
+-2.0  /  3.0=bfe5555555555555
+-2.0  %  3.0=c000000000000000
+-2.0 rem 3.0=3ff0000000000000
+
+-2.0  /  -3.0=3fe5555555555555
+-2.0  %  -3.0=c000000000000000
+-2.0 rem -3.0=3ff0000000000000
+

@@ -11,16 +11,13 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * An option that has a simple string value.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class StringOption extends Option {
   // values
@@ -44,7 +41,8 @@ public class StringOption extends Option {
    * 
    * @return The option value.
    */
-  public String getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getValue() { 
     return this.value;
   }
 
@@ -53,7 +51,8 @@ public class StringOption extends Option {
    * 
    * @return The default value.
    */
-  public String getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public String getDefaultValue() { 
     return this.defaultValue;
   }
 
@@ -76,5 +75,22 @@ public class StringOption extends Option {
       Log.writeln(value);
     }
     validate();
+  }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(value);
+        break;
+      default:
+        super.log(format);
+    }
   }
 }

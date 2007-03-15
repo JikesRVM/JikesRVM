@@ -1,0 +1,219 @@
+<project name="jgf" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="7200" else="3600">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <property name="test.size" value="0"/>
+  <property name="test.max.heapsize" value="600"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+
+  <property name="jgf.dir" value="${external.lib.dir}/JavaGrandeForum/v2.0"/>
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" source="1.4" nowarn="true"
+           sourcepath="${main.java}:${jgf.dir}:${jgf.dir}/section1:${jgf.dir}/section2:${jgf.dir}/section3"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Macro to extract results                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="score">
+    <attribute name="name"/>
+    <sequential>
+      <extractStatistic tag="JGF_SerialBenchmark" key="@{name}" pattern="@{name}\s*(\S*)\s*\(.*\)"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="score2">
+    <attribute name="name"/>
+    <sequential>
+      <extractStatistic tag="JGF_SerialBenchmark" key="@{name}.time" pattern="@{name}\s*(\S*)\s*\(s\).*\(.*\)"/>
+      <extractStatistic tag="JGF_SerialBenchmark" key="@{name}.score" pattern="@{name}.*\(s\)\s*(\S*)\s*\(.*\)"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="jgf.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <rvm tag="JGF_SerialBenchmark" class="JGF_SerialBenchmark" args="${test.size}" dir="${jgf.dir}/section3"/>
+    <!--<property name="test.JGF_SerialBenchmark.sanitized.output.file" value="${output.dir}/JGF_SerialBenchmark.txt"/>-->
+
+    <startResults/>
+    <outputTestStart tag="JGF_SerialBenchmark"/>
+
+    <outputStatisticStart/>
+
+    <score name="Section1:Arith:Add:Int"/>
+    <score name="Section1:Arith:Add:Long"/>
+    <score name="Section1:Arith:Add:Float"/>
+    <score name="Section1:Arith:Add:Double"/>
+    <score name="Section1:Arith:Mult:Int"/>
+    <score name="Section1:Arith:Mult:Long"/>
+    <score name="Section1:Arith:Mult:Float"/>
+    <score name="Section1:Arith:Mult:Double"/>
+    <score name="Section1:Arith:Div:Int"/>
+    <score name="Section1:Arith:Div:Long"/>
+    <score name="Section1:Arith:Div:Float"/>
+    <score name="Section1:Arith:Div:Double"/>
+    <score name="Section1:Assign:Same:Scalar:Local"/>
+    <score name="Section1:Assign:Same:Scalar:Instance"/>
+    <score name="Section1:Assign:Same:Scalar:Class"/>
+    <score name="Section1:Assign:Same:Array:Local"/>
+    <score name="Section1:Assign:Same:Array:Instance"/>
+    <score name="Section1:Assign:Same:Array:Class"/>
+    <score name="Section1:Assign:Other:Scalar:Instance"/>
+    <score name="Section1:Assign:Other:Scalar:Class"/>
+    <score name="Section1:Assign:Other:Array:Instance"/>
+    <score name="Section1:Assign:Other:Array:Class"/>
+    <score name="Section1:Cast:IntFloat"/>
+    <score name="Section1:Cast:IntDouble"/>
+    <score name="Section1:Cast:LongFloat"/>
+    <score name="Section1:Cast:LongDouble"/>
+    <score name="Section1:Create:Array:Int:1"/>
+    <score name="Section1:Create:Array:Int:2"/>
+    <score name="Section1:Create:Array:Int:4"/>
+    <score name="Section1:Create:Array:Int:8"/>
+    <score name="Section1:Create:Array:Int:16"/>
+    <score name="Section1:Create:Array:Int:32"/>
+    <score name="Section1:Create:Array:Int:64"/>
+    <score name="Section1:Create:Array:Int:128"/>
+    <score name="Section1:Create:Array:Long:1"/>
+    <score name="Section1:Create:Array:Long:2"/>
+    <score name="Section1:Create:Array:Long:4"/>
+    <score name="Section1:Create:Array:Long:8"/>
+    <score name="Section1:Create:Array:Long:16"/>
+    <score name="Section1:Create:Array:Long:32"/>
+    <score name="Section1:Create:Array:Long:64"/>
+    <score name="Section1:Create:Array:Long:128"/>
+    <score name="Section1:Create:Array:Float:1"/>
+    <score name="Section1:Create:Array:Float:2"/>
+    <score name="Section1:Create:Array:Float:4"/>
+    <score name="Section1:Create:Array:Float:8"/>
+    <score name="Section1:Create:Array:Float:16"/>
+    <score name="Section1:Create:Array:Float:32"/>
+    <score name="Section1:Create:Array:Float:64"/>
+    <score name="Section1:Create:Array:Float:128"/>
+    <score name="Section1:Create:Array:Object:1"/>
+    <score name="Section1:Create:Array:Object:2"/>
+    <score name="Section1:Create:Array:Object:4"/>
+    <score name="Section1:Create:Array:Object:8"/>
+    <score name="Section1:Create:Array:Object:16"/>
+    <score name="Section1:Create:Array:Object:32"/>
+    <score name="Section1:Create:Array:Object:64"/>
+    <score name="Section1:Create:Array:Object:128"/>
+    <score name="Section1:Create:Object:Base"/>
+    <score name="Section1:Create:Object:Simple"/>
+    <score name="Section1:Create:Object:Simple:Constructor"/>
+    <score name="Section1:Create:Object:Simple:1Field"/>
+    <score name="Section1:Create:Object:Simple:2Field"/>
+    <score name="Section1:Create:Object:Simple:4Field"/>
+    <score name="Section1:Create:Object:Simple:4fField"/>
+    <score name="Section1:Create:Object:Simple:4LField"/>
+    <score name="Section1:Create:Object:Subclass"/>
+    <score name="Section1:Create:Object:Complex"/>
+    <score name="Section1:Create:Object:Complex:Constructor"/>
+    <score name="Section1:Exception:Throw"/>
+    <score name="Section1:Exception:New"/>
+    <score name="Section1:Exception:Method"/>
+    <score name="Section1:Loop:For"/>
+    <score name="Section1:Loop:ReverseFor"/>
+    <score name="Section1:Loop:While"/>
+    <score name="Section1:Math:AbsInt"/>
+    <score name="Section1:Math:AbsLong"/>
+    <score name="Section1:Math:AbsFloat"/>
+    <score name="Section1:Math:AbsDouble"/>
+    <score name="Section1:Math:MaxInt"/>
+    <score name="Section1:Math:MaxLong"/>
+    <score name="Section1:Math:MaxFloat"/>
+    <score name="Section1:Math:MaxDouble"/>
+    <score name="Section1:Math:MinInt"/>
+    <score name="Section1:Math:MinLong"/>
+    <score name="Section1:Math:MinFloat"/>
+    <score name="Section1:Math:MinDouble"/>
+    <score name="Section1:Math:SinDouble"/>
+    <score name="Section1:Math:CosDouble"/>
+    <score name="Section1:Math:TanDouble"/>
+    <score name="Section1:Math:AsinDouble"/>
+    <score name="Section1:Math:AcosDouble"/>
+    <score name="Section1:Math:AtanDouble"/>
+    <score name="Section1:Math:Atan2Double"/>
+    <score name="Section1:Math:FloorDouble"/>
+    <score name="Section1:Math:CeilDouble"/>
+    <score name="Section1:Math:SqrtDouble"/>
+    <score name="Section1:Math:ExpDouble"/>
+    <score name="Section1:Math:LogDouble"/>
+    <score name="Section1:Math:PowDouble"/>
+    <score name="Section1:Math:RintDouble"/>
+    <score name="Section1:Math:Random"/>
+    <score name="Section1:Math:RoundFloat"/>
+    <score name="Section1:Math:RoundDouble"/>
+    <score name="Section1:Math:IEEERemainderDouble"/>
+    <score name="Section1:Method:Same:Instance"/>
+    <score name="Section1:Method:Same:SynchronizedInstance"/>
+    <score name="Section1:Method:Same:FinalInstance"/>
+    <score name="Section1:Method:Same:Class"/>
+    <score name="Section1:Method:Same:SynchronizedClass"/>
+    <score name="Section1:Method:Other:Instance"/>
+    <score name="Section1:Method:Other:InstanceOfAbstract"/>
+    <score name="Section1:Method:Other:Class"/>
+    <score name="Section1:Serial:Writing:Linklist"/>
+    <score name="Section1:Serial:Reading:Linklist"/>
+    <score name="Section1:Serial:Writing:Binarytree"/>
+    <score name="Section1:Serial:Reading:Binarytree"/>
+    <score name="Section1:Serial:Writing:Vector"/>
+    <score name="Section1:Serial:Reading:Vector"/>
+    <score name="Section1:Serial:Writing:Array"/>
+    <score name="Section1:Serial:Reading:Array"/>
+
+    <score2 name="Section2:Series:Kernel:SizeA"/>
+    <score2 name="Section2:LUFact:Kernel:SizeA"/>
+    <score2 name="Section2:HeapSort:Kernel:SizeA"/>
+    <score2 name="Section2:FFT:Kernel:SizeA"/>
+    <score2 name="Section2:SOR:Kernel:SizeA"/>
+    <score2 name="Section2:SOR:Kernel:SizeA"/>
+    <score2 name="Section2:SparseMatmult:Kernel:SizeA"/>
+
+    <score2 name="Section3:Euler:Init:SizeA"/>
+    <score2 name="Section3:Euler:Run:SizeA"/>
+    <score2 name="Section3:Euler:Total:SizeA"/>
+    <score2 name="Section3:MolDyn:Run:SizeA"/>
+    <score2 name="Section3:MolDyn:Total:SizeA"/>
+    <score2 name="Section3:MonteCarlo:Run:SizeA"/>
+    <score2 name="Section3:MonteCarlo:Total:SizeA"/>
+    <score2 name="Section3:RayTracer:Init:SizeA"/>
+    <score2 name="Section3:RayTracer:Run:SizeA"/>
+    <score2 name="Section3:RayTracer:Total:SizeA"/>
+    <score2 name="Section3:AlphaBetaSearch:Run:SizeA"/>
+
+    <outputStatisticEnd/>
+
+    <outputTestResults tag="JGF_SerialBenchmark"/>
+    <outputTestEnd/>
+    <displayTestResults tag="JGF_SerialBenchmark"/>
+
+    <finishResults/>
+  </target>
+
+</project>

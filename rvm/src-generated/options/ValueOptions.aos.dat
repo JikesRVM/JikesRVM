@@ -1,0 +1,139 @@
+#
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value, B = BitMask (TODO).
+# TYPE: byte, int, String
+DESCRIP  
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERRY_NAME CMD_NAME"
+
+V METHOD_SAMPLE_SIZE int 3
+How many timer ticks of method samples to take before reporting method hotness to controller
+
+
+E INITIAL_COMPILER byte IRC_BASE
+Selection of initial compiler 
+"IRC_BASE baseIRC base" \
+"IRC_OPT optIRC opt"
+
+E RECOMPILATION_STRATEGY byte RS_SAMPLING
+Selection of mechanism for identifying methods for optimizing recompilation
+"RS_SAMPLING sampling sampling" \
+"RS_COUNTERS counters counters"
+
+E METHOD_LISTENER_TRIGGER byte ML_TIMER
+What triggers us to take a method sample?
+"ML_TIMER mlTimer timer" \
+"ML_CBS mlCBS cbs"
+
+E CALL_GRAPH_LISTENER_TRIGGER byte CGL_TIMER
+What triggers us to take a method sample?
+"CGL_TIMER cgTimer timer" \
+"CGL_CBS cgCBS cbs"
+
+V LOGFILE_NAME String \"AOSLog.txt\" lf
+Name of log file
+
+
+V COMPILATION_ADVICE_FILE_OUTPUT String \"aosadvice.ca\" cafo
+Name of advice file
+
+
+V DYNAMIC_CALL_FILE_OUTPUT String \"aosadvice.dc\" dcfo
+Name of dynamic call graph file
+
+
+V COMPILER_DNA_FILE_NAME String \"\" dna
+Name of compiler DNA file (no name ==> use default DNA).  Discussed in a comment at the head of VM_CompilerDNA.java
+
+
+V COMPILER_ADVICE_FILE_INPUT String null cafi
+File containing information about the methods to Opt compile
+
+
+V DYNAMIC_CALL_FILE_INPUT String null dcfi
+File containing information about the hot call sites
+
+
+V LOGGING_LEVEL int 0
+Control amount of event logging (larger ==> more)
+
+
+V FINAL_REPORT_LEVEL int 0
+Control amount of info reported on exit (larger ==> more)
+
+
+V DECAY_FREQUENCY int 100
+After how many clock ticks should we decay
+
+
+V DCG_DECAY_RATE double 1.1
+What factor should we decay call graph edges hotness by
+
+
+V DCG_SAMPLE_SIZE int 20
+After how many timer interrupts do we update the weights in the dynamic call graph?
+
+
+V AI_SEED_MULTIPLIER double 3
+Initial edge weight of call graph is set to AI_SEED_MULTIPLER * (1/AI_CONTROL_POINT)
+
+
+V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
+What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
+
+
+V AI_MISSING_EDGE_FREQUENCY int 250
+At what interval (in timer interrupts) should the missing edge organizer look for opportunities?
+
+
+V MAX_EXPECTED_AI_BOOST double 0.2
+How much more effective do we expected an optimization level to be if boosted by adaptive inlining?
+
+
+V OFFLINE_INLINE_PLAN_NAME String \"AI_plan\" offlinePlan
+Name of offline inline plan to be read and used for inlining
+
+
+V EARLY_EXIT_TIME int 1000
+Value of controller clock at which AOS should exit if EARLY_EXIT is true
+
+
+V INVOCATION_COUNT_THRESHOLD int 1000
+Invocation count at which a baseline compiled method should be recompiled
+
+
+V INVOCATION_COUNT_OPT_LEVEL int 1
+Opt level for recompilation in invocation count based system
+
+
+V COUNTER_BASED_SAMPLE_INTERVAL int 1000
+What is the sample interval for counter-based sampling
+
+
+V AI_CONTROL_POINT double 0.01
+Tuning param for new inliner function
+
+
+V CBSCallSamplesPerTick int 0
+How many CBS call samples (Prologue/Epilogue) should we take per time tick
+
+
+V CBSCallSampleStride int 7
+Stride between each CBS call sample (Prologue/Epilogue) within a sampling window
+
+
+V CBSMethodSamplesPerTick int 0
+How many CBS method samples (any yieldpoint) should we take per time tick
+
+
+V CBSMethodSampleStride int 3
+Stride between each CBS method sample (any yieldpoint) within a sampling window
+

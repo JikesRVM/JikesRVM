@@ -77,18 +77,15 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class GCTrace extends SS implements Uninterruptible {
+@Uninterruptible public class GCTrace extends SS {
 
   /****************************************************************************
    * 
@@ -96,11 +93,11 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB<<2);
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
+  public static boolean lastGCWasTracing = false; // True when previous GC was for tracing
   public static boolean traceInducedGC = false; // True if trace triggered GC
   public static boolean deathScan = false;
   public static boolean finalDead = false;
@@ -123,7 +120,8 @@ public class GCTrace extends SS implements Uninterruptible {
    * The postBoot method is called by the runtime immediately after
    * command-line arguments are available. 
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     Options.noFinalizer.setValue(true);
   }
 
@@ -165,8 +163,8 @@ public class GCTrace extends SS implements Uninterruptible {
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
-  public boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace || space == traceSpace)
       return false;
 
@@ -190,6 +188,9 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   public void collectionPhase(int phaseId) {
+    if (phaseId == PREPARE) {
+      lastGCWasTracing = traceInducedGC;
+    }
     if (phaseId == RELEASE) {
       if (traceInducedGC) {
         /* Clean up following a trace-induced scan */
@@ -223,20 +224,20 @@ public class GCTrace extends SS implements Uninterruptible {
    *         their failure to return memory isn't cause for concern.
    */
   public boolean isLastGCFull() {
-    return !traceInducedGC;
+    return !lastGCWasTracing;
   }
 
   /**
    * @return the active PlanLocal as a GCTraceLocal
    */
-  public static final GCTraceCollector local() {
+  public static GCTraceCollector local() {
     return ((GCTraceCollector) VM.activePlan.collector());
   }
 
   /**
    * @return the active Plan as a GCTrace
    */
-  public static final GCTrace global() {
+  public static GCTrace global() {
     return ((GCTrace) VM.activePlan.global());
   }
 }

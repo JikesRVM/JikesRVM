@@ -14,6 +14,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
@@ -39,15 +40,12 @@ import org.vmmagic.unboxed.*;
  * See also Plan.java for general comments on local vs global plan
  * classes.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class Gen extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public abstract class Gen extends StopTheWorld {
 
   /*****************************************************************************
    * 
@@ -55,14 +53,13 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    */
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
   protected static final float MATURE_FRACTION = (float) 0.5; // est yield
-  public final static boolean IGNORE_REMSETS = false;
+  public static final boolean IGNORE_REMSETS = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
   public static final int ALLOC_MATURE         = StopTheWorld.ALLOCATORS + 1;
   public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
   public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
-  public static int ALLOCATORS                 = ALLOC_MATURE_MAJORGC;
 
   /*****************************************************************************
    * 
@@ -80,7 +77,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   /** The nursery space is where all new objects are allocated by default */
   public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
 
-  public static final int NURSERY = nurserySpace.getDescriptor();;
+  public static final int NURSERY = nurserySpace.getDescriptor();
   public static final Address NURSERY_START = nurserySpace.getStart();
   public static final Address NURSERY_END = NURSERY_START.plus(nurserySpace.getExtent());
 
@@ -117,12 +114,6 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     }
   }
 
-  /**
-   * Constructor
-   */
-  public Gen() {
-  }
-
   /*****************************************************************************
    * 
    * Collection
@@ -140,7 +131,8 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == INITIATE) {
       gcFullHeap = nextGCFullHeap;
       super.collectionPhase(phaseId);
@@ -150,7 +142,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       if (!traceFullHeap()) {
-    	nurseryTrace.prepare();
+        nurseryTrace.prepare();
         ploSpace.prepare(false);
       } else {
         if (gcFullHeap) {
@@ -171,13 +163,13 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {
-      	nurseryTrace.release();
-        ploSpace.release();
-        lastCommittedPLOSpages = ploSpace.committedPages();
+        nurseryTrace.release();
+        ploSpace.release(false);
       } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
+      lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       progress = (getPagesReserved() + required) < getTotalPages();
       return;
@@ -193,8 +185,8 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public final boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final boolean poll(boolean mustCollect, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
@@ -202,12 +194,13 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       mustCollect = true;
       nextGCFullHeap = true;
     }
+    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() >
                           Options.nurserySize.getMaxNursery();
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
-    if (mustCollect || heapFull || nurseryFull || metaDataFull) {
+    if (mustCollect || heapFull || nurseryFull || metaDataFull || spaceFull) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since 
          * this is not, in general, in a GC safe point.  Instead we initiate
@@ -222,7 +215,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
         required = required << 1; // must account for copy reserve
       int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
       int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
-      nextGCFullHeap |= nurseryYield < required;
+      nextGCFullHeap |= nurseryYield < required || (space != nurserySpace);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -335,4 +328,17 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   public final boolean isLastGCFull() {
     return gcFullHeap;
   }
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object
+   * @return
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(NURSERY, object))
+      return true;
+    return super.objectCanMove(object);
+  }
+
 }

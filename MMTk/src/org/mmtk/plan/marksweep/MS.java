@@ -17,6 +17,7 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the global state of a simple mark-sweep collector.
@@ -36,15 +37,12 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class MS extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public class MS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -71,16 +69,10 @@ public class MS extends StopTheWorld implements Uninterruptible {
   private int availablePreGC;
 
   /**
-   * Constructor.
-   * 
-   */
-  public MS() {
-  }
-
-  /**
    * Boot-time initialization
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
     super.boot();
     msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
@@ -95,7 +87,8 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public final void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId) { 
 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
@@ -142,8 +135,8 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public final boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
@@ -175,4 +168,18 @@ public class MS extends StopTheWorld implements Uninterruptible {
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MARK_SWEEP, object))
+      return false;
+    return super.objectCanMove(object);
+  }
+
 }

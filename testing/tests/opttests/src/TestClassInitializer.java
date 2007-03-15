@@ -1,0 +1,52 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp. 2001
+ */
+/**
+ * @author unascribed
+ */
+class TestClassInitializerA
+   {
+   static         { System.out.println("clinit called for TestClassInitializerA"); }
+   static int f() { System.out.println("TestClassInitializerA.f called"); return 123; }
+   static int i = f();
+   }
+
+class TestClassInitializerB
+   {
+   TestClassInitializerB()        { }
+   static     { System.out.println("clinit called for TestClassInitializerB"); }
+   int    f() { System.out.println("TestClassInitializerB.f called"); return 456; }
+   }
+
+class TestClassInitializerC
+   {
+   static     { System.out.println("clinit called for TestClassInitializerC"); }
+   }
+   
+class TestClassInitializerD extends TestClassInitializerC
+   {
+   static     { System.out.println("clinit called for TestClassInitializerD"); }
+   static int i = 123;
+   }
+   
+class TestClassInitializer
+   {
+   public static void main(String args[])
+      {
+   // VM.boot();
+      run();
+      }
+
+   public static void run()
+      {
+      System.out.println("TestClassInitializer");
+      int                   i = TestClassInitializerA.i;     System.out.println(i);     // test initialization before first field reference
+      TestClassInitializerB b = new TestClassInitializerB(); System.out.println(b.f()); // test initialization before first instance creation
+      TestClassInitializerD d = new TestClassInitializerD(); System.out.println(d.i);   // test order of superclass initialization
+      }
+   }

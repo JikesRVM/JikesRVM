@@ -38,25 +38,22 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenCopyCollector extends GenCollector implements Uninterruptible {
+@Uninterruptible public abstract class GenCopyCollector extends GenCollector {
 
   /******************************************************************
    * Instance fields
    */
 
   /** The allocator for the mature space */
-  private CopyLocal mature;
+  private final CopyLocal mature;
 
   /** The trace object for full-heap collections */
-  private GenCopyMatureTraceLocal matureTrace;
+  private final GenCopyMatureTraceLocal matureTrace;
 
   /****************************************************************************
    * 
@@ -86,9 +83,9 @@ public abstract class GenCopyCollector extends GenCollector implements Uninterru
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
@@ -108,8 +105,9 @@ public abstract class GenCopyCollector extends GenCollector implements Uninterru
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator to allocate from
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     CopySpace.clearGCBits(object);
     if (GenCopy.IGNORE_REMSETS)
       CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
@@ -158,7 +156,7 @@ public abstract class GenCopyCollector extends GenCollector implements Uninterru
    */
 
   /** @return The active global plan as a <code>GenCopy</code> instance. */
-  private static final GenCopy global() {
+  private static GenCopy global() {
     return (GenCopy) VM.activePlan.global();
   }
 

@@ -23,18 +23,15 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id: SSTraceLocal.java 10806 2006-09-22 12:17:46Z dgrove-oss $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * @author <a href="http://www.cs.kent.ac.uk/~rej">Richard Jones</a>
  * 
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
-public class SSGCspyTraceLocal extends SSTraceLocal implements Uninterruptible {
+@Uninterruptible public class SSGCspyTraceLocal extends SSTraceLocal {
   /**
    * Constructor
    */
@@ -58,8 +55,8 @@ public class SSGCspyTraceLocal extends SSTraceLocal implements Uninterruptible {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(SSGCspy.GCSPY, object))
       return SSGCspy.gcspySpace.traceObject(this, object);

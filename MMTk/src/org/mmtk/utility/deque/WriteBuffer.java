@@ -18,12 +18,9 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> insertion of write buffer values.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class WriteBuffer extends LocalSSB
-  implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class WriteBuffer extends LocalSSB
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -45,10 +42,9 @@ public class WriteBuffer extends LocalSSB
    * 
    * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(Address addr)
-    throws NoInlinePragma {
+  @NoInline
+  public final void insert(Address addr) { 
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
-  private static boolean inWB = false;
 }

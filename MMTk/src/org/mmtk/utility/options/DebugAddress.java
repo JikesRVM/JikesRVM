@@ -14,11 +14,8 @@ import org.vmmagic.unboxed.Address;
 /**
  * Allow an address to be specified on the command line for use in debugging.
  * 
- * $Id: StressFactor.java 10489 2006-06-21 07:38:18Z steveb-oss $
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision: 10489 $
- * @date $Date: 2006-06-21 17:38:18 +1000 (Wed, 21 Jun 2006) $
  */
 public class DebugAddress extends AddressOption {
   /**

@@ -19,17 +19,11 @@ import org.vmmagic.pragma.*;
  * This class specializes SortSharedQueue to sort objects according to
  * their time of death (TOD).
  * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-final public class SortTODSharedDeque extends SortSharedDeque 
-  implements Uninterruptible {
-  public final static String Id = "$Id$"; 
-
-  private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
-  private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final Offset INSERTION_SORT_LIMIT = Offset.fromInt(80);
+@Uninterruptible
+public final class SortTODSharedDeque extends SortSharedDeque {
 
   /**
    * Constructor
@@ -47,7 +41,7 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  protected final Word getKey(Address obj) {
+  protected Word getKey(Address obj) {
     return VM.traceInterface.getDeathTime(obj.toObjectReference());
   }
 }

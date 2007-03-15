@@ -41,15 +41,12 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class CopyMS extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public class CopyMS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -69,7 +66,6 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
 
   public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
   public static final int ALLOC_MS = StopTheWorld.ALLOCATORS + 1;
-  public static int ALLOCATORS = ALLOC_MS;
 
 
   /****************************************************************************
@@ -92,7 +88,8 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
   /**
    * Boot-time initialization
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
     super.boot();
     msReservedPages = (int) (getTotalPages() * CopyMS_RESERVE_FRACTION);
   }
@@ -108,7 +105,8 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public final void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId) { 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       trace.prepare();
@@ -150,8 +148,8 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public final boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public final boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || 
         space == metaDataSpace)
       return false;

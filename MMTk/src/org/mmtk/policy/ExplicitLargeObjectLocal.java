@@ -9,9 +9,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.DoublyLinkedList;
 
@@ -33,15 +31,12 @@ import org.vmmagic.unboxed.*;
  * If there are C CPUs and T LargeObjectSpaces, there must be C X T
  * instances of this class, one for each CPU, LargeObjectSpace pair.
  * 
- * $Id: $
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
- * @version $Revision: 1.8 $
- * @date $Date: 2006/06/21 07:38:16 $
  */
-public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -52,7 +47,6 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
    * 
    * Instance variables
    */
-  DoublyLinkedList cells;
 
   /****************************************************************************
    * 
@@ -68,7 +62,6 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
   public ExplicitLargeObjectLocal(LargeObjectSpace space) {
     super(space);
     this.space = space;
-    this.cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true, this);
   }
 
   /****************************************************************************
@@ -84,9 +77,10 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
    * 
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc (Address cell) throws InlinePragma { 
-    cells.add(DoublyLinkedList.payloadToNode(cell));
-  };
+  @Inline
+  protected void postAlloc (Address cell) { 
+    space.getCells().add(DoublyLinkedList.payloadToNode(cell));
+  }
 
   /****************************************************************************
    * 
@@ -96,7 +90,7 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
   /**
    * Prepare for a collection. Nothing to be done here
    */
-  public final void prepare() {}
+  public void prepare() {}
 
   /**
    * Finish up after a collection. Nothing to be done
@@ -109,25 +103,11 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
    * @param space The space the object is allocated in.
    * @param object The object to be freed.
    */
-  public static final void free(LargeObjectSpace space, ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public static void free(LargeObjectSpace space, ObjectReference object) {
     Address cell = getSuperPage(VM.objectModel.refToAddress(object));
-    ((ExplicitLargeObjectLocal)DoublyLinkedList.getOwner(cell)).cells.remove(cell);
+    space.getCells().remove(cell);
     space.release(cell);
-  }
-  
-  /**
-   * Perform a linear scan through the objects allocated by this bump pointer.
-   * 
-   * @param scanner The scan object to delegate scanning to.
-   */
-  public void linearScan(LinearScan scanner) throws InlinePragma {
-    Address cell = cells.getHead();
-    while (!cell.isZero()) {
-      ObjectReference current = VM.objectModel.getObjectFromStartAddress(cell.plus(superPageHeaderSize())); 
-      scanner.scan(current);
-      cell = cells.getNext(cell);
-    }
   }
 
   /****************************************************************************
@@ -143,7 +123,8 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
    * @return The size of the per-superpage header required by this
    * system.
    */
-  protected final int superPageHeaderSize() throws InlinePragma { 
+  @Inline
+  protected int superPageHeaderSize() { 
     return DoublyLinkedList.headerSize(); 
   }
 
@@ -154,5 +135,6 @@ public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
-  protected final int cellHeaderSize() throws InlinePragma { return 0; }
+  @Inline
+  protected int cellHeaderSize() { return 0; } 
 }

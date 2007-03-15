@@ -1,0 +1,13 @@
+TypeA.<init>()
+TypeA.<init>()
+TypeB.<init>()
+TypeA.<init>()
+TypeB.<init>()
+TypeC.<init>()
+TypeA.f()
+TypeB.f()
+TypeC.performMagic()
+TypeC.test()
+TypeC.myPrivate()
+invokestatic TypeB.g() Expected: 42 Actual: 42
+invokestatic TypeC.g() Expected: 16 Actual: 16

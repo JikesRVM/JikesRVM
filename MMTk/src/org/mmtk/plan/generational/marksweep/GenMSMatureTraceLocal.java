@@ -22,16 +22,12 @@ import org.vmmagic.pragma.*;
  * closure over the heap graph, specifically in a Generational Mark-Sweep
  * collector.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class GenMSMatureTraceLocal extends GenMatureTraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
 
   /**
    * Constructor
@@ -51,8 +47,8 @@ public final class GenMSMatureTraceLocal extends GenMatureTraceLocal
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public final ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenMS.MS, object)) {

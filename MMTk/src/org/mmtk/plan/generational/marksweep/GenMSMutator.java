@@ -39,15 +39,12 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenMSMutator extends GenMutator implements Uninterruptible {
+@Uninterruptible public abstract class GenMSMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */
@@ -87,8 +84,8 @@ public abstract class GenMSMutator extends GenMutator implements Uninterruptible
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == GenMS.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
@@ -104,8 +101,9 @@ public abstract class GenMSMutator extends GenMutator implements Uninterruptible
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == GenMS.ALLOC_MATURE) {
       GenMS.msSpace.initializeHeader(ref, true);
     } else {
@@ -156,8 +154,8 @@ public abstract class GenMSMutator extends GenMutator implements Uninterruptible
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE_MUTATOR) {
         super.collectionPhase(phaseId, primary);
@@ -181,7 +179,8 @@ public abstract class GenMSMutator extends GenMutator implements Uninterruptible
    */
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
-  private static final GenMS global() throws InlinePragma {
+  @Inline
+  private static GenMS global() {
     return (GenMS) VM.activePlan.global();
   }
 }

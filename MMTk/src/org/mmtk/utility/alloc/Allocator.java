@@ -37,15 +37,12 @@ import org.vmmagic.pragma.*;
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @modified Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 
-public abstract class Allocator implements Constants, Uninterruptible {
+@Uninterruptible public abstract class Allocator implements Constants {
   /**
    * Maximum number of retries on consecutive allocation failure.
    * 
@@ -74,10 +71,10 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param knownAlignment The statically known minimum alignment.
    * @return The aligned up address.
    */
-  final public static Address alignAllocation(Address region, int alignment,
+  @Inline
+  public static Address alignAllocation(Address region, int alignment,
                                              int offset, int knownAlignment, 
-                                             boolean fillAlignmentGap)
-      throws InlinePragma {
+                                             boolean fillAlignmentGap) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
       VM.assertions._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
@@ -102,13 +99,13 @@ public abstract class Allocator implements Constants, Uninterruptible {
       if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_WORD) {
         // At most a single hole
         if (delta.toInt() == (BYTES_IN_WORD)) {
-          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
           region = region.plus(delta);
         return region;
         }
       } else {
         while (delta.toInt() >= (BYTES_IN_WORD)) {
-          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
           region = region.plus(BYTES_IN_WORD);
           delta = delta.minus(BYTES_IN_WORD);
         }
@@ -124,8 +121,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param start The start of the region.
    * @param end A pointer past the end of the region.
    */
-  final public static void fillAlignmentGap(Address start, Address end)
-      throws InlinePragma {
+  @Inline
+  public static void fillAlignmentGap(Address start, Address end) {
     if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
       // At most a single hole
       if (!end.diff(start).isZero()) {
@@ -150,9 +147,9 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param offset The offset from the alignment 
    * @return The aligned up address.
    */
-  final public static Address alignAllocation(Address region, int alignment,
-                                             int offset) 
-    throws InlinePragma {
+  @Inline
+  public static Address alignAllocation(Address region, int alignment,
+                                             int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
   }
 
@@ -167,9 +164,9 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param offset The offset from the alignment 
    * @return The aligned up address.
    */
-  final public static Address alignAllocationNoFill(Address region, int alignment, 
-                                             int offset) 
-    throws InlinePragma {
+  @Inline
+  public static Address alignAllocationNoFill(Address region, int alignment,
+                                             int offset) { 
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
 
@@ -180,8 +177,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    */
-  final public static int getMaximumAlignedSize(int size, int alignment)
-      throws InlinePragma {
+  @Inline
+  public static int getMaximumAlignedSize(int size, int alignment) {
     return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
 
@@ -192,12 +189,15 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
-   * allocators that enforce greater than particle alignment.
+   * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
+   * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
    */
-  final public static int getMaximumAlignedSize(int size, int alignment,
-                                                int knownAlignment) 
-    throws InlinePragma {
+  @Inline
+  public static int getMaximumAlignedSize(int size, int alignment,
+                                                int knownAlignment) { 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
+    
     if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {
@@ -214,7 +214,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  abstract protected Address allocSlowOnce(int bytes, int alignment,
+  protected abstract Address allocSlowOnce(int bytes, int alignment,
       int offset, boolean inGC);
 
   /**
@@ -228,7 +228,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  final public Address allocSlow(int bytes, int alignment, int offset, boolean inGC) throws NoInlinePragma {
+  @NoInline
+  public final Address allocSlow(int bytes, int alignment, int offset, boolean inGC) {
     return allocSlowInline(bytes, alignment, offset, inGC);
   }
   
@@ -245,8 +246,9 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  final public Address allocSlowInline(int bytes, int alignment, int offset,
-      boolean inGC) throws InlinePragma {
+  @Inline
+  public final Address allocSlowInline(int bytes, int alignment, int offset,
+      boolean inGC) { 
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < MAX_RETRY; i++) {

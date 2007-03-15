@@ -1,0 +1,107 @@
+<project name="jgf-threads" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="14400" else="7200">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <condition property="test.size" value="1" else="0">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <property name="test.thread-count" value="100"/>
+  <property name="test.initial.heapsize" value="200"/>
+  <property name="test.max.heapsize" value="600"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+
+  <property name="jgf-threads.dir" value="${external.lib.dir}/JavaGrandeForum/threadv1.0"/>
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" source="1.4" nowarn="true"
+           sourcepath="${main.java}:${jgf-threads.dir}:${jgf-threads.dir}/section1:${jgf-threads.dir}/section2:${jgf-threads.dir}/section3"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Macro to extract results                      * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="score">
+    <attribute name="name"/>
+    <sequential>
+      <extractStatistic tag="JGF_MultithreadedBenchmark" key="@{name}" pattern="@{name}\s*(\S*)\s*\(.*\)"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="score2">
+    <attribute name="name"/>
+    <sequential>
+      <extractStatistic tag="JGF_MultithreadedBenchmark" key="@{name}.time" pattern="@{name}\s*(\S*)\s*\(s\).*\(.*\)"/>
+      <extractStatistic tag="JGF_MultithreadedBenchmark" key="@{name}.score" pattern="@{name}.*\(s\)\s*(\S*)\s*\(.*\)"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="jgf-threads.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <rvm tag="JGF_MultithreadedBenchmark"
+         class="JGF_MultithreadedBenchmark"
+         args="${test.size} ${test.thread-count}"
+         dir="${jgf-threads.dir}/section3"/>
+
+    <startResults/>
+    <outputTestStart tag="JGF_MultithreadedBenchmark"/>
+
+    <outputStatisticStart/>
+
+    <!-- TODO: Check the following works -->
+
+    <score name="Section1:Barrier:Simple"/>
+    <score name="Section1:Barrier:Tournament"/>
+    <score name="Section1:ForkJoin:Simple"/>
+    <score name="Section1:Sync:Method"/>
+    <score name="Section1:Sync:Object"/>
+
+    <score name="Section2:Series:Kernel:SizeA"/>
+    <score name="Section2:LUFact:Kernel:SizeA"/>
+    <score name="Section2:Crypt:Kernel:SizeA"/>
+    <score name="Section2:SOR:Kernel:SizeA"/>
+    <score name="Section2:SparseMatmult:Kernel:SizeA"/>
+
+    <score2 name="Section3:MolDyn:Run:SizeA"/>
+    <score2 name="Section3:MolDyn:Total:SizeA"/>
+    <score2 name="Section3:MonteCarlo:Run:SizeA"/>
+    <score2 name="Section3:MonteCarlo:Total:SizeA"/>
+    <score2 name="Section3:RayTracer:Init:SizeA"/>
+    <score2 name="Section3:RayTracer:Run:SizeA"/>
+    <score2 name="Section3:RayTracer:Total:SizeA"/>
+
+    <outputStatisticEnd/>
+
+    <outputTestResults tag="JGF_MultithreadedBenchmark"/>
+    <outputTestEnd/>
+    <displayTestResults tag="JGF_MultithreadedBenchmark"/>
+
+    <finishResults/>
+  </target>
+
+</project>

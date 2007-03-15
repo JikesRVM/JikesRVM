@@ -27,13 +27,11 @@ import org.vmmagic.pragma.*;
  * This class implements for the MMTk a base driver for a GCspy space.
  * All drivers for GCspy spaces should inherit from this class.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-abstract public class AbstractDriver implements Uninterruptible {
+@Uninterruptible
+public abstract class AbstractDriver {
 
   /****************************************************************************
    *
@@ -77,7 +75,7 @@ abstract public class AbstractDriver implements Uninterruptible {
   /** The maximum number of tiles in this GCspy space */
   protected int maxTileNum;
   /** This space's streams  */
-  protected Stream streams[];
+  protected Stream[] streams;
   /**  control values for tiles in this space */
   protected byte[] control;
   /** Has this space changed? */
@@ -97,7 +95,7 @@ abstract public class AbstractDriver implements Uninterruptible {
                         String name, 
 			            Space mmtkSpace, 
 			            int blockSize, 
-			            boolean mainSpace) throws InterruptiblePragma {
+			            boolean mainSpace) { 
     this.server = server;
     this.name = name;
     this.mmtkSpace = mmtkSpace;
@@ -116,8 +114,8 @@ abstract public class AbstractDriver implements Uninterruptible {
    * a space contains only one.
    * @param mmtkSpace The MMTk space
    */
-  protected Subspace createSubspace (Space mmtkSpace)
-  	throws InterruptiblePragma {
+  @Interruptible
+  protected Subspace createSubspace (Space mmtkSpace) { 
     Address start = mmtkSpace.getStart();
     return new Subspace(start, start, 0, blockSize, 0);
   }
@@ -129,10 +127,11 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param maxTileNum the maximum number of tiles in this space.
    * @param mainSpace Is this the main space?
    */
+  @Interruptible
   protected ServerSpace createServerSpace(ServerInterpreter server,
                   String spaceName,
 			      int maxTileNum,
-			      boolean mainSpace) throws InterruptiblePragma {
+			      boolean mainSpace) { 
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
                      blockSize + " bytes\n":
@@ -155,7 +154,7 @@ abstract public class AbstractDriver implements Uninterruptible {
    * Get the name of this driver type.
    * @return The name of this driver.
    */
-  abstract protected String getDriverName();
+  protected abstract String getDriverName();
 
   /**
    * Get the maximum number of tiles in this space.
@@ -177,7 +176,8 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param stream The stream
    * @exception IndexOutOfBoundsException if more than MAX_STREAMS are added
    */
-  public void addStream(Stream stream) throws InterruptiblePragma {
+  @Interruptible
+  public void addStream(Stream stream) { 
     int id = 0;
     while (id < MAX_STREAMS) {
       if (streams[id] == null) {

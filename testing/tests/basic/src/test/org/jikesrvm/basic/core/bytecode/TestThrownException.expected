@@ -1,0 +1,12 @@
+testHardwareException
+caught class java.lang.ArithmeticException
+testSoftwareException
+caught class java.lang.NumberFormatException
+testUserException
+caught class java.io.IOException
+testRethrownException
+caught class java.lang.Exception
+testNullException
+caught class java.lang.NullPointerException
+testReThrownThruSynchronizedSection
+caught class java.lang.RuntimeException

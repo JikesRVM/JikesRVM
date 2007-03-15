@@ -35,17 +35,14 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
-public abstract class SSCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public abstract class SSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields
@@ -91,9 +88,9 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == SS.ALLOC_SS);
@@ -109,9 +106,9 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     CopySpace.clearGCBits(object);
   }
 
@@ -126,8 +123,8 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == SS.PREPARE) {
       // rebind the copy bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());
@@ -168,7 +165,7 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    * @return True if the given reference is to an object that is within
    * one of the semi-spaces.
    */
-  public static final boolean isSemiSpaceObject(ObjectReference object) {
+  public static boolean isSemiSpaceObject(ObjectReference object) {
     return Space.isInSpace(SS.SS0, object) || Space.isInSpace(SS.SS1, object);
   }
 
@@ -178,7 +175,8 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    */
 
   /** @return The active global plan as an <code>SS</code> instance. */
-  private static final SS global() throws InlinePragma {
+  @Inline
+  private static SS global() {
     return (SS) VM.activePlan.global();
   }
 

@@ -17,15 +17,12 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Memory.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class Memory implements Uninterruptible
+@Uninterruptible public abstract class Memory
 {
   
   /**
@@ -53,7 +50,8 @@ public abstract class Memory implements Uninterruptible
    * 
    * @return The space managed by the virtual machine.
    */
-  public abstract ImmortalSpace getVMSpace() throws InterruptiblePragma;
+  @Interruptible
+  public abstract ImmortalSpace getVMSpace(); 
   
   /** Global preparation for a collection. */
   public abstract void globalPrepareVMSpace();
@@ -138,14 +136,16 @@ public abstract class Memory implements Uninterruptible
    * on all processors.  Ensures that all memory writes before this
    * point are visible to all processors.
    */
-  public abstract void sync() throws InlinePragma;
+  @Inline
+  public abstract void sync(); 
   
   /**
    * Wait for all preceeding instructions to complete and discard any 
    * prefetched instructions on this processor.  Also prevents the 
    * compiler from performing code motion across this point.
    */
-  public abstract void isync() throws InlinePragma;
+  @Inline
+  public abstract void isync(); 
  
   /*
    * NOTE: The following methods must be implemented by subclasses of this

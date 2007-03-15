@@ -34,15 +34,12 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class NoGCMutator extends MutatorContext implements Uninterruptible {
+@Uninterruptible  public abstract class NoGCMutator extends MutatorContext {
 
   /************************************************************************
    * Instance fields
@@ -76,8 +73,8 @@ public abstract class NoGCMutator extends MutatorContext implements Uninterrupti
    * @param site Allocation site
    * @return The address of the newly allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == NoGC.ALLOC_DEFAULT) {
       return def.alloc(bytes, align, offset, false);
     }
@@ -93,8 +90,9 @@ public abstract class NoGCMutator extends MutatorContext implements Uninterrupti
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator != NoGC.ALLOC_DEFAULT) {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }

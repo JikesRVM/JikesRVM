@@ -18,15 +18,12 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the simply sanity closure.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class SanityTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class SanityTraceLocal extends TraceLocal {
 
-  private SanityCheckerLocal sanityChecker;
+  private final SanityCheckerLocal sanityChecker;
 
   /**
    * Constructor
@@ -49,8 +46,8 @@ public final class SanityTraceLocal extends TraceLocal implements Uninterruptibl
    * @param root Is this object a root?
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object, boolean root)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object, boolean root) { 
     sanityChecker.processObject(this, object, root);
     return object;
   }

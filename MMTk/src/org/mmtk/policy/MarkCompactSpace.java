@@ -22,14 +22,11 @@ import org.vmmagic.pragma.*;
  * This class implements functionality for a simple sliding mark-compact
  * space.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class MarkCompactSpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class MarkCompactSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -110,7 +107,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public void release(Address start) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
@@ -125,8 +123,8 @@ public final class MarkCompactSpace extends Space
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return null;
@@ -142,8 +140,8 @@ public final class MarkCompactSpace extends Space
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) { 
     if (testAndMark(object)) {
       trace.enqueue(object);
     } else if (!getForwardingPointer(object).isNull()) {
@@ -162,8 +160,8 @@ public final class MarkCompactSpace extends Space
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public ObjectReference traceForwardObject(TraceLocal trace, ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceForwardObject(TraceLocal trace, ObjectReference object) { 
     if (testAndClearMark(object)) {
       trace.enqueue(object);
     }
@@ -178,7 +176,7 @@ public final class MarkCompactSpace extends Space
    * @param object The object
    * @return True if the object is live
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     return isMarked(object);
   }
 
@@ -189,7 +187,7 @@ public final class MarkCompactSpace extends Space
    * @param object The object reference.
    * @return True if the object is reachable.
    */
-  public final boolean isReachable(ObjectReference object) {
+  public boolean isReachable(ObjectReference object) {
     return isMarked(object);
   }
 
@@ -206,7 +204,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public final void postAlloc(ObjectReference object) throws InlinePragma {
+  @Inline
+  public void postAlloc(ObjectReference object) { 
   }
 
   /**
@@ -216,8 +215,8 @@ public final class MarkCompactSpace extends Space
    * @return The forwarding pointer stored in <code>object</code>'s
    * header.
    */
-  public static ObjectReference getForwardingPointer(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static ObjectReference getForwardingPointer(ObjectReference object) { 
     return object.toAddress().loadObjectReference(FORWARDING_POINTER_OFFSET);
   }
 
@@ -226,8 +225,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to initialise
    */
-  public void initializeHeader(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public void initializeHeader(ObjectReference object) { 
     // nothing to do
   }
 
@@ -237,8 +236,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to be marked
    */
-  public static boolean testAndMark(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public static boolean testAndMark(ObjectReference object) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -255,8 +254,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to be marked
    */
-  public static boolean isMarked(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public static boolean isMarked(ObjectReference object) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return (!markBit.isZero());
@@ -268,8 +267,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to be marked
    */
-  private static boolean testAndClearMark(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  private static boolean testAndClearMark(ObjectReference object) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -287,8 +286,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to be marked
    */
-  public static boolean toBeCompacted(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean toBeCompacted(ObjectReference object) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return !markBit.isZero() && getForwardingPointer(object).isNull();
@@ -300,8 +299,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object to be marked
    */
-  public static void clearMark(ObjectReference object) 
-    throws InlinePragma {
+  @Inline
+  public static void clearMark(ObjectReference object) { 
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     VM.objectModel.writeAvailableBitsWord(object, oldValue.and(GC_MARK_BIT_MASK.not()));
   }
@@ -315,9 +314,9 @@ public final class MarkCompactSpace extends Space
    * @param ptr The forwarding pointer to be stored in the object's
    * forwarding word
    */
+  @Inline
   public static void setForwardingPointer(ObjectReference object,
-                                           ObjectReference ptr)
-    throws InlinePragma {
+                                           ObjectReference ptr) { 
     object.toAddress().store(ptr.toAddress(), FORWARDING_POINTER_OFFSET);
   }
 
@@ -328,8 +327,8 @@ public final class MarkCompactSpace extends Space
    * 
    * @param object The object whose forwarding pointer is to be set
    */
-  public static void clearForwardingPointer(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static void clearForwardingPointer(ObjectReference object) { 
     object.toAddress().store(Address.zero(), FORWARDING_POINTER_OFFSET);
   }
 }

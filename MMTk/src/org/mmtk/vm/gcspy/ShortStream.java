@@ -20,20 +20,16 @@ import org.vmmagic.pragma.*;
 /**
  * Set up a GCspy Stream with data type SHORT_TYPE.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-
-public abstract class ShortStream extends Stream implements  Uninterruptible {
+@Uninterruptible public abstract class ShortStream extends Stream {
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private short data[];			// The stream data
+  private short[] data;			// The stream data
   private short defaultValue;	// The default value for the data items
   
   /****************************************************************************
@@ -71,7 +67,7 @@ public abstract class ShortStream extends Stream implements  Uninterruptible {
         int paintStyle,
         int indexMaxStream,
         Color colour,
-        boolean summary) throws InterruptiblePragma {
+        boolean summary) { 
     
    super(driver, StreamConstants.SHORT_TYPE, name, 
          minValue, maxValue, zeroValue, defaultValue,

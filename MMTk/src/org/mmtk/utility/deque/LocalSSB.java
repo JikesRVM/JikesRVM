@@ -44,11 +44,8 @@ import org.vmmagic.unboxed.*;
  * 
  * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-class LocalSSB extends Deque implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible class LocalSSB extends Deque implements Constants {
 
   /****************************************************************************
    * 
@@ -107,7 +104,8 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * @param arity The arity of the values stored in this SSB: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkTailInsert(int arity) throws InlinePragma {
+  @Inline
+  protected final void checkTailInsert(int arity) { 
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
     else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
@@ -120,7 +118,8 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * 
    * @param value the value to be inserted.
    */
-  protected final void uncheckedTailInsert(Address value) throws InlinePragma {
+  @Inline
+  protected final void uncheckedTailInsert(Address value) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
@@ -158,7 +157,8 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * @param arity The arity of this buffer
    * @return The sentinel offset value for a buffer of the given arity.
    */
-  protected final Offset bufferSentinel(int arity) throws InlinePragma {
+  @Inline
+  protected final Offset bufferSentinel(int arity) { 
     return bufferLastOffset(arity).plus(BYTES_IN_ADDRESS);
   }
 
@@ -173,7 +173,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void tailOverflow(int arity) {
+  private void tailOverflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
@@ -189,14 +189,15 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * 
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndEnqueueTail(int arity) throws NoInlinePragma {
+  @NoInline
+  private void closeAndEnqueueTail(int arity) {
     Address last;
     if (!bufferOffset(tail).isZero()) {
       // prematurely closed
       last = normalizeTail(arity);
     } else {
       // a full tail buffer
-      last = tail.plus(bufferLastOffset(arity));
+      last = tailBufferEnd.minus(BYTES_IN_ADDRESS);
     }
     queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
   }

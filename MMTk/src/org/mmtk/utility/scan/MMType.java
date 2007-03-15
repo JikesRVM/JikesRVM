@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
-//$Id$
 package org.mmtk.utility.scan;
 
 import org.mmtk.utility.Constants;
@@ -21,10 +20,8 @@ import org.vmmagic.pragma.*;
  * 
  * @author Andrew Gray
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class MMType implements Constants, Uninterruptible {
+@Uninterruptible public final class MMType implements Constants {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.
   private final boolean isReferenceArray;
   private final boolean isDelegated;
@@ -59,8 +56,7 @@ public final class MMType implements Constants, Uninterruptible {
    * type (if any).
    */
   public MMType(boolean isDelegated, boolean isReferenceArray,
-      boolean isAcyclic, int allocator, int[] offsets)
-      throws InterruptiblePragma {
+      boolean isAcyclic, int allocator, int[] offsets) { 
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
@@ -82,7 +78,8 @@ public final class MMType implements Constants, Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  public Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+  @Inline
+  public Address getSlot(ObjectReference object, int reference) { 
     Address addr = object.toAddress();
     if (isReferenceArray)
       return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
@@ -98,7 +95,8 @@ public final class MMType implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  public int getReferences(ObjectReference object) throws InlinePragma {
+  @Inline
+  public int getReferences(ObjectReference object) { 
     if (isReferenceArray)
       return VM.objectModel.getArrayLength(object);
     else
@@ -115,7 +113,8 @@ public final class MMType implements Constants, Uninterruptible {
    * 
    * @param size The number of bytes allocated
    */
-  void profileAlloc(int size) throws InlinePragma {
+  @Inline
+  void profileAlloc(int size) { 
     if (PROFILING_STATISTICS) {
       allocCount++;
       allocBytes += size;
@@ -127,7 +126,8 @@ public final class MMType implements Constants, Uninterruptible {
    * 
    * @param size The number of bytes copied. 
    */
-  public void profileCopy(int size) throws InlinePragma {
+  @Inline
+  public void profileCopy(int size) { 
     if (PROFILING_STATISTICS) {
       copyCount++;
       copyBytes += size;
@@ -139,7 +139,8 @@ public final class MMType implements Constants, Uninterruptible {
    * 
    * @param size The number of bytes scanned. 
    */
-  void profileScan(int size) throws InlinePragma {
+  @Inline
+  void profileScan(int size) { 
     if (PROFILING_STATISTICS) {
       scanCount++;
       scanBytes += size;

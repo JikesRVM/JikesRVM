@@ -44,17 +44,77 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  *
- * $Id$
- * 
+ * FIXME This seems to have changed
+ * The order of phases and GCspy actions is important here. It is:
+ *   PREPARE_MUTATOR phase
+ * 	SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
+ * 	SSMutator.PREPARE_MUTATOR // FIXME DOES NOT ss.rebind(SS.toSpace());
+ *
+ *   PREPARE phase
+ * 	SS.PREPARE // flip semispaces
+ *	gcspySpace.prepare();
+ * 	SSGCspyCollector.gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
+ * 	SSCollector.PREPARE // ss.rebind(SS.toSpace());
+ *
+ *
+ *   FORWARD_FINALIZABLE phase
+ * 	SSCollector.FORWARD_FINALIZABLE
+ *	SSGCspyCollector.gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+ *
+ *   RELEASE_MUTATOR phase
+ *	SSGCspyMutator.gcspyGatherData(SSGCspy.SEMISPACE_COPIED); // safepoint
+ *	SSMutator.RELEASE_MUTATOR // FIXME ss.rebind(SS.toSpace());
+ *	SSGCspyMutator.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ *
+ *   RELEASE phase
+ *	SSCollector.RELEASE
+ *	SSGCspyCollector.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ * 	SS.RELEASE
+ *	gcspySpace.release();
+ *	SSGCspy.gcspyGatherData(); // safepoint
+ *
+ * Note that SSMutator has changed the point at which it rebinds toSpace
+ * from PREPARE_MUTATOR (2.4.6) to after RELEASE_MUTATOR (3.x.x).
+ *
+ --Phase Collector.initiate
+ --Phase Mutator.initiate-mutator
+ --Phase Mutator.prepare-mutator
+     SSGCspyMutator.gcspyGatherData, event=0
+ --Phase Plan.prepare
+ --Phase Collector.prepare
+     SSGCspyCollector.gcspyGatherData, event=0
+ --Phase Collector.precopy
+ --Phase Collector.bootimage-root
+ --Phase Collector.root
+ --Phase Plan.root
+ --Phase Collector.start-closure
+ --Phase Collector.soft-ref
+ --Phase Collector.complete-closure
+ --Phase Collector.weak-ref
+ --Phase Collector.finalize
+ --Phase Collector.complete-closure
+ --Phase Collector.phantom-ref
+ --Phase Collector.forward-ref
+ --Phase Collector.forward-finalize
+     SSGCspyCollector.gcspyGatherData, event=1
+ --Phase Mutator.release-mutator
+     SSGCspyMutator.gcspyGatherData, event=1
+     SSGCspyMutator.gcspyGatherData, event=2
+ --Phase Collector.release
+     SSGCspyCollector.gcspyGatherData, event=2
+ --Phase Plan.release
+     SSGCspy.gcspyGatherData, event=2
+ --Phase Collector.complete
+ --Phase Plan.complete
+ *
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
+@Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 
   /****************************************************************************
    * 
@@ -122,8 +182,8 @@ public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  public final void startGCspyServer(int port, boolean wait)
-      throws InterruptiblePragma {
+  @Interruptible
+  public final void startGCspyServer(int port, boolean wait) { 
     GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/); 
     if (DEBUG) Log.writeln("SSGCspy: ServerInterpreter initialised");
     
@@ -167,8 +227,8 @@ public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
    * @param space The space
    * @return A new GCspy driver for this space
    */
-  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) 
-      throws InterruptiblePragma {
+  @Interruptible
+  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) { 
     // TODO What if tileSize is too small (i.e. too many tiles for GCspy buffer)
     // TODO stop the GCspy spaces in the visualiser from fluctuating in size
     // so much as we resize them.
@@ -183,8 +243,8 @@ public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
    * @param space The space
    * @return A new GCspy driver for this space
    */
-  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) 
-      throws InterruptiblePragma {
+  @Interruptible
+  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) { 
     return new TreadmillDriver(GCspy.server, name, space, 
             Options.gcspyTileSize.getValue(), LOS_SIZE_THRESHOLD, false);
   }
@@ -199,8 +259,8 @@ public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
    * 
    * @param phaseId Collection phase
    */
-  public void collectionPhase(int phaseId)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
     
     if (phaseId == SSGCspy.PREPARE) {

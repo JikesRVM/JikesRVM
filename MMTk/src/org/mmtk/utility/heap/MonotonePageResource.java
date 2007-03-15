@@ -26,14 +26,11 @@ import org.vmmagic.unboxed.*;
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class MonotonePageResource extends PageResource 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class MonotonePageResource extends PageResource 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -103,7 +100,8 @@ public final class MonotonePageResource extends PageResource
    * @return The start of the first page if successful, zero on
    * failure.
    */
-  protected final Address allocPages(int requestPages) throws InlinePragma {
+  @Inline
+  protected Address allocPages(int requestPages) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(contiguous);
     int pages = requestPages;
@@ -150,7 +148,7 @@ public final class MonotonePageResource extends PageResource
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  public final int adjustForMetaData(int pages) { 
+  public int adjustForMetaData(int pages) { 
     Extent bytes = Conversions.pagesToBytes(pages);
     if (metaDataPagesPerRegion != 0) {
       if (cursor.LE(getRegionStart(cursor.plus(bytes))))
@@ -174,21 +172,22 @@ public final class MonotonePageResource extends PageResource
    * request
    * @return The number of required pages, inclusive of any metadata
    */
-  public final int adjustForMetaData(int pages, Address begin) { 
+  public int adjustForMetaData(int pages, Address begin) { 
     if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
       pages += metaDataPagesPerRegion;
     return pages;
    }
   
-  private static final Address getRegionStart(Address addr) {
-    return addr.toWord().and(Word.fromInt(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
+  private static Address getRegionStart(Address addr) {
+    return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
 
   /**
    * Reset this page resource, freeing all pages and resetting
    * reserved and committed pages appropriately.
    */
-  public final void reset() throws InlinePragma {
+  @Inline
+  public void reset() { 
     lock();
     reserved = 0;
     committed = 0;
@@ -201,7 +200,7 @@ public final class MonotonePageResource extends PageResource
    * 
    * @param pages The number of pages
    */
-  public final void unusePages(int pages) {
+  public void unusePages(int pages) {
     lock();
     reserved -= pages;
     committed -= pages;
@@ -213,7 +212,7 @@ public final class MonotonePageResource extends PageResource
    * 
    * @param pages The number of pages
    */
-  public final void reusePages(int pages) {
+  public void reusePages(int pages) {
     lock();
     reserved += pages;
     committed += pages;
@@ -225,7 +224,8 @@ public final class MonotonePageResource extends PageResource
    * Release all pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
-  private final void releasePages() throws InlinePragma {
+  @Inline
+  private void releasePages() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     Extent bytes = cursor.diff(start).toWord().toExtent();
     releasePages(start, bytes);
@@ -236,8 +236,8 @@ public final class MonotonePageResource extends PageResource
    * Release a range of pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
-  private final void releasePages(Address first, Extent bytes)
-      throws InlinePragma {
+  @Inline
+  private void releasePages(Address first, Extent bytes) {
     int pages = Conversions.bytesToPages(bytes);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));

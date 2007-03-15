@@ -8,7 +8,6 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# $Id$
 
 # This script takes the result file from running Run-gather-DNA and
 # produces a simple text table of the compilation rates and speedups

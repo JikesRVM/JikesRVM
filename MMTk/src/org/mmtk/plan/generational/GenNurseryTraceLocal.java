@@ -23,16 +23,12 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class GenNurseryTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class GenNurseryTraceLocal extends TraceLocal {
 
   /****************************************************************************
    * 
@@ -85,8 +81,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
         return Gen.nurserySpace.traceObject(this, object);
@@ -99,7 +95,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * Process any remembered set entries.
    */
-  protected void processRememberedSets() throws InlinePragma {
+  @Inline
+  protected void processRememberedSets() { 
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
@@ -120,7 +117,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * @return The allocator to use when copying objects during this trace.
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public int getAllocator() { 
     return Gen.ALLOC_MATURE_MINORGC;
   }
 

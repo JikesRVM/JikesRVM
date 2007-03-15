@@ -11,16 +11,13 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * Base class for boolean options.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class BooleanOption extends Option {
   // values
@@ -44,7 +41,8 @@ public class BooleanOption extends Option {
    * 
    * @return The option value.
    */
-  public boolean getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean getValue() { 
     return this.value;
   }
 
@@ -53,7 +51,8 @@ public class BooleanOption extends Option {
    * 
    * @return The default value.
    */
-  public boolean getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public boolean getDefaultValue() { 
     return this.defaultValue;
   }
 
@@ -76,5 +75,22 @@ public class BooleanOption extends Option {
       Log.writeln(value);
     }
     validate();
+  }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(value);
+        break;
+      default:
+        super.log(format);
+    }
   }
 }

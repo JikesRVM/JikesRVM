@@ -21,24 +21,18 @@ import org.vmmagic.pragma.*;
  * integer (long) value for each phase).
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
-public abstract class LongCounter extends Counter
-  implements Uninterruptible {
+@Uninterruptible public abstract class LongCounter extends Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private long count[];
+  private final long[] count;
 
   private long startValue = 0;
   protected long totalCount = 0;
-  protected long min = 0;
-  protected long max = 0;
   private boolean running = false;
 
   /****************************************************************************
@@ -86,7 +80,7 @@ public abstract class LongCounter extends Counter
    * 
    * Counter-specific methods
    */
-  abstract protected long getCurrentValue();
+  protected abstract long getCurrentValue();
 
   /****************************************************************************
    * 
@@ -138,7 +132,7 @@ public abstract class LongCounter extends Counter
    * 
    * @param phase The phase to be printed
    */
-  final protected void printCount(int phase) {
+  protected final void printCount(int phase) {
     if (VM.VERIFY_ASSERTIONS && mergePhases())
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
     if (mergePhases())
@@ -170,7 +164,7 @@ public abstract class LongCounter extends Counter
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
-  final protected void printTotal(boolean mutator) {
+  protected final void printTotal(boolean mutator) {
     long total = 0;
     for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
       total += count[p];
@@ -185,7 +179,7 @@ public abstract class LongCounter extends Counter
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
-  final protected void printMin(boolean mutator) {
+  protected final void printMin(boolean mutator) {
     int p = (mutator) ? 0 : 1;
     long min = count[p];
     for (; p < Stats.phase; p += 2) {
@@ -201,7 +195,7 @@ public abstract class LongCounter extends Counter
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
-  final protected void printMax(boolean mutator) {
+  protected final void printMax(boolean mutator) {
     int p = (mutator) ? 0 : 1;
     long max = count[p];
     for (; p < Stats.phase; p += 2) {

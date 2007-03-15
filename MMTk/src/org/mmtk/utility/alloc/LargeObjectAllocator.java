@@ -28,11 +28,8 @@ import org.vmmagic.pragma.*;
  * improvement...
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public abstract class LargeObjectAllocator extends Allocator implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
 
   /****************************************************************************
    * 
@@ -76,14 +73,14 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  public final Address alloc(int bytes, int align, int offset, boolean inGC)
-      throws NoInlinePragma {
+  @NoInline
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
     Address cell = allocSlow(bytes, align, offset, inGC);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);
   }
 
-  abstract protected void postAlloc(Address cell);
+  protected abstract void postAlloc(Address cell);
 
   /**
    * Allocate a large object.  Large objects are directly allocted and
@@ -98,7 +95,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  final protected Address allocSlowOnce(int bytes, int align, int offset,
+  protected final Address allocSlowOnce(int bytes, int align, int offset,
       boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
@@ -122,8 +119,8 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * 
    * @param cell The address of the first byte of the cell to be freed
    */
-  public final void free(Address cell)
-    throws InlinePragma {
+  @Inline
+  public final void free(Address cell) { 
     space.release(getSuperPage(cell));
   }
 
@@ -132,8 +129,8 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * Superpages
    */
 
-  abstract protected int superPageHeaderSize();
-  abstract protected int cellHeaderSize();
+  protected abstract int superPageHeaderSize();
+  protected abstract int cellHeaderSize();
 
   /**
    * Return the superpage for a given cell.  If the cell is a small
@@ -146,8 +143,8 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the first word of the superpage containing
    *         <code>cell</code>.
    */
-  public static final Address getSuperPage(Address cell)
-    throws InlinePragma {
+  @Inline
+  public static Address getSuperPage(Address cell) {
     return cell.toWord().and(PAGE_MASK).toAddress();
   }
 

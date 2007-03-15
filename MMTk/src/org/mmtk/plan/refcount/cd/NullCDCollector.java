@@ -18,14 +18,10 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements <i>per-collector thread</i> behavior 
  * for a null cycle detector.
  * 
- * $Id: MSCollector.java,v 1.3 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public final class NullCDCollector extends CDCollector 
-  implements Uninterruptible {
+@Uninterruptible public final class NullCDCollector extends CDCollector {
   /**
    * Buffer an object after a successful update when shouldBufferOnDecRC
    * returned true.

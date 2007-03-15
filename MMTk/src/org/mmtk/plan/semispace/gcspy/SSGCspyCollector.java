@@ -16,7 +16,6 @@ import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SS;
 import org.mmtk.plan.semispace.SSCollector;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
@@ -38,18 +37,15 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class SSGCspyCollector extends SSCollector implements Uninterruptible {
+@Uninterruptible public class SSGCspyCollector extends SSCollector {
 
   /****************************************************************************
    * 
@@ -91,8 +87,8 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
    * <li>all large objects allocated by the mutator
    * </ul>
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
     
     //TODO do we need to worry any longer about primary??
@@ -247,17 +243,9 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
    * @param addr The Address of the object to be checked
    */
   protected void checkAllDriversForRootAddress(Address addr) {
-    // Is root in the boot image?
-	if (Space.isInSpace(SSGCspy.VM_SPACE, addr.toObjectReference()))
-	  return;
-    /*
-     if (addr.GE(Plan.vmSpace.getStart()) 
-        && addr.LE(Plan.vmSpace.getStart().plus(Plan.vmSpace.getExtent()))) 
-      return;
-    */
-    
     if(addr.isZero()) 
       return;
+    
     SSGCspy.ss0Driver.handleRoot(addr);
     SSGCspy.ss1Driver.handleRoot(addr);
     SSGCspy.immortalDriver.handleRoot(addr);
@@ -273,7 +261,8 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
    */
 
   /** @return The active global plan as an <code>SSGCspy</code> instance. */
-  private static final SSGCspy global() throws InlinePragma {
+  @Inline
+  private static SSGCspy global() {
     return (SSGCspy) VM.activePlan.global();
   }
 

@@ -1,0 +1,33 @@
+Boolean Array Expected: false,true  Actual: false,true
+Byte Array Expected: 127,-1  Actual: 127,-1
+Char Array Expected: c,$  Actual: c,$
+Short Array Expected: 32767,-1  Actual: 32767,-1
+Int Array Expected: 0,1  Actual: 0,1
+Long Array Expected: 0,1  Actual: 0,1
+Float Array Expected: 0,1  Actual: 0.0,1.0
+Double Array Expected: 0,1  Actual: 0.0,1.0
+Double Array Expected: null,s  Actual: null,s
+Double Array Expected: null,[Ljava.lang.Object;  Actual: null,[Ljava.lang.Object;
+Multi-dimensional Int Array
+    0    1    2    3
+    4    5    6    7
+    8    9   10   11
+
+   12   13   14   15
+   16   17   18   19
+   20   21   22   23
+
+
+Multi-dimensional Object Array
+    0    1    2    3
+    4    5    6    7
+    8    9   10   11
+
+   12   13   14   15
+   16   17   18   19
+   20   21   22   23
+
+
+Partial Multi-dimensional int Array
+  null  null  null
+  null  null  null

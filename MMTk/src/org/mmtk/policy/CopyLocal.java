@@ -23,11 +23,8 @@ import org.vmmagic.pragma.*;
  * 
  * @author Daniel Frampton
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class CopyLocal extends BumpPointer implements Uninterruptible {
-  public final static String Id = "$Id$";
+@Uninterruptible public final class CopyLocal extends BumpPointer {
 
   /**
    * Constructor

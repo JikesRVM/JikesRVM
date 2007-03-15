@@ -6,10 +6,9 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-//$Id$
 
 import java.util.*;
-import com.ibm.JikesRVM.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_Type;
 
 /**
  * Worker thread for parallel compilation

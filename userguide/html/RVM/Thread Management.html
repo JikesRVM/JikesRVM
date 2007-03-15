@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <title>RVM : Thread Management</title>
+	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
+
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+				    <div class="pageheader">
+					    <span class="pagetitle">
+                            RVM : Thread Management
+                                                    </span>
+				    </div>
+				    <div class="pagesubheading">
+					    This page last changed on Mar 11, 2007 by <font color="#0050B2">pdonald</font>.
+				    </div>
+
+				    <p>This section provides some explanation of how Java<a href="Trademarks.html" title="Trademarks">™</a> threads are scheduled and synchronized by Jikes<a href="Trademarks.html" title="Trademarks">™</a> RVM.</p>
+
+<p>All Java threads (application threads, garbage collector threads, etc.) derive from <tt>VM&#95;Thread</tt>. These threads are multiplexed onto one or more virtual processors (see <tt>VM&#95;Processor</tt>). The number of Jikes RVM virtual processors to use is a command line argument (e.g. -X:processors=4). If no command line argument is given, Jikes RVM will default to creating only one virtual processor. If you want Jikes RVM to utilize more than 1 CPU, then you need to tell it to use the appropriate number of virtual processors. Multiple virtual processors require a working pthread library, each virtual processor being bound to a pthread. </p>
+
+<p>The Jikes RVM is a a M:N thread model, scheduling execution of an arbitrarily large number (M) of Java threads over a finite number (N) of <tt>VM&#95;Processors</tt>. This means that at most N Java threads can be executing concurrently (true concurrency requires that the underlying platform incorporate multiple execution contexts capable of running several pthreads simultaneously). For maximal performance, you should tell Jikes RVM to create one virtual processor for each CPU on an SMP. </p>
+
+
+<p>A benefit of M:N threading is that the Java system can only obtain N pthreads worth of scheduled execution time from the underlying operating system. By contrast a 1:1 model would allow the Java system to swamp the system with runnable threads, crowding out system threads and other Unix applications (Of course, in certain situations 1:1 threading may be more appropriate). Another benefit is that system-wide thread management within th RVM involves synchronizing at most N active threads (N is an RVM-boot time constant) rather than an unbounded number of threads. For example, a stop the world garbage collector merely needs to flag the N currently active threads that they should switch into a collector thread rather than having to stop every mutator thread in the system.</p>
+
+<p>A downside to the M:N threading model is that a given Java thread may be scheduled for execution by different pthreads at different stages during in its execution. In particular, when the Java thread calls native methods which rely upon per-pthread storage this choice of threading model is disastrous. Unfortunately many threaded library implementations do exactly this.</p>
+
+<h2><a name="ThreadManagement-ThreadQueues"></a>Thread Queues</h2>
+
+<p>Threads that are not executing are either placed on thread queues (deriving from <tt>VM&#95;AbstractThreadQueue</tt>) or are proxied (see below). Thread queues are either global or (virtual) processor local. The latter do not require synchronized access but global queues do. Unfortunately, we did not see how to use Java monitors to provide this synchronization. (In part, because it is needed to implement monitors, see below.) Instead this low-level synchronization is provided by <tt>VM&#95;ProcessorLocks</tt>.</p>
+
+<p>Transferring execution from one thread (A) to another (B) is a complex operation negotiated by the yield and morph methods of <tt>VM&#95;Thread</tt> and the dispatch method of <tt>VM&#95;Processor</tt>. <tt>yield</tt> places A on an indicated queue (releasing the lock on the queue, if it is global). <tt>morph</tt> does some additional housekeeping and transfers control to dispatch which selects the next thread to execute. Dispatch then invokes <tt>VM&#95;Magic.threadSwitch</tt> to save the hardware context of A and restore the hardware context of B. It now appears as if B's previous call to dispatch has just returned and it continues executing. While dispatching is proceeding (from the time A is enqueued until B's hardware context is restored), the beingDispatched field of A is set to prevent it from being scheduled for execution on some other virtual processor while it is still executing in morph or dispatch.</p>
+
+<p>Jikes RVM has a simple load balancing mechanism. Every once in a while, a thread will move from one virtual processor to the next. Such movement happens when a thread is interrupted by a timer tick (or garbage collection) or when it comes off a global queue (such as, the queues waiting for a heavy-weight lock, see <tt>VM&#95;Lock</tt>). Such migration will be inhibited if the thread is the last (non-idle) executable thread on its current virtual processor.</p>
+
+<p>If a virtual processor has no other executable thread, its idle thread runs. This thread posts a request for work and then busy-waits for a short time (currently 0.001 seconds). If no work arrives in that period, the virtual processor surrenders the rest of its time slice back to the operating system. If another virtual processor notices that this one needs work, it will tranfer an extra runnable thread (if it has one) to this processor. When work arrives, the idle thread yields to an idle queue, and the recently transferred thread begins execution.</p>
+
+<p>Currently, Jikes RVM has no priority mechanism, that is, all threads run at the same priority.</p>
+
+<h2><a name="ThreadManagement-Synchronization"></a>Synchronization</h2>
+
+<p>Jikes RVM uses a light-weight locking scheme to implement Java monitors (see <tt>VM&#95;Lock</tt> and <tt>VM&#95;ThinLock</tt>). The exact details of the locking scheme are dependent on which variant of VM_JavaHeader.java is selected at system build time. If an object instance has a light weight lock, then some bits in the object header are used for locking. If the top bit is set, the remainder of the bits are an index into an array of heavy-weight locks. Otherwise, if the object is locked, these bits contain the id of the thread that holds the lock and a count of how many times it is held. If a thread tries to lock an object locked with a light-weight lock by another thread, it can spin, yield, or inflate the lock. Spinning is probably a bad idea. The number of times to yield before inflating is a matter open for investigation (as are a number of locking issues, see <tt>VM&#95;Lock</tt>). Heavy-weight locks contain an enteringQueue for threads trying to acquire the lock.</p>
+
+<p>A similar mechanism is used to implement Java wait/notification semantics. Heavy-weight locks contain a waitingQueue for threads blocked at a Java wait. When a notify is received, a thread is taken from this queue and transferred to a ready queue. Priority wakeupQueues are used to implement Java sleep semantics. Logically, Java timed-wait semantics entail placing a thread on both a waitingQueue and a wakeupQueue. However, our implementation only allows a thread to be on one thread queue at a time. To accommodate timed-waits, both waitingQueues and wakeupQueues are queues of proxies rather than threads. A <tt>VM&#95;Proxy</tt> can represent the same thread on more than one proxy queue. </p>
+
+<h2><a name="ThreadManagement-IOManagement"></a>IO Management</h2>
+
+<p>Many native IO operations are blocking operations and the thread invoking the operation will block until the IO operation completes. This causes problems for the Jikes RVM M:N thread model. If a <tt>VM&#95;Thread</tt> invokes such an operation the whole <tt>VM&#95;Processor</tt> will be blocked and unable to schedule any other <tt>VM&#95;Threads</tt>.</p>
+
+<p>The Jikes RVM attempts to avoid this problem by intercepting blocking IO operations and replacing them with non-blocking operations. The calling thread is then suspended and placed in a <tt>VM&#95;ThreadIOQueue</tt>. The <tt>VM&#95;Processor</tt> periodically checks pending IO operations and after they complete the calling thread is moved from the <tt>VM&#95;ThreadIOQueue</tt> back into the running queue. The Jikes RVM may not always be able to intercept blocking IO operations in native code and can not insert yield points in native code. As a result a long running or blocked native method can block other threads. </p>
+
+
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Mar 15, 2007 09:56</font></td>
+		    </tr>
+	    </table>
+    </body>
+</html>

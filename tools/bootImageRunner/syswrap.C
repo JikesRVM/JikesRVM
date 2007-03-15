@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id$
 
 /**
  * Wrappers for blocking system calls.
@@ -27,10 +26,8 @@
 
 #define VERBOSE_WRAPPERS 0
 
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-# include <pthread.h>
-# include <errno.h>
-#endif
+#include <pthread.h>
+#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -222,7 +219,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     }
 
     // Call VM_Thread.ioWaitSelect()
-    jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
+    jclass vmWaitClass = env->FindClass("org/jikesrvm/VM_Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
                                                           "ioWaitSelect", "([I[I[IDZ)V");
     env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
@@ -316,8 +313,6 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
     return ready;
 }
 
-
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 // Wrapper for pthread_mutex_lock
 // If the lock can't be obtained then yield and try again
 int pthread_mutex_lock(pthread_mutex_t *mutex)
@@ -393,4 +388,3 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
   }
   return err;
 }
-#endif

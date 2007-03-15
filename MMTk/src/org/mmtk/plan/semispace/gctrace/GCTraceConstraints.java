@@ -10,7 +10,6 @@
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003
  *
- * $Id$
  */
 package org.mmtk.plan.semispace.gctrace;
 
@@ -27,10 +26,8 @@ import org.vmmagic.pragma.*;
  * @author Robin Garner
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class GCTraceConstraints extends SSConstraints implements Uninterruptible {
+@Uninterruptible public class GCTraceConstraints extends SSConstraints {
   public boolean needsWriteBarrier() { return true; }
 
   public boolean generateGCTrace() { return true; }

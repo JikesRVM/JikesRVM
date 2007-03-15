@@ -41,15 +41,12 @@ import org.vmmagic.unboxed.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class MSMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
@@ -85,8 +82,8 @@ public abstract class MSMutator extends StopTheWorldMutator implements Uninterru
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == MS.ALLOC_DEFAULT) {
       return ms.alloc(bytes, align, offset, false);
     }
@@ -103,8 +100,9 @@ public abstract class MSMutator extends StopTheWorldMutator implements Uninterru
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == MS.ALLOC_DEFAULT)
       MS.msSpace.postAlloc(ref);
     else
@@ -152,8 +150,8 @@ public abstract class MSMutator extends StopTheWorldMutator implements Uninterru
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MS.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();

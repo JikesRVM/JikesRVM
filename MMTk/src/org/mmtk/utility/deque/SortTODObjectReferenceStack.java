@@ -22,12 +22,9 @@ import org.vmmagic.pragma.*;
  * the shared stack.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public class SortTODObjectReferenceStack extends LocalDeque 
-  implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -58,7 +55,8 @@ public class SortTODObjectReferenceStack extends LocalDeque
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     Address addr = object.toAddress();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
@@ -72,7 +70,8 @@ public class SortTODObjectReferenceStack extends LocalDeque
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue().toObjectReference();
     } else {
@@ -86,7 +85,8 @@ public class SortTODObjectReferenceStack extends LocalDeque
    * @return True if there are no more entries on the local & shared stack,
    *         false otherwise.
    */
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 }

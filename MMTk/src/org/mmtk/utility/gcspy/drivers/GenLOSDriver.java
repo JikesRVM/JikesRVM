@@ -25,15 +25,11 @@ import org.vmmagic.pragma.*;
  * This class extends a simple driver for the MMTk LargeObjectSpace 
  * for Generational Collectors.
  *
- * $Id$ 
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision$
- * @date $Date$
  */
-public class GenLOSDriver extends TreadmillDriver 
-  implements Uninterruptible {
+@Uninterruptible public class GenLOSDriver extends TreadmillDriver {
   
   private static final boolean DEBUG = false;
 
@@ -58,8 +54,7 @@ public class GenLOSDriver extends TreadmillDriver
                       LargeObjectSpace lospace,
                       int blockSize,
                       int threshold,
-                      boolean mainSpace) 
-      throws InterruptiblePragma {
+                      boolean mainSpace) { 
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, threshold, mainSpace);
     // create remset stream
@@ -77,7 +72,8 @@ public class GenLOSDriver extends TreadmillDriver
   } 
   
   // private creator methods for the streams 
-  private ShortStream createRemsetStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRemsetStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Remembered set stream",

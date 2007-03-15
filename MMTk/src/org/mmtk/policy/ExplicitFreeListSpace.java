@@ -25,15 +25,12 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  * 
- *  $Id: MarkSweepSpace.java,v 1.31 2006/06/21 07:38:16 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
- * @version $Revision: 1.31 $
- * @date $Date: 2006/06/21 07:38:16 $
  */
-public final class ExplicitFreeListSpace extends Space
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class ExplicitFreeListSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -168,7 +165,8 @@ public final class ExplicitFreeListSpace extends Space
    * 
    * @param start The address of the start of the page or pages
    */
-  public final void release(Address start) throws InlinePragma {
+  @Inline
+  public void release(Address start) { 
     ((FreeListPageResource) pr).releasePages(start);
   }
 
@@ -190,9 +188,9 @@ public final class ExplicitFreeListSpace extends Space
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object) { 
     return object;
   }
 
@@ -201,8 +199,8 @@ public final class ExplicitFreeListSpace extends Space
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-  public boolean isLive(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     return true;
   }
 }

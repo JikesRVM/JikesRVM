@@ -22,15 +22,12 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class GenRCTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -71,7 +68,7 @@ public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible
    * in a root.
    * @return The possibly moved reference.
    */
-  public final ObjectReference traceObject(ObjectReference object,
+  public ObjectReference traceObject(ObjectReference object,
                                            boolean root) {
     if (object.isNull()) return object;
     if (Space.isInSpace(GenRC.NS, object)) {
@@ -95,12 +92,13 @@ public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public final ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     return traceObject(object, false);
   }
 
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public int getAllocator() { 
     return GenRC.ALLOC_RC;
   }
 
@@ -109,7 +107,7 @@ public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible
     return !(Space.isInSpace(GenRC.NS, object));
   }
 
-  public final ObjectReference precopyObject(ObjectReference object) {
+  public ObjectReference precopyObject(ObjectReference object) {
     if (Space.isInSpace(GenRC.NS, object))
       return GenRC.nurserySpace.traceObject(this, object);
     return object;
@@ -131,7 +129,8 @@ public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible
   /**
    * @return The current RC collector instace.
    */
-  private static final GenRCCollector collector() throws InlinePragma {
+  @Inline
+  private static GenRCCollector collector() {
     return (GenRCCollector)VM.activePlan.collector();
   }
 }

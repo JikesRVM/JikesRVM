@@ -24,14 +24,11 @@ import org.vmmagic.unboxed.*;
  * 
  * This class is not thread safe.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class SanityDataTable extends SimpleHashtable 
-  implements Uninterruptible, Constants {
+@Uninterruptible public final class SanityDataTable extends SimpleHashtable 
+  implements Constants {
 
   /** The number of bits for the normal reference count */
   private static final int NORMAL_RC_BITS = 25;
@@ -55,7 +52,7 @@ public final class SanityDataTable extends SimpleHashtable
    * @param logSize The log of the number of table entries. 
    */
   public SanityDataTable(RawPageSpace rps, int logSize) {
-    super(rps, logSize, Extent.fromInt(BYTES_IN_WORD));
+    super(rps, logSize, Extent.fromIntSignExtend(BYTES_IN_WORD));
   }
 
   /**
@@ -65,8 +62,8 @@ public final class SanityDataTable extends SimpleHashtable
    * @param root True if this is a root reference.
    * @return True if this is the first ref to that object.
    */
-  public static boolean incRC(Address entry, boolean root) 
-  throws InlinePragma {
+  @Inline
+  public static boolean incRC(Address entry, boolean root) { 
     Address data = SimpleHashtable.getPayloadAddress(entry);
     int old = data.loadInt();
     data.store(old + (root ? ROOT_RC_INC : NORMAL_RC_INC));

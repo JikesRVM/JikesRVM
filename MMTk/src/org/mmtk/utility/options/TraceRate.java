@@ -9,16 +9,13 @@
  */
 package org.mmtk.utility.options;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.*;
 
 /**
  * The granularity of the trace being produced.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class TraceRate extends IntOption
   implements org.mmtk.utility.Constants {
@@ -36,7 +33,8 @@ public class TraceRate extends IntOption
    * 
    * @return the trace rate.
    */
-  public int getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getValue() { 
     return (this.value < BYTES_IN_ADDRESS)
       ? 1
         : (this.value >> LOG_BYTES_IN_ADDRESS);

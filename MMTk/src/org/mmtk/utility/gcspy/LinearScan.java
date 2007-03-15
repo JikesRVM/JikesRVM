@@ -20,14 +20,10 @@ import org.vmmagic.pragma.*;
  * org.mmtk.utility.alloc.LinearScan as an interface since the invokeinterface
  * bytecode is forbidden in uninterruptible code.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-public class LinearScan extends org.mmtk.utility.alloc.LinearScan
-  implements Uninterruptible {
+@Uninterruptible public class LinearScan extends org.mmtk.utility.alloc.LinearScan {
 
   private final AbstractDriver driver;
 

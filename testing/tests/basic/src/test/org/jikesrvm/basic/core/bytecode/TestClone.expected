@@ -1,0 +1,55 @@
+Original:
+a
+Clone:
+a
+a.equals(b) = false
+a == b      = false
+
+Changing clones value.
+Original:
+aa
+Clone:
+a
+a.equals(b) = false
+a == b      = false
+
+Testing arrays.
+
+Original:
+00 01 02 
+10 11 12 
+Clone:
+00 01 02 
+10 11 12 
+a.equals(b) = false
+a == b      = false
+
+after changing object value
+Original:
+00 01 02 
+10 xx 12 
+Clone:
+00 01 02 
+10 xx 12 
+a.equals(b) = false
+a == b      = false
+
+after changing element
+Original:
+00 01 02 
+10 zz 12 
+Clone:
+00 01 02 
+10 zz 12 
+a.equals(b) = false
+a == b      = false
+
+after changing row
+Original:
+00 01 02 
+a b c 
+Clone:
+00 01 02 
+10 zz 12 
+a.equals(b) = false
+a == b      = false

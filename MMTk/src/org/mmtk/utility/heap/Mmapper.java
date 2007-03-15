@@ -23,32 +23,29 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements mmapping and protection of virtual memory.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class Mmapper implements Constants, Uninterruptible {
+@Uninterruptible public final class Mmapper implements Constants {
   
   /****************************************************************************
    * Constants
    */
-  final public static byte UNMAPPED = 0;
-  final public static byte MAPPED = 1;
-  final public static byte PROTECTED = 2; // mapped but not accessible
-  final public static int LOG_MMAP_CHUNK_BYTES = 20;
-  final public static int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
+  public static final byte UNMAPPED = 0;
+  public static final byte MAPPED = 1;
+  public static final byte PROTECTED = 2; // mapped but not accessible
+  public static final int LOG_MMAP_CHUNK_BYTES = 20;
+  public static final int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
   //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
-  private final static int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
-  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES);
+  private static final int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
+  private static final int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES);
   public static final boolean verbose = false;
 
   /****************************************************************************
    * Class variables
    */
   public static final Lock lock = VM.newLock("Mmapper");
-  private static byte mapped[];
+  private static byte[] mapped;
 
 
   /****************************************************************************
@@ -214,8 +211,8 @@ public final class Mmapper implements Constants, Uninterruptible {
    * @param addr The address in question.
    * @return true if the given address has been mmapped
    */
-  public static boolean addressIsMapped(Address addr)
-      throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean addressIsMapped(Address addr) { 
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
@@ -226,8 +223,8 @@ public final class Mmapper implements Constants, Uninterruptible {
    * @param object The object in question.
    * @return true if the given object has been mmapped
    */
-  public static boolean objectIsMapped(ObjectReference object)
-      throws UninterruptiblePragma {
+  @Uninterruptible
+  public static boolean objectIsMapped(ObjectReference object) { 
     return addressIsMapped(VM.objectModel.refToAddress(object));
   }
   
@@ -237,6 +234,7 @@ public final class Mmapper implements Constants, Uninterruptible {
    * @param addr The address to be aligned
    * @return The given address rounded up to an mmap chunk size
    */
+  @SuppressWarnings("unused")  // but might be useful someday
   private static Address chunkAlignUp(Address addr) {
     return chunkAlignDown(addr.plus(MMAP_CHUNK_MASK));
   }
@@ -248,7 +246,7 @@ public final class Mmapper implements Constants, Uninterruptible {
    * @return The given address rounded down to an mmap chunk size
    */
   private static Address chunkAlignDown(Address addr) {
-    return addr.toWord().and(Word.fromInt(MMAP_CHUNK_MASK).not()).toAddress();
+    return addr.toWord().and(Word.fromIntSignExtend(MMAP_CHUNK_MASK).not()).toAddress();
   }
 }
 

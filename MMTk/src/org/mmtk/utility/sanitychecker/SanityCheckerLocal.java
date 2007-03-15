@@ -23,16 +23,13 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for StopTheWorld collectors.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class SanityCheckerLocal implements Uninterruptible, Constants {
+@Uninterruptible public class SanityCheckerLocal implements Constants {
 
   /* Trace */
-  private SanityTraceLocal sanityTrace;
+  private final SanityTraceLocal sanityTrace;
 
 
   /****************************************************************************
@@ -49,7 +46,8 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
    * @param primary Perform local single threaded actions on this thread
    * @return True if the phase was handled.
    */
-  public final boolean collectionPhase(int phaseId, boolean primary) throws NoInlinePragma {
+  @NoInline
+  public final boolean collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();

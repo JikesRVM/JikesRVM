@@ -5,7 +5,6 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2005, 2006
 #
-# $Id$
 
 # @author Peter Sweeney
 # @date 11/1/2001
@@ -23,44 +22,40 @@
 # short as possible, and all exceptions need to be
 # approved by the steering committee.
 #
-/\/tools-external\// { next }
+/\/rvm\/src-generated\/opt-burs\/jburg\// { next }
 
 # Avoid reporting a gazillion bogus violations when
 # this script is run from night-sanity-run
-/\/results\// { next }
-/\/images\// { next }
-/\/doc\/api\// { next }
-/\/MSG/ { next }
+/results\// { next }
+/dist\// { next }
+/generated\// { next }
+/target\// { next }
+/doc\/api\// { next }
 
-/\/doc\/userguide\// { next }
-/\/MMTk\/doc\// { next }
+# don't need an author for all the build scripts
+/build\// { next }
 
-/\/testing\/harness\/tests\/javalex\/qb1.lex.ref/ {next}
-/\/testing\/harness\/tests\/jBYTEmark\/jBYTEmark.java/ {next}
-/\/testing\/harness\/tests\/SPECjbb2000\/SPECjbb./ {next}
-/\/testing\/harness\/tests\/SPECjbb2005\/SPECjbb./ {next}
-/\/testing\/harness\/tests\/pseudojbb\/pseudojbb/ {next}
-/\/testing\/harness\/tests\/pseudojbb\/props/ {next}
-/\/testing\/harness\/tests\/mauve\/mauve-jikesrvm/ {next}
+/doc\/userguide\// { next }
+/MMTk\/doc\// { next }
+
+/testing\/tests\/javalex\/qb1.lex.ref/ {next}
+/testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
+/testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
+/testing\/tests\/pseudojbb\/pseudojbb/ {next}
+/testing\/tests\/pseudojbb\/props/ {next}
+/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 # actually has the right headers, but utf8 characters break the checkers
-/\/testing\/harness\/tests\/utf8\/utf8test.java/ {next}
+/testing\/tests\/utf8\/src\/utf8test.java/ {next}
 
-/\/tools\/bootImageRunner\/com_ibm_JikesRVM_VM_0005fProcess.h/ { next }
-/\/tools\/bootImageWriter\/rvm.security/ { next }
-/\/tools\/preprocessor\/testFancy.preprocessor/ { next }
-/\/tools\/preprocessor\/testSimple.preprocessor/ { next }
-/\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
-/\/tools\/install\/macros.txt/ { next }
+/tools\/bootImageRunner\/org_jikesrvm_VM_0005fProcess.h/ { next }
+/tools\/bootImageWriter\/rvm.security/ { next }
 
-/\/LICENSE/ { next }
-/\/NEWS/ { next }
+/LICENSE/ { next }
+/NEWS/ { next }
 
-/\/TimeLimit.sanity/ { next }
-/\/TimeLimit.performance/ { next }
-
-/\.properties$/ { next }
-/\.properties\.sample$/ { next }
+/.properties$/ { next }
+/.properties\.sample$/ { next }
 /README$/ { next }
 
 #

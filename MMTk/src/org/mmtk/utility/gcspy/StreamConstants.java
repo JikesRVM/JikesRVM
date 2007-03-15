@@ -35,30 +35,27 @@ package org.mmtk.utility.gcspy;
    </table>
  * StreamConstants
  * 
- * $Id$
- * 
+ *
  * @author Richard Jones
- * @version $Revision$
- * @date $Date$
  */
 
 public interface StreamConstants {
 
-  public static final int NAME_LEN = 40;
-  public static final int PRESENTATION_PLAIN       = 0;
-  public static final int PRESENTATION_PLUS        = 1;
-  public static final int PRESENTATION_MAX_VAR     = 2;
-  public static final int PRESENTATION_PERCENT     = 3;
-  public static final int PRESENTATION_PERCENT_VAR = 4;
-  public static final int PRESENTATION_ENUM        = 5;
+  int NAME_LEN = 40;
+  int PRESENTATION_PLAIN       = 0;
+  int PRESENTATION_PLUS        = 1;
+  int PRESENTATION_MAX_VAR     = 2;
+  int PRESENTATION_PERCENT     = 3;
+  int PRESENTATION_PERCENT_VAR = 4;
+  int PRESENTATION_ENUM        = 5;
 
-  public static final int PAINT_STYLE_PLAIN = 0;
-  public static final int PAINT_STYLE_ZERO  = 1;
+  int PAINT_STYLE_PLAIN = 0;
+  int PAINT_STYLE_ZERO  = 1;
 
-  public static final int BYTE_TYPE  = 0;
-  public static final int SHORT_TYPE = 1;
-  public static final int INT_TYPE   = 2;
+  int BYTE_TYPE  = 0;
+  int SHORT_TYPE = 1;
+  int INT_TYPE   = 2;
 
-  public static final int ENUM_MAX_LEN = 20;
-  public static final int ENUM_MAX_NUM = 5;
+  int ENUM_MAX_LEN = 20;
+  int ENUM_MAX_NUM = 5;
 }

@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-//$Id$
 package org.mmtk.utility.alloc;
 
 import org.mmtk.vm.VM;
@@ -20,16 +19,16 @@ import org.vmmagic.pragma.*;
  * Simple linear scan to dump object information.
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-final public class DumpLinearScan extends LinearScan implements Uninterruptible {
+@Uninterruptible
+public final class DumpLinearScan extends LinearScan {
   /**
    * Scan an object.
    * 
    * @param object The object to scan
    */
-  public void scan(ObjectReference object) throws InlinePragma {
+  @Inline
+  public void scan(ObjectReference object) { 
     Log.write("[");
     Log.write(object.toAddress());
     Log.write("], SIZE = ");

@@ -20,14 +20,11 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * object references
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class ObjectReferenceDeque extends LocalDeque 
-  implements Constants, Uninterruptible {
+@Uninterruptible public class ObjectReferenceDeque extends LocalDeque 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -52,7 +49,8 @@ public class ObjectReferenceDeque extends LocalDeque
    * 
    * @param object the object to be inserted into the object queue
    */
-  public final void insert(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void insert(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkTailInsert(1);
     uncheckedTailInsert(object.toAddress());
@@ -63,7 +61,8 @@ public class ObjectReferenceDeque extends LocalDeque
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkHeadInsert(1);
     uncheckedHeadInsert(object.toAddress());
@@ -76,7 +75,8 @@ public class ObjectReferenceDeque extends LocalDeque
    * 
    * @param object the object to be pushed onto the object queue
    */
-  public final void pushOOL(ObjectReference object) throws NoInlinePragma {
+  @NoInline
+  public final void pushOOL(ObjectReference object) { 
     push(object);
   }
 
@@ -87,7 +87,8 @@ public class ObjectReferenceDeque extends LocalDeque
    * @return The next object in the object queue, or zero if the
    * queue is empty
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue().toObjectReference();
     } else {
@@ -95,11 +96,13 @@ public class ObjectReferenceDeque extends LocalDeque
     }
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 
-  public final boolean isNonEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isNonEmpty() { 
     return checkDequeue(1);
   }
 

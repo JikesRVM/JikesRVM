@@ -1,0 +1,4 @@
+[Lorg/jikesrvm/opt/OPT_OperatorClass;
+[Lorg/jikesrvm/opt/OPT_ResourceReservation;
+[Lorg/jikesrvm/opt/ir/OPT_Operator;
+[Lorg/jikesrvm/opt/ir/OPT_Register;

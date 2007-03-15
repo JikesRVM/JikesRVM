@@ -31,14 +31,10 @@ import org.vmmagic.pragma.*;
  * This class implements a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
  *
- * $Id: LinearSpaceDriver.java 10806 2006-09-22 12:17:46Z dgrove-oss $
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
-public class LinearSpaceDriver extends AbstractDriver
-  implements Uninterruptible {
+@Uninterruptible public class LinearSpaceDriver extends AbstractDriver {
 
   // The GCspy streams
   protected IntStream   scalarUsedSpaceStream;
@@ -83,7 +79,7 @@ public class LinearSpaceDriver extends AbstractDriver
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) throws InterruptiblePragma {
+                     boolean mainSpace) { 
     
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
@@ -121,7 +117,8 @@ public class LinearSpaceDriver extends AbstractDriver
   /**
    * Private creator methods to create the Streams.
    */ 
-  private IntStream createScalarUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createScalarUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,                                     
                      "Scalar Used Space stream",            // stream name 
@@ -138,7 +135,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true );			                    // summary enabled 
   }
 
-  private IntStream createArrayUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createArrayUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,                                     
                      "Array Used Space stream", 
@@ -155,7 +153,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true);
   }
 
-  private ShortStream createScalarObjectsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createScalarObjectsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Scalar Objects stream",
@@ -173,7 +172,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true);
   }
   
-  private ShortStream createArrayPrimitiveStream()  throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createArrayPrimitiveStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Array Primitive stream",
@@ -191,7 +191,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true);
   }
 
-  private ShortStream createArrayObjectsStream()  throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createArrayObjectsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Array Objects stream",
@@ -209,7 +210,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true);
   }
 
-  private ShortStream createRootsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRootsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Roots stream",
@@ -227,7 +229,8 @@ public class LinearSpaceDriver extends AbstractDriver
 		             true);
   }
   
-  private ShortStream createRefFromImmortalStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRefFromImmortalStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "References from immortal stream",

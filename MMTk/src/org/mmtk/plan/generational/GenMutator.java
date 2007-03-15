@@ -35,15 +35,12 @@ import org.vmmagic.unboxed.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class GenMutator extends StopTheWorldMutator {
 
   /*****************************************************************************
    * 
@@ -87,8 +84,8 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
       return nursery.alloc(bytes, align, offset, false);
@@ -105,8 +102,9 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator != Gen.ALLOC_NURSERY) {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }
@@ -165,10 +163,10 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param metaDataB A field used by the VM to create a correct store.
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode)
-      throws InlinePragma {
+      int metaDataB, int mode) { 
     if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
     if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
       if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
@@ -198,9 +196,10 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset,
-      int bytes) throws InlinePragma {
+      int bytes) { 
     // We can ignore when src is in old space, right?
     if (dst.toAddress().LT(Gen.NURSERY_START))
       arrayRemset.insert(dst.toAddress().plus(dstOffset),
@@ -239,8 +238,8 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
   /**
    * Perform a per-mutator collection phase.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == Gen.PREPARE_MUTATOR) {
       nursery.rebind(Gen.nurserySpace);
@@ -274,7 +273,8 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    */
 
   /** @return The active global plan as a <code>Gen</code> instance. */
-  private static final Gen global() throws InlinePragma {
+  @Inline
+  private static Gen global() {
     return (Gen) VM.activePlan.global();
   }
 }

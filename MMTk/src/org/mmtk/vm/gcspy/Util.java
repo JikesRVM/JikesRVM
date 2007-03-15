@@ -18,13 +18,10 @@ import org.vmmagic.pragma.*;
  * Abstract class that provides generally useful
  * methods.
  * 
- * $Id: Util.java 10806 2006-09-22 12:17:46Z dgrove-oss $
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision: 10806 $
- * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
-public abstract class Util implements Uninterruptible {
+@Uninterruptible public abstract class Util {
   
   /**
    * Allocate an array of bytes with malloc
@@ -49,7 +46,7 @@ public abstract class Util implements Uninterruptible {
    * @param start The start of the range
    * @param end The end of the range
    */
-  public static final void dumpRange(Address start, Address end) {
+  public static void dumpRange(Address start, Address end) {
     Log.write("["); Log.write(start);
     Log.write(","); Log.write(end);
     Log.write(')');
@@ -91,7 +88,7 @@ public abstract class Util implements Uninterruptible {
    * @return The length of the string representation of the integer
    *         -1 indicates some problem (e.g the char buffer was too small)
    */
-  public static final int numToBytes(byte[] buffer, long value) {
+  public static int numToBytes(byte[] buffer, long value) {
     return numToBytes(buffer, value, 10);
   }
   
@@ -105,7 +102,7 @@ public abstract class Util implements Uninterruptible {
    * @return The length of the string representation of the integer
    *         -1 indicates some problem (e.g the char buffer was too small)
    */
-  public static final int numToBytes(byte[] buffer, long value, int radix) {
+  public static int numToBytes(byte[] buffer, long value, int radix) {
 
     if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
       radix = 10;
@@ -164,7 +161,7 @@ public abstract class Util implements Uninterruptible {
    * @param numElements number of elements in new array
    * @return the new array
    */
-  public abstract Object createDataArray(Object templ, int numElements)
-      throws InterruptiblePragma;
+  @Interruptible
+  public abstract Object createDataArray(Object templ, int numElements); 
 }
 

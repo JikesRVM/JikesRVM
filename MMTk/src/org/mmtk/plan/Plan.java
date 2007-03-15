@@ -51,16 +51,13 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class Plan implements Uninterruptible, Constants {
+@Uninterruptible public abstract class Plan implements Constants {
   /****************************************************************************
    * Constants
    */
@@ -98,6 +95,7 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /* Miscellaneous Constants */
   public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
+  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE >> 1;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
@@ -120,8 +118,8 @@ public abstract class Plan implements Uninterruptible, Constants {
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
 
-  /** Primitive (non-ref) large objects are allocated into a special primitiv\
-      e large object space. */
+  /** Primitive (non-ref) large objects are allocated into a special primitive
+      large object space. */
   public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);    
 
   /* Space descriptors */
@@ -170,7 +168,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public void boot() throws InterruptiblePragma {
+  @Interruptible
+  public void boot() { 
   }
 
   /**
@@ -182,7 +181,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * gracefully on the default minimum heap size until the point that
    * boot is called.
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
@@ -192,7 +192,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * The fullyBooted method is called by the runtime just before normal
    * execution commences.
    */
-  public void fullyBooted() throws InterruptiblePragma {
+  @Interruptible
+  public void fullyBooted() { 
     initialized = true;
     exceptionReserve = (int) (getTotalPages() *
                               (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
@@ -235,9 +236,9 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
+  @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status)
-    throws InlinePragma {
+                                int size, Word status) { 
     return status; // nothing to do (no bytes of GC header)
   }
 
@@ -266,8 +267,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
-  public void replacePhase(int oldPhase, int newPhase)
-    throws InterruptiblePragma {
+  @Interruptible
+  public void replacePhase(int oldPhase, int newPhase) { 
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
@@ -278,8 +279,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param marker The phase to insert after
    * @param newPhase The phase to replace with
    */
-  public void insertPhaseAfter(int marker, int newPhase) 
-    throws InterruptiblePragma {
+  @Interruptible
+  public void insertPhaseAfter(int marker, int newPhase) { 
     int newComplexPhase = (new ComplexPhase("auto-gen",
                                             null, 
                                             new int[] {marker,newPhase})
@@ -313,8 +314,8 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * @return True is a stress test GC is required
    */
-  public final boolean stressTestGCRequired()
-    throws InlinePragma {
+  @Inline
+  public final boolean stressTestGCRequired() { 
     long pages = Space.cumulativeCommittedPages();
     if (initialized &&
         ((pages ^ lastStressPages) > Options.stressFactor.getPages())) {
@@ -338,22 +339,22 @@ public abstract class Plan implements Uninterruptible, Constants {
   private static int exceptionReserve = 0;
 
   /** @return Is the memory management system initialized? */
-  public static final boolean isInitialized() {
+  public static boolean isInitialized() {
     return initialized;
   }
 
   /** @return The number of collections that have been initiated. */
-  protected static final int getCollectionsInitiated() {
+  protected static int getCollectionsInitiated() {
     return collectionsInitiated;
   }
 
   /** @return The amount of space reserved in case of an exception. */
-  protected static final int getExceptionReserve() {
+  protected static int getExceptionReserve() {
     return exceptionReserve;
   }
 
   /** Request an async GC */
-  protected static final void setAwaitingCollection() {
+  protected static void setAwaitingCollection() {
     awaitingCollection = true;
   }
 
@@ -446,7 +447,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * allocating, or "<null>" if there is no space associated with
    * <code>a</code>.
    */
-  public static final String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
+  public static String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
     Space space = getSpaceFromAllocatorAnyLocal(a);
     if (space == null)
       return "<null>";
@@ -464,7 +465,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
-  public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
+  public static Space getSpaceFromAllocatorAnyLocal(Allocator a) {
     for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
       Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
@@ -485,7 +486,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * instrumentation, etc.  By default we do a full heap GC,
    * and then start stats collection.
    */
-  public static void harnessBegin() throws InterruptiblePragma {
+  @Interruptible
+  public static void harnessBegin() { 
     // Save old values.
     boolean oldFullHeap = Options.fullHeapSystemGC.getValue();
     boolean oldIgnore = Options.ignoreSystemGC.getValue();
@@ -513,7 +515,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * instrumentation, etc.  By default we stop all statistics objects
    * and print their values.
    */
-  public static void harnessEnd() {
+  @Interruptible
+  public static void harnessEnd()  {
     Stats.stopAll();
     Stats.printStats();
     insideHarness = false;
@@ -535,7 +538,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
-  public static final Extent freeMemory() {
+  public static Extent freeMemory() {
     return totalMemory().minus(usedMemory());
   }
 
@@ -546,7 +549,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static final Extent usedMemory() {
+  public static Extent usedMemory() {
     return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
   }
 
@@ -558,7 +561,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static final Extent reservedMemory() {
+  public static Extent reservedMemory() {
     return Conversions.pagesToBytes(VM.activePlan.global().getPagesReserved());
   }
 
@@ -569,7 +572,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
-  public static final Extent totalMemory() {
+  public static Extent totalMemory() {
     return HeapGrowthManager.getCurrentHeapSize();
   }
 
@@ -648,7 +651,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The time cap for this GC (i.e. the time by which it
    * should complete).
    */
-  public static final long getTimeCap() {
+  public static long getTimeCap() {
     return timeCap;
   }
 
@@ -673,8 +676,35 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param port The port to listen on,
    * @param wait Should we wait for a client to connect? 
    */
-  public void startGCspyServer(int port, boolean wait) throws InterruptiblePragma {
+  @Interruptible
+  public void startGCspyServer(int port, boolean wait) { 
     VM.assertions.fail("startGCspyServer called on non GCspy plan");
+  }
+
+  /**
+   * Can this object ever move.  Used by the VM to make decisions about
+   * whether it needs to copy IO buffers etc.
+   * 
+   * @param object The object in question
+   * @return True if it is possible that the object will ever move
+   */
+  public boolean objectCanMove(ObjectReference object) {
+    if (!VM.activePlan.constraints().movesObjects())
+      return false;
+    if (Space.isInSpace(LOS, object))
+      return false;
+    if (Space.isInSpace(PLOS,object))
+      return false;
+    if (Space.isInSpace(IMMORTAL, object))
+      return false;
+    if (Space.isInSpace(VM_SPACE, object))
+      return false;
+    
+    /*
+     * Default to true - this preserves correctness over efficiency.
+     * Individual plans should override for non-moving spaces they define.
+     */
+    return true;
   }
 
 }

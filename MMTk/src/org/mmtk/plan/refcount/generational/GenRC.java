@@ -17,6 +17,7 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the global state of a simple reference counting
@@ -37,15 +38,12 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class GenRC extends RCBase implements Uninterruptible {
+@Uninterruptible public class GenRC extends RCBase {
   
   /****************************************************************************
    *
@@ -85,7 +83,8 @@ public class GenRC extends RCBase implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
     }
@@ -123,8 +122,8 @@ public class GenRC extends RCBase implements Uninterruptible {
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
-  public boolean poll(boolean mustCollect, Space space)
-  throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
@@ -183,4 +182,18 @@ public class GenRC extends RCBase implements Uninterruptible {
   public final int getPagesUsed() {
     return super.getPagesUsed() + nurserySpace.reservedPages();
   }
+  
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(NS, object))
+      return true;
+    return super.objectCanMove(object);
+  }
+
 }

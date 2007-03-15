@@ -1,0 +1,8 @@
+Thread 0 Main: suspending self
+Thread 0 Main: resumed
+Thread 0 Main: bye
+Thread 1 Resumer: creating
+Thread 1 Resumer: starting
+Thread 1 Resumer: run starting
+Thread 1 Resumer: resumming sleeper...
+Thread 1 Resumer: run finishing

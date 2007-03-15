@@ -24,13 +24,10 @@ import org.vmmagic.pragma.*;
  * Most importantly, it calls the Plan's startGCspyServer method which
  * creates a new ServerInterpreter, and adds events and space drivers.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-public class GCspy implements Uninterruptible {
+@Uninterruptible public class GCspy {
 
   /****************************************************************************
    * 
@@ -45,7 +42,8 @@ public class GCspy implements Uninterruptible {
    * Initialization
    */
 
-  public static void createOptions() throws InterruptiblePragma {
+  @Interruptible
+  public static void createOptions() { 
     Options.gcspyPort = new GCspyPort();
     Options.gcspyWait = new GCspyWait();
     Options.gcspyTileSize = new GCspyTileSize();
@@ -82,7 +80,8 @@ public class GCspy implements Uninterruptible {
    * Start the GCspy server.
    * WARNING: allocates memory indirectly
    */
-  public static void startGCspyServer() throws InterruptiblePragma {
+  @Interruptible
+  public static void startGCspyServer() { 
     int port = getGCspyPort();
     Log.write("GCspy.startGCspyServer, port="); Log.write(port);
     Log.write(", wait=");

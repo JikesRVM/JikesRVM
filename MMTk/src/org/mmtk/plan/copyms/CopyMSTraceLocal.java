@@ -20,16 +20,12 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a
  * transitive closure over a coping/mark-sweep hybrid collector.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class CopyMSTraceLocal extends TraceLocal
-  implements Uninterruptible {
+@Uninterruptible public final class CopyMSTraceLocal extends TraceLocal {
 
   /**
    * Constructor
@@ -74,8 +70,8 @@ public final class CopyMSTraceLocal extends TraceLocal
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(CopyMS.NURSERY, object))
       return CopyMS.nurserySpace.traceObject(this, object);
@@ -91,8 +87,8 @@ public final class CopyMSTraceLocal extends TraceLocal
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (object.isNull()) return object;
     else if (Space.isInSpace(CopyMS.NURSERY, object))
       return CopyMS.nurserySpace.traceObject(this, object);
@@ -113,7 +109,8 @@ public final class CopyMSTraceLocal extends TraceLocal
   /**
    * @return The allocator to use when copying objects.
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public int getAllocator() { 
     return CopyMS.ALLOC_MS;
   }
 }

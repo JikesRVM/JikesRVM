@@ -38,13 +38,10 @@ import org.vmmagic.unboxed.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class MCCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public class MCCollector extends StopTheWorldCollector {
 
   private static final boolean TRACE_MARK = false;
   private static final boolean TRACE_FORWARD = true;
@@ -53,12 +50,12 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
    * Instance fields
    */
 
-  private MCMarkTraceLocal markTrace;
-  private MCForwardTraceLocal forwardTrace;
+  private final MCMarkTraceLocal markTrace;
+  private final MCForwardTraceLocal forwardTrace;
   private boolean currentTrace;
 
   // Sanity checking
-  private MCSanityCheckerLocal sanityChecker;
+  private final MCSanityCheckerLocal sanityChecker;
 
   
   /****************************************************************************
@@ -91,9 +88,9 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
+      int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
     return immortal.alloc(bytes, align, offset, true);
@@ -106,9 +103,9 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     MC.immortalSpace.initializeHeader(object);
   }
 
@@ -123,8 +120,8 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MC.PREPARE) {
       currentTrace = TRACE_MARK;
       super.collectionPhase(phaseId, primary);
@@ -190,7 +187,8 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   }
 
   /** @return The active global plan as an <code>MC</code> instance. */
-  private static final MC global() throws InlinePragma {
+  @Inline
+  private static MC global() {
     return (MC) VM.activePlan.global();
   }
 }

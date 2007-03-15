@@ -47,15 +47,12 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class GenCopy extends Gen implements Uninterruptible {
+@Uninterruptible public class GenCopy extends Gen {
 
   /****************************************************************************
    * 
@@ -105,27 +102,27 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**
    * @return The semispace we are currently allocating into
    */
-  static final CopySpace toSpace() {
+  static CopySpace toSpace() {
     return hi ? matureSpace1 : matureSpace0;
   }
 
   /**
    * @return Space descriptor for to-space.
    */
-  static final int toSpaceDesc() { return hi ? MS1 : MS0; }
+  static int toSpaceDesc() { return hi ? MS1 : MS0; }
 
   /**
    * @return The semispace we are currently copying from 
    * (or copied from at last major GC) 
    */
-  static final CopySpace fromSpace() {
+  static CopySpace fromSpace() {
     return hi ? matureSpace0 : matureSpace1;
   }
 
   /**
    * @return Space descriptor for from-space
    */
-  static final int fromSpaceDesc() { return hi ? MS0 : MS1; }
+  static int fromSpaceDesc() { return hi ? MS0 : MS1; }
 
   /****************************************************************************
    * 
@@ -137,7 +134,8 @@ public class GenCopy extends Gen implements Uninterruptible {
    * 
    * @param phaseId Collection phase to process
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -169,7 +167,8 @@ public class GenCopy extends Gen implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-  public int getPagesUsed() throws InlinePragma {
+  @Inline
+  public int getPagesUsed() { 
     return toSpace().reservedPages() + super.getPagesUsed();
   }
 
@@ -191,7 +190,8 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**
    * @return The mature space we are currently allocating into
    */
-  public Space activeMatureSpace() throws InlinePragma {
+  @Inline
+  public Space activeMatureSpace() { 
     return toSpace();
   }
 }

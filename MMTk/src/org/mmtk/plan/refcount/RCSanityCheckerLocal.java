@@ -20,14 +20,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for reference counting collectors.
  * 
- * $Id: MCSanityCheckerLocal.java,v 1.3 2006/06/21 07:38:14 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public class RCSanityCheckerLocal extends SanityCheckerLocal 
-  implements Uninterruptible {
+@Uninterruptible public class RCSanityCheckerLocal extends SanityCheckerLocal {
 
   /**
    * Return the expected reference count. For non-reference counting 

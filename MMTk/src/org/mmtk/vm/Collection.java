@@ -17,15 +17,12 @@ import org.mmtk.plan.MutatorContext;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id: Collection.java,v 1.7 2006/06/23 03:24:49 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/23 03:24:49 $
  */
-public abstract class Collection implements Uninterruptible {
+@Uninterruptible public abstract class Collection {
 
   /****************************************************************************
    * 
@@ -84,7 +81,8 @@ public abstract class Collection implements Uninterruptible {
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public abstract void triggerCollection(int why) throws InterruptiblePragma;
+  @Interruptible
+  public abstract void triggerCollection(int why); 
 
   /**
    * Triggers a collection without allowing for a thread switch. This is needed

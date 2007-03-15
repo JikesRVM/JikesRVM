@@ -50,15 +50,12 @@ import org.vmmagic.pragma.*;
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class BumpPointer extends Allocator 
-  implements Constants, Uninterruptible {
+@Uninterruptible public class BumpPointer extends Allocator 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -144,8 +141,8 @@ public class BumpPointer extends Allocator
    * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, boolean inGC)
-      throws InlinePragma {
+  @Inline
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
     Address start = alignAllocationNoFill(cursor, align, offset);
     Address end = start.plus(bytes);
     if (end.GT(internalLimit))
@@ -167,10 +164,10 @@ public class BumpPointer extends Allocator
   * @param offset The offset from the alignment 
   * @param inGC Is the allocation request occuring during GC.
   * @return The address of the first byte of the allocated region
-  * @throws NoInlinePragma
   */
-  private final Address allocSlow(Address start, Address end, int align,
-      int offset, boolean inGC) throws NoInlinePragma {
+  @NoInline
+  private Address allocSlow(Address start, Address end, int align,
+      int offset, boolean inGC) { 
     Address rtn = null;
     Address card = null;
     if (SUPPORT_CARD_SCANNING)
@@ -203,7 +200,7 @@ public class BumpPointer extends Allocator
    * @param start The address of an object which creates a new card.
    * @param bytes The size of the pending allocation in bytes (used for debugging)
    */
-  private final void createCardAnchor(Address card, Address start, int bytes) {
+  private void createCardAnchor(Address card, Address start, int bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allowScanning);
       VM.assertions._assert(card.EQ(getCard(card)));
@@ -224,8 +221,8 @@ public class BumpPointer extends Allocator
    * @param address The address for which the card start is required
    * @return The start of the card containing the address
    */
-  private static final Address getCard(Address address) {
-    return address.toWord().and(Word.fromInt(CARD_MASK).not()).toAddress();
+  private static Address getCard(Address address) {
+    return address.toWord().and(Word.fromIntSignExtend(CARD_MASK).not()).toAddress();
   }
   
   /**
@@ -233,7 +230,7 @@ public class BumpPointer extends Allocator
    * @param card The address of some card
    * @return The address of the metadata associated with that card
    */
-  private static final Address getCardMetaData(Address card) {
+  private static Address getCardMetaData(Address card) {
     Address metadata = EmbeddedMetaData.getMetaDataBase(card);
     return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
   }
@@ -285,8 +282,8 @@ public class BumpPointer extends Allocator
    * @param start The start of the region to be allocated into
    * @param bytes The size of the pending allocation (if any).
    */  
-  protected final void updateLimit(Address newLimit, Address start, int bytes)
-      throws InlinePragma {
+  @Inline
+  protected final void updateLimit(Address newLimit, Address start, int bytes) { 
     limit = newLimit;
     internalLimit = start.plus(STEP_SIZE);
     if (internalLimit.GT(limit))
@@ -313,7 +310,7 @@ public class BumpPointer extends Allocator
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
-  private final Address consumeNextRegion(Address nextRegion, int bytes, int align,
+  private Address consumeNextRegion(Address nextRegion, int bytes, int align,
         int offset, boolean inGC) {
     region.plus(DATA_END_OFFSET).store(cursor);
     region = nextRegion;
@@ -332,8 +329,8 @@ public class BumpPointer extends Allocator
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to chunk-alignment)
    */
-  private final void updateMetaData(Address start, Extent size, int bytes)
-    throws InlinePragma {
+  @Inline
+  private void updateMetaData(Address start, Extent size, int bytes) {
     if (initialRegion.isZero()) {
       /* this is the first allocation */
       initialRegion = start;
@@ -397,7 +394,8 @@ public class BumpPointer extends Allocator
    * 
    * @param scanner The scan object to delegate scanning to.
    */
-  public final void linearScan(LinearScan scanner) throws InlinePragma {
+  @Inline
+  public final void linearScan(LinearScan scanner) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowScanning);
     /* Has this allocator ever allocated anything? */
     if (initialRegion.isZero()) return;
@@ -416,8 +414,8 @@ public class BumpPointer extends Allocator
    * @param scanner The scan object to delegate to.
    * @param start The start of this region
    */
-  private final void scanRegion(LinearScan scanner, Address start)
-      throws InlinePragma {
+  @Inline
+  private void scanRegion(LinearScan scanner, Address start) {
     /* Get the end of this region */
     Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 

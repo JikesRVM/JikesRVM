@@ -20,20 +20,16 @@ import org.vmmagic.pragma.*;
 /**
  * Set up a GCspy Stream with data type INT_TYPE.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-
-public abstract class IntStream extends Stream implements  Uninterruptible {
+@Uninterruptible public abstract class IntStream extends Stream {
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private int data[];			// The stream data
+  private int[] data;			// The stream data
   private int defaultValue;		// The default value for the data items
   
   
@@ -72,7 +68,7 @@ public abstract class IntStream extends Stream implements  Uninterruptible {
          int paintStyle,
          int indexMaxStream,
          Color colour,
-         boolean summary) throws InterruptiblePragma {
+         boolean summary) { 
      
     super(driver, StreamConstants.INT_TYPE, name, 
           minValue, maxValue, zeroValue, defaultValue,

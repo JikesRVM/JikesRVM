@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  * 
- * @see MC for an overview of the mark-compact algorithm.<p>
+ * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
  * 
  * FIXME The SegregatedFreeList class (and its decendents such as
  * MarkSweepLocal) does not properly separate mutator and collector
@@ -39,19 +39,16 @@ import org.vmmagic.unboxed.*;
  * 
  * @see RC
  * @see RCCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class RCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+@Uninterruptible public abstract class RCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * 
    * Mutator-time allocation
@@ -69,8 +66,8 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * @param site Allocation site.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
@@ -88,8 +85,9 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
@@ -120,10 +118,10 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode)
-  throws InlinePragma {
+                                 int metaDataB, int mode) { 
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -150,10 +148,10 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrierInternal(ObjectReference src, Address slot,
+  @Inline
+  private void writeBarrierInternal(ObjectReference src, Address slot,
                                           ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode)
-  throws InlinePragma {
+                                          int metaDataB, int mode) { 
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -182,11 +180,11 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * @param metaDataB An int that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
+  @NoInline
+  private void writeBarrierInternalOOL(ObjectReference src, Address slot,
                                              ObjectReference tgt,
                                              Offset metaDataA, int metaDataB,
-                                             int mode)
-  throws NoInlinePragma {
+                                             int mode) { 
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -226,9 +224,9 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    * left to the caller (this depends on which style of barrier is
    * being used).
    */
+  @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                                    ObjectReference dst, Offset dstOffset, int bytes)
-  throws InlinePragma {
+                                    ObjectReference dst, Offset dstOffset, int bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -270,8 +268,8 @@ public abstract class RCMutator extends RCBaseMutator implements Uninterruptible
    *
    * @param srcObj The object being mutated
    */
-  private final void coalescingWriteBarrierSlow(ObjectReference srcObj)
-  throws NoInlinePragma {
+  @NoInline
+  private void coalescingWriteBarrierSlow(ObjectReference srcObj) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RC.WITH_COALESCING_RC);
       VM.assertions._assert(RCBase.isRCObject(srcObj));

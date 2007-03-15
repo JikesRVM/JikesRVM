@@ -6,12 +6,10 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  *
- * $Id$
  */
 package org.mmtk.utility;
 
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -33,11 +31,9 @@ import org.vmmagic.pragma.*;
  * Access to the instances may be synchronized depending on the constructor argument.
  * 
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
-public final class Treadmill
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class Treadmill
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -56,20 +52,23 @@ public final class Treadmill
    * Constructor
    */
   public Treadmill(int granularity, boolean shared) {
-    fromSpace = new DoublyLinkedList(granularity, shared, this);
-    toSpace = new DoublyLinkedList(granularity, shared, this);
-    nursery = new DoublyLinkedList(granularity, shared, this);
+    fromSpace = new DoublyLinkedList(granularity, shared);
+    toSpace = new DoublyLinkedList(granularity, shared);
+    nursery = new DoublyLinkedList(granularity, shared);
   }
 
-  public final void addToTreadmill(Address node) throws InlinePragma {
+  @Inline
+  public void addToTreadmill(Address node) { 
     nursery.add(node);
   }
 
-  public final Address pop(boolean fromNursery) throws InlinePragma {
+  @Inline
+  public Address pop(boolean fromNursery) { 
     return (fromNursery) ? nursery.pop() : fromSpace.pop();
   }
 
-  public final void copy(Address node, boolean isInNursery) throws InlinePragma {
+  @Inline
+  public void copy(Address node, boolean isInNursery) { 
     if (isInNursery) 
       nursery.remove(node);
     else
@@ -77,19 +76,22 @@ public final class Treadmill
     toSpace.add(node);
   }
 
-  public final boolean toSpaceEmpty() throws InlinePragma {
+  @Inline
+  public boolean toSpaceEmpty() { 
     return toSpace.isEmpty();
   }
   
-  public final boolean fromSpaceEmpty() throws InlinePragma {
+  @Inline
+  public boolean fromSpaceEmpty() { 
     return fromSpace.isEmpty();
   }
   
-  public final boolean nurseryEmpty() throws InlinePragma {
+  @Inline
+  public boolean nurseryEmpty() { 
     return nursery.isEmpty();
   }
   
-  public final void flip() {
+  public void flip() {
     DoublyLinkedList tmp = fromSpace;
     fromSpace = toSpace;
     toSpace = tmp;
@@ -99,24 +101,24 @@ public final class Treadmill
    * 
    * Misc header manipulation
    */
-  
-  static public final Treadmill getTreadmill(Address node) {
-    return (Treadmill) DoublyLinkedList.getOwner(node);
-  }
 
-  static public final int headerSize() throws InlinePragma {
+  @Inline
+  public static int headerSize() {
     return DoublyLinkedList.headerSize();
   }
 
-  static public final Address nodeToPayload(Address payload) throws InlinePragma {
+  @Inline
+  public static Address nodeToPayload(Address payload) {
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
-  static public final Address payloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  public static Address payloadToNode(Address payload) {
     return DoublyLinkedList.payloadToNode(payload);
   }
 
-  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  public static Address midPayloadToNode(Address payload) {
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 

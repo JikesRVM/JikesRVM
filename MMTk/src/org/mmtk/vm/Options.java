@@ -6,12 +6,10 @@
  *
  * (C) Copyright ANU. 2004
  *
- * $Id$
  */
 package org.mmtk.vm;
 
 import org.mmtk.utility.options.Option;
-import org.vmmagic.pragma.Uninterruptible;
 /**
  * Skeleton for class to handle command-line arguments and options for GC.
  * 

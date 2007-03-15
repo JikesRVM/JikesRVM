@@ -26,12 +26,9 @@ import org.vmmagic.pragma.*;
  * 
  * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public class LocalDeque extends LocalQueue 
-  implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class LocalDeque extends LocalQueue 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -53,6 +50,7 @@ public class LocalDeque extends LocalQueue
    * in the buffer visible to any other consumer associated with the
    * shared deque).
    */
+  @Override
   public final void flushLocal() {
     super.flushLocal();
     if (head.NE(Deque.HEAD_INITIAL_VALUE)) {
@@ -74,7 +72,8 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of the values stored in this deque: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkHeadInsert(int arity) throws InlinePragma {
+  @Inline
+  protected final void checkHeadInsert(int arity) { 
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
         head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
@@ -89,8 +88,8 @@ public class LocalDeque extends LocalQueue
    * 
    * @param value the value to be inserted.
    */
-  protected final void uncheckedHeadInsert(Address value) 
-    throws InlinePragma {
+  @Inline
+  protected final void uncheckedHeadInsert(Address value) { 
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.plus(BYTES_IN_ADDRESS);
@@ -108,7 +107,7 @@ public class LocalDeque extends LocalQueue
    * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void headOverflow(int arity) {
+  private void headOverflow(int arity) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
@@ -123,7 +122,8 @@ public class LocalDeque extends LocalQueue
    * 
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndInsertHead(int arity) throws InlinePragma {
+  @Inline
+  private void closeAndInsertHead(int arity) {
     queue.enqueue(head, arity, false);
   }
 
@@ -137,8 +137,9 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of this buffer  
    * @return True if the consumer has eaten all of the entries
    */
-  private final boolean tailStarved(int arity) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
+  @SuppressWarnings("unused")
+  private boolean tailStarved(int arity) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

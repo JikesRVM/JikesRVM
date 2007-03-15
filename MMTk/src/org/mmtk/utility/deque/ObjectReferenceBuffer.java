@@ -22,13 +22,10 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceStep
  * 
- * $Id: $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public abstract class ObjectReferenceBuffer extends TraceStep implements Constants, Uninterruptible {
+@Uninterruptible public abstract class ObjectReferenceBuffer extends TraceStep implements Constants {
   /****************************************************************************
    * 
    * Instance variables
@@ -44,7 +41,7 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    * Constructor
    * 
    * @param name The name of the underlying deque.
-   * @param trace The shared deque that is used.
+   * @param queue The shared deque that is used.
    */
   public ObjectReferenceBuffer(String name, SharedDeque queue) {
     values = new ObjectReferenceDeque(name, queue);
@@ -56,7 +53,8 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    * 
    * @param loc The location containing the object reference to process.
    */
-  public final void traceObjectLocation(Address loc) throws InlinePragma {
+  @Inline
+  public final void traceObjectLocation(Address loc) { 
     ObjectReference object = loc.loadObjectReference();
     process(object);
   }
@@ -73,7 +71,8 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    * 
    * @param object The object to process the children of.
    */
-  public final void processChildren(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void processChildren(ObjectReference object) { 
     Scan.scanObject(this, object);
   }
   
@@ -82,7 +81,8 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    *  
    * @param object The object to push.
    */
-  public final void push(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void push(ObjectReference object) { 
     values.push(object);
   }
 
@@ -91,7 +91,8 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    *  
    * @param object The object to push.
    */
-  public final void pushOOL(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void pushOOL(ObjectReference object) { 
     values.pushOOL(object);
   }
   
@@ -100,7 +101,8 @@ public abstract class ObjectReferenceBuffer extends TraceStep implements Constan
    * 
    * @return The object retrieved.
    */
-  public final ObjectReference pop() throws InlinePragma {
+  @Inline
+  public final ObjectReference pop() { 
     return values.pop();
   }
   

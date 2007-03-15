@@ -44,15 +44,12 @@ import org.vmmagic.unboxed.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class RCBaseCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields
@@ -103,8 +100,8 @@ public abstract class RCBaseCollector extends StopTheWorldCollector implements U
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == RCBase.PREPARE) {
       if (RCBase.WITH_COALESCING_RC) {
         processModBuffer();
@@ -214,7 +211,8 @@ public abstract class RCBaseCollector extends StopTheWorldCollector implements U
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final RCBase global() throws InlinePragma {
+  @Inline
+  private static RCBase global() {
     return (RCBase) VM.activePlan.global();
   }
   
@@ -227,7 +225,8 @@ public abstract class RCBaseCollector extends StopTheWorldCollector implements U
   protected abstract TraceStep getModifiedProcessor();
   
   /** @return The active cycle detector instance */
-  public final CDCollector cycleDetector() throws InlinePragma {
+  @Inline
+  public final CDCollector cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;

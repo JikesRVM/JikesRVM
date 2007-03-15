@@ -39,13 +39,10 @@ import org.vmmagic.unboxed.*;
  * 
  * Discontigious spaces are currently unsupported.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public abstract class Space implements Constants, Uninterruptible {
+@Uninterruptible public abstract class Space implements Constants {
 
   /****************************************************************************
    * 
@@ -326,7 +323,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in an immortal (uncollected) space.
    */
-  public static final boolean isImmortal(ObjectReference object) {
+  public static boolean isImmortal(ObjectReference object) {
     Space space = getSpaceForObject(object);
     if (space == null)
       return true;
@@ -340,8 +337,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in space that moves objects.
    */
-  public static final boolean isMovable(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean isMovable(ObjectReference object) {
     Space space = getSpaceForObject(object);
     if (space == null)
       return true;
@@ -355,8 +352,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in a space managed by MMTk.
    */
-  public static final boolean isMappedObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean isMappedObject(ObjectReference object) {
     return !object.isNull() && (getSpaceForObject(object) != null) && Mmapper.objectIsMapped(object);
   }
 
@@ -366,8 +363,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param address The address in question
    * @return True if the given address is in a space managed by MMTk.
    */
-  public static final boolean isMappedAddress(Address address)
-      throws InlinePragma {
+  @Inline
+  public static boolean isMappedAddress(Address address) {
     return Map.getSpaceForAddress(address) != null && Mmapper.addressIsMapped(address);
   }
 
@@ -380,8 +377,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @return True if the given object is in the space associated with
    * the descriptor.
    */
-  public static boolean isInSpace(int descriptor, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static boolean isInSpace(int descriptor, ObjectReference object) { 
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
     } else {
@@ -404,8 +401,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The space containing the object
    */
-  public static Space getSpaceForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static Space getSpaceForObject(ObjectReference object) { 
     return Map.getSpaceForObject(object);
   }
 
@@ -415,8 +412,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The descriptor for the space containing the object
    */
-  public static int getDescriptorForObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static int getDescriptorForObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }
@@ -468,14 +465,14 @@ public abstract class Space implements Constants, Uninterruptible {
    * 
    * @param start The address of the start of the region to be released
    */
-  abstract public void release(Address start);
+  public abstract void release(Address start);
 
   /**
    * Get the total number of pages reserved by all of the spaces
    * 
    * @return the total number of papers reserved by all of the spaces
    */
-  private static final int getPagesReserved() {
+  private static int getPagesReserved() {
     int pages = 0;
     for (int i = 0; i < spaceCount; i++) {
       pages += spaces[i].reservedPages();
@@ -515,7 +512,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * are mapped. Demand zero map all of them if they are not already
    * mapped.
    */
-  public static void eagerlyMmapMMTkSpaces() throws InterruptiblePragma {
+  @Interruptible
+  public static void eagerlyMmapMMTkSpaces() { 
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       if (space != VM.memory.getVMSpace()) {
@@ -584,7 +582,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
-  abstract public ObjectReference traceObject(TraceLocal trace,
+  public abstract ObjectReference traceObject(TraceLocal trace,
       ObjectReference object);
 
   
@@ -606,7 +604,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object reference.
    * @return True if the object is live.
    */
-  abstract public boolean isLive(ObjectReference object);
+  public abstract boolean isLive(ObjectReference object);
 
   /**
    * Align an address to a space chunk
@@ -615,7 +613,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static final Address chunkAlign(Address addr, boolean down) {
+  private static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
@@ -627,7 +625,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static final Extent chunkAlign(Extent bytes, boolean down) {
+  private static Extent chunkAlign(Extent bytes, boolean down) {
     if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
     return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
   }

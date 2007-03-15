@@ -17,21 +17,23 @@ import org.vmmagic.pragma.*;
  * This abstract class describes the interface of a generic counter.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
-public abstract class Counter implements Uninterruptible {
+@Uninterruptible public abstract class Counter {
 
   /****************************************************************************
    * 
    * Instance variables
    */
 
-  private String name;
-  private boolean start;
-  private boolean mergephases;
-
+  private final String name;
+  private final boolean start;
+  private final boolean mergephases;
+  
+  /**
+   * Allow for counters whose values are too complex to be simply printed out.
+   */
+  protected boolean complex = false;
+  
   /****************************************************************************
    * 
    * Initialization
@@ -166,4 +168,6 @@ public abstract class Counter implements Uninterruptible {
    * @return True if this counter will merge stats for GC and mutator phases.
    */
   boolean mergePhases() { return mergephases; }
+
+  boolean isComplex() { return complex; }
 }

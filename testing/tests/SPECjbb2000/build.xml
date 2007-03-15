@@ -1,0 +1,81 @@
+<project name="SPECjbb2000" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="2700" else="1000">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.max.heapsize" value="600" else="400">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <condition property="spec.props" value="perf" else="sanity">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <property name="spec.args" value="-propfile SPECjbb.sanity.props"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="specjbb2000.dir" location="${external.lib.dir}/SPECjbb2000"/>
+  <property name="test.class.path" value="${specjbb2000.dir}/jbb.jar:${specjbb2000.dir}/jbb_no_precompile.jar:${specjbb2000.dir}/check.jar:${specjbb2000.dir}/reporter.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Prepare dirs for tests                        * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="prepare-dirs" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="specjbb2000.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <copy todir="${build.tests.dir}">
+      <fileset dir=".">
+        <include name="*.props"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="prepare-dirs">
+
+    <startResults/>
+    <rvm tag="SPECjbb2000" class="spec.jbb.JBBmain" args="-propfile SPECjbb.${spec.props}.props"/>
+
+    <outputTestStart tag="SPECjbb2000"/>
+    <outputStatisticStart/>
+
+    <findStatistic tag="SPECjbb2000" pattern="JVM Check OK" key="jvm.check"/>
+
+    <condition property="check-name" value="performance" else="normal">
+      <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+    <antcall target="check-results-${check-name}"/>
+
+    <outputStatisticEnd/>
+    <outputTestResults tag="SPECjbb2000"/>
+    <outputTestEnd/>
+    <displayTestResults tag="SPECjbb2000"/>
+
+    <finishResults/>
+  </target>
+
+  <target name="check-results-normal">
+    <extractStatistic tag="SPECjbb2000"
+                      pattern="((Valid run, Score is)|(INVALID run; Score is))\s*(\S*)"
+                      key="score"
+                      select="\4"/>
+  </target>
+
+  <target name="check-results-performance">
+    <findStatistic tag="SPECjbb2000" pattern="Run will be COMPLIANT" key="compliant.check"/>
+    <findStatistic tag="SPECjbb2000" pattern="No errors.  Valid run." key="errors.check"/>
+    <extractStatistic tag="SPECjbb2000"
+                      pattern="Valid run, Score is\s*(\S*)"
+                      key="score"/>
+  </target>
+</project>

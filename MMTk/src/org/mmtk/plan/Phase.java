@@ -29,14 +29,11 @@ import org.vmmagic.pragma.*;
  * It should be possible to remove some by thinking about phases more 
  * carefully
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class Phase implements Uninterruptible, Constants {
+@Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;
   private static final Phase[] phases = new Phase[MAX_PHASES];
   private static short phaseId = 0;
@@ -127,7 +124,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * @param phaseId The unique phase identifier.
    * @return The name of the phase.
    */
-  public static final String getName(int phaseId) {
+  public static String getName(int phaseId) {
     return phases[phaseId].name;
   }
 
@@ -141,7 +138,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * 
    * @param phaseId The identifier of the phase to execute.
    */
-  public static final void delegatePhase(int phaseId) {
+  public static void delegatePhase(int phaseId) {
     delegatePhase(phases[phaseId]);
   }
 
@@ -155,7 +152,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * 
    * @param phase The phase to execute.
    */
-  protected static final void delegatePhase(Phase phase) {
+  protected static void delegatePhase(Phase phase) {
     phase.delegatePhase();
   }
 

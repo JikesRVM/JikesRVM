@@ -29,11 +29,8 @@ import org.vmmagic.unboxed.ObjectReference;
  * @see MarkCompactSpace
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class MarkCompactLocal extends BumpPointer implements Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public final class MarkCompactLocal extends BumpPointer {
 
   /**
    * Constructor
@@ -97,8 +94,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
               VM.assertions._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
             }
           }
-          Address newAllocCursor = VM.objectModel.copyTo(current, copyTo, allocCursor);
-          allocCursor = newAllocCursor;
+          allocCursor = VM.objectModel.copyTo(current, copyTo, allocCursor);
           MarkCompactSpace.setForwardingPointer(copyTo, ObjectReference.nullReference());
         }
         current = next;
@@ -209,5 +205,5 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
    * load balancing or increments based on region size.
    * @return the maximum region size
    */
-  protected Extent maximumRegionSize() { return Extent.fromInt(4 << LOG_CHUNK_SIZE) ; }
+  protected Extent maximumRegionSize() { return Extent.fromIntZeroExtend(4 << LOG_CHUNK_SIZE) ; }
 }

@@ -12,17 +12,14 @@ package org.mmtk.utility.options;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Conversions;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
-import org.vmmagic.unboxed.Extent;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * A memory option that stores values as a whole number of pages.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class PagesOption extends Option {
   // values
@@ -46,7 +43,8 @@ public class PagesOption extends Option {
    * 
    * @return The option value.
    */
-  public int getPages() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getPages() { 
     return this.value;
   }
 
@@ -55,7 +53,8 @@ public class PagesOption extends Option {
    * 
    * @return The option value.
    */
-  public Extent getBytes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Extent getBytes() { 
     return Conversions.pagesToBytes(this.value);
   }
 
@@ -64,7 +63,8 @@ public class PagesOption extends Option {
    * 
    * @return The default value.
    */
-  public Extent getDefaultBytes() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Extent getDefaultBytes() { 
     return Conversions.pagesToBytes(this.defaultValue);
   }
 
@@ -73,7 +73,8 @@ public class PagesOption extends Option {
    * 
    * @return The default value.
    */
-  public int getDefaultPages() throws UninterruptiblePragma {
+  @Uninterruptible
+  public int getDefaultPages() { 
     return this.defaultValue;
   }
 
@@ -100,5 +101,22 @@ public class PagesOption extends Option {
         "Value rounded up to a whole number of pages");
     this.value = Conversions.bytesToPagesUp(value);
     validate();
+  }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(value);
+        break;
+      default:
+        super.log(format);
+    }
   }
 }

@@ -11,17 +11,14 @@ package org.mmtk.utility.options;
 
 import org.mmtk.utility.Log;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
-import org.vmmagic.unboxed.Address;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * An option with a simple integer value.
  * 
- * $Id: IntOption.java 10489 2006-06-21 07:38:18Z steveb-oss $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 10489 $
- * @date $Date: 2006-06-21 17:38:18 +1000 (Wed, 21 Jun 2006) $
  */
 public class AddressOption extends Option {
   // values
@@ -45,7 +42,8 @@ public class AddressOption extends Option {
    * 
    * @return The option value.
    */
-  public Address getValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Address getValue() { 
     return this.value;
   }
 
@@ -54,7 +52,8 @@ public class AddressOption extends Option {
    * 
    * @return The default value.
    */
-  public Address getDefaultValue() throws UninterruptiblePragma {
+  @Uninterruptible
+  public Address getDefaultValue() { 
     return this.defaultValue;
   }
 
@@ -77,5 +76,22 @@ public class AddressOption extends Option {
       Log.writeln(value);
     }
     validate();
+  }
+
+  /**
+   * Log the option value in raw format - delegate upwards
+   * for fancier formatting.
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  @Override
+  void log(int format) {
+    switch (format) {
+      case RAW:
+        Log.write(value);
+        break;
+      default:
+        super.log(format);
+    }
   }
 }

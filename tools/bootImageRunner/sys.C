@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2004, 2005
  */
-//$Id$
 
 /**
  * O/S support services required by the java class libraries.
@@ -45,7 +44,6 @@ extern "C" int sched_yield(void);
 #include <utime.h>
 
 #ifdef RVM_FOR_LINUX
-#include <asm/cache.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
@@ -104,11 +102,11 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include "pthread-wrappers.h"
+#include <pthread.h>
 
-#if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
+#ifdef RVM_FOR_LINUX
 # include "syswrap.h"
-#endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+#endif 
 
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
@@ -210,9 +208,7 @@ sysExit(int value)
 
     systemExiting = true;
 
-    if (! rvm_singleVirtualProcessor)
-        pthread_mutex_lock( &DeathLock );
-
+    pthread_mutex_lock( &DeathLock );
     exit(value);
 }
 
@@ -319,58 +315,6 @@ loadResultBuf(char * dest, int limit, const char *src)
 // Filesystem operations. //
 //------------------------//
 
-// List contents of a filesystem directory (with names delimited by nulls).
-// Taken:    null terminated directory name
-//           buffer in which to place results
-//           buffer size
-// Returned: number of bytes written to buffer (-1=i/o error)
-// Note:     a full buffer indicates a partial list, in which
-//           case caller should make a bigger buffer and retry
-//
-extern "C" int
-sysList(char *dirName, char *buf, int limit)
-{
-
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: list %s 0x%08x %d\n", Me, dirName, buf, limit);
-#endif
-
-    char DELIMITER = '\0';
-    int  cnt = 0;
-    DIR *dir = opendir(dirName);
-    for (dirent *dp = readdir(dir); dp; dp = readdir(dir)) {
-        // POSIX says that d_name is NULL-terminated
-        char *name = dp->d_name;
-        int len = strlen( name );
-
-#ifdef DEBUG_SYS
-        fprintf(SysTraceFile, "%s: found %s\n", Me, name);
-#endif
-
-
-        if (len == 2 && name[0] == '.' && name[1] == '.') 
-            continue; // skip ".."
-        if (len == 1 && name[0] == '.'                  ) 
-            continue;  // skip "."
-
-        while (len--) {
-            if (cnt == limit) 
-                break;
-            *buf++ = *name++;
-            cnt +=1;
-        }
-
-        if (cnt == limit) 
-            break;
-        *buf++ = DELIMITER;
-        cnt += 1;
-        if (cnt == limit) 
-            break;
-    }
-    closedir(dir);
-    return cnt;
-}
-
 // Get file status.
 // Taken:    null terminated filename
 //           kind of info desired (see VM_FileSystem.STAT_XXX)
@@ -423,95 +367,6 @@ sysAccess(char *name, int kind)
     return access(name, kind);
 }
 
-// Set modification time (and access time) to given value
-// (representing seconds after the epoch).
-extern "C" int
-sysUtime(const char *fileName, int modTimeSec)
-{
-    struct utimbuf buf;
-    buf.actime = modTimeSec;
-    buf.modtime = modTimeSec;
-    return utime(fileName, &buf);
-}
-
-// Open file.
-// Taken:    null terminated filename
-//           access/creation mode (see VM_FileSystem.OPEN_XXX)
-// Returned: file descriptor (-1: not found or couldn't create)
-//
-extern "C" int
-sysOpen(char *name, int how)
-{
-    int fd;
-
-    switch (how) {
-    case VM_FileSystem_OPEN_READ:   
-        fd = open(name, O_RDONLY                         ); // "read"
-        break;
-    case VM_FileSystem_OPEN_WRITE:  
-        fd = open(name, O_RDWR | O_CREAT | O_TRUNC,  0666); // "write"
-        break;
-    case VM_FileSystem_OPEN_MODIFY: 
-        fd = open(name, O_RDWR | O_CREAT,            0666); // "modify"
-        break;
-    case VM_FileSystem_OPEN_APPEND: 
-        fd = open(name, O_RDWR | O_CREAT | O_APPEND, 0666); // "append"
-        break;
-    default: 
-        return -1;
-    }
-
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: open %s %d, fd=%d\n", Me, name, how, fd);
-#endif
-
-    return fd;
-}
-
-// Delete file.
-// Taken:    null terminated filename
-// Returned:
-//
-extern "C" int
-sysDelete(char *name)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: delete %s\n", Me, name);
-#endif
-
-    return remove(name);
-}
-
-// Rename file.
-// Taken:    null terminated from and to filenames
-// Returned:
-//
-extern "C" int
-sysRename(char *fromName, char *toName)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: rename %s to %s\n", Me, fromName, toName);
-#endif
-
-    return rename(fromName, toName);
-}
-
-// Make directory.
-// Taken:    null terminated filename
-// Returned: status (-1=error)
-//
-extern "C" int
-sysMkDir(char *name)
-{
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: mkdir %s\n", Me, name);
-#endif
-
-    return mkdir(name, 0777); // Give all user/group/other permissions.
-    // mkdir will modify them according to the
-    // file mode creation mask (umask (1)).
-}
-
 // How many bytes can be read from file/socket without blocking?
 // Taken:    file/socket descriptor
 // Returned: >=0: count, VM_ThreadIOConstants_FD_INVALID: bad file descriptor,
@@ -530,43 +385,6 @@ sysBytesAvailable(int fd)
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
 }
-
-extern "C" int
-sysIsValidFD(int fd)
-{
-    int rc;
-    struct stat sb;
-
-    rc = fstat(fd, &sb);
-    if (rc == -1)
-        return -1;
-    else
-        return 0;
-}
-
-extern "C" int
-sysLength(int fd)
-{
-    int rc;
-    struct stat sb;
-
-    rc = fstat(fd, &sb);
-    if (rc == -1)
-        return -1;
-    else
-        return sb.st_size;
-}
-
-extern "C" int
-sysSetLength(int fd, int len)
-{
-    int rc = ftruncate(fd, len);
-    if (rc == -1)
-        return -1;
-    else
-        return 0;
-}
-
 
 extern "C" int
 sysSyncFile(int fd)
@@ -694,67 +512,19 @@ again:
     return -2;
 }
 
-// Change i/o position on file.
-// Taken:    file descriptor
-//           number of bytes by which to adjust position
-//           how to interpret adjustment (see VM_FileSystem.SEEK_XXX)
-// Returned: new i/o position, as byte offset from start of file (-1: error)
-//
-extern "C" int
-sysSeek(int fd, int offset, int whence)
-{
-    // fprintf(SysTraceFile, "%s: seek %d %d %d\n", Me, fd, offset, whence);
-    switch (whence) {
-    case VM_FileSystem_SEEK_SET: 
-        return lseek(fd, offset, SEEK_SET);
-    case VM_FileSystem_SEEK_CUR: 
-        return lseek(fd, offset, SEEK_CUR);
-    case VM_FileSystem_SEEK_END: 
-        return lseek(fd, offset, SEEK_END);
-    default:                     
-        return -1;
-    }
-}
-
 // Close file or socket.
 // Taken:    file/socket descriptor
 // Returned:  0: success
 //           -1: file/socket not currently open
 //           -2: i/o error
 //
-extern "C" int
-sysClose(int fd)
+static int sysClose(int fd)
 {
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: close %d\n", Me, fd);
-#endif
-
     if ( -1 == fd ) return -1;
-
     int rc = close(fd);
-
-    if (rc == 0)
-        return 0; // success
-
-    if (errno == EBADF)
-        return -1; // not currently open
-
-    fprintf(SysErrorFile, "%s: close on %d failed: %s (errno=%d)\n", Me,
-            fd, strerror(errno), errno);
+    if (rc == 0) return 0; // success
+    if (errno == EBADF) return -1; // not currently open
     return -2; // some other error
-}
-
-
-// Determine whether or not given file descriptor is
-// connected to a TTY.
-//
-// Taken: the file descriptor to query
-// Returned: 1 if it's connected to a TTY, 0 if not
-//
-extern "C" int
-sysIsTTY(int fd)
-{
-    return isatty(fd);
 }
 
 // Set the close-on-exec flag for given file descriptor.
@@ -781,11 +551,6 @@ static void *timeSlicerThreadMain(void *) __attribute__((noreturn));
 static void *
 timeSlicerThreadMain(void *arg)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: timeSlicerThreadMain: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
-
     long ns = (long) arg;
 #ifdef DEBUG_SYS
     fprintf(SysErrorFile, "time slice interval %dns\n", ns);
@@ -840,7 +605,7 @@ extern "C" void processTimerTick(void) {
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
+    int gcStatus = *(int *) ((char *) VmToc + org_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
     /*
@@ -868,13 +633,13 @@ extern "C" void processTimerTick(void) {
             longest_stuck_ticks = -val;
     }
     
-#if !defined(RVM_WITH_GCSPY)
+#ifndef RVM_WITH_GCSPY
     /* 
      * After 500 timer intervals (often == 10 seconds), print a message
      * every 100 timer intervals (often == 2 second), so we don't
      * just appear to be hung. 
      */
-#if (!defined RVM_FOR_GCTRACE)
+#ifndef RVM_FOR_GCTRACE
     if (longest_stuck_ticks > 5001) {
         fprintf(stderr, "%s: Exiting VM due to suspected deadlock\n", Me);
         sysExit(EXIT_STATUS_TIMER_TROUBLE); }
@@ -890,12 +655,10 @@ extern "C" void processTimerTick(void) {
        * parse.  As this is a normal condition during tracing, and causes
        * a lot of problems to tracing, we elide the warning.
        */
-#if (!defined RVM_FOR_GCTRACE)
-        fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
-                " timer interrupt for %d ms.\n", 
+#ifndef RVM_FOR_GCTRACE
+        fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
-        fprintf(stderr, "This may indicate that a blocking system call"
-                " has occured and the VM is deadlocked\n");
+        fprintf(stderr, "This may indicate that a blocking system call has occured and the VM is deadlocked\n");
 #endif
     }
 #endif
@@ -912,67 +675,16 @@ extern "C" void processTimerTick(void) {
 static void
 setTimeSlicer(int msTimerDelay)
 {
-    if (! rvm_singleVirtualProcessor) {
-
-        pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
+  pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
                                     // variable.
-        int nsTimerDelay = msTimerDelay * 1000 * 1000;
-        int errorCode = pthread_create(&timeSlicerThread, NULL,
+  int nsTimerDelay = msTimerDelay * 1000 * 1000;
+  int errorCode = pthread_create(&timeSlicerThread, NULL,
                                        timeSlicerThreadMain, (void*)nsTimerDelay);
-        if (errorCode) {
-            fprintf(SysErrorFile,
-                    "%s: Unable to create the Time Slicer thread: %s\n",
-                    Me, strerror(errorCode));
-            sysExit(EXIT_STATUS_TIMER_TROUBLE);
-        }
-    } else {
-        /* NOTE: This code is ONLY called if we are running in single virtual
-         * processor mode. */
-#if (defined RVM_FOR_LINUX)  || (defined __MACH__)
-
-        // set it to issue a periodic SIGALRM (or 0 to disable timer)
-        //
-
-        struct itimerval timerInfo, oldtimer;
-
-        timerInfo.it_value.tv_sec     = 0;
-        timerInfo.it_value.tv_usec    = msTimerDelay * 1000;
-        timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-        timerInfo.it_interval.tv_usec = timerInfo.it_value.tv_usec;
-
-        if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer)) {
-            fprintf(SysErrorFile, "%s: setitimer failed (errno=%d, %s): ", 
-                    Me, errno, strerror(errno));
-            perror(NULL);
-            sysExit(EXIT_STATUS_TIMER_TROUBLE);
-        }
-#else  /* ! defined RVM_FOR_LINUX && ! defined __MACH__ */
-        // fetch system timer
-        //
-        timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
-        if (timerId == -1) {
-            fprintf(SysErrorFile, "%s: gettimerid failed (errno=%d, %s): ", 
-                    Me, errno, strerror(errno));
-            perror(NULL);
-            sysExit(EXIT_STATUS_TIMER_TROUBLE);
-        }
-
-        // set it to issue a periodic SIGALRM (or 0 to disable timer)
-        //
-        struct itimerstruc_t timerInfo, oldtimer;
-        timerInfo.it_value.tv_sec     = 0;
-        timerInfo.it_value.tv_nsec    = msTimerDelay * 1000 * 1000;
-        timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-        timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
-        if (incinterval(timerId, &timerInfo, &oldtimer)) {
-            fprintf(SysErrorFile, "%s: incinterval failed (errno=%d, %s): ", 
-                    Me, errno, strerror(errno));
-            perror(NULL);
-            sysExit(EXIT_STATUS_TIMER_TROUBLE);
-        }
-#endif
-    }
-    // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
+  if (errorCode) {
+    fprintf(SysErrorFile, "%s: Unable to create the Time Slicer thread: %s\n", Me, strerror(errorCode));
+    sysExit(EXIT_STATUS_TIMER_TROUBLE);
+  }
+  // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
 }
 
 static int timeSlice_msec;
@@ -1107,28 +819,21 @@ sysNumProcessors()
 {
     int numCpus = -1;  /* -1 means failure. */
 
-//#ifdef RVM_FOR_LINUX
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
-    if (numCpus <= 0) {
-        /* get_nprocs_conf will give us a how many processors the operating
-           system configured.  The number of processors actually online is what
-           we want.  */
-        // numCpus = get_nprocs_conf();
-        errno = 0;
-        numCpus = get_nprocs();
-        // It is not clear if get_nprocs can ever return failure; assume it might.
-        if (numCpus < 1) {
-            fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d"
-                    " (errno=%d)\n", Me, numCpus, errno);
-            /* Continue on.  Try to get a better answer by some other method, not
-               that it's likely, but this should not be a fatal error. */
-            // perror(NULL);
-            // sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
+    /* get_nprocs_conf will give us a how many processors the operating
+       system configured.  The number of processors actually online is what
+       we want.  */
+    // numCpus = get_nprocs_conf();
+    errno = 0;
+    numCpus = get_nprocs();
+    // It is not clear if get_nprocs can ever return failure; assume it might.
+    if (numCpus < 1) {
+       fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+       /* Continue on.  Try to get a better answer by some other method, not
+          that it's likely, but this should not be a fatal error. */
     }
 #endif
 
-//#elif RVM_FOR_OSX
 #if defined(CTL_HW) && defined(HW_NCPU)
     if (numCpus < 1) {
         int mib[2];
@@ -1182,463 +887,6 @@ sysNumProcessors()
     return numCpus;
 }
 
-
-
-//-----------------------------------------------------------
-//  Minimal subset of hardware performance monitor operations
-//  for PowerPC that are needed for boot strapping Jikes RVM
-//  because JNI is not yet enabled.
-//
-//  Called from VM_HardwarePerformanceMonitors.boot().
-//-----------------------------------------------------------
-#ifdef RVM_WITH_HPM
-# ifdef RVM_FOR_LINUX
-# include "papi.h"
-# include "papiStdEventDefs.h"
-# define PM_CAVEAT     0
-# define PM_UNVERIFIED 0
-# define PM_VERIFIED   0
-#else
-# include "pmapi.h"
-# endif
-#endif
-
-#ifdef RVM_WITH_HPM
-extern "C" int hpm_init(int);
-extern "C" int hpm_set_event  (int, int, int, int);
-extern "C" int hpm_set_event_X(int, int, int, int);
-extern "C" int hpm_set_mode(int);
-
-extern "C" int hpm_set_program_mythread();
-extern "C" int hpm_start_mythread();
-extern "C" int hpm_stop_mythread();
-extern "C" int hpm_reset_mythread();
-extern "C" long long hpm_get_counter_mythread(int);
-extern "C" int hpm_get_number_of_counters();
-extern "C" int hpm_get_number_of_events();
-extern "C" int hpm_get_processor_name();
-extern "C" int hpm_is_big_endian();
-extern "C" int hpm_test();
-
-extern "C" int hpm_set_program_mygroup();
-extern "C" int hpm_start_mygroup();
-extern "C" int hpm_stop_mygroup();
-extern "C" int hpm_reset_mygroup();
-extern "C" int hpm_print_mygroup();
-extern "C" long long hpm_get_counter_mygroup(int);
-#endif
-
-
-/*
- * Initialize HPM services.
- * Must be called before any other HPM requests.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMinit(void)
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMinit() called:\n", Me);
-# endif
-  int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
-  rc = hpm_init(filter);
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMinit() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-  /* NOTREACHED */
-#endif
-}
-
-
-/*
- * Set, in HPM World, events to be monitored.
- * Only returns if valid parameters.
- * PowerPC 604e only has 4 counters.
- */
-extern "C" int
-sysHPMsetEvent(int e1, int e2, int e3, int e4)
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMsetEvent(%d,%d,%d,%d) called\n",
-          Me, e1,e2,e3,e4);
-# endif
-  rc = hpm_set_event(e1, e2, e3, e4);
-  return rc;
-#else
-  fprintf(SysErrorFile, 
-          "%s: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
-          Me, e1,e2,e3,e4);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Set events to be monitored.
- * Only returns if valid parameters.
- * The PowerPC 630 has 8 counters, this is how we access the additional 4.
- */
-extern "C" int
-sysHPMsetEventX(int e5, int e6, int e7, int e8)
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMsetEventX(%d,%d,%d,%d) called\n", Me,
-          e5,e6,e7,e8);
-# endif
-  rc = hpm_set_event_X(e5, e6, e7, e8);
-  return rc;
-#else
-  fprintf(SysErrorFile,
-          "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
-          Me, e5,e6,e7,e8);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Set mode(s) to be monitored.
- * Only returns if valid parameters.
- * Possible modes are:
- *   #define PM_USER            4       // turns user mode counting on
- *   #define PM_KERNEL          8       // turns kernel mode counting on
- */
-extern "C" int
-sysHPMsetMode(int mode)
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMsetMode(%d) called\n", Me,mode);
-# endif
-  rc = hpm_set_mode(mode);
-  return rc;
-#else
-  fprintf(SysErrorFile, 
-          "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
-          Me, mode);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Set, in HPM world, what is to be monitored.
- * Constraint: sysHPMsetEvent must have been called.
- *   sysHPMsetEventX and sysHPMsetMode must have been called to take affect.
- * Only returns if valid parameters.
- * Must be called after sysHPMinit is called.
- * May be called multiple times only if sysHPMdeleteSettings is called in between.
- */
-extern "C" int
-sysHPMsetProgramMyThread()
-{
-#ifdef RVM_WITH_HPM
-    int rc;
-# if defined DEBUG_SYS
-    if (! rvm_singleVirtualProcessor) {
-        fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
-    }
-# endif
-    rc = hpm_set_program_mythread();
-    return rc;
-#else
-    fprintf(SysTraceFile, 
-            "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
-            Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Set, in HPM world, what is to be monitored for groups.
- * Only returns if valid parameters.
- * Must be called after sysHPMinit is called.
- * May becalled multiple times only if sysHPMdeleteGroupSettings is called in between.
- */
-extern "C" int
-sysHPMsetProgramMyGroup()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called\n", Me);
-# endif
-  rc = hpm_set_program_mygroup();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Start HPM counting.
- * Constraint: sysHPMstartProgramMythread must have been called.
- * Only returns if valid parameters.
- */
-extern "C" int
-sysHPMstartMyThread()
-{
-#ifdef RVM_WITH_HPM
-# if defined DEBUG_SYS
-    if (! rvm_singleVirtualProcessor) {
-        fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
-    }
-    
-# endif
-    int rc = hpm_start_mythread();
-    return rc;
-#else
-    fprintf(SysTraceFile, 
-            "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Start group monitoring.
- * May be called only after sysHPMsetGroupSettings is called.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMstartMyGroup()
-{
-#ifdef RVM_WITH_HPM
-    int rc;
-# if defined DEBUG_SYS
-    if (! rvm_singleVirtualProcessor) {
-        fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
-    }
-# endif
-  rc = hpm_start_mygroup();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMstartMyGroup() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Stop monitoring.
- * Should be called only after sysHPMstartMythread is called.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMstopMyThread()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_stop_mythread();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Stop group monitoring.
- * Should be called only after sysHPMstartGroupCounting is called.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMstopMyGroup()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_stop_mygroup();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMstopMyGroup() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Reset counters to zero.
- * Should be called only after sysHPMstop has been called.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMresetMyThread()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_reset_mythread();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMresetMyThread() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Reset counters to zero.
- * Should be called only after sysHPMstop has been called.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMresetMyGroup()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_reset_mygroup();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMresetMyGroup() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Get value from a counter.
- * Only returns if successful.
- * May be called only after sysHPMstart is called.
- * parameters:
- *   counter input: specifies which counter to read.
- *   return value   output: is the value of the counter that is read.
- */
-extern "C" long long
-sysHPMgetCounterMyThread(int counter)
-{
-#ifdef RVM_WITH_HPM
-  return hpm_get_counter_mythread(counter);
-#else
-  fprintf(SysErrorFile, "%s: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n", Me,counter);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Get value from a counter.
- * Only returns if successful.
- * May be called only after sysHPMstart is called.
- * parameters:
- *   counter input: specifies which counter to read.
- *   return value   output: is the value of the counter that is read.
- */
-extern "C" long long
-sysHPMgetCounterMyGroup(int counter)
-{
-#ifdef RVM_WITH_HPM
-  return hpm_get_counter_mygroup(counter);
-#else
-  fprintf(SysErrorFile, "%s: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n", Me,counter);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Get number of counters available.
- */
-extern "C" int
-sysHPMgetNumberOfCounters()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called\n", Me);
-# endif
-  rc = hpm_get_number_of_counters();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Get number of counters available.
- */
-extern "C" int
-sysHPMgetNumberOfEvents()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called\n", Me);
-# endif
-  rc = hpm_get_number_of_events();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-/*
- * Get number of counters available.
- */
-extern "C" int
-sysHPMisBigEndian()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-# ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called\n", Me);
-# endif
-  rc = hpm_is_big_endian();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Testing.
- * Only returns if successful.
- */
-extern "C" int
-sysHPMtest()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_test();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMtest() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
-
-/*
- * Print
- */
-extern "C" int
-sysHPMprintMyGroup()
-{
-#ifdef RVM_WITH_HPM
-  int rc;
-  rc = hpm_print_mygroup();
-  return rc;
-#else
-  fprintf(SysErrorFile, "%s: sysHPMprintMyGroup() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
-}
-
 // Create a virtual processor (aka "unix kernel thread", "pthread").
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's o/s handle
@@ -1646,10 +894,6 @@ sysHPMprintMyGroup()
 extern "C" VM_Address
 sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Address fp)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
 
     VM_Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
@@ -1695,25 +939,20 @@ sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Addr
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysVirtualProcessorStartup: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
-    
     VM_Address jtoc     = ((VM_Address *)args)[0];
     VM_Address pr       = ((VM_Address *)args)[1];
     VM_Address ip       = ((VM_Address *)args)[2];
     VM_Address fp       = ((VM_Address *)args)[3];
 
     if (VERBOSE_PTHREAD)
-#ifdef RVM_FOR_64_ADDR
+#ifndef RVM_FOR_32_ADDR
         fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
 #else
         fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
 #endif
     // branch to vm code
     //
-#ifdef RVM_FOR_IA32
+#ifndef RVM_FOR_POWERPC
     {
         *(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
         VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
@@ -1735,19 +974,14 @@ sysVirtualProcessorStartup(void *args)
 // Returned: nothing
 //
 extern "C" void
-sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
+sysVirtualProcessorBind(int UNUSED cpuId)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
-    
     int numCpus = sysNumProcessors();
     if (VERBOSE_PTHREAD)
       fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
 
     // bindprocessor() seems to be only on AIX
-#if defined RVM_FOR_AIX
+#ifdef RVM_FOR_AIX
     if (numCpus == -1) {
         fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
         perror(NULL);
@@ -1764,7 +998,7 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
+#endif
 }
 
 /* These are unused in single virtual procesor mode: */
@@ -1777,22 +1011,16 @@ pthread_mutex_t MultithreadingStartupLock = PTHREAD_MUTEX_INITIALIZER;
 int VirtualProcessorsLeftToStart;
 int VirtualProcessorsLeftToWait;
 
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-// Address of the single VM_Processor object.
-static VM_Address VmProcessor;
-#else
 // Thread-specific data key in which to stash the id of
 // the pthread's VM_Processor.  This allows the system call library
 // to find the VM_Processor object at runtime.
-pthread_key_t VmProcessorKey;
-pthread_key_t IsVmProcessorKey;
-#endif
+extern pthread_key_t VmProcessorKey;
+extern pthread_key_t IsVmProcessorKey;
 
 // Create keys for thread-specific data.
 extern "C" void
 sysCreateThreadSpecificDataKeys(void)
 {
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     int rc1, rc2;
 
     // Create a key for thread-specific data so we can associate
@@ -1811,18 +1039,11 @@ sysCreateThreadSpecificDataKeys(void)
 #ifdef DEBUG_SYS
     fprintf(stderr, "%s: vm processor key=%u\n", Me, VmProcessorKey);
 #endif
-
-    // creation of other keys can go here...
-#endif    
 }
 
 extern "C" void
 sysInitializeStartupLocks(int howMany)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysInitializeStartupLocks: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     VirtualProcessorsLeftToStart = howMany;
     VirtualProcessorsLeftToWait = howMany;
 }
@@ -1830,10 +1051,6 @@ sysInitializeStartupLocks(int howMany)
 extern "C" void
 sysWaitForVirtualProcessorInitialization()
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysWaitForVirtualProcessorInitialization: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     pthread_mutex_lock( &VirtualProcessorStartupLock );
     if (--VirtualProcessorsLeftToStart == 0)
         pthread_cond_broadcast( &VirtualProcessorStartup );
@@ -1845,10 +1062,6 @@ sysWaitForVirtualProcessorInitialization()
 extern "C" void
 sysWaitForMultithreadingStart()
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysWaitForMultithreadingStart: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     pthread_mutex_lock( &MultithreadingStartupLock );
     if (--VirtualProcessorsLeftToWait == 0)
         pthread_cond_broadcast( &MultithreadingStartup );
@@ -1872,11 +1085,6 @@ sysWaitForMultithreadingStart()
 extern "C" int
 sysPthreadSelf()
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
-    
     int thread;
 
     thread = (int)pthread_self();
@@ -1895,14 +1103,9 @@ sysPthreadSelf()
 extern "C" void
 sysPthreadSetupSignalHandling()
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    }
-
     int rc;                     // retval from subfunction.
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+#ifndef RVM_FOR_AIX
     /*
      *  Provide space for this pthread to process exceptions.  This is
      * needed on Linux because multiple pthreads can handle signals
@@ -1932,17 +1135,15 @@ sysPthreadSetupSignalHandling()
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-    /* pthread_sigmask can only return the following errors.  Either of them
-     * indicates serious trouble and is grounds for aborting the process:
-     * EINVAL EFAULT.  */
-#elif defined RVM_FOR_AIX
+#ifdef RVM_FOR_AIX
     rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
     /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
      * EPERM.  Again, these are all good reasons to complain and croak. */
 #else
-    #error "Unsupported Operating System"
+    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
+    /* pthread_sigmask can only return the following errors.  Either of them
+     * indicates serious trouble and is grounds for aborting the process:
+     * EINVAL EFAULT.  */
 #endif
     if (rc) {
         fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
@@ -1958,10 +1159,6 @@ sysPthreadSetupSignalHandling()
 extern "C" int
 sysPthreadSignal(int pthread)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadSignal: FATAL Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     pthread_t thread;
     thread = (pthread_t)pthread;
     
@@ -1973,10 +1170,6 @@ sysPthreadSignal(int pthread)
 extern "C" int
 sysPthreadJoin(int pthread)
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadJoin: FATAL Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     pthread_t thread;
     thread = (pthread_t)pthread;
     // fprintf(SysTraceFile, "%s: pthread %d joins %d\n", Me, pthread_self(), thread);
@@ -1988,10 +1181,6 @@ sysPthreadJoin(int pthread)
 extern "C" void
 sysPthreadExit()
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadExit: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     // fprintf(SysTraceFile, "%s: pthread %d exits\n", Me, pthread_self());
     pthread_exit(NULL);
 }
@@ -2024,10 +1213,6 @@ extern "C" int
 sysPthreadSigWait( int * lockwordAddress, 
                    int  lockReleaseValue )
 {
-    if (rvm_singleVirtualProcessor) {
-        fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
-        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    } 
     sigset_t input_set, output_set;
     int      sig;
     int rc;                     // retval from subfunction
@@ -2036,9 +1221,9 @@ sysPthreadSigWait( int * lockwordAddress,
 
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+#ifndef RVM_FOR_AIX
     rc = pthread_sigmask(SIG_BLOCK, NULL, &output_set);
-#else // RVM_FOR_AIX
+#else 
     rc = sigthreadmask(SIG_BLOCK, NULL, &output_set);
 #endif
     if (rc) {
@@ -2071,18 +1256,13 @@ sysPthreadSigWait( int * lockwordAddress,
 extern "C" int
 sysStashVmProcessorInPthread(VM_Address vmProcessor)
 {
-    if (rvm_singleVirtualProcessor) {
-        // We have only a single VM_Processor, so there is nothing to do here.
-    } else {
-        //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
-        int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
-        int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
-        if (rc != 0 || rc2 != 0) {
-            fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
-            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
+    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
+    int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
+    int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
+    if (rc != 0 || rc2 != 0) {
+        fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-    
     return 0;
 }
 
@@ -2151,7 +1331,7 @@ sysDoubleToLong(double a)
     return (long long)a;
 }
 
-#ifdef RVM_FOR_POWERPC
+// sysDoubleRemainder is only used on PPC
 #include <math.h>
 extern "C" double
 sysDoubleRemainder(double a, double b)
@@ -2180,7 +1360,6 @@ sysDoubleRemainder(double a, double b)
     }
     return tmp;
 }
-#endif
 
 /* Used to parse command line arguments that are
    doubles and floats early in booting before it
@@ -2286,14 +1465,6 @@ sysCopy(void *dst, const void *src, VM_Extent cnt)
     memcpy(dst, src, cnt);
 }
 
-// Memory fill.
-//
-extern "C" void
-sysFill(void *dst, int pattern, VM_Extent cnt)
-{
-    memset(dst, pattern, cnt);
-}
-
 // Allocate memory.
 //
 extern "C" void *
@@ -2394,76 +1565,44 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 extern "C" void
-sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
+sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 {
 #ifdef DEBUG_SYS
     fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
 #endif
 
-#ifdef RVM_FOR_AIX
+#ifdef RVM_FOR_POWERPC 
+  #ifdef RVM_FOR_AIX
     _sync_cache_range((caddr_t) address, size);
-#elif (defined RVM_FOR_LINUX || defined RVM_FOR_OSX) && defined RVM_FOR_POWERPC
-    {
-        if (size < 0) {
-            fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
-            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
-
-        /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-        uintptr_t start = (uintptr_t)address;
-        uintptr_t end = start + size;
-        uintptr_t addr;
-
-        /* update storage */
-        /* Note: if one knew the cache line size, one could write a better loop */
-        for (addr=start; addr < end; ++addr)
-            asm("dcbst 0,%0" : : "r" (addr) );
-
-        /* wait for update to commit */
-        asm("sync");
-
-        /* invalidate icache */
-        /* Note: if one knew the cache line size, one could write a better loop */
-        for (addr=start; addr<end; ++addr)
-            asm("icbi 0,%0" : : "r" (addr) );
-
-        /* context synchronization */
-        asm("isync");
+  #else
+    if (size < 0) {
+      fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#else  // only needed on PowerPC platforms; skip here
-    ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(void *address, size_t size)\n");
+
+    /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
+    uintptr_t start = (uintptr_t)address;
+    uintptr_t end = start + size;
+    uintptr_t addr;
+
+    /* update storage */
+    /* Note: if one knew the cache line size, one could write a better loop */
+    for (addr=start; addr < end; ++addr)
+      asm("dcbst 0,%0" : : "r" (addr) );
+
+    /* wait for update to commit */
+    asm("sync");
+
+    /* invalidate icache */
+    /* Note: if one knew the cache line size, one could write a better loop */
+    for (addr=start; addr<end; ++addr)
+      asm("icbi 0,%0" : : "r" (addr) );
+
+    /* context synchronization */
+    asm("isync");
+  #endif
 #endif
 }
-
-//-----------------//
-// SHM* operations //
-//-----------------//
-extern "C" int
-sysShmget(int key, int size, int flags)
-{
-    return shmget(key, size,flags);
-}
-
-extern "C" void *
-sysShmat(int shmid, char * addr, int flags)
-{
-    return shmat(shmid, addr, flags);
-}
-
-extern "C" int
-sysShmdt(char * addr)
-{
-    if (shmdt(addr) == 1)
-        return errno;
-    return 0;
-}
-
-extern "C" int
-sysShmctl(int shmid, int command)
-{
-    return shmctl(shmid, command, NULL);
-}
-
 
 //-----------------//
 // MMAP operations //
@@ -2512,16 +1651,6 @@ sysMMapErrno(char *start , size_t length ,
   }
 }
 
-// munmap
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMUnmap(char *start, size_t length)
-{
-    return munmap(start, length);
-}
-
 // mprotect
 // Taken: start address (Java ADDRESS)
 //        length of region (Java EXTENT)
@@ -2531,30 +1660,6 @@ extern "C" int
 sysMProtect(char *start, size_t length, int prot)
 {
     return mprotect(start, length, prot);
-}
-
-// msync
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        flags (Java int)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMSync(char *start, size_t length, int flags)
-{
-    return msync(start, length, flags);
-}
-
-// madvise
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        advice (Java int)
-// Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
-sysMAdvise(char POSSIBLY_UNUSED      *start,
-           size_t POSSIBLY_UNUSED   length,
-           int POSSIBLY_UNUSED      advice)
-{
-  return madvise(start, length, advice);
 }
 
 // getpagesize
@@ -2640,26 +1745,6 @@ sysDlsym(VM_Address libHandler, char *symbolName)
 #else
     return dlsym((void *) libHandler, symbolName);
 #endif
-}
-
-// Unload dynamic library.
-// Taken:
-// Returned:
-//
-extern "C" void
-sysDlclose()
-{
-    fprintf(SysTraceFile, "%s: dlclose not implemented yet\n", Me);
-}
-
-// Tell OS to remove shared library.
-// Taken:
-// Returned:
-//
-extern "C" void
-sysSlibclean()
-{
-    fprintf(SysTraceFile, "%s: slibclean not implemented yet\n", Me);
 }
 
 //---------------------//
@@ -3311,29 +2396,8 @@ sysNetSelect(
 
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
-      /* This code has not been active for years, because we haven't had an
-         #ifdef named RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS; it was 
-         RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS.  I am commenting it out
-         so that it is obvious that it is never used.
-         
-         I expect that Jikes RVM has
-         continued to work unscathed because, when we load this file, we link
-         against the existing select().  All new calls must be
-         getting resolved against the fake select.  Otherwise, we could just
-         statically link with our fake select.  However, it also might be the
-         case that select is broken in subtle ways -- we shall see.
-         --Steve Augart, 1 Feb 2005
-      */
-// //#if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-//         SelectFunc_t realSelect = getLibcSelect();
-//         if (realSelect == 0) {
-//             fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
-//             sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-//         }
-// #else
-# define realSelect(n, read, write, except, timeout) \
+#define realSelect(n, read, write, except, timeout) \
     select(n, read, write, except, timeout)
-//#endif
 
         // interrogate
         //
@@ -3425,7 +2489,125 @@ getArrayLength(void* ptr)
     return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }
 
-#if (defined RVM_WITH_GCSPY)
+// VMMath
+// @author Ian Rogers 2007
+extern "C" double
+sysVMMathSin(double a) {
+    return sin(a);
+}
+
+extern "C" double
+sysVMMathCos(double a) {
+    return cos(a);
+}
+
+extern "C" double
+sysVMMathTan(double a) {
+    return tan(a);
+}
+
+extern "C" double
+sysVMMathAsin(double a) {
+    return asin(a);
+}
+
+extern "C" double
+sysVMMathAcos(double a) {
+    return acos(a);
+}
+
+extern "C" double
+sysVMMathAtan(double a) {
+    return atan(a);
+}
+
+extern "C" double
+sysVMMathAtan2(double a, double b) {
+    return atan2(a, b);
+}
+
+
+extern "C" double
+sysVMMathCosh(double a) {
+    return cosh(a);
+}
+
+extern "C" double
+sysVMMathSinh(double a) {
+    return sinh(a);
+}
+
+extern "C" double
+sysVMMathTanh(double a) {
+    return tanh(a);
+}
+
+extern "C" double
+sysVMMathExp(double a) {
+    return exp(a);
+}
+
+extern "C" double
+sysVMMathLog(double a) {
+    return log(a);
+}
+
+extern "C" double
+sysVMMathSqrt(double a) {
+    return sqrt(a);
+}
+
+extern "C" double
+sysVMMathPow(double a, double b) {
+    return pow(a, b);
+}
+
+extern "C" double
+sysVMMathIEEEremainder(double a, double b) {
+    return remainder(a, b);
+}
+
+extern "C" double
+sysVMMathCeil(double a) {
+    return ceil(a);
+}
+
+extern "C" double
+sysVMMathFloor(double a) {
+    return floor(a);
+}
+
+extern "C" double
+sysVMMathRint(double a) {
+    return rint(a);
+}
+
+extern "C" double
+sysVMMathCbrt(double a) {
+    return cbrt(a);
+}
+
+extern "C" double
+sysVMMathExpm1(double a) {
+    return expm1(a);
+}
+
+extern "C" double
+sysVMMathHypot(double a, double b) {
+    return hypot(a, b);
+}
+
+extern "C" double
+sysVMMathLog10(double a) {
+    return log10(a);
+}
+
+extern "C" double
+sysVMMathLog1p(double a) {
+    return log1p(a);
+}
+
+#ifdef RVM_WITH_GCSPY
 // GCspy
 // @author Richard Jones 2002-6
 
@@ -3451,28 +2633,30 @@ static int stream_len;
 
 extern "C" gcspy_gc_stream_t *
 gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...", 
-            driver, driver->name, id);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...", 
+          driver, driver->name, id);
+#endif
   gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "stream=%x\n", stream);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "stream=%x\n", stream);
+#endif
   return stream;
 }
 
 extern "C" void
 gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
-  if (GCSPY_TRACE) {
-    fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n", 
-	                  driver, driver->name, stream_len, stream_count);
-    stream_count = 0;
-    /*??*/
-    gcspy_buffered_output_t *output =
+#if GCSPY_TRACE 
+  fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n", 
+                        driver, driver->name, stream_len, stream_count);
+  stream_count = 0;
+  /*??*/
+  gcspy_buffered_output_t *output =
       gcspy_command_stream_get_output(driver->interpreter);
-    len = gcspy_bufferedOutputGetLen(output);
-    fprintf(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
-  }
+  len = gcspy_bufferedOutputGetLen(output);
+  fprintf(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
+#endif
   gcspy_driverEndOutput(driver);
 }
 
@@ -3481,11 +2665,12 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
                  char *title, char *blockInfo, int tileNum,
                  char *unused, int mainSpace) {
                
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
                    driver, id, serverName, driverName, 
                    title, blockInfo, tileNum,
                    unused, mainSpace);
+#endif
   gcspy_driverInit(driver, id, serverName, driverName, 
                    title, blockInfo, tileNum,
                    unused, mainSpace);
@@ -3493,17 +2678,19 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
 
 extern "C" void
 gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n", 
-            driver, driver->name);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n", 
+          driver, driver->name);
+#endif
   gcspy_driverInitOutput(driver);
 }
 
 extern "C" void
 gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n", 
-            driver, driver->name, size);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n", 
+          driver, driver->name, size);
+#endif
   gcspy_driverResize(driver, size);
 }
 
@@ -3511,15 +2698,16 @@ extern "C" void
 gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long value) {
   char buffer[128];
   sprintf(buffer, format, value);
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x(%s), tile %d %s\n", driver, driver->name, tile, buffer);
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x(%s), tile %d %s\n", driver, driver->name, tile, buffer);
+#endif
   gcspy_driverSetTileName(driver, tile, buffer);
 }
 
 extern "C" void
 gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
   char name[256];
-#ifdef RVM_FOR_64_ADDR
+#ifndef RVM_FOR_32_ADDR
   snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);
 #else
   snprintf(name, sizeof name, "   [%08x-%08x)", start, end); 
@@ -3529,122 +2717,138 @@ gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, VM_Address sta
 
 extern "C" void
 gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
-  if (GCSPY_TRACE) 
-    fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
+#if GCSPY_TRACE 
+  fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
+#endif
   gcspy_driverSpaceInfo(driver, spaceInfo);
 }
 
 extern "C" void
 gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x(%s)\n", driver, driver->name);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x(%s)\n", driver, driver->name);
+#endif
   gcspy_driverStartComm(driver);
 }
 
 extern "C" void
 gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
-  if (GCSPY_TRACE) {
-    fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n", 
-            driver, driver->name, id, driver->streams[id].name, len);
-    stream_count = 0;
-    stream_len = len;
-  }
+#if GCSPY_TRACE 
+  fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n", 
+          driver, driver->name, id, driver->streams[id].name, len);
+  stream_count = 0;
+  stream_len = len;
+#endif
   gcspy_driverStream(driver, id, len);
 }
 
 extern "C" void
 gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
-  if (GCSPY_TRACE)
-    stream_count++;
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
+#endif
+#if GCSPY_TRACE
+  stream_count++;
+#endif
   gcspy_driverStreamByteValue(driver, val);
 }
 
 extern "C" void
 gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
-  if (GCSPY_TRACE)
-    stream_count++;
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
+#endif
+#if GCSPY_TRACE
+  stream_count++;
+#endif
   gcspy_driverStreamShortValue(driver, val);
 }
 
 extern "C" void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE > 1) 
-    fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
-  if (GCSPY_TRACE)
-    stream_count++;
+#if (GCSPY_TRACE > 1) 
+  fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
+#endif
+#if GCSPY_TRACE
+  stream_count++;
+#endif
   gcspy_driverStreamIntValue(driver, val);
 }
 
 extern "C" void
 gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
-  if (GCSPY_TRACE) {
-    fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n", 
-            driver, driver->name, id, driver->streams[id].name, len);
-    stream_count = 0;
-    stream_len = len;
-  }
+#if GCSPY_TRACE 
+  fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n", 
+          driver, driver->name, id, driver->streams[id].name, len);
+  stream_count = 0;
+  stream_len = len;
+#endif
   gcspy_driverSummary(driver, id, len);
 }
 
 extern "C" void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
-  if (GCSPY_TRACE > 1) 
-    fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
-  if (GCSPY_TRACE) 
-    stream_count++;
+#if (GCSPY_TRACE > 1) 
+  fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
+#endif
+#if GCSPY_TRACE 
+  stream_count++;
+#endif
   gcspy_driverSummaryValue(driver, val);
 }
 
 /* Note: passed driver but uses driver->interpreter */
 extern "C" void
 gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
-  if (GCSPY_TRACE) {
-    fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
-    stream_count = 0;
-    stream_len = len;
-  }
+#if GCSPY_TRACE 
+  fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
+  stream_count = 0;
+  stream_len = len;
+#endif
   gcspy_intWriteControl(driver->interpreter, id, len);
 }
 
 extern "C" gcspy_gc_driver_t *
 gcspyMainServerAddDriver (gcspy_main_server_t *server) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerAddDriver: server address = %x(%s), adding driver...", server, server->name);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerAddDriver: server address = %x(%s), adding driver...", server, server->name);
+#endif
   gcspy_gc_driver_t *driver = gcspy_mainServerAddDriver(server);
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "address = %d\n", driver);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "address = %d\n", driver);
+#endif
   return driver;
 }
 
 extern "C" void
 gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *name) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerAddEvent: server address = %x(%s), event=%d, name=%s\n", server, server->name, event, name);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerAddEvent: server address = %x(%s), event=%d, name=%s\n", server, server->name, event, name);
+#endif
   gcspy_mainServerAddEvent(server, event, name);
 }
 
 extern "C" gcspy_main_server_t *
 gcspyMainServerInit (int port, int len, const char *name, int verbose) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
+#endif
   gcspy_mainServerInit(&server, port, len, name, verbose);
   return &server;
 }
 
 extern "C" int
 gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
+#endif
   int res = gcspy_mainServerIsConnected(server, event);
-  if (GCSPY_TRACE)
-    if (res)
-      fprintf(SysTraceFile, "connected\n");
-    else
-      fprintf(SysTraceFile, "not connected\n");
+#if GCSPY_TRACE
+  if (res)
+    fprintf(SysTraceFile, "connected\n");
+  else
+    fprintf(SysTraceFile, "not connected\n");
+#endif
   return res;
 }
 
@@ -3658,29 +2862,33 @@ gcspyMainServerOuterLoop () {
 
 extern "C" void
 gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
+#endif
   gcspy_mainServerSafepoint(server, event);
 }
 
 extern "C" void
 gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
+#endif
   gcspy_mainServerSetGeneralInfo(server, generalInfo);
 }
 
 extern "C" void
 gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
+#endif
   gcspy_mainServerStartCompensationTimer(server);
 }
 
 extern "C" void
 gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
+#endif
   gcspy_mainServerStopCompensationTimer(server);
 }
 
@@ -3690,8 +2898,9 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 //  printf("I am not Linux!");
 //     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 //#endif __linux__
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
+#endif
   pthread_t tid;
   int res = pthread_create(&tid, NULL, 
                           (pthread_start_routine_t) loop,  server);
@@ -3701,8 +2910,9 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
   }
 
   if(wait) {
-    if (GCSPY_TRACE)
-      fprintf(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
+#if GCSPY_TRACE
+    fprintf(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
+#endif
     gcspy_mainServerWaitForClient(server);
   }
 }
@@ -3716,12 +2926,13 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
   colour.red = (unsigned char) red;
   colour.green = (unsigned char) green;
   colour.blue = (unsigned char) blue;
-  if (GCSPY_TRACE)
-    fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
                    stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue, defaultValue,
 		   stringPre, stringPost, presentation, paintStyle,
 		   indexMaxStream, &colour, colour.red, colour.green, colour.blue);
+#endif
   gcspy_streamInit(stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue,defaultValue,
 		   stringPre, stringPost, presentation, paintStyle,
@@ -3730,191 +2941,29 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
 
 extern "C" void
 gcspyFormatSize (char *buffer, int size) {
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
+#endif
   strcpy(buffer, gcspy_formatSize(size));
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "buffer=%s\n", buffer);
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "buffer=%s\n", buffer);
+#endif
 }
 
 extern "C" int
 gcspySprintf(char *str, const char *format, char *arg) {
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
+#endif
   int res = sprintf(str, format, arg);
-  if (GCSPY_TRACE > 1)
-    fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
+#if (GCSPY_TRACE > 1)
+  fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
+#endif
   return res;
 }
 
   
 #endif
 
-// Fish out an address stored in an instance field of an object.
-static void *
-getFieldAsAddress(void *objPtr, int fieldOffset)
-{
-    char *fieldAddress = ((char*) objPtr) + fieldOffset;
-    return *((void**) fieldAddress);
-}
 
-// Get the JNI environment object from the VM_Processor.
-static JNIEnv *
-getJniEnvFromVmProcessor(void *vmProcessorPtr)
-{
-    if (vmProcessorPtr == 0)
-        return 0; // oops
 
-    // Follow chain of pointers:
-    // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
-    void *vmThreadPtr =
-        getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
-    void *jniEnvironment =
-        getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
-    // Convert VM_JNIEnvironment to JNIEnv* expected by native code
-    // by creating the appropriate interior pointer.
-    void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
-
-    return (JNIEnv*) jniEnv;
-}
-
-//////////////////////////////////////////////////////////////
-// JNI Invocation API functions
-//////////////////////////////////////////////////////////////
-
-/** Destroying the Java VM only makes sense if programs can create a VM
- * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
- * unloading virtual machine instances.  It is supposed to block until all
- * other user threads are gone, and then return an error code.
- *
- * TODO: Implement.
- */
-static
-jint 
-DestroyJavaVM(JavaVM UNUSED * vm) 
-{
-    fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
-    return JNI_ERR;
-}
-
-/* "Trying to attach a thread that is already attached is a no-op".  We
- * implement that common case.  (In other words, it works like GetEnv()).
- * However, we do not implement the more difficult case of actually attempting
- * to attach a native thread that is not currently attached to the VM.
- *
- * TODO: Implement for actually attaching unattached threads.
- */
-static
-jint 
-AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
-{
-    JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
-    jint version;
-    if (args == NULL) {
-        version = JNI_VERSION_1_1;
-    } else {
-        version = aargs->version ;
-        /* We'd like to handle aargs->name and aargs->group */
-    }
-
-    // Handled for us by GetEnv().  We do it here anyway so that we avoid
-    // printing an error message further along in this function.
-    if (version > JNI_VERSION_1_4)
-        return JNI_EVERSION;
-    
-    /* If we're already attached, we're gold. */
-    register jint retval = GetEnv(vm, penv, version);
-    if (retval == JNI_OK)
-        return retval;
-    else if (retval == JNI_EDETACHED) {
-        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
-    } else {
-        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
-    }
-
-    // Upon failure:
-    *penv = NULL;               // Make sure we don't yield a bogus one to use.
-    return retval;
-}
-
-/* TODO: Implement */
-static
-jint 
-DetachCurrentThread(JavaVM UNUSED *vm) 
-{
-    fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
-    return JNI_ERR;
-}
- 
-jint 
-GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
-{ 
-    if (version > JNI_VERSION_1_4)
-        return JNI_EVERSION;
-
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    // Return NULL if we are not on a VM pthread
-    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
-        *penv = NULL;
-        return JNI_EDETACHED;
-    }
-#endif
-
-    // Get VM_Processor id.
-    void *vmProcessor =
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-      (void *)VmProcessor;
-#else
-      pthread_getspecific(VmProcessorKey);
-#endif
-
-    // Get the JNIEnv from the VM_Processor object
-    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
- 
-    *penv = env;
-
-    return JNI_OK;
-}
-
-/** JNI 1.4 */
-/* TODO: Implement */
-static
-jint 
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
-{
-    fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
-    return JNI_ERR;
-}
-
-const struct JNIInvokeInterface_ externalJNIFunctions = {
-  NULL, // reserved0
-  NULL, // reserved1
-  NULL, // reserved2
-  DestroyJavaVM,
-  AttachCurrentThread,
-  DetachCurrentThread,
-  GetEnv,         // JNI 1.2
-  AttachCurrentThreadAsDaemon   // JNI 1.4
-};
-
-struct JavaVM_ sysJavaVM = {
-  &externalJNIFunctions, // functions
-  NULL, // reserved0
-  NULL, // reserved1
-  NULL, // reserved2
-  NULL, // pthreadIDTable
-  NULL, // jniEnvTable
-};
-
-typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void UNUSED *reserved);
-
-/*
- * Class:     com_ibm_JikesRVM_VM_DynamicLibrary
- * Method:    runJNI_OnLoad
- * Signature: (Lorg/vmmagic/unboxed/Address;)I
- */
-extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv UNUSED *env,
-                                                                                           jobject UNUSED clazz,
-                                                                                           jobject JNI_OnLoadAddress) {
-  return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);
-}

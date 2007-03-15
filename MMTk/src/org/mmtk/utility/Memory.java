@@ -22,14 +22,11 @@ import org.vmmagic.pragma.*;
  * 
  * FIXME: Why can't these operations be performed at word-granularity?
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class Memory implements Uninterruptible, Constants {
+@Uninterruptible public class Memory implements Constants {
 
   /****************************************************************************
    * 
@@ -52,7 +49,8 @@ public class Memory implements Uninterruptible, Constants {
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
-  public static void zero(Address start, Extent bytes) throws InlinePragma {
+  @Inline
+  public static void zero(Address start, Extent bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -64,23 +62,13 @@ public class Memory implements Uninterruptible, Constants {
   }
 
   /**
-   * Zero a page-aligned region of memory
-   * 
-   * @param start The start of the region to be zeroed (must be page aligned)
-   * @param bytes The number of bytes to be zeroed (must be page aligned)
-   */
-  public static void zeroPages(Address start, int bytes) throws InlinePragma {
-    VM.memory.zeroPages(start, bytes);
-  }
-
-  /**
    * Zero a small region of memory
    * 
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
-  public static void zeroSmall(Address start, Extent bytes) 
-    throws InlinePragma {
+  @Inline
+  public static void zeroSmall(Address start, Extent bytes) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -97,8 +85,8 @@ public class Memory implements Uninterruptible, Constants {
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    * @param value The value to which the integers in the region should be set
    */
-  public static void set(Address start, int bytes, int value)
-      throws InlinePragma {
+  @Inline
+  public static void set(Address start, int bytes, int value) { 
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -121,8 +109,8 @@ public class Memory implements Uninterruptible, Constants {
    * @param bytes The size of the region to be checked, in bytes
    * @return True if the region is zeroed
    */
-  public static boolean IsZeroed(Address start, int bytes)
-    throws InlinePragma {
+  @Inline
+  public static boolean IsZeroed(Address start, int bytes) { 
     return isSet(start, bytes, false, 0);
   }
 
@@ -137,8 +125,8 @@ public class Memory implements Uninterruptible, Constants {
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    */
-  public static void assertIsZeroed(Address start, int bytes)
-      throws NoInlinePragma {
+  @NoInline
+  public static void assertIsZeroed(Address start, int bytes) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isSet(start, bytes, true, 0));
   }
 
@@ -151,8 +139,8 @@ public class Memory implements Uninterruptible, Constants {
    * @param value The value to which this region should be set
    * @return True if the region has been correctly set
    */
-  public static boolean isSet(Address start, int bytes, int value)
-      throws InlinePragma {
+  @Inline
+  public static boolean isSet(Address start, int bytes, int value) { 
     return isSet(start, bytes, true, value);
   }
 
@@ -163,19 +151,19 @@ public class Memory implements Uninterruptible, Constants {
    * 
    * @param value The value to be tested
    */
-  private static final void assertAligned(int value) {
+  private static void assertAligned(int value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & (BYTES_IN_INT - 1)) == 0);
   }
 
-  private static final void assertAligned(Word value) {
+  private static void assertAligned(Word value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
   }
 
-  private static final void assertAligned(Extent value) {
+  private static void assertAligned(Extent value) {
     assertAligned(value.toWord());
   }
 
-  private static final void assertAligned(Address value) {
+  private static void assertAligned(Address value) {
     assertAligned(value.toWord());
   }
 
@@ -187,14 +175,14 @@ public class Memory implements Uninterruptible, Constants {
    * @param verbose If true, produce verbose output
    * @param value The value to which the memory should be set
    */
+  @NoInline
   private static boolean isSet(Address start, int bytes, boolean verbose,
       int value)
     /* Inlining this loop into the uninterruptible code can
      *  cause/encourage the GCP into moving a get_obj_tib into the
      * interruptible region where the tib is being installed via an
      * int_store
-   */
-  throws NoInlinePragma {
+   */ { 
     if (VM.VERIFY_ASSERTIONS) assertAligned(bytes);
     for (int i = 0; i < bytes; i += BYTES_IN_INT)
       if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {

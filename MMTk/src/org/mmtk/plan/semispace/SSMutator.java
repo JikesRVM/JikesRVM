@@ -37,17 +37,14 @@ import org.vmmagic.pragma.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
-public abstract class SSMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public abstract class SSMutator extends StopTheWorldMutator {
   /****************************************************************************
    * Instance fields
    */
@@ -80,8 +77,8 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
    * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == SS.ALLOC_SS)
       return ss.alloc(bytes, align, offset, false);
     else
@@ -97,9 +94,9 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == SS.ALLOC_SS) return;
     super.postAlloc(object, typeRef, bytes, allocator);
   }
@@ -117,7 +114,7 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
-  public final Space getSpaceFromAllocator(Allocator a) {
+  public Space getSpaceFromAllocator(Allocator a) {
     if (a == ss) return SS.toSpace();
     return super.getSpaceFromAllocator(a);
   }
@@ -133,7 +130,7 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
-  public final Allocator getAllocatorFromSpace(Space space) {
+  public Allocator getAllocatorFromSpace(Space space) {
     if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
     return super.getAllocatorFromSpace(space);
   }
@@ -167,17 +164,17 @@ public abstract class SSMutator extends StopTheWorldMutator implements Uninterru
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == SS.PREPARE_MUTATOR) {
-      // rebind the allocation bump pointer to the appropriate semispace.
-      ss.rebind(SS.toSpace());
       super.collectionPhase(phaseId, primary);
       return;
     }
 
     if (phaseId == SS.RELEASE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
+      // rebind the allocation bump pointer to the appropriate semispace.
+      ss.rebind(SS.toSpace());
       return;
     }
 

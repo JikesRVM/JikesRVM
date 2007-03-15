@@ -35,17 +35,14 @@ import org.vmmagic.pragma.*;
  * For details of the split between global and thread-local operations
  * @see org.mmtk.plan.Plan
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class StopTheWorld extends Plan
-  implements Uninterruptible, Constants {
+@Uninterruptible public abstract class StopTheWorld extends Plan
+  implements Constants {
   /****************************************************************************
    * Constants
    */
@@ -107,8 +104,8 @@ public abstract class StopTheWorld extends Plan
    * Perform the initial determination of liveness from the roots.
    */
   protected static final int rootClosurePhase = new ComplexPhase("initial-closure", null, new int[] {
-      PREPARE,
       PREPARE_MUTATOR,
+      PREPARE,
       PRECOPY,
       BOOTIMAGE_ROOTS,
       ROOTS,
@@ -171,7 +168,8 @@ public abstract class StopTheWorld extends Plan
    * The boot method is called early in the boot process before any
    * allocation.
    */
-  public void postBoot() throws InterruptiblePragma {
+  @Interruptible
+  public void postBoot() { 
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
@@ -197,7 +195,8 @@ public abstract class StopTheWorld extends Plan
    * 
    * @param phaseId The unique of the phase to perform. 
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
         Stats.startGC();
@@ -222,8 +221,8 @@ public abstract class StopTheWorld extends Plan
     }
 
     if (phaseId == RELEASE) {
-      loSpace.release();
-      ploSpace.release();
+      loSpace.release(true);
+      ploSpace.release(true);
       immortalSpace.release();
       VM.memory.globalReleaseVMSpace();
       return;
@@ -254,8 +253,8 @@ public abstract class StopTheWorld extends Plan
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
-  public void replacePhase(int oldPhase, int newPhase)
-    throws InterruptiblePragma {
+  @Interruptible
+  public void replacePhase(int oldPhase, int newPhase) { 
     collection.replacePhase(oldPhase, newPhase);
   }
 
@@ -301,7 +300,7 @@ public abstract class StopTheWorld extends Plan
         (Options.verbose.getValue() == 2)) {
       Log.write("-> ");
       Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
-      Log.write(" KB   ");
+      Log.write("KB   ");
       if (Options.verbose.getValue() == 1) {
         totalTime.printLast();
         Log.writeln(" ms]");

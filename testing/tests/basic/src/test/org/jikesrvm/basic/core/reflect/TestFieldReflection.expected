@@ -1,0 +1,64 @@
+Testing on getFields
+Values:  true   127   1.0   1.0     1     1     1  true   127   1.0   1.0     1     1     1
+Set booleans to false +!!!!!!+!!!!!!
+Values: false   127   1.0   1.0     1     1     1 false   127   1.0   1.0     1     1     1
+Set bytes to 12 !++++++!++++++
+Values: false    12  12.0  12.0    12    12    12 false    12  12.0  12.0    12    12    12
+Set shorts to 2 !!+++++!!+++++
+Values: false    12   2.0   2.0     2     2     2 false    12   2.0   2.0     2     2     2
+Set ints to 3 !!++++!!!++++!
+Values: false    12   3.0   3.0     3     3     2 false    12   3.0   3.0     3     3     2
+Set longs to 4 !!++!+!!!++!+!
+Values: false    12   4.0   4.0     3     4     2 false    12   4.0   4.0     3     4     2
+Set floats to 5 !!++!!!!!++!!!
+Values: false    12   5.0   5.0     3     4     2 false    12   5.0   5.0     3     4     2
+Set doubles to 6.0 !!+!!!!!!+!!!!
+Values: false    12   6.0   5.0     3     4     2 false    12   6.0   5.0     3     4     2
+Testing on getDeclaredFields()
+Values:  true   127   1.0   1.0     1     1     1 false    12   6.0   5.0     3     4     2
+Set booleans to false +!!!!!!+!!!!!!
+Values: false   127   1.0   1.0     1     1     1 false    12   6.0   5.0     3     4     2
+Set bytes to 12 !++++++!++++++
+Values: false    12  12.0  12.0    12    12    12 false    12  12.0  12.0    12    12    12
+Set shorts to 2 !!+++++!!+++++
+Values: false    12   2.0   2.0     2     2     2 false    12   2.0   2.0     2     2     2
+Set ints to 3 !!++++!!!++++!
+Values: false    12   3.0   3.0     3     3     2 false    12   3.0   3.0     3     3     2
+Set longs to 4 !!++!+!!!++!+!
+Values: false    12   4.0   4.0     3     4     2 false    12   4.0   4.0     3     4     2
+Set floats to 5 !!++!!!!!++!!!
+Values: false    12   5.0   5.0     3     4     2 false    12   5.0   5.0     3     4     2
+Set doubles to 6.0 !!+!!!!!!+!!!!
+Values: false    12   6.0   5.0     3     4     2 false    12   6.0   5.0     3     4     2
+Testing on getFields
+Values:     1  true     1
+Set booleans to false !+!
+Values:     1 false     1
+Set bytes to 12 +!+
+Values:    12 false    12
+Set shorts to 2 +!+
+Values:     2 false     2
+Set ints to 3 +!+
+Values:     3 false     3
+Set longs to 4 !!+
+Values:     3 false     4
+Set floats to 5 !!!
+Values:     3 false     4
+Set doubles to 6.0 !!!
+Values:     3 false     4
+Testing on getDeclaredFields()
+Values:   127   1.0     -     -     -     1     1   127   1.0     1 false     4   1.0     1
+Set booleans to false !!---!!!!!+!!!
+Values:   127   1.0     -     -     -     1     1   127   1.0     1 false     4   1.0     1
+Set bytes to 12 ++---+++++!+++
+Values:    12  12.0     -     -     -    12    12    12  12.0    12 false    12  12.0    12
+Set shorts to 2 !+---++!++!+++
+Values:    12   2.0     -     -     -     2     2    12   2.0     2 false     2   2.0     2
+Set ints to 3 !+---+!!++!++!
+Values:    12   3.0     -     -     -     3     2    12   3.0     3 false     3   3.0     2
+Set longs to 4 !+---+!!+!!++!
+Values:    12   4.0     -     -     -     4     2    12   4.0     3 false     4   4.0     2
+Set floats to 5 !+---!!!+!!!+!
+Values:    12   5.0     -     -     -     4     2    12   5.0     3 false     4   5.0     2
+Set doubles to 6.0 !!---!!!!!!!+!
+Values:    12   5.0     -     -     -     4     2    12   5.0     3 false     4   6.0     2

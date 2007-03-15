@@ -11,7 +11,6 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.utility.Log;
 import org.mmtk.utility.TracingConstants;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
@@ -23,36 +22,39 @@ import org.vmmagic.unboxed.*;
  * and bulk processing of the buffer.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public class TraceBuffer extends LocalQueue 
-  implements Constants, TracingConstants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class TraceBuffer extends LocalQueue 
+  implements Constants, TracingConstants {
 
   /***********************************************************************
    * 
    * Class based constants
    */
-  private static final Word TRACE_NEW_RECORD = Word.fromInt(3);
-  private static final Word TRACE_ALLOC_SIZE = Word.fromInt(5);
-  private static final Word TRACE_ALLOC_NAME = Word.fromInt(6);
-  private static final Word TRACE_ALLOC_FP = Word.fromInt(7);
-  private static final Word TRACE_ALLOC_THREAD = Word.fromInt(9);
-  private static final Word TRACE_TIB_VALUE = Word.fromInt(10);
-  private static final Word TRACE_DEATH_TIME = Word.fromInt(11);
-  private static final Word TRACE_FIELD_TARGET = Word.fromInt(12);
-  private static final Word TRACE_ARRAY_TARGET = Word.fromInt(13);
-  private static final Word TRACE_FIELD_SLOT = Word.fromInt(14);
-  private static final Word TRACE_ARRAY_ELEMENT = Word.fromInt(15);
-  private static final Word TRACE_STATIC_TARGET = Word.fromInt(17);
-  private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromInt(18);
+  private static final Word TRACE_NEW_RECORD = Word.fromIntSignExtend(3);
+  private static final Word TRACE_ALLOC_SIZE = Word.fromIntSignExtend(5);
+//  private static final Word TRACE_ALLOC_NAME = Word.fromIntSignExtend(6);
+  private static final Word TRACE_ALLOC_FP = Word.fromIntSignExtend(7);
+  private static final Word TRACE_ALLOC_THREAD = Word.fromIntSignExtend(9);
+  private static final Word TRACE_TIB_VALUE = Word.fromIntSignExtend(10);
+  private static final Word TRACE_DEATH_TIME = Word.fromIntSignExtend(11);
+  private static final Word TRACE_FIELD_TARGET = Word.fromIntSignExtend(12);
+  private static final Word TRACE_ARRAY_TARGET = Word.fromIntSignExtend(13);
+  private static final Word TRACE_FIELD_SLOT = Word.fromIntSignExtend(14);
+  private static final Word TRACE_ARRAY_ELEMENT = Word.fromIntSignExtend(15);
+  private static final Word TRACE_STATIC_TARGET = Word.fromIntSignExtend(17);
+  private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromIntSignExtend(18);
 
-  /***********************************************************************
-   * 
-   * Instance fields
+  /*
+   * Debugging and trace reducing constants 
    */
-  private SortSharedDeque tracePool;
+  public static final boolean OMIT_ALLOCS=false;
+  public static final boolean OMIT_UPDATES=false;
+  public static final boolean OMIT_BOOTALLOCS=false;
+  public static final boolean OMIT_UNREACHABLES=false;
+  public static final boolean OMIT_OTHERS=false;
+  public static final boolean OMIT_OUTPUT=OMIT_ALLOCS && OMIT_UPDATES && 
+                                          OMIT_OTHERS;
+
 
   /***********************************************************************
    * 
@@ -75,7 +77,8 @@ public class TraceBuffer extends LocalQueue
    * 
    * @param i The data to be pushed onto the tracing queue
    */
-  public final void push(Word i) throws InlinePragma {
+  @Inline
+  public final void push(Word i) { 
     checkTailInsert(1);
     uncheckedTailInsert(i.toAddress());
   }
@@ -86,9 +89,10 @@ public class TraceBuffer extends LocalQueue
   public final void process() {
     Word traceState = TRACE_NEW_RECORD;
     int entriesNotFlushed = 0;
+    boolean loggedRecord = false;
     /* First we must flush any remaining data */
-    Log.writeln();
-
+    if (!OMIT_OUTPUT) Log.writeln();
+    
     /* Process through the entire buffer. */
     while (checkDequeue(1)) {
       /* For speed and efficiency, we will actually process the data buffer by 
@@ -97,92 +101,130 @@ public class TraceBuffer extends LocalQueue
         head = head.minus(BYTES_IN_ADDRESS);
         Word val = head.loadWord();
         if (traceState.EQ(TRACE_NEW_RECORD)) {
+          loggedRecord = false;
           if (val.EQ(TRACE_GCSTART)) {
-            Log.write('G');
-            Log.write('C');
-            Log.writeln('B', true);
+            if (!OMIT_OTHERS) {
+              Log.write('G');
+              Log.write('C');
+              Log.writeln('B', true);
+            }
           } else if (val.EQ(TRACE_GCEND)) {
-            Log.write('G');
-            Log.write('C');
-            Log.writeln('E', true);
+            if (!OMIT_OTHERS) {
+              Log.write('G');
+              Log.write('C');
+              Log.writeln('E', true);
+            }
           } else {
             traceState = val;
           }
         } else {
           if (traceState.EQ(TRACE_EXACT_ALLOC) ||
               traceState.EQ(TRACE_ALLOC)) {
-            Log.write((traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_ALLOCS) {
+              Log.write( (traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_ALLOC_SIZE;
           } else if (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC) ||
                      traceState.EQ(TRACE_IMMORTAL_ALLOC)) {
-            Log.write((traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_ALLOCS) {
+              Log.write( (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_ALLOC_SIZE;
           } else if (traceState.EQ(TRACE_BOOT_ALLOC)) {
-            Log.write('B');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_BOOTALLOCS) {
+              Log.write('B');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_BOOT_ALLOC_SIZE;
           } else if (traceState.EQ(TRACE_DEATH)) {
-            Log.write('D');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_UNREACHABLES) {
+              Log.write('D');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_DEATH_TIME;
           } else if (traceState.EQ(TRACE_BOOT_ALLOC_SIZE)) {
-            Log.write(val);
+            if (!OMIT_BOOTALLOCS) 
+              Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_ALLOC_SIZE)) {
-            Log.write(val);
+            if (!OMIT_ALLOCS) 
+              Log.write(val);
             traceState = TRACE_ALLOC_FP;
           } else if (traceState.EQ(TRACE_ALLOC_FP)) {
-            Log.write(val);
+            if (!OMIT_ALLOCS) 
+              Log.write(val);
             traceState = TRACE_ALLOC_THREAD;
           } else if (traceState.EQ(TRACE_ALLOC_THREAD)) {
-            Log.write(val);
+            if (!OMIT_ALLOCS) 
+              Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_TIB_SET)) {
-            Log.write('T');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_UPDATES) {
+              Log.write('T');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_TIB_VALUE;
           } else if (traceState.EQ(TRACE_STATIC_SET)) {
-            Log.write('S');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_UPDATES) {
+              Log.write('S');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_STATIC_TARGET;
           } else if (traceState.EQ(TRACE_TIB_VALUE) ||
-                     traceState.EQ(TRACE_DEATH_TIME) ||
                      traceState.EQ(TRACE_STATIC_TARGET)) {
-            Log.write(val);
+            if (!OMIT_UPDATES)
+              Log.write(val);
+            traceState = TRACE_NEW_RECORD;
+          } else if (traceState.EQ(TRACE_DEATH_TIME)) {
+            if (!OMIT_UNREACHABLES)
+              Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_FIELD_SET) || 
                      traceState.EQ(TRACE_ARRAY_SET)) {
-            Log.write('U');
-            Log.write(' ');
-            Log.write(val);
+            if (!OMIT_UPDATES) {
+              Log.write('U');
+              Log.write(' ');
+              Log.write(val);
+              loggedRecord = true;
+            }
             traceState = TRACE_FIELD_SLOT;
           } else if (traceState.EQ(TRACE_FIELD_TARGET) || 
                      traceState.EQ(TRACE_ARRAY_TARGET)) {
-            Log.write(val);
+            if (!OMIT_UPDATES)
+              Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_FIELD_SLOT) ||
                      traceState.EQ(TRACE_ARRAY_ELEMENT)) {
-            Log.write(val);
+            if (!OMIT_UPDATES)
+              Log.write(val);
             traceState = TRACE_FIELD_TARGET;
-          } else
+          } else {
             VM.assertions.fail("Cannot understand directive!\n");
-          if (traceState.EQ(TRACE_NEW_RECORD)) {
+          }
+          if (traceState.EQ(TRACE_NEW_RECORD) && loggedRecord) {
             entriesNotFlushed++;
             Log.writeln();
-          } else {
-            Log.write(' ');
+          } else if (loggedRecord) {
+              Log.write(' ');
           }
         }
         if (entriesNotFlushed == 10) {
-          Log.flush();
+          if (!OMIT_OUTPUT)
+            Log.flush();
           entriesNotFlushed = 0;
         }
       }

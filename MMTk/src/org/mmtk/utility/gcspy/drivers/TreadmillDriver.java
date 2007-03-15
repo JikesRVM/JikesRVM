@@ -28,14 +28,10 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple driver for the MMTk LargeObjectSpace.
  * 
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-public class TreadmillDriver extends AbstractDriver
-  implements Uninterruptible {
+@Uninterruptible public class TreadmillDriver extends AbstractDriver {
 
   private static final boolean DEBUG = false;
 
@@ -73,7 +69,7 @@ public class TreadmillDriver extends AbstractDriver
                          LargeObjectSpace lospace,
                          int blockSize,
                          int threshold,
-                         boolean mainSpace) throws InterruptiblePragma {
+                         boolean mainSpace) { 
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, mainSpace);
     
@@ -110,7 +106,8 @@ public class TreadmillDriver extends AbstractDriver
   } 
   
   // private creator methods for the streams 
-  private IntStream createUsedSpaceStream() throws InterruptiblePragma {
+  @Interruptible
+  private IntStream createUsedSpaceStream() { 
     return VM.newGCspyIntStream(
                      this,
                      "Used Space stream",                    // stream name 
@@ -127,7 +124,8 @@ public class TreadmillDriver extends AbstractDriver
 		             true);                                  // summary enabled
   }
 
-  private ShortStream createObjectsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createObjectsStream() { 
     return VM.newGCspyShortStream(
                      this,
                      "Objects stream",
@@ -144,7 +142,8 @@ public class TreadmillDriver extends AbstractDriver
 		             true);
   }
   
-  private ShortStream createRootsStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRootsStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Roots stream",
@@ -162,7 +161,8 @@ public class TreadmillDriver extends AbstractDriver
 		             true);
   }
   
-  private ShortStream createRefFromImmortalStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRefFromImmortalStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "References from Immortal stream",

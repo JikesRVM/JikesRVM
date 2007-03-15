@@ -44,15 +44,12 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class RCBase extends StopTheWorld implements Uninterruptible {
+@Uninterruptible public abstract class RCBase extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -137,9 +134,9 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
+  @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status)
-    throws InlinePragma {
+                                int size, Word status) { 
     if (WITH_COALESCING_RC) {
       status = status.or(SCAN_BOOT_IMAGE ? RCHeader.LOGGED : RCHeader.UNLOGGED); 
     }
@@ -157,7 +154,8 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
    
     if (phaseId == PREPARE) {
       rcTrace.prepare();
@@ -202,7 +200,7 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * @param object The object to check
    * @return True if the object is in a reference counted space.
    */
-  public static final boolean isRCObject(ObjectReference object) {
+  public static boolean isRCObject(ObjectReference object) {
     return !object.isNull() && !Space.isInSpace(VM_SPACE, object);  
   }
 
@@ -211,7 +209,7 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * 
    * @param object The object to free.
    */
-  public static final void free(ObjectReference object) {
+  public static void free(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
     	VM.assertions._assert(isRCObject(object));
     }
@@ -224,7 +222,8 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   }
   
   /** @return The active cycle detector instance */
-  public final CD cycleDetector() throws InlinePragma {
+  @Inline
+  public final CD cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;
@@ -234,5 +233,18 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
     
     VM.assertions.fail("No cycle detector instance found.");
     return null;
+  }
+  
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(REF_COUNT, object))
+      return false;
+    return super.objectCanMove(object);
   }
 }

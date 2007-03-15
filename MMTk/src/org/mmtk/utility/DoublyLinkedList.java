@@ -8,7 +8,6 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.mmtk.vm.Lock;
@@ -35,13 +34,10 @@ import org.vmmagic.unboxed.*;
  * Access to the instances may be synchronized depending on the
  * constructor argument.
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
- * @version $Revision$
- * @date $Date$
  */
-public final class DoublyLinkedList implements Constants, Uninterruptible {
+@Uninterruptible public final class DoublyLinkedList implements Constants {
 
   /****************************************************************************
    * 
@@ -54,8 +50,7 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
    */
   private Address head;
   private final Lock lock;
-  private final Object owner;
-  private final int log_granularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
+  private final int logGranularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
 
   /****************************************************************************
    * 
@@ -65,14 +60,13 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
   /**
    * Constructor
    */
-  public DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
-    owner = owner_;
+  public DoublyLinkedList(int logGranularity, boolean shared) {
     head = Address.zero();
     lock = shared ? VM.newLock("DoublyLinkedList") : null;
-    log_granularity = log_granularity_;
+    this.logGranularity = logGranularity;
 
     // ensure that granularity is big enough for midPayloadToNode to work
-    Word tmp = Word.one().lsh(log_granularity);
+    Word tmp = Word.one().lsh(logGranularity);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
@@ -80,8 +74,7 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
   //
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(0 * BYTES_IN_ADDRESS);
   private static Offset NEXT_OFFSET = Offset.fromIntSignExtend(1 * BYTES_IN_ADDRESS);
-  private static Offset LIST_OFFSET = Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS);
-  private static Offset HEADER_SIZE = Offset.fromIntSignExtend(3 * BYTES_IN_ADDRESS);
+  private static Offset HEADER_SIZE = Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS);
 
   private static final Word nodeMask;
   static {
@@ -90,48 +83,45 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
     nodeMask = mask.minus(Word.one()).not();
   }
 
-  public final Object getOwner() {
-    return owner;
-  }
-
-  static public final Object getOwner(Address node) {
-    return node.loadObjectReference(LIST_OFFSET).toObject();
-  }
-
-  static public final int headerSize() throws InlinePragma {
+  @Inline
+  public static int headerSize() {
     return HEADER_SIZE.toInt();
   }
 
-  public final boolean isNode(Address node) {
-    return node.toWord().rshl(log_granularity).lsh(log_granularity).EQ(node.toWord());
+  public boolean isNode(Address node) {
+    return node.toWord().rshl(logGranularity).lsh(logGranularity).EQ(node.toWord());
   }
 
-  static public final Address nodeToPayload(Address node) throws InlinePragma {
+  @Inline
+  public static Address nodeToPayload(Address node) {
     return node.plus(HEADER_SIZE);
   }
 
-  static public final Address payloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  public static Address payloadToNode(Address payload) {
     return payload.minus(HEADER_SIZE);
   }
 
-  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
+  @Inline
+  public static Address midPayloadToNode(Address payload) {
     // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
     return payload.toWord().and(nodeMask).toAddress();
   }
 
-  public final void add(Address node) throws InlinePragma {
+  @Inline
+  public void add(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
-    node.store(ObjectReference.fromObject(owner), LIST_OFFSET);
     if (!head.isZero())
       head.store(node, PREV_OFFSET);
     head = node;
     if (lock != null) lock.release();
   }
 
-  public final void remove(Address node) throws InlinePragma {
+  @Inline
+  public void remove(Address node) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
@@ -146,26 +136,29 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
     // Null out node's reference to the list
     node.store(Address.zero(), PREV_OFFSET);
     node.store(Address.zero(), NEXT_OFFSET);
-    node.store(Address.zero(), LIST_OFFSET);
     if (lock != null) lock.release();
   }
 
-  public final Address getHead() throws InlinePragma {
+  @Inline
+  public Address getHead() { 
     return head;
   }
 
-  public final Address getNext(Address node) throws InlinePragma {
+  @Inline
+  public Address getNext(Address node) { 
     return node.loadAddress(NEXT_OFFSET);
   }
 
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public Address pop() { 
     Address first = head;
     if (!first.isZero())
       remove(first);
     return first;
   }
 
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public boolean isEmpty() { 
     return head.isZero();
   }
 
@@ -175,7 +168,7 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
    * @param node The cell being searched for
    * @return True if the cell is found on the treadmill
    */
-  public final boolean isMember(Address node) {
+  public boolean isMember(Address node) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
@@ -191,7 +184,7 @@ public final class DoublyLinkedList implements Constants, Uninterruptible {
     return result;
   }
 
-  public final void show() {
+  public void show() {
     if (lock != null) lock.acquire();
     Address cur = head;
     Log.write(cur);

@@ -1,0 +1,115 @@
+<project name="xerces" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="900" else="300">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <!-- TODO: when in performance run Use iteration driver and execute twice -->
+  <property name="test.max.heapsize" value="200"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="xerces.dir" location="${external.lib.dir}/xerces-2_8_1"/>
+  <property name="shakespeare.dir" location="${external.lib.dir}/xmlFiles/shakespeare.1.10.xml"/>
+
+  <property name="xercesImpl.jar" value="${xerces.dir}/xercesImpl.jar"/>
+  <property name="xercesSamples.jar" value="${xerces.dir}/xercesSamples.jar"/>
+  <property name="xml-apis.jar" value="${xerces.dir}/xml-apis.jar"/>
+  <property name="test.class.path" value="${xercesImpl.jar}:${xercesSamples.jar}:${xml-apis.jar}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Macros for running the tests                  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="score">
+    <attribute name="tag"/>
+    <attribute name="name"/>
+    <attribute name="elems"/>
+    <attribute name="spaces"/>
+    <attribute name="chars"/>
+    <sequential>
+      <extractStatistic tag="@{tag}" key="@{name}" pattern="@{name}.xml: (.*) ms \(@{elems} elems, 0 attrs, @{spaces} spaces, @{chars} chars\)"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="xercesTest">
+    <attribute name="class"/>
+    <sequential>
+      <rvm tag="@{class}" class="@{class}" args="${input.xml.files}" dir="${shakespeare.dir}"/>
+
+      <outputTestStart tag="@{class}"/>
+      <outputStatisticStart/>
+      <score tag="@{class}" name="a_and_c" elems="6347" spaces="9013" chars="145838"/>
+      <score tag="@{class}" name="all_well" elems="5031" spaces="7080" chars="126429"/>
+      <score tag="@{class}" name="as_you" elems="4522" spaces="6317" chars="117519"/>
+      <score tag="@{class}" name="com_err" elems="3153" spaces="4478" chars="84352"/>
+      <score tag="@{class}" name="coriolan" elems="6285" spaces="8763" chars="156558"/>
+      <score tag="@{class}" name="cymbelin" elems="5782" spaces="7699" chars="153848"/>
+      <score tag="@{class}" name="dream" elems="3361" spaces="4534" chars="90465"/>
+      <score tag="@{class}" name="hamlet" elems="6636" spaces="9119" chars="170542"/>
+      <score tag="@{class}" name="hen_iv_1" elems="4825" spaces="6562" chars="136422"/>
+      <score tag="@{class}" name="hen_iv_2" elems="5255" spaces="7228" chars="148045"/>
+      <score tag="@{class}" name="hen_v" elems="4971" spaces="6664" chars="145999"/>
+      <score tag="@{class}" name="hen_vi_1" elems="4334" spaces="5907" chars="125609"/>
+      <score tag="@{class}" name="hen_vi_2" elems="5046" spaces="6877" chars="143381"/>
+      <score tag="@{class}" name="hen_vi_3" elems="4907" spaces="6772" chars="139461"/>
+      <score tag="@{class}" name="hen_viii" elems="4905" spaces="6470" chars="138879"/>
+      <score tag="@{class}" name="j_caesar" elems="4455" spaces="6254" chars="109681"/>
+      <score tag="@{class}" name="john" elems="3926" spaces="5169" chars="115295"/>
+      <score tag="@{class}" name="lear" elems="5984" spaces="8385" chars="146622"/>
+      <score tag="@{class}" name="lll" elems="5056" spaces="7293" chars="122096"/>
+      <score tag="@{class}" name="m_for_m" elems="4877" spaces="6824" chars="121945"/>
+      <score tag="@{class}" name="m_wives" elems="4958" spaces="7250" chars="123224"/>
+      <score tag="@{class}" name="macbeth" elems="3975" spaces="5483" chars="97601"/>
+      <score tag="@{class}" name="merchant" elems="4145" spaces="5590" chars="114930"/>
+      <score tag="@{class}" name="much_ado" elems="4727" spaces="6838" chars="115973"/>
+      <score tag="@{class}" name="othello" elems="6194" spaces="8767" chars="145790"/>
+      <score tag="@{class}" name="pericles" elems="4000" spaces="5456" chars="103739"/>
+      <score tag="@{class}" name="r_and_j" elems="5081" spaces="7021" chars="135040"/>
+      <score tag="@{class}" name="rich_ii" elems="4116" spaces="5401" chars="127135"/>
+      <score tag="@{class}" name="rich_iii" elems="6224" spaces="8640" chars="168676"/>
+      <score tag="@{class}" name="t_night" elems="4568" spaces="6592" chars="109293"/>
+      <score tag="@{class}" name="taming" elems="4675" spaces="6653" chars="116259"/>
+      <score tag="@{class}" name="tempest" elems="3757" spaces="5160" chars="92902"/>
+      <score tag="@{class}" name="timon" elems="4339" spaces="6134" chars="105286"/>
+      <score tag="@{class}" name="titus" elems="3932" spaces="5253" chars="116868"/>
+      <score tag="@{class}" name="troilus" elems="6078" spaces="8645" chars="148336"/>
+      <score tag="@{class}" name="two_gent" elems="4141" spaces="6001" chars="95049"/>
+      <score tag="@{class}" name="win_tale" elems="5050" spaces="6671" chars="136122"/>
+      <outputStatisticEnd/>
+
+      <outputTestResults tag="@{class}"/>
+      <outputTestEnd/>
+      <displayTestResults tag="@{class}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="xerces.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="shakespeare.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <fileset id="xml.files" dir="${shakespeare.dir}">
+      <include name="*.xml"/>
+    </fileset>
+    <property name="xml.files" refid="xml.files"/>
+    <echo file="${build.tests.dir}/FileList.txt">input.xml.files=${xml.files}</echo>
+    <replace file="${build.tests.dir}/FileList.txt" token=";" value=" "/>
+    <property file="${build.tests.dir}/FileList.txt"/>
+
+    <startResults/>
+
+    <xercesTest class="dom.Counter"/>
+    <xercesTest class="sax.Counter"/>
+
+    <finishResults/>
+  </target>
+
+</project>

@@ -21,15 +21,12 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class RCTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class RCTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -67,8 +64,8 @@ public final class RCTraceLocal extends TraceLocal implements Uninterruptible {
    * @param root is this object a root
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object, boolean root)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object, boolean root) { 
     if (root && RC.isRCObject(object)) {
       collector().reportRoot(object);
     }
@@ -84,8 +81,8 @@ public final class RCTraceLocal extends TraceLocal implements Uninterruptible {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     return object;
   }
   
@@ -108,7 +105,8 @@ public final class RCTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * @return The current RC collector instace.
    */
-  private static final RCCollector collector() throws InlinePragma {
+  @Inline
+  private static RCCollector collector() {
     return (RCCollector)VM.activePlan.collector();
   }
   

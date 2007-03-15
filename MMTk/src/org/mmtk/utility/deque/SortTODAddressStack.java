@@ -21,12 +21,9 @@ import org.vmmagic.pragma.*;
  * In addition, this can sort the entries currently on the shared stack.
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public class SortTODAddressStack extends LocalDeque 
-  implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+@Uninterruptible public class SortTODAddressStack extends LocalDeque 
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -57,7 +54,8 @@ public class SortTODAddressStack extends LocalDeque
    * 
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(Address addr) throws InlinePragma {
+  @Inline
+  public final void push(Address addr) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -70,7 +68,8 @@ public class SortTODAddressStack extends LocalDeque
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
-  public final Address pop() throws InlinePragma {
+  @Inline
+  public final Address pop() { 
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     } else {
@@ -84,7 +83,8 @@ public class SortTODAddressStack extends LocalDeque
    * @return True if there are no more entries on the local & shared stack,
    *         false otherwise.
    */
-  public final boolean isEmpty() throws InlinePragma {
+  @Inline
+  public final boolean isEmpty() { 
     return !checkDequeue(1);
   }
 }

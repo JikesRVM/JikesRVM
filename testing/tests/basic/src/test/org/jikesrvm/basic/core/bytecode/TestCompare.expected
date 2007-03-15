@@ -1,0 +1,8 @@
+zero_cmp Expected: 100110 Actual: 100110
+i_cmp Expected: 100110 Actual: 100110
+l_cmp Expected: 100010001 Actual: 100010001
+f_cmp Expected: 100010001 Actual: 100010001
+d_cmp Expected: 100010001 Actual: 100010001
+a_cmp Expected: 10 Actual: 10
+null_cmp Expected: 10 Actual: 10
+str_cmp Expected: true,false Actual: true,false

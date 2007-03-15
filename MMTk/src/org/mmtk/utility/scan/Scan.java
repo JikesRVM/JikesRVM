@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-//$Id$
 
 package org.mmtk.utility.scan;
 
@@ -25,18 +24,17 @@ import org.vmmagic.pragma.*;
  * @author Robin Garner
  * @author Andrew Gray
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class Scan implements Uninterruptible {
+@Uninterruptible public final class Scan {
   /**
    * Scan a object, processing each pointer field encountered.
    * 
    * @param trace The trace to use when scanning.
    * @param object The object to be scanned.
    */
+  @Inline
   public static void scanObject(TraceStep trace,
-                                ObjectReference object) throws InlinePragma {
+                                ObjectReference object) { 
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
@@ -54,8 +52,8 @@ public final class Scan implements Uninterruptible {
    * @param trace The trace to use when precopying.
    * @param object The object to be scanned.
    */
-  public static void precopyChildren(TraceLocal trace, ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public static void precopyChildren(TraceLocal trace, ObjectReference object) { 
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);

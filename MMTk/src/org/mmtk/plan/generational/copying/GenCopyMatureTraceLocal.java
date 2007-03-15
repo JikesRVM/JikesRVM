@@ -24,15 +24,12 @@ import org.vmmagic.unboxed.*;
  * closure over the heap graph, specifically in a Generational copying
  * collector. 
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Uninterruptible {
+@Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 
   /**
    * Constructor
@@ -41,7 +38,7 @@ public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Unin
     super(global, plan);
   }
 
-  private static final GenCopy global() {
+  private static GenCopy global() {
     return (GenCopy) VM.activePlan.global();
   }
 

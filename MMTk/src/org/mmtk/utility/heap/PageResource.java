@@ -33,13 +33,11 @@ import org.vmmagic.unboxed.*;
  * more restrictive (useful for copying collectors which allocate
  * monotonically before freeing the entire space and starting over).
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-abstract public class PageResource implements Constants, Uninterruptible {
+@Uninterruptible
+public abstract class PageResource implements Constants {
 
   /****************************************************************************
    * 
@@ -47,8 +45,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   protected static final boolean ZERO_ON_RELEASE = false; // debugging
 
-  static private Lock classLock;
-  static private long cumulativeCommitted = 0;
+  private static Lock classLock;
+  private static long cumulativeCommitted = 0;
 
 
   /****************************************************************************
@@ -114,7 +112,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * @param pages The number of pages requested
    * @return True if the page budget could satisfy the request.
    */
-  public final boolean reservePages(int pages) throws InlinePragma {
+  @Inline
+  public final boolean reservePages(int pages) { 
     lock();
     reserved = committed + adjustForMetaData(pages);
     boolean satisfied = reserved <= pageBudget;
@@ -130,7 +129,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  abstract public int adjustForMetaData(int pages);
+  public abstract int adjustForMetaData(int pages);
 
   /**
    * Adjust a page request to include metadata requirements, if any.
@@ -140,7 +139,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * pending request
    * @return The number of required pages, inclusive of any metadata
    */
-  abstract public int adjustForMetaData(int pages, Address begin);
+  public abstract int adjustForMetaData(int pages, Address begin);
   
   /**
    * Allocate pages in virtual memory, returning zero on failure.<p>
@@ -156,7 +155,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * @return The address of the first of <code>pages</code> pages, or
    * zero on failure.
    */
-  public final Address getNewPages(int pages) throws InlinePragma {
+  @Inline
+  public final Address getNewPages(int pages) { 
     Address rtn = allocPages(pages);
     if (!rtn.isZero()) commitPages(pages, rtn);
     return rtn;
@@ -172,7 +172,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * @param pages The number of pages to be committed
    * @param begin The start address of the allocated region
    */
-  private final void commitPages(int pages, Address begin) {
+  private void commitPages(int pages, Address begin) {
     lock();
     committed += adjustForMetaData(pages, begin);
     if (!Plan.gcInProgress())
@@ -206,7 +206,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * 
    * @param pages The number of pages to be added.
    */
-  final private static void addToCommitted(int pages) {
+  private static void addToCommitted(int pages) {
     classLock.acquire();
     cumulativeCommitted += pages;
     classLock.release();
@@ -216,7 +216,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * Acquire the appropriate lock depending on whether the context is
    * GC or mutator.
    */
-  final protected void lock() {
+  protected final void lock() {
     if (Plan.gcInProgress())
       gcLock.acquire();
     else
@@ -227,7 +227,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * Release the appropriate lock depending on whether the context is
    * GC or mutator.
    */
-  final protected void unlock() {
+  protected final void unlock() {
     if (Plan.gcInProgress())
       gcLock.release();
     else

@@ -20,17 +20,14 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class SSTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public class SSTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -70,8 +67,8 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
       return SS.copySpace0.traceObject(this, object);
@@ -86,8 +83,8 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
       return SS.copySpace0.traceObject(this, object);
@@ -110,7 +107,8 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * @return The allocator to use when copying during the trace.
    */
-  public final int getAllocator() throws InlinePragma {
+  @Inline
+  public final int getAllocator() { 
     return SS.ALLOC_SS;
   }
 }

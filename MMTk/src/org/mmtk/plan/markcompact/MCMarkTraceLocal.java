@@ -13,7 +13,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -23,13 +22,10 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-compact space during the initial marking phase.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class MCMarkTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class MCMarkTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -70,8 +66,8 @@ public final class MCMarkTraceLocal extends TraceLocal implements Uninterruptibl
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(MC.MARK_COMPACT, object))
       return MC.mcSpace.traceMarkObject(this, object);
@@ -84,8 +80,8 @@ public final class MCMarkTraceLocal extends TraceLocal implements Uninterruptibl
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (Space.isInSpace(MC.MARK_COMPACT, object)) {
       if (MarkCompactSpace.testAndMark(object)) {
         // TODO: If precopy returns many different objects, this will cause a leak.

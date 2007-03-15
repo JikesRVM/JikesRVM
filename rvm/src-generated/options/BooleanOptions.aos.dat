@@ -1,0 +1,59 @@
+#
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL 
+# Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
+# NOTE: OPT_LEVEL is a bogus short term kludge as we work on unifying
+# the template files. --dave
+DESCRIP  
+
+ENABLE_RECOMPILATION -1 true
+Should the adaptive system recompile hot methods?
+
+ENABLE_ADVICE_GENERATION -1 false
+Do we need to generate advice file? 
+
+ENABLE_PRECOMPILE -1 false
+Should the adaptive system precompile all methods given in the advice file before the user thread is started?
+
+ENABLE_REPLAY_COMPILE -1 false
+Should the adaptive system use the pseudo-adaptive system that solely relies on the advice file?
+
+GATHER_PROFILE_DATA -1 false
+Should profile data be gathered and reported at the end of the run?
+
+ADAPTIVE_INLINING -1 true
+Should we use adaptive feedback-directed inlining?
+
+EARLY_EXIT -1 false
+Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
+
+OSR_PROMOTION -1 true
+Should AOS promote baseline-compiled methods to opt?
+
+BACKGROUND_RECOMPILATION -1 true
+Should recompilation be done on a background thread or on next invocation?
+
+INSERT_YIELDPOINT_COUNTERS -1 false
+Insert instrumentation in opt recompiled code to count yieldpoints executed?
+
+INSERT_METHOD_COUNTERS_OPT -1 false 
+Insert intrusive method counters in opt recompiled code?
+
+INSERT_INSTRUCTION_COUNTERS -1 false
+Insert counters on all instructions in opt recompiled code?
+
+INSERT_DEBUGGING_COUNTERS -1 false
+Enable easy insertion of (debugging) counters in opt recompiled code.
+
+REPORT_INTERRUPT_STATS -1 false
+Report stats related to timer interrupts and AOS listeners on exit
+
+DISABLE_RECOMPILE_ALL_METHODS -1 false
+Disable the ability for an app to request all methods to be recompiled 
+

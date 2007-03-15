@@ -39,16 +39,13 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class RCCollector extends RCBaseCollector
-  implements Uninterruptible, Constants {
+@Uninterruptible public abstract class RCCollector extends RCBaseCollector
+  implements Constants {
   /****************************************************************************
    * Instance fields
    */
@@ -75,7 +72,8 @@ public abstract class RCCollector extends RCBaseCollector
    */
 
   /** @return The active global plan as an <code>RC</code> instance. */
-  private static final RC global() throws InlinePragma {
+  @Inline
+  private static RC global() {
     return (RC) VM.activePlan.global();
   }
 

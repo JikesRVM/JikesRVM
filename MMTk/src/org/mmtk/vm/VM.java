@@ -43,11 +43,8 @@ import org.vmmagic.unboxed.Offset;
  * <code>mmtk.hostjvm</code> to load the VM-specific concrete classes
  * and initialize the constants and singletons defined here.
  * 
- * $Id: VM.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision: 10750 $
- * @date $Date: 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) $
  */
 public final class VM {
   
@@ -105,7 +102,7 @@ public final class VM {
    * classes.
    */
   private static final Factory factory;
-  private static final String vmPackage;
+  private static final String vmFactory;
 
   /**
    * This class initializer establishes a VM-specific factory class
@@ -116,10 +113,10 @@ public final class VM {
    */
   static {
     /* Identify the VM-specific factory using reflection */
-    vmPackage = System.getProperty("mmtk.hostjvm");
+    vmFactory = System.getProperty("mmtk.hostjvm");
     Factory xfa = null;
     try {
-      xfa = (Factory) Class.forName(vmPackage+".Factory").newInstance();
+      xfa = (Factory) Class.forName(vmFactory).newInstance();
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);     // we must *not* go on if the above has failed

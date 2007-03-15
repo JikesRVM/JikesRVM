@@ -9,11 +9,9 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -31,14 +29,11 @@ import org.vmmagic.unboxed.*;
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class LargeObjectLocal extends LargeObjectAllocator
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class LargeObjectLocal extends LargeObjectAllocator
+  implements Constants {
 
   /****************************************************************************
    * 
@@ -49,8 +44,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * 
    * Instance variables
    */
-  private final Treadmill treadmill; // per-processor
-
+ 
   /****************************************************************************
    * 
    * Initialization
@@ -65,7 +59,6 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   public LargeObjectLocal(LargeObjectSpace space) {
     super(space);
     this.space = space;
-    treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }
 
   /****************************************************************************
@@ -81,10 +74,10 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * 
    * @param cell The newly allocated cell
    */
-  protected final void postAlloc (Address cell) 
-    throws InlinePragma {
-    treadmill.addToTreadmill(Treadmill.payloadToNode(cell));
-  };
+  @Inline
+  protected void postAlloc (Address cell) { 
+    space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
+  }
 
   /****************************************************************************
    * 
@@ -95,41 +88,14 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
    */
-   public final void prepare(boolean fullHeap) {                               
-     if (fullHeap) {                                                           
-       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.fromSpaceEmpty());
-       treadmill.flip();                                                       
-     }
+  public void prepare(boolean fullHeap) {
   }
 
   /**
    * Finish up after a collection.
    */
   public void release(boolean fullHeap) {
-    // sweep the large objects
-    sweepLargePages(true);                // sweep the nursery
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());   
-    if (fullHeap) sweepLargePages(false); // sweep the mature space
   }
-
-  /**
-   * Sweep through the large pages, releasing all superpages on the
-   * "from space" treadmill.
-   */
-  private final void sweepLargePages(boolean sweepNursery) {
-    while (true) {
-      Address cell = treadmill.pop(sweepNursery);
-      if (cell.isZero()) break;
-      free(cell);
-    }
-    if (VM.VERIFY_ASSERTIONS) {
-      if (sweepNursery)                                                      
-        VM.assertions._assert(treadmill.nurseryEmpty());
-      else                                                                   
-        VM.assertions._assert(treadmill.fromSpaceEmpty());
-    }                                                                       
-  }
-
 
   /****************************************************************************
    * 
@@ -144,8 +110,8 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @return The size of the per-superpage header required by this
    * system.
    */
-  protected final int superPageHeaderSize()
-    throws InlinePragma {
+  @Inline
+  protected int superPageHeaderSize() { 
     return Treadmill.headerSize();
   }
 
@@ -156,8 +122,8 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
-  protected final int cellHeaderSize()
-    throws InlinePragma {
+  @Inline
+  protected int cellHeaderSize() { 
     return 0;
   }
 
@@ -167,7 +133,8 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @param losDriver the GCSpy space driver
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver) {
-    treadmill.gcspyGatherData(event, losDriver);
+    // TODO: assumes single threaded
+    space.getTreadmill().gcspyGatherData(event, losDriver);
   }
   
   /**
@@ -177,6 +144,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver, boolean tospace) {
-    treadmill.gcspyGatherData(event, losDriver, tospace);
+    // TODO: assumes single threaded
+    space.getTreadmill().gcspyGatherData(event, losDriver, tospace);
   }
 }

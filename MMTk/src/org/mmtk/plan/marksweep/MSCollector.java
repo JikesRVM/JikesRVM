@@ -38,15 +38,12 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class MSCollector extends StopTheWorldCollector implements Uninterruptible {
+@Uninterruptible public abstract class MSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields
@@ -77,8 +74,8 @@ public abstract class MSCollector extends StopTheWorldCollector implements Unint
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();
@@ -111,7 +108,8 @@ public abstract class MSCollector extends StopTheWorldCollector implements Unint
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final MS global() throws InlinePragma {
+  @Inline
+  private static MS global() {
     return (MS) VM.activePlan.global();
   }
 

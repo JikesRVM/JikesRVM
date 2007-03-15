@@ -26,13 +26,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a trial deletion cycle detector.
 
- * $Id: MS.java,v 1.4 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public final class TrialDeletion extends CD implements Uninterruptible {
+@Uninterruptible public final class TrialDeletion extends CD {
 
   /****************************************************************************
    * 
@@ -76,14 +73,14 @@ public final class TrialDeletion extends CD implements Uninterruptible {
    * 
    * Instance variables
    */
-  public SharedDeque workPool;
-  public SharedDeque blackPool;
-  public SharedDeque unfilteredPurplePool;
-  public SharedDeque maturePurplePool;
-  public SharedDeque filteredPurplePool;
-  public SharedDeque cyclePoolA;
-  public SharedDeque cyclePoolB;
-  public SharedDeque freePool;
+  public final SharedDeque workPool;
+  public final SharedDeque blackPool;
+  public final SharedDeque unfilteredPurplePool;
+  public final SharedDeque maturePurplePool;
+  public final SharedDeque filteredPurplePool;
+  public final SharedDeque cyclePoolA;
+  public final SharedDeque cyclePoolB;
+  public final SharedDeque freePool;
   public int cdMode;
   private long startCycles;
   
@@ -111,7 +108,8 @@ public final class TrialDeletion extends CD implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public boolean collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId) { 
     
     if (phaseId == CD_PREPARE_FILTER) {
       if (shouldFilterPurple()) {

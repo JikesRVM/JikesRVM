@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * GC verbosity level.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class Verbose extends IntOption {
   /**

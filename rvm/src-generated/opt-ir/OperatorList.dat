@@ -1,0 +1,1635 @@
+#
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorList.dat
+#
+# This file defines the HIR and LIR subsets of the Operators.
+# See <ARCH>/OperatorList.dat for the MIR subset
+SYMBOL
+INSTRUCTION_FORMAT
+TRAITS
+IMPLDEFS
+IMPLUSES
+
+###################################################################
+# The first set of operators are HIR only.
+###################################################################
+# Get the java.lang.Class object for a type
+GET_CLASS_OBJECT
+Unary
+none
+
+
+
+# Get the caught exception object from "magic land" to a normal register operand
+GET_CAUGHT_EXCEPTION
+Nullary
+none
+
+
+
+# Move an exception object from a normal register operand to "magic land" (ie where get_caught_exception can find it)
+SET_CAUGHT_EXCEPTION
+CacheOp
+none
+
+
+
+# Allocate a new object. Even though we know that the class is ready to go,
+# there still can be some fringe error cases, so make this as an immedPEI.
+# NOTE: If we wanted to do a little more checking in BC2IR, then we might be able
+# to make this a non-PEI (modulo OutOfMemory errors and other really bizarre stuff).
+NEW
+New
+alloc | immedPEI
+
+
+
+# Allocate a new object. At compile time this class was not ready to go, 
+# therefore this instruction may cause dynamic linking to happen.
+NEW_UNRESOLVED
+New
+alloc | immedPEI | dynLink
+
+
+
+# Allocate a new array. Could cause a NegativeArraySizeException, 
+# therefore is an immedPEI
+NEWARRAY
+NewArray
+alloc | immedPEI
+
+
+
+# Allocate a new array. Could cause a NegativeArraySizeException, 
+# therefore is an immedPEI.
+# At compile time the array was not ready to go, 
+# therefore this instruction may cause dynamic linking to happen.
+NEWARRAY_UNRESOLVED
+NewArray
+alloc | immedPEI | dynLink
+
+
+
+# Throw the argument exception object
+ATHROW
+Athrow
+ethrow
+
+
+
+# Check that a cast is legal, raise ClassCastException if it is not.
+# The object being checked may be null.
+# The LHS type is resolved
+CHECKCAST
+TypeCheck
+immedPEI
+
+
+
+# Check that a cast is legal, raise ClassCastException if it is not.
+# The object being checked is known to be non-null.
+# The LHS type is resolved
+CHECKCAST_NOTNULL
+TypeCheck
+immedPEI
+
+
+
+# Check that a cast is legal, raise ClassCastException if it is not.
+# The object being checked may be null.
+# The LHS type is not resolved
+CHECKCAST_UNRESOLVED
+TypeCheck
+immedPEI | dynLink
+
+
+
+# Dynamic type check before an interface invocation.
+# raise IncompatibleClassChangeError if object does not implement the interface
+# The object being checked is known to be non-null
+# The LHS type may or may not be resolved, but we don't need to load it if it
+# isn't loaded already.
+MUST_IMPLEMENT_INTERFACE
+TypeCheck
+immedPEI
+
+
+
+# implement instanceof bytecode for resolved LHStype
+# The object being checked may be null
+INSTANCEOF
+InstanceOf
+none
+
+
+
+# implement instanceof bytecode for resolved LHStype
+# The object being checked is known to be non-null
+INSTANCEOF_NOTNULL
+InstanceOf
+none
+
+
+
+# implement instanceof bytecode for unresolved LHStype
+# The object being checked is known to be non-null
+INSTANCEOF_UNRESOLVED
+InstanceOf
+immedPEI | dynLink
+
+
+
+# implement monitorenter bytecode.
+# because of explicit null check guards, this can never be a PEI.
+# For now, possibly overly conservative with memory modeling?
+# Mark as threadswitch point because thread may be suspended waiting for lock
+MONITORENTER
+MonitorOp
+memAsLoad | memAsStore | acquire | tsp
+
+
+
+# implement monitorexit bytecode.
+# NULL_CHECK prevents a NullPointerException, but an IllegalMonitorStateException is still possible
+# For now, posisbly overly conservative with memory modeling?
+# Mark as threadswitch point because thread may be suspended waiting for lock
+MONITOREXIT
+MonitorOp
+memAsLoad | memAsStore | release | tsp | immedPEI
+
+
+
+# allocate a multi-dimensional array
+# could raise number of exceptions during class loading or IllegalAccess or NegativeArraySize
+NEWOBJMULTIARRAY
+NewArray
+alloc | immedPEI | dynLink
+
+
+
+# load a static field from a ready-to-go class. 
+GETSTATIC
+GetStatic
+load
+
+
+
+# store to a static field of a ready-to-go class.
+PUTSTATIC
+PutStatic
+store
+
+
+
+# load an instance field of a ready-to-go class. Due to guards cannot be a PEI
+GETFIELD
+GetField
+load
+
+
+
+# store a value to a ready-to-go instance field. due to guard cannot be a PEI
+PUTFIELD
+PutField
+store
+
+
+
+# Raises an ArithmeticException if its integer (register/constant) operand is zero.
+INT_ZERO_CHECK
+ZeroCheck
+immedPEI
+
+
+
+# Raises an ArithmeticException if its long (register/constant) operand is zero.
+LONG_ZERO_CHECK
+ZeroCheck
+immedPEI
+
+
+
+# Raise an ArrayIndexOutOfBoundsException if its integer index (register/constant)
+# operand is (unsigned) larger than the length of its array (reference, register)
+# operand.
+BOUNDS_CHECK
+BoundsCheck
+immedPEI
+
+
+
+# Performs a store check (subclass test) to determine if it is valid to
+# store its second reference argument (register/constant) into the array
+# pointed to by its first reference argument (register). Raises an
+# ArrayStoreException if the validity check fails.
+OBJARRAY_STORE_CHECK
+StoreCheck
+immedPEI
+
+
+
+# Performs a store check (subclass test) to determine if it is valid to
+# store its second reference argument (register/constant) into the array
+# pointed to by its first reference argument (register). Raises an
+# ArrayStoreException if the validity check fails.
+# The argument being stored is known to not be null.
+OBJARRAY_STORE_CHECK_NOTNULL
+StoreCheck
+immedPEI
+
+
+
+# inlining guard with patch-point mechanism
+IG_PATCH_POINT
+InlineGuard
+branch | conditional
+
+
+
+# inlining gaurd with class-test mechanism
+IG_CLASS_TEST
+InlineGuard
+branch | conditional
+
+
+
+# inlining guard with method-test mechanism
+IG_METHOD_TEST
+InlineGuard
+branch | conditional
+
+
+
+# implement tableswitch bytecode
+TABLESWITCH
+TableSwitch
+branch
+
+
+
+# implement lookupswitch bytecode
+LOOKUPSWITCH
+LookupSwitch
+branch
+
+
+
+###################################################################################
+# Everything below this line is either an HIR/LIR operator or an
+# LIR only operator.
+###################################################################################
+# load a value from an int array; explicit guards means it cannot be a PEI
+INT_ALOAD
+ALoad
+load
+
+
+
+# load a value from a long array; explicit guards means it cannot be a PEI
+LONG_ALOAD
+ALoad
+load
+
+
+
+# load a value from a float array; explicit guards means it cannot be a PEI
+FLOAT_ALOAD
+ALoad
+load
+
+
+
+# load a value from a double array; explicit guards means it cannot be a PEI
+DOUBLE_ALOAD
+ALoad
+load
+
+
+
+# load a value from a reference array; explicit guards means it cannot be a PEI
+REF_ALOAD
+ALoad
+load
+
+
+
+# load a value from an unsigned byte array; explicit guards means it cannot be a PEI
+UBYTE_ALOAD
+ALoad
+load
+
+
+
+# load a value from a byte array; explicit guards means it cannot be a PEI
+BYTE_ALOAD
+ALoad
+load
+
+
+
+# load a value from an unsigned short array; explicit guards means it cannot be a PEI
+USHORT_ALOAD
+ALoad
+load
+
+
+
+# load a value from a short array; explicit guards means it cannot be a PEI
+SHORT_ALOAD
+ALoad
+load
+
+
+
+# store a value to an int array; explicit guards means it cannot be a PEI
+INT_ASTORE
+AStore
+store
+
+
+
+# store a value to a long array; explicit guards means it cannot be a PEI
+LONG_ASTORE
+AStore
+store
+
+
+
+# store a value to a float array; explicit guards means it cannot be a PEI
+FLOAT_ASTORE
+AStore
+store
+
+
+
+# store a value to a double array; explicit guards means it cannot be a PEI
+DOUBLE_ASTORE
+AStore
+store
+
+
+
+# store a value to a reference array; explicit guards means it cannot be a PEI
+REF_ASTORE
+AStore
+store
+
+
+
+# store a value to a signed/unsigned byte array; explicit guards means it cannot be a PEI
+BYTE_ASTORE
+AStore
+store
+
+
+
+# store a value to a signed/unsigned short array; explicit guards means it cannot be a PEI
+SHORT_ASTORE
+AStore
+store
+
+
+
+# conditional branch based on value/condition operands
+INT_IFCMP
+IfCmp
+branch | conditional
+
+
+
+# two-way conditional branch based on value/condition operands
+INT_IFCMP2
+IfCmp2
+branch | conditional
+
+
+
+# conditional branch based on value/condition operands
+LONG_IFCMP
+IfCmp
+branch | conditional
+
+
+
+# conditional branch based on value/condition operands
+FLOAT_IFCMP
+IfCmp
+branch | conditional
+
+
+
+# conditional branch based on value/condition operands
+DOUBLE_IFCMP
+IfCmp
+branch | conditional
+
+
+
+# conditional branch based on value/condition operands
+REF_IFCMP
+IfCmp
+branch | conditional
+
+
+
+# A label instruction. All basic blocks start with a label,
+# and labels are only allowed to appear as the first instruction
+# of a basic block.
+LABEL
+Label
+none
+
+
+
+# Basic block end.  All basic blocks end with a bbend instruction,
+# and bbends are only allowed to appear as the last instruction
+# of a basic block.
+BBEND
+BBend
+none
+
+
+
+# Marks the beginning of an uninterruptible sequence of code.
+# Code motion optimizations must ensure that no PEIs or GCPoints
+# are moved into (or out of?) an uninterruptible region.
+UNINT_BEGIN
+Empty
+none
+
+
+
+# Marks the end of an uninterruptible sequence of code.
+# Code motion optimizations must ensure that no PEIs or GCPoints
+# are moved into (or out of?) an uninterruptible region.
+UNINT_END
+Empty
+none
+
+
+
+# Memory barrier.  No load instructions may rise above this instruction.
+READ_CEILING
+Empty
+memAsLoad | memAsStore | acquire 
+
+
+
+# Memory barrier. No store instruction may sink below this instruction.
+WRITE_FLOOR
+Empty
+memAsLoad | memAsStore | release
+
+
+
+# PHI node for SSA form.
+PHI
+Phi
+none
+
+
+
+# introduce a new name to force live range splitting
+SPLIT
+Unary
+none
+
+
+
+# PI node for ABCD: introduce a new name for analysis
+PI
+GuardedUnary
+none
+
+
+
+# a NOP (used by OPT_Simplifier)
+NOP
+Empty
+none
+
+
+
+# Move an integer value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+INT_MOVE
+Move
+move
+
+
+
+# Move a long value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+LONG_MOVE
+Move
+move
+
+
+
+# Move a float value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+FLOAT_MOVE
+Move
+move
+
+
+
+# Move a double value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+DOUBLE_MOVE
+Move
+move
+
+
+
+# Move a reference value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+REF_MOVE
+Move
+move
+
+
+
+# Move a guard value from one (register) operand 
+# to a register operand.  Value is unchanged.
+GUARD_MOVE
+Move
+move
+
+
+
+# Conditionally move an integer value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+INT_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a long value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+LONG_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a float value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+FLOAT_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a double value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+DOUBLE_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a reference value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+REF_COND_MOVE
+CondMove
+compare
+
+
+
+# Move a guard value from one (register) operand 
+# to a register operand.  Value is unchanged.
+GUARD_COND_MOVE
+CondMove
+compare
+
+
+
+# Combine two guard values into a third guard.
+GUARD_COMBINE
+Binary
+none
+
+
+
+# Add two (register/constant) word operands together putting
+# the result in a register operand.
+REF_ADD
+Binary
+commutative
+
+
+
+# Add two (register/constant) integer operands together putting
+# the result in a register operand.
+INT_ADD
+Binary
+commutative
+
+
+
+# Add two (register/constant) long operands together putting
+# the result in a register operand.
+LONG_ADD
+Binary
+commutative
+
+
+
+# Add two (register/constant) float operands together putting
+# the result in a register operand.
+FLOAT_ADD
+Binary
+commutative
+
+
+
+# Add two (register/constant) double operands together putting
+# the result in a register operand.
+DOUBLE_ADD
+Binary
+commutative
+
+
+
+# Subtract two (register/constant) integer operands together putting
+# the result in a register operand.
+REF_SUB
+Binary
+none
+
+
+
+# Subtract two (register/constant) integer operands together putting
+# the result in a register operand.
+INT_SUB
+Binary
+none
+
+
+
+# Subtract two (register/constant) long operands together putting
+# the result in a register operand.
+LONG_SUB
+Binary
+none
+
+
+
+# Subtract two (register/constant) float operands together putting
+# the result in a register operand.
+FLOAT_SUB
+Binary
+none
+
+
+
+# Subtract two (register/constant) double operands together putting
+# the result in a register operand.
+DOUBLE_SUB
+Binary
+none
+
+
+
+# Multiply two (register/constant) integer operands together putting
+# the result in a register operand.
+INT_MUL
+Binary
+commutative
+
+
+
+# Multiply two (register/constant) long operands together putting
+# the result in a register operand.
+LONG_MUL
+Binary
+commutative
+
+
+
+# Multiply two (register/constant) float operands together putting
+# the result in a register operand.
+FLOAT_MUL
+Binary
+commutative
+
+
+
+# Multiply two (register/constant) double operands together putting
+# the result in a register operand.
+DOUBLE_MUL
+Binary
+commutative
+
+
+
+# Divide two (register/constant) integer operands putting
+# the result in a register operand.
+# NOTE: Because we always generate an INT_ZERO_CHECK instruction
+# preceeding an INT_DIV, it is impossible for this instruction to 
+# raise an ArithmeticException. Therefore it is not an immedPEI
+INT_DIV
+GuardedBinary
+none
+
+
+
+# Divide two (register/constant) long operands putting
+# the result in a register operand.
+# NOTE: Because we always generate a LONG_ZERO_CHECK instruction
+# preceeding a LONG_DIV, it is impossible for this instruction to 
+# raise an ArithmeticException. Therefore it is not an immedPEI
+LONG_DIV
+GuardedBinary
+none
+
+
+
+# Divide two (register/constant) float operands putting
+# the result in a register operand.
+FLOAT_DIV
+Binary
+none
+
+
+
+# Divide two (register/constant) double operands putting
+# the result in a register operand.
+DOUBLE_DIV
+Binary
+none
+
+
+
+# Take the remainder of two (register/constant) int operands
+# putting the result in a register operand
+# NOTE: Because we always generate an INT_ZERO_CHECK instruction
+# preceeding an INT_REM, it is impossible for this instruction to
+# raise an ArithmeticException. Therefore it is not an immedPEI
+INT_REM
+GuardedBinary
+none
+
+
+
+# Take the remainder of two (register/constant) long operands
+# putting the result in a register operand
+# NOTE: Because we always generate a LONG_ZERO_CHECK instruction
+# preceeding a LONG_REM, it is impossible for this instruction to
+# raise an ArithmeticException. Therefore it is not an immedPEI
+LONG_REM
+GuardedBinary
+none
+
+
+
+# Take the remainder of two (register/constant) float operands
+# putting the result in a register operand
+FLOAT_REM
+Binary
+none
+IEEEMagicUses
+
+
+# Take the remainder of two (register/constant) double operands
+# putting the result in a register operand
+DOUBLE_REM
+Binary
+none
+IEEEMagicUses
+
+
+# Unary negation for words. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+REF_NEG
+Unary
+none
+
+
+
+# Unary negation for integers. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+INT_NEG
+Unary
+none
+
+
+
+# Unary negation for longs. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+LONG_NEG
+Unary
+none
+
+
+
+# Unary negation for floats. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+FLOAT_NEG
+Unary
+none
+
+
+
+# Unary negation for doubles. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+DOUBLE_NEG
+Unary
+none
+
+
+
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_SHL
+Binary
+none
+
+
+
+# implements ishl bytecode by shifting its first (register/constant) int
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+INT_SHL
+Binary
+none
+
+
+
+# implements lshl bytecode by shifting its first (register/constant) long
+# operand by the amount specified by its second (register/constant) long operand
+# putting the result in a register operand.
+LONG_SHL
+Binary
+none
+
+
+
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_SHR
+Binary
+none
+
+
+
+# implements ishr bytecode by shifting its first (register/constant) int
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+INT_SHR
+Binary
+none
+
+
+
+# implements lshr bytecode by shifting its first (register/constant) long
+# operand by the amount specified by its second (register/constant) long operand
+# putting the result in a register operand.
+LONG_SHR
+Binary
+none
+
+
+
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_USHR
+Binary
+none
+
+
+
+# implements iushr bytecode by shifting its first (register/constant) int
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+INT_USHR
+Binary
+none
+
+
+
+# implements lushr bytecode by shifting its first (register/constant) long
+# operand by the amount specified by its second (register/constant) long operand
+# putting the result in a register operand.
+LONG_USHR
+Binary
+none
+
+
+
+# put bitwise and of two (register/constant) word operands into a register operand
+REF_AND
+Binary
+commutative
+
+
+
+# put bitwise and of two (register/constant) int operands into a register operand
+INT_AND
+Binary
+commutative
+
+
+
+# put bitwise and of two (register/constant) long operands into a register operand
+LONG_AND
+Binary
+commutative
+
+
+
+# put bitwise or of two (register/constant) int operands into a register operand
+REF_OR
+Binary
+commutative
+
+
+
+# put bitwise or of two (register/constant) int operands into a register operand
+INT_OR
+Binary
+commutative
+
+
+
+# put bitwise or of two (register/constant) long operands into a register operand
+LONG_OR
+Binary
+commutative
+
+
+
+# put bitwise xor of two (register/constant) int operands into a register operand
+REF_XOR
+Binary
+commutative
+
+
+
+# put bitwise xor of two (register/constant) int operands into a register operand
+INT_XOR
+Binary
+commutative
+
+
+
+# put bitwise complement of a (register/constant) int operand into a register operand
+REF_NOT
+Unary
+none
+
+
+
+# put bitwise complement of a (register/constant) int operand into a register operand
+INT_NOT
+Unary
+none
+
+
+
+# put bitwise complement of a (register/constant) long operand into a register operand
+LONG_NOT
+Unary
+none
+
+
+
+# put bitwise xor of two (register/constant) long operands into a register operand
+LONG_XOR
+Binary
+commutative
+
+
+
+# convert an int (register/constant) operand to an address register operand
+INT_2ADDRSigExt
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to an address register operand
+INT_2ADDRZerExt
+Unary
+none
+
+
+
+# convert ai long (register/constant) operand to an address register operand
+LONG_2ADDR
+Unary
+none
+
+
+
+# convert an address (register/constant) operand to an int register operand
+ADDR_2INT
+Unary
+none
+
+
+
+# convert an address (register/constant) operand to a long register operand
+ADDR_2LONG
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to a long register operand
+INT_2LONG
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to a float register operand
+INT_2FLOAT
+Unary
+none
+IEEEMagicUses
+
+
+# convert an int (register/constant) operand to a double register operand
+INT_2DOUBLE
+Unary
+none
+IEEEMagicUses
+
+
+# convert a long (register/constant) operand to an int register operand
+LONG_2INT
+Unary
+none
+
+
+
+# convert a long (register/constant) operand to a float register operand
+LONG_2FLOAT
+Unary
+none
+
+
+
+# convert a long (register/constant) operand to a double register operand
+LONG_2DOUBLE
+Unary
+none
+
+
+
+# convert a float (register/constant) operand to an int register operand
+FLOAT_2INT
+Unary
+none
+
+
+
+# convert a float (register/constant) operand to a long register operand
+FLOAT_2LONG
+Unary
+none
+
+
+
+# convert a float (register/constant) operand to a double register operand
+FLOAT_2DOUBLE
+Unary
+none
+
+
+
+# convert a double (register/constant) operand to an int register operand
+DOUBLE_2INT
+Unary
+none
+
+
+
+# convert a double (register/constant) operand to a long register operand
+DOUBLE_2LONG
+Unary
+none
+
+
+
+# convert a double (register/constant) operand to a float register operand
+DOUBLE_2FLOAT
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to a byte register operand
+INT_2BYTE
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to a char (unsigned short) register operand
+INT_2USHORT
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to a short register operand
+INT_2SHORT
+Unary
+none
+
+
+
+# compare two long (register/constant) operands producing a -1/0/1 value
+# in an int register operand.
+LONG_CMP
+Binary
+compare
+
+
+
+# compare two float (register/constant) operands producing a -1/0/1 value
+# in an int register operand. treats NaN as fcmpl bytecode
+FLOAT_CMPL
+Binary
+compare
+
+
+
+# compare two float (register/constant) operands producing a -1/0/1 value
+# in an int register operand. treats NaN as fcmpg bytecode
+FLOAT_CMPG
+Binary
+compare
+
+
+
+# compare two double (register/constant) operands producing a -1/0/1 value
+# in an int register operand. treats NaN as dcmpl bytecode
+DOUBLE_CMPL
+Binary
+compare
+
+
+
+# compare two double (register/constant) operands producing a -1/0/1 value
+# in an int register operand. treats NaN as dcmpg bytecode
+DOUBLE_CMPG
+Binary
+compare
+
+
+
+# Return instruction.  The type of return is determined by the type of the operand.
+RETURN
+Return
+ret
+
+
+
+# Raises a NullPointerException if its (reference) register operand is null
+NULL_CHECK
+NullCheck
+immedPEI
+
+
+
+# Unconditional direct jump to the argument label
+GOTO
+Goto
+branch
+
+
+
+# Boolean complement of int register/constant operand put in register operand
+BOOLEAN_NOT
+Unary
+none
+
+
+
+# Compare two int values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_INT
+BooleanCmp
+compare
+
+
+
+# Compare two address values (address register/contant operands) and put boolean result in register
+BOOLEAN_CMP_ADDR
+BooleanCmp
+compare
+
+
+
+# Compare two int values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_LONG
+BooleanCmp
+compare
+
+
+
+# Compare two float values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_FLOAT
+BooleanCmp
+compare
+
+
+
+# Compare two float values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_DOUBLE
+BooleanCmp
+compare
+
+
+
+# Load a singed byte
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+BYTE_LOAD
+Load
+load
+
+
+
+# Load an unsigned byte
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+UBYTE_LOAD
+Load
+load
+
+
+
+# Load a signed short
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+SHORT_LOAD
+Load
+load
+
+
+
+# Load an unsigned short
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+USHORT_LOAD
+Load
+load
+
+
+
+# Load a reference value. Due to guards cannot be a PEI
+REF_LOAD
+Load
+load
+
+
+
+# Store a reference value. Due to guards cannot be a PEI
+REF_STORE
+Store
+store
+
+
+
+# Load an int
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+INT_LOAD
+Load
+load
+
+
+
+# Load a long
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+LONG_LOAD
+Load
+load
+
+
+
+# Load a float
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+FLOAT_LOAD
+Load
+load
+
+
+
+# Load a double
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual load instruction can except.
+DOUBLE_LOAD
+Load
+load
+
+
+
+# Store a byte
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+BYTE_STORE
+Store
+store
+
+
+
+# Store a short
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+SHORT_STORE
+Store
+store
+
+
+
+# Store an int
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+INT_STORE
+Store
+store
+
+
+
+# Store a long
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+LONG_STORE
+Store
+store
+
+
+
+# Store a float
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+FLOAT_STORE
+Store
+store
+
+
+
+# Store a double
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the actual store instruction can except.
+DOUBLE_STORE
+Store
+store
+
+
+
+# Prepare for an atomic operation (aka an attempt)
+# Implements VM_Magic.prepare (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the prepare instruction can except.
+PREPARE_INT
+Prepare
+load | acquire
+
+
+
+# Prepare for an atomic operation (aka an attempt)
+# Implements VM_Magic.prepare (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the prepare instruction can except.
+PREPARE_ADDR
+Prepare
+load | acquire
+
+
+
+# Attempt an atomic operation.
+# Implements VM_Magic.attempt (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the attempt instruction can except.
+ATTEMPT_INT
+Attempt
+load | store | compare | release 
+
+
+
+# Attempt an atomic operation.
+# Implements VM_Magic.attempt (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the attempt instruction can except.
+ATTEMPT_ADDR
+Attempt
+load | store | compare | release 
+
+
+
+# A call instruction.  Used for virtually all calls.
+# Is marked as a memory model load/store, but does not directly load/store any values itself.
+CALL
+Call
+call | memAsLoad | memAsStore | dynLink | immedPEI
+callDefs
+callUses
+
+# A call instruction.  Used for special system calls.
+# Is marked as a memory model load/store, but does not directly load/store any values itself.
+SYSCALL
+Call
+call | memAsLoad | memAsStore
+callDefs
+callUses
+
+# An explicit thread switch point from a prologue.
+YIELDPOINT_PROLOGUE
+Empty
+tsp | yieldPoint
+
+
+
+# An explicit thread switch point from an epilogue.
+YIELDPOINT_EPILOGUE
+Empty
+tsp | yieldPoint
+
+
+
+# An explicit thread switch point from a backedge.
+YIELDPOINT_BACKEDGE
+Empty
+tsp | yieldPoint
+
+
+
+# explict thread switch point, must success
+YIELDPOINT_OSR
+OsrPoint
+tsp | yieldPoint
+
+
+
+# On stack replacement barrier
+OSR_BARRIER
+OsrBarrier
+none
+
+
+
+# a pseudo instruction to represent the prologue
+IR_PROLOGUE
+Prologue
+immedPEI 
+
+
+
+# LIR operator for resolution. Expanded very late in MIR
+# to a call to VM_OptSaveVolatile.resolve.
+RESOLVE
+CacheOp
+tsp | dynLink | immedPEI
+
+
+
+# HIR operator for field/methodresolution. 
+# Represents the operation of forcing class loading (if necessary)
+# and retreiving the offset of the argument member.
+RESOLVE_MEMBER
+Unary
+tsp | dynLink | immedPEI
+
+
+
+# Get the current time
+GET_TIME_BASE
+Nullary
+none
+
+
+
+# A instrumented event counter point.
+INSTRUMENTED_EVENT_COUNTER
+InstrumentedCounter
+none
+
+
+
+# trap if the condition is true. Used to get to hardware exception handler
+TRAP_IF
+TrapIf
+immedPEI
+
+
+
+# trap unconditionally. Used to get to hardware exception handler.
+TRAP
+Trap
+immedPEI
+
+
+
+# Move bits unchanged from a float register/constant to an int register
+FLOAT_AS_INT_BITS
+Unary
+none
+
+
+
+# Move bits unchanged from an int register/constant to float register
+INT_BITS_AS_FLOAT
+Unary
+none
+
+
+
+# Move bits unchanged from a double register/constant to a long register
+DOUBLE_AS_LONG_BITS
+Unary
+none
+
+
+
+# Move bits unchanged from a long register/constant to a double register
+LONG_BITS_AS_DOUBLE
+Unary
+none
+
+
+
+# Get the length of an array.
+# NOTE: This cannot be a PEI because we guard with explicit null check instructions.
+ARRAYLENGTH
+GuardedUnary
+none
+
+
+
+##########
+# 'Unary' operators for manipulating the Jikes RVM object model
+##########
+# Get the TIB ptr of an object 
+GET_OBJ_TIB
+GuardedUnary
+none
+
+
+
+# Get the TIB ptr for type (from the jtoc)
+GET_CLASS_TIB
+Unary
+none
+
+
+
+# Load TIB[TIB_TYPE_INDEX] from a TIB pointer
+GET_TYPE_FROM_TIB
+Unary
+none
+
+
+
+# Load TIB[TIB_SUPERCLASS_IDS_INDEX] from a TIB pointer
+GET_SUPERCLASS_IDS_FROM_TIB
+Unary
+none
+
+
+
+# Load TIB[TIB_DOES_IMPLEMENT_INDEX] from a TIB pointer
+GET_DOES_IMPLEMENT_FROM_TIB
+Unary
+none
+
+
+
+# Load TIB[TIB_ARRAY_ELEMENT_TIB_INDEX] from a TIB pointer
+GET_ARRAY_ELEMENT_TIB_FROM_TIB
+Unary
+none
+
+
+
+# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+LOWTABLESWITCH
+LowTableSwitch
+branch
+
+
+
+# NOT a real opcode, but rather a marker for template generation
+ARCH_INDEPENDENT_END
+Unassigned
+none
+
+
+

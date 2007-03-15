@@ -21,13 +21,10 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-compact space during the forwarding phase.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public final class MCForwardTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class MCForwardTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -68,8 +65,8 @@ public final class MCForwardTraceLocal extends TraceLocal implements Uninterrupt
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(MC.MARK_COMPACT, object))
       return MC.mcSpace.traceForwardObject(this, object);
@@ -92,8 +89,8 @@ public final class MCForwardTraceLocal extends TraceLocal implements Uninterrupt
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) {
       // All precopying must occur during the initial trace.
       VM.assertions._assert(!Space.isInSpace(MC.MARK_COMPACT, object));

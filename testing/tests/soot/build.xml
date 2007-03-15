@@ -1,0 +1,54 @@
+<project name="soot" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1200" else="600">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <property name="test.max.heapsize" value="200"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="src"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+
+  <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
+  <property name="soot.dir" location="${external.lib.dir}/soot-2.2.3"/>
+  <property name="test.class.path" value="${soot.dir}/sootclasses-2.2.3.jar:${soot.dir}/jasminclasses-2.2.3.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" classpath="${test.class.path}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="soot.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <condition property="soot.class" value="Harness" else="Hello">
+      <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+    <condition property="soot.class.path" value="${dacapo.jar}" else="${build.classes}">
+      <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+
+    <startResults/>
+    <rvm tag="soot.Main"
+         class="soot.Main"
+         args="-O -time -x org.jikesrvm -x org.mmtk -x org.vmmagic -d ${build.tests.dir} --soot-classpath ${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${soot.class.path} --app ${soot.class} -f J"/>
+    <outputSingleStatisticResults tag="soot.Main" key="time" pattern="totalTime:(.*)s \(100.0\%\)"/>
+    <finishResults/>
+  </target>
+
+</project>

@@ -25,14 +25,11 @@ import org.vmmagic.pragma.*;
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class FreeListPageResource extends PageResource 
-  implements Constants, Uninterruptible {
+@Uninterruptible public final class FreeListPageResource extends PageResource 
+  implements Constants {
 
   private GenericFreeList freeList;
   private int highWaterMark = 0;
@@ -108,7 +105,8 @@ public final class FreeListPageResource extends PageResource
    * @return The start of the first page if successful, zero on
    * failure.
    */
-  protected final Address allocPages(int pages) throws InlinePragma {
+  @Inline
+  protected Address allocPages(int pages) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     int pageOffset = freeList.alloc(pages);
@@ -141,8 +139,8 @@ public final class FreeListPageResource extends PageResource
    * @param first The first page in the group of pages that were
    * allocated together.
    */
-  public final void releasePages(Address first)
-    throws InlinePragma {
+  @Inline
+  public void releasePages(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 
@@ -169,7 +167,7 @@ public final class FreeListPageResource extends PageResource
    * 
    * @param extent The size of this space
    */
-  private final void reserveMetaData(Extent extent) {
+  private void reserveMetaData(Extent extent) {
     highWaterMark = 0;
     if (metaDataPagesPerRegion > 0) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
@@ -192,7 +190,7 @@ public final class FreeListPageResource extends PageResource
    * @param pages The size of the pending allocation in pages
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
-  public final int adjustForMetaData(int pages) { return pages; }
+  public int adjustForMetaData(int pages) { return pages; }
   
   /**
    * Adjust a page request to include metadata requirements, if any.  In the
@@ -204,9 +202,10 @@ public final class FreeListPageResource extends PageResource
    * allocation
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
-  public final int adjustForMetaData(int pages, Address begin) { return pages; }
+  public int adjustForMetaData(int pages, Address begin) { return pages; }
   
-  final int pages(Address first) throws InlinePragma {
+  @Inline
+  int pages(Address first) { 
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }
 
@@ -221,8 +220,8 @@ public final class FreeListPageResource extends PageResource
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
-  public final Extent getSize(Address first)
-    throws InlinePragma {
+  @Inline
+  public Extent getSize(Address first) { 
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 

@@ -1,0 +1,25 @@
+package org.vmmagic.unboxed;
+
+/* machine-generated DO NOT EDIT */
+
+import org.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
+
+@Uninterruptible abstract class ArchitecturalWord {
+
+ @32MASK@protected int value;
+ @64MASK@protected long value;
+
+  ArchitecturalWord() {
+    this.value = 0;
+  }
+  ArchitecturalWord(int value, boolean zeroExtend) {
+    @32MASK@this.value = value;
+    @64MASK@this.value = (zeroExtend) ? ((long)value) & 0x00000000ffffffffL : value;
+  }
+
+  ArchitecturalWord(long value) {
+    @32MASK@VM._assert(VM.NOT_REACHED);
+    @64MASK@this.value = value;
+  }
+}

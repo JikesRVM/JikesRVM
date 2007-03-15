@@ -73,18 +73,15 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
-public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterruptible {
+@Uninterruptible public final class GCTraceTraceLocal extends SSTraceLocal {
 
   /**
    * Constructor
@@ -109,8 +106,8 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * cases, this should <i>NOT</i> be an interior pointer.
    * @return The possibly moved reference.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -132,8 +129,8 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * 
    * @param object The object to ensure will not move.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -157,8 +154,8 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
-  public ObjectReference getForwardedReference(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference getForwardedReference(ObjectReference object) { 
     if (object.isNull()) return object;
     if (SS.hi && Space.isInSpace(SS.SS0, object)) {
       return SS.copySpace0.traceObject(this, object);
@@ -174,7 +171,7 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
       if (object.isNull()) return false;
       else if (GCTrace.traceInducedGC) return true;
       else return super.isLive(object);

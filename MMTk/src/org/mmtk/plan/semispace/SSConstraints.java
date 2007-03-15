@@ -16,18 +16,14 @@ import org.vmmagic.pragma.*;
 /**
  * SemiSpace common constants.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class SSConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class SSConstraints extends StopTheWorldConstraints {
 
   public boolean movesObjects() { return true; }
 

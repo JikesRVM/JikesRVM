@@ -7,7 +7,6 @@
 ;;;
 ;;; Copyright © IBM Corp 2003
 ;;;
-;;; $Id$
 
 ;;; C, C++, and Java style for editing Jikes RVM source code.  This
 ;;; customizes Java mode, C++ mode, and C mode.  Since this file will

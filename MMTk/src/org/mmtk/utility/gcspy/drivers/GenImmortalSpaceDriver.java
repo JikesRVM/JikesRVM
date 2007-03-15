@@ -28,15 +28,11 @@ import org.vmmagic.pragma.*;
  * This class extends ImmortalSpaceDriver, a simple driver for 
  * the contiguous MMTk ImmortalSpace.
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision$
- * @date $Date$
  */
-public class GenImmortalSpaceDriver extends ImmortalSpaceDriver
-  implements Uninterruptible {
+@Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 
   private static final boolean DEBUG = false;
 
@@ -60,7 +56,7 @@ public class GenImmortalSpaceDriver extends ImmortalSpaceDriver
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) throws InterruptiblePragma {
+                     boolean mainSpace) { 
     
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
@@ -90,7 +86,8 @@ public class GenImmortalSpaceDriver extends ImmortalSpaceDriver
    * Heelper methods to create the additional streams
    *
    */
-  private ShortStream createRemsetStream() throws InterruptiblePragma {
+  @Interruptible
+  private ShortStream createRemsetStream() { 
     return VM.newGCspyShortStream(
                      this, 
                      "Remembered set stream",

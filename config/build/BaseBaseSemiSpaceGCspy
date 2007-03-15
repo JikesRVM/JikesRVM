@@ -1,3 +1,0 @@
-. $1/gc/SemiSpaceGCspy
-. $1/gcspy/GCspy
-. $1/compilers/BaseBase

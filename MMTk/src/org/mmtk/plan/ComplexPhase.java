@@ -26,15 +26,12 @@ import org.vmmagic.pragma.*;
  * 
  * TODO write a replacePhase method.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class ComplexPhase extends Phase
-  implements Uninterruptible, Constants {
+@Uninterruptible public final class ComplexPhase extends Phase
+  implements Constants {
 
   /*
    * Instance fields
@@ -43,7 +40,7 @@ public final class ComplexPhase extends Phase
   /**
    * The phases that comprise this phase.
    */
-  protected final int[] subPhases;
+  final int[] subPhases;
 
   /**
    * Construct a complex phase from an array of phase IDs.
@@ -72,12 +69,12 @@ public final class ComplexPhase extends Phase
   /**
    * Display a description of this phase, for debugging purposes.
    */
-  protected final void logPhase() {
+  protected void logPhase() {
     Log.write("complex phase ");
     Log.write(name);
-    for (int i = 0; i < subPhases.length; i++) {
+    for (int subPhase : subPhases) {
       Log.write(" ");
-      Log.write(getName(subPhases[i]));
+      Log.write(getName(subPhase));
     }
     Log.writeln();
   }
@@ -88,7 +85,7 @@ public final class ComplexPhase extends Phase
    * 
    * TODO are we oversynchronizing here ??
    */
-  protected final void delegatePhase() {
+  protected void delegatePhase() {
     int order = VM.collection.rendezvous(5000 + id);
     if (order == 1 && timer != null) timer.start();
 
@@ -96,8 +93,8 @@ public final class ComplexPhase extends Phase
       Log.write("Delegating complex phase ");
       Log.writeln(name);
     }
-    for (int i = 0; i < subPhases.length; i++) {
-      Phase.delegatePhase(subPhases[i]);
+    for (int subPhase : subPhases) {
+      Phase.delegatePhase(subPhase);
     }
 
     if (order == 1 && timer != null) timer.stop();
@@ -109,7 +106,7 @@ public final class ComplexPhase extends Phase
    * @param oldId The phase to replace.
    * @param newId The new phase.
    */
-  public final void replacePhase(int oldId, int newId) {
+  public void replacePhase(int oldId, int newId) {
     for (int i = 0; i < subPhases.length; i++) {
       Phase p = getPhase(subPhases[i]);
       if (p.getId() == oldId) {

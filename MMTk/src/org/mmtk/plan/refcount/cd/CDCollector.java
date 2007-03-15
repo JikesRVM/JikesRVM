@@ -20,13 +20,10 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements <i>per-collector thread</i> behavior 
  * and state for a cycle detector.
  * 
- * $Id: MSCollector.java,v 1.3 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public abstract class CDCollector implements Uninterruptible {
+@Uninterruptible public abstract class CDCollector {
   /****************************************************************************
    * Instance fields
    */
@@ -36,12 +33,6 @@ public abstract class CDCollector implements Uninterruptible {
    * Initialization
    */
 
-  /**
-   * Constructor
-   */
-  public CDCollector() {
-  }
-  
   /*****************************************************************************
    * 
    * Collection
@@ -54,7 +45,8 @@ public abstract class CDCollector implements Uninterruptible {
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
    */
-  public boolean collectionPhase(int phaseId, boolean primary) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId, boolean primary) { 
     return false;
   }
   
@@ -73,7 +65,8 @@ public abstract class CDCollector implements Uninterruptible {
    */
 
   /** @return The active cycle detector global instance */
-  public static final CDCollector current() throws InlinePragma {
+  @Inline
+  public static CDCollector current() {
     return ((RCBaseCollector)VM.activePlan.collector()).cycleDetector();
   }
 }

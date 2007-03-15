@@ -21,11 +21,8 @@ import org.vmmagic.pragma.*;
  * counting the number of events, the other for counting the volume).
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
-public class SizeCounter implements Uninterruptible {
+@Uninterruptible public class SizeCounter {
 
   /****************************************************************************
    * 

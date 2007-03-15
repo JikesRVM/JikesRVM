@@ -1,5 +1,4 @@
-/* -*-coding: iso-8859-1 -*-
- * 
+/* 
  * This file is part of MMTk (http://jikesrvm.sourceforge.net).
  * MMTk is distributed under the Common Public License (CPL).
  * A copy of the license is included in the distribution, and is also
@@ -7,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  *
- * $Id: ReferenceGlue.java,v 1.6 2006/06/21 07:38:13 steveb-oss Exp $
  */
 package org.mmtk.vm;
 
@@ -21,7 +19,7 @@ import org.vmmagic.unboxed.*;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public abstract class ReferenceGlue implements Uninterruptible {
+@Uninterruptible public abstract class ReferenceGlue {
   /**
    * Scan through the list of references with the specified semantics.
    * @param semantics the number representing the semantics

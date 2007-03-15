@@ -40,15 +40,12 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenMSCollector extends GenCollector implements Uninterruptible {
+@Uninterruptible public abstract class GenMSCollector extends GenCollector {
 
   /*****************************************************************************
    * 
@@ -83,9 +80,9 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
    * @param allocator The allocator to use.
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-                                 int align, int offset, int allocator)
-    throws InlinePragma {
+                                 int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC || 
@@ -104,9 +101,9 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-                             int bytes, int allocator)
-  throws InlinePragma {
+                             int bytes, int allocator) { 
     GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
   }
 
@@ -121,8 +118,8 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);
@@ -155,7 +152,8 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
     super.collectionPhase(phaseId, primary);
   }
 
-  public final TraceLocal getFullHeapTrace() throws InlinePragma {
+  @Inline
+  public final TraceLocal getFullHeapTrace() { 
     return matureTrace;
   }
 
@@ -165,7 +163,8 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
    */
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
-  private static final GenMS global() throws InlinePragma {
+  @Inline
+  private static GenMS global() {
     return (GenMS) VM.activePlan.global();
   }
 }

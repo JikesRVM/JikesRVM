@@ -15,13 +15,10 @@ import org.vmmagic.pragma.*;
  * This class implements the abstract <i>per-mutator thread</i> 
  * behavior for a cycle detector. 
  * 
- * $Id: MSCollector.java,v 1.3 2006/06/21 07:38:15 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.3 $
- * @date $Date: 2006/06/21 07:38:15 $
  */
-public abstract class CDMutator implements Uninterruptible {
+@Uninterruptible public abstract class CDMutator {
   /****************************************************************************
    * Instance fields
    */
@@ -42,7 +39,8 @@ public abstract class CDMutator implements Uninterruptible {
    * 
    * @param phaseId Collection phase to execute.
    */
-  public boolean collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public boolean collectionPhase(int phaseId) { 
     return false;
   }
   

@@ -13,7 +13,7 @@
 package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.SSMutator;
-import org.mmtk.plan.semispace.*;
+import org.mmtk.plan.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.VM;
 
@@ -36,18 +36,15 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class GCTraceMutator extends SSMutator implements Uninterruptible {
+@Uninterruptible public class GCTraceMutator extends SSMutator {
 
   /****************************************************************************
    * 
@@ -63,9 +60,9 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws InlinePragma {
+      int bytes, int allocator) { 
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
 
@@ -100,9 +97,10 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Offset metaDataA, 
-      int metaDataB, int mode) throws InlinePragma {
+      int metaDataB, int mode) { 
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -153,15 +151,11 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE_MUTATOR) {
-      if (!GCTrace.traceInducedGC) {
-        // rebind the semispace bump pointer to the appropriate semispace.
-        ss.rebind(SS.toSpace());
-      }
+    if (!GCTrace.traceInducedGC ||
+        (phaseId != StopTheWorld.PREPARE_MUTATOR) &&
+        (phaseId != StopTheWorld.RELEASE_MUTATOR)) {
+      // Delegate up.
       super.collectionPhase(phaseId, primary);
-      return;
     }
-
-    super.collectionPhase(phaseId, primary);
   }
 }

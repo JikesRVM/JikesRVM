@@ -21,14 +21,10 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class MCConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+@Uninterruptible public class MCConstraints extends StopTheWorldConstraints {
 
   public boolean movesObjects() { return true; }
 

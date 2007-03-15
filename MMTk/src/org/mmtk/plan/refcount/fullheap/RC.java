@@ -36,15 +36,12 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class RC extends RCBase implements Uninterruptible { 
+@Uninterruptible public class RC extends RCBase { 
   /*****************************************************************************
    * 
    * Collection
@@ -57,8 +54,8 @@ public class RC extends RCBase implements Uninterruptible {
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();

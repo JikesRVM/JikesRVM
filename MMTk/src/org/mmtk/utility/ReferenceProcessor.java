@@ -7,7 +7,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  *
- * $Id$
  */
 package org.mmtk.utility;
 
@@ -39,13 +38,13 @@ import org.vmmagic.pragma.*;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public class ReferenceProcessor implements Uninterruptible {
+@Uninterruptible public class ReferenceProcessor {
 
   public static final int SOFT_SEMANTICS = 0;
   public static final int WEAK_SEMANTICS = 1;
   public static final int PHANTOM_SEMANTICS = 2;
 
-  public static final String semanticStrings [] = {
+  public static final String[] semanticStrings  = {
     "SOFT", "WEAK", "PHANTOM" };
 
   private static boolean clearSoftReferences = false;
@@ -64,8 +63,9 @@ public class ReferenceProcessor implements Uninterruptible {
    * @param semantics The number representing the semantics
    * @param nursery It is safe to only collect new references 
    */
-  private static void traverse(int semantics, boolean nursery)
-      throws LogicallyUninterruptiblePragma, InlinePragma {
+  @Inline
+  @LogicallyUninterruptible
+  private static void traverse(int semantics, boolean nursery) { 
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");
@@ -124,8 +124,9 @@ public class ReferenceProcessor implements Uninterruptible {
    * be the address of a heap object, depending on the VM.
    * @param semantics the code number of the semantics
    */
+  @Inline
   public static Address processReference(Address reference,
-                                         int semantics) throws InlinePragma {
+                                         int semantics) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!reference.isZero());
 
     TraceLocal trace = VM.activePlan.collector().getCurrentTrace();
@@ -263,8 +264,8 @@ public class ReferenceProcessor implements Uninterruptible {
    * Process soft references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processSoftReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processSoftReferences(boolean nursery) { 
     traverse(SOFT_SEMANTICS, nursery);
     clearSoftReferences = false;
   }
@@ -273,8 +274,8 @@ public class ReferenceProcessor implements Uninterruptible {
    * Process weak references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processWeakReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processWeakReferences(boolean nursery) { 
     traverse(WEAK_SEMANTICS, nursery);
   }
 
@@ -282,8 +283,8 @@ public class ReferenceProcessor implements Uninterruptible {
    * Process phantom references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processPhantomReferences(boolean nursery)
-      throws NoInlinePragma {
+  @NoInline
+  public static void processPhantomReferences(boolean nursery) { 
     traverse(PHANTOM_SEMANTICS, nursery);
   }
 

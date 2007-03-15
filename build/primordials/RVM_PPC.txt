@@ -1,0 +1,4 @@
+[Lorg/jikesrvm/ppc/VM_Code;
+[Lorg/jikesrvm/ppc/VM_CodeArray;
+[Lorg/jikesrvm/ppc/opcodeXX;
+[Lorg/jikesrvm/ppc/opcode_tab;

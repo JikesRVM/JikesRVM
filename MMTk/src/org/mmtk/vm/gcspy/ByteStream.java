@@ -20,21 +20,17 @@ import org.vmmagic.pragma.*;
 /**
  * Set up a GCspy Stream with data type BYTE_TYPE
  *
- * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
 
-public abstract class ByteStream extends Stream
-	implements  Uninterruptible {
+@Uninterruptible public abstract class ByteStream extends Stream {
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private byte data[];			// The stream data
+  private byte[] data;			// The stream data
   private byte defaultValue;    // The default value for the data items
   
   
@@ -73,7 +69,7 @@ public abstract class ByteStream extends Stream
          int paintStyle,
          int indexMaxStream,
          Color colour,
-         boolean summary) throws InterruptiblePragma {
+         boolean summary) { 
      
     super(driver, StreamConstants.BYTE_TYPE, name, 
           minValue, maxValue, zeroValue, defaultValue,

@@ -16,6 +16,7 @@ import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a simple semi-space collector. See the Jones
@@ -35,33 +36,31 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
  * 
- * @version $Revision$
- * @date $Date$
  */
-public class SS extends StopTheWorld implements Uninterruptible {
-
+@Uninterruptible public class SS extends StopTheWorld {
+  /** Fraction of available virtual memory available to each semispace */
+  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30; 
+  
   /****************************************************************************
    * 
    * Class variables
    */
 
-  // GC state
+  /** True if allocating into the "higher" semispace */
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.32, false);
+  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, false);
+  public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.32, true);
-
-  public static final int SS0 = copySpace0.getDescriptor();
+  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, true);
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
@@ -94,14 +93,16 @@ public class SS extends StopTheWorld implements Uninterruptible {
   /**
    * @return The to space for the current collection.
    */
-  public static final CopySpace toSpace() throws InlinePragma {
+  @Inline
+  public static CopySpace toSpace() {
     return hi ? copySpace1 : copySpace0;
   }
 
   /**
    * @return The from space for the current collection.
    */
-  public static final CopySpace fromSpace() throws InlinePragma {
+  @Inline
+  public static CopySpace fromSpace() {
     return hi ? copySpace0 : copySpace1;
   }
 
@@ -116,7 +117,8 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * 
    * @param phaseId Collection phase
    */
-  public void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId) { 
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions
@@ -162,8 +164,8 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
-  public boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public boolean poll(boolean mustCollect, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
       return false;
 
@@ -221,5 +223,17 @@ public class SS extends StopTheWorld implements Uninterruptible {
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
 
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object))
+      return true;
+    return super.objectCanMove(object);
+  }
 
 }

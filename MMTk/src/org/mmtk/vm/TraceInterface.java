@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003.
  *
- * $Id$
  */
 package org.mmtk.vm;
 
@@ -19,10 +18,8 @@ import org.vmmagic.pragma.*;
  * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision: 1.4 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class TraceInterface {
+@Uninterruptible public abstract class TraceInterface {
 
 
   /***********************************************************************
@@ -61,6 +58,7 @@ public abstract class TraceInterface {
    *@param typeRef The type reference (tib) of the object just allocated
    * @return The frame pointer address for the method that allocated the object
    */
+  @Interruptible
   public abstract Address skipOwnFramesAndDump(ObjectReference typeRef);
 
   /***********************************************************************

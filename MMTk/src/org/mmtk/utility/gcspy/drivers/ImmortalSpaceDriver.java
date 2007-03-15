@@ -26,15 +26,11 @@ import org.vmmagic.pragma.*;
  * This class extends LinearSpaceDriver, a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
  *
- * $Id: ImmortalSpaceDriver.java,v 0.1 2005/07/11 03:22:02 steveb-oss Exp $
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @author Hanspeter Johner
- * @version $Revision: 0.1 $
- * @date $Date: 2005/08/19 03:22:02 $
  */
-public class ImmortalSpaceDriver extends LinearSpaceDriver
-  implements Uninterruptible {
+@Uninterruptible public class ImmortalSpaceDriver extends LinearSpaceDriver {
 
   private static final boolean DEBUG = false;
 
@@ -55,7 +51,7 @@ public class ImmortalSpaceDriver extends LinearSpaceDriver
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) throws InterruptiblePragma {
+                     boolean mainSpace) { 
     
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 

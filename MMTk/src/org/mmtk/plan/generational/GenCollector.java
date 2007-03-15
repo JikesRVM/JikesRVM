@@ -32,16 +32,12 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenCollector extends StopTheWorldCollector
-implements Uninterruptible {
+@Uninterruptible public abstract class GenCollector extends StopTheWorldCollector {
 
   /*****************************************************************************
    * Instance fields
@@ -89,8 +85,8 @@ implements Uninterruptible {
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  @NoInline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == Gen.PREPARE) {
       nurseryTrace.prepare();
@@ -134,7 +130,8 @@ implements Uninterruptible {
    */
 
   /** @return The active global plan as a <code>Gen</code> instance. */
-  private static final Gen global() throws InlinePragma {
+  @Inline
+  private static Gen global() {
     return (Gen) VM.activePlan.global();
   }
 

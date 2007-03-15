@@ -32,13 +32,10 @@ import org.vmmagic.unboxed.*;
  * compiler can perform this decoding at compile time and produce
  * optimal code for the test.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public class SpaceDescriptor implements Uninterruptible, Constants {
+@Uninterruptible public class SpaceDescriptor implements Constants {
 
   /****************************************************************************
    * 
@@ -117,7 +114,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * @param descriptor
    * @return True if this descriptor describes a contigious space
    */
-  public static boolean isContiguous(int descriptor) throws InlinePragma {
+  @Inline
+  public static boolean isContiguous(int descriptor) { 
     return ((descriptor & VM_TYPE_CONTIGUOUS) == VM_TYPE_CONTIGUOUS);
   }
 
@@ -129,7 +127,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * @return True if this descriptor describes a contigious space that
    * is at the top of the virtual address space
    */
-  public static boolean isContiguousHi(int descriptor) throws InlinePragma {
+  @Inline
+  public static boolean isContiguousHi(int descriptor) { 
     return ((descriptor & VM_TYPE_MASK) == VM_TYPE_CONTIGUOUS_HI);
   }
 
@@ -139,7 +138,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * @param descriptor
    * @return The start of this region of memory encoded in this descriptor
    */
-  public static Address getStart(int descriptor) throws InlinePragma {
+  @Inline
+  public static Address getStart(int descriptor) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     Word mantissa = Word.fromIntSignExtend(descriptor >>> VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK) >>> VM_EXPONENT_SHIFT;
@@ -154,7 +154,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * @return The size of the region of memory encoded in this
    * descriptor, in chunks
    */
-  public static int getChunks(int descriptor) throws InlinePragma {
+  @Inline
+  public static int getChunks(int descriptor) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     return (descriptor & VM_SIZE_MASK) >>> VM_SIZE_SHIFT;
   }

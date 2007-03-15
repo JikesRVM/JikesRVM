@@ -20,15 +20,12 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public final class MSTraceLocal extends TraceLocal implements Uninterruptible {
+@Uninterruptible public final class MSTraceLocal extends TraceLocal {
   /**
    * Constructor
    */
@@ -69,8 +66,8 @@ public final class MSTraceLocal extends TraceLocal implements Uninterruptible {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (object.isNull()) return object;
     if (Space.isInSpace(MS.MARK_SWEEP, object))
       return MS.msSpace.traceObject(this, object);

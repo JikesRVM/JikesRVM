@@ -24,14 +24,11 @@ import org.vmmagic.pragma.*;
  * for shared use.  The data can be added to and removed from either end
  * of the deque.  
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
  */
-public class SharedDeque extends Deque implements Constants, Uninterruptible {
+@Uninterruptible public class SharedDeque extends Deque implements Constants {
 
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
@@ -57,7 +54,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     return completionFlag == 1;
   }
 
-  final int getArity() throws InlinePragma { return arity; }
+  @Inline
+  final int getArity() { return arity; } 
 
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
@@ -94,7 +92,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     }
   }
 
-  final Address dequeue(int arity) throws InlinePragma {
+  @Inline
+  final Address dequeue(int arity) { 
     return dequeue(arity, false);
   }
 
@@ -103,7 +102,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     return dequeue(false, fromTail);
   }
 
-  final Address dequeueAndWait(int arity) throws InlinePragma {
+  @Inline
+  final Address dequeueAndWait(int arity) { 
     return dequeueAndWait(arity, false);
   }
 
@@ -130,7 +130,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     setNumConsumers(numConsumers + 1);
   }
 
-  final Address alloc() throws InlinePragma {
+  @Inline
+  final Address alloc() { 
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (rtn.isZero()) {
       Space.printUsageMB();
@@ -140,12 +141,14 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     return rtn;
   }
 
-  final void free(Address buf) throws InlinePragma {
+  @Inline
+  final void free(Address buf) { 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rps.release(buf);
   }
 
-  public final int enqueuedPages() throws InlinePragma {
+  @Inline
+  public final int enqueuedPages() { 
     return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
@@ -164,7 +167,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   private Lock lock;
 
   
-  private final Address dequeue(boolean waiting, boolean fromTail) {
+  private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
     if (rtn.isZero()) {
@@ -209,7 +212,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
-  private static final void setNext(Address buf, Address next) {
+  private static void setNext(Address buf, Address next) {
     buf.store(next);
   }
 
@@ -229,7 +232,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * @param buf The buffer whose next field is to be set.
    * @param prev The reference to which prev should point.
    */
-  private final void setPrev(Address buf, Address prev) {
+  private void setPrev(Address buf, Address prev) {
     buf.store(prev, PREV_OFFSET);
   }
 
@@ -250,7 +253,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */
-  private final boolean checkDequeLength(int length) {
+  private boolean checkDequeLength(int length) {
     Address top = head;
     int l = 0;
     while (!top.isZero() && l <= length) {
@@ -264,7 +267,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * Lock this shared queue.  We use one simple low-level lock to
    * synchronize access to the shared queue of buffers.
    */
-  private final void lock() {
+  private void lock() {
     lock.acquire();
   }
 
@@ -272,29 +275,34 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
    * Release the lock.  We use one simple low-level lock to synchronize
    * access to the shared queue of buffers.
    */
-  private final void unlock() {
+  private void unlock() {
     lock.release();
   }
 
   // need to use this to avoid generating a putfield and so causing write barrier recursion
   //
-  private final void setCompletionFlag(int flag) throws InlinePragma {
+  @Inline
+  private void setCompletionFlag(int flag) {
     completionFlag = flag;
   }
 
-  private final void setNumConsumers(int newNumConsumers) throws InlinePragma {
+  @Inline
+  private void setNumConsumers(int newNumConsumers) {
     numConsumers = newNumConsumers;
   }
 
-  private final void setNumConsumersWaiting(int newNCW) throws InlinePragma {
+  @Inline
+  private void setNumConsumersWaiting(int newNCW) {
     numConsumersWaiting = newNCW;
   }
 
-  private final void setHead(Address newHead) throws InlinePragma {
+  @Inline
+  private void setHead(Address newHead) {
     head = newHead;
   }
 
-  private final void setTail(Address newTail) throws InlinePragma {
+  @Inline
+  private void setTail(Address newTail) {
     tail = newTail;
   }
 }

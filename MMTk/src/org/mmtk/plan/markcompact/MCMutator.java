@@ -39,13 +39,10 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class MCMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
@@ -81,8 +78,8 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     if (allocator == MC.ALLOC_DEFAULT) {
       return mc.alloc(bytes, align, offset, false);
     }
@@ -99,8 +96,9 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     if (allocator == MC.ALLOC_DEFAULT)
       MC.mcSpace.initializeHeader(ref);
     else
@@ -149,8 +147,8 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public final void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == MC.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       return;

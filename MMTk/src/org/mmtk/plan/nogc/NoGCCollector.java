@@ -10,7 +10,6 @@
 package org.mmtk.plan.nogc;
 
 import org.mmtk.plan.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -30,15 +29,12 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class NoGCCollector extends CollectorContext implements Uninterruptible {
+@Uninterruptible public abstract class NoGCCollector extends CollectorContext {
 
   /************************************************************************
    * Instance fields
@@ -102,7 +98,8 @@ public abstract class NoGCCollector extends CollectorContext implements Uninterr
    */
 
   /** @return The active global plan as a <code>NoGC</code> instance. */
-  private static final NoGC global() throws InlinePragma {
+  @Inline
+  private static NoGC global() {
     return (NoGC) VM.activePlan.global();
   }
 

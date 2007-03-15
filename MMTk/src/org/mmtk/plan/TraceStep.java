@@ -20,13 +20,10 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceLocal
  * 
- * $Id: TraceLocal.java,v 1.7 2006/06/21 07:38:14 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public abstract class TraceStep implements Constants, Uninterruptible {
+@Uninterruptible public abstract class TraceStep implements Constants {
 
   /**
    * Trace a reference during GC.

@@ -39,19 +39,16 @@ import org.vmmagic.unboxed.*;
  * 
  * @see RCBase
  * @see RCBaseCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptible {
+@Uninterruptible public class RCBaseMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
@@ -106,8 +103,8 @@ public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptibl
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator, int site)
-      throws InlinePragma {
+  @Inline
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
     switch(allocator) {
       case RCBase.ALLOC_RC:
         return rc.alloc(bytes, align, offset, false);
@@ -128,8 +125,9 @@ public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptibl
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
+      int bytes, int allocator) { 
     switch(allocator) {
     case RCBase.ALLOC_RC:
       ExplicitFreeListLocal.unsyncLiveObject(ref);
@@ -188,8 +186,8 @@ public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptibl
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == RCBase.PREPARE_MUTATOR) {
       rc.prepare();
@@ -231,12 +229,14 @@ public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptibl
    */
 
   /** @return The active global plan as an <code>RC</code> instance. */
-  private static final RCBase global() throws InlinePragma {
+  @Inline
+  private static RCBase global() {
     return (RCBase) VM.activePlan.global();
   }
   
   /** @return The active cycle detector instance */
-  public final CDMutator cycleDetector() throws InlinePragma {
+  @Inline
+  public final CDMutator cycleDetector() { 
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;

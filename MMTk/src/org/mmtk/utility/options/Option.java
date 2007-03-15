@@ -9,6 +9,8 @@
  */
 package org.mmtk.utility.options;
 
+import org.mmtk.utility.Log;
+import org.mmtk.utility.statistics.Xml;
 import org.mmtk.vm.VM;
 
 /**
@@ -28,11 +30,8 @@ import org.mmtk.vm.VM;
  * when performing this mapping but may remove spaces and change
  * the case of any character.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public abstract class Option {
   // options registry
@@ -57,6 +56,14 @@ public abstract class Option {
   public static final int MICROSECONDS_OPTION = 7;
   public static final int FLOAT_OPTION = 8;
   public static final int ADDRESS_OPTION = 9;
+  
+  /**
+   * The possible output formats
+   */
+  public static final int READABLE = 0;
+  public static final int RAW = 1;
+  public static final int XML = 2;
+
 
   /**
    * Using the VM determined key, look up the corresponding option,
@@ -158,7 +165,35 @@ public abstract class Option {
   public int getType() {
     return this.type;
   }
-
+  
+  /**
+   * Log the option value in one of several formats
+   * 
+   * @param format Output format (see Option.java for possible values)
+   */
+  void log(int format) {
+    switch (format) {
+      case READABLE:
+        Log.write("Option '");
+        Log.write(getKey());
+        Log.write(" = ");
+        log(RAW);
+        Log.writeln();
+        break;
+      case XML:
+        Xml.openMinorTag("option");
+        Xml.attribute("name",getKey());
+        Xml.openAttribute("value");
+        log(RAW);
+        Xml.closeAttribute();
+        Xml.closeMinorTag();
+        break;
+      case RAW:
+        VM.assertions.fail("Subtypes of Option must implement log(RAW)");
+        break;
+    }
+  }
+  
   /**
    * This is a validation method that can be implemented by leaf option
    * classes to provide additional validation. This should not be implemented

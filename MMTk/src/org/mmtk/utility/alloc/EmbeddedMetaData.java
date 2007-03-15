@@ -25,13 +25,10 @@ import org.vmmagic.pragma.*;
  * of each page which will cause those few cache lines corresponding
  * to the start of each page to be heavily conflicted).
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
  */
-public final class EmbeddedMetaData implements Constants, Uninterruptible {
+@Uninterruptible public final class EmbeddedMetaData implements Constants {
 
   /* The (log of the) size of each region of meta data management */
   public static final int LOG_BYTES_IN_REGION = 22;
@@ -49,8 +46,8 @@ public final class EmbeddedMetaData implements Constants, Uninterruptible {
    * @return The address of the start of the meta data for the meta
    * region in which the address is located.
    */
-  public static final Address getMetaDataBase(Address address)
-      throws InlinePragma {
+  @Inline
+  public static Address getMetaDataBase(Address address) {
     return address.toWord().and(REGION_MASK.not()).toAddress();
   }
 
@@ -69,7 +66,7 @@ public final class EmbeddedMetaData implements Constants, Uninterruptible {
    * @return The offset into the meta-data for this region, given the
    * specified address and coverage and aligment requirements.
    */
-  public static final Extent getMetaDataOffset(Address address,
+  public static Extent getMetaDataOffset(Address address,
                                                   int logCoverage,
                                                   int logAlign) {
     return address.toWord().and(REGION_MASK).rshl(logCoverage+logAlign).lsh(logAlign).toExtent();

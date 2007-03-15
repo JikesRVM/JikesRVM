@@ -19,14 +19,12 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class GenRCConstraints extends RCBaseConstraints
-  implements Uninterruptible {
+@Uninterruptible public class GenRCConstraints extends RCBaseConstraints {
   
   public boolean movesObjects() { return true; }
 }

@@ -12,11 +12,8 @@ package org.mmtk.utility.options;
 /**
  * Trigger cycle detection if the space available falls below this threshold.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class CycleTriggerThreshold extends PagesOption {
   /**

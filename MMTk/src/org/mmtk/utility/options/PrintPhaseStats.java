@@ -13,11 +13,8 @@ package org.mmtk.utility.options;
  * When printing statistics, should statistics for each
  * gc-mutator phase be printed?
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
 public class PrintPhaseStats extends BooleanOption {
   /**

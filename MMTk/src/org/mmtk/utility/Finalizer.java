@@ -6,7 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 package org.mmtk.utility;
 
@@ -34,7 +33,7 @@ import org.vmmagic.unboxed.*;
  * 
  * @author Perry Cheng
  */
-public class Finalizer implements Uninterruptible {
+@Uninterruptible public class Finalizer {
 
   // ----------------//
   // Implementation //
@@ -42,8 +41,8 @@ public class Finalizer implements Uninterruptible {
 
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
-  private static Lock lock = VM.newLock("Finalizer");
-  private static SynchronizedCounter gcLock = VM.newSynchronizedCounter();
+  private static final Lock lock = VM.newLock("Finalizer");
+  private static final SynchronizedCounter gcLock = VM.newSynchronizedCounter();
   
   /* Use an AddressArray rather than ObjectReference array to *avoid* this
      being traced.  We don't want this array to keep the candiates alive */
@@ -59,10 +58,11 @@ public class Finalizer implements Uninterruptible {
 
   // Add item.
   //
+  @Interruptible
+  @NoInline
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
-  public static final void addCandidate(ObjectReference item)
-    throws NoInlinePragma, InterruptiblePragma {
+  public static void addCandidate(ObjectReference item) {
  
     /* The following is tricky due to its littering of deadlock potential and
      * thread (logical and physical) race conditions, hence the unusual comment
@@ -131,7 +131,7 @@ public class Finalizer implements Uninterruptible {
     }
   }
 
-  private static final void compactCandidates() {
+  private static void compactCandidates() {
     int leftCursor = 0;
     int rightCursor = candidateEnd - 1;
     // Invariant: Slots left of leftCursor are non-empty and slots right of rightCursor are empty
@@ -158,7 +158,8 @@ public class Finalizer implements Uninterruptible {
    * 
    * The aastore is actually uninterruptible since the target is an array of Objects.
    */
-  private static void addLive(ObjectReference obj) throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  private static void addLive(ObjectReference obj) { 
     if (liveEnd == live.length()) {
       ObjectReferenceArray newLive = live;
       if (liveStart == 0)
@@ -181,7 +182,8 @@ public class Finalizer implements Uninterruptible {
    * The aastore is actually uninterruptible since the target is an
    * array of Objects.
    */
-  public final static ObjectReference get() throws LogicallyUninterruptiblePragma {
+  @LogicallyUninterruptible
+  public static ObjectReference get() {
 
     if (liveStart == liveEnd) return ObjectReference.nullReference();
 
@@ -195,7 +197,7 @@ public class Finalizer implements Uninterruptible {
    * Move all finalizable objects to the to-be-finalized queue
    * Called on shutdown.  Caller must also scheduler the finalizer thread.
    */
-  public final static void finalizeAll() {
+  public static void finalizeAll() {
 
     int cursor = 0;
     while (cursor < candidateEnd) {
@@ -210,7 +212,7 @@ public class Finalizer implements Uninterruptible {
   }
 
 
-  public final static void kill() {
+  public static void kill() {
     candidateEnd = 0;
   }
 
@@ -221,7 +223,7 @@ public class Finalizer implements Uninterruptible {
    * 
    * @param trace The trace instance to use.
    */
-  public final static int moveToFinalizable(TraceLocal trace) {
+  public static int moveToFinalizable(TraceLocal trace) {
     int cursor = 0;
     int newFinalizeCount = 0;
 
@@ -248,7 +250,8 @@ public class Finalizer implements Uninterruptible {
    * 
    * @param trace The trace object to use for forwarding.
    */
-  public final static void forward(TraceLocal trace) throws InlinePragma {
+  @Inline
+  public static void forward(TraceLocal trace) {
     int cursor = 0;
 
     while (cursor < candidateEnd) {

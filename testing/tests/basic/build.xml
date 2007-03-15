@@ -1,0 +1,132 @@
+<project name="basic" default="test" basedir=".">
+
+  <property name="test.time.limit" value="400"/>
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+ 
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
+      <!-- need extra classpath for vmmagic -->
+      <classpath>
+        <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+      </classpath>
+    </javac>
+
+    <jar file="${build.tests.dir}/AgentX.jar" basedir="${build.classes}" includes="**/AgentX.class">
+      <manifest>
+        <attribute name="Premain-Class" value="test.org.jikesrvm.basic.core.instrument.AgentX"/>
+      </manifest>
+    </jar>
+    <jar file="${build.tests.dir}/IdentityAgent.jar"
+         basedir="${build.classes}"
+         includes="**/IdentityClassFileTransformer.class">
+      <manifest>
+        <attribute name="Premain-Class" value="test.org.jikesrvm.basic.util.IdentityClassFileTransformer"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <runCompareTest tag="TestClassHierarchy" class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
+    <runCompareTest tag="TestArithmetic" class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>
+    <runCompareTest tag="TestArrayAccess" class="test.org.jikesrvm.basic.core.bytecode.TestArrayAccess"/>
+    <runCompareTest tag="TestCompare" class="test.org.jikesrvm.basic.core.bytecode.TestCompare"/>
+    <runCompareTest tag="TestThrownException" class="test.org.jikesrvm.basic.core.bytecode.TestThrownException"/>
+    <runCompareTest tag="TestSwitch" class="test.org.jikesrvm.basic.core.bytecode.TestSwitch"/>
+    <runCompareTest tag="TestInvoke" class="test.org.jikesrvm.basic.core.bytecode.TestInvoke"/>
+    <runCompareTest tag="TestClassInitializer" class="test.org.jikesrvm.basic.core.bytecode.TestClassInitializer"/>
+    <runCompareTest tag="TestMiranda" class="test.org.jikesrvm.basic.core.bytecode.TestMiranda"/>
+    <runCompareTest tag="TestInstanceOf" class="test.org.jikesrvm.basic.core.bytecode.TestInstanceOf"/>
+    <runCompareTest tag="TestClone" class="test.org.jikesrvm.basic.core.bytecode.TestClone"/>
+    <runCompareTest tag="TestFinally" class="test.org.jikesrvm.basic.core.bytecode.TestFinally"/>
+    <runCompareTest tag="TestReturn" class="test.org.jikesrvm.basic.core.bytecode.TestReturn"/>
+    <runCompareTest tag="TestFieldAccess" class="test.org.jikesrvm.basic.core.bytecode.TestFieldAccess"/>
+    <runCompareTest tag="TestFloatingRem" class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
+    <runCompareTest tag="TestConstants" class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
+
+    <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
+
+    <runCompareTest tag="TestResolveOnInvokeVirtual"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+    <runCompareTest tag="TestResolveOnCheckcast"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnCheckcast"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+    <runCompareTest tag="TestResolveOnInstanceof"
+                    class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInstanceof"
+                    rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
+
+    <runCompareTest tag="tClass" class="test.org.jikesrvm.basic.core.reflect.tClass"/>
+    <runCompareTest tag="tArray" class="test.org.jikesrvm.basic.core.reflect.tArray"/>
+    <runCompareTest tag="TestFieldReflection" class="test.org.jikesrvm.basic.core.reflect.TestFieldReflection"/>
+    <runCompareTest tag="tInstance" class="test.org.jikesrvm.basic.core.reflect.tInstance"/>
+    <runCompareTest tag="tNewInstance" class="test.org.jikesrvm.basic.core.reflect.tNewInstance"/>
+
+    <runCompareTest tag="TestDispatch" class="test.org.jikesrvm.basic.core.threads.TestDispatch"/>
+    <runCompareTest tag="TestBackEdgeGC" class="test.org.jikesrvm.basic.core.threads.TestBackEdgeGC"/>
+    <runCompareTest tag="TestNotification" class="test.org.jikesrvm.basic.core.threads.TestNotification"/>
+    <runCompareTest tag="TestTimedWait" class="test.org.jikesrvm.basic.core.threads.TestTimedWait"/>
+    <runCompareTest tag="TestInterruptAndSpin" class="test.org.jikesrvm.basic.core.threads.TestInterruptAndSpin"/>
+    <runCompareTest tag="TestInterruptedSleep" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
+    <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
+    <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
+    <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend" timeLimit="20"/>
+    <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
+    <runCompareTest tag="TestVolatiles" class="test.org.jikesrvm.basic.core.threads.TestVolatiles"/>
+
+    <runCompareTest tag="TestSerialization" class="test.org.jikesrvm.basic.core.serialization.TestSerialization"
+        classpath="${build.classes}:${main.java}"/>
+
+    <runCompareTest tag="TestUTF8" class="test.org.jikesrvm.basic.core.classloading.TestUTF8"/>
+    <runCompareTest tag="TestClassLoading" class="test.org.jikesrvm.basic.core.classloading.TestClassLoading"/>
+    <runCompareTest tag="TestLoadingWithoutName" class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
+
+    <runCompareTest tag="TestMath" class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest tag="TestFileChannel" class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
+
+    <runCompareTest tag="TestAgent" class="test.org.jikesrvm.basic.core.instrument.TestAgent"
+                    rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>
+
+    <rvm tag="ImageSizes" class="test.org.jikesrvm.basic.stats.JikesImageSizes"
+         args="${test.rvm.dir}/RVM.code.image ${test.rvm.dir}/RVM.data.image ${test.rvm.dir}/RVM.rmap.image"/>
+    <outputTestStart tag="ImageSizes"/>
+    <outputStatisticStart/>
+    <extractStatistic tag="ImageSizes" key="code.size" pattern="Code Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="data.size" pattern="Data Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="rmap.size" pattern="Rmap Size: (.*)"/>
+    <extractStatistic tag="ImageSizes" key="total.size" pattern="Total Size: (.*)"/>
+    <outputStatisticEnd/>
+    <outputTestResults tag="ImageSizes"/>
+    <outputTestEnd/>
+    <displayTestResults tag="ImageSizes"/>
+    <runCompareTest tag="R1644460" class="test.org.jikesrvm.basic.bugs.R1644460"/>
+    <runCompareTest tag="R1644460_B" class="test.org.jikesrvm.basic.bugs.R1644460_B"/>
+    <runCompareTest tag="R1644449" class="test.org.jikesrvm.basic.bugs.R1644449"/>
+    <runCompareTest tag="R1657236" class="test.org.jikesrvm.basic.bugs.R1657236"/>
+
+    <finishResults/>
+  </target>
+
+</project>

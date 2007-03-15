@@ -21,14 +21,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for RefCount collectors.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class GenSanityCheckerLocal extends SanityCheckerLocal 
-  implements Uninterruptible {
+@Uninterruptible public class GenSanityCheckerLocal extends SanityCheckerLocal {
 
   /**
    * Return the expected reference count. For non-reference counting 

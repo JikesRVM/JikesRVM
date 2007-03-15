@@ -1,0 +1,116 @@
+<project name="gcspy" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="gcspy.version" value="1_01"/>
+  <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
+
+  <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
+  <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
+  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing GCSpy component                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-gcspy-properties" depends="prepare-ant-tasks">
+    <check-host-and-target-match message="can not download and build GCSpy."/>
+
+    <condition property="gcspy.from-web" value="true">
+      <or>
+        <not>
+          <available file="${gcspy.package.dir}/gcspy/src/HISTORY"/>
+        </not>
+        <isset property="gcspy.force-download"/>
+      </or>
+    </condition>
+    <condition property="include.gcspy-client" value="true">
+      <not>
+        <isset property="gcspy.skip-client"/>
+      </not>
+    </condition>
+    <test-file name="make.exe" location="${host.file}"/>
+  </target>
+
+  <!-- download gcspy from from web -->
+  <target name="fetch" depends="init-gcspy-properties" if="gcspy.from-web">
+    <property name="gcspy.web-archive" value="gcspy${gcspy.version}.tar.gz"/>
+    <mkdir dir="${gcspy.package.dir}"/>
+    <get src="http://www.cs.kent.ac.uk/projects/gc/gcspy/${gcspy.web-archive}"
+         dest="${gcspy.package.dir}/${gcspy.web-archive}"/>
+    <untar src="${gcspy.package.dir}/${gcspy.web-archive}" compression="gzip" dest="${gcspy.package.dir}"/>
+  </target>
+
+  <target name="build-gcspy-client" depends="fetch" if="include.gcspy-client">
+    <propertycopy name="gcspy.jai.lib.dir" from="${target.name}.jai.lib.dir"/>
+    <test-file name="gcspy.jai.lib.dir" location="${components.file}"/>
+
+    <replace file="${gcspy.dir}/src/src/java/GNUmakefile"
+             token="$$(JAI_ROOT)/lib/jai_core.jar"
+             value="${gcspy.jai.lib.dir}/jai_core.jar"/>
+
+    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/java">
+      <arg value="clean"/>
+      <arg value="all"/>
+      <arg value="install"/>
+    </exec>
+
+    <mkdir dir="${gcspy.package.dir}/${target.name}/client"/>
+    <jar destfile="${gcspy.package.dir}/${target.name}/client/gcspy-${gcspy.version}.jar"
+         basedir="${gcspy.dir}/src/classes">
+      <include name="gcspy/**/*.class"/>
+      <include name="icons/**"/>
+    </jar>
+    <copy todir="${gcspy.package.dir}/${target.name}/client">
+      <fileset dir="${gcspy.dir}/src/classes">
+        <include name="plugins/**"/>
+      </fileset>
+    </copy>
+    <copy todir="${gcspy.package.dir}/${target.name}/client">
+      <fileset dir="${gcspy.jai.lib.dir}">
+        <include name="*"/>
+      </fileset>
+    </copy>
+
+    <echo file="${gcspy.package.dir}/${target.name}/client/gcspy">#!/bin/bash
+      export GCSPY_DIR="`dirname "$$0"`"
+      export LD_LIBRARY_PATH=$$GCSPY_DIR:$$LD_LIBRARY_PATH
+      java -classpath $$GCSPY_DIR/gcspy-${gcspy.version}.jar:$$GCSPY_DIR/jai_core.jar gcspy.Main $*
+    </echo>
+    <chmod file="${gcspy.package.dir}/${target.name}/client/gcspy" perm="ugo+rx"/>
+    <writeComponentConstants dir="${gcspy.package.dir}/${target.name}/client"/>
+  </target>
+
+  <target name="build" depends="build-gcspy-client" description="Download GCSpy and build.">
+    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
+      <arg value="clean"/>
+      <arg value="all"/>
+      <arg value="install"/>
+    </exec>
+
+    <mkdir dir="${gcspy.package.dir}/${target.name}/server"/>
+    <copy todir="${gcspy.package.dir}/${target.name}/server">
+      <fileset dir="${gcspy.dir}/src/src/c/lib">
+        <include name="*${target.jni-suffix}"/>        
+      </fileset>
+      <fileset dir="${gcspy.dir}/src/src/c">
+        <include name="include/*"/>
+      </fileset>
+    </copy>
+    <writeComponentConstants dir="${gcspy.package.dir}/${target.name}/server"/>
+    <setComponentsConfig key="${target.name}.gcspy.client.dir" value="${gcspy.package.dir}/${target.name}/client"/>
+    <setComponentsConfig key="${target.name}.gcspy.server.dir" value="${gcspy.package.dir}/${target.name}/server"/>
+  </target>
+
+  <target name="ensure" depends="init-gcspy-properties">
+    <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/server"/>
+  </target>
+
+  <target name="ensure-client" depends="prepare-ant-tasks">
+    <ensureUptodate name="gcspy" dir="${gcspy.package.dir}/${target.name}/client"/>
+  </target>
+
+</project>

@@ -1,0 +1,15 @@
+Testing Magic() - instanceof: 
+111000000000 casts: 
+111000000000
+Testing Magic[2] - instanceof: 
+100111000011 casts: 
+100111000011
+Testing Object[][]{new Magic[4],new Magic[4]} - instanceof: 
+100100100011 casts: 
+100100100011
+Testing Magic[][]{new Magic[4],new Magic[4]} - instanceof: 
+100100111011 casts: 
+100100111011
+Testing int[2] - instanceof: 
+100000000111 casts: 
+100000000111

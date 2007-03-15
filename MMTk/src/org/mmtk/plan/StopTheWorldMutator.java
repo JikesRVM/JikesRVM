@@ -10,7 +10,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -27,17 +26,13 @@ import org.vmmagic.pragma.*;
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class StopTheWorldMutator extends MutatorContext
-implements Uninterruptible {
+@Uninterruptible public abstract class StopTheWorldMutator extends MutatorContext {
 
   /****************************************************************************
    * 
@@ -54,8 +49,8 @@ implements Uninterruptible {
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
 
     if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
       VM.collection.prepareMutator(this);

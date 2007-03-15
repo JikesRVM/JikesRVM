@@ -7,7 +7,6 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
-//$Id$
 package org.mmtk.utility.alloc;
 
 import org.vmmagic.unboxed.*;
@@ -18,14 +17,13 @@ import org.vmmagic.pragma.*;
  * a subclass of this object.
  * 
  * @author Daniel Frampton
- * @version $Revision$
- * @date    $Date$
  */
-abstract public class LinearScan implements Uninterruptible {
+@Uninterruptible
+public abstract class LinearScan {
   /**
    * Scan an object.
    * 
    * @param object The object to scan
    */
-  abstract public void scan(ObjectReference object);
+  public abstract void scan(ObjectReference object);
 }

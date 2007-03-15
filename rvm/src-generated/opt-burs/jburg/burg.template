@@ -1,0 +1,126 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+package org.jikesrvm.opt.@_ARCH_@;
+
+import org.jikesrvm.opt.ir.@_ARCH_@.*;
+import org.jikesrvm.classloader.*;
+
+import org.jikesrvm.*;
+import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.opt.OPT_BURS;
+import org.jikesrvm.opt.OPT_Bits;
+import org.jikesrvm.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
+
+import org.vmmagic.unboxed.*;
+
+/**
+ * Machine-specific instruction selection rules.  Program generated.
+ *
+ * Note: some of the functions have been taken and modified
+ * from the file gen.c, from the LCC compiler.  
+ * See $RVM_ROOT/rvm/src-generated/opt-burs/jburg/COPYRIGHT file for copyright restrictions.
+ *
+ * @see OPT_BURS
+ * @author Mauricio Serrano
+ * @author Vivek Sarkar
+ * @author Igor Pechtchanski
+ * @modified Dave Grove
+ *
+ * NOTE: Program generated file, do not edit!
+ */
+@SuppressWarnings("unused") // Machine generated code is hard to get perfect
+public class OPT_BURS_STATE extends OPT_BURS_Helpers 
+   implements OPT_Operators, OPT_BURS_Definitions {
+
+          static final byte NOFLAGS           = 0x00;
+          static final byte EMIT_INSTRUCTION  = 0x01;
+   public static final byte LEFT_CHILD_FIRST  = 0x02;
+   public static final byte RIGHT_CHILD_FIRST = 0x04;
+
+   public OPT_BURS_STATE(OPT_BURS b) {
+      super(b);
+   }
+
+/*****************************************************************/
+/*                                                               */
+/*  BURS TEMPLATE                                                */
+/*                                                               */
+/*****************************************************************/
+
+   /* accessors used by BURS */
+   private static OPT_BURS_TreeNode STATE(OPT_BURS_TreeNode a) { return a; }
+
+   /***********************************************************************
+    *
+    *   This file contains BURG utilities
+    *
+    *   Note: some of the functions have been taken and modified
+    *    from the file gen.c, from the LCC compiler.
+    *
+    ************************************************************************/
+   void trace(OPT_BURS_TreeNode p, int rule, int cost, int bestcost) {
+     if (OPT_BURS.DEBUG) {
+       VM.sysWrite(p+" matched "+OPT_BURS_Debug.string[rule]+" with cost "+
+		   cost+"vs. "+bestcost);
+     }
+   }
+
+   //
+   // This function will dump the tree
+   //
+   public static void dumpTree(OPT_BURS_TreeNode p) {
+     if (OPT_BURS.DEBUG) {
+       VM.sysWrite(dumpTree("\n",p,1));
+     }
+   }
+
+   public static String dumpTree(String out, OPT_BURS_TreeNode p, int indent) {
+     if (p == null) return out;
+     for (int i=0; i<indent; i++)
+       out = out + "   ";
+     out = out + p;
+     out = out + '\n';
+     if (p.child1 != null) {
+       indent++;
+       out = out + dumpTree("",p.child1,indent);
+       if (p.child2 != null) {
+	 out = out + dumpTree("",p.child2,indent);
+       }
+     }
+     return out;
+   }
+
+   //
+   // This function will dump the cover of a tree, i.e. the rules
+   // that cover the tree with a minimal cost.
+   //
+   public static void dumpCover(OPT_BURS_TreeNode p, byte goalnt, int indent){
+      if (OPT_BURS.DEBUG) {
+	if (p == null) return;
+	int rule = STATE(p).rule(goalnt);
+	VM.sysWrite(STATE(p).getCost(goalnt)+"\t");
+	for (int i = 0; i < indent; i++)
+          VM.sysWrite(' ');
+	VM.sysWrite(OPT_BURS_Debug.string[rule]+"\n");
+	for (int i = 0; i < nts[rule].length; i++)
+          dumpCover(kids(p,rule,i), nts[rule][i], indent + 1);
+      }
+   }
+
+   // caution: MARK should be used in single threaded mode,
+   public static void mark(OPT_BURS_TreeNode p, byte goalnt) {
+     if (p == null) return;
+     int rule = STATE(p).rule(goalnt);
+     byte act = action[rule];
+     if ((act & EMIT_INSTRUCTION) != 0) {
+       p.setNonTerminal(goalnt);
+     }
+     if (rule == 0) {
+       throw new OPT_OptimizingCompilerException("BURS","rule missing in ",
+						 p.getInstruction().toString(), dumpTree("",p,1));
+     }
+     mark_kids(p,rule);
+   }

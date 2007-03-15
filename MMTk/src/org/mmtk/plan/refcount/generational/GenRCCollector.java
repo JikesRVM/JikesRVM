@@ -40,20 +40,17 @@ import org.vmmagic.unboxed.*;
  * 
  * @see GenRC
  * @see GenRCMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldCollector
+ * @see org.mmtk.plan.CollectorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class GenRCCollector extends RCBaseCollector
-implements Uninterruptible, Constants {
+@Uninterruptible public abstract class GenRCCollector extends RCBaseCollector
+implements Constants {
 
   /****************************************************************************
    * Instance fields
@@ -86,8 +83,8 @@ implements Uninterruptible, Constants {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary)
-      throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == GenRC.PREPARE) {
       super.collectionPhase(phaseId, primary);
       rc.prepare();
@@ -119,9 +116,9 @@ implements Uninterruptible, Constants {
    * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
+  @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-                                 int align, int offset, int allocator)
-    throws InlinePragma {
+                                 int align, int offset, int allocator) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
@@ -135,9 +132,9 @@ implements Uninterruptible, Constants {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-                             int bytes, int allocator)
-    throws InlinePragma {
+                             int bytes, int allocator) { 
     CopySpace.clearGCBits(object);
     RCHeader.initializeHeader(object, typeRef, false);
     RCHeader.makeUnlogged(object);
@@ -150,7 +147,8 @@ implements Uninterruptible, Constants {
    */
 
   /** @return The active global plan as an <code>MS</code> instance. */
-  private static final GenRC global() throws InlinePragma {
+  @Inline
+  private static GenRC global() {
     return (GenRC) VM.activePlan.global();
   }
   

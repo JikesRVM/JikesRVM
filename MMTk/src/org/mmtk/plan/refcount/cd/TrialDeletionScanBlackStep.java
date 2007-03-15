@@ -17,13 +17,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This trace step is used during trial deletion processing.
  * 
- * $Id: TraceLocal.java,v 1.7 2006/06/21 07:38:14 steveb-oss Exp $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public final class TrialDeletionScanBlackStep extends TraceStep implements Uninterruptible {
+@Uninterruptible public final class TrialDeletionScanBlackStep extends TraceStep {
 
   /**
    * Trace a reference during GC.

@@ -22,17 +22,14 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceLocal
  * 
- * $Id: TraceLocal.java,v 1.7 2006/06/21 07:38:14 steveb-oss Exp $
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public final class GenRCModifiedProcessor extends TraceStep implements Uninterruptible { 
-  private GenRCTraceLocal trace;
+@Uninterruptible public final class GenRCModifiedProcessor extends TraceStep { 
+  private final GenRCTraceLocal trace;
 
   
   public GenRCModifiedProcessor(GenRCTraceLocal t) {
@@ -45,7 +42,8 @@ public final class GenRCModifiedProcessor extends TraceStep implements Uninterru
    * @param objLoc The location containing the object reference to be
    * traced.
    */
-  public void traceObjectLocation(Address objLoc) throws InlinePragma {
+  @Inline
+  public void traceObjectLocation(Address objLoc) { 
     ObjectReference object = objLoc.loadObjectReference();
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {

@@ -20,14 +20,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for CopyMS collectors.
  * 
- * $Id$
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision$
- * @date $Date$
  */
-public class CopyMSSanityCheckerLocal extends SanityCheckerLocal 
-  implements Uninterruptible {
+@Uninterruptible public class CopyMSSanityCheckerLocal extends SanityCheckerLocal {
 
   /**
    * Return the expected reference count. For non-reference counting 

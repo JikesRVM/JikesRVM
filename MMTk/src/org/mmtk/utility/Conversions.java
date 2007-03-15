@@ -6,11 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-//$Id$
 
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.*;
 
 import org.mmtk.vm.VM;
@@ -19,12 +17,12 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
- import com.ibm.JikesRVM.VM_Offset;
+ import org.jikesrvm.VM_Offset;
  * Conversions between different units.
  *
  * @author Perry Cheng
  */
-public class Conversions implements Constants, Uninterruptible {
+@Uninterruptible public class Conversions implements Constants {
 
   // public static Address roundDownVM(Address addr) {
 //     return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
@@ -47,6 +45,10 @@ public class Conversions implements Constants, Uninterruptible {
     return value.and(mask);
   }
 
+  public static int roundDown(int value, int alignment) {
+	return value & ~(alignment - 1);
+  }
+  
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {
@@ -104,6 +106,7 @@ public class Conversions implements Constants, Uninterruptible {
   /**
     @deprecated : use int bytesToPagesUp(Extent bytes) if possible
    */
+  @Deprecated
   public static int bytesToPagesUp(int bytes) {
     return bytesToPagesUp(Extent.fromIntZeroExtend(bytes));
   }
@@ -111,6 +114,7 @@ public class Conversions implements Constants, Uninterruptible {
   /**
     @deprecated : use int bytesToPagesUp(Extent bytes) if possible
    */
+  @Deprecated
   public static int bytesToPages(int bytes) {
     return bytesToPages(Extent.fromIntZeroExtend(bytes));
   }

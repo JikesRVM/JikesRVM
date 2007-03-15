@@ -30,13 +30,10 @@ import org.vmmagic.pragma.*;
  * the index of its first block, the size of the blocks in this space,
  * and the number of blocks in this subspace.
  *
- * $Id$
- * 
+ *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
  */
-public class Subspace implements Uninterruptible {
+@Uninterruptible public class Subspace {
 
   private Address start_;       // The Subspace spans the address range [start_, end_)
   private Address end_;

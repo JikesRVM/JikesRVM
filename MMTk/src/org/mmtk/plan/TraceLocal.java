@@ -30,17 +30,14 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class TraceLocal extends TraceStep 
-  implements Constants, Uninterruptible {
+@Uninterruptible public abstract class TraceLocal extends TraceStep 
+  implements Constants {
   /****************************************************************************
    * 
    * Instance variables
@@ -85,8 +82,8 @@ public abstract class TraceLocal extends TraceStep
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    * @param root True if <code>objLoc</code> is within a root.
    */
-  public final void traceObjectLocation(Address objLoc, boolean root)
-      throws InlinePragma {
+  @Inline
+  public final void traceObjectLocation(Address objLoc, boolean root) { 
     ObjectReference object = objLoc.loadObjectReference();
     ObjectReference newObject = traceObject(object, root);
     objLoc.store(newObject);
@@ -101,8 +98,8 @@ public abstract class TraceLocal extends TraceStep
    * @param objLoc The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    */
-  public final void traceObjectLocation(Address objLoc)
-    throws InlinePragma {
+  @Inline
+  public final void traceObjectLocation(Address objLoc) { 
     traceObjectLocation(objLoc, false);
   }
 
@@ -146,8 +143,8 @@ public abstract class TraceLocal extends TraceStep
    * 
    * @param object The forwarded object to be scanned
    */
-  protected void scanObject(ObjectReference object)
-    throws InlinePragma {
+  @Inline
+  protected void scanObject(ObjectReference object) { 
     Scan.scanObject(this, object);
   }
 
@@ -162,7 +159,8 @@ public abstract class TraceLocal extends TraceStep
    * 
    * @param object The object to be enqueued
    */
-  public final void enqueue(ObjectReference object) throws InlinePragma {
+  @Inline
+  public final void enqueue(ObjectReference object) { 
     values.push(object);
   }
 
@@ -171,8 +169,8 @@ public abstract class TraceLocal extends TraceStep
    * 
    * @param location The slot of the root.
    */
-  public final void addRootLocation(Address location)
-    throws InlinePragma {
+  @Inline
+  public final void addRootLocation(Address location) { 
     rootLocations.push(location);
   }
 
@@ -182,9 +180,9 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object the location resides in.
    * @param location The slot of the root.
    */
+  @Inline
   public final void addInteriorRootLocation(ObjectReference object,
-                                            Address location)
-    throws InlinePragma {
+                                            Address location) { 
     interiorRootLocations.push(object.toAddress(), location);
   }
 
@@ -202,7 +200,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object.
    * @return True if the object is live.
    */
-  public boolean isLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isLive(ObjectReference object) { 
     Space space = Space.getSpaceForObject(object);
     if (space == Plan.loSpace)
       return Plan.loSpace.isLive(object);
@@ -222,7 +221,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object.
    * @return True if the object is live.
    */
-  public boolean isReachable(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isReachable(ObjectReference object) { 
     return Space.getSpaceForObject(object).isReachable(object);
   }
 
@@ -232,7 +232,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object.
    * @return True if the reference object is live.
    */
-  public boolean isReferentLive(ObjectReference object) throws InlinePragma {
+  @Inline
+  public boolean isReferentLive(ObjectReference object) { 
     return isLive(object);
   }
 
@@ -247,7 +248,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object) throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object) { 
     if (Space.isInSpace(Plan.VM_SPACE, object))
       return (Plan.SCAN_BOOT_IMAGE) ? object : Plan.vmSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.IMMORTAL, object))
@@ -268,8 +270,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
-  public ObjectReference precopyObject(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference precopyObject(ObjectReference object) { 
     return traceObject(object);
   }
 
@@ -281,8 +283,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object, boolean root)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference traceObject(ObjectReference object, boolean root) { 
     return traceObject(object);
   }
 
@@ -328,8 +330,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
-  public ObjectReference getForwardedReferent(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference getForwardedReferent(ObjectReference object) { 
     return getForwardedReference(object);
   }
 
@@ -339,8 +341,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
-  public ObjectReference getForwardedReferenceType(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference getForwardedReferenceType(ObjectReference object) { 
     return getForwardedReference(object);
   }
 
@@ -352,8 +354,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
-  public ObjectReference getForwardedReference(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference getForwardedReference(ObjectReference object) { 
     return traceObject(object);
   }
 
@@ -368,8 +370,8 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object which is to be made alive.
    * @return The possibly forwarded address of the object.
    */
-  public ObjectReference retainReferent(ObjectReference object)
-      throws InlinePragma {
+  @Inline
+  public ObjectReference retainReferent(ObjectReference object) { 
     return traceObject(object);
   }
 
@@ -440,7 +442,8 @@ public abstract class TraceLocal extends TraceStep
    * Process all GC work.  This method iterates until all work queues
    * are empty.
    */
-  public void startTrace() throws InlinePragma {
+  @Inline
+  public void startTrace() { 
     logMessage(4, "Working on GC in parallel");
     logMessage(5, "processing root locations");
     while (!rootLocations.isEmpty()) {
@@ -462,7 +465,8 @@ public abstract class TraceLocal extends TraceStep
    * Finishing processing all GC work.  This method iterates until all work queues
    * are empty.
    */
-  public void completeTrace() throws InlinePragma {
+  @Inline
+  public void completeTrace() { 
     logMessage(4, "Continuing GC in parallel");
     logMessage(5, "processing gray objects");
     assertMutatorRemsetsFlushed();
@@ -504,8 +508,8 @@ public abstract class TraceLocal extends TraceStep
    * @param minVerbose The required verbosity level
    * @param message The message to display
    */
-  protected final void logMessage(int minVerbose, String message)
-      throws InlinePragma {
+  @Inline
+  protected final void logMessage(int minVerbose, String message) { 
     if (Options.verbose.getValue() >= minVerbose) {
       Log.prependThreadId();
       Log.write("    ");
@@ -530,7 +534,8 @@ public abstract class TraceLocal extends TraceStep
    * 
    * @param slot The slot to check
    */
-  public final void precopyObjectLocation(Address slot) throws InlinePragma {
+  @Inline
+  public final void precopyObjectLocation(Address slot) { 
     ObjectReference child = slot.loadObjectReference();
     if (!child.isNull()) {
       child = precopyObject(child);

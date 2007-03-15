@@ -31,14 +31,11 @@ import org.vmmagic.pragma.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of RefCountLocal.
  *
- * $Id: RefCountSpace.java,v 1.36 2005/08/31 13:00:41 dgrove-oss Exp $
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Ian Warrington
- * @version $Revision: 1.36 $
- * @date $Date: 2005/08/31 13:00:41 $
  */
-public final class RCHeader implements Constants, Uninterruptible {
+@Uninterruptible public final class RCHeader implements Constants {
 
   /****************************************************************************
    *
@@ -49,7 +46,7 @@ public final class RCHeader implements Constants, Uninterruptible {
   public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_WORDS_REQUIRED = 1;
-  protected static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
+  static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
 
 
   /* Mask bits to signify the start/finish of logging an object */
@@ -93,10 +90,10 @@ public final class RCHeader implements Constants, Uninterruptible {
   public static final int    LIVE_THRESHOLD = FINALIZABLE;
   public static final int         BITS_USED = 7;
 
-  protected static final int INCREMENT_SHIFT = BITS_USED;
-  protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
-  protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
-  protected static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
+  static final int INCREMENT_SHIFT = BITS_USED;
+  static final int INCREMENT = 1<<INCREMENT_SHIFT;
+  static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
+  static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
 
   /****************************************************************************
    *
@@ -110,8 +107,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object in question
    * @return <code>true</code> if <code>object</code> needs to be logged.
    */
-  public static boolean logRequired(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean logRequired(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
@@ -132,8 +130,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @return <code>true</code> if the race to log
    * <code>object</code>was won.
    */
-  public static boolean attemptToLog(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean attemptToLog(ObjectReference object) { 
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -156,8 +155,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @see #attemptToLog(ObjectReference)
    * @param object The object whose state is to be changed.
    */
-  public static void makeLogged(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void makeLogged(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(value.and(LOGGING_MASK).NE(LOGGED));
@@ -169,8 +169,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    *
    * @param object The object whose state is to be changed.
    */
-  public static void makeUnlogged(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void makeUnlogged(ObjectReference object) { 
     Word value = VM.objectModel.readAvailableBitsWord(object);
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(value.and(LOGGING_MASK).EQ(LOGGED));
@@ -190,9 +191,10 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param initialInc  do we want to initialize this header with an
    * initial increment?
    */
+  @Inline
   public static void initializeHeader(ObjectReference object, 
                                       ObjectReference typeRef,
-                                      boolean initialInc) throws InlinePragma {
+                                      boolean initialInc) { 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RCBase.isRCObject(object));
     }
@@ -208,8 +210,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose liveness is to be tested
    * @return True if the object is alive
    */
-  public static boolean isLiveRC(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isLiveRC(ObjectReference object) { 
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
   
@@ -219,8 +222,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose refcount is to be returned
    * @return The reference ocunt
    */
-  public static int getRC(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static int getRC(ObjectReference object) { 
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >> INCREMENT_SHIFT;
   }
   
@@ -242,14 +246,16 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose finalizability is to be tested
    * @return True if the object is finalizable
    */
-  public static boolean isFinalizable(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isFinalizable(ObjectReference object) { 
     setFinalizer(object);
     return object.toAddress().loadInt(RC_HEADER_OFFSET) < HARD_THRESHOLD;
   }
 
-  public static void incRCOOL(ObjectReference object) 
-    throws UninterruptiblePragma, NoInlinePragma {
+  @NoInline
+  @Uninterruptible
+  public static void incRCOOL(ObjectReference object) { 
     incRC(object);
   }
 
@@ -264,8 +270,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    *
    * @param object The object whose RC is to be incremented.
    */
-  public static void incRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void incRC(ObjectReference object) { 
     int oldValue, newValue;
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(RCBase.isRCObject(object));
@@ -295,8 +302,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * <code>DEC_PURPLE</code> if the count did not go to zero and the
    * object was already in the purple buffer.
    */
-  public static int decRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static int decRC(ObjectReference object) { 
     int oldValue, newValue;
     int rtn;
     if (VM.VERIFY_ASSERTIONS) {
@@ -322,8 +330,9 @@ public final class RCHeader implements Constants, Uninterruptible {
     return rtn;
   }
 
-  public static boolean isBuffered(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isBuffered(ObjectReference object) { 
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
 
@@ -343,8 +352,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @return <code>true</code> if it was set by this call,
    * <code>false</code> if the bit was already set.
    */
-  public static boolean setRoot(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean setRoot(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -361,8 +371,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose <code>ROOT_REACHABLE</code> bit is
    * to be cleared.
    */
-  public static void unsetRoot(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void unsetRoot(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -376,8 +387,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose <code>FINALIZABLE</code> bit is
    * to be set.
    */
-  static void setFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  static void setFinalizer(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -391,8 +403,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    * @param object The object whose <code>FINALIZABLE</code> bit is
    * to be cleared.
    */
-  public static void clearFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void clearFinalizer(ObjectReference object) { 
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -410,8 +423,9 @@ public final class RCHeader implements Constants, Uninterruptible {
    *
    * @param object The object whose RC is to be decremented.
    */
-  public static void unsyncDecRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void unsyncDecRC(ObjectReference object) { 
     int oldValue, newValue;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue - INCREMENT;
@@ -423,16 +437,18 @@ public final class RCHeader implements Constants, Uninterruptible {
    *
    * @param object The object whose RC is to be incremented.
    */
-  public static void unsyncIncRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void unsyncIncRC(ObjectReference object) { 
     int oldValue, newValue;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue + INCREMENT;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
 
-  public static void print(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void print(ObjectReference object) { 
     if (object.isNull()) return;
     Log.write(' ');
     Log.write(object.toAddress().loadInt(RC_HEADER_OFFSET)>>INCREMENT_SHIFT); 
@@ -451,74 +467,89 @@ public final class RCHeader implements Constants, Uninterruptible {
     else
       Log.write('u');
   }
-  public static void clearBufferedBit(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void clearBufferedBit(ObjectReference object) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = oldValue & ~BUFFERED_MASK;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
-  public static boolean isBlack(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isBlack(ObjectReference object) { 
     return getLoRCColor(object) == BLACK;
   }
-  public static boolean isWhite(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isWhite(ObjectReference object) { 
     return getLoRCColor(object) == WHITE;
   }
-  public static boolean isGreen(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isGreen(ObjectReference object) { 
     return getHiRCColor(object) == GREEN;
   }
-  public static boolean isPurple(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isPurple(ObjectReference object) { 
     return getHiRCColor(object) == PURPLE;
   }
-  public static boolean isPurpleNotGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isPurpleNotGrey(ObjectReference object) { 
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & (PURPLE | GREY)) == PURPLE;
   }
-  public static boolean isGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isGrey(ObjectReference object) { 
     return getLoRCColor(object) == GREY;
   }
-  private static int getLoRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  private static int getLoRCColor(ObjectReference object) { 
     return LO_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
-  private static int getHiRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  private static int getHiRCColor(ObjectReference object) { 
     return HI_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
-  public static void makeBlack(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void makeBlack(ObjectReference object) { 
     changeRCLoColor(object, BLACK);
   }
-  public static void makeWhite(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void makeWhite(ObjectReference object) { 
     changeRCLoColor(object, WHITE);
   }
-  public static void makeGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static void makeGrey(ObjectReference object) { 
     if (VM.VERIFY_ASSERTIONS) 
       VM.assertions._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
-  private static void changeRCLoColor(ObjectReference object, int color)
-    throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  private static void changeRCLoColor(ObjectReference object, int color) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = (oldValue & ~LO_COLOR_MASK) | color;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
-  public static boolean testAndMark(ObjectReference object, Word markState) 
-  throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean testAndMark(ObjectReference object, Word markState) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     if ((oldValue & MARKED) == markState.toInt()) return false;
     int newValue = oldValue ^ MARKED;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
     return true;
   }
-  public static boolean isMarked(ObjectReference object, Word markState) 
-  throws UninterruptiblePragma, InlinePragma {
+  @Inline
+  @Uninterruptible
+  public static boolean isMarked(ObjectReference object, Word markState) { 
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     return (oldValue & MARKED) == markState.toInt();
   }

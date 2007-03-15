@@ -14,15 +14,12 @@ package org.mmtk.vm;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * $Id: Assert.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $
- * 
+ *
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision: 1.5 $
- * @date $Date: 2006/06/21 07:38:13 $
  */
-public abstract class Assert implements Uninterruptible {
+@Uninterruptible public abstract class Assert {
   /**
    * Logs a message and traceback, then exits.
    * 

@@ -19,12 +19,8 @@ import org.vmmagic.pragma.*;
  * This class implements a simple timer.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * $Id$
  */
-public class Timer extends LongCounter
-  implements Uninterruptible {
+@Uninterruptible public class Timer extends LongCounter {
 
   /****************************************************************************
    * 
@@ -76,7 +72,8 @@ public class Timer extends LongCounter
    * 
    * @return The current value for this timer
    */
-  final protected long getCurrentValue() throws InlinePragma {
+  @Inline
+  protected final long getCurrentValue() {
     return VM.statistics.cycles();
   }
 
@@ -136,5 +133,13 @@ public class Timer extends LongCounter
   final void printSecs(long value) {
     Log.write(VM.statistics.cyclesToSecs(value));
   }
+
+  /**
+   * Get the current value of the timer in milliseconds
+   */
+  final double getTotalMillis() {
+    return VM.statistics.cyclesToMillis(totalCount);
+  }
+
 }
 

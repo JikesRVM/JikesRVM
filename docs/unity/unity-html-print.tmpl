@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<head profile="http://www.w3.org/2000/08/w3c-synd/#">
+  #if ($site.stylesheet)
+  <link rel="stylesheet" href="${site.stylesheet}" type="text/css"/>
+  #else
+  <link rel="stylesheet" href="$style" type="text/css"/>
+  #end
+  <style type="text/css">
+    body {
+      margin: 5px;
+    }
+  </style>
+ <title>${page.pageKey}</title>
+</head>
+
+  <body>
+   <u>${page.pageKey}</u>
+   ${pageFragment}
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<project name="opttests" default="test" basedir=".">
+
+  <property name="test.time.limit" value="400"/>
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+ 
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
+      <!-- need extra classpath for vmmagic -->
+      <classpath>
+        <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+      </classpath>
+      <exclude name="testpm.java"/>
+      <exclude name="TestEncodedCallSiteTree.java"/>
+      <exclude name="dtc.java"/>
+      <exclude name="TestThrow*.java"/>
+      <exclude name="ExceptionTest6.java"/>
+    </javac>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <runCompareTest tag="InvokeReflect"
+                    class="InvokeReflect"
+                    args="fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch DeBruijn hello virtual sieve hanoi logic unresolved stPutGet virtUnPutGet virtUnresolved interf CheckStore TypeCheck TestArithmetic TestArrayAccess TestCall TestCompare TestConstants TestConversions TestFieldAccess TestInterfaceCall TestMath TestReturn TestSpecialCall TestStackAccess TestSwitch TestUnresolved TestInstanceOf TestExceptionThrow TestFinally inlineDeep inlineExcept"/>
+
+    <finishResults/>
+  </target>
+
+</project>

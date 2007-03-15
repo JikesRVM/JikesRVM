@@ -21,13 +21,10 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.TraceStep
  * 
- * $Id: $
- * 
+ *
  * @author Daniel Frampton
- * @version $Revision: 1.7 $
- * @date $Date: 2006/06/21 07:38:14 $
  */
-public final class DecBuffer extends ObjectReferenceBuffer implements Constants, Uninterruptible {
+@Uninterruptible public final class DecBuffer extends ObjectReferenceBuffer implements Constants {
   /****************************************************************************
    * 
    * Initialization
@@ -36,7 +33,7 @@ public final class DecBuffer extends ObjectReferenceBuffer implements Constants,
   /**
    * Constructor
    * 
-   * @param trace The shared deque that is used.
+   * @param queue The shared deque that is used.
    */
   public DecBuffer(SharedDeque queue) {
     super("dec", queue);
@@ -48,7 +45,8 @@ public final class DecBuffer extends ObjectReferenceBuffer implements Constants,
    * 
    * @param object The object to process.
    */
-  protected void process(ObjectReference object) throws InlinePragma {
+  @Inline
+  protected void process(ObjectReference object) { 
     if (RCBase.isRCObject(object)) {
       push(object);
     }

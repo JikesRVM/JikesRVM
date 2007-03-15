@@ -15,6 +15,7 @@ import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the functionality of a two-generation copying
@@ -39,15 +40,12 @@ import org.vmmagic.pragma.*;
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
  * 
- * $Id$
- * 
+ *
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public class GenMS extends Gen implements Uninterruptible {
+@Uninterruptible public class GenMS extends Gen {
 
   /*****************************************************************************
    * 
@@ -67,11 +65,6 @@ public class GenMS extends Gen implements Uninterruptible {
   /* The trace class for a full-heap collection */
   public final Trace matureTrace = new Trace(metaDataSpace);
 
-  /**
-   * Constructor
-   */
-  public GenMS() { }
-
   /*****************************************************************************
    * 
    * Collection
@@ -79,7 +72,9 @@ public class GenMS extends Gen implements Uninterruptible {
   /*
    * Perform a (global) collection phase.
    */
-  public final void collectionPhase(int phaseId) throws InlinePragma {
+  @Inline
+  @Override
+  public final void collectionPhase(int phaseId) { 
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -110,7 +105,9 @@ public class GenMS extends Gen implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-  public int getPagesUsed() throws InlinePragma {
+  @Inline
+  @Override
+  public int getPagesUsed() { 
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
@@ -125,7 +122,22 @@ public class GenMS extends Gen implements Uninterruptible {
    * 
    * @return The active mature space
    */
-  protected final Space activeMatureSpace() throws InlinePragma {
+  @Inline
+  protected final Space activeMatureSpace() { 
     return msSpace;
   }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   * 
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MS, object))
+      return false;
+    return super.objectCanMove(object);
+  }
+
 }

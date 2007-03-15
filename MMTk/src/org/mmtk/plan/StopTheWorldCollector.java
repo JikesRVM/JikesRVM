@@ -31,17 +31,13 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  * 
- * $Id$
- * 
+ *
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
- * @version $Revision$
- * @date $Date$
  */
-public abstract class StopTheWorldCollector extends CollectorContext
-implements Uninterruptible {
+@Uninterruptible public abstract class StopTheWorldCollector extends CollectorContext {
 
   /****************************************************************************
    * Instance fields
@@ -66,8 +62,8 @@ implements Uninterruptible {
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public void collectionPhase(int phaseId, boolean primary)
-  throws InlinePragma {
+  @Inline
+  public void collectionPhase(int phaseId, boolean primary) { 
     if (phaseId == StopTheWorld.INITIATE) {
       VM.collection.prepareCollector(this);
       return;
@@ -169,7 +165,8 @@ implements Uninterruptible {
    */
 
   /** @return The active global plan as a <code>StopTheWorld</code> instance. */
-  private static final StopTheWorld global() throws InlinePragma {
+  @Inline
+  private static StopTheWorld global() {
     return (StopTheWorld) VM.activePlan.global();
   }
 

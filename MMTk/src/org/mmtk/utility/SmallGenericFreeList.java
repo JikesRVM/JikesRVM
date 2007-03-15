@@ -13,8 +13,6 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.Uninterruptible;
@@ -93,12 +91,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * the doubly linked list of free blocks.
  * 
  * @author Steve Blackburn
- * @version $Revision$
- * @date $Date$
- * 
+ *
  */
-final class SmallGenericFreeList extends BaseGenericFreeList implements Constants, Uninterruptible {
-   public final static String Id = "$Id$";
+@Uninterruptible final class SmallGenericFreeList extends BaseGenericFreeList implements Constants {
 
   /****************************************************************************
    * 
