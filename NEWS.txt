@@ -19,6 +19,9 @@ on October 14, 2001,
 *** There is a new, ant-based, build and test system that have replaced 
     jconfigure and RunSanityTests.
 
+*** We now use ecj (the Eclipse Java compiler) instead of jikes to compile 
+    our Java source files and have eliminated the preprocessor. 
+
 *** The userguide has been moved from latex into a wiki.  It has been updated
     to describe the new build and test systems. 
     The release tarball contains a pdf and html version of the userguide.
@@ -35,7 +38,7 @@ on October 14, 2001,
 *** Support in the PPC baseline compiler for storing local variables in
     registers.
 
-*** Refactor of type system and JTOC
+*** Refactor of type system and JTOC.
 
 *** Support for packing subword sized fields in objects. Removal of hand
     packed fields. Various memory savings.
@@ -51,7 +54,7 @@ on October 14, 2001,
 
 ** Bug fixes
 
-*** Yes...many :)
+*** Yes...many :)  For details: svn log -r10915:11866
 
 ** Other Notes
 
