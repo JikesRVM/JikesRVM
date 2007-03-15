@@ -32,6 +32,9 @@ on October 14, 2001,
 *** The recommended version of GNU classpath is 0.93-generics.
     Earlier versions of GNU classpath are not supported.
 
+*** Support in the PPC baseline compiler for storing local variables in
+    registers.
+
 *** Refactor of type system and JTOC
 
 *** Support for packing subword sized fields in objects. Removal of hand
