@@ -1,0 +1,203 @@
+<html>
+    <head>
+        <title>RVM : Running the RVM</title>
+	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
+
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+				    <div class="pageheader">
+					    <span class="pagetitle">
+                            RVM : Running the RVM
+                                                    </span>
+				    </div>
+				    <div class="pagesubheading">
+					    This page last changed on Mar 08, 2007 by <font color="#0050B2">pdonald</font>.
+				    </div>
+
+				    <p>Jikes<a href="Trademarks.html" title="Trademarks">™</a> RVM executes Java virtual machine byte code instructions from <tt>.class</tt> files.   It does <em>not</em> compile Java<a href="Trademarks.html" title="Trademarks">™</a> source code. Therefore, you must compile all Java source files into bytecode using your favorite Java compiler.</p>
+
+<p>For example, to run class <tt>foo</tt> with source code in file <tt>foo.java</tt>:</p>
+<div class="preformatted"><div class="preformattedContent">
+<pre>% javac foo.java
+% rvm foo
+</pre>
+</div></div>
+<p>The general syntax is</p>
+<div class="preformatted"><div class="preformattedContent">
+<pre>rvm [rvm options...] class [args...]
+</pre>
+</div></div>
+<p>You may choose from a myriad of options for the <tt>rvm</tt> command-line. Options fall into two categories: <em>standard</em> and <em>non-standard</em>.  Non-standard options are preceded by "<b><tt>-X:</tt></b>".</p>
+
+<h3><a name="RunningtheRVM-StandardCommandLineOptions"></a>Standard Command-Line Options</h3>
+
+<p>We currently support a subset of the JDK 1.5 standard options. Below is a list of all options and their descriptions. Unless otherwise noted each option is supported in Jikes RVM.</p>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+<tr>
+<td class='confluenceTd'> {&#45;cp or &#45;classpath} &lt;directories and zip/jar files separated by ":"&gt; </td>
+<td class='confluenceTd'> set search path for application classes and resources </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;D&lt;name&gt;=&lt;value&gt; </td>
+<td class='confluenceTd'> set a system property </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;verbose:[ class &#124; gc &#124; jni ] </td>
+<td class='confluenceTd'> enable verbose output </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;version </td>
+<td class='confluenceTd'> print current VM version and terminate the run </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;showversion </td>
+<td class='confluenceTd'> print current VM version and continue running </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;fullversion </td>
+<td class='confluenceTd'> like "&#45;version", but with more information </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;? or &#45;help </td>
+<td class='confluenceTd'> print help message </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X </td>
+<td class='confluenceTd'> print help on non-standard options </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;jar </td>
+<td class='confluenceTd'> execute a jar file </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;javaagent:&lt;jarpath&gt;[=&lt;options&gt;] </td>
+<td class='confluenceTd'> load Java programming language agent, see java.lang.instrument </td>
+</tr>
+</tbody></table>
+
+<h3><a name="RunningtheRVM-NonStandardCommandLineOptions"></a>Non-Standard Command-Line Options</h3>
+
+<p>The non standard command-line options are grouped according to the subsystem that they control. The following sections list the available options in each group. </p>
+
+<h4><a name="RunningtheRVM-CoreNonStandardCommandLineOptions"></a>Core Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:verbose </td>
+<td class='confluenceTd'> Print out additional lowlevel information for GC and hardware trap handling </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:verboseBoot=&lt;number&gt; </td>
+<td class='confluenceTd'> Print out additional information while VM is booting, using verbosity level &lt;number&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:sysLogfile=&lt;filename&gt; </td>
+<td class='confluenceTd'> Write standard error message to &lt;filename&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:ic=&lt;filename&gt; </td>
+<td class='confluenceTd'> Read boot image code from &lt;filename&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:id=&lt;filename&gt; </td>
+<td class='confluenceTd'> Read boot image data from &lt;filename&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:ir=&lt;filename&gt; </td>
+<td class='confluenceTd'> Read boot image ref map from &lt;filename&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:vmClasses=&lt;path&gt; </td>
+<td class='confluenceTd'> Load the com.ibm.jikesrvm.* and java.* classes from &lt;path&gt; </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:cpuAffinity=&lt;number&gt; </td>
+<td class='confluenceTd'> The physical CPU to which first virtual processor is bound </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;X:processors=&lt;number&#124;"all"&gt; </td>
+<td class='confluenceTd'> The number of virtual processors </td>
+</tr>
+</tbody></table>
+
+<h4><a name="RunningtheRVM-MemoryNonStandardCommandLineOptions"></a>Memory Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;Xms&lt;number&gt;&lt;unit&gt; </td>
+<td class='confluenceTd'> Initial size of heap where &lt;number&gt; is an integer, an extended-precision floating point or a hexadecimal value and &lt;unit&gt; is one of T (Terabytes), G (Gigabytes), M (Megabytes), pages (of size 4096), K (Kilobytes) or &lt;no unit&gt; for bytes </td>
+</tr>
+<tr>
+<td class='confluenceTd'> &#45;Xmx&lt;number&gt;&lt;unit&gt; </td>
+<td class='confluenceTd'> Maximum size of heap. See above for definition of &lt;number&gt; and &lt;unit&gt; </td>
+</tr>
+</tbody></table>
+
+<h4><a name="RunningtheRVM-GarbageCollectorNonStandardCommandLineOptions"></a>Garbage Collector Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+</tbody></table>
+
+<h4><a name="RunningtheRVM-BaseCompilerNonStandardCommandLineOptions"></a>Base Compiler Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+</tbody></table>
+
+<h4><a name="RunningtheRVM-OptCompilerNonStandardCommandLineOptions"></a>Opt Compiler Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+</tbody></table>
+
+<h4><a name="RunningtheRVM-AdaptiveSystemNonStandardCommandLineOptions"></a>Adaptive System Non-Standard Command-Line Options</h4>
+
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+</tbody></table>
+
+
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Mar 15, 2007 09:56</font></td>
+		    </tr>
+	    </table>
+    </body>
+</html>

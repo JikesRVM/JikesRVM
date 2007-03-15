@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <title>RVM : Coding Style</title>
+	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
+
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+				    <div class="pageheader">
+					    <span class="pagetitle">
+                            RVM : Coding Style
+                                                    </span>
+				    </div>
+				    <div class="pagesubheading">
+					    This page last changed on Mar 07, 2007 by <font color="#0050B2">pdonald</font>.
+				    </div>
+
+				    <p>Regrettably, much code in the current system does not follow any consistent coding style.  This is an unfortunate residuum of the system's evolution. It makes editing sometimes unpleasant, and prevents Javadoc from formatting comments in many files. To alleviate this problem, we present this style guide for new Java™ code; it's just a small tweak of Sun®'s style guide.</p>
+
+<h3><a name="CodingStyle-FileHeaders"></a>File Headers</h3>
+
+<p>Every file needs to have a header with a copyright notice and one or more <tt>@author</tt> tags. There may additionally be a <tt>@modified</tt> tag for someone who modified code but doesn't want to claim co-authorship. (<tt>@modified</tt> is our own extended tag.)  </p>
+
+<p>A Java example of the notices follows.</p>
+<div class="code"><div class="codeHeader"><b>Example.java</b></div><div class="codeContent">
+<pre class="code-java">/*
+ *
+ * This file is part of Jikes RVM (http:<span class="code-comment">//jikesrvm.sourceforge.net).
+</span> * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http:<span class="code-comment">//www.opensource.org/licenses/cpl1.0.php
+</span> *
+ * (C) Copyright IBM Corp 2003
+ */
+<span class="code-keyword">package</span> org.jikesrvm;
+
+<span class="code-keyword">import</span> org.jikesrvm.classloader.VM_ClassLoader; <span class="code-comment">// FILL ME IN
+</span>
+/** 
+ * TODO Substitute a brief description of what <span class="code-keyword">this</span> program or library does.
+ *
+ * @author Your Name Here
+ */</pre>
+</div></div>
+
+<h3><a name="CodingStyle-Codingstyledescription"></a>Coding style description</h3>
+
+<p>The Jikes™ RVM coding style guidelines are defined with reference to the Sun® Microsystems "Code Conventions for the Java™ Programming Language", with a few exceptions listed below.  Most of the style guide is intuitive; however, please read through the document (or at least look at its sample code).</p>
+
+<p>We have adopted four modifications to the Sun code conventions:</p>
+<ol>
+	<li><b>Two-space indenting</b> The Sun coding convention suggests 4 space indenting; however with 80-column lines and four-space indenting, there is very little room left for code.  Thus, we recommend using 2 space indenting. There is to be no tabs in the source files.</li>
+	<li><b>132 column lines in exceptional cases</b> The Sun coding convention is that lines be no longer than 80 columns.  Several Jikes RVM contributors have found this constraining.  Therefore, we allow 132 column lines for exceptional cases, such as to avoid bad line breaks.</li>
+	<li><tt>if (VM.VerifyAssertions)</tt> As a special case, the condition <tt>if (VM.VerifyAssertions)</tt> is usually immediately followed by the call to <tt>VM._assert()</tt>, with a single space substituting for the normal newline-and-indentation. There's an example elsewhere in this document.</li>
+	<li><b>Capitalized fields</b> Under the Sun coding conventions, and as specified in <em>The Java Language Specification, Second Edition</em>, the names of fields begin with a lowercase letter.  (The only exception they give is for some <tt>final static</tt> constants, which have names ALL_IN_CAPITAL_LETTERS, with underscores separating them.)  That convention reserves IdentifiersBeginningWithACapitalLetterFollowedByMixedCase for the names of classes and interfaces.  However, most of the <tt>final</tt> fields in the <tt>VM_Configuration</tt> class and the <tt>VM_Properties</tt> interface also are in that format. Since the <tt>VM</tt> class inherits fields from both <tt>VM_Properties</tt> and <tt>VM_Configuration</tt>, that's how we get <tt>VM.VerifyAssertions</tt>, etc.</li>
+</ol>
+
+
+<h3><a name="CodingStyle-Javadocrequirements"></a>Javadoc requirements</h3>
+
+<p>All files should contain descriptive comments in <a href="http://java.sun.com/j2se/javadoc/index.html" title="Visit page outside Confluence">Javadoc</a>™ form so that documentation can be generated automatically.  Of course, additional non-Javadoc source code comments should appear as appropriate.</p>
+<ol>
+	<li>All classes and methods should have a block comment describing them</li>
+	<li>All methods contain a short description of their arguments (using <tt>@param</tt>), the return value (using <tt>@return</tt>) and the exceptions they may throw (using <tt>@throws</tt>).</li>
+	<li>Each class should include <tt>@see</tt> and <tt>@link</tt> references as appropriate.</li>
+</ol>
+
+
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Mar 15, 2007 09:56</font></td>
+		    </tr>
+	    </table>
+    </body>
+</html>
