@@ -5,6 +5,16 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+
+*Jikes RVM 2.9.1 Release Notes (Future)
+** Highlights
+
+** Bug fixes
+
+
+** Other Notes
+
+
 *Jikes RVM 2.9.0 Release Notes (March 15, 2007)
 ** Highlights
 
@@ -66,7 +76,7 @@ on October 14, 2001,
     It is now available on the research tracker (item 1613215),
     by svn diff -r11162:11161, or in releases through 2.4.6.
 
-*** This release is know to not work on OS X.  We would like to get this 
+*** This release is known to not work on OS X.  We would like to get this 
     platform working again;  if you use Jikes RVM on OS X and are willing to
     help fix it, please let us know.
 
