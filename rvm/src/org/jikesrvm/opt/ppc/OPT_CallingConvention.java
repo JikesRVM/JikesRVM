@@ -24,6 +24,7 @@ import org.jikesrvm.opt.ir.MIR_Return;
 import org.jikesrvm.opt.ir.MIR_Store;
 import org.jikesrvm.opt.ir.Move;
 import org.jikesrvm.opt.ir.OPT_DoubleConstantOperand;
+import org.jikesrvm.opt.ir.OPT_FloatConstantOperand;
 import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_IRTools;
 import org.jikesrvm.opt.ir.OPT_Instruction;
@@ -101,19 +102,34 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
    * native (C) routines using the AIX linkage conventions
    */
    public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ip = null;
-    if (Call.getMethod(s) != null) {
-      OPT_RegisterOperand t1 = 
-        OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      OPT_MethodOperand nat = Call.getClearMethod(s);
-      VM_Field target = null;
-      target = nat.getMemberRef().asFieldReference().resolve();
-      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyRO(), target);
-    } else {
-      ip = (OPT_RegisterOperand)Call.getClearAddress(s);
-    }
-    /* compute the parameter space */
+    OPT_RegisterOperand ip = (OPT_RegisterOperand)Call.getClearAddress(s);
     int numberParams = Call.getNumberOfParams(s);
+
+    /* Long, float, and double constants are loaded from the JTOC.
+     * We must ensure that they are loaded _before_ we change
+     * the JTOC to be the C TOC so inject explicit moves to do so.
+     */
+    for (int i = 0; i< numberParams; i++) {
+      OPT_Operand arg = Call.getParam(s, i);
+      if (arg instanceof OPT_LongConstantOperand) {
+        OPT_LongConstantOperand op = (OPT_LongConstantOperand)Call.getClearParam(s, i);
+        OPT_RegisterOperand rop = ir.regpool.makeTempLong();
+        s.insertBefore(Move.create(LONG_MOVE, rop, op));
+        Call.setParam(s, i, rop.copy());
+      } else if (arg instanceof OPT_DoubleConstantOperand) {
+        OPT_DoubleConstantOperand op = (OPT_DoubleConstantOperand)Call.getClearParam(s, i);
+        OPT_RegisterOperand rop = ir.regpool.makeTempDouble();
+        s.insertBefore(Move.create(DOUBLE_MOVE, rop, op));
+        Call.setParam(s, i, rop.copy());
+      } else if (arg instanceof OPT_FloatConstantOperand) {
+        OPT_FloatConstantOperand op = (OPT_FloatConstantOperand)Call.getClearParam(s, i);
+        OPT_RegisterOperand rop = ir.regpool.makeTempFloat();
+        s.insertBefore(Move.create(FLOAT_MOVE, rop, op));
+        Call.setParam(s, i, rop.copy());
+      }
+    }
+
+    /* compute the parameter space */
     int parameterWords;
     if (VM.BuildFor32Addr) {
       parameterWords = 0;
@@ -122,11 +138,10 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         OPT_Operand op = Call.getParam(s, i);
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
-          if (reg.type.isLongType() || reg.type.isDoubleType())
+          if (reg.type.isLongType() || reg.type.isDoubleType()) {
             parameterWords++;
-        } else if ((op instanceof OPT_LongConstantOperand) || 
-                   (op instanceof OPT_DoubleConstantOperand))
-          parameterWords++;
+          }
+        }
       }
     } else {
       parameterWords = numberParams;

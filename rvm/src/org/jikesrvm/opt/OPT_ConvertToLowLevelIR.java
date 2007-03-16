@@ -170,7 +170,11 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         break;
 
       case SYSCALL_opcode:
-        OPT_CallingConvention.expandSysCall(s, ir);
+        // If the SYSCALL is using a symbolic address, convert that to
+        // a sequence of loads off the BootRecord to find the appropriate field.
+        if (Call.getMethod(s) != null) {
+          expandSysCallTarget(s, ir);
+        }
         break;
 
       case TABLESWITCH_opcode:
@@ -1198,6 +1202,19 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     return instr;
   }
 
+  /**
+   * Expand symbolic SysCall target into a chain of loads from the bootrecord to
+   * the desired target address.
+   */
+  public static void expandSysCallTarget(OPT_Instruction s, OPT_IR ir) {
+    OPT_MethodOperand sysM = Call.getMethod(s);
+    OPT_RegisterOperand t1 = getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
+    VM_Field target = sysM.getMemberRef().asFieldReference().resolve();
+    OPT_Operand ip = getField(s, ir, t1, target);
+    Call.setAddress(s, ip);
+  }
+
+  
   /**
    * Load a static field.
    * @param s

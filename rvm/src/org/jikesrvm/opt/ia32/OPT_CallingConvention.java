@@ -431,19 +431,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    * using the Linux linkage conventions.
    */
   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
-    
-    // Determine the address of the method to call.
-    OPT_RegisterOperand ip = null;
-    if (Call.getMethod(s) != null) {
-      OPT_MethodOperand sysM = Call.getClearMethod(s);
-      OPT_RegisterOperand t1 = 
-        OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      VM_Field target = null;
-      target = sysM.getMemberRef().asFieldReference().resolve();
-      ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, target);
-    } else {
-      ip = (OPT_RegisterOperand)Call.getClearAddress(s);
-    }
+    OPT_RegisterOperand ip = (OPT_RegisterOperand)Call.getClearAddress(s);
 
     // Allocate space to save non-volatiles.
     allocateSpaceForSysCall(ir);
