@@ -181,8 +181,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
               Call.mutate2(s, SYSCALL, 
                            Binary.getClearResult(s), null, 
                            OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField), 
-                           GuardedBinary.getClearVal1(s),
-                           GuardedBinary.getClearVal2(s));
+                           Binary.getClearVal1(s),
+                           Binary.getClearVal2(s));
               OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
               OPT_CallingConvention.expandSysCall(s, ir);
             }
