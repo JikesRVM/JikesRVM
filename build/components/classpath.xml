@@ -48,8 +48,6 @@
       <arg value="-z3"/>
       <arg value="-d:pserver:anonymous@cvs.savannah.gnu.org:/sources/classpath"/>
       <arg value="co"/>
-      <arg value="-r"/>
-      <arg value="${classpath.tag}"/>
       <arg value="classpath"/>
     </exec>
     <exec executable="${classpath.dir}/autogen.sh" failonerror="true" dir="${classpath.dir}"/>
