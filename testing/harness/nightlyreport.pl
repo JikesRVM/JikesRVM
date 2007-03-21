@@ -507,7 +507,7 @@ sub getxml {
 	${$perf}{"jbb2000"} = $value;
 	$_ = <XML>;
       }
-    } elsif ($test eq "SPECjvm98" && $configuration eq "production" && /<statistics>/) {
+    } elsif ($test eq "SPECjvm98" && $configuration eq "production_performance" && /<statistics>/) {
      my ($score, $time, $ratio, $bm, $count);
       $_ = <XML>;
       $ratio = $time = -1;
