@@ -425,7 +425,7 @@ sub getxml {
   } else {
     open(XML, "$reportfilename") or die "Could not open $reportfilename";
   }
-  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration);
+  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration, $name, $optlevel);
   $intest = $inbuild = $thistest = $thisbuild = $time = 0;
   while (<XML>) {
     if (/<revision>/) {
@@ -450,6 +450,9 @@ sub getxml {
     } elsif (/<configuration>/) {
       $intest = 0;
       ($configuration) = /<configuration>(.+)<\/configuration/;
+    } elsif (/<name>/) {
+      ($name) =  /<name>(.+)<\/name/;
+      ($optlevel) =  /<name>Measure_Compilation_Opt_(.+)<\/name/;
     } elsif (/<test-configuration>/) {
       $_ = <XML>;
       while (!/<id>/) { $_ = <XML>; }
@@ -485,6 +488,14 @@ sub getxml {
     } elsif (/<result>/ && ($intest || $inbuild)) {
       ($result) = /<result>(.+)<\/result>/;
  #     print "$test $configuration $result\n";
+    } elsif (/<output>/ && ($optlevel ne "")) {
+      while (!(/Compilation Subsystem Report/) && !(/<\/output>/)) {
+	$_ = <XML>;
+      }
+      while (!(/<\/output>/)) {
+	${$optdetails}[$optlevel] .= $_;
+	$_ = <XML>;
+      }
     } elsif (/<output>/ && ($intest || $inbuild)) {
       ($output) = /<output>(.+)$/;
       $output .= "\n";
