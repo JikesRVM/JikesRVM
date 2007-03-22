@@ -1,0 +1,231 @@
+* {
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+}
+
+body {
+  font-family: verdana, tahoma, arial, helvetica, sans-serif;
+  line-height: 1.166;
+  background-color: #E0E0E0;
+  padding: 1em 1em 1em 1em;
+}
+
+/** Laying out the structural elements on screen */
+
+#container {
+  width: 65em;
+  min-height: 35em;
+  background-color: #FFFFFF;
+  border: 0.05em solid black;
+  margin: 0 auto;
+  padding-bottom: 8em;
+}
+
+#header, #quicklinks, #breadcrumbs {
+  position: absolute;
+  width: 65em;
+}
+
+#header {
+  position: absolute;
+  background: #036;
+  color: white;
+  top: 1em;
+  height: 5em;
+}
+
+#quicklinks {
+  top: 6em;
+  height: 1.4em;
+}
+
+#breadcrumbs {
+  top: 7.2em;
+  height: 1em;
+}
+
+#menu {
+  position: absolute;
+  background-color: #FFFFED;
+  border: 0.02em solid #ccc;
+  top: 8.2em;
+  width: 11em;
+  margin: 0.5em;
+}
+
+#content {
+  position: relative;
+  top: 8em;
+  left: 12em;
+  width: 52em;
+}
+
+#footer {
+  clear: both;
+  position: relative;
+  margin: 1em 1em 1em 1em;
+  text-align: center;
+  font-size: 0.75em;
+  vertical-align: bottom;
+}
+
+/** Laying out the header */
+
+#header a {
+  display: block;
+  padding: 1em 1em 1em 1em;
+}
+
+#header .title {
+  font-size: 1.6em;
+}
+
+#header .title, #header .subtitle {
+  display: block;
+}
+
+#header a, #header a:visited, #header a:hover {
+  background: #036;
+  color: white;
+  text-decoration: none;
+}
+
+/** Laying out the quicklinks */
+
+#quicklinks-title {
+  display: none;
+}
+
+#quicklinks ul {
+  position: relative;
+  clear: both;
+  font-weight: bold;
+  background-color: #369;
+  display: block;
+  font-size: 0.8em;
+  float: left;
+  width: 100%;
+  list-style-type: none;
+}
+
+#quicklinks ul li {
+  display: inline;
+  list-style: none;
+}
+
+#quicklinks ul li a, #quicklinks ul li a:visited {
+  float: left;
+  display: block;
+  width: 11em;
+  text-decoration: none;
+  color: black;
+  text-align: center;
+  padding: 0.2em 0.6em;
+  border-right: 0.05em solid white;
+}
+
+#quicklinks ul li a.selected, #quicklinks ul li a.selected:visited {
+  color: white;
+  background-color: #036;
+}
+
+#quicklinks ul li a:hover {
+  color: white;
+  background-color: #46525E;
+}
+
+/** Laying out the breadcrumbs */
+
+#breadcrumbs-title {
+  display: none;
+}
+
+#breadcrumbs ul {
+  float: right;
+  display: block;
+  clear: both;
+  position: relative;
+  font-weight: bold;
+  height: 2em;
+  vertical-align: middle;
+  font-size: 0.85em;
+  width: 100%;
+  list-style-type: none;
+  margin-right: 0.8em;
+}
+
+#breadcrumbs ul li {
+  display: inline;
+  list-style: none;
+}
+
+#breadcrumbs .breadcrumbs-separator, #breadcrumbs ul li a, #breadcrumbs ul li a:visited, #quicklinks ul li a.selected, #quicklinks ul li a.selected:visited {
+  float: right;
+  display: block;
+  color: black;
+  padding: 0.2em 0.6em;
+}
+
+#breadcrumbs ul li a:hover {
+  text-decoration: none;
+}
+
+/* Laying out the actual menu */
+
+#menu-title {
+  display: none;
+}
+
+#menu-fragment h4 {
+  position: relative;
+  width: 12.75em;
+  font-weight: bold;
+  background-color: #EEE;
+  clear: both;
+  border-bottom: 0.01em solid black;
+  padding-left: 1em;
+  font-size: 0.8em;
+}
+
+#menu-fragment ul {
+  position: relative;
+  background-color: blue;
+  width: 11.75em;
+  clear: both;
+  display: block;
+  text-align: right;
+  font-size: 0.85em;
+}
+
+#menu-fragment ul li {
+  display: inline;
+  list-style: none;
+}
+
+#menu-fragment ul li a, #menu ul li a:visited {
+  width: 12.95em;
+  color: black;
+  float: left;
+  display: block;
+  clear: both;
+  text-decoration: none;
+  margin-right: 1em;
+  padding-top: 0.2em;
+  padding-bottom: 0.3em;
+}
+
+#menu-fragment ul li a:hover {
+  color: white;
+}
+
+/* General styles */
+
+a, a:visited {
+  color: black;
+}
+
+a:hover {
+  color: #fff;
+  background-color: #000;
+}
