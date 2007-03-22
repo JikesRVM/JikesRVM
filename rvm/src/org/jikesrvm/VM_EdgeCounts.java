@@ -18,12 +18,26 @@ import java.io.*;
  * @author Dave Grove
  */
 public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
-
+  /**
+   * Adjustment to offset in data from the bytecode index for taken
+   * branch counts
+   */
   public static final int TAKEN     = 0;
+  /**
+   * Adjustment to offset in data from the bytecode index for not
+   * taken branch counts
+   */
   public static final int NOT_TAKEN = 1;
 
+  /** For a non-adaptive system, have we registered the exit call back yet? */
   private static boolean registered = false;
 
+  /**
+   * Array of edge count data. The first index is the ID of the
+   * method, the second index is the bytecode index within the method
+   * plus either TAKEN or NOT_TAKEN. The value is the count of the
+   * number of times a particular branch event occurs.
+   */
   private static int[][] data;
 
   public void notifyExit(int value) { dumpCounts(); }

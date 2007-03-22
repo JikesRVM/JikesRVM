@@ -41,7 +41,8 @@ public final class VM_TypeReference {
   final ClassLoader classloader;
 
   /**
-   * The type name
+   * The type name. For example, the primitive type int is "I", the
+   * class java.lang.String is "Ljava/lang/String;"
    */
   final VM_Atom name;
 
