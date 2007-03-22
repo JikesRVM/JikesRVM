@@ -401,7 +401,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public void createFinalMCMap (OPT_IR ir, int machineCodeLength) { 
-    _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
+    _mcMap = VM_OptMachineCodeMap.create(ir, machineCodeLength);
   }
 
   /**

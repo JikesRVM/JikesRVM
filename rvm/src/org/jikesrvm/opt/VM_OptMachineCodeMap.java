@@ -54,32 +54,50 @@ import java.util.ArrayList;
  */
 @Uninterruptible public final class VM_OptMachineCodeMap
     implements VM_Constants, OPT_Constants {
+
+  /**
+   * Private constructor, object should be created via create
+   */
+  private VM_OptMachineCodeMap(int[] _MCInformation, int[] _gcMaps, int[] _inlineEncoding) {
+    MCInformation = _MCInformation;
+    gcMaps = _gcMaps;
+    inlineEncoding = _inlineEncoding;
+  }
+  /**
+   * Private null constructor for no information
+   */
+  private VM_OptMachineCodeMap() {
+    MCInformation = null;
+    gcMaps = null;
+    inlineEncoding = null;
+  }
   
   /**
-   * Constructor, called during compilation
+   * Create the map, called during compilation
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
    */
-  VM_OptMachineCodeMap(OPT_IR ir, int machineCodeSize) {
+  static VM_OptMachineCodeMap create (OPT_IR ir, int machineCodeSize) {
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
     }
     
     // create all machine code maps
-    generateMCInformation(ir.MIRInfo.gcIRMap);
+    final VM_OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      recordStats(ir.method, size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+      map.recordStats(ir.method, map.size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {
       VM.sysWrite("Final Machine code information:\n");
-      dumpMCInformation();
+      map.dumpMCInformation();
       for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); 
            i != null; 
            i = i.nextInstructionInCodeOrder())
         VM.sysWriteln(i.getmcOffset() + "\t" + i);
     }
+    return map;
   }
 
   /**
@@ -275,7 +293,7 @@ import java.util.ArrayList;
    *  @param irMap  the irmap to translate from
    */
   @Interruptible
-  private void generateMCInformation(OPT_GCIRMap irMap) { 
+  private static VM_OptMachineCodeMap generateMCInformation(OPT_GCIRMap irMap) { 
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -294,9 +312,9 @@ import java.util.ArrayList;
       }
     }
 
-    if (numEntries == 0) return; // if no entries, then we are done.
+    if (numEntries == 0) return emptyMachineCodeMap; // if no entries, then we are done.
 
-    inlineEncoding = VM_OptEncodedCallSiteTree.getEncoding(inliningMap);
+    int[] inlineEncoding = VM_OptEncodedCallSiteTree.getEncoding(inliningMap);
 
     // (2) Encode the primary machine code mapping information and the GCMaps.
     VM_OptGCMap gcMapBuilder = new VM_OptGCMap();
@@ -408,10 +426,11 @@ import java.util.ArrayList;
         lastMCInfoEntry += SIZEOF_HUGE_ENTRY;
       }
     }
+    int[] mcInformation = new int[lastMCInfoEntry];
+    System.arraycopy(tmpMC, 0, mcInformation, 0, mcInformation.length);
+    int[] gcMaps = gcMapBuilder.finish();
 
-    MCInformation = new int[lastMCInfoEntry];
-    System.arraycopy(tmpMC, 0, MCInformation, 0, MCInformation.length);
-    gcMaps = gcMapBuilder.finish();
+    return new VM_OptMachineCodeMap(mcInformation, gcMaps, inlineEncoding);
   }
 
 
@@ -736,15 +755,15 @@ import java.util.ArrayList;
   /**
    * Hold entries as defined by the constants above.
    */
-  private int[] MCInformation;
+  private final int[] MCInformation;
   /**
    * array of GC maps as defined by VM_OptGCMap
    */ 
-  private int[] gcMaps;
+  private final int[] gcMaps;
   /**
    * encoded data as defined by VM_OptEncodedCallSiteTree.
    */
-  public int[] inlineEncoding;
+  public final int[] inlineEncoding;
   /**
    * Dump maps as methods are compiled. 
    */
@@ -758,7 +777,10 @@ import java.util.ArrayList;
    */
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
+  /**
+   * A machine code map when no information is present
+   */
+  private static final VM_OptMachineCodeMap emptyMachineCodeMap = new VM_OptMachineCodeMap();
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/opt/VM_OptMachineCodeMap;"));
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_OptMachineCodeMap.class);
 }

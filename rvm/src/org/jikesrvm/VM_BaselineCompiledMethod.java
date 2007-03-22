@@ -68,12 +68,12 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * TODO: redesign this.  There has to be a cleaner way!
    */
   //private int startLocalOffset;
-  private int emptyStackOffset;
+  private final int emptyStackOffset;
   private int lastFixedStackRegister;
   private int lastFloatStackRegister;
 
-  private int[] localFixedLocations; 
-  private int[] localFloatLocations; 
+  private final int[] localFixedLocations; 
+  private final int[] localFloatLocations; 
  
 //  public int getStartLocalOffset() {
 //    return startLocalOffset;
@@ -343,8 +343,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/VM_BaselineCompiledMethod;"));
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BaselineCompiledMethod.class);
+
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (bytecodeMap != null) size += VM_Array.ByteArray.getInstanceSize(bytecodeMap.length);
