@@ -4,6 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 
 /**
  * A Pragma is a mechanism for supplying information to the compiler to alter the code it 
@@ -21,4 +22,5 @@ import java.lang.annotation.ElementType;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE,ElementType.METHOD})
+@Inherited
 public @interface Pragma { }
