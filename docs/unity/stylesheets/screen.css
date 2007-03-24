@@ -1,231 +1,311 @@
-* {
-  margin: 0;
-  padding: 0;
-  vertical-align: top;
-}
+/**********************************
+ * TITLE: Gila Screen Stylesheet  * 
+ * URI  : gila/gila-screen.css    *
+ * MODIF: 2003-Apr-30 19:09 +0800 *
+ **********************************/
+
+
+/* ##### Common Styles ##### */
 
 body {
-  font-family: verdana, tahoma, arial, helvetica, sans-serif;
-  line-height: 1.166;
-  background-color: #E0E0E0;
-  padding: 1em 1em 1em 1em;
+  color: black;
+  background-color: rgb(243,242,235);
+  font-family: verdana, helvetica, arial, sans-serif;
+  font-size: 73%;  /* Enables font size scaling in MSIE */
+  margin: 0;
+  padding: 0;
 }
 
-/** Laying out the structural elements on screen */
-
-#container {
-  width: 65em;
-  min-height: 35em;
-  background-color: #FFFFFF;
-  border: 0.05em solid black;
-  margin: 0 auto;
-  padding-bottom: 8em;
+html > body {
+  font-size: 9pt;
 }
 
-#header, #quicklinks, #breadcrumbs {
-  position: absolute;
-  width: 65em;
+acronym, .titleTip {
+  border-bottom: 1px dotted rgb(168,140,83);
+  cursor: help;
+  margin: 0;
+  padding: 0;
 }
+
+.doNotDisplay {
+  display: none !important;
+}
+
+
+.smallCaps {
+  font-size: 117%;
+  font-variant: small-caps;
+}
+
+
+/* ##### Header ##### */
 
 #header {
-  position: absolute;
-  background: #036;
+  color: inherit;
+  background-color: rgb(184,38,25);
+}
+
+.headerTitle {
+  margin: 0;
+  padding: 0.25em 4mm 0.25em 4mm;
+}
+
+.headerTitle a {
+  color: black;
+  background-color: transparent;
+  text-decoration: none;
+  font-size: 110%;  /* For MSIE */
+  font-weight: bold;
+  font-style: italic;
+}
+
+.headerTitle > a {
+  font-size: 138%;  /* For fully standards-compliant user agents */
+}
+
+.headerTitle span {
   color: white;
-  top: 1em;
-  height: 5em;
+  background-color: transparent;
+  font-weight: normal;
 }
 
-#quicklinks {
-  top: 6em;
-  height: 1.4em;
+.subHeader {
+  color: white;
+  background-color: black;
+  font-size: 109%;
+  text-align: center;
+  margin: 0;
+  padding: 0.5ex 0;
 }
 
-#breadcrumbs {
-  top: 7.2em;
-  height: 1em;
+.subHeader p {
+  margin: 0;
+  padding: 0;  
 }
 
-#menu {
-  position: absolute;
-  background-color: #FFFFED;
-  border: 0.02em solid #ccc;
-  top: 8.2em;
-  width: 11em;
-  margin: 0.5em;
+.subHeader a {
+  color: white;
+  background-color: black;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0;
+  padding: 0 1ex;
 }
 
-#content {
-  position: relative;
-  top: 8em;
-  left: 12em;
-  width: 52em;
+.subHeader a:hover {
+  color: black;
+  background-color: white;
 }
+
+
+/* ##### Left Side Bar ##### */
+
+.leftSideBar {
+  width: 12.5em;
+  float: left;
+  clear: left;
+}
+
+.leftSideBar h4 {
+  color: rgb(64,64,64);
+  background-color: rgb(230,223,207);
+  font-weight: bold;
+  margin: 0;
+  padding: 0.8ex 1ex;
+}
+
+.leftSideBar ul {
+  list-style-type: none;
+  list-style-position: outside;
+  margin: 0 0 1em 0;
+  padding: 0;
+}
+
+.leftSideBar li {
+  margin: 1ex;
+  padding: 0 0 1.25ex 0.75ex;
+}
+
+.leftSideBar a {
+  color: rgb(166,140,83);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+.leftSideBar a:hover {
+  color: rgb(64,64,64);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+.leftSideBar p {
+  color: rgb(166,140,83);
+  background-color: transparent;
+  line-height: 1.25em;
+  margin: 1ex 0.25ex 1.5em 0.75ex;
+  padding: 0;
+  display: block;
+}
+
+.leftSideBar p a {
+  text-decoration: underline;
+}
+
+.leftSideBar p a:hover {
+  text-decoration: none;
+}
+
+.leftSideBar .thisPage {
+  color: rgb(64,64,64);
+  background-color: transparent;
+  font-weight: bold;
+}
+
+
+/* ##### Right Side Bar ##### */
+
+.rightSideBar {
+  width: 13em;
+  margin: 2ex 0.75ex 0 0;
+  padding: 0;
+  float: right;
+  clear: right;
+  border: 1px solid rgb(216,210,195);
+}
+
+[class~="rightSideBar"] {
+  margin-right: 1.5ex;
+}
+
+.rightSideBar .sideBarTitle {
+  color: black;
+  background-color: rgb(230,223,207);
+  font-weight: bold;
+  margin: 1.25ex 1ex;
+  padding: 0.9ex 1ex;
+}
+
+.rightSideBar a {
+  color: rgb(166,140,83);
+  background-color: transparent;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.rightSideBar a:hover {
+  text-decoration: none;
+}
+
+.rightSideBar .sideBarText {
+  line-height: 1.5em;
+  margin: 0;
+  padding: 0 2ex 1em 2ex;
+}
+
+.rightSideBar .sideBarText input{
+  width: 9em;
+}
+
+.rightSideBar .more {
+  text-decoration: none;
+  text-align: right;
+  margin: 0;
+  padding: 0 2ex 1em 2ex;
+  display: block;
+}
+
+.rightSideBar .more:hover {
+  text-decoration: underline;
+}
+
+
+/* ##### Main Copy ##### */
+
+#main-copy {
+  color: black;
+  background-color: white;
+  text-align: justify;
+  line-height: 1.5em;
+  margin: 0 0 0 12.5em;
+  padding: 0.5ex 15em 1em 1em;
+  border-left: 1px solid rgb(216,210,195);
+}
+
+#main-copy h1 {
+  color: rgb(166,140,83);
+  background-color: transparent;
+  font-family: arial, verdana, helvetica, sans-serif;
+  font-size: 175%;
+  font-weight: bold;
+  font-style: italic;
+  text-align: left;
+  margin: 1em 0 0 0;
+  padding: 1em 0 0 0;
+  border-top: 1px solid rgb(216,210,195);
+}
+
+#main-copy h1.page-title {
+  border-top: none; 
+  padding-top: 0;
+}
+
+#main-copy a {
+  color: rgb(168,140,83);
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+#main-copy a:hover {
+  text-decoration: none;
+}
+
+p {
+  margin: 1em 0 1.5em 0;
+  padding: 0;
+}
+
+dt {
+  font-weight: bold;
+  margin: 0;
+  padding: 0 0 0.5ex 0;
+}
+
+dd {
+  margin: 0 0 1.5em 1.5em;
+  padding: 0;
+}
+
+
+/* ##### Footer ##### */
 
 #footer {
-  clear: both;
-  position: relative;
-  margin: 1em 1em 1em 1em;
+  color: black;
+  background-color: rgb(230,223,207);
+  font-size: 92%;
   text-align: center;
-  font-size: 0.75em;
-  vertical-align: bottom;
-}
-
-/** Laying out the header */
-
-#header a {
-  display: block;
-  padding: 1em 1em 1em 1em;
-}
-
-#header .title {
-  font-size: 1.6em;
-}
-
-#header .title, #header .subtitle {
-  display: block;
-}
-
-#header a, #header a:visited, #header a:hover {
-  background: #036;
-  color: white;
-  text-decoration: none;
-}
-
-/** Laying out the quicklinks */
-
-#quicklinks-title {
-  display: none;
-}
-
-#quicklinks ul {
-  position: relative;
+  line-height: 1.25em;
+  margin: 0;
+  padding: 1em 4mm 1em 4mm;
   clear: both;
+}
+
+#footer div {
+  margin: 0;
+  padding: 0 0 1ex 0;
+}
+
+#footer a {
+  color: black;
+  background-color: transparent;
+  text-decoration: underline;
   font-weight: bold;
-  background-color: #369;
-  display: block;
-  font-size: 0.8em;
-  float: left;
-  width: 100%;
-  list-style-type: none;
 }
 
-#quicklinks ul li {
-  display: inline;
-  list-style: none;
-}
-
-#quicklinks ul li a, #quicklinks ul li a:visited {
-  float: left;
-  display: block;
-  width: 11em;
-  text-decoration: none;
-  color: black;
-  text-align: center;
-  padding: 0.2em 0.6em;
-  border-right: 0.05em solid white;
-}
-
-#quicklinks ul li a.selected, #quicklinks ul li a.selected:visited {
-  color: white;
-  background-color: #036;
-}
-
-#quicklinks ul li a:hover {
-  color: white;
-  background-color: #46525E;
-}
-
-/** Laying out the breadcrumbs */
-
-#breadcrumbs-title {
-  display: none;
-}
-
-#breadcrumbs ul {
-  float: right;
-  display: block;
-  clear: both;
-  position: relative;
-  font-weight: bold;
-  height: 2em;
-  vertical-align: middle;
-  font-size: 0.85em;
-  width: 100%;
-  list-style-type: none;
-  margin-right: 0.8em;
-}
-
-#breadcrumbs ul li {
-  display: inline;
-  list-style: none;
-}
-
-#breadcrumbs .breadcrumbs-separator, #breadcrumbs ul li a, #breadcrumbs ul li a:visited, #quicklinks ul li a.selected, #quicklinks ul li a.selected:visited {
-  float: right;
-  display: block;
-  color: black;
-  padding: 0.2em 0.6em;
-}
-
-#breadcrumbs ul li a:hover {
+#footer a:hover {
   text-decoration: none;
 }
 
-/* Laying out the actual menu */
-
-#menu-title {
-  display: none;
-}
-
-#menu-fragment h4 {
-  position: relative;
-  width: 12.75em;
-  font-weight: bold;
-  background-color: #EEE;
-  clear: both;
-  border-bottom: 0.01em solid black;
-  padding-left: 1em;
-  font-size: 0.8em;
-}
-
-#menu-fragment ul {
-  position: relative;
-  background-color: blue;
-  width: 11.75em;
-  clear: both;
-  display: block;
-  text-align: right;
-  font-size: 0.85em;
-}
-
-#menu-fragment ul li {
-  display: inline;
-  list-style: none;
-}
-
-#menu-fragment ul li a, #menu ul li a:visited {
-  width: 12.95em;
-  color: black;
-  float: left;
-  display: block;
-  clear: both;
-  text-decoration: none;
-  margin-right: 1em;
-  padding-top: 0.2em;
-  padding-bottom: 0.3em;
-}
-
-#menu-fragment ul li a:hover {
-  color: white;
-}
-
-/* General styles */
-
-a, a:visited {
-  color: black;
-}
-
-a:hover {
-  color: #fff;
-  background-color: #000;
+a.feed {
+  background: url(http://docs.codehaus.org/images/icons/feed-icon-16x16.png) no-repeat left;
+  padding-left: 22px;
 }

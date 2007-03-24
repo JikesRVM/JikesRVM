@@ -5,61 +5,83 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
   <meta name="description" content="The Jikes Research Virtual Machine"/>
-  <meta name="keywords" content="virtual machine,  java,  research"/>
+  <meta name="keywords" content="virtual machine, java, research"/>
   <link rel="stylesheet" type="text/css" media="screen,projection" href="/stylesheets/screen.css"/>
   <link rel="stylesheet" type="text/css" media="screen,projection"
         href="http://media.codehaus.org/styles/unity-code.css"/>
   <link rel="stylesheet" type="text/css" media="print" href="/stylesheets/print.css"/>
-  <title>$space.name - ${page.pageKey}</title>
+  <title>Jikes RVM - ${page.pageKey}</title>
 </head>
 
 <body>
-  <div id="container">
-    <div id="header">
-      <a href="/">
-        <span class="title">Jikes RVM</span>
-        <span class="subtitle">The Jikes Research Virtual Machine</span>
-      </a>
-    </div>
+  <div id="header">
+      <h1 class="headerTitle">
+        <a href="/" title="Browse to homepage">
+          Jikes <span>RVM</span>
+        </a>
+      </h1>
 
-    <div id="content">
-      <h1 id="page-title">${page.pageKey}</h1>
-      <div id="page-fragment">$!{pageFragment}</div>
-    </div>
+      <div class="subHeader">
+        <span class="doNotDisplay">Quick Links: </span>
+        $!{quicklinksFragment}
+      </div>
+  </div>
+  
+  <div id="side-bar">
 
-    <div id="quicklinks">
-      <h1 id="quicklinks-title">Quick Links</h1>
-      <div id="quicklinks-fragment">$!{quicklinksFragment}</div>
-    </div>
-    <div id="breadcrumbs">
-      <h1 id="breadcrumbs-title">Breadcrumbs</h1>
-      <ul>
-          #if ($page.pageKey != "Home")
-          #foreach($breadcrumb in $breadcrumbs)
-          <li><a href="/${breadcrumb.pageKey}">${breadcrumb.pageKey}</a></li>
-          <li class="breadcrumbs-separator">&lt;</li>
-          #end
-          #end
-          <li><a href="/">Home</a></li>
-      </ul>
-    </div>
+      <div class="leftSideBar">
+        #if (${navigationFragment})
+        ${navigationFragment}
+        #end
+      </div>
 
-    <div id="menu">
-      <h1 id="menu-title">Menu</h1>
-      <div id="menu-fragment">
-    #if (${navigationFragment})
-    ${navigationFragment}
-    #end
+      <div class="rightSideBar">
+
+        <p class="sideBarTitle">Search</p>
+        <form action="http://docs.codehaus.org/dosearchsite.action" method="get">
+          <div class="sideBarText">
+            <input type="hidden" name="searchQuery.spaceKey" value="RVM"/>
+            <input type="text" name="searchQuery.queryString" value=""/>
+          </div>
+        </form>
+        <p class="sideBarTitle">Feeds</p>
+        <div class="sideBarText"><a href="http://docs.codehaus.org/spaces/rss.action?key=RVM&amp;newPages=false" title="Site Feed" class="feed">Site</a></div>
+        
+        <div class="sideBarText"><a href="http://docs.codehaus.org/spaces/blogrss.action?key=RVM&amp;" title="News Feed" class="feed">News</a></div>
+
+        <p class="sideBarTitle">Page Details</p>
+
+        <div class="sideBarText">
+          <a href="http://docs.codehaus.org/pages/editpage.action?spaceKey=${space.spaceKey}&title=${page.pageKeyEncoded}">Edit Page</a>
+        </div>
+        <div class="sideBarText">
+          <a href="http://docs.codehaus.org/display${space.spaceKey}/${page.pageKeyEncoded}">Add Comment</a>
+        </div>
+        
+        <p class="sideBarTitle">Validation</p>
+
+        <div class="sideBarText">Validate the <a href="http://validator.w3.org/check/referer">XHTML</a>
+          and <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> of this page.</div>
         </div>
     </div>
-</div>
 
-  <div id="footer">
-    <p>
-      <a class="xhtml-validator" href="http://validator.w3.org/check?uri=referer" title="Validate code as W3C XHTML 1.1 Strict Compliant">W3C XHTML 1.0</a> | 
-      <a class="css-validator" href="http://jigsaw.w3.org/css-validator/" title="Validate Style Sheet as W3C CSS 2.0 Compliant">W3C CSS 2.0</a>
-    </p>
+  <div id="main-copy">
+     <h1 class="page-title">${page.pageKey}</h1>
+     $!{pageFragment}
   </div>
 
+  <div id="footer">
+    <div class="doNotPrint">
+      <a href="/Site+Map">Site Map</a> |
+      <a href="/Feedback">Feedback</a> |
+      <a href="/Help">Help</a>
+    </div>
+
+    <div>
+      Copyright &copy; 2007, The Jikes RVM Project | 
+      <a href="http://www.oswd.org/design/preview/id/1192">Gila Two</a> design by <a href="http://www.oswd.org/email.phtml?user=haran" title="Email the author">haran</a>. |
+      Powered by Atlassian <a href="http://atlassian.com/confluence/">Confluence</a> and <a href="http://www.codehaus.org">Codehaus</a>.
+    </div>
+  </div>
 </body>
 </html>
