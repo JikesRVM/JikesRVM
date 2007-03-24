@@ -222,6 +222,7 @@ acronym, .titleTip {
 /* ##### Main Copy ##### */
 
 #main-copy {
+  min-height: 65em;
   color: black;
   background-color: white;
   text-align: justify;
