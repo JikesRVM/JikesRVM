@@ -10,6 +10,7 @@ package org.jikesrvm;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+import org.vmmagic.Intrinsic;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
@@ -28,7 +29,8 @@ import org.jikesrvm.classloader.VM_Type;
  * @author Derek Lieber
  */
 @SuppressWarnings({"UnusedDeclaration"})
-public class VM_Magic {
+@Intrinsic
+public final class VM_Magic {
 
   //---------------------------------------//
   // Register and Psuedo-Register Access.  //

@@ -13,6 +13,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.vmmagic.Pragma;
 
 /**
  * This interface designates an object which should always be allocated a
@@ -22,5 +23,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Pragma
 public @interface SynchronizedObject {
 }

@@ -8,12 +8,15 @@
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * To be commented.
  * 
  * @author Daniel Frampton
  * @see Address
  */
+@Unboxed
 public final class Word {
 
   public static Word fromIntSignExtend(int val) {
@@ -143,6 +146,5 @@ public final class Word {
   public Word rsha(int amt) {
     return null;
   }
-
 }
 

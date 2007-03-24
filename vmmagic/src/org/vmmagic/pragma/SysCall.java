@@ -13,6 +13,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
+import org.vmmagic.Pragma;
 
 /**
  * An annotation for static native methods to show that they should be
@@ -25,5 +26,6 @@ import java.lang.annotation.ElementType;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
+@Pragma
 public @interface SysCall {
 }

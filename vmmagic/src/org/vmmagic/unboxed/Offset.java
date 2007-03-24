@@ -8,11 +8,14 @@
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * To be commented
  * 
  * @author Daniel Frampton
  */
+@Unboxed
 public final class Offset {
 
   public static Offset fromIntSignExtend(int address) {

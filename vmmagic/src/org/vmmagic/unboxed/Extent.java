@@ -8,11 +8,14 @@
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * Commenting required
  * 
  * @author Daniel Frampton
  */
+@Unboxed
 public final class Extent {
   public static Extent fromIntSignExtend(int address) {
     return null;

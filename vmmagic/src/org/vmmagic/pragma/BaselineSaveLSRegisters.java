@@ -12,6 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
+import org.vmmagic.Pragma;
 
 /**
  * Methods with this pragma that are BaselineCompiled should save in its prologue, ALL registers that
@@ -21,4 +22,5 @@ import java.lang.annotation.ElementType;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@Pragma
 public @interface BaselineSaveLSRegisters { } 

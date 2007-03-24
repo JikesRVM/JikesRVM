@@ -8,6 +8,8 @@
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * The object reference type is used by the runtime system and collector to
  * represent a type that holds a reference to a single object. 
@@ -18,6 +20,7 @@ package org.vmmagic.unboxed;
  * 
  * @author Daniel Frampton
  */
+@Unboxed
 public final class ObjectReference {
 
   /**

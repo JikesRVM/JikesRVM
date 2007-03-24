@@ -8,6 +8,8 @@
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * <b>Stub</b> implementation of an Address type, intended only to
  * allow the core of MMTk to be compiled.  This <b>must</b> be
@@ -23,6 +25,7 @@ package org.vmmagic.unboxed;
  *
  * @author Daniel Frampton
  */
+@Unboxed
 public final class Address {
 
   /****************************************************************************
