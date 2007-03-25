@@ -9,6 +9,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Synchronization;
 
 import org.vmmagic.pragma.*;
 

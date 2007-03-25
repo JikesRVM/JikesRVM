@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.opt.ir.OPT_IR;
 
 /**

@@ -10,7 +10,7 @@ package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_Bits;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;

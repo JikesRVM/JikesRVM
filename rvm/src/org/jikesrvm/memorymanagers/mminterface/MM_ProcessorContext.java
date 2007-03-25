@@ -9,7 +9,7 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.VM_Processor;
+import org.jikesrvm.scheduler.VM_Processor;
 
 /**
  * VM_Processor must extend this class to associate appropriate context with processor. 

@@ -16,7 +16,7 @@ import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_BootRecord;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;

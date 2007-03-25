@@ -23,9 +23,9 @@ import org.jikesrvm.VM_Constants;
 
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 
 import org.vmmagic.unboxed.*;

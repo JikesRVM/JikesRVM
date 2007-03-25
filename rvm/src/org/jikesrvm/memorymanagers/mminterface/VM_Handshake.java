@@ -14,8 +14,8 @@ import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.VM_Scheduler;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * VM_Handshake handles mutator requests to initiate a collection, and

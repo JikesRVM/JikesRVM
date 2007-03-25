@@ -11,8 +11,8 @@ package org.jikesrvm.adaptive;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_EdgeCounts;
-import org.jikesrvm.VM_Processor;
-import org.jikesrvm.VM_RecompilationManager; 
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.VM_RecompilationManager;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -292,7 +292,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     if (options.REPORT_INTERRUPT_STATS) {
       VM.sysWriteln("Timer Interrupt and Listener Stats");
       VM.sysWriteln("\tTotal number of clock ticks ",VM_Processor.timerTicks);
-      VM.sysWriteln("\tReported clock ticks ",VM_Processor.reportedTimerTicks);
+      VM.sysWriteln("\tReported clock ticks ", VM_Processor.reportedTimerTicks);
       VM.sysWriteln("\tController clock ",controllerClock);
       VM.sysWriteln("\tNumber of method samples taken ",(int)methodSamples.getTotalNumberOfSamples());
     }

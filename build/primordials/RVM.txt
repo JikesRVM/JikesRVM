@@ -1,9 +1,9 @@
 Lorg/jikesrvm/classloader/ApplicationClassLoader;
 
 # VM daemon threads that do not start with VM for historical reasons
-Lorg/jikesrvm/FinalizerThread;
-Lorg/jikesrvm/MainThread;
-Lorg/jikesrvm/DebuggerThread;
+Lorg/jikesrvm/scheduler/FinalizerThread;
+Lorg/jikesrvm/scheduler/MainThread;
+Lorg/jikesrvm/scheduler/DebuggerThread;
 
 # Classes needed for OutOfMemory servicing which we can not afford to load when we are actually out of memory
 Lorg/jikesrvm/PrintLN;
@@ -26,9 +26,9 @@ Lorg/jikesrvm/PrintContainer$WithSysWrite;
 
 [Lorg/jikesrvm/classloader/VM_Class;
 [Lorg/jikesrvm/VM_UnusualMaps;
-[Lorg/jikesrvm/VM_Processor;
-[Lorg/jikesrvm/VM_Thread;
-[Lorg/jikesrvm/VM_Lock;
+[Lorg/jikesrvm/scheduler/VM_Processor;
+[Lorg/jikesrvm/scheduler/VM_Thread;
+[Lorg/jikesrvm/scheduler/VM_Lock;
 [Lorg/jikesrvm/VM_CompiledMethod;
 [Lorg/jikesrvm/VM_DynamicLibrary;
 [Lorg/jikesrvm/util/VM_HashMap$Bucket;

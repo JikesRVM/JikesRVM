@@ -9,6 +9,8 @@
 package org.jikesrvm;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 import java.util.Enumeration;
 
 /**

@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 
@@ -25,10 +25,10 @@ import org.vmmagic.pragma.*;
   int pid;
 
   /** Set to true if the process has finished. */
-  boolean finished;
+  public boolean finished;
 
   /** Exit status of the process (if finished). */
-  int exitStatus;
+  public int exitStatus;
 
   /**
    * Constuctor.

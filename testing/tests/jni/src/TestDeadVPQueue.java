@@ -6,7 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-import org.jikesrvm.*;
+
+import org.jikesrvm.scheduler.VM_Scheduler;
+
 /**
  * @author unascribed
  */

@@ -11,6 +11,8 @@ package java.lang;
 import java.io.File;
 
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
 import org.vmmagic.unboxed.Offset;

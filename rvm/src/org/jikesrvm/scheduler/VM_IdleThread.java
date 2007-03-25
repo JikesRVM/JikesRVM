@@ -6,9 +6,12 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM_Magic;
 
 /**
  * Low priority thread to run when there's nothing else to do.

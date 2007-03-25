@@ -12,6 +12,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.*;
 import org.jikesrvm.adaptive.*;
 import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Harness to select which compiler to dynamically

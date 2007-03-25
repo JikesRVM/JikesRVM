@@ -185,7 +185,7 @@ public class VM_BootRecord {
   /**
    * jtoc offset of VM_Scheduler.dumpStackAndDie(I)
    */
-  Offset dumpStackAndDieOffset;          
+  public Offset dumpStackAndDieOffset;          
   /**
    * jtoc offset of VM_Scheduler.processors[]
    */

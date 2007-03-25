@@ -15,6 +15,8 @@ import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 

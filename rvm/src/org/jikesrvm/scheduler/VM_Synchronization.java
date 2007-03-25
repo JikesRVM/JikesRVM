@@ -6,10 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM;
 
 /**
  * Class to provide synchronization methods where java language 

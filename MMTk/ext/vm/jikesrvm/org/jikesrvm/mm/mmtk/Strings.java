@@ -12,7 +12,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Processor;
+import org.jikesrvm.scheduler.VM_Processor;
 
 import org.vmmagic.pragma.*;
 

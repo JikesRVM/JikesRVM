@@ -6,9 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001,2002, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 

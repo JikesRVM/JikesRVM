@@ -6,12 +6,16 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_FileSystem;
 
 /**
  * An interactive debugger that runs inside the virtual machine.
@@ -22,9 +26,9 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 28 April 1999 
  */
-class DebuggerThread extends VM_Thread {
+public class DebuggerThread extends VM_Thread {
 
-  DebuggerThread() {
+  public DebuggerThread() {
     super(null);
     makeDaemon(true);
     super.isSystemThread = true;

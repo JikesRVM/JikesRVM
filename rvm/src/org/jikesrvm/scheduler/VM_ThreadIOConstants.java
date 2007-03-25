@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 /**
  * Constants associated with I/O waits.

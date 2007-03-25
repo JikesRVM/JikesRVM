@@ -10,6 +10,7 @@ package org.jikesrvm;
 
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.scheduler.VM_ProcessorLock;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

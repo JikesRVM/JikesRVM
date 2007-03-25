@@ -25,8 +25,8 @@ import org.jikesrvm.VM_CompiledMethods;
 
 import org.jikesrvm.VM_MiscHeader;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Processor;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM_TIBLayoutConstants;
 import org.vmmagic.unboxed.*;

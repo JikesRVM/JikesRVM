@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)

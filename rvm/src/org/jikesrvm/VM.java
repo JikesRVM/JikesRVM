@@ -14,6 +14,14 @@ import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.MainThread;
+import org.jikesrvm.scheduler.DebuggerThread;
+import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.scheduler.VM_Synchronization;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

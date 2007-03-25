@@ -15,7 +15,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.VM_OptCompiledMethod;

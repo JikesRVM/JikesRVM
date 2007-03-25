@@ -12,6 +12,12 @@ import  java.io.*;
 import  java.io.PrintStream;
 import  java.util.*;
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_ThreadIOConstants;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThinLockConstants;
+import org.jikesrvm.scheduler.VM_ThreadProcessWaitQueue;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_ThreadIOQueue;
 import org.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.*;
 

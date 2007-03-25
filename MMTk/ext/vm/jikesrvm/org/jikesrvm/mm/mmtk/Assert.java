@@ -15,7 +15,7 @@ import org.mmtk.policy.Space;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 import org.vmmagic.pragma.*;
 

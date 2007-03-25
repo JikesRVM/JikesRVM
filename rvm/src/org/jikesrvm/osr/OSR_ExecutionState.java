@@ -17,6 +17,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import java.util.LinkedList;
 

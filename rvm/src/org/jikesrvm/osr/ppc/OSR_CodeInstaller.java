@@ -16,7 +16,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_Statics;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_Assembler;
 import org.jikesrvm.ppc.VM_BaselineConstants;

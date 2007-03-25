@@ -6,9 +6,13 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_Reflection;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
@@ -24,7 +28,7 @@ import java.util.jar.JarFile;
  * @author Derek Lieber
  * @modified Steven Augart
  */
-class MainThread extends Thread {
+public class MainThread extends Thread {
   private String[] args;
   private final String[] agents;
   private VM_Method mainMethod;
@@ -38,7 +42,7 @@ class MainThread extends Thread {
    * Taken: args[0]    = name of class containing "main" method
    *        args[1..N] = parameters to pass to "main" method
    */
-  MainThread(String[] args) {
+  public MainThread(String[] args) {
     super(args); // special constructor to create thread that has no parent
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;

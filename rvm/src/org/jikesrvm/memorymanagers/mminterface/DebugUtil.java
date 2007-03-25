@@ -22,8 +22,8 @@ import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_BootRecord;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Scheduler;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Common debugging utility functions used by various garbage collectors
@@ -70,7 +70,7 @@ import org.jikesrvm.VM_Thread;
   @Uninterruptible
   public static void dumpAllThreadStacks() { 
       Address ip, fp;
-      VM_Thread  t;
+      VM_Thread t;
       VM_Scheduler.trace("\ndumpAllThreadStacks",
                          "dumping stacks for all threads");
     for (VM_Thread thread : VM_Scheduler.threads) {

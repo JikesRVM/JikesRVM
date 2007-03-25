@@ -9,6 +9,10 @@
 package org.jikesrvm;
 
 import org.vmmagic.pragma.*;
+import org.jikesrvm.scheduler.VM_ThreadProcessWaitData;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import java.io.*;
 
 /**
@@ -70,14 +74,14 @@ public class VM_Process extends java.lang.Process {
    * created from.
    */
   @Uninterruptible
-  VM_Processor getCreatingProcessor() { 
+  public VM_Processor getCreatingProcessor() { 
     return creatingProcessor;
   }
 
   /**
    * Get the pid of this process.
    */
-  int getPid() {
+  public int getPid() {
     return pid;
   }
     

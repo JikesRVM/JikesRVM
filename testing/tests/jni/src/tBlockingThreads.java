@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * Test native methods that block in native code

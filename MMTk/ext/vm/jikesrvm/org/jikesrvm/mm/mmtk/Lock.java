@@ -14,10 +14,10 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Scheduler;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_Time;
 
 import org.mmtk.utility.Log;

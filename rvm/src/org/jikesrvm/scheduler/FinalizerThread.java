@@ -6,10 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_Reflection;
 
 /**
  * Finalizer thread.

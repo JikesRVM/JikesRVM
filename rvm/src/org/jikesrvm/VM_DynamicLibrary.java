@@ -12,6 +12,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
 
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.util.*;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.*;
 
 /**

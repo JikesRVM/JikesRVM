@@ -11,6 +11,9 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.osr.*;

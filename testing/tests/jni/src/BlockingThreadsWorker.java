@@ -6,10 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-import org.jikesrvm.*;
+
+import org.jikesrvm.scheduler.VM_Scheduler;
+
 /*
- * @author Ton Ngo
- */
+* @author Ton Ngo
+*/
 class BlockingThreadsWorker extends Thread {
 
   static final boolean trace = false;

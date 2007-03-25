@@ -7,9 +7,11 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
 
 import org.vmmagic.pragma.*;
 
@@ -23,7 +25,7 @@ import org.vmmagic.pragma.*;
  * for a particular process to exit.  The reason for
  * this restriction is that Unix semantics only allow us to
  * perform a <code>waitpid()</code> once
- * for a given process id.  {@link VM_Process} uses Java synchronization
+ * for a given process id.  {@link org.jikesrvm.VM_Process} uses Java synchronization
  * to enforce this property.
  *
  * <p> Note that a strange issue arises on Linux: it is only possible
@@ -43,7 +45,7 @@ import org.vmmagic.pragma.*;
  * allowing arbitrary pthreads to perform a <code>waitpid()</code>.
  *
  * @author David Hovemeyer
- * @see VM_Process
+ * @see org.jikesrvm.VM_Process
  */
 @Uninterruptible public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
   implements VM_ThreadEventConstants {

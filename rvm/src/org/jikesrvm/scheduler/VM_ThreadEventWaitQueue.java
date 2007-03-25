@@ -7,9 +7,11 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Time;
 
 /**
  * Queue of threads waiting for a specific kind of event to occur.

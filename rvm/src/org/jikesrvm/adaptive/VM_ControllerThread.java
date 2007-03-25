@@ -9,7 +9,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import java.util.Enumeration;
 
 /**

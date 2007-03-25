@@ -8,9 +8,7 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
+import org.jikesrvm.scheduler.VM_ThinLockConstants;
 
 /**
  * Constants describing vm object, stack, and register characteristics.
@@ -22,7 +20,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
  * @author David Grove
  */
 public interface VM_Constants
-extends   VM_ThinLockConstants,         // architecture-neutral
+extends VM_ThinLockConstants,         // architecture-neutral
           VM_TIBLayoutConstants,        // architecture-neutral
           VM_HeapLayoutConstants,       // architecture-neutral
           VM_SizeConstants             // 'semi-'architecture-neutral

@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Scheduler;
-import org.jikesrvm.VM_Processor;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_Time;
-import org.jikesrvm.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.ArchitectureSpecific;
 
 /**

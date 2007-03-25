@@ -14,7 +14,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_JNIGCMapIterator;
 import org.jikesrvm.VM_HardwareTrapGCMapIterator;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.ArchitectureSpecific;

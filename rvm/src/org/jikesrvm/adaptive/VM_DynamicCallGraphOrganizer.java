@@ -13,7 +13,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_BaselineCompiledMethod;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.opt.*;
 import org.vmmagic.unboxed.Offset;
 

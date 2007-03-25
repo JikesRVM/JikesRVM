@@ -12,7 +12,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
 import org.jikesrvm.VM_Statics;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;

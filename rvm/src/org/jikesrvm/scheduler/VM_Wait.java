@@ -6,7 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2002, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
+
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM_Process;
 
 /**
  * A collection of static methods for waiting on some type of event.

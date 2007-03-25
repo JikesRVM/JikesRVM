@@ -16,7 +16,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Library support interface of Jikes RVM

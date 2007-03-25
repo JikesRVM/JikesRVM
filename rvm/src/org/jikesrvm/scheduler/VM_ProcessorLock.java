@@ -6,10 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.VM_Magic;
 
 /**
  *

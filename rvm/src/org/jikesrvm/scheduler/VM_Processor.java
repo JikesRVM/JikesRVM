@@ -6,13 +6,18 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
 
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM_Entrypoints;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

@@ -6,10 +6,18 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_Stats;
 
 /**
    VM_Lock provides RVM support for monitors and Java level 
@@ -33,7 +41,7 @@ import org.vmmagic.unboxed.*;
    <p><STRONG>Requirement 2:</STRONG> 
    After a lock has been obtained, the code of this class must return
    without allowing a thread switch.  (The {@link
-   VM_BaselineExceptionDeliverer#unwindStackFrame exception handler}
+   org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer#unwindStackFrame exception handler}
    of the baseline compiler assumes that until lock() returns the lock
    has not been obtained.)
    </p>

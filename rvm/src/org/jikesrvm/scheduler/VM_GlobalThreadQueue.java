@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 

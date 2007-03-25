@@ -10,7 +10,7 @@
 package org.jikesrvm.osr.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 

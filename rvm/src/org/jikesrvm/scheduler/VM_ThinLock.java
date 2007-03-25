@@ -6,9 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Stats;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -20,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-@Uninterruptible final class VM_ThinLock implements VM_ThinLockConstants {
+@Uninterruptible public final class VM_ThinLock implements VM_ThinLockConstants {
 
   ////////////////////////////////////////
   /// Support for light-weight locking ///
@@ -83,7 +87,7 @@ import org.vmmagic.unboxed.*;
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
-  static void lock(Object o, Offset lockOffset) { 
+  public static void lock(Object o, Offset lockOffset) { 
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit;
          Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
@@ -159,7 +163,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
-  static void unlock(Object o, Offset lockOffset) { 
+  public static void unlock(Object o, Offset lockOffset) { 
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
       Word old = VM_Magic.prepareWord(o, lockOffset);
@@ -346,7 +350,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
-  static VM_Lock getHeavyLock (Object o, Offset lockOffset, boolean create) {
+  public static VM_Lock getHeavyLock (Object o, Offset lockOffset, boolean create) {
     Word old = VM_Magic.getWordAtOffset(o, lockOffset);
     if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
       int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();

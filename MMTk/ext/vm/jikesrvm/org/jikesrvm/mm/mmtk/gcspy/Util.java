@@ -16,7 +16,7 @@ import org.mmtk.vm.VM;
 
 import org.jikesrvm.VM_Magic;
 import static org.jikesrvm.VM_SysCall.sysCall;
-import org.jikesrvm.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Runtime;

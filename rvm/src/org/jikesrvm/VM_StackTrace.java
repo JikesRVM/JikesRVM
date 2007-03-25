@@ -10,6 +10,7 @@ package org.jikesrvm;
 
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 import org.vmmagic.unboxed.*;
 
@@ -136,7 +137,7 @@ public class VM_StackTrace {
 
 //       <ol>
 
-//       <li> <p>The method "org.jikesrvm.MainThread.run()" (with an empty
+//       <li> <p>The method "org.jikesrvm.scheduler.MainThread.run()" (with an empty
 //       parameter list) launches most of our programs.  That marks the prelude
 //       to calling main().  Most users only care about main and beyond.  So we
 //       figure out where the prelude is so that we can skip it.
@@ -148,7 +149,7 @@ public class VM_StackTrace {
 //       than generating an InternalError().  
 //       <p>
 //       We will assume that no user class calls
-//       org.jikesrvm.MainThread.run().  This is a pretty safe bet. 
+//       org.jikesrvm.scheduler.MainThread.run().  This is a pretty safe bet. 
 //       </li>
 
 //       <li>
@@ -181,7 +182,7 @@ public class VM_StackTrace {
 //     /* We're implementing here the first method discussed above. */
 //     System.err.println("Calling getRunMethodMarkingPrelude()"); // DEBUG XXX
 //     try {
-//       Class c = Class.forName("org.jikesrvm.MainThread");
+//       Class c = Class.forName("org.jikesrvm.scheduler.MainThread");
 //       Method m = c.getDeclaredMethod("run", new Class[0]);
 //       return java.lang.reflect.JikesRVMSupport.getMethodOf(m);
 //     } catch (ClassNotFoundException cnf) {
@@ -409,10 +410,10 @@ public class VM_StackTrace {
     for ( ; lastFrame > 0 ; --lastFrame) {
       VM_Method m = compiledMethods[lastFrame].getMethod();
       if (m == VM_Entrypoints.threadStartoffMethod)
-        continue;             /* org.jikesrvm.VM_Thread.startoff() is OK
+        continue;             /* org.jikesrvm.scheduler.VM_Thread.startoff() is OK
                                  to elide. */
       if (m == VM_Entrypoints.threadRunMethod)
-        continue;             /* org.jikesrvm.VM_Thread.run() is OK
+        continue;             /* org.jikesrvm.scheduler.VM_Thread.run() is OK
                                  to elide. */
       if (m == VM_Entrypoints.mainThreadRunMethod) {
         lastFrame -= 3;
@@ -421,7 +422,7 @@ public class VM_StackTrace {
           // so put back the elided frames that aren't all there yet...
           lastFrame += 3;
         }
-        break;             /* org.jikesrvm.MainThread.run() is OK to
+        break;             /* org.jikesrvm.scheduler.MainThread.run() is OK to
                               elide */
       }
       /* No match.  Abort. */

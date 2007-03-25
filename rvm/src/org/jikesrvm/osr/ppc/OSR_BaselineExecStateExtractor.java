@@ -15,7 +15,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ppc.VM_Registers;
 import org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.classloader.*;

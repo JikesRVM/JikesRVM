@@ -6,9 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
 
 /**
  * A queue to handle a set of  virtual processors  

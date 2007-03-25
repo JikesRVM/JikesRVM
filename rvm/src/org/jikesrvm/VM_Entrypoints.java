@@ -49,8 +49,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field gcLockField            = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
   public static final VM_Field sysWriteLockField     = getField("Lorg/jikesrvm/VM;", "sysWriteLock", "I");  
-  public static final VM_Field intBufferLockField    = getField("Lorg/jikesrvm/VM_Thread;", "intBufferLock", "I");  
-  public static final VM_Field dumpBufferLockField   = getField("Lorg/jikesrvm/VM_Thread;", "dumpBufferLock", "I");  
+  public static final VM_Field intBufferLockField    = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "intBufferLock", "I");  
+  public static final VM_Field dumpBufferLockField   = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "dumpBufferLock", "I");  
 
   public static final VM_NormalMethod unimplementedBytecodeMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "unimplementedBytecode", "(I)V");
   public static final VM_NormalMethod unexpectedAbstractMethodCallMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
@@ -70,8 +70,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod lockMethod          = getMethod("Lorg/jikesrvm/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
   public static final VM_NormalMethod unlockMethod        = getMethod("Lorg/jikesrvm/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
 
-  public static final VM_NormalMethod inlineLockMethod    = getMethod("Lorg/jikesrvm/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
-  public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lorg/jikesrvm/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
+  public static final VM_NormalMethod inlineLockMethod    = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
+  public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
 
   public static final VM_NormalMethod lazyMethodInvokerMethod         = getMethod("Lorg/jikesrvm/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
   public static final VM_NormalMethod unimplementedNativeMethodMethod = getMethod("Lorg/jikesrvm/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
@@ -104,47 +104,47 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lorg/jikesrvm/"+ arch +"/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", ArchCodeArrayName);
   public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lorg/jikesrvm/"+ arch +"/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", ArchCodeArrayName);
 
-  public static final VM_Field scratchStorageField        = getField("Lorg/jikesrvm/VM_Processor;", "scratchStorage", "D");
-  public static final VM_Field timeSliceExpiredField      = getField("Lorg/jikesrvm/VM_Processor;", "timeSliceExpired", "I");
-  public static final VM_Field takeYieldpointField        = getField("Lorg/jikesrvm/VM_Processor;", "takeYieldpoint", "I");
-  public static final VM_Field activeThreadField          = getField("Lorg/jikesrvm/VM_Processor;", "activeThread", "Lorg/jikesrvm/VM_Thread;");
-  public static final VM_Field activeThreadStackLimitField= getField("Lorg/jikesrvm/VM_Processor;", "activeThreadStackLimit", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field pthreadIDField             = getField("Lorg/jikesrvm/VM_Processor;", "pthread_id", "I");
-  public static final VM_Field timerTicksField            = getField("Lorg/jikesrvm/VM_Processor;", "timerTicks", "I");
-  public static final VM_Field reportedTimerTicksField    = getField("Lorg/jikesrvm/VM_Processor;", "reportedTimerTicks", "I");
-  public static final VM_Field vpStatusField              = getField("Lorg/jikesrvm/VM_Processor;", "vpStatus", "I");
-  public static final VM_Field threadIdField              = getField("Lorg/jikesrvm/VM_Processor;", "threadId", "I");
-  public static final VM_Field jtocField               = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/VM_Processor;", "jtoc", "Ljava/lang/Object;") : null;
-  public static final VM_Field framePointerField       = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final VM_Field hiddenSignatureIdField  = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/VM_Processor;", "hiddenSignatureId", "I") : null;
-  public static final VM_Field arrayIndexTrapParamField= (VM.BuildForIA32) ? getField("Lorg/jikesrvm/VM_Processor;", "arrayIndexTrapParam", "I") : null;
+  public static final VM_Field scratchStorageField        = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "scratchStorage", "D");
+  public static final VM_Field timeSliceExpiredField      = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "timeSliceExpired", "I");
+  public static final VM_Field takeYieldpointField        = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "takeYieldpoint", "I");
+  public static final VM_Field activeThreadField          = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "activeThread", "Lorg/jikesrvm/scheduler/VM_Thread;");
+  public static final VM_Field activeThreadStackLimitField= getField("Lorg/jikesrvm/scheduler/VM_Processor;", "activeThreadStackLimit", "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field pthreadIDField             = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "pthread_id", "I");
+  public static final VM_Field timerTicksField            = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "timerTicks", "I");
+  public static final VM_Field reportedTimerTicksField    = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "reportedTimerTicks", "I");
+  public static final VM_Field vpStatusField              = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "vpStatus", "I");
+  public static final VM_Field threadIdField              = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "threadId", "I");
+  public static final VM_Field jtocField               = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "jtoc", "Ljava/lang/Object;") : null;
+  public static final VM_Field framePointerField       = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;") : null;
+  public static final VM_Field hiddenSignatureIdField  = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "hiddenSignatureId", "I") : null;
+  public static final VM_Field arrayIndexTrapParamField= (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "arrayIndexTrapParam", "I") : null;
    
   public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
 
   /** Used in deciding which stack frames we can elide when printing. */
-  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lorg/jikesrvm/MainThread;", "run", "()V");
+  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lorg/jikesrvm/scheduler/MainThread;", "run", "()V");
 
-  public static final VM_NormalMethod yieldpointFromPrologueMethod = getMethod("Lorg/jikesrvm/VM_Thread;", "yieldpointFromPrologue", "()V");
-  public static final VM_NormalMethod yieldpointFromBackedgeMethod = getMethod("Lorg/jikesrvm/VM_Thread;", "yieldpointFromBackedge", "()V");
-  public static final VM_NormalMethod yieldpointFromEpilogueMethod = getMethod("Lorg/jikesrvm/VM_Thread;", "yieldpointFromEpilogue", "()V");
+  public static final VM_NormalMethod yieldpointFromPrologueMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromPrologue", "()V");
+  public static final VM_NormalMethod yieldpointFromBackedgeMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromBackedge", "()V");
+  public static final VM_NormalMethod yieldpointFromEpilogueMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromEpilogue", "()V");
 
-  public static final VM_NormalMethod threadRunMethod           = getMethod("Lorg/jikesrvm/VM_Thread;", "run", "()V");
-  public static final VM_NormalMethod threadStartoffMethod           = getMethod("Lorg/jikesrvm/VM_Thread;", "startoff", "()V");
-  public static final VM_Field threadStackField                = getField("Lorg/jikesrvm/VM_Thread;", "stack", "[B");
-  public static final VM_Field stackLimitField                 = getField("Lorg/jikesrvm/VM_Thread;", "stackLimit", "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_NormalMethod threadRunMethod           = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "run", "()V");
+  public static final VM_NormalMethod threadStartoffMethod           = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "startoff", "()V");
+  public static final VM_Field threadStackField                = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "stack", "[B");
+  public static final VM_Field stackLimitField                 = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "stackLimit", "Lorg/vmmagic/unboxed/Address;");
 
-  public static final VM_Field beingDispatchedField            = getField("Lorg/jikesrvm/VM_Thread;", "beingDispatched", "Z");
-  public static final VM_Field threadSlotField                 = getField("Lorg/jikesrvm/VM_Thread;", "threadSlot", "I");
-  public static final VM_Field jniEnvField                     = getField("Lorg/jikesrvm/VM_Thread;", "jniEnv", "Lorg/jikesrvm/jni/VM_JNIEnvironment;");
-  public static final VM_Field threadContextRegistersField     = getField("Lorg/jikesrvm/VM_Thread;", "contextRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
-  public static final VM_Field threadHardwareExceptionRegistersField = getField("Lorg/jikesrvm/VM_Thread;", "hardwareExceptionRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
+  public static final VM_Field beingDispatchedField            = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "beingDispatched", "Z");
+  public static final VM_Field threadSlotField                 = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "threadSlot", "I");
+  public static final VM_Field jniEnvField                     = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "jniEnv", "Lorg/jikesrvm/jni/VM_JNIEnvironment;");
+  public static final VM_Field threadContextRegistersField     = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "contextRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
+  public static final VM_Field threadHardwareExceptionRegistersField = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "hardwareExceptionRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
 
   public static final VM_Field tracePrevAddressField = getField("Lorg/jikesrvm/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field traceOIDField = getField("Lorg/jikesrvm/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field dispenserField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "serving","I");
-  public static final VM_Field lockThreadField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "thread","Lorg/jikesrvm/VM_Thread;");
+  public static final VM_Field lockThreadField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "thread","Lorg/jikesrvm/scheduler/VM_Thread;");
   public static final VM_Field lockStartField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "start","J");
   public static final VM_Field gcStatusField = getField("Lorg/mmtk/plan/Plan;", "gcStatus","I");
   public static final VM_Field tailField = getField("Lorg/mmtk/utility/deque/LocalSSB;", "tail","Lorg/vmmagic/unboxed/Address;");
@@ -166,16 +166,16 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field registersGPRsField = getField("Lorg/jikesrvm/"+ arch +"/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_Field registersInUseField= getField("Lorg/jikesrvm/"+ arch +"/VM_Registers;", "inuse", "Z");
   public static final VM_Field registersLRField   = (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/"+ arch +"/VM_Registers;", "lr", "Lorg/vmmagic/unboxed/Address;") : null;
-  static final VM_Field toSyncProcessorsField     = (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/VM_Scheduler;", "toSyncProcessors", "I") : null;
+  public static final VM_Field toSyncProcessorsField     = (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "toSyncProcessors", "I") : null;
   public static final VM_Field registersFPField   = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/"+ arch +"/VM_Registers;",   "fp",  "Lorg/vmmagic/unboxed/Address;") : null;
 
-  static final VM_Field outputLockField                = getField("Lorg/jikesrvm/VM_Scheduler;", "outputLock", "I");
+  public static final VM_Field outputLockField                = getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "outputLock", "I");
 
-  public static final VM_Field processorsField                = getField("Lorg/jikesrvm/VM_Scheduler;", "processors", "[Lorg/jikesrvm/VM_Processor;");
-  public static final VM_Field debugRequestedField            = getField("Lorg/jikesrvm/VM_Scheduler;", "debugRequested", "Z");
-  public static final VM_NormalMethod dumpStackAndDieMethod         = getMethod("Lorg/jikesrvm/VM_Scheduler;", "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
+  public static final VM_Field processorsField                = getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "processors", "[Lorg/jikesrvm/scheduler/VM_Processor;");
+  public static final VM_Field debugRequestedField            = getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "debugRequested", "Z");
+  public static final VM_NormalMethod dumpStackAndDieMethod         = getMethod("Lorg/jikesrvm/scheduler/VM_Scheduler;", "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
 
-  public static final VM_Field latestContenderField            = getField("Lorg/jikesrvm/VM_ProcessorLock;", "latestContender", "Lorg/jikesrvm/VM_Processor;");
+  public static final VM_Field latestContenderField            = getField("Lorg/jikesrvm/scheduler/VM_ProcessorLock;", "latestContender", "Lorg/jikesrvm/scheduler/VM_Processor;");
 
   public static final VM_Field classForTypeField              = getField("Lorg/jikesrvm/classloader/VM_Type;", "classForType", "Ljava/lang/Class;");
   public static final VM_Field depthField                     = getField("Lorg/jikesrvm/classloader/VM_Type;", "depth", "I");
@@ -184,7 +184,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field innermostElementTypeField      = getField("Lorg/jikesrvm/classloader/VM_Array;", "innermostElementType", "Lorg/jikesrvm/classloader/VM_Type;");
 
-  public static final VM_Field JNIEnvSavedPRField         = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "savedPRreg", "Lorg/jikesrvm/VM_Processor;");
+  public static final VM_Field JNIEnvSavedPRField         = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "savedPRreg", "Lorg/jikesrvm/scheduler/VM_Processor;");
   public static final VM_Field JNIRefsField               = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefs", "Lorg/vmmagic/unboxed/AddressArray;");
   public static final VM_Field JNIRefsTopField            = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsTop", "I");
   public static final VM_Field JNIRefsMaxField            = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsMax", "I");
@@ -309,7 +309,7 @@ public class VM_Entrypoints implements VM_Constants {
       invocationCounterTrippedMethod   = getMethod("Lorg/jikesrvm/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
 
       globalCBSField =  getField("Lorg/jikesrvm/adaptive/VM_CounterBasedSampling;", "globalCounter", "I");
-      processorCBSField = getField("Lorg/jikesrvm/VM_Processor;", "processor_cbs_counter", "I");
+      processorCBSField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "processor_cbs_counter", "I");
       cbsResetValueField   = getField("Lorg/jikesrvm/adaptive/VM_CounterBasedSampling;","resetValue", "I");
     } else {
       methodListenerNumSamplesField = null;

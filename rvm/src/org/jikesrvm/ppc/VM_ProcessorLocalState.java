@@ -11,7 +11,7 @@ package org.jikesrvm.ppc;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Processor;
+import org.jikesrvm.scheduler.VM_Processor;
 
 /**
  * This class provides a layer of abstraction that the rest of the VM must

@@ -10,6 +10,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
 import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
 import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;

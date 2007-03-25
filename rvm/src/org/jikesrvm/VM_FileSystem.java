@@ -12,6 +12,11 @@ import java.io.*;
 
 import org.jikesrvm.util.VM_StringUtilities;
 import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThreadIOConstants;
 
 import org.vmmagic.pragma.*;
 

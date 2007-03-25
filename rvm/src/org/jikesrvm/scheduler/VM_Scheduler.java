@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
 
@@ -19,6 +19,14 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.osr.OSR_ObjectHolder;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM_CompiledMethods;
 
 /**
  * Global variables used to implement virtual machine thread scheduler.
@@ -96,7 +104,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
   static final VM_ProcessorLock     wakeupMutex = new VM_ProcessorLock();
 
    /** thread waiting to service debugging requests */
-  static final VM_ThreadQueue       debuggerQueue = new VM_ThreadQueue();
+  public static final VM_ThreadQueue       debuggerQueue = new VM_ThreadQueue();
   static final VM_ProcessorLock     debuggerMutex = new VM_ProcessorLock();
 
   /** collector threads waiting to be resumed */
@@ -128,7 +136,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
    * Initialize boot image.
    */
   @Interruptible
-  static void init() { 
+  public static void init() { 
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
@@ -149,7 +157,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 
   /** This is run from VM.boot() */
   @Interruptible
-  static void giveBootVM_ThreadAJavaLangThread() { 
+  public static void giveBootVM_ThreadAJavaLangThread() { 
     VM_Thread vt = threads[PRIMORDIAL_THREAD_INDEX];
     
     vt.setJavaLangThread(java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread"));
@@ -159,7 +167,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
    * Begin multi-threaded vm operation.
    */
   @Interruptible
-  static void boot () { 
+  public static void boot () { 
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
@@ -314,7 +322,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
    * or AttachCurrentThread.
    * 
    */
-  static void processorExit(int rc) {
+  public static void processorExit(int rc) {
     // trace("VM_Scheduler", ("Exiting with " + numProcessors + " pthreads."));
 
     // set flag to get all idle threads to exit to VM_Thread.terminate()
@@ -494,7 +502,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
       VM_Processor.getCurrentProcessor().enableThreadSwitching();
     }
   }
-  static void traceback(String message, int number) {
+  public static void traceback(String message, int number) {
     if (VM.runningVM) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       lockOutput();

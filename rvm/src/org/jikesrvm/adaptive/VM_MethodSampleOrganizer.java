@@ -11,7 +11,7 @@ package org.jikesrvm.adaptive;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 
 /**

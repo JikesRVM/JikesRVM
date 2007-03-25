@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.VM_ThreadIOQueue;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
+import org.jikesrvm.scheduler.VM_ThreadIOConstants;
+import org.jikesrvm.scheduler.VM_Wait;
 
 import java.net.*;
 

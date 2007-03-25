@@ -12,7 +12,7 @@ package org.jikesrvm.memorymanagers.mminterface;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_CompiledMethod;
 
 /**

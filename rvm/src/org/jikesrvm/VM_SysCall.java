@@ -12,6 +12,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.apt.annotations.SysCallTemplate;
 import org.jikesrvm.apt.annotations.GenerateImplementation;
+import org.jikesrvm.scheduler.VM_Processor;
 
 /**
  * Support for lowlevel (ie non-JNI) invocation of C functions with

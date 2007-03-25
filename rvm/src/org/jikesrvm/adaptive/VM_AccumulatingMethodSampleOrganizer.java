@@ -9,7 +9,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * An organizer for method listener information that 

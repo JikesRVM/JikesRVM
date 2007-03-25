@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 /**
  * Constants specifying the state of a {@link VM_Thread} waiting

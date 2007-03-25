@@ -20,7 +20,7 @@ import org.jikesrvm.VM_MagicNames;
 import org.jikesrvm.VM_Memory;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_Statics;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_Assembler;
 import org.jikesrvm.jni.ppc.VM_JNICompiler;

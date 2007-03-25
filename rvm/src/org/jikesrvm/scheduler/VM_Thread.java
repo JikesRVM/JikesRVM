@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001,2002,2004
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -24,6 +24,18 @@ import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Process;
+import org.jikesrvm.VM_Magic;
+import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM_Memory;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM_Time;
 
 /**
  * A java thread's execution context.
@@ -670,7 +682,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
    * Precondition: If the queue is global, caller must have the appropriate mutex.
    * @param q the VM_ThreadQueue on which to enqueue this thread.
    */
-  final void start(VM_ThreadQueue q) {
+  public final void start(VM_ThreadQueue q) {
     registerThread();
     q.enqueue(this);
   }
@@ -681,7 +693,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
    * resuming execution in some other (ready) thread.
    */ 
   @Interruptible
-  static void terminate () { 
+  public static void terminate () { 
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
 
@@ -1600,7 +1612,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
    * is set, then we should also have {@link #disallowAllocationsByThisThread}
    * set.  The converse also holds.  
    */
-  int disableGCDepth = 0;
+  public int disableGCDepth = 0;
 
   /**
    * Execution stack for this thread.
@@ -1715,20 +1727,20 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
   public VM_JNIEnvironment jniEnv;
   
   /** 
-   * Value returned from {@link VM_Time#cycles()} when this thread 
+   * Value returned from {@link org.jikesrvm.VM_Time#cycles()} when this thread 
    * started running. If not currently running, then it has the value 0.
    */
   private long startCycle; 
 
   /**
-   * Accumulated cycle count as measured by {@link VM_Time#cycles()} 
+   * Accumulated cycle count as measured by {@link org.jikesrvm.VM_Time#cycles()} 
    * used by this thread.
    */
   private long totalCycles;  
 
   /**
    * Accumulate the interval from {@link #startCycle} to the result
-   * of calling {@link VM_Time#cycles()} into {@link #totalCycles}
+   * of calling {@link org.jikesrvm.VM_Time#cycles()} into {@link #totalCycles}
    * returning the new value of totalCycles.
    * @return totalCycles
    */
@@ -1743,7 +1755,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
    * Called from  VM_Processor.dispatch when a thread is about to
    * start executing.
    */
-  void startQuantum(long now) {
+  public void startQuantum(long now) {
     startCycle = now;
   }
 

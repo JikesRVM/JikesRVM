@@ -15,10 +15,9 @@ import org.jikesrvm.jni.VM_JNIGenericHelpers;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 

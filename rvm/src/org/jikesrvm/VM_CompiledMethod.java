@@ -10,6 +10,7 @@ package org.jikesrvm;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

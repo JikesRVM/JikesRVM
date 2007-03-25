@@ -9,6 +9,9 @@ on October 14, 2001,
 *Jikes RVM 2.9.1 Release Notes (Future)
 ** Highlights
 
+*** Classes that previously resided in the scheduler directory have 
+    been moved in to the "org.jikesrvm.scheduler" package.
+
 ** Bug fixes
 
 

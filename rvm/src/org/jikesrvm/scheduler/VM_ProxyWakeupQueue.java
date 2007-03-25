@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
+import org.jikesrvm.VM_Time;
+import org.jikesrvm.VM;
 
 /**
  * A queue of VM_Proxys prioritized by their thread wakeup times.

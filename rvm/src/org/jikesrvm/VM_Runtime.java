@@ -11,6 +11,8 @@ package org.jikesrvm;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
