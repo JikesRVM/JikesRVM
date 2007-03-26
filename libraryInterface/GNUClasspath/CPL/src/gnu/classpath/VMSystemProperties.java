@@ -43,7 +43,7 @@ public class VMSystemProperties {
                                        insists upon at least 1.4.1 to run. */
     p.put("java.vendor", "Jikes RVM Project");
     p.put("java.vm.vendor", "Jikes RVM Project");
-    p.put("java.vendor.url", "http://jikesrvm.sourceforge.net");
+    p.put("java.vendor.url", "http://jikesrvm.org");
     
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
