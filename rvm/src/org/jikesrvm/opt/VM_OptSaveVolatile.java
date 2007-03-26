@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Processor;
 

@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM;
 
 /**
  * Fields and methods of the virtual machine that are needed by 
@@ -28,23 +30,23 @@ public class VM_Entrypoints implements VM_Constants {
     getMethod("Ljava/lang/reflect/Method;", "invoke", 
               "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
-  public static final VM_Field magicObjectRemapperField = getField("Lorg/jikesrvm/VM_Magic;", "objectAddressRemapper","Lorg/jikesrvm/VM_ObjectAddressRemapper;");
+  public static final VM_Field magicObjectRemapperField = getField("Lorg/jikesrvm/runtime/VM_Magic;", "objectAddressRemapper","Lorg/jikesrvm/runtime/VM_ObjectAddressRemapper;");
  
-  public static final VM_NormalMethod instanceOfMethod         = getMethod("Lorg/jikesrvm/VM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
-  public static final VM_NormalMethod instanceOfResolvedClassMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
-  public static final VM_NormalMethod instanceOfFinalMethod    = getMethod("Lorg/jikesrvm/VM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
-  public static final VM_NormalMethod checkcastMethod          = getMethod("Lorg/jikesrvm/VM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
-  public static final VM_NormalMethod checkcastResolvedClassMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
-  public static final VM_NormalMethod checkcastFinalMethod     = getMethod("Lorg/jikesrvm/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
-  public static final VM_NormalMethod checkstoreMethod         = getMethod("Lorg/jikesrvm/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  public static final VM_NormalMethod athrowMethod             = getMethod("Lorg/jikesrvm/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
+  public static final VM_NormalMethod instanceOfMethod         = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
+  public static final VM_NormalMethod instanceOfResolvedClassMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
+  public static final VM_NormalMethod instanceOfFinalMethod    = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
+  public static final VM_NormalMethod checkcastMethod          = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod checkcastResolvedClassMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod checkcastFinalMethod     = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
+  public static final VM_NormalMethod checkstoreMethod         = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  public static final VM_NormalMethod athrowMethod             = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
   // Allocation-related entry points
   //
-  public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lorg/jikesrvm/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIIII)Ljava/lang/Object;");
-  public static final VM_NormalMethod unresolvedNewScalarMethod= getMethod("Lorg/jikesrvm/VM_Runtime;", "unresolvedNewScalar", "(II)Ljava/lang/Object;");
-  public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "unresolvedNewArray", "(III)Ljava/lang/Object;");
-  public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lorg/jikesrvm/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
+  public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIIII)Ljava/lang/Object;");
+  public static final VM_NormalMethod unresolvedNewScalarMethod= getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unresolvedNewScalar", "(II)Ljava/lang/Object;");
+  public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unresolvedNewArray", "(III)Ljava/lang/Object;");
+  public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
   public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lorg/jikesrvm/"+ arch +"/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
   public static final VM_Field gcLockField            = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
@@ -52,15 +54,15 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field intBufferLockField    = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "intBufferLock", "I");  
   public static final VM_Field dumpBufferLockField   = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "dumpBufferLock", "I");  
 
-  public static final VM_NormalMethod unimplementedBytecodeMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "unimplementedBytecode", "(I)V");
-  public static final VM_NormalMethod unexpectedAbstractMethodCallMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
-  public static final VM_NormalMethod raiseNullPointerException= getMethod("Lorg/jikesrvm/VM_Runtime;", "raiseNullPointerException", "()V");
-  public static final VM_NormalMethod raiseArrayBoundsException= getMethod("Lorg/jikesrvm/VM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
-  public static final VM_NormalMethod raiseArithmeticException = getMethod("Lorg/jikesrvm/VM_Runtime;", "raiseArithmeticException", "()V");
-  public static final VM_NormalMethod raiseAbstractMethodError = getMethod("Lorg/jikesrvm/VM_Runtime;", "raiseAbstractMethodError", "()V");
-  public static final VM_NormalMethod raiseIllegalAccessError  = getMethod("Lorg/jikesrvm/VM_Runtime;", "raiseIllegalAccessError", "()V");
-  public static final VM_NormalMethod deliverHardwareExceptionMethod = getMethod("Lorg/jikesrvm/VM_Runtime;", "deliverHardwareException", "(II)V");
-  public static final VM_NormalMethod unlockAndThrowMethod      = getMethod("Lorg/jikesrvm/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+  public static final VM_NormalMethod unimplementedBytecodeMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unimplementedBytecode", "(I)V");
+  public static final VM_NormalMethod unexpectedAbstractMethodCallMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
+  public static final VM_NormalMethod raiseNullPointerException= getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseNullPointerException", "()V");
+  public static final VM_NormalMethod raiseArrayBoundsException= getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
+  public static final VM_NormalMethod raiseArithmeticException = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseArithmeticException", "()V");
+  public static final VM_NormalMethod raiseAbstractMethodError = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseAbstractMethodError", "()V");
+  public static final VM_NormalMethod raiseIllegalAccessError  = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseIllegalAccessError", "()V");
+  public static final VM_NormalMethod deliverHardwareExceptionMethod = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "deliverHardwareException", "(II)V");
+  public static final VM_NormalMethod unlockAndThrowMethod      = getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
   public static final VM_NormalMethod invokeInterfaceMethod                          = getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
   public static final VM_NormalMethod findItableMethod                               = getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
@@ -73,28 +75,28 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod inlineLockMethod    = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
 
-  public static final VM_NormalMethod lazyMethodInvokerMethod         = getMethod("Lorg/jikesrvm/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
-  public static final VM_NormalMethod unimplementedNativeMethodMethod = getMethod("Lorg/jikesrvm/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
-  public static final VM_NormalMethod sysCallMethod = getMethod("Lorg/jikesrvm/VM_DynamicLinker;", "sysCallMethod", "()V");
+  public static final VM_NormalMethod lazyMethodInvokerMethod         = getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
+  public static final VM_NormalMethod unimplementedNativeMethodMethod = getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
+  public static final VM_NormalMethod sysCallMethod = getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "sysCallMethod", "()V");
 
   public static final VM_NormalMethod resolveMemberMethod     = getMethod("Lorg/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "resolveMember", "(I)I");
   public static final VM_Field  memberOffsetsField      = getField("Lorg/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "memberOffsets", "[I");   
 
-  public static final VM_Field longOneField        = getField("Lorg/jikesrvm/VM_Math;", "longOne", "J");  // 1L
-  public static final VM_Field minusOneField       = getField("Lorg/jikesrvm/VM_Math;", "minusOne", "F"); // -1.0F
-  public static final VM_Field zeroFloatField      = getField("Lorg/jikesrvm/VM_Math;", "zero", "F");     // 0.0F
-  public static final VM_Field halfFloatField      = getField("Lorg/jikesrvm/VM_Math;", "half", "F");     // 0.5F
-  public static final VM_Field oneFloatField       = getField("Lorg/jikesrvm/VM_Math;", "one", "F");      // 1.0F
-  public static final VM_Field twoFloatField       = getField("Lorg/jikesrvm/VM_Math;", "two", "F");      // 2.0F
-  public static final VM_Field two32Field          = getField("Lorg/jikesrvm/VM_Math;", "two32", "F");    // 2.0F^32
-  public static final VM_Field half32Field         = getField("Lorg/jikesrvm/VM_Math;", "half32", "F");   // 0.5F^32
-  public static final VM_Field billionthField      = getField("Lorg/jikesrvm/VM_Math;", "billionth", "D");// 1e-9
-  public static final VM_Field zeroDoubleField     = getField("Lorg/jikesrvm/VM_Math;", "zeroD", "D");    // 0.0
-  public static final VM_Field oneDoubleField      = getField("Lorg/jikesrvm/VM_Math;", "oneD", "D");     // 1.0
-  public static final VM_Field maxintField         = getField("Lorg/jikesrvm/VM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
-  public static final VM_Field minintField         = getField("Lorg/jikesrvm/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
-  public static final VM_Field IEEEmagicField      = getField("Lorg/jikesrvm/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
-  public static final VM_Field I2DconstantField    = getField("Lorg/jikesrvm/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
+  public static final VM_Field longOneField        = getField("Lorg/jikesrvm/runtime/VM_Math;", "longOne", "J");  // 1L
+  public static final VM_Field minusOneField       = getField("Lorg/jikesrvm/runtime/VM_Math;", "minusOne", "F"); // -1.0F
+  public static final VM_Field zeroFloatField      = getField("Lorg/jikesrvm/runtime/VM_Math;", "zero", "F");     // 0.0F
+  public static final VM_Field halfFloatField      = getField("Lorg/jikesrvm/runtime/VM_Math;", "half", "F");     // 0.5F
+  public static final VM_Field oneFloatField       = getField("Lorg/jikesrvm/runtime/VM_Math;", "one", "F");      // 1.0F
+  public static final VM_Field twoFloatField       = getField("Lorg/jikesrvm/runtime/VM_Math;", "two", "F");      // 2.0F
+  public static final VM_Field two32Field          = getField("Lorg/jikesrvm/runtime/VM_Math;", "two32", "F");    // 2.0F^32
+  public static final VM_Field half32Field         = getField("Lorg/jikesrvm/runtime/VM_Math;", "half32", "F");   // 0.5F^32
+  public static final VM_Field billionthField      = getField("Lorg/jikesrvm/runtime/VM_Math;", "billionth", "D");// 1e-9
+  public static final VM_Field zeroDoubleField     = getField("Lorg/jikesrvm/runtime/VM_Math;", "zeroD", "D");    // 0.0
+  public static final VM_Field oneDoubleField      = getField("Lorg/jikesrvm/runtime/VM_Math;", "oneD", "D");     // 1.0
+  public static final VM_Field maxintField         = getField("Lorg/jikesrvm/runtime/VM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
+  public static final VM_Field minintField         = getField("Lorg/jikesrvm/runtime/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
+  public static final VM_Field IEEEmagicField      = getField("Lorg/jikesrvm/runtime/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
+  public static final VM_Field I2DconstantField    = getField("Lorg/jikesrvm/runtime/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
   public static final VM_Field FPUControlWordField = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/"+ arch +"/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
    
   public static final String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;";
@@ -194,18 +196,18 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNIExternalFunctionsField  = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field JNIEnvSavedJTOCField       = (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "savedJTOC", "Lorg/vmmagic/unboxed/Address;") : null;
 
-  public static final VM_Field the_boot_recordField            = getField("Lorg/jikesrvm/VM_BootRecord;", "the_boot_record", "Lorg/jikesrvm/VM_BootRecord;");
-  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lorg/jikesrvm/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field externalSignalFlagField         = getField("Lorg/jikesrvm/VM_BootRecord;", "externalSignalFlag", "I");
-  public static final VM_Field sysLongDivideIPField            = getField("Lorg/jikesrvm/VM_BootRecord;", "sysLongDivideIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysLongRemainderIPField         = getField("Lorg/jikesrvm/VM_BootRecord;", "sysLongRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysLongToFloatIPField           = getField("Lorg/jikesrvm/VM_BootRecord;", "sysLongToFloatIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysLongToDoubleIPField          = getField("Lorg/jikesrvm/VM_BootRecord;", "sysLongToDoubleIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysFloatToIntIPField            = getField("Lorg/jikesrvm/VM_BootRecord;", "sysFloatToIntIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysDoubleToIntIPField           = getField("Lorg/jikesrvm/VM_BootRecord;", "sysDoubleToIntIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysFloatToLongIPField           = getField("Lorg/jikesrvm/VM_BootRecord;", "sysFloatToLongIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysDoubleToLongIPField          = getField("Lorg/jikesrvm/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysDoubleRemainderIPField       = getField("Lorg/jikesrvm/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field the_boot_recordField            = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "the_boot_record", "Lorg/jikesrvm/runtime/VM_BootRecord;");
+  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field externalSignalFlagField         = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "externalSignalFlag", "I");
+  public static final VM_Field sysLongDivideIPField            = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongDivideIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongRemainderIPField         = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongToFloatIPField           = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongToFloatIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysLongToDoubleIPField          = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongToDoubleIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysFloatToIntIPField            = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysFloatToIntIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysDoubleToIntIPField           = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleToIntIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysFloatToLongIPField           = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysFloatToLongIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysDoubleToLongIPField          = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
+  public static final VM_Field sysDoubleRemainderIPField       = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
 
   public static final VM_Field edgeCountersField               = getField("Lorg/jikesrvm/VM_EdgeCounts;", "data", "[[I");
 

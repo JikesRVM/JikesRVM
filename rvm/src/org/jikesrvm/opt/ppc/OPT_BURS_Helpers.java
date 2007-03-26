@@ -9,8 +9,8 @@
 package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.ppc.VM_TrapConstants;
 import org.jikesrvm.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.classloader.*;

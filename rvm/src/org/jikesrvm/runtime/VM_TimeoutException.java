@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 /**
  * Exception to indicate that a blocking call has timed out.

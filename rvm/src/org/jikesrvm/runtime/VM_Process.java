@@ -6,13 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2002
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 import org.jikesrvm.scheduler.VM_ThreadProcessWaitData;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Wait;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.VM;
 import java.io.*;
 
 /**

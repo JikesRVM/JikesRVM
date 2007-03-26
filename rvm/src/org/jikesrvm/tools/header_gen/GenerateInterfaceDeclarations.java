@@ -12,6 +12,9 @@ import  java.io.*;
 import  java.io.PrintStream;
 import  java.util.*;
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.scheduler.VM_ThreadIOConstants;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.VM_ThinLockConstants;
@@ -34,6 +37,8 @@ public class GenerateInterfaceDeclarations {
   static PrintStream out;
   static PrintStream e;
   static final GenArch arch;
+  private static final String BOOT_RECORD_CLASSNAME = "org/jikesrvm/runtime/VM_BootRecord";
+
   static {
     GenArch tmp = null;
     try {
@@ -308,7 +313,7 @@ public class GenerateInterfaceDeclarations {
 
 
   static void emitBootRecordDeclarations () {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("org/jikesrvm/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom(BOOT_RECORD_CLASSNAME);
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
@@ -326,7 +331,7 @@ public class GenerateInterfaceDeclarations {
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("org/jikesrvm/VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom(BOOT_RECORD_CLASSNAME);
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {

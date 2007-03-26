@@ -9,7 +9,7 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Stats;

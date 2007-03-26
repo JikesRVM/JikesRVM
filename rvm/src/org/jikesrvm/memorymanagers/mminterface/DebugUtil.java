@@ -18,8 +18,8 @@ import org.vmmagic.pragma.*;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;

@@ -11,6 +11,10 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_DynamicLink;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;

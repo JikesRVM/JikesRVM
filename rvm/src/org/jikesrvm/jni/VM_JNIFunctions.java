@@ -10,7 +10,12 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.*;
-import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_BootRecord;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

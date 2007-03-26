@@ -19,7 +19,7 @@ import org.mmtk.utility.Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 

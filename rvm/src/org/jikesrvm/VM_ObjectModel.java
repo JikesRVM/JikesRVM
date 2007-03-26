@@ -14,6 +14,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

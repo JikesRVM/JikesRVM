@@ -10,7 +10,7 @@ package org.jikesrvm.jni.ia32;
 
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_JNICompiledMethod;
 import org.jikesrvm.scheduler.VM_Processor;

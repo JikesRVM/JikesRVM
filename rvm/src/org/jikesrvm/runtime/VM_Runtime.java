@@ -6,13 +6,19 @@
  *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM_CompiledMethod;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -785,7 +791,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   // implementation //
   //----------------//
    
-  static void init() {
+  public static void init() {
     // tell "RunBootImage.C" to pass control to 
     // "VM_Runtime.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap

@@ -26,7 +26,7 @@ import org.vmmagic.Pragma;
  *    (it is assumed that execution is resumed via a call to VM_Magic.dynamicBridgeTo)
  *
  * @author Bowen Alpern
- * @see org.jikesrvm.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.VM_CodeArray)
+ * @see org.jikesrvm.runtime.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.VM_CodeArray)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

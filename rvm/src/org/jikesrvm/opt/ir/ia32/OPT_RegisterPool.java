@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ir.ia32;
 
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.OPT_GenericRegisterPool;
 import org.jikesrvm.opt.ir.OPT_IR;

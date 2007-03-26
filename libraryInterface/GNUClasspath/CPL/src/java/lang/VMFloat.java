@@ -8,7 +8,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Float <==> int bit transfer for Jikes RVM.

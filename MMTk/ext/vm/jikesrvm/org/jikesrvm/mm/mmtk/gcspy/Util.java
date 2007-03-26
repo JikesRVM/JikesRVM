@@ -14,12 +14,12 @@ import org.mmtk.utility.Log;
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
-import org.jikesrvm.VM_Magic;
-import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Runtime;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

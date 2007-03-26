@@ -14,8 +14,8 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BootRecord;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 

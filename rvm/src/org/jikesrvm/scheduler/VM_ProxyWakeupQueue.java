@@ -9,7 +9,7 @@
 package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM;
 
 /**

@@ -9,7 +9,7 @@
 package org.jikesrvm.jni.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 

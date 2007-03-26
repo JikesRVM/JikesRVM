@@ -9,8 +9,8 @@
 package org.jikesrvm.jni.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.jni.VM_JNIEnvironment;

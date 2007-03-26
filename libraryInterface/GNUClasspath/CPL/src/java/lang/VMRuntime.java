@@ -11,6 +11,9 @@ package java.lang;
 import java.io.File;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Process;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;

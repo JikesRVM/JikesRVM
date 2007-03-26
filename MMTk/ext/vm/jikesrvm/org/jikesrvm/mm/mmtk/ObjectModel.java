@@ -17,8 +17,8 @@ import org.mmtk.utility.alloc.Allocator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.VM_JavaHeaderConstants;
 import org.jikesrvm.classloader.VM_Atom;

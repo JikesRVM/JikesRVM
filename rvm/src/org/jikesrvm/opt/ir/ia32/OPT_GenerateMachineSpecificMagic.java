@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.opt.ir.ia32;
 
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_MagicNames;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;

@@ -6,11 +6,15 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_DynamicLinkerHelper;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM_CompiledMethods;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

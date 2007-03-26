@@ -6,11 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.VM;
 
 /**
  * Primitives from which to build interval and absolute timers.
@@ -34,12 +34,12 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   private static long bootNow;
   private static long bootCycles;
 
-  static void bootStageOne() {
+  public static void bootStageOne() {
     bootNow = currentTimeMicros();
     bootCycles = cycles();
   }
 
-  static void bootStageTwo() {
+  public static void bootStageTwo() {
     long endNow = currentTimeMicros();
     long endCycles = cycles();
     long dur = endNow - bootNow;
@@ -116,7 +116,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    * Time in microseconds (epoch Jan 1 1970).
    */ 
   public static long currentTimeMicros() {
-    return sysCall.sysGetTimeOfDay();
+    return VM_SysCall.sysCall.sysGetTimeOfDay();
   }
 
   /**

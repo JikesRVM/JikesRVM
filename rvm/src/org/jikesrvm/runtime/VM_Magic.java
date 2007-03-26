@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -17,6 +17,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.VM;
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 

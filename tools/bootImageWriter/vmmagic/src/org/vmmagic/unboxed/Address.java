@@ -10,7 +10,6 @@
 package org.vmmagic.unboxed;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.pragma.*;
@@ -23,7 +22,7 @@ import org.vmmagic.pragma.*;
  * operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Address class is
- * intercepted like {@link VM_Magic} and converted into the base type so no
+ * intercepted like {@link org.jikesrvm.runtime.VM_Magic} and converted into the base type so no
  * Address object is created run-time.
  *
  * @author Perry Cheng

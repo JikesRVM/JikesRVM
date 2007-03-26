@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.tools.header_gen;
 
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;

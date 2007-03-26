@@ -23,7 +23,7 @@ import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.ArchitectureSpecific;
 

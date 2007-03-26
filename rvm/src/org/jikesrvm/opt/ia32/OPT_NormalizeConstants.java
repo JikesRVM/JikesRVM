@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.VM_Statics;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.opt.ir.Binary;

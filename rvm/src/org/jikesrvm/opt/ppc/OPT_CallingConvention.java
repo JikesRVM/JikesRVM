@@ -9,11 +9,8 @@
 package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.OPT_ConvertToLowLevelIR;
 import org.jikesrvm.opt.OPT_DefUse;
 import org.jikesrvm.opt.ir.Call;
 import org.jikesrvm.opt.ir.Load;
@@ -29,7 +26,6 @@ import org.jikesrvm.opt.ir.OPT_IR;
 import org.jikesrvm.opt.ir.OPT_IRTools;
 import org.jikesrvm.opt.ir.OPT_Instruction;
 import org.jikesrvm.opt.ir.OPT_LongConstantOperand;
-import org.jikesrvm.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.opt.ir.OPT_Operand;
 import org.jikesrvm.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.opt.ir.OPT_Register;

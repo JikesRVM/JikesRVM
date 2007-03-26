@@ -12,7 +12,7 @@ import org.jikesrvm.opt.*;
 import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -599,7 +599,7 @@ Check to make sure all required properties are specified. This includes properti
     <copy todir="${build.ia32-assembler-opt.dir}">
       <globmapper from="*.fake" to="*.java"/>
       <fileset dir="${ia32-assembler-opt.dir}">
-        <include name="VM*.fake"/>
+        <include name="**/VM*.fake"/>
         <include name="ArchitectureSpecific.fake"/>
       </fileset>
     </copy>
@@ -833,7 +833,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
       <arg value="-s"/>
       <arg value="${build.base}/syscall/java"/>
-      <arg value="${main.java}/org/jikesrvm/VM_SysCall.java"/>
+      <arg value="${main.java}/org/jikesrvm/runtime/VM_SysCall.java"/>
     </exec>
     
     <echo message="second compile (from ${generated.java})"/>
@@ -1062,8 +1062,8 @@ Check to make sure all required properties are specified. This includes properti
   <target name="gen-jni-headers" depends="package">
     <mkdir dir="${build.native}"/>
     <javah destdir="${build.native}" classpath="${build.vm.jar}">
-      <class name="org.jikesrvm.VM_DynamicLibrary"/>
-      <class name="org.jikesrvm.VM_Process"/>
+      <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
+      <class name="org.jikesrvm.runtime.VM_Process"/>
     </javah>
   </target>
 
@@ -1171,7 +1171,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/org_jikesrvm_VM_0005fProcess.C"/>
+      <arg value="${bl.dir}/org_jikesrvm_runtime_VM_0005fProcess.c"/>
     </exec>
 
     <!-- create rvmdynlib shared library -->
@@ -1182,7 +1182,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg value="${bl.dir}/org_jikesrvm_VM_0005fDynamicLibrary.C"/>
+      <arg value="${bl.dir}/org_jikesrvm_runtime_VM_0005fDynamicLibrary.c"/>
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">

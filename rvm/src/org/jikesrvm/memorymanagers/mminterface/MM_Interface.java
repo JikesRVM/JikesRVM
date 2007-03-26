@@ -11,13 +11,13 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.BootImageInterface;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.VM_JavaHeader;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Array;

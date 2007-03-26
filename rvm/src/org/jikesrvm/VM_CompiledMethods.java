@@ -11,6 +11,8 @@ package org.jikesrvm;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.opt.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 
@@ -50,7 +52,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   /**
    * Create a VM_CompiledMethod for the synthetic hardware trap frame
    */
-  static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
+  public static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 

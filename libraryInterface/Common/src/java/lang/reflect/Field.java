@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Atom;
 
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.

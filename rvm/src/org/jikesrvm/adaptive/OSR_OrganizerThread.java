@@ -9,7 +9,7 @@
 
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_ThreadQueue;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;

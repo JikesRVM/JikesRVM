@@ -9,7 +9,7 @@
 package java.lang.reflect;
 
 import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * VM dependent Array operations

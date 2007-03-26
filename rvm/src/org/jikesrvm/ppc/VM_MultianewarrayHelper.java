@@ -10,8 +10,8 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;

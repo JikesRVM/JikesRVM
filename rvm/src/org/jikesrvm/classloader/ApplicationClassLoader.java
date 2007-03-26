@@ -9,7 +9,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 
 import java.io.File;
 

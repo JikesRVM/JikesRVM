@@ -10,6 +10,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
@@ -104,7 +105,7 @@ public class BootImage extends BootImageWriterMessages
       say((numAddresses / 1024) + "k non-null object references");
       say(numNulledReferences + " references nulled because they are "+
           "non-jdk fields or point to non-bootimage objects");
-      say(((VM_Statics.getNumberOfReferenceSlots()+VM_Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
+      say(((VM_Statics.getNumberOfReferenceSlots()+ VM_Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
       say((getDataSize() / 1024) + "k data in image");
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);

@@ -10,7 +10,7 @@ package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM;
 
 /**

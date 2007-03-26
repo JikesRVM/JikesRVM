@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.*;
 import java.io.DataInputStream;
 import java.io.IOException;

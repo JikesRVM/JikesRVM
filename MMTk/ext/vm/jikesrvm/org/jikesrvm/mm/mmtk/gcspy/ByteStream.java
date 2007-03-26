@@ -15,7 +15,7 @@ import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.jikesrvm.VM;
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;

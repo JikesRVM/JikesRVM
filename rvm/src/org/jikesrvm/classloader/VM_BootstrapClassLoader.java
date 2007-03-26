@@ -9,6 +9,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.util.*;
 
 import java.util.HashMap;

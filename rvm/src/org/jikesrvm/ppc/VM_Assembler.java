@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.ppc;
 
-import static org.jikesrvm.ppc.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_AbstractAssembler;
 import org.jikesrvm.VM_BaselineCompiler;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.ArchitectureSpecific;

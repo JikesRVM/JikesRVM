@@ -15,8 +15,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;

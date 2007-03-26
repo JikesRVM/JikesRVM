@@ -27,8 +27,8 @@ package gnu.classpath;
  */
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_StackBrowser;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 import org.jikesrvm.classloader.VM_Type;
 

@@ -13,6 +13,8 @@ import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 

@@ -16,6 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * Baseline compiler - platform independent code.

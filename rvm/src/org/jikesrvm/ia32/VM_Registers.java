@@ -11,8 +11,8 @@ package org.jikesrvm.ia32;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * The machine state comprising a thread's execution context.

@@ -9,9 +9,9 @@
 package org.jikesrvm.opt.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.ia32.*;
 import org.jikesrvm.opt.OPT_BURS;

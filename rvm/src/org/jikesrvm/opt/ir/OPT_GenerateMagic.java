@@ -9,6 +9,8 @@
 package org.jikesrvm.opt.ir;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_MagicNames;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.ArchitectureSpecific.OPT_GenerateMachineSpecificMagic;

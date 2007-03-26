@@ -104,7 +104,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_TypeReference Magic   = findOrCreate("Lorg/jikesrvm/VM_Magic;");
+  public static final VM_TypeReference Magic   = findOrCreate("Lorg/jikesrvm/runtime/VM_Magic;");
   public static final VM_TypeReference SysCall = findOrCreate("Lorg/vmmagic/pragma/SysCall;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");

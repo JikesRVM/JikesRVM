@@ -6,13 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
-
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
 
 /**
  * Low level memory management functions.
@@ -417,11 +417,11 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
-    sysCall.sysCopy(dst, src, cnt);
+    VM_SysCall.sysCall.sysCopy(dst, src, cnt);
   }
 
   public static void memcopy(Address dst, Address src, int cnt) {
-    sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
+    VM_SysCall.sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
 
   /**
@@ -430,7 +430,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    * @param len extent to zero.
    */
   public static void zero(Address start, Extent len) {
-    sysCall.sysZero(start, len);
+    VM_SysCall.sysCall.sysZero(start, len);
   }
 
   /**
@@ -440,7 +440,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    */
   public static void zeroPages(Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
-    sysCall.sysZeroPages(start, len);
+    VM_SysCall.sysCall.sysZeroPages(start, len);
   }
 
   ////////////////////////
@@ -454,7 +454,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    * @param size     Size of address range (bytes)
    */
   public static void sync(Address address, int size) {
-    sysCall.sysSyncCache(address, size);
+    VM_SysCall.sysCall.sysSyncCache(address, size);
   }
 
 
@@ -503,7 +503,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   public static Address mmap(Address address, Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return sysCall.sysMMapErrno(address,size,prot,flags,-1,Offset.zero());
+    return VM_SysCall.sysCall.sysMMapErrno(address,size,prot,flags,-1,Offset.zero());
   }
 
   /**
@@ -530,7 +530,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
   public static boolean mprotect(Address address, Extent size, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return sysCall.sysMProtect(address, size, prot) == 0;
+    return VM_SysCall.sysCall.sysMProtect(address, size, prot) == 0;
   }
 
   private static int pagesize = -1;
@@ -542,7 +542,7 @@ import static org.jikesrvm.VM_SysCall.sysCall;
    */
   public static int getPagesize() {
     if (pagesize == -1) {
-      pagesize = sysCall.sysGetPageSize();
+      pagesize = VM_SysCall.sysCall.sysGetPageSize();
       pagesizeLog = -1;
       int temp = pagesize;
       while (temp > 0) {

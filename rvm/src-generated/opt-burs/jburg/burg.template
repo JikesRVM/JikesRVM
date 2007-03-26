@@ -8,6 +8,7 @@ import org.jikesrvm.opt.ir.@_ARCH_@.*;
 import org.jikesrvm.classloader.*;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.opt.OPT_BURS;
 import org.jikesrvm.opt.OPT_Bits;

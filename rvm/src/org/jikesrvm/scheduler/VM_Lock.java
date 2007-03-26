@@ -12,10 +12,10 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM_Stats;
 

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;

@@ -6,9 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2002, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

@@ -12,7 +12,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
-
+import org.jikesrvm.runtime.VM_Magic;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

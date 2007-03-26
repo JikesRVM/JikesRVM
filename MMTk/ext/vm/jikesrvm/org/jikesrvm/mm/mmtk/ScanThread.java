@@ -18,13 +18,13 @@ import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Constants;
 
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 

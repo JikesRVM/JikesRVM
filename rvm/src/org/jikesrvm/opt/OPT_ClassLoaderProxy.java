@@ -10,6 +10,8 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
 

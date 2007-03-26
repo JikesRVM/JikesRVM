@@ -8,7 +8,7 @@
  */
 package org.jikesrvm;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
 import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
@@ -22,6 +22,14 @@ import org.jikesrvm.scheduler.DebuggerThread;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Wait;
 import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_ExitStatus;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.VM_FileSystem;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -36,8 +44,7 @@ import org.vmmagic.unboxed.*;
  * @date 10 July 2003
  */
 @Uninterruptible public class VM extends VM_Properties 
-  implements VM_Constants, VM_ExitStatus
-{ 
+  implements VM_Constants, VM_ExitStatus { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -290,7 +297,7 @@ import org.vmmagic.unboxed.*;
      
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
-    runClassInitializer("org.jikesrvm.VM_Process");
+    runClassInitializer("org.jikesrvm.runtime.VM_Process");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
 

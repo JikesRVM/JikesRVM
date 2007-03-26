@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import java.util.Stack;

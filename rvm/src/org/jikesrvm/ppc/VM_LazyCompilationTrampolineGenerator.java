@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific;
 
 /**

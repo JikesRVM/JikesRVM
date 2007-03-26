@@ -9,6 +9,8 @@
 package org.jikesrvm.opt.ir;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.*;
 import java.util.Enumeration;

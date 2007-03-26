@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ia32;
 
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.opt.ir.ia32.*;
 import org.jikesrvm.opt.OPT_GenericStackManager;
 import org.jikesrvm.opt.OPT_OptimizingCompilerException;

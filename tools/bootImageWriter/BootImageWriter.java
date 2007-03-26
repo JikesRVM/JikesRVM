@@ -25,6 +25,11 @@ import java.util.Comparator;
 import java.util.HashSet;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ObjectAddressRemapper;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;

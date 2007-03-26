@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

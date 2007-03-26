@@ -9,6 +9,8 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.ArchitectureSpecific.OPT_FinalMIRExpansion;
 import org.jikesrvm.opt.ir.*;

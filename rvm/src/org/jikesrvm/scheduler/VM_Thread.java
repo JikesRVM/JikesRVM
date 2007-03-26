@@ -26,16 +26,16 @@ import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Process;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * A java thread's execution context.
@@ -1727,20 +1727,20 @@ import org.jikesrvm.VM_Time;
   public VM_JNIEnvironment jniEnv;
   
   /** 
-   * Value returned from {@link org.jikesrvm.VM_Time#cycles()} when this thread 
+   * Value returned from {@link org.jikesrvm.runtime.VM_Time#cycles()} when this thread 
    * started running. If not currently running, then it has the value 0.
    */
   private long startCycle; 
 
   /**
-   * Accumulated cycle count as measured by {@link org.jikesrvm.VM_Time#cycles()} 
+   * Accumulated cycle count as measured by {@link org.jikesrvm.runtime.VM_Time#cycles()} 
    * used by this thread.
    */
   private long totalCycles;  
 
   /**
    * Accumulate the interval from {@link #startCycle} to the result
-   * of calling {@link org.jikesrvm.VM_Time#cycles()} into {@link #totalCycles}
+   * of calling {@link org.jikesrvm.runtime.VM_Time#cycles()} into {@link #totalCycles}
    * returning the new value of totalCycles.
    * @return totalCycles
    */

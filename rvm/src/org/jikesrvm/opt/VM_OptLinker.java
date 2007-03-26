@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.Offset;
 

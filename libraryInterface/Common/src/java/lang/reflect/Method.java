@@ -11,9 +11,9 @@ package java.lang.reflect;
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.

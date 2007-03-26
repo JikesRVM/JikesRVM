@@ -11,8 +11,8 @@ package org.jikesrvm.opt.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_ExceptionDeliverer;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
@@ -27,8 +27,8 @@ import org.vmmagic.unboxed.*;
  *
  * @author Dave Grove
  */
-public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer 
-  implements ArchitectureSpecific.VM_ArchConstants {
+public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
+    implements ArchitectureSpecific.VM_ArchConstants {
 
   private static final boolean TRACE = false;
   

@@ -13,7 +13,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
 import org.mmtk.utility.gcspy.GCspy;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.VM_JavaHeaderConstants;
 
 import org.vmmagic.unboxed.*;

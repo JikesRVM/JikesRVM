@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.VM_Atom;
 

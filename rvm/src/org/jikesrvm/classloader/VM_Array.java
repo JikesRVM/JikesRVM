@@ -9,6 +9,10 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.vmmagic.pragma.*;

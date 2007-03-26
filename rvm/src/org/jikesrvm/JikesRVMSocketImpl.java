@@ -13,12 +13,15 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_ThreadIOQueue;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
 import org.jikesrvm.scheduler.VM_ThreadIOConstants;
 import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.runtime.VM_FileSystem;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.VM_TimeoutException;
 
 import java.net.*;
 
@@ -222,7 +225,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   // TODO: Think about getting rid of this function and switching
   //       this whole layer over to cycles instead.
   private static double now() {
-    return ((double)VM_Time.currentTimeMicros())/100000;
+    return ((double) VM_Time.currentTimeMicros())/100000;
   }
 
   /**

@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;

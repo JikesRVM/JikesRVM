@@ -9,6 +9,7 @@
 package org.jikesrvm;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.runtime.VM_Magic;
 import java.util.*;
 import java.io.*;
 

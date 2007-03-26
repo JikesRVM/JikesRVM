@@ -9,7 +9,7 @@
 package org.jikesrvm.jni.ia32;
 
 import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.jni.VM_JNIEnvironment;

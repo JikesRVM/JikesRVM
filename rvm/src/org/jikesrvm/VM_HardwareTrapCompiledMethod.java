@@ -10,6 +10,9 @@ package org.jikesrvm;
 
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.runtime.VM_DynamicLink;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;

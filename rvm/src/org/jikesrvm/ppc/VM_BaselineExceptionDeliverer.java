@@ -11,8 +11,8 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_BaselineCompiledMethod;
 import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_ExceptionDeliverer;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_ObjectModel;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
@@ -26,8 +26,8 @@ import org.vmmagic.unboxed.*;
  * @author Derek Lieber
  * @date 18 Sep 1998 
  */
-public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer 
-  implements VM_BaselineConstants {
+public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
+    implements VM_BaselineConstants {
 
   /**
    * Pass control to a catch block.

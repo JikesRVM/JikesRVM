@@ -6,7 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
+
 /**
  * @author unascribed
  */

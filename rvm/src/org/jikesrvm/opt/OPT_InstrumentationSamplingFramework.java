@@ -10,6 +10,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.opt.ir.*;
 
 import java.lang.reflect.Constructor;

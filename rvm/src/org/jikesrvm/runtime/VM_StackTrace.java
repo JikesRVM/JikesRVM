@@ -6,11 +6,18 @@
  *
  * (C) Copyright IBM Corp. 2001, 2003
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM_Options;
+import org.jikesrvm.PrintLN;
+import org.jikesrvm.PrintContainer;
 
 import org.vmmagic.unboxed.*;
 

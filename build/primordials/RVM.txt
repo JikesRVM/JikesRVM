@@ -30,7 +30,7 @@ Lorg/jikesrvm/PrintContainer$WithSysWrite;
 [Lorg/jikesrvm/scheduler/VM_Thread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
 [Lorg/jikesrvm/VM_CompiledMethod;
-[Lorg/jikesrvm/VM_DynamicLibrary;
+[Lorg/jikesrvm/runtime/VM_DynamicLibrary;
 [Lorg/jikesrvm/util/VM_HashMap$Bucket;
 [Lorg/jikesrvm/util/VM_HashSet$Bucket;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;

@@ -12,7 +12,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;

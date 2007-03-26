@@ -6,9 +6,10 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2004
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -150,7 +151,7 @@ public class VM_BootRecord {
    * Verbosity level for booting
    * set by -X:verboseBoot=
    */
-  int verboseBoot = 0;
+  public int verboseBoot = 0;
   
   // RVM startoff
   //

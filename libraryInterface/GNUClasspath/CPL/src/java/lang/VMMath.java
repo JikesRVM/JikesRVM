@@ -7,7 +7,7 @@
  * (C) Copyright Ian Rogers, The University of Manchester 2006
  */
 package java.lang;
-import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.runtime.VM_BootRecord;
 import org.vmmagic.pragma.SysCall;
 import org.vmmagic.unboxed.Address;
 

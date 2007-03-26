@@ -10,7 +10,7 @@ package java.lang;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 /**

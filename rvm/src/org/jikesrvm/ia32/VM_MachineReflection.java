@@ -10,7 +10,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.classloader.*;
 
 import org.vmmagic.unboxed.*;

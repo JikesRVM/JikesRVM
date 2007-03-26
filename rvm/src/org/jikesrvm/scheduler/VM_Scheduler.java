@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -20,10 +20,10 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_BootRecord;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;

@@ -8,6 +8,7 @@
  */
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 
 /**

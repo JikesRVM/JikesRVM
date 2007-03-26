@@ -9,6 +9,7 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

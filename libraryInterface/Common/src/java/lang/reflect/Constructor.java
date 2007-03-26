@@ -9,8 +9,8 @@
 package java.lang.reflect;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Constructor for JikesRVM.

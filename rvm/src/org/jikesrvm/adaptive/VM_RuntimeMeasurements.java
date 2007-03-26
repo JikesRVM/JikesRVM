@@ -9,6 +9,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;

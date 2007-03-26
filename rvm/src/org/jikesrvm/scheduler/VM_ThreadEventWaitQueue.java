@@ -11,7 +11,7 @@ package org.jikesrvm.scheduler;
 
 import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * Queue of threads waiting for a specific kind of event to occur.

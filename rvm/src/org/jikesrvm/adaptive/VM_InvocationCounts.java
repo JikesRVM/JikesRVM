@@ -10,6 +10,7 @@ package org.jikesrvm.adaptive;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.opt.*;
 
 /**

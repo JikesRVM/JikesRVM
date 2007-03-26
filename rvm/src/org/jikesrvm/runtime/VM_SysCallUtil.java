@@ -6,7 +6,7 @@
  *
  * (C) Copyright Peter Donald. 2007
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 /**
  * Utility class to get at implementation of SysCall interface.

@@ -13,9 +13,9 @@ import java.util.ArrayList;
 
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_FileSystem;
 
 /**
  * An interactive debugger that runs inside the virtual machine.

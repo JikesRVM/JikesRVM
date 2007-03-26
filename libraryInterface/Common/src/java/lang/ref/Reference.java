@@ -8,7 +8,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

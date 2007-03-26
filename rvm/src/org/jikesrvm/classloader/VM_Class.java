@@ -9,6 +9,9 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import java.io.DataInputStream;

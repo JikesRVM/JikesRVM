@@ -9,6 +9,7 @@
 package org.jikesrvm;
 
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
+import org.jikesrvm.runtime.VM_Magic;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

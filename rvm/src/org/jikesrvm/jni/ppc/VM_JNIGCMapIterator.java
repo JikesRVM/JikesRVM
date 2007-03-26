@@ -13,7 +13,7 @@ import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 
 import org.vmmagic.unboxed.*;

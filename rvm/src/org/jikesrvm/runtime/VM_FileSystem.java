@@ -6,17 +6,19 @@
  *
  * (C) Copyright IBM Corp 2001,2002
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import java.io.*;
 
 import org.jikesrvm.util.VM_StringUtilities;
-import static org.jikesrvm.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Wait;
 import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.VM_ThreadIOConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 
 import org.vmmagic.pragma.*;
 
@@ -473,7 +475,7 @@ public class VM_FileSystem {
    * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
    * and java.lang.System.err
    */
-  static void initializeStandardStreams() {
+  public static void initializeStandardStreams() {
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);

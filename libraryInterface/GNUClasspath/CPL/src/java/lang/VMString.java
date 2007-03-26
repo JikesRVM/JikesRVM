@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Statics;
+import org.jikesrvm.runtime.VM_Statics;
 
 /**
  * Implementation of string interning for JikesRVM.

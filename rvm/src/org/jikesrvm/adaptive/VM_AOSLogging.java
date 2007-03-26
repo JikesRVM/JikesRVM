@@ -10,6 +10,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.classloader.*;

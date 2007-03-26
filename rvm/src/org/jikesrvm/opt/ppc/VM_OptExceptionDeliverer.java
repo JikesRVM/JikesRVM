@@ -11,8 +11,8 @@ package org.jikesrvm.opt.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_ExceptionDeliverer;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * @author Mauricio J. Serrano 
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
-  implements VM_Constants, VM_BytecodeConstants {
+    implements VM_Constants, VM_BytecodeConstants {
 
   /** 
    * Pass control to a catch block.

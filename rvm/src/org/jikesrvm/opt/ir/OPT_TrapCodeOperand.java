@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ir;
 
-import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Encode the semantic reason for a trap instruction.

@@ -12,7 +12,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM;
 
 import org.vmmagic.unboxed.*;

@@ -16,10 +16,10 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_HeapLayoutConstants;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.VM_JavaHeader;
 import org.jikesrvm.VM_SizeConstants;
 

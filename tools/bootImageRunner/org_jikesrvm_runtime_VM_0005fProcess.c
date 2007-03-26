@@ -37,7 +37,7 @@ extern char **environ;
 #include "InterfaceDeclarations.h"
 
 // generated class header
-#include "org_jikesrvm_VM_0005fProcess.h"
+#include "org_jikesrvm_runtime_VM_0005fProcess.h"
 
 // local stuff
 
@@ -198,7 +198,7 @@ closePipe(int descriptors[])
  * Signature: (Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL 
-Java_org_jikesrvm_VM_1Process_exec4
+Java_org_jikesrvm_runtime_VM_1Process_exec4
   (JNIEnv *env, 
    jobject self, 
    jstring programName,
@@ -254,7 +254,7 @@ Java_org_jikesrvm_VM_1Process_exec4
 
   // Create pipes to communicate with child process.
 
-  jclass ProcessClassID = env->FindClass( "org/jikesrvm/VM_Process" );
+  jclass ProcessClassID = env->FindClass( "org/jikesrvm/runtime/VM_Process" );
   assert(ProcessClassID);
   int inputPipe[2], outputPipe[2], errorPipe[2]; 
   pid_t fid = -1;
@@ -408,7 +408,7 @@ Java_org_jikesrvm_VM_1Process_exec4
  * Method:    destroyInternal
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_jikesrvm_VM_1Process_destroyInternal
+JNIEXPORT void JNICALL Java_org_jikesrvm_runtime_VM_1Process_destroyInternal
   (JNIEnv *env, jobject self)
 {
   // extract pid field from VM_Process object

@@ -6,13 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001, 2003
  */
-package org.jikesrvm;
-
-import static org.jikesrvm.VM_SysCall.sysCall;
+package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.util.*;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.VM;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -33,7 +32,7 @@ public class VM_DynamicLibrary {
   /**
    * Add symbol for the boot image runner to find symbols within it.
    */
-  static void boot() {
+  public static void boot() {
     System.loadLibrary("rvmdynlib");
   }
 
@@ -70,7 +69,7 @@ public class VM_DynamicLibrary {
       }
     }
 
-    libHandler = sysCall.sysDlopen(asciiName);
+    libHandler = VM_SysCall.sysCall.sysDlopen(asciiName);
 
     if (libHandler.isZero()) {
       VM.sysWriteln("error loading library: " + libraryName);
@@ -142,7 +141,7 @@ public class VM_DynamicLibrary {
     // (assume file name is ascii, for now).
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(symbolName);
-    return sysCall.sysDlsym(libHandler, asciiName);
+    return VM_SysCall.sysCall.sysDlsym(libHandler, asciiName);
   }
 
   /**

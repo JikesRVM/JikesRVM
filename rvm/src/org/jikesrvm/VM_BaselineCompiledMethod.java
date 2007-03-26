@@ -12,6 +12,9 @@ import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.runtime.VM_DynamicLink;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.runtime.VM_StackBrowser;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;

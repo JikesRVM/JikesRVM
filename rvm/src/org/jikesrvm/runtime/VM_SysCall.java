@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -37,7 +37,7 @@ import org.jikesrvm.scheduler.VM_Processor;
  * @author Robin Garner
  */
 @Uninterruptible
-@GenerateImplementation(generatedClass = "org.jikesrvm.VM_SysCallImpl")
+@GenerateImplementation(generatedClass = "org.jikesrvm.runtime.VM_SysCallImpl")
 public abstract class VM_SysCall { 
 
   public static final VM_SysCall sysCall = VM_SysCallUtil.getImplementation(VM_SysCall.class);

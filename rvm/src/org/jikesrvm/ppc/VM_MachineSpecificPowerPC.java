@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_MachineSpecific;
-import org.jikesrvm.VM_Memory;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 

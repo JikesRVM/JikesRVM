@@ -11,6 +11,11 @@ package org.jikesrvm;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_DynamicLink;
+import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

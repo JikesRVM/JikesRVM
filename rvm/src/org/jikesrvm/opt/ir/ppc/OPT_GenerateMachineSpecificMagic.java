@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.opt.ir.ppc;
 
-import org.jikesrvm.VM_MagicNames;
+import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_MagicNotImplementedException;

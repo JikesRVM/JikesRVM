@@ -9,7 +9,7 @@
 package org.jikesrvm.opt.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.OPT_Bits;

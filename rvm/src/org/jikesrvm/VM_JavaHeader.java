@@ -14,6 +14,8 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_ThinLock;
 import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

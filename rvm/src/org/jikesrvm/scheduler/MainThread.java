@@ -12,7 +12,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM_CommandLineArgs;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.runtime.VM_Reflection;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;

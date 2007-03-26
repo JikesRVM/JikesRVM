@@ -17,7 +17,7 @@
 #include <jni.h>
 
 // generated class header
-#include "org_jikesrvm_VM_0005fDynamicLibrary.h"
+#include "org_jikesrvm_runtime_VM_0005fDynamicLibrary.h"
 
 extern struct JavaVM_ sysJavaVM;
 
@@ -28,7 +28,7 @@ typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void *reserved);
  * Method:    runJNI_OnLoad
  * Signature: (Lorg/vmmagic/unboxed/Address;)I
  */
-extern "C" JNIEXPORT jint JNICALL Java_org_jikesrvm_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_jikesrvm_runtime_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv *env,
                                                                                            jclass clazz,
                                                                                            jobject JNI_OnLoadAddress) {
   return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);

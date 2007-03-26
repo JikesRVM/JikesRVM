@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM_Statics;
-import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Reflection;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.vmmagic.unboxed.Offset;

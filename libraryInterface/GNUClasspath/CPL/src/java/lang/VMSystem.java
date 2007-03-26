@@ -10,10 +10,10 @@ package java.lang;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Statics;
-import static org.jikesrvm.VM_SysCall.sysCall; // for sysCall.sysGetenv
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall; // for sysCall.sysGetenv
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM_UnimplementedError;
 
 import org.jikesrvm.classloader.VM_Array;

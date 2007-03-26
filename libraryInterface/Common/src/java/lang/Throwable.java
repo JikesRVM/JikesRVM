@@ -12,7 +12,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
-import org.jikesrvm.VM_StackTrace;
+import org.jikesrvm.runtime.VM_StackTrace;
 import org.jikesrvm.PrintLN;
 import org.jikesrvm.PrintContainer;
 

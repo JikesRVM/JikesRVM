@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp 2003, 2004, 2005
  *
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 /** Exit status codes for the Jikes RVM virtual machine.
  *
@@ -18,7 +18,7 @@ package org.jikesrvm;
  * @author Steven Augart
  * @date   31 January 2005
  */
-interface VM_ExitStatus {
+public interface VM_ExitStatus {
   /* Exit statuses, pending a better location.       
 
      <p>Please keep this list in numerical order.      

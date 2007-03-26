@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
 import org.jikesrvm.ArchitectureSpecific.OPT_ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.OPT_ConvertALUOperators;
