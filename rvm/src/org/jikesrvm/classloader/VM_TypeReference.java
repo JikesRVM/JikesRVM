@@ -126,7 +126,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference JavaLangIllegalMonitorStateException = findOrCreate("Ljava/lang/IllegalMonitorStateException;");
 
   
-  public static final VM_TypeReference VM_Processor = findOrCreate("Lorg/jikesrvm/VM_Processor;");
+  public static final VM_TypeReference VM_Processor = findOrCreate("Lorg/jikesrvm/scheduler/VM_Processor;");
   public static final VM_TypeReference VM_Type = findOrCreate("Lorg/jikesrvm/classloader/VM_Type;");
   public static final VM_TypeReference VM_Class = findOrCreate("Lorg/jikesrvm/classloader/VM_Class;");
 
