@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * Command line option processing.
@@ -73,7 +74,7 @@ public class VM_CommandLineArgs {
   public static final int BASE_ARG             = 19;
   public static final int OPT_ARG              = 20;
   public static final int OPT_HELP_ARG         = 21;
-  public static final int VERIFY_ARG           = 22;
+  public static final int VERIFY_ARG           = 22; /* Silently ignored */
   public static final int GC_HELP_ARG          = 23;
   public static final int GC_ARG               = 24;
   public static final int BOOTSTRAP_CLASSES_ARG = 27;
@@ -134,20 +135,15 @@ public class VM_CommandLineArgs {
     new Prefix("-X:vm:help$",           VM_HELP_ARG),
     new Prefix("-X:vm$",                VM_HELP_ARG),
     new Prefix("-X:vm:",                VM_ARG),
+    
+    /* Silently ignored */
+    new Prefix("-Xverify",              VERIFY_ARG),
+    
     app_prefix
   };
 
   static {
-    // Bubble sort the prefixes (yeah, yeah, I know)
-    // 
-    // Besides, this is done only at boot image writing time, not at runtime.
-    for (int i = 0; i < prefixes.length; i++)
-      for (int j = i + 1; j < prefixes.length; j++)
-        if (prefixes[j].value.compareTo(prefixes[i].value) >= 0) {
-          Prefix t = prefixes[i];
-          prefixes[i] = prefixes[j];
-          prefixes[j] = t;
-        }
+    Arrays.sort(prefixes);
     if (DEBUG) {
       for (int i = 0; i < prefixes.length; i++) {
         Prefix t = prefixes[i];
