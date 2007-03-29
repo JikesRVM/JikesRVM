@@ -35,8 +35,8 @@ public class VMSystemProperties {
    *
    */
   public static void preInit(Properties p) {
-    p.put("java.version", "1.5.0"); /* This is a lie, of course -- we don't 
-                                       really support all 1.5 features, such
+    p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't 
+                                       really support all 1.6 features, such
                                        as assertions.  However, it is a  
                                        necessary lie, since Eclipse 3.0
                                        explicitly tests java.version and
@@ -47,21 +47,21 @@ public class VMSystemProperties {
     
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
-    p.put("java.specification.version", "1.5");
+    p.put("java.specification.version", "1.6");
 
     p.put("java.vm.specification.name", "Java Virtual Machine Specification");
     p.put("java.vm.specification.vendor", "Sun Microsystems Inc.");
     p.put("java.vm.specification.version", "1.0");
 
-    /* 49.0 brings us through Java version 1.5. */
-    p.put("java.class.version", "49.0"); 
+    /* 50.0 brings us through Java version 1.6. */
+    p.put("java.class.version", "50.0"); 
 
     p.put("file.separator", "/");
     p.put("path.separator", ":");
     p.put("line.separator", "\n");
         
     p.put("java.compiler", "JikesRVM");
-    p.put("java.vm.version", "1.5.0");
+    p.put("java.vm.version", "1.6.0");
     p.put("java.vm.name", "JikesRVM");
     p.put("file.encoding", "8859_1");
     p.put("java.io.tmpdir", "/tmp");
