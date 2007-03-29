@@ -41,7 +41,7 @@ public class VM_CommandLineArgs {
     public Prefix(String v, int t) { value = v; type = t; }
     /** Sorting method for Comparable. Sort by string value */
     public int compareTo(Object o) {
-      return value.compareTo(((Prefix)o).value);
+      return -value.compareTo(((Prefix)o).value);
     }
   }
 
@@ -308,6 +308,7 @@ public class VM_CommandLineArgs {
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
+    if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
     String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
     String prefix = variable + "=";
     if (allEnvArgs != null)
