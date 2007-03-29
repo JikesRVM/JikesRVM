@@ -29,11 +29,20 @@ import java.util.Arrays;
 public class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;
 
-  private static final class Prefix {
+  /** Represent a single command line prefix */
+  private static final class Prefix implements Comparable {
+    /** The command line string e.g. "-X:irc:" */
     public final String value;
+    /** A number that describes the type of the argument */
     public final int type;
+    /** Number of arguments of this type seen */
+    public int count = 0;
+    /** Construct a prefix with the given argument string and type */
     public Prefix(String v, int t) { value = v; type = t; }
-    public int count = 0; // number of arguments of that type
+    /** Sorting method for Comparable. Sort by string value */
+    public int compareTo(Object o) {
+      return value.compareTo(((Prefix)o).value);
+    }
   }
 
   // ---------------//
@@ -331,25 +340,25 @@ public class VM_CommandLineArgs {
     return null;
   }
 
-  public static String getRvmRoot() {
+  private static String getRvmRoot() {
     return null;
   }
-  public static String getRvmBuild() {
+  private static String getRvmBuild() {
     return null;
   }
-  public static String getUserHome() {
+  private static String getUserHome() {
     return null;
   }
-  public static String getCWD() {
+  private static String getCWD() {
     return null;
   }
-  public static String getOsName() {
+  private static String getOsName() {
     return null;
   }
-  public static String getOsVersion() {
+  private static String getOsVersion() {
     return null;
   }
-  public static String getOsArch() {
+  private static String getOsArch() {
     return null;
   }
   
