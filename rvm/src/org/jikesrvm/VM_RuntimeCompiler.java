@@ -94,7 +94,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
   // Cache objects needed to cons up compilation plans
   // TODO: cutting link to opt compiler by declaring type as object.
-  public static Object /* OPT_Options */ options;
+  public static final Object /* OPT_Options */ options = VM.BuildForAdaptiveSystem ? new OPT_Options() : null;
   public static Object /* OPT_OptimizationPlanElement[] */ optimizationPlan;
 
   /**
@@ -567,7 +567,6 @@ public class VM_RuntimeCompiler implements VM_Constants,
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompiler());
     }
     if (VM.BuildForAdaptiveSystem) {
-      options = new OPT_Options();
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options)options);
       if (VM.MeasureCompilation) {
         OPT_OptimizationPlanner.initializeMeasureCompilation();

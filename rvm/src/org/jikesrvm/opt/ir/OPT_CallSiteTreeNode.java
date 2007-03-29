@@ -29,11 +29,11 @@ public class OPT_CallSiteTreeNode extends OPT_TreeNode {
   /**
    * The call site represented by this tree node
    */
-  public OPT_InlineSequence callSite;
+  public final OPT_InlineSequence callSite;
 
   /**
    * The position of this call site in the binary encoding.  It is set
-   * when by VM_OptEncodedCallSiteTree.getEncoding.
+   * by VM_OptEncodedCallSiteTree.getEncoding.
    *
    * @see VM_OptEncodedCallSiteTree#getEncoding
    */

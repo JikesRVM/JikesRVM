@@ -30,8 +30,8 @@ public class VM_CommandLineArgs {
   private static final boolean DEBUG = false;
 
   private static final class Prefix {
-    public String value;
-    public int type;
+    public final String value;
+    public final int type;
     public Prefix(String v, int t) { value = v; type = t; }
     public int count = 0; // number of arguments of that type
   }
