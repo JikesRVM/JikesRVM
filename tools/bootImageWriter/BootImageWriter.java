@@ -2467,7 +2467,10 @@ public class BootImageWriter extends BootImageWriterMessages
     try {
       return Class.forName(rvmType.toString());
     }
-    catch (ExceptionInInitializerError e) {x=e;}
+    catch (ExceptionInInitializerError e) {
+      throw e;
+    }
+    catch (IllegalAccessError e)          {x=e;}
     catch (UnsatisfiedLinkError e)        {x=e;}
     catch (NoClassDefFoundError e)        {x=e;}
     catch (SecurityException e)           {x=e;}
