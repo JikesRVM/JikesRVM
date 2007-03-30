@@ -578,7 +578,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
           VM._assert (!(b instanceof OPT_ExceptionHandlerBasicBlock));
         body[i++] = b;
         OPT_BasicBlock next = b.nextBasicBlockInCodeOrder();
-        if (next == null || !OPT_CFGTransformations.inLoop (next, nloop));
+        if (next == null || !OPT_CFGTransformations.inLoop (next, nloop))
           seqStart = b; // end of loop in code order
       }
     }
