@@ -361,11 +361,9 @@ import org.vmmagic.unboxed.*;
     return bytesPerMap();
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                             VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/VM_ReferenceMaps;"));
   @Interruptible
   int size() { 
-    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    int size = VM_TypeReference.VM_ReferenceMaps.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
     if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
     if (jsrInfo != null && jsrInfo.unusualReferenceMaps != null) size += VM_Array.JavaLangObjectArray.getInstanceSize(jsrInfo.unusualReferenceMaps.length);

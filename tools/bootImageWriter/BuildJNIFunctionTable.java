@@ -271,10 +271,8 @@ public class BuildJNIFunctionTable {
   public static VM_CodeArray[] buildTable() {
     String[] names = initNames();
     VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
-    
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
-                                                          VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/jni/VM_JNIFunctions;"));
-    VM_Class cls = (VM_Class)tRef.peekResolvedType();
+
+    VM_Class cls = VM_TypeReference.VM_JNIFunctions.peekResolvedType().asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
     for (VM_Method mth : cls.getDeclaredMethods()) {
       String methodName = mth.getName().toString();

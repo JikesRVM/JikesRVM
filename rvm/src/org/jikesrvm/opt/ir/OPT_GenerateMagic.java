@@ -9,6 +9,7 @@
 package org.jikesrvm.opt.ir;
 
 import org.jikesrvm.*;
+import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.classloader.*;
@@ -373,9 +374,7 @@ public class OPT_GenerateMagic {
       }
       bc2ir.appendInstruction(call);
     } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
-      OPT_RegisterOperand reg = 
-        gc.temps.makeTemp(VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
-                                                        VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/VM_CollectorThread;")));
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_CollectorThread);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsType) {

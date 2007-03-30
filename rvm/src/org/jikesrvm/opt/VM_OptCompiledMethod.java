@@ -210,13 +210,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     }
   }
 
-  private static final VM_TypeReference TYPE
-    = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                    VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/VM_ExceptionTable;"));
-
   @Interruptible
   public int size() { 
-    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    int size = VM_TypeReference.VM_ExceptionTable.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
     if (patchMap != null) size += VM_Array.IntArray.getInstanceSize(patchMap.length);

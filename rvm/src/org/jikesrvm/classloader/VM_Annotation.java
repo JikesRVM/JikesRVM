@@ -52,11 +52,11 @@ public final class VM_Annotation {
    * Class constructor
    */
   static {
-    baseAnnotationInitMethod = (VM_MethodReference)
-      VM_MemberReference.findOrCreate(VM_TypeReference.findOrCreate("Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;"),
+    baseAnnotationInitMethod =
+      VM_MemberReference.findOrCreate(VM_TypeReference.VM_BaseAnnotation,
                                       VM_Atom.findOrCreateAsciiAtom("<init>"),
                                       VM_Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/VM_Annotation;)V")
-                                      );
+                                      ).asMethodReference();
     if(baseAnnotationInitMethod == null) {
       throw new Error("Error creating reference to base annotation");
     }
@@ -95,8 +95,7 @@ public final class VM_Annotation {
       elementValuePairs[i] = AnnotationMember.readAnnotationMember(constantPool, input, classLoader);
     }
     // Arrays.sort(elementValuePairs);
-    VM_Annotation result = new VM_Annotation(type, elementValuePairs, classLoader);
-    return result;
+    return new VM_Annotation(type, elementValuePairs, classLoader);
   }
 
   /**
@@ -243,10 +242,9 @@ public final class VM_Annotation {
                                                        VM_Class.getUtf(constantPool, typeNameIndex)
                                                        ).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
-        
-        @SuppressWarnings("unchecked") // Yes, we're breaking type safety here.
-        Enum tmp = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
-        value = tmp;
+
+        //noinspection unchecked
+        value = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
         break;
       }
     case 'c':
@@ -269,7 +267,6 @@ public final class VM_Annotation {
         break;
       }
     default:
-      value = null;
       throw new ClassFormatError("Unknown element_value tag '" +
                                  (char)elementValue_tag + "'");
     }

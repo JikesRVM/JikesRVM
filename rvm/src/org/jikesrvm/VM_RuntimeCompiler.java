@@ -246,9 +246,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     if (VM.BuildForAdaptiveSystem) {
       // Get the opt's report
-      VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                                  VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/opt/OPT_OptimizationPlanner;"));
-      VM_Type theType = theTypeRef.peekResolvedType();
+      VM_Type theType = VM_TypeReference.OPT_OptimizationPlanner.peekResolvedType();
       if (theType != null && theType.asClass().isInitialized()) {
         OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
       } else {
