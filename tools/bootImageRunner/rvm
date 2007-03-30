@@ -1,15 +1,14 @@
 #! /bin/bash
 
-export RVM_DIR="`dirname "$0"`"
 export RVM_HOME="`dirname "$0"`"
 
-export BASE_ARGS="-X:ic=$RVM_DIR/RVM.code.image -X:id=$RVM_DIR/RVM.data.image -X:ir=$RVM_DIR/RVM.rmap.image -X:vmClasses=$RVM_DIR/jksvm.jar:$RVM_DIR/rvmrt.jar -Duser.timezone=$(date +%Z) -Drvm.root=$RVM_HOME -Drvm.build=$RVM_DIR -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_DIR -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image -X:ir=$RVM_HOME/RVM.rmap.image -X:vmClasses=$RVM_HOME/jksvm.jar:$RVM_HOME/rvmrt.jar -Duser.timezone=$(date +%Z) -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_HOME -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
 
 # This may need to be LIBPATH under AIX or SHLIB_PATH on HP-UX
-export LD_LIBRARY_PATH=$RVM_DIR:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
 
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-@PRELOAD@ exec "$RVM_DIR/JikesRVM" $BASE_ARGS "$@"
+@PRELOAD@ exec "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
 else
 # Remove -gdb arg
 shift
@@ -38,5 +37,5 @@ echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
 # Set an initial breakpoint right before we start the jump into VM.boot
 echo "break bootThread" >> $TMP_GDB_COMMANDS
 
-@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_DIR/JikesRVM" "--command=$TMP_GDB_COMMANDS" 
+@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS" 
 fi

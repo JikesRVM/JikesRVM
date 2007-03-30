@@ -317,14 +317,10 @@ public class VM_CommandLineArgs {
           return allEnvArg.substring(variable.length() + 1);
 
     // There are some that we treat specially.
-    if (variable.equals("rvm.root"))
-      return getRvmRoot();
-    else if (variable.equals("rvm.build"))
-      return getRvmBuild();
-    else if (variable.equals("java.home"))
+    if (variable.equals("java.home"))
       return getRvmRoot();
     else if (variable.equals("gnu.classpath.home.url"))
-      return "file:" + getRvmBuild();
+      return "file:" + getRvmRoot();
     else if (variable.equals("gnu.classpath.vm.shortname"))
       return "JikesRVM";
     else if (variable.equals("user.home"))
@@ -342,9 +338,6 @@ public class VM_CommandLineArgs {
   }
 
   private static String getRvmRoot() {
-    return null;
-  }
-  private static String getRvmBuild() {
     return null;
   }
   private static String getUserHome() {
@@ -718,7 +711,8 @@ public class VM_CommandLineArgs {
 
     /** Read argument # @param i
      * Assume arguments are encoded in the platform's 
-     * "default character set". */ 
+     * "default character set". */
+    @SuppressWarnings({"deprecation"})
     String getArg(int i) {
       int cnt;
       for (;;) {
@@ -748,9 +742,7 @@ public class VM_CommandLineArgs {
             called early on in the boot process (which the
             default-character-set version below does). */
       //      return new String(buf, 0, cnt);
-      @SuppressWarnings("deprecation")
-      String result = new String(buf, 0, 0, cnt);
-      return result;
+      return new String(buf, 0, 0, cnt);
     }
     int numArgs() {
       return sysArg(-1, buf);

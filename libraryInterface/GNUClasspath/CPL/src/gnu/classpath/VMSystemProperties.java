@@ -120,8 +120,6 @@ public class VMSystemProperties {
     } else {
       VM.sysWrite("Jikes RVM: Warning: You have explicitly set java.ext.dirs; that will not do anything under Jikes RVM");
     }
-    
-    s = (s == null ) ? "" : s;
     p.put("java.ext.dirs", s);
     
 
@@ -140,7 +138,7 @@ public class VMSystemProperties {
      * this just in case later revisions of GNU Classpath start to require
      * some of them in the boot process; otherwise, we could wait for them to
      * be set in VM_CommandLineArgs.lateProcessCommandLineArguments() */
-    final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home", "rvm.root", "rvm.build"};
+    final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home"};
 
     for (final String prop : clProps) {
       s = VM_CommandLineArgs.getEnvironmentArg(prop);
@@ -159,7 +157,7 @@ public class VMSystemProperties {
    */
   private static void insertLibraryPath(Properties p) {
     String jlp = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
-    String snp = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+    String snp = VM_CommandLineArgs.getEnvironmentArg("java.home");
     if (jlp == null) jlp = ".";
     p.put("java.library.path", snp + p.get("path.separator") +jlp);
   }
@@ -175,7 +173,6 @@ public class VMSystemProperties {
    * user.name, user.home, user.dir
    * gnu.classpath.vm.shortname, gnu.classpath.home.url, 
    * java.home,
-   * rvm.root, rvm.build
    *
    * We can look at them here via VM_CommandLineArgs.getEnvironmentArg().
    *
@@ -189,9 +186,5 @@ public class VMSystemProperties {
    * is already handling this OK.
    */
   public static void postInit(Properties properties) {
-    
   }
-
-  
-
 }
