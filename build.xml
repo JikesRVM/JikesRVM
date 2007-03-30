@@ -1212,7 +1212,7 @@ Check to make sure all required properties are specified. This includes properti
     <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">
       <filterset>
         <filter token="PRELOAD" 
-                value="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_DIR/${target.dll-prefix}syswrap${target.dll-ext}&quot;"/>
+                value="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_HOME/${target.dll-prefix}syswrap${target.dll-ext}&quot;"/>
       </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
