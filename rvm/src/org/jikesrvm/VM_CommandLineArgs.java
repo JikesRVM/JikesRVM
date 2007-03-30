@@ -308,7 +308,7 @@ public class VM_CommandLineArgs {
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
-    //if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
+    if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
     String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
     String prefix = variable + "=";
     if (allEnvArgs != null)

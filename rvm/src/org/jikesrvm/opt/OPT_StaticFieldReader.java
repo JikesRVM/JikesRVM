@@ -125,7 +125,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
         throw new NoSuchFieldException(field.toString());
       } catch (NoClassDefFoundError e) {
         throw new NoSuchFieldException(field.toString());
-      } catch (ExceptionInInitializerError e) {
+      } catch (IllegalAccessError e) {
         throw new NoSuchFieldException(field.toString());      
       }
     }
@@ -360,7 +360,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       throw new NoSuchFieldException(field.toString());
     } catch (NoClassDefFoundError e) {
       throw new NoSuchFieldException(field.toString());
-    } catch (ExceptionInInitializerError e) {
+    } catch (IllegalAccessError e) {
       throw new NoSuchFieldException(field.toString());      
     } 
   }
