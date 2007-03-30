@@ -2192,10 +2192,7 @@ public class BootImageWriter extends BootImageWriterMessages
         if (type == null) {
           throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
         }
-        VM_Class klass = type.asClass();
-        if (klass == null) {
-          throw new Error("Failed to populate Constructor.constructor for " + cons);
-        }
+        final VM_Class klass = type.asClass();
         Class[] consParams = cons.getParameterTypes();
         VM_Method constructor = null;
         loop_over_all_constructors:
