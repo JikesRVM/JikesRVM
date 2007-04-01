@@ -17,7 +17,6 @@
 [Lorg/jikesrvm/util/VM_HashMap$Bucket;
 [Lorg/jikesrvm/util/VM_HashSet$Bucket;
 
-Lorg/jikesrvm/classloader/ApplicationClassLoader;
 [Lorg/jikesrvm/classloader/VM_Class;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
 [Lorg/jikesrvm/classloader/VM_Annotation;
