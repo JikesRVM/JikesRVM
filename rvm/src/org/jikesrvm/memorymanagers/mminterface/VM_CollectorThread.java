@@ -362,7 +362,7 @@ public class VM_CollectorThread extends VM_Thread {
         handshake.notifyCompletion();
         handshake.reset();
 
-        /* schedule the FinalizerThread, if there is work to do & it is idle */
+        /* schedule the VM_FinalizerThread, if there is work to do & it is idle */
         Collection.scheduleFinalizerThread();
       } 
       

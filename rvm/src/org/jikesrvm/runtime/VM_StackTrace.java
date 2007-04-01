@@ -144,7 +144,7 @@ public class VM_StackTrace {
 
 //       <ol>
 
-//       <li> <p>The method "org.jikesrvm.scheduler.MainThread.run()" (with an empty
+//       <li> <p>The method "org.jikesrvm.scheduler.VM_MainThread.run()" (with an empty
 //       parameter list) launches most of our programs.  That marks the prelude
 //       to calling main().  Most users only care about main and beyond.  So we
 //       figure out where the prelude is so that we can skip it.
@@ -156,7 +156,7 @@ public class VM_StackTrace {
 //       than generating an InternalError().  
 //       <p>
 //       We will assume that no user class calls
-//       org.jikesrvm.scheduler.MainThread.run().  This is a pretty safe bet. 
+//       org.jikesrvm.scheduler.VM_MainThread.run().  This is a pretty safe bet. 
 //       </li>
 
 //       <li>
@@ -189,7 +189,7 @@ public class VM_StackTrace {
 //     /* We're implementing here the first method discussed above. */
 //     System.err.println("Calling getRunMethodMarkingPrelude()"); // DEBUG XXX
 //     try {
-//       Class c = Class.forName("org.jikesrvm.scheduler.MainThread");
+//       Class c = Class.forName("org.jikesrvm.scheduler.VM_MainThread");
 //       Method m = c.getDeclaredMethod("run", new Class[0]);
 //       return java.lang.reflect.JikesRVMSupport.getMethodOf(m);
 //     } catch (ClassNotFoundException cnf) {
@@ -406,7 +406,7 @@ public class VM_StackTrace {
     //   
     //   <invisible method>  (the reflection frame)
     //   Lorg/jikesrvm/VM_Reflection; invoke()
-    //   Lorg/jikesrvm/MainThread; run()V
+    //   Lorg/jikesrvm/VM_MainThread; run()V
     //   Lorg/jikesrvm/VM_Thread; run()V 
     //   Lorg/jikesrvm/VM_Thread; startoff()V 
     // so we can skip them.
@@ -429,7 +429,7 @@ public class VM_StackTrace {
           // so put back the elided frames that aren't all there yet...
           lastFrame += 3;
         }
-        break;             /* org.jikesrvm.scheduler.MainThread.run() is OK to
+        break;             /* org.jikesrvm.scheduler.VM_MainThread.run() is OK to
                               elide */
       }
       /* No match.  Abort. */

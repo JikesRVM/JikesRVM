@@ -26,9 +26,9 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
  * @author Derek Lieber
  * @date 28 April 1999 
  */
-public class DebuggerThread extends VM_Thread {
+public class VM_DebuggerThread extends VM_Thread {
 
-  public DebuggerThread() {
+  public VM_DebuggerThread() {
     super(null);
     makeDaemon(true);
     super.isSystemThread = true;

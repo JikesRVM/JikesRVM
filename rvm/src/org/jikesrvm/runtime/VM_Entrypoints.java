@@ -125,7 +125,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
 
   /** Used in deciding which stack frames we can elide when printing. */
-  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lorg/jikesrvm/scheduler/MainThread;", "run", "()V");
+  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lorg/jikesrvm/scheduler/VM_MainThread;", "run", "()V");
 
   public static final VM_NormalMethod yieldpointFromPrologueMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromPrologue", "()V");
   public static final VM_NormalMethod yieldpointFromBackedgeMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromBackedge", "()V");

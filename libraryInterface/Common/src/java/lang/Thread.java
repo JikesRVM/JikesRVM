@@ -33,7 +33,7 @@ public class Thread implements Runnable {
   private static int createCount = 0;
     
   protected VM_Thread vmdata;             // need to be accessible to
-                                          // MainThread.
+                                          // VM_MainThread.
 
   private volatile boolean started = false;
     
@@ -50,7 +50,7 @@ public class Thread implements Runnable {
   WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
   
   // Special constructor to create thread that has no parent.
-  // Only for use by MainThread() constructor.
+  // Only for use by VM_MainThread() constructor.
   // ugh. protected, should probably be default. fix this.
   //
   protected Thread(String[] argv){

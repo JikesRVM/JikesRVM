@@ -763,8 +763,8 @@ import org.jikesrvm.runtime.VM_Time;
       if (myThread.dyingWithUncaughtException)
         /* Use System.exit so that any shutdown hooks are run.  */
         System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-      else if (myThread.thread instanceof MainThread) {
-        MainThread mt = (MainThread) myThread.thread;
+      else if (myThread.thread instanceof VM_MainThread) {
+        VM_MainThread mt = (VM_MainThread) myThread.thread;
         if (! mt.launched) {
           /* Use System.exit so that any shutdown hooks are run.  It is
            * possible that shutdown hooks may be installed by static

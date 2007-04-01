@@ -29,13 +29,13 @@ import org.jikesrvm.runtime.VM_Reflection;
  * @modified Perry Cheng
  * @date 10 Nov 1999 
  */
-public class FinalizerThread extends VM_Thread {
+public class VM_FinalizerThread extends VM_Thread {
 
    private static final int verbose = 0; // currently goes up to 2
 
   private final Object[]  none = new Object[0];
   
-   public FinalizerThread() {
+   public VM_FinalizerThread() {
      super(null);
    }
 
@@ -48,7 +48,7 @@ public class FinalizerThread extends VM_Thread {
    public void run() {
 
      if (verbose >= 1)
-       VM_Scheduler.trace("FinalizerThread ", "run routine entered");
+       VM_Scheduler.trace("VM_FinalizerThread ", "run routine entered");
      
      try {
        while (true) {
@@ -61,13 +61,13 @@ public class FinalizerThread extends VM_Thread {
                          VM_Scheduler.finalizerMutex);
          
          if (verbose >= 1)
-           VM.sysWriteln("FinalizerThread starting finalization");
+           VM.sysWriteln("VM_FinalizerThread starting finalization");
          
          while (true) {
            Object o = MM_Interface.getFinalizedObject();
            if (o == null) break;
            if (verbose >= 2) {
-             VM.sysWrite("FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
+             VM.sysWrite("VM_FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
              VM.sysWrite("of type ");
              VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
              VM.sysWriteln();
@@ -80,10 +80,10 @@ public class FinalizerThread extends VM_Thread {
            catch (Exception e) {
                if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
            }
-           if (verbose >= 2) VM.sysWriteln("FinalizerThread done with object at ",
+           if (verbose >= 2) VM.sysWriteln("VM_FinalizerThread done with object at ",
                                            VM_Magic.objectAsAddress(o));
          }
-         if (verbose >= 1) VM.sysWriteln("FinalizerThread finished finalization");
+         if (verbose >= 1) VM.sysWriteln("VM_FinalizerThread finished finalization");
          
        }          // while (true)
      }

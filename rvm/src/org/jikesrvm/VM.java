@@ -17,8 +17,8 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.MainThread;
-import org.jikesrvm.scheduler.DebuggerThread;
+import org.jikesrvm.scheduler.VM_MainThread;
+import org.jikesrvm.scheduler.VM_DebuggerThread;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Wait;
 import org.jikesrvm.scheduler.VM_Synchronization;
@@ -375,7 +375,7 @@ import org.vmmagic.unboxed.*;
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread mainThread = new MainThread(applicationArguments);
+    Thread mainThread = new VM_MainThread(applicationArguments);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
@@ -383,7 +383,7 @@ import org.vmmagic.unboxed.*;
 
     if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
     // Create one debugger thread.
-    VM_Thread t = new DebuggerThread();
+    VM_Thread t = new VM_DebuggerThread();
     t.start(VM_Scheduler.debuggerQueue);
 
     // End of boot thread.

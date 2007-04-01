@@ -297,8 +297,8 @@ import org.jikesrvm.VM_CompiledMethods;
 
     // Start the G.C. system.
 
-    // Create the FinalizerThread
-    FinalizerThread tt = new FinalizerThread();
+    // Create the VM_FinalizerThread
+    VM_FinalizerThread tt = new VM_FinalizerThread();
     tt.makeDaemon(true);
     tt.start();
 

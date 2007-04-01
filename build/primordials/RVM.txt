@@ -46,10 +46,6 @@ Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
-# VM daemon threads that do not start with VM for historical reasons
-Lorg/jikesrvm/scheduler/FinalizerThread;
-Lorg/jikesrvm/scheduler/MainThread;
-Lorg/jikesrvm/scheduler/DebuggerThread;
 
 [Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;

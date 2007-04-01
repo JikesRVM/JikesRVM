@@ -28,7 +28,7 @@ import java.util.jar.JarFile;
  * @author Derek Lieber
  * @modified Steven Augart
  */
-public class MainThread extends Thread {
+public class VM_MainThread extends Thread {
   private String[] args;
   private final String[] agents;
   private VM_Method mainMethod;
@@ -42,13 +42,13 @@ public class MainThread extends Thread {
    * Taken: args[0]    = name of class containing "main" method
    *        args[1..N] = parameters to pass to "main" method
    */
-  public MainThread(String[] args) {
+  public VM_MainThread(String[] args) {
     super(args); // special constructor to create thread that has no parent
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;
     this.vmdata.isMainThread = true;
     this.vmdata.isSystemThread = false;
-    if (dbg) VM.sysWriteln("MainThread(args.length == ", args.length,
+    if (dbg) VM.sysWriteln("VM_MainThread(args.length == ", args.length,
                          "): constructor done");
     
   }
@@ -136,7 +136,7 @@ public class MainThread extends Thread {
    */
   public void run () {
 
-    if (dbg) VM.sysWriteln("MainThread.run() starting ");
+    if (dbg) VM.sysWriteln("VM_MainThread.run() starting ");
 
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
@@ -144,7 +144,7 @@ public class MainThread extends Thread {
 
     runAgents(cl);
 
-    if (dbg) VM.sysWrite("[MainThread.run() loading class to run... ");
+    if (dbg) VM.sysWrite("[VM_MainThread.run() loading class to run... ");
     // find method to run
     // load class specified by args[0]
     VM_Class cls = null;
@@ -172,7 +172,7 @@ public class MainThread extends Thread {
       return;
     }
 
-    if (dbg) VM.sysWrite("[MainThread.run() making arg list... ");
+    if (dbg) VM.sysWrite("[VM_MainThread.run() making arg list... ");
     // create "main" argument list
     //
     String[] mainArgs = new String[args.length - 1];
@@ -180,7 +180,7 @@ public class MainThread extends Thread {
       mainArgs[i] = args[i + 1];
     if (dbg) VM.sysWriteln("made.]");
     
-    if (dbg) VM.sysWrite("[MainThread.run() compiling main(String[])... ");
+    if (dbg) VM.sysWrite("[VM_MainThread.run() compiling main(String[])... ");
     mainMethod.compile();
     if (dbg) VM.sysWriteln("compiled.]");
     
@@ -189,9 +189,9 @@ public class MainThread extends Thread {
     VM_Callbacks.notifyStartup();
 
     launched = true;
-    if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
+    if (dbg) VM.sysWriteln("[VM_MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
     VM_Reflection.invoke(mainMethod, null, new Object[] {mainArgs}, false);
-    if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
+    if (dbg) VM.sysWriteln("  VM_MainThread.run(): \"main\" method completed.]");
   }
 }
