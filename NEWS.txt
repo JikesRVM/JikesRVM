@@ -9,6 +9,10 @@ on October 14, 2001,
 *Jikes RVM 2.9.1 Release Notes (Future)
 ** Highlights
 
+*** VM_ prefix added to classes that must be included in the primordial 
+    class list. Classes affected include; PrintLN, PrintContainer, 
+    ApplicationClassLoader, DebuggerThread, FinalizerThread and MainThread.
+
 *** Classes in the adaptive package have been reorganized into packages 
     to match the directory layout in 2.4.6 release.
 
