@@ -33,6 +33,11 @@ on October 14, 2001,
 ** Other Notes
 
 
+*Jikes RVM 2.9.0.1 Release Notes (April 1, 2007)
+*** Backport commit 11875 to fix bug when building GNU classpath for
+    for the first time.
+
+
 *Jikes RVM 2.9.0 Release Notes (March 15, 2007)
 ** Highlights
 
