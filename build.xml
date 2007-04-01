@@ -876,6 +876,7 @@ Check to make sure all required properties are specified. This includes properti
       </fileset>
       <fileset dir="${build.vmmagic-stub.classes}">
         <include name="org/vmmagic/pragma/**"/>
+        <include name="org/vmmagic/*"/>
       </fileset>
       <fileset dir="${build.vmmagic.classes}"/>
     </jar>
@@ -914,11 +915,15 @@ Check to make sure all required properties are specified. This includes properti
     <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
       <include name="**/*.class"/>
     </fileset>
+    <fileset id="primordials.vmmagic-stub" dir="${build.vmmagic-stub.classes}">
+      <include name="**/*.class"/>
+    </fileset>
     <property name="primordials.main" refid="primordials.main"/>
     <property name="primordials.vmmagic" refid="primordials.vmmagic"/>
+    <property name="primordials.vmmagic-stub" refid="primordials.vmmagic-stub"/>
 
     <echo file="${build.base}/ClassesForImage.txt"
-          message="${primordials.main}${line.separator}${primordials.vmmagic}${line.separator}"/>
+          message="${primordials.main}${line.separator}${primordials.vmmagic}${line.separator}${primordials.vmmagic-stub}${line.separator}"/>
     <replace file="${build.base}/ClassesForImage.txt" token=";" value="${line.separator}"/>
     <replaceregexp file="${build.base}/ClassesForImage.txt" match="(.*).class" replace="L\1;" byline="true"/>
 
