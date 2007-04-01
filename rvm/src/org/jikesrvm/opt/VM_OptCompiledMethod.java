@@ -170,7 +170,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param out    The PrintStream to print the stack trace to.
    */
   @Interruptible
-  public void printStackTrace(Offset instructionOffset, PrintLN out) { 
+  public void printStackTrace(Offset instructionOffset, VM_PrintLN out) { 
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {

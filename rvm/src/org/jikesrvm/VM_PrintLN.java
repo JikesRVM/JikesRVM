@@ -12,15 +12,15 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 
 /**
- * This interface is implemented by org.jikesrvm.PrintContainer.  The
+ * This interface is implemented by org.jikesrvm.VM_PrintContainer.  The
  * interfaces is used by our java.lang.Throwable to print stack traces.
  *
  * @author Steven Augart (w/ brainstorming by David Grove)
  */
 @SuppressWarnings("unused")  // Suppress the unused import warning as per comment above
-public abstract class PrintLN {
-  //  PrintLN(PrintWriter out);
-  //  PrintLN(PrintStream out);
+public abstract class VM_PrintLN {
+  //  VM_PrintLN(PrintWriter out);
+  //  VM_PrintLN(PrintStream out);
   public boolean isSysWrite() { return false; }
   public boolean isSystemErr() { return false; }
   public abstract void flush();

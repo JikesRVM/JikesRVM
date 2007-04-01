@@ -16,8 +16,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_Options;
-import org.jikesrvm.PrintLN;
-import org.jikesrvm.PrintContainer;
+import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.VM_PrintContainer;
 
 import org.vmmagic.unboxed.*;
 
@@ -230,7 +230,7 @@ public class VM_StackTrace {
    * OutOfMemoryError or other Throwables that we didn't think of when we
    * wrote this code.
    *
-   * @param out PrintLN to print on.
+   * @param out VM_PrintLN to print on.
    *
    * @param trigger The Throwable that caused the stack trace.
    *  Used to elide internal details from the stack trace.
@@ -246,7 +246,7 @@ public class VM_StackTrace {
    *
    *  @param depth How deep is our current stack of recursive printings?
    */
-  public void print(PrintLN out, Throwable trigger, Throwable effect, int depth) {
+  public void print(VM_PrintLN out, Throwable trigger, Throwable effect, int depth) {
     boolean printed = false;
     try {
       if (announceWhenPrintingStackTrace)
@@ -256,7 +256,7 @@ public class VM_StackTrace {
         if (! out.isSysWrite()) {
           VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
                         "): Here's the copy to sysWrite:");
-          print(PrintContainer.readyPrinter, trigger, effect, depth);
+          print(VM_PrintContainer.readyPrinter, trigger, effect, depth);
           VM.sysWriteln("... END VM_StackTrace.print():"
                         + " sysWrote Stack Trace # ", traceIndex, "]");
         }
@@ -292,11 +292,11 @@ public class VM_StackTrace {
       }
       VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
                     "; using sysWrite(), this time ]");
-      print4Real(PrintContainer.readyPrinter, trigger, depth);
+      print4Real(VM_PrintContainer.readyPrinter, trigger, depth);
     }
   }
 
-  public void print(PrintLN out, Throwable trigger){
+  public void print(VM_PrintLN out, Throwable trigger){
     print(out, trigger, null, 0);
   }
 
@@ -309,7 +309,7 @@ public class VM_StackTrace {
    * This is not ever supposed to throw an OutOfMemoryError.  But if it should
    * ever happen to do so, we will catch it in the caller, print().
 
-   * @param out PrintLN to print on.
+   * @param out VM_PrintLN to print on.
    * @param trigger The Throwable that caused the stack trace.
    *  Used to elide internal details from the stack trace.  Those internal
    *  details are the methods we use to gather that stack trace.
@@ -318,7 +318,7 @@ public class VM_StackTrace {
    *  methods used internally to gather the stack trace.
    */
   
-  private void print4Real(PrintLN out, Throwable trigger, int depth) {
+  private void print4Real(VM_PrintLN out, Throwable trigger, int depth) {
     //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
 
     if (depth > printingMaxDepth) {

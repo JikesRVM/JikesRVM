@@ -13,8 +13,8 @@ import java.io.PrintWriter;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
 import org.jikesrvm.runtime.VM_StackTrace;
-import org.jikesrvm.PrintLN;
-import org.jikesrvm.PrintContainer;
+import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.VM_PrintContainer;
 
 /**
  * Jikes RVM implementation of java.lang.Throwable.
@@ -152,11 +152,11 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void sysWriteStackTrace(int depth) {
-    printStackTrace(PrintContainer.readyPrinter, null, depth);
+    printStackTrace(VM_PrintContainer.readyPrinter, null, depth);
   }
 
   public void sysWriteStackTrace(Throwable effect, int depth) {
-    printStackTrace(PrintContainer.readyPrinter, effect, depth);
+    printStackTrace(VM_PrintContainer.readyPrinter, effect, depth);
   }
 
   public void printStackTrace () {
@@ -184,8 +184,8 @@ public class Throwable implements java.io.Serializable {
     }
 
     if (useSysWrite) {
-      // an instance of PrintContainer.WithSysWriteLn
-      PrintLN pln = PrintContainer.readyPrinter;
+      // an instance of VM_PrintContainer.WithSysWriteLn
+      VM_PrintLN pln = VM_PrintContainer.readyPrinter;
       // We will catch any other exceptions deeper down the call stack.
       printStackTrace(pln, depth);
     } else { // Not using sysWrite
@@ -195,14 +195,14 @@ public class Throwable implements java.io.Serializable {
     }
   } 
     
-  public synchronized void printStackTrace(PrintLN err) {
+  public synchronized void printStackTrace(VM_PrintLN err) {
     printStackTrace(err, null, 0);
   }
 
   /** How deep can we go? */
   private static final int maxDepth = 7;
 
-  public synchronized void printStackTrace(PrintLN err, int depth) {
+  public synchronized void printStackTrace(VM_PrintLN err, int depth) {
     printStackTrace(err, null, depth);
   }
 
@@ -214,7 +214,7 @@ public class Throwable implements java.io.Serializable {
    *    value indicates that we have the opportunity (though not the
    *    obligation) to do some elision, just as the Sun HotSpot JVM does. 
    */
-  public void printStackTrace(PrintLN err, Throwable effect, int depth) {
+  public void printStackTrace(VM_PrintLN err, Throwable effect, int depth) {
     // So, we will not let multiple stack traces get printed at the same
     // time, just in case!
     synchronized (Throwable.class) {
@@ -242,7 +242,7 @@ public class Throwable implements java.io.Serializable {
    * @param depth How deep into trace printing are we?
    *    Includes cascaded exceptions.
    */
-  private void doPrintStackTrace(PrintLN err, Throwable effect, int depth) {
+  private void doPrintStackTrace(VM_PrintLN err, Throwable effect, int depth) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
     int step = 0;
     try {
@@ -265,21 +265,21 @@ public class Throwable implements java.io.Serializable {
       ++step;
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
-      VM.sysWriteln("Throwable.printStackTrace(PrintLN) is out of memory");
+      VM.sysWriteln("Throwable.printStackTrace(VM_PrintLN) is out of memory");
     } catch (Throwable dummy) {
       tallyWeirdError();
-      VM.sysWrite("Throwable.printStackTrace(PrintLN) caught an unexpected Throwable: ");
+      VM.sysWrite("Throwable.printStackTrace(VM_PrintLN) caught an unexpected Throwable: ");
       dummy.sysWriteln();
       VM.sysWriteln("[ BEGIN (possibly recursive) sysWrite() of stack trace for that unexpected Throwable");
-      dummy.doPrintStackTrace(PrintContainer.readyPrinter, effect, depth + 1);
+      dummy.doPrintStackTrace(VM_PrintContainer.readyPrinter, effect, depth + 1);
       VM.sysWriteln(" END (possibly recursive) sysWrite() of stack trace for that unexpected Throwable ]");
     }
     if (step < 3) {
       if (err.isSysWrite()) {
-        VM.sysWriteln("Throwable.printStackTrace(PrintContainer.WithSysWriteln): Can't proceed any further.");
+        VM.sysWriteln("Throwable.printStackTrace(VM_PrintContainer.WithSysWriteln): Can't proceed any further.");
       } else {
-        VM.sysWriteln("Throwable.printStackTrace(PrintContainer): Resorting to sysWrite() methods.");
-        this.doPrintStackTrace(PrintContainer.readyPrinter, effect, depth + 1);
+        VM.sysWriteln("Throwable.printStackTrace(VM_PrintContainer): Resorting to sysWrite() methods.");
+        this.doPrintStackTrace(VM_PrintContainer.readyPrinter, effect, depth + 1);
       }
     }
   }
@@ -291,9 +291,9 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void printStackTrace(PrintWriter err, int depth) {
-    PrintLN pln = null;
+    VM_PrintLN pln = null;
     try {
-      pln = PrintContainer.get(err);
+      pln = VM_PrintContainer.get(err);
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
       VM.sysWriteln("Throwable.printStackTrace(PrintWriter): Out of memory");
@@ -302,9 +302,9 @@ public class Throwable implements java.io.Serializable {
       VM.sysWriteln("Throwable.printStackTrace(PrintWriter) caught an unexpected Throwable");
     } finally {
       if (pln == null) {
-        VM.sysWrite("\twhile allocating a simple 'PrintContainer(PrintWriter)' object to print a stack trace.");
+        VM.sysWrite("\twhile allocating a simple 'VM_PrintContainer(PrintWriter)' object to print a stack trace.");
         VM.sysWriteln("\tDegrading to sysWrite.");      
-        pln = PrintContainer.readyPrinter;
+        pln = VM_PrintContainer.readyPrinter;
       }
     }
 
@@ -318,9 +318,9 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void printStackTrace(PrintStream err, int depth) {
-    PrintLN pln = null;
+    VM_PrintLN pln = null;
     try {
-      pln = PrintContainer.get(err);
+      pln = VM_PrintContainer.get(err);
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
       VM.sysWriteln("Throwable.printStackTrace(PrintStream): Out of memory");
@@ -329,12 +329,12 @@ public class Throwable implements java.io.Serializable {
       tallyWeirdError();
       VM.sysWriteln("Throwable.printStackTrace(PrintStream): Caught an unexpected Throwable");
       //      dummy.sysWrite(depth + 1);
-      pln = PrintContainer.readyPrinter;
+      pln = VM_PrintContainer.readyPrinter;
     } finally {
       if (pln == null) {
-        VM.sysWriteln("\twhile trying to allocate a simple PrintContainer(PrintStream) object to print a stack trace.");
+        VM.sysWriteln("\twhile trying to allocate a simple VM_PrintContainer(PrintStream) object to print a stack trace.");
         VM.sysWriteln("\tDegrading to sysWrite()");
-        pln = PrintContainer.readyPrinter;
+        pln = VM_PrintContainer.readyPrinter;
       }
     }
     // Any errors are caught deeper down the call stack.
@@ -348,7 +348,7 @@ public class Throwable implements java.io.Serializable {
     // throw new VM_UnimplementedError(); 
   }
 
-  void printlnMyClassAndMessage(PrintLN out, int depth) {
+  void printlnMyClassAndMessage(VM_PrintLN out, int depth) {
     out.println(toString());
   }
   
@@ -357,7 +357,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void sysWrite(int depth) {
-      printlnMyClassAndMessage(PrintContainer.readyPrinter, depth);
+      printlnMyClassAndMessage(VM_PrintContainer.readyPrinter, depth);
   }
 
   public void sysWriteln() {

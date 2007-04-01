@@ -63,7 +63,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, org.jikesrvm.VM_PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 

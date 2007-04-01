@@ -245,8 +245,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
-  //          the PrintLN to print the stack trace to.
-  public void printStackTrace(Offset instructionOffset, PrintLN out) {
+  //          the VM_PrintLN to print the stack trace to.
+  public void printStackTrace(Offset instructionOffset, VM_PrintLN out) {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // VM_Class
     out.print('.');

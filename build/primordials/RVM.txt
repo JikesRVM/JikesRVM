@@ -1,11 +1,3 @@
-
-# Classes needed for OutOfMemory servicing which we can not afford to load when we are actually out of memory
-Lorg/jikesrvm/PrintLN;
-Lorg/jikesrvm/PrintContainer;
-Lorg/jikesrvm/PrintContainer$WithPrintStream;
-Lorg/jikesrvm/PrintContainer$WithPrintWriter;
-Lorg/jikesrvm/PrintContainer$WithSysWrite;
-
 [Lorg/vmmagic/unboxed/Address;
 [Lorg/vmmagic/unboxed/ObjectReference;
 [Lorg/vmmagic/unboxed/Word;

@@ -15,7 +15,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * The subclasses of PrintContainer all implement the {@link PrintLN}
+ * The subclasses of VM_PrintContainer all implement the {@link VM_PrintLN}
  * interface.  They are used by our {@link java.lang.Throwable} to print stack
  * traces; it lets one use a single class to operate on {@link PrintWriter}
  * and {@link PrintStream} output streams and for the {@link VM#sysWrite}
@@ -26,13 +26,12 @@ import java.io.PrintWriter;
  *
  * @author Steven Augart (w/ brainstorming by David Grove)
  */
-public class PrintContainer {
+public class VM_PrintContainer {
   /** Can not be instantiated. */
-  private PrintContainer() {}
+  private VM_PrintContainer() {}
   /** Print via PrintWriter */
   private static class WithPrintWriter
-    extends PrintLN
-  {
+    extends VM_PrintLN {
     private PrintWriter out;
 
     WithPrintWriter(PrintWriter out) {
@@ -56,8 +55,7 @@ public class PrintContainer {
   
   /** Print via PrintStream */
   private static class WithPrintStream
-    extends PrintLN
-  {
+    extends VM_PrintLN {
     private PrintStream out;
 
     WithPrintStream(PrintStream out) {
@@ -83,23 +81,22 @@ public class PrintContainer {
     }
   }
 
-  public static PrintLN get(PrintStream out) {
+  public static VM_PrintLN get(PrintStream out) {
      return new WithPrintStream(out);
   }
 
-  public static PrintLN get(PrintWriter out) {
+  public static VM_PrintLN get(PrintWriter out) {
      return new WithPrintWriter(out);
   }
 
   // Keep this one ready to go at all times :)
-  public static final PrintLN readyPrinter = new WithSysWrite();
+  public static final VM_PrintLN readyPrinter = new WithSysWrite();
   
   /** This (nested) class does printing via {@link VM#sysWrite} */
   private static class WithSysWrite 
-    extends PrintLN
-  {
+    extends VM_PrintLN {
     /** This doesn't carry any state, but we have a constructor so that we can
-     * pass an instance of this to something expecting a {@link PrintLN} . */
+     * pass an instance of this to something expecting a {@link VM_PrintLN} . */
     WithSysWrite() {}
 
     public boolean isSysWrite() {

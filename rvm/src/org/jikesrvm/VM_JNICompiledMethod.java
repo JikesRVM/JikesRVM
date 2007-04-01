@@ -62,7 +62,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return -1;
   }
    
-  public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, org.jikesrvm.VM_PrintLN out) {
     if (method != null) {
       // print name of native method
       out.print("\tat ");
