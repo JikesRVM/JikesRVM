@@ -6,8 +6,6 @@ Lorg/jikesrvm/PrintContainer$WithPrintStream;
 Lorg/jikesrvm/PrintContainer$WithPrintWriter;
 Lorg/jikesrvm/PrintContainer$WithSysWrite;
 
-Lorg/vmmagic/pragma/Uninterruptible;
-
 [Lorg/vmmagic/unboxed/Address;
 [Lorg/vmmagic/unboxed/ObjectReference;
 [Lorg/vmmagic/unboxed/Word;
