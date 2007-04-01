@@ -65,7 +65,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    * Constant fold field operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_FIELDS = false;
+  public static final boolean CF_FIELDS = true;
 
   /** 
    * Constant fold TIB operations?  Default is true, flip to avoid
@@ -2887,25 +2887,26 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
                     OPT_TrapCodeOperand.NullPtr());
         return DefUseEffect.TRAP_REDUCED;
-      } else if(ref.isObjectConstant() &&
-                GetField.getLocation(s).getFieldRef().resolve().isFinal()) {
+      } else if(ref.isObjectConstant()) {
         // A constant object references this field which is
-        // final. NB as the fields are final and have assigned
-        // values they must already have been resolved.
+        // final. As the reference is final the constructor
+        // of the referred object MUST have already completed.
+        // This also implies that the type MUST have been resolved.
         VM_Field field = GetField.getLocation(s).getFieldRef().resolve();
-        try {
-          OPT_ConstantOperand op = OPT_StaticFieldReader.getFieldValueAsConstant(field, ref.asObjectConstant().value);
-          Move.mutate(s, OPT_IRTools.getMoveOp(field.getType()),
-                      GetField.getClearResult(s), op);
-          return DefUseEffect.MOVE_FOLDED;
-        }
-        catch (NoSuchFieldException e) {
-          if (VM.runningVM) {
-            // this is unexpected
-            throw new Error("Unexpected exception", e);
-          } else {
-            // Field not found during bootstrap due to chasing a field
-            // only valid in the bootstrap JVM
+        if (field.isFinal() && field.getDeclaringClass().isInitialized()) {
+          try {
+            OPT_ConstantOperand op = OPT_StaticFieldReader.getFieldValueAsConstant(field, ref.asObjectConstant().value);
+            Move.mutate(s, OPT_IRTools.getMoveOp(field.getType()), GetField.getClearResult(s), op);
+            return DefUseEffect.MOVE_FOLDED;
+          }
+          catch (NoSuchFieldException e) {
+            if (VM.runningVM) {
+              // this is unexpected
+              throw new Error("Unexpected exception", e);
+            } else {
+              // Field not found during bootstrap due to chasing a field
+              // only valid in the bootstrap JVM
+            }
           }
         }
       }
