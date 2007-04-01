@@ -9,6 +9,8 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
 import org.jikesrvm.ArchitectureSpecific.OPT_ComplexLIR2MIRExpansion;
@@ -18,7 +20,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.VM_TIBLayoutConstants.*;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.*;
 import static org.jikesrvm.VM_SizeConstants.*;
 
 /**

@@ -10,6 +10,7 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.*;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Memory;

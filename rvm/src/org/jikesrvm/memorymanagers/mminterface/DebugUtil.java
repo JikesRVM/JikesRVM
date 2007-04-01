@@ -21,7 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 

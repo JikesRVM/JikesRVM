@@ -69,8 +69,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod invokeinterfaceImplementsTestMethod            = getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lorg/jikesrvm/classloader/VM_Class;[Ljava/lang/Object;)V");
   public static final VM_NormalMethod unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
-  public static final VM_NormalMethod lockMethod          = getMethod("Lorg/jikesrvm/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
-  public static final VM_NormalMethod unlockMethod        = getMethod("Lorg/jikesrvm/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
+  public static final VM_NormalMethod lockMethod          = getMethod("Lorg/jikesrvm/objectmodel/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
+  public static final VM_NormalMethod unlockMethod        = getMethod("Lorg/jikesrvm/objectmodel/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
 
   public static final VM_NormalMethod inlineLockMethod    = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
@@ -142,8 +142,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "contextRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "hardwareExceptionRegisters", "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
 
-  public static final VM_Field tracePrevAddressField = getField("Lorg/jikesrvm/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
-  public static final VM_Field traceOIDField = getField("Lorg/jikesrvm/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
+  public static final VM_Field tracePrevAddressField = getField("Lorg/jikesrvm/objectmodel/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
+  public static final VM_Field traceOIDField = getField("Lorg/jikesrvm/objectmodel/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field dispenserField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "thread","Lorg/jikesrvm/scheduler/VM_Thread;");

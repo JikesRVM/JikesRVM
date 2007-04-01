@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.classloader.*;
@@ -16,6 +16,10 @@ import org.jikesrvm.scheduler.VM_ThinLock;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.BootImageInterface;
+import org.jikesrvm.VM_Configuration;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -122,7 +126,7 @@ import org.vmmagic.unboxed.*;
         size += HASHCODE_BYTES;
       } 
     }  
-    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, BYTES_IN_INT) - OBJECT_REF_OFFSET);
+    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) - OBJECT_REF_OFFSET);
   }
 
   /**
@@ -136,7 +140,7 @@ import org.vmmagic.unboxed.*;
         size += HASHCODE_BYTES;
       }
     }
-    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, BYTES_IN_INT) - OBJECT_REF_OFFSET);
+    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) - OBJECT_REF_OFFSET);
   }
 
   /**
@@ -233,7 +237,7 @@ import org.vmmagic.unboxed.*;
         size += HASHCODE_BYTES;
       }
     }
-    return VM_Memory.alignUp(size, BYTES_IN_INT);
+    return VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -249,7 +253,7 @@ import org.vmmagic.unboxed.*;
         } 
       }
     }
-    return VM_Memory.alignUp(size, BYTES_IN_INT);
+    return VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -278,9 +282,9 @@ import org.vmmagic.unboxed.*;
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
     if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(BYTES_IN_WORD);
+      start = start.plus(VM_SizeConstants.BYTES_IN_WORD);
       if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-        start = start.plus(BYTES_IN_WORD);
+        start = start.plus(VM_SizeConstants.BYTES_IN_WORD);
         if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
           return ObjectReference.nullReference();
         }
@@ -473,7 +477,7 @@ import org.vmmagic.unboxed.*;
 
     // Do we need to copy the hash code?
     if (hashState.EQ(HASH_STATE_HASHED)) {
-      int hashCode = VM_Magic.objectAsAddress(fromObj).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+      int hashCode = VM_Magic.objectAsAddress(fromObj).toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();  
       if (DYNAMIC_HASH_OFFSET) {
         VM_Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - objRefOffset - HASHCODE_BYTES), hashCode);
       } else {
@@ -496,7 +500,7 @@ import org.vmmagic.unboxed.*;
         Word hashState = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED
-          return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+          return VM_Magic.objectAsAddress(o).toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();  
         } else if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
           // HASHED AND MOVED
           if (DYNAMIC_HASH_OFFSET) {
@@ -519,7 +523,7 @@ import org.vmmagic.unboxed.*;
           return getObjectHashCode(o);
         }
       } else {
-        return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+        return VM_Magic.objectAsAddress(o).toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();  
       }
     } else { // 10 bit hash code in status word
       int hashCode = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();

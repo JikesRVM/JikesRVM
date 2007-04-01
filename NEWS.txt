@@ -12,6 +12,9 @@ on October 14, 2001,
 *** Classes in the adaptive package have been reorganized into packages 
     to match the directory layout in 2.4.6 release.
 
+*** Classes that resided in the objectmodel directory in 2.4.6 have 
+    been moved in to the "org.jikesrvm.objectmodel" package.
+
 *** Classes that resided in the scheduler directory in 2.4.6 have 
     been moved in to the "org.jikesrvm.scheduler" package.
 

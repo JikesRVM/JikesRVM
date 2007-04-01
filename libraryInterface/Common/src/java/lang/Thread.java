@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jikesrvm.VM;     // for VM.sysWrite()
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_UnimplementedError;
 import org.jikesrvm.scheduler.VM_Wait;

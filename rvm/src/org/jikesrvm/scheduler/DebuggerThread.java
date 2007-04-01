@@ -15,7 +15,7 @@ import org.vmmagic.unboxed.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_FileSystem;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 
 /**
  * An interactive debugger that runs inside the virtual machine.

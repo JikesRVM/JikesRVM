@@ -16,7 +16,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Atom;
 
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 
 /**

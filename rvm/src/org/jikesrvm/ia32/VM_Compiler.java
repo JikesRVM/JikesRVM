@@ -16,7 +16,7 @@ import org.jikesrvm.VM_EdgeCounts;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;

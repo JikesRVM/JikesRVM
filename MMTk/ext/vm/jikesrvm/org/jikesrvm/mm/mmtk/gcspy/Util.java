@@ -18,7 +18,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 
 import org.vmmagic.unboxed.*;

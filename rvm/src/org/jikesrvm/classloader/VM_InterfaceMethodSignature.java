@@ -9,6 +9,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.util.*;
 import org.vmmagic.unboxed.Offset;
 

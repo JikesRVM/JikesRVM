@@ -10,7 +10,7 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.opt.ir.*;
 import org.vmmagic.unboxed.*;
 import java.lang.reflect.Array;

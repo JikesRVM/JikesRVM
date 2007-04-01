@@ -35,6 +35,7 @@ import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Time;
 
 /**

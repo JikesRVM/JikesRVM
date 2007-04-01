@@ -8,7 +8,8 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.scheduler.VM_ThinLockConstants;
+import org.jikesrvm.objectmodel.VM_ThinLockConstants;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 
 /**
  * Constants describing vm object, stack, and register characteristics.
@@ -21,7 +22,7 @@ import org.jikesrvm.scheduler.VM_ThinLockConstants;
  */
 public interface VM_Constants
 extends VM_ThinLockConstants,         // architecture-neutral
-          VM_TIBLayoutConstants,        // architecture-neutral
+    VM_TIBLayoutConstants,        // architecture-neutral
           VM_HeapLayoutConstants,       // architecture-neutral
           VM_SizeConstants             // 'semi-'architecture-neutral
 {

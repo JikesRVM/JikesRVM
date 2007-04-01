@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
 
 import org.vmmagic.unboxed.*;
 

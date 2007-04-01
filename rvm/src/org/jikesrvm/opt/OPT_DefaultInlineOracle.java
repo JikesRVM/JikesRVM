@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.adaptive.database.callgraph.VM_WeightedCallTargets;
 import org.jikesrvm.adaptive.controller.VM_Controller;

@@ -15,7 +15,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_CompiledMethod;

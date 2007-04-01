@@ -9,7 +9,7 @@
 package java.lang;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall; // for sysCall.sysGetenv

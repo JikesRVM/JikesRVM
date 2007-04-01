@@ -23,12 +23,12 @@ import org.jikesrvm.VM_BaselineCompiledMethod;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 
-import org.jikesrvm.VM_MiscHeader;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_MiscHeader;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

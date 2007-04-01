@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id: VM_ObjectModel.java 11467 2007-02-12 11:36:16Z captain5050 $
-package org.jikesrvm;
+package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.classloader.*;
@@ -15,6 +15,9 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.BootImageInterface;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -119,7 +122,7 @@ import org.vmmagic.pragma.*;
  * @author Ian Rogers
  */
 @Uninterruptible public class VM_ObjectModel implements VM_JavaHeaderConstants,
-                                             VM_SizeConstants {
+    VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;

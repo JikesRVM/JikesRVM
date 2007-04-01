@@ -8,7 +8,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.runtime.VM_Runtime;
 

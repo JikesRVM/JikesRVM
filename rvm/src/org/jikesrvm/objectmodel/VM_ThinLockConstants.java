@@ -6,11 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.objectmodel;
 
 import org.vmmagic.unboxed.Word;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.VM_JavaHeader;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
 
 /**
  * Constants used to implement thin locks.

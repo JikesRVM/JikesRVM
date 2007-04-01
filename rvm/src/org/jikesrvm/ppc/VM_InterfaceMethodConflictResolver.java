@@ -11,7 +11,7 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.*;
 

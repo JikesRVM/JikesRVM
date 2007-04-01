@@ -25,6 +25,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 
 import org.jikesrvm.*;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;

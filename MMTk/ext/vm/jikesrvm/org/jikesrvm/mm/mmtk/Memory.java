@@ -20,7 +20,7 @@ import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.VM_JavaHeader;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.unboxed.*;
