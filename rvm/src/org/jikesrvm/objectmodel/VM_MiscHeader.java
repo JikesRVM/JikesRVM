@@ -11,7 +11,7 @@ package org.jikesrvm.objectmodel;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.BootImageInterface;
+import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;

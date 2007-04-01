@@ -17,7 +17,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.BootImageInterface;
+import org.jikesrvm.objectmodel.BootImageInterface;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

@@ -12,6 +12,7 @@ import java.io.IOException;
 import org.jikesrvm.*;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

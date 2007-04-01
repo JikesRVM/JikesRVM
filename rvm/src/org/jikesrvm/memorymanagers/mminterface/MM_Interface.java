@@ -9,7 +9,7 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.BootImageInterface;
+import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
