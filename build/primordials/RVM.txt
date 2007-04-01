@@ -38,10 +38,6 @@ Lorg/jikesrvm/classloader/ApplicationClassLoader;
 [Lorg/jikesrvm/classloader/VM_MemberReference;
 [Lorg/jikesrvm/classloader/VM_Type;
 [Lorg/jikesrvm/classloader/VM_TypeReference;
-Lorg/jikesrvm/classloader/VM_AnnotatedElement;
-Lorg/jikesrvm/classloader/VM_Annotation;
-Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
-Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;
 
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
