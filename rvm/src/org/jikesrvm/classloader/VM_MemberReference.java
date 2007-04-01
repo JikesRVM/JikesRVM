@@ -125,7 +125,7 @@ public abstract class VM_MemberReference {
       ClassLoader cl;
       if (clName.equals(VM_BootstrapClassLoader.myName)) {
         cl = VM_BootstrapClassLoader.getBootstrapClassLoader();
-      } else if (clName.equals(ApplicationClassLoader.myName)) {
+      } else if (clName.equals(VM_ApplicationClassLoader.myName)) {
         cl = VM_ClassLoader.getApplicationClassLoader();
       } else {
        try {

@@ -119,7 +119,7 @@ public class VM_ClassLoader implements VM_Constants,
                       "Initializing Application ClassLoader, with" +
                       " repositories: `", r, "'...");
 
-      appCL = new ApplicationClassLoader(r);
+      appCL = new VM_ApplicationClassLoader(r);
 
       if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL)
         VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ", appCL.toString());

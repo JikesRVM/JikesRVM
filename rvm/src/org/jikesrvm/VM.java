@@ -239,7 +239,7 @@ import org.vmmagic.unboxed.*;
     runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
-    /* Needed for ApplicationClassLoader, which in turn is needed by
+    /* Needed for VM_ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
     
@@ -355,7 +355,7 @@ import org.vmmagic.unboxed.*;
     VM_ClassLoader.getApplicationClassLoader();
     VM_ClassLoader.declareApplicationClassLoaderIsReady();
 
-    if (verboseBoot >= 1) VM.sysWriteln("Turning back on security checks.  Letting people see the ApplicationClassLoader.");
+    if (verboseBoot >= 1) VM.sysWriteln("Turning back on security checks.  Letting people see the VM_ApplicationClassLoader.");
     // Turn on security checks again.
     // Commented out because we haven't incorporated this into the main CVS
     // tree yet. 

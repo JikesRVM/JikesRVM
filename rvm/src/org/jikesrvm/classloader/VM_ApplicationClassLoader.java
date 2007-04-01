@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
  * @modified Steven Augart, 2004-Mar-04 
  *  Renamed the former "system class loader" to the "bootstrap class loader".
  */
-public class ApplicationClassLoader extends URLClassLoader {
+public class VM_ApplicationClassLoader extends URLClassLoader {
   
 
   static final boolean DBG = false;
@@ -51,7 +51,7 @@ public class ApplicationClassLoader extends URLClassLoader {
   boolean createdAtBootImageWritingTime;
   boolean createdWithRunningVM;
 
-  public ApplicationClassLoader(String specifiedClasspath) {
+  public VM_ApplicationClassLoader(String specifiedClasspath) {
     super(new URL[0]);
     if (DBG)
       VM.sysWriteln("The Application Class Loader has been instantiated ", numInstantiations, " times");
@@ -84,7 +84,7 @@ public class ApplicationClassLoader extends URLClassLoader {
         }
       }
     } catch (MalformedURLException e) {
-      VM.sysFail("JikesRVM: ApplicationClassLoader: Initialization Failed with a MalformedURLException; there was an error setting the application's classpath: " + e);
+      VM.sysFail("JikesRVM: VM_ApplicationClassLoader: Initialization Failed with a MalformedURLException; there was an error setting the application's classpath: " + e);
     }
   }
 
