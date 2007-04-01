@@ -18,7 +18,7 @@ import org.jikesrvm.mm.mmtk.Barriers;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import org.jikesrvm.adaptive.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.OSR_Listener;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 

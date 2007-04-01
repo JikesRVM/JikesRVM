@@ -9,6 +9,7 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.*;
 import java.util.Vector;
 
@@ -143,7 +144,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     // It is tempting to time via System.currentTimeMillis()
     // but 1 millisecond granularity isn't good enough because the 
     // the baseline compiler is just too fast.
-    double compileTime = method.getBytecodeLength() / org.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
     cm.setCompilationTime(compileTime);
     return cm;
   }

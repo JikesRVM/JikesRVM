@@ -10,7 +10,7 @@ package org.jikesrvm;
 
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
-import org.jikesrvm.adaptive.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_Controller;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.classloader.*;

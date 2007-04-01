@@ -10,7 +10,9 @@ package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.adaptive.*;
+import org.jikesrvm.adaptive.database.callgraph.VM_WeightedCallTargets;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_AdaptiveInlining;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import java.util.*;

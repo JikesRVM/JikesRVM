@@ -9,10 +9,13 @@ on October 14, 2001,
 *Jikes RVM 2.9.1 Release Notes (Future)
 ** Highlights
 
-*** Classes that previously resided in the scheduler directory have 
+*** Classes in the adaptive package have been reorganized into packages 
+    to match the directory layout in 2.4.6 release.
+
+*** Classes that resided in the scheduler directory in 2.4.6 have 
     been moved in to the "org.jikesrvm.scheduler" package.
 
-*** Classes that previously resided in the runtime directory have 
+*** Classes that resided in the runtime directory in 2.4.6 have 
     been moved in to the "org.jikesrvm.runtime" package.
 
 ** Bug fixes

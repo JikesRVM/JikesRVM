@@ -14,8 +14,8 @@ import org.jikesrvm.opt.*;
 import java.util.Enumeration;
 import static org.jikesrvm.opt.ir.OPT_Operators.*;
 
-import org.jikesrvm.adaptive.VM_Controller;
-import org.jikesrvm.adaptive.VM_AOSDatabase;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 
 /**
  * This class contains the high level logic for executing an inlining decision.

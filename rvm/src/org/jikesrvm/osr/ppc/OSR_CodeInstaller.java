@@ -24,7 +24,7 @@ import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.ppc.*;
-import org.jikesrvm.adaptive.*;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 
 import org.vmmagic.unboxed.*;
 

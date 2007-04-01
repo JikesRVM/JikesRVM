@@ -10,6 +10,9 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.*;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
 import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;

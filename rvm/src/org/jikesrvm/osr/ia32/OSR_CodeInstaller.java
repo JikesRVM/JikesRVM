@@ -22,7 +22,7 @@ import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_Assembler;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.adaptive.*;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 
 import org.vmmagic.unboxed.*;
 

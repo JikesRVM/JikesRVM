@@ -30,6 +30,8 @@ import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -332,7 +334,7 @@ import org.vmmagic.unboxed.*;
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-      org.jikesrvm.adaptive.VM_Controller.boot();
+      VM_Controller.boot();
     }
 
     // The first argument must be a class name.

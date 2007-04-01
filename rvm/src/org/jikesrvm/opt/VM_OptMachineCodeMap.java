@@ -13,7 +13,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.ir.*;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.adaptive.VM_CallSite;
+import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
 import java.util.ArrayList;
 
 /**

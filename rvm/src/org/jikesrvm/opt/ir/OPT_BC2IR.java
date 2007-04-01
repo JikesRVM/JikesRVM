@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import org.jikesrvm.osr.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
-import org.jikesrvm.adaptive.*;
+import org.jikesrvm.adaptive.controller.VM_Controller;
 import java.util.ArrayList;
 
 import org.vmmagic.pragma.*;

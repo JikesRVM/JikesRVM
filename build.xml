@@ -523,7 +523,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
 
     <mkdir dir="${generated.java}/org/jikesrvm/opt"/>
-    <mkdir dir="${generated.java}/org/jikesrvm/adaptive"/>
+    <mkdir dir="${generated.java}/org/jikesrvm/adaptive/util"/>
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_Options.template"/>
@@ -554,7 +554,7 @@ Check to make sure all required properties are specified. This includes properti
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_AOSOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/adaptive/VM_AOSExternalOptions.java"/>
+        <arg value="${generated.java}/org/jikesrvm/adaptive/util/VM_AOSExternalOptions.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.aos.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.aos.dat"/>
         <arg value="MYTYPE=VM_AOSExternalOptions"/>

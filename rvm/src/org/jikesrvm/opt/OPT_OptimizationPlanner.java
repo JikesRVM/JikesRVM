@@ -9,6 +9,11 @@
 package org.jikesrvm.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertYieldpointCounters;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertMethodInvocationCounter;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertInstructionCounters;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InstrumentationSamplingFramework;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_LowerInstrumentation;
 import org.jikesrvm.ArchitectureSpecific.OPT_MIROptimizationPlanner;
 import org.jikesrvm.opt.ir.*;
 import java.util.ArrayList;

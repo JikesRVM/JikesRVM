@@ -14,6 +14,7 @@ import org.jikesrvm.scheduler.VM_ThreadQueue;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.adaptive.controller.VM_Controller;
 
 import org.vmmagic.pragma.*;
 

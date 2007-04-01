@@ -10,6 +10,7 @@ package org.jikesrvm;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 
 /**
  * Use baseline compiler to build virtual machine boot image.
@@ -51,7 +52,7 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
       // but 1 millisecond granularity isn't good enough because the 
       // the baseline compiler is just too fast.
       // TODO: Try Using System.nanoTime() instead
-      double compileTime = method.getBytecodeLength() / org.jikesrvm.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+      double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
       cm.setCompilationTime(compileTime);
     }
     return cm;

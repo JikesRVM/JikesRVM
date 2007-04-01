@@ -9,7 +9,7 @@
 package org.jikesrvm;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.adaptive.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 
 /**
  * This class enables an external driver to block recompile all

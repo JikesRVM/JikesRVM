@@ -300,19 +300,19 @@ public class VM_Entrypoints implements VM_Constants {
 
   static {
     if (VM.BuildForAdaptiveSystem) {
-      methodListenerNumSamplesField     = getField("Lorg/jikesrvm/adaptive/VM_MethodListener;", "numSamples", "I");
-      edgeListenerUpdateCalledField     = getField("Lorg/jikesrvm/adaptive/VM_EdgeListener;", "updateCalled", "I");
-      edgeListenerSamplesTakenField     = getField("Lorg/jikesrvm/adaptive/VM_EdgeListener;", "samplesTaken", "I");
-      yieldCountListenerNumYieldsField= getField("Lorg/jikesrvm/adaptive/VM_YieldCounterListener;", "numYields", "I");
+      methodListenerNumSamplesField     = getField("Lorg/jikesrvm/adaptive/runtimeMeasurements/listeners/VM_MethodListener;", "numSamples", "I");
+      edgeListenerUpdateCalledField     = getField("Lorg/jikesrvm/adaptive/runtimeMeasurements/listeners/VM_EdgeListener;", "updateCalled", "I");
+      edgeListenerSamplesTakenField     = getField("Lorg/jikesrvm/adaptive/runtimeMeasurements/listeners/VM_EdgeListener;", "samplesTaken", "I");
+      yieldCountListenerNumYieldsField= getField("Lorg/jikesrvm/adaptive/runtimeMeasurements/listeners/VM_YieldCounterListener;", "numYields", "I");
 
-      counterArrayManagerCounterArraysField = getField("Lorg/jikesrvm/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
+      counterArrayManagerCounterArraysField = getField("Lorg/jikesrvm/adaptive/runtimeMeasurements/instrumentation/VM_CounterArrayManager;","counterArrays","[[D");
 
-      invocationCountsField = getField("Lorg/jikesrvm/adaptive/VM_InvocationCounts;", "counts", "[I");
-      invocationCounterTrippedMethod   = getMethod("Lorg/jikesrvm/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
+      invocationCountsField = getField("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counts", "[I");
+      invocationCounterTrippedMethod   = getMethod("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counterTripped", "(I)V");
 
-      globalCBSField =  getField("Lorg/jikesrvm/adaptive/VM_CounterBasedSampling;", "globalCounter", "I");
+      globalCBSField =  getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;", "globalCounter", "I");
       processorCBSField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "processor_cbs_counter", "I");
-      cbsResetValueField   = getField("Lorg/jikesrvm/adaptive/VM_CounterBasedSampling;","resetValue", "I");
+      cbsResetValueField   = getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;","resetValue", "I");
     } else {
       methodListenerNumSamplesField = null;
       edgeListenerUpdateCalledField = null;

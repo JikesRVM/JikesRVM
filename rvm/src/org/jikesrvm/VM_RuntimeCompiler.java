@@ -10,7 +10,15 @@ package org.jikesrvm;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.*;
-import org.jikesrvm.adaptive.*;
+import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.adaptive.util.VM_AOSGenerator;
+import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
+import org.jikesrvm.adaptive.recompilation.VM_PreCompile;
+import org.jikesrvm.adaptive.recompilation.instrumentation.VM_AOSInstrumentationPlan;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
+import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
 import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Time;
