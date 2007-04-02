@@ -33,8 +33,8 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * Read the field from obj and return as the appropriate constant
    */
   public static OPT_ConstantOperand getFieldValueAsConstant(VM_Field field, Object obj) throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM._assert(field.isFinal());
-    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized());
+    if (VM.VerifyAssertions) VM._assert(field.isFinal(),"Error reading field " + field);
+    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),"Error reading field " + field);
     
     VM_TypeReference type = field.getType();
     if (VM.runningVM) {
@@ -142,9 +142,9 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    */
   public static OPT_ConstantOperand getStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM._assert(field.isFinal());
-    if (VM.VerifyAssertions) VM._assert(field.isStatic());
-    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized());
+    if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
+    if (VM.VerifyAssertions) VM._assert(field.isStatic(), "Error reading field " + field);
+    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(), "Error reading field " + field);
 
     VM_TypeReference fieldType = field.getType();
     Offset off = field.getOffset();
