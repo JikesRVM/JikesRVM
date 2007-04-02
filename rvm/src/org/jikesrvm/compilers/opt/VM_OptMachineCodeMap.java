@@ -84,11 +84,6 @@ import java.util.ArrayList;
     
     // create all machine code maps
     final VM_OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
-
-    if( null != map.MCInformation && map.MCInformation.length == 0 ) {
-      VM.sysWrite("machine code map for " + ir.method + " is of zero length\n");
-      VM.sysExit( 23 );
-    }
     
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method, map.size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
