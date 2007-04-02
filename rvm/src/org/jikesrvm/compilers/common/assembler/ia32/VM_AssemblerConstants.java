@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ia32;
+package org.jikesrvm.compilers.common.assembler.ia32;
 /**
  * Constants exported by the assembler
  * @author Julian Dolby

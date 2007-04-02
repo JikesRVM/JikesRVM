@@ -8,9 +8,10 @@
  */
 package org.jikesrvm.ia32;
 
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

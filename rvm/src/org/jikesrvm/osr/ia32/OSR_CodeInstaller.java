@@ -19,7 +19,7 @@ import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;

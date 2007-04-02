@@ -9,7 +9,7 @@ import org.jikesrvm.compilers.opt.OPT_DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 public class ArchitectureSpecific {
-  public static class VM_Assembler extends org.jikesrvm.@_ARCH_@.VM_Assembler {
+  public static class VM_Assembler extends org.jikesrvm.compilers.common.assembler.@_ARCH_@.VM_Assembler {
     public VM_Assembler (int bytecodeSize) {
       super(bytecodeSize, false);
     }

@@ -12,16 +12,16 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ppc.VM_Assembler;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.ppc.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  *                so we can actually test that the refactors are correct.
  */
 public abstract class VM_JNICompiler implements VM_BaselineConstants,
-                                       VM_AssemblerConstants,
+    VM_AssemblerConstants,
                                        VM_JNIStackframeLayoutConstants {
 
   /**

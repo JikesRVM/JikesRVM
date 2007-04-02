@@ -563,18 +563,18 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub">
-    <mkdir dir="${generated.ia32.java}/org/jikesrvm/ia32"/>
-    <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/opt/ia32"/>
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
       <arg value="genAssembler.sh"/>
-      <arg value="${generated.ia32.java}/org/jikesrvm/ia32/VM_Assembler.java"/>
+      <arg value="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"/>
       <arg value="VM_Assembler.in"/>
     </exec>
 
     <property name="build.ia32-assembler-opt.dir" location="${build.dir}/ia32-assembler-opt"/>
     <property name="ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
 
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/opt/ia32"/>
     <mkdir dir="${build.ia32-assembler-opt.dir}"/>
     <GenerateFromTemplate>
       <args>
@@ -593,7 +593,7 @@ Check to make sure all required properties are specified. This includes properti
     <copy todir="${build.ia32-assembler-opt.dir}">
       <fileset dir="${main.java}">
         <include name="org/jikesrvm/ia32/VM_RegisterConstants.java"/>
-        <include name="org/jikesrvm/ia32/VM_AssemblerConstants.java"/>
+        <include name="org/jikesrvm/compilers/common/assembler/ia32/VM_AssemblerConstants.java"/>
       </fileset>
     </copy>
     <copy todir="${build.ia32-assembler-opt.dir}">
@@ -605,8 +605,8 @@ Check to make sure all required properties are specified. This includes properti
     </copy>
     <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/VM_ForwardReference.java"
           tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/VM_ForwardReference.java"/>
-    <copy file="${generated.ia32.java}/org/jikesrvm/ia32/VM_Assembler.java"
-          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/ia32/VM_Assembler.java"/>
+    <copy file="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">

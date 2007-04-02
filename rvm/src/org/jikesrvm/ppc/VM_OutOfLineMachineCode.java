@@ -11,6 +11,8 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
@@ -41,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
                                          VM_JNIStackframeLayoutConstants,
-                                         VM_AssemblerConstants {
+    VM_AssemblerConstants {
   public static void init() {
     reflectiveMethodInvokerInstructions       = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions               = generateSaveThreadStateInstructions();

@@ -13,6 +13,8 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.classloader.*;
 
 /**
@@ -23,7 +25,7 @@ import org.jikesrvm.classloader.*;
  * @author Dave Grove
  */
 public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
-                                                           VM_AssemblerConstants {
+    VM_AssemblerConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 

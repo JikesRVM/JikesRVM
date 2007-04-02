@@ -11,6 +11,7 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
@@ -58,15 +59,20 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   // implementation //
   //----------------//
 
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray reflectiveMethodInvokerInstructions;
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray saveThreadStateInstructions;
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray threadSwitchInstructions;
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
    
   private static final Offset PARAMS_FP_OFFSET     = Offset.fromIntSignExtend(WORDSIZE * 2);

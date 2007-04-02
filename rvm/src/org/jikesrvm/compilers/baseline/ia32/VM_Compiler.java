@@ -9,31 +9,40 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_InterfaceInvocation;
+import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.ia32.VM_Assembler;
-import org.jikesrvm.compilers.baseline.ia32.VM_Barriers;
 import org.jikesrvm.ia32.VM_ProcessorLocalState;
-import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.jni.ia32.VM_JNICompiler;
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.Uninterruptible;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_MagicNames;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * VM_Compiler is the baseline compiler class for the IA32 architecture.

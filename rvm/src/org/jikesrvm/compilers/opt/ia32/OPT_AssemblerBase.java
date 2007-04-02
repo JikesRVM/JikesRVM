@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.ia32.VM_TrapConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.VM;

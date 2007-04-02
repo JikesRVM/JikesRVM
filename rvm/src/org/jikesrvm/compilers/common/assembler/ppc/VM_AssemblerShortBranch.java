@@ -15,7 +15,7 @@
  * 
  * This problem does not exist under IA32 since there is no need for VM_Assembler.ShortBranch
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.common.assembler.ppc;
 
 import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;

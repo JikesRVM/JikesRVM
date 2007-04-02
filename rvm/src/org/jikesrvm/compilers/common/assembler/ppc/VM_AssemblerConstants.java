@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.common.assembler.ppc;
 /**
  * Constants exported by the assembler
  * @author Bowen Alpern

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.common.assembler.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
@@ -16,6 +16,11 @@ import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_MachineCode;
+import org.jikesrvm.ppc.PPC_Disassembler;
+import org.jikesrvm.ppc.VM_RegisterConstants;
+import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

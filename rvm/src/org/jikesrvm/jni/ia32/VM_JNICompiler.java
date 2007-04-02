@@ -17,7 +17,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_ProcessorLocalState;
-import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.ia32.VM_MachineCode;
 import org.jikesrvm.classloader.*;
 

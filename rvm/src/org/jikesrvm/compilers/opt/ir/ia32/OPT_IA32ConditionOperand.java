@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
-import org.jikesrvm.ia32.*;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_AssemblerConstants;
 
 /**
  * An IA32 condition operand

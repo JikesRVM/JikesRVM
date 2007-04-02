@@ -19,7 +19,7 @@ import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ppc.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;

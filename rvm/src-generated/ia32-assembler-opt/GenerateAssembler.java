@@ -1131,7 +1131,7 @@ public class GenerateAssembler {
         }
 
         try {
-            lowLevelAsm = Class.forName("org.jikesrvm.ia32.VM_Assembler");
+            lowLevelAsm = Class.forName("org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             System.exit(1 );
