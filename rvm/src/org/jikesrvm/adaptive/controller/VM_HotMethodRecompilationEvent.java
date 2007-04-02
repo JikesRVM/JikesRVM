@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Event used by the basic recompilation organizer

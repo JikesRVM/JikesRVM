@@ -12,7 +12,7 @@ import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.VM_RecompilationManager;
+import org.jikesrvm.compilers.common.VM_RecompilationManager;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.adaptive.util.VM_BlockingPriorityQueue;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;

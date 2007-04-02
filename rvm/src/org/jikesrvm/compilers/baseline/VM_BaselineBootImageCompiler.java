@@ -6,12 +6,16 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 
 /**
  * Use baseline compiler to build virtual machine boot image.

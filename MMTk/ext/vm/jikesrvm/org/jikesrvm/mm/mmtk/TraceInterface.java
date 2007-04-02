@@ -20,8 +20,8 @@ import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;

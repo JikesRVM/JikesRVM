@@ -10,8 +10,8 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.VM;
 
 import org.vmmagic.unboxed.*;

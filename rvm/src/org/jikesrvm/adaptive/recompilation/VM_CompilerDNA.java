@@ -9,6 +9,7 @@
 package org.jikesrvm.adaptive.recompilation;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_NormalMethod;

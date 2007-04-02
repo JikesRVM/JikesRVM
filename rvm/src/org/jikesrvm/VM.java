@@ -34,6 +34,8 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
+import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

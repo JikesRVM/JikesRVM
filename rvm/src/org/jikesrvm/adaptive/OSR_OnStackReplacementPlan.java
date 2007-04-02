@@ -18,6 +18,8 @@ import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
 import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
 import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.osr.*;
 import org.vmmagic.unboxed.Offset;
 /**

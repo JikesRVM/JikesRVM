@@ -11,6 +11,7 @@ package org.jikesrvm;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.util.VM_Synchronizer;
 import java.util.Enumeration;
 
 /**

@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Services;
 import org.vmmagic.unboxed.Offset;
 
 /**

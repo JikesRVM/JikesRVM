@@ -10,7 +10,7 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;

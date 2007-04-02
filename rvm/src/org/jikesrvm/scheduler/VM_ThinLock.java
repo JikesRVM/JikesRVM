@@ -10,9 +10,9 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Stats;
+import org.jikesrvm.scheduler.VM_Stats;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

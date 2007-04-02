@@ -6,12 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2001, 2003
  */
-package org.jikesrvm;
+package org.jikesrvm.jni;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;

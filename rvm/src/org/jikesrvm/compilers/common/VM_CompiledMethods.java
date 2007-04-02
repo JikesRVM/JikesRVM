@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -14,6 +14,9 @@ import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.jni.VM_JNICompiledMethod;
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 

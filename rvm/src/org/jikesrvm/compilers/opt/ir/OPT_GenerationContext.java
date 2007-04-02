@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
 import org.jikesrvm.compilers.baseline.VM_BranchProfile;
 import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
@@ -19,6 +18,7 @@ import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.vmmagic.unboxed.Offset;
 import java.util.*;
 

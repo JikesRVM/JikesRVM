@@ -13,8 +13,8 @@ import org.jikesrvm.ArchitectureSpecific.VM_DynamicLinkerHelper;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

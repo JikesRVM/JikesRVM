@@ -17,8 +17,8 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethods;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

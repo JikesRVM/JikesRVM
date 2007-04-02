@@ -21,6 +21,8 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import java.io.*;
 
 /**

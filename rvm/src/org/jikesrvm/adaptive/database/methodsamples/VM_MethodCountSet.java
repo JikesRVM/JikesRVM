@@ -9,7 +9,7 @@
 package org.jikesrvm.adaptive.database.methodsamples;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Wrapper around a pair of parallel arrays:

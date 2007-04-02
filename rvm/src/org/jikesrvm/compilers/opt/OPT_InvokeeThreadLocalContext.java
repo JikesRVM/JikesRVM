@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.classloader.*;
 
 /**

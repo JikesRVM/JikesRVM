@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 /**
  * A set of constants that define some useful Java types and stack

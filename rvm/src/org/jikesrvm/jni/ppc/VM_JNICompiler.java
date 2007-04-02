@@ -9,11 +9,11 @@
 package org.jikesrvm.jni.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM_ForwardReference;
-import org.jikesrvm.VM_JNICompiledMethod;
+import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
@@ -154,7 +154,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    * getReturnAddressAddress.
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
-    VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
+    VM_JNICompiledMethod cm = (VM_JNICompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm    = new ArchitectureSpecific.VM_Assembler(0);
     int frameSize       = getFrameSize(method);

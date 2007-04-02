@@ -12,7 +12,7 @@ package org.jikesrvm.osr.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;

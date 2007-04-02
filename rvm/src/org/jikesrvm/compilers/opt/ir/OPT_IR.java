@@ -18,6 +18,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Stack;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.vmmagic.pragma.*;
 
@@ -249,7 +251,7 @@ public final class OPT_IR {
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
-    compiledMethod = (VM_OptCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
+    compiledMethod = (VM_OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
   }
 
   

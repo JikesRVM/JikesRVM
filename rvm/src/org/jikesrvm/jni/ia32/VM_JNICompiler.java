@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.jni.ia32;
 
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM_ForwardReference;
-import org.jikesrvm.VM_JNICompiledMethod;
+import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ia32.VM_BaselineConstants;
@@ -63,7 +63,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
-    VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
+    VM_JNICompiledMethod cm = (VM_JNICompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     VM_Assembler asm     = new ArchitectureSpecific.VM_Assembler(100);   // some size for the instruction array
     Address nativeIP         = method.getNativeIP();
     // recompute some constants

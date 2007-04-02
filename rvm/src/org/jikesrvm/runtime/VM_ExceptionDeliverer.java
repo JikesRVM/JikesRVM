@@ -11,7 +11,7 @@ package org.jikesrvm.runtime;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Interface for exception delivery called by VM_Runtime.deliverException() to

@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_BaselineOptions;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 
 import java.io.File;
 import java.util.Arrays;

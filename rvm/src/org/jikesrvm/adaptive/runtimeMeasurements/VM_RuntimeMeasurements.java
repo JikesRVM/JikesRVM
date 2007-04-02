@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements;
 
-import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_ContextListener;

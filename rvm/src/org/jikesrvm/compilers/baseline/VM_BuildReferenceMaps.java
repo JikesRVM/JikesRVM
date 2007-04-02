@@ -11,7 +11,7 @@ package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_BBConstants;
+import org.jikesrvm.compilers.baseline.VM_BBConstants;
 import org.jikesrvm.VM;
 
 /** 

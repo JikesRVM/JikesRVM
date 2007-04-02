@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_ExceptionTable;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 

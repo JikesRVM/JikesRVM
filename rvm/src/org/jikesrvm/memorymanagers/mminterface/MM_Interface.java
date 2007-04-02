@@ -13,7 +13,7 @@ import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.runtime.VM_Magic;

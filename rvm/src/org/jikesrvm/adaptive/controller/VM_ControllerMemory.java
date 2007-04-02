@@ -11,8 +11,8 @@ package org.jikesrvm.adaptive.controller;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.jikesrvm.util.VM_HashMap;
 

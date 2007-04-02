@@ -17,6 +17,7 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * A test harness for the optimizing compiler.

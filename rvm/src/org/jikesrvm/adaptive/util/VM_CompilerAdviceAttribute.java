@@ -14,7 +14,7 @@ package org.jikesrvm.adaptive.util;
 
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 import java.util.Collection;
 import java.util.ListIterator;

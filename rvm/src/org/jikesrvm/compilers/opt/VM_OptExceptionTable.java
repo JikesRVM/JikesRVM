@@ -10,6 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
 
 /**
  * Encoding of try ranges in the final machinecode and the

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2003
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common.assembler;
 /**
  * @author Dave Grove
  */

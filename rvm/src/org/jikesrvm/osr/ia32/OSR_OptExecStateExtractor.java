@@ -10,8 +10,8 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
@@ -81,7 +81,7 @@ public abstract class OSR_OptExecStateExtractor
     }
 
     VM_OptCompiledMethod fooCM = 
-      (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
+      (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame

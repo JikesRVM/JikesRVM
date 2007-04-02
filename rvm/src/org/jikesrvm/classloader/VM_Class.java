@@ -9,6 +9,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.util.VM_Synchronizer;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_StackBrowser;
@@ -25,6 +26,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Description of a java "class" type.<br/>

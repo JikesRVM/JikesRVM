@@ -12,6 +12,8 @@ import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

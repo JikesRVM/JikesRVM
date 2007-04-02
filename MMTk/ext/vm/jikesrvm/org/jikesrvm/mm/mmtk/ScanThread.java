@@ -21,8 +21,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Constants;
 
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.scheduler.VM_Thread;

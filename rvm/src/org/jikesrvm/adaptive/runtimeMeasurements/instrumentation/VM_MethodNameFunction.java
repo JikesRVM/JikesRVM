@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 /**
  * VM_MethodNameFunction.java

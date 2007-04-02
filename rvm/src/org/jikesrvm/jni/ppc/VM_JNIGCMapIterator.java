@@ -12,7 +12,7 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 

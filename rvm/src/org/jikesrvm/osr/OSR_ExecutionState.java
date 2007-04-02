@@ -17,6 +17,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.classloader.*;
 import java.util.LinkedList;
@@ -72,7 +73,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     this.tsFPOffset = tsFPOffset;
 
     this.varElms  = new LinkedList<OSR_VariableElement>();
-    this.meth     = (VM_NormalMethod)VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+    this.meth     = (VM_NormalMethod) VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
   }
 
   /////////////////////////////

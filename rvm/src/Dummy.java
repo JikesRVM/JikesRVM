@@ -11,6 +11,7 @@ import org.jikesrvm.runtime.VM_DynamicLinker;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Process;
 import org.jikesrvm.runtime.VM_Math;
+import org.jikesrvm.compilers.common.VM_RecompilationManager;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -30,7 +31,7 @@ class Dummy {
   static VM_Process f;
   static org.vmmagic.pragma.SaveVolatile i;
   static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
-  static org.jikesrvm.VM_RecompilationManager o;
+  static VM_RecompilationManager o;
   static org.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper r;
   static org.vmmagic.unboxed.Address s;
   static VM_Math t;

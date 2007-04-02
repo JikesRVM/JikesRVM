@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.opt.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;

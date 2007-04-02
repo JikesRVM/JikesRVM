@@ -17,8 +17,8 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_AbstractAssembler;
-import org.jikesrvm.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 
 class VM_AssemblerShortBranch extends VM_ForwardReference.ShortBranch {
     final int spTopOffset;

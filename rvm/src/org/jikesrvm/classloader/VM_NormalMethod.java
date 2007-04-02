@@ -9,6 +9,9 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.vmmagic.pragma.*;
 

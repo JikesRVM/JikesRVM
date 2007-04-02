@@ -18,7 +18,7 @@ import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.VM_Stats;
+import org.jikesrvm.scheduler.VM_Stats;
 
 /**
    VM_Lock provides RVM support for monitors and Java level 

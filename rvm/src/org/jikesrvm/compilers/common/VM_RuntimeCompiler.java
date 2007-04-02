@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.*;
@@ -23,6 +23,12 @@ import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific;
 
 /**
  * Harness to select which compiler to dynamically
@@ -57,8 +63,8 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
  * @author Dave Grove
  * @author Michael Hind
  */
-public class VM_RuntimeCompiler implements VM_Constants, 
-                                           VM_Callbacks.ExitMonitor {
+public class VM_RuntimeCompiler implements VM_Constants,
+    VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER      = 0;

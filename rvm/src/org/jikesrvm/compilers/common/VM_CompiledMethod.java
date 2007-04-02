@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.*;
@@ -16,6 +16,9 @@ import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

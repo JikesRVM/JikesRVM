@@ -9,8 +9,8 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ppc.VM_ArchConstants;

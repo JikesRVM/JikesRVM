@@ -6,10 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2001, 2006
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 
 /**
  * Abstract superclass to interface bootimage compiler to the rest of the VM.
@@ -41,7 +45,7 @@ public abstract class VM_BootImageCompiler {
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
-  static void init(String[] args) {
+  public static void init(String[] args) {
     try {
       compiler.initCompiler(args);
     } catch (Throwable e) {

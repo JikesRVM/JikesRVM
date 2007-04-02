@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package org.jikesrvm;
+package org.jikesrvm.util;
 
 import org.vmmagic.pragma.SynchronizedObject;
 

@@ -13,7 +13,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses

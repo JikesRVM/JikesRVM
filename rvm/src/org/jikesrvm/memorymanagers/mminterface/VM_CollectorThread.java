@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;

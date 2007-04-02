@@ -9,11 +9,11 @@
 package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_AbstractAssembler;
+import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.ArchitectureSpecific;
 
@@ -46,7 +46,7 @@ import org.vmmagic.unboxed.*;
  * @modified Ian Rogers
  */
 public abstract class VM_Assembler 
-    extends VM_AbstractAssembler 
+    extends VM_AbstractAssembler
     implements VM_BaselineConstants, VM_AssemblerConstants {
 
   /** Machine code being assembled */

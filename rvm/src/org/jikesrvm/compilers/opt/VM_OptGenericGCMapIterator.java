@@ -9,6 +9,8 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;

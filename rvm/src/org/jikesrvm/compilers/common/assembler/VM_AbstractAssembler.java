@@ -14,7 +14,7 @@
  * 
  * This problem does not exist under IA32 since there is no need for VM_Assembler.ShortBranch
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common.assembler;
 
 public abstract class VM_AbstractAssembler {
   public abstract void patchShortBranch(int sourceMachinecodeIndex);

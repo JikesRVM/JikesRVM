@@ -22,6 +22,8 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.osr.*;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 

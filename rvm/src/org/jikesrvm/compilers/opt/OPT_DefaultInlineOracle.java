@@ -16,6 +16,7 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_AdaptiveInlining;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import java.util.*;
 
 /**

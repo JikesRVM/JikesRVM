@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.objectmodel.VM_ObjectModel;

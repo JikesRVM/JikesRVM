@@ -9,11 +9,11 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_JNIGCMapIterator;
-import org.jikesrvm.VM_HardwareTrapGCMapIterator;
+import org.jikesrvm.compilers.common.VM_HardwareTrapGCMapIterator;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;

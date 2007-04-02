@@ -29,7 +29,7 @@ import org.jikesrvm.VM;
  *
  * @see VM_CompilerAdviceAttribute
  * @see VM_CompilerAdviceInfoReader
- * @see org.jikesrvm.VM_RuntimeCompiler
+ * @see org.jikesrvm.compilers.common.VM_RuntimeCompiler
  */
 public class VM_CompilerAdvice {
   

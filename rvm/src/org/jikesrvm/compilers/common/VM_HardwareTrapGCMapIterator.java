@@ -6,10 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ArchitectureSpecific;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

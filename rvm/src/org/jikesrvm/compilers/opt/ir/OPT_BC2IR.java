@@ -14,6 +14,8 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;

@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * @author Rajesh Bordawekar

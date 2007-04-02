@@ -9,6 +9,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Processor;
@@ -108,7 +109,7 @@ public class VM_OptSaveVolatile {
     // compiled method that called OPT_resolve
     Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
-    VM_OptCompiledMethod cm = (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
+    VM_OptCompiledMethod cm = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address 
     Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     Offset offset = cm.getInstructionOffset(ip);

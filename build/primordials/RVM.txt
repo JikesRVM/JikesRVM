@@ -8,7 +8,6 @@
 
 [Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
 
-[Lorg/jikesrvm/VM_CompiledMethod;
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
 
 [Lorg/jikesrvm/classloader/VM_Class;
@@ -24,6 +23,7 @@
 
 [Lorg/jikesrvm/compilers/baseline/VM_BasicBlock;
 [Lorg/jikesrvm/compilers/baseline/VM_UnusualMaps;
+[Lorg/jikesrvm/compilers/common/VM_CompiledMethod;
 
 [Lorg/jikesrvm/runtime/VM_DynamicLibrary;
 

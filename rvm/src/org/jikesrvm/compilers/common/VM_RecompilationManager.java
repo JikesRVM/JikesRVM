@@ -6,10 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 
 /**
  * This class enables an external driver to block recompile all

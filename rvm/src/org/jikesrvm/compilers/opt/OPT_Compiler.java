@@ -11,6 +11,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.*;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * <p> The main driver of the OPT_Compiler. 
@@ -68,7 +69,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
         // compiled (to get special prologues/epilogues)
         // TODO: This could be phased out as the new DynamicBridge 
         // magic comes on line.
-        loadSpecialClass("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", options);
+        loadSpecialClass("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", options);
 
       }
       // want to be notified when VM boot is done and ready to start application

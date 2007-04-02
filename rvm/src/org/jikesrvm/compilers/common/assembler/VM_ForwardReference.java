@@ -6,9 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.common.assembler;
 
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import org.jikesrvm.VM;
 
 /** 
  *  

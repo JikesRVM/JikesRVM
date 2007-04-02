@@ -18,6 +18,8 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+
 /**
  * Utilities for providing compiler advice.  Advice files provided
  * at run time allow compilers to be specified for particular methods
@@ -31,7 +33,7 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  *
  * @see org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute
  * @see VM_CompilerAdviceInfoReader
- * @see VM_RuntimeCompiler 
+ * @see org.jikesrvm.compilers.common.VM_RuntimeCompiler
  */
 public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
   
@@ -81,7 +83,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
             !method.hasNoOptCompileAnnotation() &&
             (method instanceof org.jikesrvm.classloader.VM_NormalMethod)) {
           // if user's requirement is higher than advice
-          if ((((org.jikesrvm.compilers.opt.OPT_Options)VM_RuntimeCompiler.options).getOptLevel() > value.getOptLevel())
+          if ((((org.jikesrvm.compilers.opt.OPT_Options) VM_RuntimeCompiler.options).getOptLevel() > value.getOptLevel())
               || (VM_Controller.options.MAX_OPT_LEVEL < value.getOptLevel())) {
             method.compile();
           } else {
