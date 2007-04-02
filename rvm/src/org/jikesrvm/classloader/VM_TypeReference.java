@@ -159,7 +159,7 @@ public final class VM_TypeReference {
   // Synthetic types used by the opt compiler 
   public static final VM_TypeReference NULL_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$NULL;") : null;
   public static final VM_TypeReference VALIDATION_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$VALIDATION;") : null;
-  public static final VM_TypeReference VM_ExceptionTable = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/VM_ExceptionTable;") : null; 
+  public static final VM_TypeReference VM_ExceptionTable = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/compilers/common/VM_ExceptionTable;") : null; 
 
   public static final VM_TypeReference OPT_OptimizationPlanner = (VM.BuildForAdaptiveSystem) ? findOrCreate("Lorg/jikesrvm/compilers/opt/OPT_OptimizationPlanner;") : null; 
 
