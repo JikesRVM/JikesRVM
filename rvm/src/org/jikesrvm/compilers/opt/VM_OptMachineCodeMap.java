@@ -77,6 +77,7 @@ import java.util.ArrayList;
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
    */
+  @Interruptible
   static VM_OptMachineCodeMap create (OPT_IR ir, int machineCodeSize) {
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
