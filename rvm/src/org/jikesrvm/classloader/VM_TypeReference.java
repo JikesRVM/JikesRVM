@@ -92,76 +92,77 @@ public final class VM_TypeReference {
   public static final VM_TypeReference FloatArray   = findOrCreate("[F");
   public static final VM_TypeReference DoubleArray  = findOrCreate("[D");
   
-  public static final VM_TypeReference Word    = findOrCreate("Lorg/vmmagic/unboxed/Word;");
-  public static final VM_TypeReference Address = findOrCreate("Lorg/vmmagic/unboxed/Address;");
-  public static final VM_TypeReference ObjectReference = findOrCreate("Lorg/vmmagic/unboxed/ObjectReference;");
-  public static final VM_TypeReference Offset  = findOrCreate("Lorg/vmmagic/unboxed/Offset;");
-  public static final VM_TypeReference Extent  = findOrCreate("Lorg/vmmagic/unboxed/Extent;");
+  public static final VM_TypeReference Word    = findOrCreate(org.vmmagic.unboxed.Word.class);
+  public static final VM_TypeReference Address = findOrCreate(org.vmmagic.unboxed.Address.class);
+  public static final VM_TypeReference ObjectReference = findOrCreate(org.vmmagic.unboxed.ObjectReference.class);
+  public static final VM_TypeReference Offset  = findOrCreate(org.vmmagic.unboxed.Offset.class);
+  public static final VM_TypeReference Extent  = findOrCreate(org.vmmagic.unboxed.Extent.class);
   public static final VM_TypeReference Code    = findOrCreate(VM.BuildForIA32 ? "Lorg/jikesrvm/ia32/VM_Code;":"Lorg/jikesrvm/ppc/VM_Code;");
-  public static final VM_TypeReference WordArray = findOrCreate("Lorg/vmmagic/unboxed/WordArray;");
-  public static final VM_TypeReference AddressArray = findOrCreate("Lorg/vmmagic/unboxed/AddressArray;");
-  public static final VM_TypeReference ObjectReferenceArray = findOrCreate("Lorg/vmmagic/unboxed/ObjectReferenceArray;");
-  public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
-  public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
-  public static final VM_TypeReference CodeArray = findOrCreate("Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-  public static final VM_TypeReference Magic   = findOrCreate("Lorg/jikesrvm/runtime/VM_Magic;");
-  public static final VM_TypeReference SysCall = findOrCreate("Lorg/vmmagic/pragma/SysCall;");
+  public static final VM_TypeReference WordArray = findOrCreate(org.vmmagic.unboxed.WordArray.class);
+  public static final VM_TypeReference AddressArray = findOrCreate(org.vmmagic.unboxed.AddressArray.class);
+  public static final VM_TypeReference ObjectReferenceArray = findOrCreate(org.vmmagic.unboxed.ObjectReferenceArray.class);
+  public static final VM_TypeReference OffsetArray = findOrCreate(org.vmmagic.unboxed.OffsetArray.class);
+  public static final VM_TypeReference ExtentArray = findOrCreate(org.vmmagic.unboxed.ExtentArray.class);
+  public static final VM_TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.VM_CodeArray.class);
+  public static final VM_TypeReference Magic   = findOrCreate(org.jikesrvm.runtime.VM_Magic.class);
+  public static final VM_TypeReference SysCall = findOrCreate(org.vmmagic.pragma.SysCall.class);
 
-  public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
-  public static final VM_TypeReference JavaLangClass = findOrCreate("Ljava/lang/Class;");
-  public static final VM_TypeReference JavaLangString = findOrCreate("Ljava/lang/String;");
-  public static final VM_TypeReference JavaLangCloneable = findOrCreate("Ljava/lang/Cloneable;");
-  public static final VM_TypeReference JavaIoSerializable = findOrCreate("Ljava/io/Serializable;");
+  public static final VM_TypeReference JavaLangObject = findOrCreate(java.lang.Object.class);
+  public static final VM_TypeReference JavaLangClass = findOrCreate(java.lang.Class.class);
+  public static final VM_TypeReference JavaLangString = findOrCreate(java.lang.String.class);
+  public static final VM_TypeReference JavaLangCloneable = findOrCreate(java.lang.Cloneable.class);
+  public static final VM_TypeReference JavaIoSerializable = findOrCreate(java.io.Serializable.class);
 
-  public static final VM_TypeReference JavaLangObjectArray = findOrCreate("[Ljava/lang/Object;");
+  public static final VM_TypeReference JavaLangObjectArray = findOrCreate(java.lang.Object[].class);
 
-  public static final VM_TypeReference JavaLangThrowable = findOrCreate("Ljava/lang/Throwable;");
-  public static final VM_TypeReference JavaLangError = findOrCreate("Ljava/lang/Error;");
-  public static final VM_TypeReference JavaLangNullPointerException = findOrCreate("Ljava/lang/NullPointerException;");
-  public static final VM_TypeReference JavaLangArrayIndexOutOfBoundsException = findOrCreate("Ljava/lang/ArrayIndexOutOfBoundsException;");
-  public static final VM_TypeReference JavaLangArithmeticException = findOrCreate("Ljava/lang/ArithmeticException;");
-  public static final VM_TypeReference JavaLangArrayStoreException = findOrCreate("Ljava/lang/ArrayStoreException;");
-  public static final VM_TypeReference JavaLangClassCastException = findOrCreate("Ljava/lang/ClassCastException;");
-  public static final VM_TypeReference JavaLangNegativeArraySizeException = findOrCreate("Ljava/lang/NegativeArraySizeException;");
-  public static final VM_TypeReference JavaLangIllegalMonitorStateException = findOrCreate("Ljava/lang/IllegalMonitorStateException;");
+  public static final VM_TypeReference JavaLangThrowable = findOrCreate(java.lang.Throwable.class);
+  public static final VM_TypeReference JavaLangError = findOrCreate(java.lang.Error.class);
+  public static final VM_TypeReference JavaLangNullPointerException = findOrCreate(java.lang.NullPointerException.class);
+  public static final VM_TypeReference JavaLangArrayIndexOutOfBoundsException = findOrCreate(java.lang.ArrayIndexOutOfBoundsException.class);
+  public static final VM_TypeReference JavaLangArithmeticException = findOrCreate(java.lang.ArithmeticException.class);
+  public static final VM_TypeReference JavaLangArrayStoreException = findOrCreate(java.lang.ArrayStoreException.class);
+  public static final VM_TypeReference JavaLangClassCastException = findOrCreate(java.lang.ClassCastException.class);
+  public static final VM_TypeReference JavaLangNegativeArraySizeException = findOrCreate(java.lang.NegativeArraySizeException.class);
+  public static final VM_TypeReference JavaLangIllegalMonitorStateException = findOrCreate(java.lang.IllegalMonitorStateException.class);
 
   
-  public static final VM_TypeReference VM_Processor = findOrCreate("Lorg/jikesrvm/scheduler/VM_Processor;");
-  public static final VM_TypeReference VM_Type = findOrCreate("Lorg/jikesrvm/classloader/VM_Type;");
-  public static final VM_TypeReference VM_Class = findOrCreate("Lorg/jikesrvm/classloader/VM_Class;");
+  public static final VM_TypeReference VM_Processor = findOrCreate(org.jikesrvm.scheduler.VM_Processor.class);
+  public static final VM_TypeReference VM_Type = findOrCreate(org.jikesrvm.classloader.VM_Type.class);
+  public static final VM_TypeReference VM_Class = findOrCreate(org.jikesrvm.classloader.VM_Class.class);
 
-  public static final VM_TypeReference NativeBridge = findOrCreate("Lorg/vmmagic/pragma/NativeBridge;");
-  public static final VM_TypeReference DynamicBridge = findOrCreate("Lorg/vmmagic/pragma/DynamicBridge;");
-  public static final VM_TypeReference SynchronizedObject = findOrCreate("Lorg/vmmagic/pragma/SynchronizedObject;");
-  public static final VM_TypeReference SaveVolatile = findOrCreate("Lorg/vmmagic/pragma/SaveVolatile;");
-  public static final VM_TypeReference Interruptible = findOrCreate("Lorg/vmmagic/pragma/Interruptible;");
-  public static final VM_TypeReference LogicallyUninterruptible = findOrCreate("Lorg/vmmagic/pragma/LogicallyUninterruptible;");
-  public static final VM_TypeReference NoOptCompile = findOrCreate("Lorg/vmmagic/pragma/NoOptCompile;");
-  public static final VM_TypeReference Preemptible = findOrCreate("Lorg/vmmagic/pragma/Preemptible;");
-  public static final VM_TypeReference UninterruptibleNoWarn = findOrCreate("Lorg/vmmagic/pragma/UninterruptibleNoWarn;");
-  public static final VM_TypeReference Uninterruptible = findOrCreate("Lorg/vmmagic/pragma/Uninterruptible;");
-  public static final VM_TypeReference Unpreemptible = findOrCreate("Lorg/vmmagic/pragma/Unpreemptible;");
-  public static final VM_TypeReference Inline = findOrCreate("Lorg/vmmagic/pragma/Inline;");
-  public static final VM_TypeReference NoInline = findOrCreate("Lorg/vmmagic/pragma/NoInline;");
+  public static final VM_TypeReference NativeBridge = findOrCreate(org.vmmagic.pragma.NativeBridge.class);
+  public static final VM_TypeReference DynamicBridge = findOrCreate(org.vmmagic.pragma.DynamicBridge.class);
+  public static final VM_TypeReference SynchronizedObject = findOrCreate(org.vmmagic.pragma.SynchronizedObject.class);
+  public static final VM_TypeReference SaveVolatile = findOrCreate(org.vmmagic.pragma.SaveVolatile.class);
+  public static final VM_TypeReference Interruptible = findOrCreate(org.vmmagic.pragma.Interruptible.class);
+  public static final VM_TypeReference LogicallyUninterruptible = findOrCreate(org.vmmagic.pragma.LogicallyUninterruptible.class);
+  public static final VM_TypeReference NoOptCompile = findOrCreate(org.vmmagic.pragma.NoOptCompile.class);
+  public static final VM_TypeReference Preemptible = findOrCreate(org.vmmagic.pragma.Preemptible.class);
+  public static final VM_TypeReference UninterruptibleNoWarn = findOrCreate(org.vmmagic.pragma.UninterruptibleNoWarn.class);
+  public static final VM_TypeReference Uninterruptible = findOrCreate(org.vmmagic.pragma.Uninterruptible.class);
+  public static final VM_TypeReference Unpreemptible = findOrCreate(org.vmmagic.pragma.Unpreemptible.class);
+  public static final VM_TypeReference Inline = findOrCreate(org.vmmagic.pragma.Inline.class);
+  public static final VM_TypeReference NoInline = findOrCreate(org.vmmagic.pragma.NoInline.class);
   public static final VM_TypeReference BaselineNoRegisters = 
-      VM.BuildForIA32 ? null : findOrCreate("Lorg/vmmagic/pragma/BaselineNoRegisters;");
+      VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
   public static final VM_TypeReference BaselineSaveLSRegisters = 
-      VM.BuildForIA32 ? null : findOrCreate("Lorg/vmmagic/pragma/BaselineSaveLSRegisters;");
+      VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
 
-  public static final VM_TypeReference VM_BaseAnnotation = findOrCreate("Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;");
-  public static final VM_TypeReference VM_ReferenceMaps = findOrCreate("Lorg/jikesrvm/compilers/baseline/VM_ReferenceMaps;");
-  public static final VM_TypeReference VM_JNIFunctions = findOrCreate("Lorg/jikesrvm/jni/VM_JNIFunctions;");
+  public static final VM_TypeReference VM_BaseAnnotation = findOrCreate(org.jikesrvm.classloader.VM_Annotation.BaseAnnotation.class);
+  public static final VM_TypeReference VM_ReferenceMaps = findOrCreate(org.jikesrvm.compilers.baseline.VM_ReferenceMaps.class);
+  public static final VM_TypeReference VM_JNIFunctions = findOrCreate(org.jikesrvm.jni.VM_JNIFunctions.class);
   
-  public static final VM_TypeReference VM_CollectorThread = findOrCreate("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
+  public static final VM_TypeReference VM_CollectorThread = findOrCreate(org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread.class);
 
-  public static final VM_TypeReference VM_Array = findOrCreate("Lorg/jikesrvm/classloader/VM_Array;");
+  public static final VM_TypeReference VM_Array = findOrCreate(org.jikesrvm.classloader.VM_Array.class);
 
   // Synthetic types used by the opt compiler 
   public static final VM_TypeReference NULL_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$NULL;") : null;
   public static final VM_TypeReference VALIDATION_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$VALIDATION;") : null;
-  public static final VM_TypeReference VM_ExceptionTable = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/compilers/common/VM_ExceptionTable;") : null; 
+  
+  public static final VM_TypeReference VM_ExceptionTable = (VM.BuildForOptCompiler) ? findOrCreate(org.jikesrvm.compilers.common.VM_ExceptionTable.class) : null; 
 
-  public static final VM_TypeReference OPT_OptimizationPlanner = (VM.BuildForAdaptiveSystem) ? findOrCreate("Lorg/jikesrvm/compilers/opt/OPT_OptimizationPlanner;") : null; 
+  public static final VM_TypeReference OPT_OptimizationPlanner = (VM.BuildForAdaptiveSystem) ? findOrCreate(org.jikesrvm.compilers.opt.OPT_OptimizationPlanner.class) : null; 
 
   /**
    * Hash value based on name, used for canonical type dictionary
