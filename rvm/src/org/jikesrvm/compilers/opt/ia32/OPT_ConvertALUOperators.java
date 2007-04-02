@@ -152,6 +152,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case REF_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
       case INT_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
       case INT_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
+      case REF_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
       case REF_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
       case INT_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
 

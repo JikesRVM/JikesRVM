@@ -1476,6 +1476,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           return DefUseEffect.REDUCED;
         }
       }
+      else if (op1.isIntConstant() && (op1.asIntConstant().value == 0)) {
+        Unary.mutate(s, INT_NEG, Binary.getClearResult(s),
+                     Binary.getClearVal2(s));
+        return DefUseEffect.REDUCED;
+      }
     }
     return DefUseEffect.UNCHANGED;
   }
@@ -1741,6 +1746,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s), AC(Address.zero().minus(val2.toWord().toOffset())));
           return DefUseEffect.REDUCED;
         }
+      }
+      else if (op1.isConstant() && !op1.isObjectConstant()) {
+	  Address val1 = getAddressValue(op1);
+	  if (val1.EQ(Address.zero())) {
+	      Unary.mutate(s, REF_NEG, Binary.getClearResult(s),
+			   Binary.getClearVal2(s));
+	      return DefUseEffect.REDUCED;
+	  }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2147,6 +2160,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           }
         }
       }
+      else if (op1.isLongConstant() && (op1.asLongConstant().value == 0)) {
+	  Unary.mutate(s, LONG_NEG, Binary.getClearResult(s),
+		       Binary.getClearVal2(s));
+          return DefUseEffect.REDUCED;
+      }
     }
     return DefUseEffect.UNCHANGED;
   }
@@ -2345,10 +2363,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
   private static DefUseEffect floatSub(OPT_Instruction s) {
    if (CF_FLOAT) {
+      OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         float val2 = op2.asFloatConstant().value;
-        OPT_Operand op1 = Binary.getVal1(s);
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
@@ -2362,6 +2380,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                       Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
+      }
+      else if (op1.isFloatConstant() && (op1.asFloatConstant().value == 0.0f)) {
+	  Unary.mutate(s, FLOAT_NEG, Binary.getClearResult(s),
+		       Binary.getClearVal2(s));
+          return DefUseEffect.REDUCED;
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2496,10 +2519,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
   private static DefUseEffect doubleSub(OPT_Instruction s) {
    if (CF_DOUBLE) {
+      OPT_Operand op1 = Binary.getVal1(s);
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         double val2 = op2.asDoubleConstant().value;
-        OPT_Operand op1 = Binary.getVal1(s);
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
@@ -2513,6 +2536,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                       Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
+      }
+      else if (op1.isDoubleConstant() && (op1.asDoubleConstant().value == 0.0)) {
+    	  Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s),
+		       Binary.getClearVal2(s));
+          return DefUseEffect.REDUCED;
       }
     }
     return DefUseEffect.UNCHANGED;
