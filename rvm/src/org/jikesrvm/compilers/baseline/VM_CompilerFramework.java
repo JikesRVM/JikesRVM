@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
@@ -15,6 +15,12 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_ForwardReference;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.VM_Services;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 

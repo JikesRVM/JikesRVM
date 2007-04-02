@@ -10,7 +10,8 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_AbstractAssembler;
-import org.jikesrvm.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.VM_Services;

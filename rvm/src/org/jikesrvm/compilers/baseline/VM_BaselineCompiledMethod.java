@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
@@ -15,6 +15,11 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_ReferenceMaps;
+import org.jikesrvm.VM_ExceptionTable;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_PrintLN;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -27,8 +32,8 @@ import org.vmmagic.unboxed.Offset;
  * @modified Steven Augart
  */
 @SynchronizedObject
-public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
-  implements VM_BaselineConstants {
+public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
+    implements VM_BaselineConstants {
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;

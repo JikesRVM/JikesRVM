@@ -6,17 +6,20 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
-import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.osr.*;
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_CompiledMethod;
+import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Baseline compiler - platform independent code.
@@ -31,8 +34,7 @@ import org.jikesrvm.runtime.VM_Time;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler extends VM_CompilerFramework
-{
+public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
   private static long gcMapCycles;
   private static long osrSetupCycles;
@@ -95,7 +97,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
    * Now that VM is fully booted, enable options 
    * such as PRINT_MACHINE_CODE that require a fully booted VM.
    */
-  static void fullyBootedVM() {
+  public static void fullyBootedVM() {
     // If the user has requested machine code dumps, then force a test 
     // of method to print option so extra classes needed to process 
     // matching will be loaded and compiled upfront. Thus avoiding getting
@@ -168,7 +170,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
    * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
   public static VM_CompiledMethod compile (VM_NormalMethod method) {
-    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
+    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     cm.compile();
     return cm;
   }

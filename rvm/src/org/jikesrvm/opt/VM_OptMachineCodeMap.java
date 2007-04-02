@@ -85,6 +85,11 @@ import java.util.ArrayList;
     // create all machine code maps
     final VM_OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
 
+    if( null != map.MCInformation && map.MCInformation.length == 0 ) {
+      VM.sysWrite("machine code map for " + ir.method + " is of zero length\n");
+      VM.sysExit( 23 );
+    }
+    
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method, map.size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
@@ -245,6 +250,8 @@ import java.util.ArrayList;
   private int findMCEntry(Offset MCOffset) {
     // Given a machine code instruction MCOffset, find the corresponding entry
     if (MCInformation == null) return -1;
+    if (MCInformation.length == 0) return -1;
+
     int left = 0;
     int right = MCInformation.length-1;
     while (left <= right) {

@@ -3,6 +3,7 @@ package org.jikesrvm;
 import org.vmmagic.unboxed.WordArray;
 
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.opt.OPT_BURS;
 import org.jikesrvm.opt.OPT_DepGraphNode;
 import org.jikesrvm.opt.ir.OPT_IR;
@@ -21,8 +22,8 @@ public class ArchitectureSpecific {
   }
   public static interface VM_ArchConstants extends org.jikesrvm.@_ARCH_@.VM_ArchConstants {} 
   public static interface VM_BaselineConstants extends org.jikesrvm.@_ARCH_@.VM_BaselineConstants {}
-  public static final class VM_BaselineExceptionDeliverer extends org.jikesrvm.@_ARCH_@.VM_BaselineExceptionDeliverer {}
-  public static final class VM_BaselineGCMapIterator extends org.jikesrvm.@_ARCH_@.VM_BaselineGCMapIterator {
+  public static final class VM_BaselineExceptionDeliverer extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineExceptionDeliverer {}
+  public static final class VM_BaselineGCMapIterator extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineGCMapIterator {
     public VM_BaselineGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
@@ -34,7 +35,7 @@ public class ArchitectureSpecific {
       return new VM_CodeArray(size);
     }
   }
-  public static final class VM_Compiler extends org.jikesrvm.@_ARCH_@.VM_Compiler {
+  public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_Compiler {
     public VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
       super(cm @_IA32_QUOTE_@, genLocLoc, floatLocLoc @_PPC_QUOTE_@ */);
     }}

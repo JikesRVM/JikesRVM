@@ -10,7 +10,8 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
@@ -23,7 +24,6 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.opt.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.ppc.*;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 
 import org.vmmagic.unboxed.*;

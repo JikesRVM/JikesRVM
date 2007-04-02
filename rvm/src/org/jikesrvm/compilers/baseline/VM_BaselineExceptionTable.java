@@ -6,9 +6,12 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_ExceptionTable;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
 
 /**
  * Encoding of try ranges in the final machinecode and the

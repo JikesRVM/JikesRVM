@@ -10,7 +10,7 @@ package org.jikesrvm.adaptive.controller;
 
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_EdgeCounts;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.VM_RecompilationManager;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;

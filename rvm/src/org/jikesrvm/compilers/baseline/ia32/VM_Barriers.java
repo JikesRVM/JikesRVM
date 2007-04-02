@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ia32;
+package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;

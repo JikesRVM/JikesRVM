@@ -6,15 +6,16 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.baseline.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_ReferenceMaps;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
+import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_ReferenceMaps;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.classloader.*;
 

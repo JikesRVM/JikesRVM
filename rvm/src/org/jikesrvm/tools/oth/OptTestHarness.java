@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.io.*;
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.opt.*;

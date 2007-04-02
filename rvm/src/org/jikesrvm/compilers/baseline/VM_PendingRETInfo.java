@@ -6,7 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
+
+import org.jikesrvm.VM;
 
 /**
  * This class is used during the processing of reference maps for a method.

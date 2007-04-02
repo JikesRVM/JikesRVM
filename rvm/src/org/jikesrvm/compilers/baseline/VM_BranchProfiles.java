@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+
 /**
  * Profile data for all conditional branches (including switches)
  * of a single VM_Method.

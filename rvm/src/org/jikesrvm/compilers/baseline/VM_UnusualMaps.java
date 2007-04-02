@@ -6,9 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
 
 /**
  * Unusual maps are maps to track references that don't take the usual format.

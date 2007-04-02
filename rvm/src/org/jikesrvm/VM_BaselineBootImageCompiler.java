@@ -11,6 +11,7 @@ package org.jikesrvm;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 
 /**
  * Use baseline compiler to build virtual machine boot image.

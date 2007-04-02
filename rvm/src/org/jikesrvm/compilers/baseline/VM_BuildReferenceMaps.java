@@ -7,10 +7,12 @@
  * (C) Copyright IBM Corp 2001,2002, 2004, 2005
  */
 //VM_BuildReferenceMaps.java
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_BBConstants;
+import org.jikesrvm.VM;
 
 /** 
  * This class builds the reference and non-reference maps for a given method.

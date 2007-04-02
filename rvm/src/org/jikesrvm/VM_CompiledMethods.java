@@ -13,6 +13,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.opt.*;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 

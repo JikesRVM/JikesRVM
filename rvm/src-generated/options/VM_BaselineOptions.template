@@ -6,7 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
+
+import org.jikesrvm.VM;
 
 /**
  * Class to handle command-line arguments and options for the 

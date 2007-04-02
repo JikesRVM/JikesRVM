@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM_BBConstants;
+import org.jikesrvm.VM;
 
 /**
  * Analyze the byte codes and determine the boundaries of the 
@@ -19,8 +21,7 @@ import org.jikesrvm.classloader.*;
  */
 
 public final class VM_BuildBB
-  implements VM_BytecodeConstants , VM_BBConstants 
-{
+  implements VM_BytecodeConstants , VM_BBConstants {
 
 
   // ---------------- Static Class Fields --------------------

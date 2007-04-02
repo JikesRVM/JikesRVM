@@ -22,6 +22,7 @@ import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
 import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 
 /**
  * Harness to select which compiler to dynamically

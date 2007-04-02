@@ -6,11 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004, 2005
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -362,7 +364,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Interruptible
-  int size() { 
+  public int size() { 
     int size = VM_TypeReference.VM_ReferenceMaps.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
     if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);

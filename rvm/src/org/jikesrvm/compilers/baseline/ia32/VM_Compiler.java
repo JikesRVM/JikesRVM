@@ -6,19 +6,23 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ia32;
+package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
-import org.jikesrvm.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_EdgeCounts;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.VM_Assembler;
+import org.jikesrvm.compilers.baseline.ia32.VM_Barriers;
+import org.jikesrvm.ia32.VM_ProcessorLocalState;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;

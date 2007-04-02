@@ -6,14 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.baseline.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
-import org.jikesrvm.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.VM_BBConstants;
 import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_EdgeCounts;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM_ForwardReference;
 import org.jikesrvm.runtime.VM_MagicNames;
@@ -24,6 +24,8 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.ppc.VM_Assembler;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_AssemblerConstants;
 import org.jikesrvm.jni.ppc.VM_JNICompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -43,11 +45,11 @@ import org.vmmagic.unboxed.Offset;
  * @author Perry Cheng
  * @modified Daniel Frampton
  */
-public abstract class VM_Compiler extends VM_BaselineCompiler 
-  implements VM_BaselineConstants,
+public abstract class VM_Compiler extends VM_BaselineCompiler
+    implements VM_BaselineConstants,
              VM_JNIStackframeLayoutConstants, 
-             VM_BBConstants, 
-             VM_AssemblerConstants {
+             VM_BBConstants,
+    VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
   private int frameSize;            
@@ -3414,7 +3416,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       VM_ForwardReference fr = asm.emitForwardBC(VM_Assembler.flipCode(cc));
 
       // Increment taken counter & jump to target
-      incEdgeCounter(T0, T1, entry+VM_EdgeCounts.TAKEN);
+      incEdgeCounter(T0, T1, entry+ VM_EdgeCounts.TAKEN);
       asm.emitB(bytecodeMap[bTarget], bTarget);
 
       // Not taken

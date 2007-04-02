@@ -15,6 +15,8 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_BaselineOptions;
 
 import java.io.File;
 import java.util.Arrays;

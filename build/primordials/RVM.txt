@@ -7,15 +7,9 @@
 [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
 [Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
-[Lorg/jikesrvm/VM_BasicBlock;
-[Lorg/jikesrvm/VM_UnusualMaps;
+
 [Lorg/jikesrvm/VM_CompiledMethod;
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
-
-[Lorg/jikesrvm/runtime/VM_DynamicLibrary;
-
-[Lorg/jikesrvm/util/VM_HashMap$Bucket;
-[Lorg/jikesrvm/util/VM_HashSet$Bucket;
 
 [Lorg/jikesrvm/classloader/VM_Class;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
@@ -28,9 +22,17 @@
 [Lorg/jikesrvm/classloader/VM_Type;
 [Lorg/jikesrvm/classloader/VM_TypeReference;
 
+[Lorg/jikesrvm/compilers/baseline/VM_BasicBlock;
+[Lorg/jikesrvm/compilers/baseline/VM_UnusualMaps;
+
+[Lorg/jikesrvm/runtime/VM_DynamicLibrary;
+
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
+
+[Lorg/jikesrvm/util/VM_HashMap$Bucket;
+[Lorg/jikesrvm/util/VM_HashSet$Bucket;
 
 [Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;

@@ -6,9 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.compilers.baseline.ppc;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_Assembler;
 import org.jikesrvm.runtime.VM_Entrypoints;
 
 import org.vmmagic.unboxed.Offset;

@@ -9,6 +9,11 @@
 package org.jikesrvm.opt.ir;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.baseline.VM_BranchProfile;
+import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
+import org.jikesrvm.compilers.baseline.VM_ConditionalBranchProfile;
+import org.jikesrvm.compilers.baseline.VM_BranchProfiles;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;

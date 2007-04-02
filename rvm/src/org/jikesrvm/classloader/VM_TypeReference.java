@@ -149,7 +149,7 @@ public final class VM_TypeReference {
       VM.BuildForIA32 ? null : findOrCreate("Lorg/vmmagic/pragma/BaselineSaveLSRegisters;");
 
   public static final VM_TypeReference VM_BaseAnnotation = findOrCreate("Lorg/jikesrvm/classloader/VM_Annotation$BaseAnnotation;");
-  public static final VM_TypeReference VM_ReferenceMaps = findOrCreate("Lorg/jikesrvm/VM_ReferenceMaps;");
+  public static final VM_TypeReference VM_ReferenceMaps = findOrCreate("Lorg/jikesrvm/compilers/baseline/VM_ReferenceMaps;");
   public static final VM_TypeReference VM_JNIFunctions = findOrCreate("Lorg/jikesrvm/jni/VM_JNIFunctions;");
   
   public static final VM_TypeReference VM_CollectorThread = findOrCreate("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");

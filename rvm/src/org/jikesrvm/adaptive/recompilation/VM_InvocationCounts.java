@@ -10,6 +10,7 @@ package org.jikesrvm.adaptive.recompilation;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.controller.VM_RecompilationStrategy;

@@ -6,15 +6,15 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.ia32;
+package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_ReferenceMaps;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_ReferenceMaps;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;

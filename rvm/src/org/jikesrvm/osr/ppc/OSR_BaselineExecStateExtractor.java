@@ -10,7 +10,8 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.VM_CompiledMethods;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;

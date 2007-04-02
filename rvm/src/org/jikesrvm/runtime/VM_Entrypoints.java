@@ -209,7 +209,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field sysDoubleToLongIPField          = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field sysDoubleRemainderIPField       = getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
 
-  public static final VM_Field edgeCountersField               = getField("Lorg/jikesrvm/VM_EdgeCounts;", "data", "[[I");
+  public static final VM_Field edgeCountersField               = getField("Lorg/jikesrvm/compilers/baseline/VM_EdgeCounts;", "data", "[[I");
 
   public static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
   public static final VM_Field inetAddressFamilyField  = getField("Ljava/net/InetAddress;", "family", "I");

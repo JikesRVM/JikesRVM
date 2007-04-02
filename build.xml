@@ -532,10 +532,11 @@ Check to make sure all required properties are specified. This includes properti
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.vm.dat"/>
       </args>
     </GenerateFromTemplate>
+    <mkdir dir="${generated.java}/org/jikesrvm/compilers/baseline"/>
     <GenerateFromTemplate>
       <args>
         <arg value="${options.dir}/VM_BaselineOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/VM_BaselineOptions.java"/>
+        <arg value="${generated.java}/org/jikesrvm/compilers/baseline/VM_BaselineOptions.java"/>
         <arg
             value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.baseline.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.baseline.dat ${options.dir}/SharedValueOptions.dat"/>

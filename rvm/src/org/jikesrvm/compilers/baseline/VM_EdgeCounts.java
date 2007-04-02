@@ -6,10 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm;
+package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM;
 import java.util.*;
 import java.io.*;
 

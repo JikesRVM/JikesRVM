@@ -20,7 +20,7 @@ public class ArchitectureSpecific {
     }
   }
   public static final class VM_CodeArray extends org.jikesrvm.ia32.VM_CodeArray {}
-  public static final class VM_Compiler extends org.jikesrvm.ia32.VM_Compiler {}
+  public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.ia32.VM_Compiler {}
   public static final class VM_MachineCode extends org.jikesrvm.ia32.VM_MachineCode {
     public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
       super(array, bm);
