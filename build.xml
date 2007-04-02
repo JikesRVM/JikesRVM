@@ -653,7 +653,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
-        <equals arg1="${config.assertions}" arg2="normal"/>
+        <equals arg1="${config.assertions}" arg2="none"/>
       </not>
     </condition>
     <condition property="pp_RVM_WITH_EXTREME_ASSERTIONS" value="true" else="false">
