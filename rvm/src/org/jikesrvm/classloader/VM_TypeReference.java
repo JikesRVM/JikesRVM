@@ -624,8 +624,7 @@ public final class VM_TypeReference {
   }
 
   /**
-   * Has the type reference already been resolved into a type? NB this can
-   * return true when a type itself isn't resolved during the bootstrap
+   * Has the type reference already been resolved into a type?
    */
   @Uninterruptible
   public boolean isResolved() { 
