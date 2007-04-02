@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 

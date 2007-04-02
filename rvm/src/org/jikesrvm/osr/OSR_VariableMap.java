@@ -9,7 +9,7 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import java.util.*;
 
 /**

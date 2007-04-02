@@ -12,9 +12,9 @@ import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_MethodInvoca
 import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.opt.ir.*;
-import org.jikesrvm.opt.OPT_CompilerPhase;
-import org.jikesrvm.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_Options;
 
 /**
  * An OPT_CompilerPhase that inserts a method invocation counter on the first

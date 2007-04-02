@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
-import org.jikesrvm.opt.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;

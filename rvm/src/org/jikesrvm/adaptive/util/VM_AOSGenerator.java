@@ -16,7 +16,7 @@ package org.jikesrvm.adaptive.util;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import java.io.*;
 
 /**

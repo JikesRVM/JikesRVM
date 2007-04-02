@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;

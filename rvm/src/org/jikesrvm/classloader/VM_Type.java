@@ -159,14 +159,14 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes. NB this field must appear in all VM_Types for fast type
-   * checks (See {@link org.jikesrvm.opt.OPT_DynamicTypeCheckExpansion}).
+   * checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
   protected final int dimension;
   /**
    * Number of superclasses to Object. Known immediately for
    * primitives and arrays, but only after resolving for classes. NB
    * this field must appear in all VM_Types for fast object array
-   * store checks (See {@link org.jikesrvm.opt.OPT_DynamicTypeCheckExpansion}).
+   * store checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
   protected int depth;
   /**

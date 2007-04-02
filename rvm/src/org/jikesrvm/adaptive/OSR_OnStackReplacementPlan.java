@@ -17,7 +17,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
 import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
 import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.osr.*;
 import org.vmmagic.unboxed.Offset;
 /**

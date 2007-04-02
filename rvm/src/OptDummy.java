@@ -17,7 +17,7 @@
  * @author Derek Lieber
  */
 class OptDummy {
-  static org.jikesrvm.opt.OPT_Compiler a;
-  static org.jikesrvm.opt.VM_OptSaveVolatile g;
-  static org.jikesrvm.opt.OPT_SpecializedMethodPool q;
+  static org.jikesrvm.compilers.opt.OPT_Compiler a;
+  static org.jikesrvm.compilers.opt.VM_OptSaveVolatile g;
+  static org.jikesrvm.compilers.opt.OPT_SpecializedMethodPool q;
 }

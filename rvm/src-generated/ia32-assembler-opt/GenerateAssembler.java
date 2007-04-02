@@ -65,9 +65,9 @@ import java.lang.reflect.*;
  * 
  * @see OPT_InstructionFormatTables
  * @see OPT_OperatorFormatTables
- * @see org.jikesrvm.opt.OPT_AssemblerBase
- * @see org.jikesrvm.opt.ir.OPT_Instruction
- * @see org.jikesrvm.opt.OPT_Assembler
+ * @see org.jikesrvm.compilers.opt.OPT_AssemblerBase
+ * @see org.jikesrvm.compilers.opt.ir.OPT_Instruction
+ * @see org.jikesrvm.compilers.opt.OPT_Assembler
  * @see VM_Assembler
  *
  * @author Julian Dolby 
@@ -1137,10 +1137,10 @@ public class GenerateAssembler {
             System.exit(1 );
         }
 
-        emit("package org.jikesrvm.opt.ia32;\n\n");
+        emit("package org.jikesrvm.compilers.opt.ia32;\n\n");
         emit("import org.jikesrvm.*;\n\n");
-        emit("import org.jikesrvm.opt.*;\n\n");
-        emit("import org.jikesrvm.opt.ir.*;\n\n");
+        emit("import org.jikesrvm.compilers.opt.*;\n\n");
+        emit("import org.jikesrvm.compilers.opt.ir.*;\n\n");
         emit("\n\n");
 
         emit("/**\n");

@@ -9,14 +9,14 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_YieldpointCounterData;
 import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import static org.jikesrvm.opt.ir.OPT_Operators.*;
-import org.jikesrvm.opt.OPT_CompilerPhase;
-import org.jikesrvm.opt.OPT_Options;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_Options;
 
 /** 
  * An opt compiler phase that inserts yieldpoint counters.  Searches

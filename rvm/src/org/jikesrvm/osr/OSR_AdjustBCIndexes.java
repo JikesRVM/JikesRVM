@@ -9,8 +9,8 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.opt.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.ir.*;
 /**
  * OSR_AdjustBCIndex is an optimizing phase performed on HIR.
  * It adjust the byte code index of instructions from specialized

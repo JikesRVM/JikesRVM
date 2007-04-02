@@ -8,7 +8,7 @@
  */
 //OPT_OperatorNames.java
 
-package org.jikesrvm.opt.ir;
+package org.jikesrvm.compilers.opt.ir;
 
 /**
  * Class to store the string representations of different operators.

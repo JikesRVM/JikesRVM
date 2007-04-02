@@ -11,7 +11,7 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.*;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.controller.VM_ControllerMemory;

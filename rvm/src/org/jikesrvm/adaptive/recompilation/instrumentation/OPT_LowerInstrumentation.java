@@ -8,14 +8,14 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import static org.jikesrvm.opt.ir.OPT_Operators.*;
-import org.jikesrvm.opt.OPT_CompilerPhase;
-import org.jikesrvm.opt.OPT_Options;
-import org.jikesrvm.opt.OPT_InstrumentedEventCounterManager;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
 import java.util.ArrayList;
 
 /** 

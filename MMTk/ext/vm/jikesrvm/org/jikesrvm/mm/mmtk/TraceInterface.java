@@ -13,9 +13,9 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Type;
 
-import org.jikesrvm.opt.VM_OptCompiledMethod;
-import org.jikesrvm.opt.VM_OptMachineCodeMap;
-import org.jikesrvm.opt.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;

@@ -15,11 +15,11 @@
  * DO NOT MANUALLY EDIT THE JAVA FILE.
  */
 
-package org.jikesrvm.opt.ir;
+package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 
 /**
  * An OPT_Operator represents the operator of an {@link OPT_Instruction}.

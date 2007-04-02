@@ -22,7 +22,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
  */
 public abstract class VM_BootImageCompiler {
 
-  private static VM_BootImageCompiler compiler = VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.opt.VM_OptimizingBootImageCompiler();
+  private static VM_BootImageCompiler compiler = VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.compilers.opt.VM_OptimizingBootImageCompiler();
 
   /** 
    * Initialize boot image compiler.

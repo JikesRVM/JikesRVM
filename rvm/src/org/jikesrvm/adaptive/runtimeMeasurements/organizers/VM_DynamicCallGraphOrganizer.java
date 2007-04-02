@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_EdgeListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.vmmagic.unboxed.Offset;
 
 /**

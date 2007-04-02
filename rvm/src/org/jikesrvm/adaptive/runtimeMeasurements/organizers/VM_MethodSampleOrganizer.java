@@ -17,7 +17,7 @@ import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
  * An organizer for method listener information. 

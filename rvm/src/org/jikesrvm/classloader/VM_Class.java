@@ -24,7 +24,7 @@ import java.lang.annotation.Inherited;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 
 /**
  * Description of a java "class" type.<br/>

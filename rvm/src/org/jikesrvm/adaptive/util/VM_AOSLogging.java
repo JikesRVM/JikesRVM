@@ -20,7 +20,7 @@ import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import java.io.*;
 
 /**

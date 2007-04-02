@@ -11,7 +11,7 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import java.util.*;
 
 import org.vmmagic.pragma.*;

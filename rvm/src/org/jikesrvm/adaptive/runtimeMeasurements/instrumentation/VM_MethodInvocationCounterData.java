@@ -10,7 +10,7 @@ package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_Reportable;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 
 /**
  * An instance of this class is used to store method counters.  It is

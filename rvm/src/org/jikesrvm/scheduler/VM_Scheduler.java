@@ -13,7 +13,7 @@ import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

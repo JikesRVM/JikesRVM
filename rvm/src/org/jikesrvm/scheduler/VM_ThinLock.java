@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.opt.OPT_ExpandRuntimeServices
+   * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
   static void inlineLock(Object o, Offset lockOffset) { 
@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param o the object to be unlocked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.opt.OPT_ExpandRuntimeServices
+   * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
   static void inlineUnlock(Object o, Offset lockOffset) { 

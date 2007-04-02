@@ -236,17 +236,17 @@ public class VM_Entrypoints implements VM_Constants {
 
   static {
     if (VM.BuildForOptCompiler) {
-      specializedMethodsField = getField("Lorg/jikesrvm/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+      specializedMethodsField = getField("Lorg/jikesrvm/compilers/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
       osrOrganizerQueueLockField = getField("Lorg/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
-      optThreadSwitchFromOsrOptMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
-      optThreadSwitchFromPrologueMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
-      optThreadSwitchFromBackedgeMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
-      optThreadSwitchFromEpilogueMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
-      yieldpointFromNativePrologueMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
-      yieldpointFromNativeEpilogueMethod = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
-      optResolveMethod  = getMethod("Lorg/jikesrvm/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
+      optThreadSwitchFromOsrOptMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
+      optThreadSwitchFromPrologueMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
+      optThreadSwitchFromBackedgeMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
+      optThreadSwitchFromEpilogueMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
+      yieldpointFromNativePrologueMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
+      yieldpointFromNativeEpilogueMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
+      optResolveMethod  = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
-      optNewArrayArrayMethod            = getMethod("Lorg/jikesrvm/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
+      optNewArrayArrayMethod            = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
 
       sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);

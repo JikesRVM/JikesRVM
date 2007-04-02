@@ -10,8 +10,8 @@ package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_Reportable;
-import org.jikesrvm.opt.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import java.util.Hashtable;
 
 /**

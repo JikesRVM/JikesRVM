@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive.database.methodsamples;
 
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.VM_CompiledMethod;

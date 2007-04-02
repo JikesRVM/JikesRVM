@@ -161,7 +161,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference VALIDATION_TYPE = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$VALIDATION;") : null;
   public static final VM_TypeReference VM_ExceptionTable = (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/VM_ExceptionTable;") : null; 
 
-  public static final VM_TypeReference OPT_OptimizationPlanner = (VM.BuildForAdaptiveSystem) ? findOrCreate("Lorg/jikesrvm/opt/OPT_OptimizationPlanner;") : null; 
+  public static final VM_TypeReference OPT_OptimizationPlanner = (VM.BuildForAdaptiveSystem) ? findOrCreate("Lorg/jikesrvm/compilers/opt/OPT_OptimizationPlanner;") : null; 
 
   /**
    * Hash value based on name, used for canonical type dictionary

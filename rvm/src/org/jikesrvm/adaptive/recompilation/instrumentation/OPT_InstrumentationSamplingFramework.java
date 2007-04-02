@@ -11,18 +11,18 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import static org.jikesrvm.opt.ir.OPT_Operators.*;
-import org.jikesrvm.opt.OPT_CompilerPhase;
-import org.jikesrvm.opt.OPT_Options;
-import org.jikesrvm.opt.OPT_Simple;
-import org.jikesrvm.opt.OPT_BranchOptimizations;
-import org.jikesrvm.opt.OPT_DefUse;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OPT_Simple;
+import org.jikesrvm.compilers.opt.OPT_BranchOptimizations;
+import org.jikesrvm.compilers.opt.OPT_DefUse;
 
 /** 
  *  OPT_InstrumentationSamplingFramework

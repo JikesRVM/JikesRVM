@@ -16,7 +16,7 @@ import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.controller.VM_RecompilationStrategy;
 import org.jikesrvm.adaptive.recompilation.instrumentation.VM_AOSInstrumentationPlan;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 
 /**
  * Runtime system support for using invocation counters in baseline 

@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
-import org.jikesrvm.opt.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.VM;
 import java.util.Enumeration;
 import java.util.Vector;

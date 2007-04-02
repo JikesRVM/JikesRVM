@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.VM_CompiledMethod;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;

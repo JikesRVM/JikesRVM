@@ -9,7 +9,7 @@
 package org.jikesrvm;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.opt.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSGenerator;

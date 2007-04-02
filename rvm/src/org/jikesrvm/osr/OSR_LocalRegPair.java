@@ -9,7 +9,7 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.VM;
 import org.vmmagic.unboxed.*;
 

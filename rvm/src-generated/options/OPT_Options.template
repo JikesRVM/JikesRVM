@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package org.jikesrvm.opt;
+package org.jikesrvm.compilers.opt;
 import org.jikesrvm.*;
 
 /**

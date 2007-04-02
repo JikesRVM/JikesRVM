@@ -25,8 +25,8 @@ be a pain in the butt and since it currently isn't required, we don't do it.
 
 package INSTRFMTPKG;
 
-import RVMPKGopt.OPT_OptimizingCompilerException;
-import RVMPKGVM;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.VM;
 
 /**
  * Abstract parent class of all InstructionFormat classes.
@@ -134,10 +134,10 @@ package INSTRFMTPKG;
 
 import org.jikesrvm.VM_Configuration;
 $$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.opt.ir.ARCHPKG.OPT_IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_IA32ConditionOperand;
 $$$$ ELSE
-import org.jikesrvm.opt.ir.ARCHPKG.OPT_PowerPCConditionOperand;
-import org.jikesrvm.opt.ir.ARCHPKG.OPT_PowerPCTrapOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCTrapOperand;
 $$$$ END IF
 
 

@@ -2,17 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package org.jikesrvm.opt.@_ARCH_@;
+package org.jikesrvm.compilers.opt.@_ARCH_@;
 
-import org.jikesrvm.opt.ir.@_ARCH_@.*;
+import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
 import org.jikesrvm.classloader.*;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.opt.ir.*;
-import org.jikesrvm.opt.OPT_BURS;
-import org.jikesrvm.opt.OPT_Bits;
-import org.jikesrvm.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.OPT_BURS;
+import org.jikesrvm.compilers.opt.OPT_Bits;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 
 import org.vmmagic.unboxed.*;
