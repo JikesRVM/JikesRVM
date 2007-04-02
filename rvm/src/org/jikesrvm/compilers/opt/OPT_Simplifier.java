@@ -2900,12 +2900,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         else if(calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           VM_TypeReference calleeClass = calleeThis.getType();
           if (calleeClass.isResolved()) {
-            if (VM.runningVM || calleeClass.peekResolvedType().isResolved()) {
-              // Avoid a race condition in the boot strap where a
-              // VM_TypeReference's resolved type may not actually be resolved
-              methOp.refine(calleeClass.peekResolvedType());
-              return DefUseEffect.UNCHANGED;
-            }
+            methOp.refine(calleeClass.peekResolvedType());
+            return DefUseEffect.UNCHANGED;
           }
         }
       }
