@@ -65,7 +65,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    * Constant fold field operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_FIELDS = false;
+  public static final boolean CF_FIELDS = true;
 
   /** 
    * Constant fold TIB operations?  Default is true, flip to avoid
@@ -2900,8 +2900,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         else if(calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           VM_TypeReference calleeClass = calleeThis.getType();
           if (calleeClass.isResolved()) {
-            methOp.refine(calleeClass.peekResolvedType());
-            return DefUseEffect.UNCHANGED;
+            if (VM.runningVM || calleeClass.peekResolvedType().isResolved()) {
+              // Avoid a race condition in the boot strap where a
+              // VM_TypeReference's resolved type may not actually be resolved
+              methOp.refine(calleeClass.peekResolvedType());
+              return DefUseEffect.UNCHANGED;
+            }
           }
         }
       }
@@ -2911,10 +2915,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect getField(OPT_Instruction s) {
     if (CF_FIELDS) {
       OPT_Operand ref = GetField.getRef(s);
-      if (ref.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                    OPT_TrapCodeOperand.NullPtr());
-        return DefUseEffect.TRAP_REDUCED;
+      if (VM.VerifyAssertions && ref.isNullConstant()) {
+        // Simplify to an unreachable operand, this instruction is dead code
+        // guarded by a nullcheck that should already have been simplified
+        OPT_RegisterOperand result = GetField.getClearResult(s);
+        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result,
+            new OPT_UnreachableOperand());
+        return DefUseEffect.MOVE_FOLDED;
       } else if(ref.isObjectConstant()) {
         // A constant object references this field which is
         // final. As the reference is final the constructor
@@ -2944,10 +2951,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect getObjTib(OPT_Instruction s) {
     if (CF_TIB) {
       OPT_Operand op = GuardedUnary.getVal(s);
-      if (op.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                    OPT_TrapCodeOperand.NullPtr());
-        return DefUseEffect.TRAP_REDUCED;
+      if (VM.VerifyAssertions && op.isNullConstant()) {
+        // Simplify to an unreachable operand, this instruction is dead code
+        // guarded by a nullcheck that should already have been simplified
+        OPT_RegisterOperand result = GetField.getClearResult(s);
+        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result,
+            new OPT_UnreachableOperand());
+        return DefUseEffect.MOVE_FOLDED;
       } else if (op.isConstant()) {
         try{
           // NB as the operand is final it must already have been

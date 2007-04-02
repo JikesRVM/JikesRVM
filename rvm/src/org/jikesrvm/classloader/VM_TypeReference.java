@@ -55,7 +55,7 @@ public final class VM_TypeReference {
    * The VM_Type instance that this type reference resolves to.
    * Null if the reference has not yet been resolved.
    */
-  VM_Type resolvedType;
+  private VM_Type resolvedType;
 
   /**
    * Used to canonicalize TypeReferences
@@ -624,7 +624,8 @@ public final class VM_TypeReference {
   }
 
   /**
-   * Has the type reference already been resolved into a type?
+   * Has the type reference already been resolved into a type? NB this can
+   * return true when a type itself isn't resolved during the bootstrap
    */
   @Uninterruptible
   public boolean isResolved() { 
@@ -705,13 +706,13 @@ public final class VM_TypeReference {
       }
       if (VM.VerifyAssertions) 
         VM._assert(resolvedType == null || resolvedType == ans);
-      resolvedType = ans;
+      setResolvedType(ans);
     } else if (isArrayType()) {
       if (isWordArrayType() || isCodeArrayType()) {
         // Ensure that we only create one VM_Array object for each pair of
         // names for this type. 
         // Do this by resolving AddressArray to [Address
-        resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
+        setResolvedType(getArrayElementType().getArrayTypeForElementType().resolve());
       } else {
         VM_Type elementType = getArrayElementType().resolve();
         if (elementType.getClassLoader() != classloader) {
@@ -719,13 +720,13 @@ public final class VM_TypeReference {
           // was loaded using a different classloader. 
           // Find the canonical type reference and ask it to resolve itself.
           VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
-          resolvedType = canonical.resolve();
+          setResolvedType(canonical.resolve());
         } else {
-          resolvedType = new VM_Array(this, elementType);
+          setResolvedType(new VM_Array(this, elementType));
         }
       }
     } else {
-      resolvedType = VM_Primitive.createPrimitive(this);
+      setResolvedType(VM_Primitive.createPrimitive(this));
     }
     return resolvedType;
   }
