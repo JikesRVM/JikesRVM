@@ -138,6 +138,7 @@ Ljava/util/HashMap$1;
 Ljava/util/HashMap$2;
 Ljava/util/HashMap$3;
 Ljava/util/HashMap$HashEntry;
+[Ljava/util/HashMap$HashEntry;
 Ljava/util/HashMap$HashIterator;
 Ljava/util/HashSet;
 [Ljava/util/HashSet;
@@ -149,6 +150,7 @@ Ljava/util/Hashtable$3;
 Ljava/util/Hashtable$EntryEnumerator;
 Ljava/util/Hashtable$EntryIterator;
 Ljava/util/Hashtable$HashEntry;
+[Ljava/util/Hashtable$HashEntry;
 Ljava/util/Hashtable$KeyEnumerator;
 Ljava/util/Hashtable$KeyIterator;
 Ljava/util/Hashtable$ValueEnumerator;
@@ -243,6 +245,7 @@ Ljava/security/Permissions;
 Ljava/security/Permissions$1;
 Ljava/security/Permissions$PermissionsHash;
 Ljava/security/Principal;
+[Ljava/security/Principal;
 Ljava/lang/reflect/InvocationTargetException;
 Lgnu/java/util/DoubleEnumeration;
 
@@ -388,16 +391,9 @@ Ljava/security/AllPermission$AllPermissionCollection;
 Ljava/lang/RuntimePermission;
 # New for 1.5
 Ljava/lang/StringBuilder;
-Ljava/util/Hashtable$1;
-Ljava/util/Hashtable$2;
-Ljava/util/Hashtable$3;
-Ljava/util/HashMap$1;
-Ljava/util/HashMap$2;
-Ljava/util/HashMap$3;
-Ljava/util/HashMap$HashEntry;
-Ljava/util/HashMap$HashIterator;
 Lgnu/java/security/provider/Gnu;
 Lgnu/java/security/provider/Gnu$1;
+Lgnu/java/security/OID;
 
 Lgnu/java/nio/charset/Provider$1;
 Ljava/nio/charset/CoderResult$1;
@@ -436,8 +432,6 @@ Ljava/lang/ref/Reference;
 Ljava/lang/ref/ReferenceQueue;
 Lgnu/java/security/provider/DefaultPolicy;
 
-[Ljava/util/HashMap$HashEntry;
-[Ljava/security/Principal;
 
 [Ljava/util/zip/ZipEntry;
 [Ljava/lang/Object;
