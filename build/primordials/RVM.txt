@@ -20,6 +20,7 @@
 [Lorg/jikesrvm/classloader/VM_MemberReference;
 [Lorg/jikesrvm/classloader/VM_Type;
 [Lorg/jikesrvm/classloader/VM_TypeReference;
+[Lorg/jikesrvm/classloader/VM_InterfaceInvocation$IMTDict$Link;
 
 [Lorg/jikesrvm/compilers/baseline/VM_BasicBlock;
 [Lorg/jikesrvm/compilers/baseline/VM_UnusualMaps;
@@ -42,6 +43,7 @@
 [Lorg/mmtk/plan/Phase;
 [Lorg/mmtk/policy/Space;
 [Lorg/mmtk/utility/statistics/Stats;
+[Lorg/mmtk/utility/statistics/Stats$Phase;
 [Lorg/mmtk/utility/statistics/Counter;
 [Lorg/mmtk/utility/statistics/Timer;
 [Lorg/mmtk/utility/options/Option;
