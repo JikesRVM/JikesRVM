@@ -792,8 +792,9 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     
     <!--
-     FIXME: When we can capture the primordials based on reacability we will not need to delete class dir
-     here. We will also be able to compile ALL classes in one sweep.
+     FIXME: When we can capture the primordials based on reachability
+     we will not need to delete class dir here. We will also be able to
+     compile ALL classes in one sweep.
     -->
     <delete dir="${build.classes}"/>
     <mkdir dir="${build.classes}"/>
