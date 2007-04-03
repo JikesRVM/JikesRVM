@@ -9,6 +9,9 @@ on October 14, 2001,
 *Jikes RVM 2.9.1 Release Notes (Future)
 ** Highlights
 
+*** SSA expression folding has been expanded to cover far more cases than
+    previously. This leads to a > 1% speedup on benchmarks such as SpecJBB'05.
+ 
 *** VM_ prefix added to classes that must be included in the primordial 
     class list. Classes affected include; PrintLN, PrintContainer, 
     ApplicationClassLoader, DebuggerThread, FinalizerThread and MainThread.
