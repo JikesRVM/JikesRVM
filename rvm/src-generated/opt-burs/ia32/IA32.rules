@@ -3207,7 +3207,7 @@ follow(BinaryAcc.getResult(PLLLLLL(p))).similar(follow(BinaryAcc.getResult(PLLRL
 follow(BinaryAcc.getResult(PLLLLLL(p))).similar(follow(BinaryAcc.getResult(PR(p)))) \
 ? 26:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getClearValue(PLLLLLL(p)))); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getClearResult(PLLLLLL(p)))); \
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p)).copyRO()));
 
 # Find bit test instructions - bt base, offset
