@@ -58,7 +58,7 @@
     <test-file name="tar.exe" location="${host.file}"/>
     <property name="classpath.web-archive" value="classpath-0.${classpath.version}-generics.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
-    <get src="ftp://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+    <get src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
     <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
     <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">
