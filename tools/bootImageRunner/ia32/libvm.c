@@ -40,6 +40,12 @@
 #endif
 #include <assert.h>
 
+#ifdef __APPLE__
+#include "osx_ucontext.h"
+#else
+#include "linux_ucontext.h"
+#endif
+
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
@@ -270,16 +276,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     unsigned int instructionFollowing;
 
-    ucontext_t *uc = (ucontext_t *) context;  // user context
-    mcontext_t *mc = &(uc->uc_mcontext);      // machine context
-    greg_t  *gregs = mc->gregs;               // general purpose registers
-
     /*
      * fill local working variables from context saved by OS trap handler
      * mechanism
      */
-    localInstructionAddress     = gregs[REG_EIP];
-    localVirtualProcessorAddress = gregs[REG_ESI];
+    localInstructionAddress     = IA32_EIP(context);
+    localVirtualProcessorAddress = IA32_ESI(context);
 
     // We are prepared to handle these kinds of "recoverable" traps:
     //
@@ -323,52 +325,97 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  (unsigned) &localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
-        writeErr("gs            0x%08x\n", gregs[REG_GS]);
-        writeErr("fs            0x%08x\n", gregs[REG_FS]);
-        writeErr("es            0x%08x\n", gregs[REG_ES]);
-        writeErr("ds            0x%08x\n", gregs[REG_DS]);
-        writeErr("edi -- JTOC?  0x%08x\n", gregs[REG_EDI]);
-        writeErr("esi -- PR/VP  0x%08x\n", gregs[REG_ESI]);
-        writeErr("ebp -- FP?    0x%08x\n", gregs[REG_EBP]);
-        writeErr("esp -- SP     0x%08x\n", gregs[REG_ESP]);
-        writeErr("ebx           0x%08x\n", gregs[REG_EBX]);
-        writeErr("edx -- T1?    0x%08x\n", gregs[REG_EDX]);
-        writeErr("ecx -- S0?    0x%08x\n", gregs[REG_ECX]);
-        writeErr("eax -- T0?    0x%08x\n", gregs[REG_EAX]);
-        writeErr("trapno        0x%08x\n", gregs[REG_TRAPNO]);
-        writeErr("err           0x%08x\n", gregs[REG_ERR]);
-        writeErr("eip           0x%08x\n", gregs[REG_EIP]);
-        writeErr("cs            0x%08x\n", gregs[REG_CS]);
-        writeErr("eflags        0x%08x\n", gregs[REG_EFL]);
-        writeErr("esp_at_signal 0x%08x\n", gregs[REG_UESP]);
-        writeErr("ss            0x%08x\n", gregs[REG_SS]);
+        writeErr("gs            0x%08x\n", IA32_GS(context));
+        writeErr("fs            0x%08x\n", IA32_FS(context));
+        writeErr("es            0x%08x\n", IA32_ES(context));
+        writeErr("ds            0x%08x\n", IA32_DS(context));
+        writeErr("edi -- JTOC?  0x%08x\n", IA32_EDI(context));
+        writeErr("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
+        writeErr("ebp -- FP?    0x%08x\n", IA32_EBP(context));
+        writeErr("esp -- SP     0x%08x\n", IA32_ESP(context));
+        writeErr("ebx           0x%08x\n", IA32_EBX(context));
+        writeErr("edx -- T1?    0x%08x\n", IA32_EDX(context));
+        writeErr("ecx -- S0?    0x%08x\n", IA32_ECX(context));
+        writeErr("eax -- T0?    0x%08x\n", IA32_EAX(context));
+        writeErr("ss            0x%08x\n", IA32_SS(context));
+        writeErr("eip           0x%08x\n", IA32_EIP(context));
+        writeErr("cs            0x%08x\n", IA32_CS(context));
+        writeErr("trapno        0x%08x\n", IA32_TRAPNO(context));
+        writeErr("err           0x%08x\n", IA32_ERR(context));
+        writeErr("eflags        0x%08x\n", IA32_EFLAGS(context));
+        // writeErr("esp_at_signal 0x%08x\n", IA32_UESP(context));
 /* null if fp registers haven't been used yet */
         writeErr("fpstate       0x%08x\n",
-                                        (unsigned) mc->fpregs);
+                                        (unsigned) IA32_FPSTATE(context));
         writeErr("oldmask       0x%08lx\n",
-                                        (unsigned long) mc->oldmask);
+                                        (unsigned long) IA32_OLDMASK(context));
         writeErr("cr2           0x%08lx\n", 
                                         /* seems to contain mem address that
                                          * faulting instruction was trying to
                                          * access */  
-                                        (unsigned long) mc->cr2);       
+                                        (unsigned long) IA32_FPFAULTDATA(context));
 
         /*
          * There are 8 floating point registers, each 10 bytes wide.
          * See /usr/include/asm/sigcontext.h
          */
-        if (mc->fpregs) {
-            struct _libc_fpreg *fpreg = mc->fpregs->_st;
-
-            for (int i = 0; i < 8; ++i) {
+        if (IA32_FPREGS(context)) {
                 writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                i,
-                                fpreg[i].significand[0] & 0xffff,
-                                fpreg[i].significand[1] & 0xffff,
-                                fpreg[i].significand[2] & 0xffff,
-                                fpreg[i].significand[3] & 0xffff,
-                                fpreg[i].exponent & 0xffff);
-            }
+                                0,
+                                IA32_STMM(context, 0, 0) & 0xffff,
+                                IA32_STMM(context, 0, 1) & 0xffff,
+                                IA32_STMM(context, 0, 2) & 0xffff,
+                                IA32_STMM(context, 0, 3) & 0xffff,
+                                IA32_STMMEXP(context, 0) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                1,
+                                IA32_STMM(context, 1, 0) & 0xffff,
+                                IA32_STMM(context, 1, 1) & 0xffff,
+                                IA32_STMM(context, 1, 2) & 0xffff,
+                                IA32_STMM(context, 1, 3) & 0xffff,
+                                IA32_STMMEXP(context, 1) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                2,
+                                IA32_STMM(context, 2, 0) & 0xffff,
+                                IA32_STMM(context, 2, 1) & 0xffff,
+                                IA32_STMM(context, 2, 2) & 0xffff,
+                                IA32_STMM(context, 2, 3) & 0xffff,
+                                IA32_STMMEXP(context, 2) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                3,
+                                IA32_STMM(context, 3, 0) & 0xffff,
+                                IA32_STMM(context, 3, 1) & 0xffff,
+                                IA32_STMM(context, 3, 2) & 0xffff,
+                                IA32_STMM(context, 3, 3) & 0xffff,
+                                IA32_STMMEXP(context, 3) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                4,
+                                IA32_STMM(context, 4, 0) & 0xffff,
+                                IA32_STMM(context, 4, 1) & 0xffff,
+                                IA32_STMM(context, 4, 2) & 0xffff,
+                                IA32_STMM(context, 4, 3) & 0xffff,
+                                IA32_STMMEXP(context, 4) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                5,
+                                IA32_STMM(context, 5, 0) & 0xffff,
+                                IA32_STMM(context, 5, 1) & 0xffff,
+                                IA32_STMM(context, 5, 2) & 0xffff,
+                                IA32_STMM(context, 5, 3) & 0xffff,
+                                IA32_STMMEXP(context, 5) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                6,
+                                IA32_STMM(context, 6, 0) & 0xffff,
+                                IA32_STMM(context, 6, 1) & 0xffff,
+                                IA32_STMM(context, 6, 2) & 0xffff,
+                                IA32_STMM(context, 6, 3) & 0xffff,
+                                IA32_STMMEXP(context, 6) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                7,
+                                IA32_STMM(context, 7, 0) & 0xffff,
+                                IA32_STMM(context, 7, 1) & 0xffff,
+                                IA32_STMM(context, 7, 2) & 0xffff,
+                                IA32_STMM(context, 7, 3) & 0xffff,
+                                IA32_STMMEXP(context, 7) & 0xffff);
         }
 
         if (isRecoverable) {
@@ -458,21 +505,21 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
         /* setup stack frame to contain the frame pointer */
-        sp = (long unsigned int *) gregs[REG_ESP];
+        sp = (long unsigned int *) IA32_ESP(context);
 
         /* put fp as a  parameter on the stack  */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = localFrameAddress;
-        gregs[REG_EAX] = localFrameAddress; // must pass localFrameAddress in first param register!
+        IA32_EAX(context) = localFrameAddress; // must pass localFrameAddress in first param register!
 
         /* put a return address of zero on the stack */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
         /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
-        gregs[REG_EIP] = dumpStack;
+        IA32_EIP(context) = dumpStack;
         *vmr_inuse = false;
 
         pthread_mutex_unlock( &exceptionLock );
@@ -482,14 +529,14 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     *vmr_inuse = 1;                     /* mark in use to avoid infinite loop */
 
     /* move gp registers to VM_Registers object */
-    vmr_gprs[VM_Constants_EAX] = gregs[REG_EAX];
-    vmr_gprs[VM_Constants_ECX] = gregs[REG_ECX];
-    vmr_gprs[VM_Constants_EDX] = gregs[REG_EDX];
-    vmr_gprs[VM_Constants_EBX] = gregs[REG_EBX];
-    vmr_gprs[VM_Constants_ESP] = gregs[REG_ESP];
-    vmr_gprs[VM_Constants_EBP] = gregs[REG_EBP];
-    vmr_gprs[VM_Constants_ESI] = gregs[REG_ESI];
-    vmr_gprs[VM_Constants_EDI] = gregs[REG_EDI];
+    vmr_gprs[VM_Constants_EAX] = IA32_EAX(context);
+    vmr_gprs[VM_Constants_ECX] = IA32_ECX(context);
+    vmr_gprs[VM_Constants_EDX] = IA32_EDX(context);
+    vmr_gprs[VM_Constants_EBX] = IA32_EBX(context);
+    vmr_gprs[VM_Constants_ESP] = IA32_ESP(context);
+    vmr_gprs[VM_Constants_EBP] = IA32_EBP(context);
+    vmr_gprs[VM_Constants_ESI] = IA32_ESI(context);
+    vmr_gprs[VM_Constants_EDI] = IA32_EDI(context);
 
     /* set the next instruction for the failing frame */
     instructionFollowing = getInstructionFollowing(localInstructionAddress);
@@ -504,7 +551,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      * VM_Runtime.deliverHardwareException et al. in the guard region of the
      * stack to avoid bashing stuff in the bottom opt-frame. 
      */
-    sp = (long unsigned int *) gregs[REG_ESP];
+    sp = (long unsigned int *) IA32_ESP(context);
     uintptr_t stackLimit
         = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
     if ((uintptr_t) sp <= stackLimit - 384) {
@@ -517,7 +564,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     sp = (long unsigned int *)stackLimit - 384;
     stackLimit -= VM_Constants_STACK_SIZE_GUARD;
     *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
-    *(unsigned *)(gregs[REG_ESI] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+    *(unsigned *)(IA32_ESI(context) + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
   
     /* Insert artificial stackframe at site of trap. */
     /* This frame marks the place where "hardware exception registers" were saved. */
@@ -566,13 +613,13 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
     }
 
-    gregs[REG_EAX] = *(int *)sp; // also pass first param in EAX.
+    IA32_EAX(context) = *(int *)sp; // also pass first param in EAX.
     if (lib_verbose)
-        fprintf(SysTraceFile, "Trap code is 0x%x\n", gregs[REG_EAX]);
+        fprintf(SysTraceFile, "Trap code is 0x%x\n", IA32_EAX(context));
 
     sp = (long unsigned int *) ((char *) sp - 4);       /* next parameter is info for array bounds trap */
     *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + VM_Processor_arrayIndexTrapParam_offset);
-    gregs[REG_EDX] = *(int *)sp; // also pass second param in EDX.
+    IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
     sp = (long unsigned int *) ((char *) sp - 4);       /* return address - looks like called from failing instruction */
     *(int *) sp = instructionFollowing;
 
@@ -585,12 +632,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   
     /* set up context block to look like the artificial stack frame is
      * returning  */ 
-    gregs[REG_ESP] = (int) sp;
-    gregs[REG_EBP] = (int) fp;
+    IA32_ESP(context) = (int) sp;
+    IA32_EBP(context) = (int) fp;
     *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
 
     /* setup to return to deliver hardware exception routine */
-    gregs[REG_EIP] = javaExceptionHandlerAddress;
+    IA32_EIP(context) = javaExceptionHandlerAddress;
 
     pthread_mutex_unlock( &exceptionLock );
 }
@@ -644,33 +691,30 @@ softwareSignalHandler(int signo,
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
         unsigned int localJTOC = VmToc;
-        ucontext_t *uc = (ucontext_t *) context;  // user context
-        mcontext_t *mc = &(uc->uc_mcontext);      // machine context
-        greg_t  *gregs = mc->gregs;              // general purpose registers
         int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
         /* get the frame pointer from processor object  */
-        unsigned int localVirtualProcessorAddress       = gregs[REG_ESI];
+        unsigned int localVirtualProcessorAddress       = IA32_ESI(context);
         unsigned int localFrameAddress = 
             *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
 
         /* setup stack frame to contain the frame pointer */
-        long unsigned int *sp = (long unsigned int *) gregs[REG_ESP];
+        long unsigned int *sp = (long unsigned int *) IA32_ESP(context);
 
         /* put fp as a  parameter on the stack  */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = localFrameAddress;
         // must pass localFrameAddress in first param register!
-        gregs[REG_EAX] = localFrameAddress;
+        IA32_EAX(context) = localFrameAddress;
 
         /* put a return address of zero on the stack */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
         /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
-        gregs[REG_EIP] = dumpStack;
+        IA32_EIP(context) = dumpStack;
         return;
     }
 
