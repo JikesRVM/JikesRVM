@@ -259,6 +259,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *  -4   |methodID  |         |methodID  | 
    *  -8   |saved EDI |         |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
    *  -C   |saved EBX |         |saved EBX |    
+   *       |          |         |align pad |  
    *  -10  |          |         |returnAddr|  (return from OutOfLine to generated epilog)    
    *  -14  |          |         |saved PR  |
    *  -18  |          |         |arg n-1   |  reordered args to native method (firstLocalOffset
@@ -339,7 +340,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
 
     // bump SP to set aside room for the args + 2 additional JNI args
-    asm.emitADD_Reg_Imm (SP, emptyStackOffset.toInt());                       
+    asm.emitADD_Reg_Imm (SP, emptyStackOffset.toInt());
 
     // SP should now point to the bottom of the argument stack, 
     // which is arg[n-1]
