@@ -973,12 +973,12 @@ typedef struct {
    int prefix:1;        // prefix instruction - rerun opcode decoding
    int waitOp:1;        // a wait opcode that can be incorporated 
                         // into an NPX instruction was found 
-   int replock:2;       // rep or lock prefix
+   unsigned int replock:2;       // rep or lock prefix
        #define replockNone  0  // no prefix
        #define replockREPZ  1  // REPZ prefix
        #define replockREPNZ 2  // REPNZ prefix
        #define replockLOCK  3  // LOCK prefix
-   int sizePrefix:3;    // Size prefix when creating output of a memory operand
+   unsigned int sizePrefix:3;    // Size prefix when creating output of a memory operand
        #define sizeWop   0     //  as defined by opsize and Wbit
                                //  (word or dword0
        #define sizeByte  PTRbyte       //  byte  (1 bytes)
@@ -988,9 +988,9 @@ typedef struct {
        #define sizeQword PTRqword      //  qword (8 bytes)
        #define sizeTbyte PTRtbyte      //  tbyte (10 bytes)
        #define sizeNone  PTRnone       //  no opsize entry
-   int regf:3;          // reg field from instruction
-   int mod:2;           // mod field from instruction
-   int rm:3;            // rm field from instruction
+   unsigned int regf:3;          // reg field from instruction
+   unsigned int mod:2;           // mod field from instruction
+   unsigned int rm:3;            // rm field from instruction
    int MMXop:1;         // MMX operation - use MMX registers
 } FLAGS;
 
