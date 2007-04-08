@@ -90,28 +90,46 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     super(burs);
   }
 
-  // follows a chain of moves to determine the initial register
-  protected static OPT_Operand follow (OPT_Operand use) {
-    while (true) {
-      if (!(use instanceof OPT_RegisterOperand)) return use;
-      OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
-      OPT_RegisterOperandEnumeration
-        defs = OPT_DefUse.defs (rop.register);
-      if (!defs.hasMoreElements()) {return use;}
-      OPT_Instruction def = defs.next().instruction;
-		if (defs.hasMoreElements()) {return use;}
-      if (MIR_Move.conforms (def)) {
-		  use = MIR_Move.getValue(def);
-		}
-		else if (Move.conforms(def)){
-		  use = Move.getVal(def);
-		}
-		else {
-		  return use;
-		}
+  protected static OPT_Operand follow(OPT_Operand use) {
+    return follow(use,0);
+  }
+  /**
+   * Follow a chain of Moves/BinaryAcc operations filtering back to a def
+   * @param use the place to start from
+   * @param count of BinaryAcc operations to ignore
+   * @return
+   */
+  protected static OPT_Operand follow(OPT_Operand use, int count) {
+    if (!use.isRegister()) {
+      return use;
+    }
+    else {
+      OPT_RegisterOperand rop = use.asRegister();
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
+      if (!defs.hasMoreElements()) {
+        return use;
+      }
+      else {
+        OPT_Operand def = defs.next();
+        if (defs.hasMoreElements()) {
+          return def;
+        }
+        else {
+          OPT_Instruction instr = def.instruction;
+          if (Move.conforms(instr)) {
+            return follow(Move.getVal(instr),count);
+          } else if (MIR_Move.conforms(instr)) {
+            return follow(MIR_Move.getValue(instr),count);
+          } else if (BinaryAcc.conforms(instr) && (count > 0)) {
+            return follow(BinaryAcc.getResult(instr), count-1);
+          } else {
+            return def;
+          }
+        }
+      }
     }
   }
-
+  
   // condition code state
   private OPT_ConditionOperand cc;
   protected final void pushCOND(OPT_ConditionOperand c) {
@@ -274,6 +292,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
   protected final OPT_Operand myFP1() {
     return new OPT_BURSManagedFPROperand(1);
+  }
+
+  protected final OPT_MemoryOperand setSize(OPT_MemoryOperand mo, int size) {
+    mo.size = (byte)size;
+    return mo;
   }
 
   protected final OPT_Operand MO_CONV(byte size) {
