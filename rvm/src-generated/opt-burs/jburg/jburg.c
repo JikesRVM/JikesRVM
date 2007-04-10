@@ -73,7 +73,10 @@ readPacked(Nonterm term_)
     char temp[256];
     int shift = term_->bit_offset;
     int x= (1 << term_->number_bits) - 1;
-    snprintf(temp, sizeof temp, "((word%d >>> %d) & 0x%X)",term_->word_number,shift,x);
+    if (shift != 0)
+        snprintf(temp, sizeof temp, "((word%d >>> %d) & 0x%X)",term_->word_number,shift,x);
+    else
+        snprintf(temp, sizeof temp, "(word%d & 0x%X)",term_->word_number,x);
     print("%s",temp);
 }
 
