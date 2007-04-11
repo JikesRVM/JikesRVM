@@ -876,15 +876,16 @@ import org.vmmagic.pragma.*;
   public static void notifyClassResolved(VM_Type vmType) { 
     MMType type;
     if (vmType.isArrayType()) {
-      type = new MMType(false,
-                        vmType.asArray().getElementType().isReferenceType(),
-                        vmType.isAcyclicReference(),
-                        pickAllocatorForType(vmType),
-                        zeroLengthIntArray);
+      /* A reference array */
+      if (vmType.asArray().getElementType().isReferenceType()) {
+        type = MMType.createRefArray(vmType.isAcyclicReference(),
+                        pickAllocatorForType(vmType));
+      } else {
+        /* An array of primitive types */
+        type = MMType.createPrimArray(pickAllocatorForType(vmType));
+      }
     } else {
-      type = new MMType(false,
-                        false,
-                        vmType.isAcyclicReference(),
+      type = MMType.createScalar(vmType.isAcyclicReference(),
                         pickAllocatorForType(vmType),
                         vmType.asClass().getReferenceOffsets());
     }

@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
   private final boolean isDelegated;
   private final boolean isAcyclic;
   private final int[] offsets;
-  private final int allocator;
+  private final byte allocator;
 
   // per-type statistics
   private int allocCount;
@@ -39,6 +39,53 @@ import org.vmmagic.pragma.*;
 
   private static final boolean PROFILING_STATISTICS = false;
 
+  /** Used by mmtypes for arrays */
+  private static final int [] zeroLengthIntArray = new int [0];
+  
+  /**
+   * Factory methods
+   */
+  
+  /**
+   * Create an MMType for a reference array
+   */
+  @Interruptible
+  public static MMType createRefArray(boolean isAcyclic, int allocator) {
+    return new MMType(false,true,isAcyclic,allocator,zeroLengthIntArray);
+  }
+  
+  /**
+   * Create an MMType for a primitive array
+   */
+  @Interruptible
+  public static MMType createPrimArray(int allocator) {
+    return new MMType(false,false,true,allocator,zeroLengthIntArray);
+  }
+  
+  /**
+   * Create an MMType for a scalar.
+   * 
+   * @param isAcyclic
+   * @param allocator
+   * @param offsets
+   * @return
+   */
+  @Interruptible
+  public static MMType createScalar(boolean isAcyclic, int allocator, int[] offsets) {
+    return new MMType(false,false,isAcyclic,allocator,offsets);
+  }
+  
+  /**
+   * Create an MMType for a delegated type.
+   * 
+   * @param allocator
+   * @return
+   */
+  @Interruptible
+  public static MMType createDelegated(boolean isAcyclic, int allocator) {
+    return new MMType(true,false,isAcyclic,allocator,null);
+  }
+  
   /****************************************************************************
    * 
    * Initialization
@@ -60,7 +107,7 @@ import org.vmmagic.pragma.*;
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
-    this.allocator = allocator;
+    this.allocator = (byte)allocator;
     this.offsets = offsets;
   }
 
