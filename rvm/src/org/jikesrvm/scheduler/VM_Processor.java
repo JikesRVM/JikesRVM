@@ -448,7 +448,7 @@ implements VM_Constants {
   /**
    * Base pointer of JTOC (VM_Statics.slots)
    */
-  Object jtoc;
+  Address jtoc;
   /**
    * FP for current frame
    */

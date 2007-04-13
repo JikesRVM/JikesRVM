@@ -116,7 +116,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field reportedTimerTicksField    = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "reportedTimerTicks", "I");
   public static final VM_Field vpStatusField              = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "vpStatus", "I");
   public static final VM_Field threadIdField              = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "threadId", "I");
-  public static final VM_Field jtocField               = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "jtoc", "Ljava/lang/Object;") : null;
+  public static final VM_Field jtocField               = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "jtoc", "Lorg/vmmagic/unboxed/Address;") : null;
   public static final VM_Field framePointerField       = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "framePointer", "Lorg/vmmagic/unboxed/Address;") : null;
   public static final VM_Field hiddenSignatureIdField  = (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "hiddenSignatureId", "I") : null;
   public static final VM_Field arrayIndexTrapParamField= (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "arrayIndexTrapParam", "I") : null;
