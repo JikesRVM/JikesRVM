@@ -69,9 +69,14 @@ class OPT_ExpressionFolding {
   private final static boolean FOLD_ADDS = true;
 
   /**
-   * Fold binary shift left operations
+   * Fold binary multiply operations
    */
   private final static boolean FOLD_MULTS = true;
+
+  /**
+   * Fold binary divide operations
+   */
+  private final static boolean FOLD_DIVS = true;
 
   /**
    * Fold binary shift left operations
@@ -114,18 +119,11 @@ class OPT_ExpressionFolding {
   private final static boolean FOLD_NOTS = true;
 
   /**
-   * Fold a NEG followed by an ADD to a constant to a SUB? This may produce less
+   * Fold operations that create a constant on the LHS? This may produce less
    * optimal code on 2 address architectures where the constant would need
-   * loading into a register prior to the subtract.
+   * loading into a register prior to the operation.
    */
-  private final static boolean FOLD_NEG_ADD = true;
-
-  /**
-   * Fold a NEG followed by a SUB to a constant to a SUB? This may produce less
-   * optimal code on 2 address architectures where the constant would need
-   * loading into a register prior to the subtract.
-   */
-  private final static boolean FOLD_NEG_SUB = true;
+  private final static boolean FOLD_CONSTANTS_TO_LHS = true;
 
   /**
    * Fold IFCMP operations
@@ -261,6 +259,8 @@ class OPT_ExpressionFolding {
       OPT_Operand val1;
       if (Binary.conforms(s)) {
         val1 = Binary.getVal1(s);
+      } else if (GuardedBinary.conforms(s)) {
+        val1 = GuardedBinary.getVal1(s);
       } else if (Unary.conforms(s)) {
         val1 = Unary.getVal(s);
       } else if (BooleanCmp.conforms(s)) {
@@ -313,6 +313,9 @@ class OPT_ExpressionFolding {
     if (Binary.conforms(def)) {
       a = Binary.getVal1(def).asRegister();
     }
+    else if (GuardedBinary.conforms(def)) {
+      a = GuardedBinary.getVal1(def).asRegister();
+    }
     else if (Unary.conforms(def)) {
       a = Unary.getVal(def).asRegister();
     }
@@ -329,6 +332,9 @@ class OPT_ExpressionFolding {
 
     if (Binary.conforms(s)) {
       y = Binary.getResult(s);
+    }
+    else if (GuardedBinary.conforms(s)) {
+      y = GuardedBinary.getResult(s);
     }
     else if (Unary.conforms(s)) {
       y = Unary.getResult(s);
@@ -370,7 +376,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(INT_ADD, y.copyRO(), a.copyRO(), IC(c2-c1));
         }
-        else if (def.operator == INT_NEG && FOLD_NEG_ADD) {
+        else if (def.operator == INT_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x + c2;
           return Binary.create(INT_SUB, y.copyRO(), IC(c2), a.copyRO());
         }
@@ -390,7 +396,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(REF_ADD, y.copyRO(), a.copyRO(), AC(c2.toWord().minus(c1.toWord()).toAddress()));
         }
-        else if (def.operator == REF_NEG && FOLD_NEG_ADD) {
+        else if (def.operator == REF_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x + c2;
           return Binary.create(REF_SUB, y.copyRO(), AC(c2), a.copyRO());
         }
@@ -410,7 +416,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(LONG_ADD, y.copyRO(), a.copyRO(), LC(c2-c1));
         }
-        else if (def.operator == LONG_NEG && FOLD_NEG_ADD) {
+        else if (def.operator == LONG_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x + c2;
           return Binary.create(LONG_SUB, y.copyRO(), LC(c2), a.copyRO());
         }
@@ -430,7 +436,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(FLOAT_ADD, y.copyRO(), a.copyRO(), FC(c2-c1));
         }
-        else if (def.operator == FLOAT_NEG && FOLD_NEG_ADD) {
+        else if (def.operator == FLOAT_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x + c2;
           return Binary.create(FLOAT_SUB, y.copyRO(), FC(c2), a.copyRO());
         }
@@ -450,7 +456,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(DOUBLE_ADD, y.copyRO(), a.copyRO(), DC(c2-c1));
         }
-        else if (def.operator == DOUBLE_NEG && FOLD_NEG_ADD) {
+        else if (def.operator == DOUBLE_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x + c2;
           return Binary.create(DOUBLE_SUB, y.copyRO(), DC(c2), a.copyRO());
         }
@@ -470,7 +476,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x - c2
           return Binary.create(INT_ADD, y.copyRO(), a.copyRO(), IC(-c1-c2));
         }
-        else if (def.operator == INT_NEG && FOLD_NEG_SUB) {
+        else if (def.operator == INT_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x - c2;
           return Binary.create(INT_SUB, y.copyRO(), IC(-c2), a.copyRO());
         }
@@ -490,7 +496,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x - c2
           return Binary.create(REF_ADD, y.copyRO(), a.copyRO(), AC(Word.zero().minus(c1.toWord()).minus(c2.toWord()).toAddress()));
         }
-        else if (def.operator == REF_NEG && FOLD_NEG_SUB) {
+        else if (def.operator == REF_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x - c2;
           return Binary.create(REF_SUB, y.copyRO(), AC(Word.zero().minus(c2.toWord()).toAddress()), a.copyRO());
         }
@@ -510,7 +516,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x - c2
           return Binary.create(LONG_ADD, y.copyRO(), a.copyRO(), LC(-c1-c2));
         }
-        else if (def.operator == LONG_NEG && FOLD_NEG_SUB) {
+        else if (def.operator == LONG_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x - c2;
           return Binary.create(LONG_SUB, y.copyRO(), LC(-c2), a.copyRO());
         }
@@ -530,7 +536,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x - c2
           return Binary.create(FLOAT_ADD, y.copyRO(), a.copyRO(), FC(-c1-c2));
         }
-        else if (def.operator == FLOAT_NEG && FOLD_NEG_SUB) {
+        else if (def.operator == FLOAT_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x - c2;
           return Binary.create(FLOAT_SUB, y.copyRO(), FC(-c2), a.copyRO());
         }
@@ -550,7 +556,7 @@ class OPT_ExpressionFolding {
           // x = a - c1; y = x + c2
           return Binary.create(DOUBLE_ADD, y.copyRO(), a.copyRO(), DC(-c1-c2));
         }
-        else if (def.operator == DOUBLE_NEG && FOLD_NEG_SUB) {
+        else if (def.operator == DOUBLE_NEG && FOLD_CONSTANTS_TO_LHS) {
           // x = -a; y = x - c2;
           return Binary.create(DOUBLE_SUB, y.copyRO(), DC(-c2), a.copyRO());
         }
@@ -613,6 +619,70 @@ class OPT_ExpressionFolding {
         else if (def.operator == DOUBLE_NEG) {
           // x = -a; y = x * c2;
           return Binary.create(DOUBLE_MUL, y.copyRO(), a.copyRO(), DC(-c2));
+        }
+      }
+      return null;
+    }
+    case INT_DIV_opcode: {
+      if (FOLD_INTS && FOLD_DIVS) {
+        int c2 = getIntValue(GuardedBinary.getVal2(s));
+        if (def.operator == INT_DIV) {
+          int c1 = getIntValue(GuardedBinary.getVal2(def));
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = a / c1; y = x / c2
+          return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(c1*c2), guard);
+        }
+        else if (def.operator == INT_NEG) {
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = -a; y = x / c2;
+          return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c2), guard);
+        }
+      }
+      return null;
+    }
+    case LONG_DIV_opcode: {
+      if (FOLD_LONGS && FOLD_DIVS) {
+        long c2 = getLongValue(GuardedBinary.getVal2(s));
+        if (def.operator == LONG_DIV) {
+          long c1 = getLongValue(GuardedBinary.getVal2(def));
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = a / c1; y = x / c2
+          return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(c1*c2), guard);
+        }
+        else if (def.operator == LONG_NEG) {
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = -a; y = x / c2;
+          return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c2), guard);
+        }
+      }
+      return null;
+    }
+    case FLOAT_DIV_opcode: {
+      if (FOLD_FLOATS && FOLD_DIVS) {
+        float c2 = getFloatValue(Binary.getVal2(s));
+        if (def.operator == FLOAT_DIV) {
+          float c1 = getFloatValue(Binary.getVal2(def));
+          // x = a / c1; y = x / c2
+          return Binary.create(FLOAT_DIV, y.copyRO(), a.copyRO(), FC(c1*c2));
+        }
+        else if (def.operator == FLOAT_NEG) {
+          // x = -a; y = x / c2;
+          return Binary.create(FLOAT_DIV, y.copyRO(), a.copyRO(), FC(-c2));
+        }
+      }
+      return null;
+    }
+    case DOUBLE_DIV_opcode: {
+      if (FOLD_DOUBLES && FOLD_DIVS) {
+        double c2 = getDoubleValue(Binary.getVal2(s));
+        if (def.operator == DOUBLE_DIV) {
+          double c1 = getDoubleValue(Binary.getVal2(def));
+          // x = a / c1; y = x / c2
+          return Binary.create(DOUBLE_DIV, y.copyRO(), a.copyRO(), DC(c1*c2));
+        }
+        else if (def.operator == DOUBLE_NEG) {
+          // x = -a; y = x / c2;
+          return Binary.create(DOUBLE_DIV, y.copyRO(), a.copyRO(), DC(-c2));
         }
       }
       return null;
@@ -1445,6 +1515,27 @@ class OPT_ExpressionFolding {
           // x = -z; y = -x;
           return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def));
         }
+        else if (def.operator == INT_MUL) {
+          int c1 = getIntValue(Binary.getVal2(def));
+          // x = a * c1; y = -x;
+          return Binary.create(INT_MUL, y.copyRO(), a.copyRO(), IC(-c1));
+        }
+        else if (def.operator == INT_DIV) {
+          int c1 = getIntValue(GuardedBinary.getVal2(def));
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = a / c1; y = -x;
+          return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c1), guard);
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == INT_ADD)) {
+          int c1 = getIntValue(Binary.getVal2(def));
+          // x = a + c1; y = -x;
+          return Binary.create(INT_SUB, y.copyRO(), IC(-c1), a.copyRO());
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == INT_SUB)) {
+          int c1 = getIntValue(Binary.getVal2(def));
+          // x = a - c1; y = -x;
+          return Binary.create(INT_SUB, y.copyRO(), IC(c1), a.copyRO());
+        }
       }
       return null;
     }
@@ -1454,6 +1545,16 @@ class OPT_ExpressionFolding {
         if (def.operator == REF_NEG) {
           // x = -z; y = -x;
           return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def));
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == REF_ADD)) {
+          Address c1 = getAddressValue(Binary.getVal2(def));
+          // x = a + c1; y = -x;
+          return Binary.create(REF_SUB, y.copyRO(), AC(Word.zero().minus(c1.toWord()).toAddress()), a.copyRO());
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == REF_SUB)) {
+          Address c1 = getAddressValue(Binary.getVal2(def));
+          // x = a - c1; y = -x;
+          return Binary.create(REF_SUB, y.copyRO(), AC(c1), a.copyRO());
         }
       }
       return null;
@@ -1465,6 +1566,27 @@ class OPT_ExpressionFolding {
           // x = -z; y = -x;
           return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def));
         }
+        else if (def.operator == LONG_MUL) {
+          long c1 = getLongValue(Binary.getVal2(def));
+          // x = a * c1; y = -x;
+          return Binary.create(LONG_MUL, y.copyRO(), a.copyRO(), LC(-c1));
+        }
+        else if (def.operator == LONG_DIV) {
+          long c1 = getLongValue(GuardedBinary.getVal2(def));
+          OPT_Operand guard = GuardedBinary.getGuard(def);
+          // x = a / c1; y = -x;
+          return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c1), guard);
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == LONG_ADD)) {
+          long c1 = getLongValue(Binary.getVal2(def));
+          // x = a + c1; y = -x;
+          return Binary.create(LONG_SUB, y.copyRO(), LC(-c1), a.copyRO());
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == LONG_SUB)) {
+          long c1 = getLongValue(Binary.getVal2(def));
+          // x = a - c1; y = -x;
+          return Binary.create(LONG_SUB, y.copyRO(), LC(c1), a.copyRO());
+        }
       }
       return null;
     }
@@ -1475,6 +1597,26 @@ class OPT_ExpressionFolding {
           // x = -z; y = -x;
           return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def));
         }
+        else if (def.operator == FLOAT_MUL) {
+          float c1 = getFloatValue(Binary.getVal2(def));
+          // x = a * c1; y = -x;
+          return Binary.create(FLOAT_MUL, y.copyRO(), a.copyRO(), FC(-c1));
+        }
+        else if (def.operator == FLOAT_DIV) {
+          float c1 = getFloatValue(Binary.getVal2(def));
+          // x = a / c1; y = -x;
+          return Binary.create(FLOAT_DIV, y.copyRO(), a.copyRO(), FC(-c1));
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == FLOAT_ADD)) {
+          float c1 = getFloatValue(Binary.getVal2(def));
+          // x = a + c1; y = -x;
+          return Binary.create(FLOAT_SUB, y.copyRO(), FC(-c1), a.copyRO());
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == FLOAT_SUB)) {
+          float c1 = getFloatValue(Binary.getVal2(def));
+          // x = a - c1; y = -x;
+          return Binary.create(FLOAT_SUB, y.copyRO(), FC(c1), a.copyRO());
+        }
       }
       return null;
     }
@@ -1484,6 +1626,26 @@ class OPT_ExpressionFolding {
         if (def.operator == DOUBLE_NEG) {
           // x = -z; y = -x;
           return Move.create(DOUBLE_MOVE, y.copyRO(), Unary.getVal(def));
+        }
+        else if (def.operator == DOUBLE_MUL) {
+          double c1 = getDoubleValue(Binary.getVal2(def));
+          // x = a * c1; y = -x;
+          return Binary.create(DOUBLE_MUL, y.copyRO(), a.copyRO(), DC(-c1));
+        }
+        else if (def.operator == DOUBLE_DIV) {
+          double c1 = getDoubleValue(Binary.getVal2(def));
+          // x = a / c1; y = -x;
+          return Binary.create(DOUBLE_DIV, y.copyRO(), a.copyRO(), DC(-c1));
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == DOUBLE_ADD)) {
+          double c1 = getDoubleValue(Binary.getVal2(def));
+          // x = a + c1; y = -x;
+          return Binary.create(DOUBLE_SUB, y.copyRO(), DC(-c1), a.copyRO());
+        }
+        else if (FOLD_CONSTANTS_TO_LHS && (def.operator == DOUBLE_SUB)) {
+          double c1 = getDoubleValue(Binary.getVal2(def));
+          // x = a - c1; y = -x;
+          return Binary.create(DOUBLE_SUB, y.copyRO(), DC(c1), a.copyRO());
         }
       }
       return null;
@@ -1646,6 +1808,9 @@ class OPT_ExpressionFolding {
     case FLOAT_MUL_opcode:
     case DOUBLE_MUL_opcode:
 
+    case FLOAT_DIV_opcode:
+    case DOUBLE_DIV_opcode:
+
     case INT_SHL_opcode:
     case REF_SHL_opcode:
     case LONG_SHL_opcode:
@@ -1701,6 +1866,22 @@ class OPT_ExpressionFolding {
       }
       return null;
     }
+
+    case INT_DIV_opcode:
+    case LONG_DIV_opcode: {
+      OPT_Operand val2 = GuardedBinary.getVal2(s);
+      if (val2.isConstant()) {
+        OPT_Operand val1 = GuardedBinary.getVal1(s);
+        // if val1 is constant too, this should've been constant folded
+        // beforehand. Give up.
+        if (val1.isConstant())
+          return null;
+
+        return GuardedBinary.getResult(s).asRegister().register;
+      }
+      return null;
+    }
+
     case BOOLEAN_CMP_INT_opcode:
     case BOOLEAN_CMP_LONG_opcode:
     case BOOLEAN_CMP_ADDR_opcode: {
