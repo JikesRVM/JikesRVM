@@ -953,9 +953,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the lneg bytecode
    */
   protected final void emit_lneg() {
-    asm.emitNEG_RegDisp(SP, ONE_SLOT);    // [SP+4] <- -[SP+4] or high <- -high
+    asm.emitNOT_RegDisp(SP, ONE_SLOT);    // [SP+4] <- ~[SP+4] or high <- ~high
     asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
-    asm.emitSBB_RegDisp_Imm(SP, ONE_SLOT, 0); // [SP+4] += borrow or high += borrow
+    asm.emitSBB_RegDisp_Imm(SP, ONE_SLOT, -1); // [SP+4] += 1+borrow or high += 1+borrow
   }
 
   /**
