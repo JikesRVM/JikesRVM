@@ -915,9 +915,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                       OPT_RegisterOperand result) {
     OPT_Register lhsReg = result.register;
     OPT_Register lowlhsReg = regpool.getSecondReg(lhsReg);
-    EMIT(MIR_UnaryAcc.create(IA32_NEG, new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int)));
+    EMIT(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int)));
     EMIT(MIR_UnaryAcc.create(IA32_NEG, new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int)));
-    EMIT(MIR_BinaryAcc.mutate(s, IA32_SBB, new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int), IC(0)));
+    EMIT(MIR_BinaryAcc.mutate(s, IA32_SBB, new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int), IC(-1)));
   }
 
 
