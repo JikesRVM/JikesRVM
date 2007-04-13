@@ -1609,7 +1609,7 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)).copyRO(), IC(0xF
 r:	INT_2USHORT(load16_32)
 25
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOVZX__W, Unary.getResult(P(p)), setSize(consumeMO(),2)));
+EMIT(MIR_Unary.create(IA32_MOVZX__W, Unary.getResult(P(p)), setSize(consumeMO(),2)));
 
 stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
 15
@@ -2027,7 +2027,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, BinaryAcc.getResult(P(p)), consumeMO(
 r:	INT_AND_ACC(load8_16_32, INT_CONSTANT)
 IC(BinaryAcc.getValue(P(p))).upper24() == 0?25:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.create(IA32_MOV, BinaryAcc.getResult(P(p)), setSize(consumeMO(), 1))); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), setSize(consumeMO(), 1))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)).copyD2D(), BinaryAcc.getValue(P(p))));
 
 # load8 << 24 >>> 24 ===> uload8
@@ -2093,7 +2093,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, BinaryAcc.getResult(P(p)), setSize(co
 r:	INT_AND_ACC(load16_32, INT_CONSTANT)
 IC(BinaryAcc.getValue(P(p))).upper16() == 0 ? 25 : INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.create(IA32_MOV, BinaryAcc.getResult(P(p)), setSize(consumeMO(),2))); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO())); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)).copyD2D(), BinaryAcc.getValue(P(p))));
 
 # load16_32 << 16 >>> 16 ===> uload16 (_201_compress)
