@@ -3197,6 +3197,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Can't assert the following due to approximations by 
     // OPT_ClassLoaderProxy.findCommonSuperclass
     // if (VM.VerifyAssertions) assertIsType(r, type);
+    // Avoid upcasts of magic types to regular j.l.Objects
+    if (VM.VerifyAssertions && (type == VM_TypeReference.JavaLangObject))
+      VM._assert(!r.getType().isMagicType());
     if (type.isLongType() || type.isDoubleType())
       popDummy();
     return r;
