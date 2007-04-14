@@ -14,6 +14,7 @@ import java.util.Stack;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.concurrent.*;
 
 import java.io.*;
 
@@ -77,12 +78,11 @@ public class BootImageWriter extends BootImageWriterMessages
  implements BootImageWriterConstants {
 
   /**
-   * Number of threads we should use for compilation
-   *  1:  work done in this thread
-   *  >1: create these many threads
-   *  <1: error
+   * Number of threads we should use for compilation. Default to number of
+   * available processors +1. This is the ideal thread pool size for something
+   * compute bound, but should be larger if IO is an issue.
    */
-  public static int numThreads = 1;
+  public static int numThreads = Runtime.getRuntime().availableProcessors()+1;
 
   /**
    * How much talking while we work?
@@ -1087,34 +1087,22 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("instantiating");
-      if (numThreads == 1) {
-        int count = 0;
-        for (VM_Type type : bootImageTypes.values()) {
-            count++;
-            long start2 = System.currentTimeMillis();
-            if (verbose >= 1) say(startTime +": "+ count + " instantiating " + type);
-            type.instantiate();
-            long stop2 = System.currentTimeMillis();
-            if (verbose >=1) say(stop2 + ":  " + count + " finish " + type + " duration: " + (stop2 - start2) + "ms");
-            if (profile && stop2 - start2 > classCompileThreshold)
-              System.out.println("PROF:\t\t"+type+" took "+((stop2 - start2+500)/1000)+" seconds to instantiate");
-        }
-      } else {
-        say(" compiling with " + numThreads + " threads");
-        BootImageWorker.startup(bootImageTypes.elements());
-        BootImageWorker [] workers = new BootImageWorker[numThreads];
-        for (int i=0; i<workers.length; i++) {
-          workers[i] = new BootImageWorker();
-          workers[i].id = i;
-          workers[i].setName("BootImageWorker-" + i);
-          workers[i].start();
-        }
-        try {
-          for (BootImageWorker worker : workers) { worker.join(); }
-        } catch (InterruptedException ie) {
-          say("InterruptedException while instantiating");
+      
+      if (verbose >= 1) say(" compiling with " + numThreads + " threads");
+      ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
+      for (VM_Type type: bootImageTypes.values()) {
+        threadPool.execute(new BootImageWorker(type));
+      }
+      threadPool.shutdown();
+      try {
+        while(!threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
+          say("Compilation really shouldn't take this long");
         }
       }
+      catch (InterruptedException e){
+        throw new Error("Build interrupted", e);
+      }
+      
       if (profile) {
         stopTime = System.currentTimeMillis();
         System.out.println("PROF: \tinstantiating types "+(stopTime-startTime)+" ms");

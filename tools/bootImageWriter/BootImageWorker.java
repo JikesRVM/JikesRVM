@@ -7,48 +7,39 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 
-import java.util.*;
 import org.jikesrvm.classloader.VM_Type;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Worker thread for parallel compilation
- * during bootimage writing.
+ * Worker for parallel compilation during bootimage writing.
  * @author Perry Cheng
  */
-public class BootImageWorker extends Thread {
+public class BootImageWorker implements Runnable {
 
-  public static final int verbose = 0;
-  static Enumeration enumeration;
-  int id;
+  public static final boolean verbose = false;
+  private static final AtomicLong count = new AtomicLong();
+  private final VM_Type type; 
 
-  public static void startup (Enumeration e) {
-    enumeration = e;
+  BootImageWorker(VM_Type type) {
+    this.type = type;
   }
 
   public void run () {
-
-    int count = 0;
-    while (true) {
-      VM_Type type = null;
-      synchronized (enumeration) {
-        if (enumeration.hasMoreElements()) {
-          type = (VM_Type) enumeration.nextElement();
-          count++;
-        }
-      }
-      if (type == null) 
-        return;
-      long startTime = 0;
-      if (verbose >= 1) {
-          startTime = System.currentTimeMillis();
-          BootImageWriterMessages.say(startTime + ": "+ count +" starting " + type +"(Thread " + id + ")");
-      }
-      type.instantiate();
-      if (verbose >= 1) {
-        long stopTime = System.currentTimeMillis();
-        BootImageWriterMessages.say(stopTime + ": "+ count +" finish " + type +" duration: " + (stopTime - startTime) + "ms (Thread "+ id +")");
-      }
+    if (type == null) 
+      return;
+    long startTime = 0;
+    long myCount = 0;
+    if (verbose) {
+      startTime = System.currentTimeMillis();
+      myCount = count.incrementAndGet();
+      BootImageWriterMessages.say(startTime + ": "+ myCount +" starting " + type);
+    }
+    type.instantiate();
+    if (verbose) {
+      long stopTime = System.currentTimeMillis();
+      BootImageWriterMessages.say(stopTime + ": "+ myCount +" finish " + type +
+          " duration: " + (stopTime - startTime));
     }
   }
-
 }
+
