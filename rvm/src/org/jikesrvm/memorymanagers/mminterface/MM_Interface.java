@@ -482,7 +482,7 @@ import org.vmmagic.pragma.*;
     if (isPrefix("Lorg/mmtk/", typeBA) ||
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/memorymanagers/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/VM_Processor;", typeBA) ||
+        isPrefix("Lorg/jikesrvm/scheduler/VM_Processor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
     if (Selected.Constraints.get().needsImmortalTypeInfo() && 
