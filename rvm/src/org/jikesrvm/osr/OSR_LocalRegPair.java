@@ -89,7 +89,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
 
     buf.append(tcode).append(" , ");
     buf.append(valueType).append(" , ");
-    buf.append(value).append(" , ");
+    buf.append("0x").append(Long.toHexString(value.toLong())).append(" , ");
     buf.append(operand).append(")");
 
     // for long type, append another half
