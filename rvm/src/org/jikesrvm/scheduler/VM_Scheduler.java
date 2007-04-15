@@ -92,10 +92,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
   static int                  numDaemons;
   /** guard for serializing access to fields above */
   static final VM_ProcessorLock     threadCreationMutex = new VM_ProcessorLock();
-  /** queue for VPs waiting for callToNative function */
-  static final VM_ProcessorQueue    deadVPQueue = new VM_ProcessorQueue();
-  /** queue for VPs waiting for callToNative function */
-  static final VM_ProcessorQueue    availableProcessorQueue = new VM_ProcessorQueue();
 
   // Thread execution.
   //
@@ -727,7 +723,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
     VM.sysWrite("\n-- System Queues -- \n");
     VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
     VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
-    VM.sysWrite(" deadVPQueue: ");     deadVPQueue.dump();
     VM.sysWrite(" collectorQueue: ");   collectorQueue.dump();
     VM.sysWrite(" finalizerQueue: ");   finalizerQueue.dump();
 
