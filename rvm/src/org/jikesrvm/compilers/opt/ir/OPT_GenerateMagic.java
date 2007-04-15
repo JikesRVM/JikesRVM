@@ -650,6 +650,10 @@ public class OPT_GenerateMagic {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.codeArrayToAddress) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Word);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.CodeArray)));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordPlus) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();

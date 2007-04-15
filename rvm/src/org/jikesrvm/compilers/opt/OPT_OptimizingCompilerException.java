@@ -10,6 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import  java.io.StringWriter;
 import  java.io.PrintWriter;
+import  org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Use this exception if we encounter a runtime error in the dynamic 
@@ -23,6 +24,19 @@ import  java.io.PrintWriter;
 public class OPT_OptimizingCompilerException extends RuntimeException {
   /** Support for exception serialization */
   static final long serialVersionUID = -868535710873341956L;
+
+  /**
+   * Capture illegal upcasts from magic types to java.lang.Object
+   * @author Ian Rogers
+   */
+  public static class IllegalUpcast extends RuntimeException {
+    final VM_TypeReference magicType;
+    public IllegalUpcast(VM_TypeReference type) {
+      super ("Illegal upcast from " + type + " to java.lang.Object");
+      magicType = type;
+    }
+  }
+  
   /** 
    * When running in the RVM, typically optimizing compiler
    * exceptions are caught, optionally a message is printed, and we 

@@ -3750,7 +3750,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         methodName == VM_MagicNames.wordToObject ||
         methodName == VM_MagicNames.wordToObjectReference ||
         methodName == VM_MagicNames.wordToExtent ||
-        methodName == VM_MagicNames.wordToWord) {
+        methodName == VM_MagicNames.wordToWord ||
+        methodName == VM_MagicNames.codeArrayToAddress) {
         if (VM.BuildFor32Addr) return true;     // no-op for 32-bit
         if (VM.VerifyAssertions) VM._assert(false);
     }

@@ -2672,7 +2672,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       s.markAsNonPEI();
     }
     for (int i = params.length - 1; i >= 0; i--) {
-      Call.setParam(s, i + numHiddenParams, pop(params[i]));
+      try {
+        Call.setParam(s, i + numHiddenParams, pop(params[i]));
+      } catch (OPT_OptimizingCompilerException.IllegalUpcast e) {
+        throw new Error("Illegal upcast creating call to " + meth +
+            " from " + gc.method + " argument " + i, e);
+      }
     }
     if (numHiddenParams != 0) {
       OPT_Operand ref = pop();
@@ -3200,6 +3205,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Avoid upcasts of magic types to regular j.l.Objects
 //    if (VM.VerifyAssertions && (type == VM_TypeReference.JavaLangObject))
 //      VM._assert(!r.getType().isMagicType());
+    if (VM.VerifyAssertions) {
+      if ((type == VM_TypeReference.JavaLangObject) &&
+          (r.getType().isMagicType()) &&
+          (r.getType() != VM_TypeReference.ObjectReference) &&
+          !gc.method.getDeclaringClass().isMagicType()
+      ) {
+        throw new OPT_OptimizingCompilerException.IllegalUpcast(r.getType());
+      }
+    }
     if (type.isLongType() || type.isDoubleType())
       popDummy();
     return r;

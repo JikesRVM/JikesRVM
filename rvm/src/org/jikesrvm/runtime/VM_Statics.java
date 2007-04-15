@@ -10,6 +10,7 @@ package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.util.*;
@@ -595,6 +596,15 @@ public class VM_Statics implements VM_Constants {
       // VM_Magic won't work in the bootstrap JVM.
       objectSlots[offsetAsSlot(offset)] = object;
     }
+  }
+
+  /**
+   * Set contents of a slot, as a VM_CodeArray.
+   */ 
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, VM_CodeArray code) {
+    setSlotContents(offset, VM_Magic.codeArrayToAddress(code).toWord());
+    if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
   }
 
   /**

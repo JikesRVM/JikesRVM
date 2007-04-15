@@ -181,4 +181,5 @@ public class VM_MagicNames {
   public static final VM_Atom addressArrayLength            = VM_Atom.findOrCreateAsciiAtom("length");
   public static final VM_Atom addressArrayGet               = VM_Atom.findOrCreateAsciiAtom("get");
   public static final VM_Atom addressArraySet               = VM_Atom.findOrCreateAsciiAtom("set");
+  public static final VM_Atom codeArrayToAddress            = VM_Atom.findOrCreateAsciiAtom("codeArrayToAddress");
 }
