@@ -139,7 +139,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for word type */
-  OSR_VariableElement(int what_kind,
+  public OSR_VariableElement(int what_kind,
                      int which_num,
                      int type,
                      Word word) {
