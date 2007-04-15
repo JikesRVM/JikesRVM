@@ -160,7 +160,7 @@ public class VM_DynamicLibrary {
   }
 
   public String toString() {
-    return "dynamic library " + libName + ", handler=" + libHandler;
+    return "dynamic library " + libName + ", handler=0x" + Long.toHexString(libHandler.toWord().toLong());
   }
 
   /**
