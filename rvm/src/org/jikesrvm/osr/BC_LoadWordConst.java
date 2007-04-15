@@ -39,6 +39,6 @@ public class BC_LoadWordConst extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "LoadWord "+wbits;  
+    return "LoadWord 0x"+Long.toHexString(wbits.toLong());  
   }
 }
