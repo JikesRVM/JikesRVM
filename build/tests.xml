@@ -45,7 +45,7 @@
   <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
   <property name="test.rvm.extra.args" value=""/>
-  <property name="test.processors" value="1"/>
+  <property name="test.processors" value="all"/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
