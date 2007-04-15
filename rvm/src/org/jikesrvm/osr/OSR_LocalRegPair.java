@@ -95,7 +95,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
     // for long type, append another half
     if (VM.BuildFor32Addr && (tcode == LongTypeCode)) {
       buf.append("(").append(_otherHalf.valueType).append(" , ");
-      buf.append(_otherHalf.value).append(")");
+      buf.append("0x").append(Integer.toHexString(_otherHalf.value.toInt())).append(")");
     }
     return buf.toString();
   }
