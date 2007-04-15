@@ -99,8 +99,6 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Write boot image to disk.
-   *
-   * @param imageFileName the name of the image file
    */
   public void write(String imageCodeFileName, String imageDataFileName, String imageRMapFileName) throws IOException {
     if (trace) {
