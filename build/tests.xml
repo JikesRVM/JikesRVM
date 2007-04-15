@@ -14,6 +14,7 @@
    - test.@{tag}.class.path               (Classpath test run with)
    - test.@{tag}.initial.heapsize         (Initial heap size)
    - test.@{tag}.max.heapsize             (Maximum heap size)
+   - test.@{tag}.processors               (Processor count or 'all')
    - test.@{tag}.time.limit               (Time limit)
    - test.@{tag}.extra,args               (Any extra test-specific args to rvm)
    - test.@{tag}.rvm.args                 (The complete set of args passed to rvm)
@@ -44,6 +45,7 @@
   <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
   <property name="test.rvm.extra.args" value=""/>
+  <property name="test.processors" value="1"/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
@@ -154,6 +156,7 @@
     <parameter key="max.heapsize" value="${test.@{tag}.max.heapsize}"/>
     <parameter key="time.limit" value="${test.@{tag}.time.limit}"/>
     <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
+    <parameter key="processors" value='${test.@{tag}.processors}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
   <time>${test.@{tag}.time.duration}</time>
@@ -310,6 +313,7 @@
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
+    <attribute name="processors" default="1"/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
@@ -330,8 +334,11 @@
         <equals arg1="@{classpath}" arg2=""/>
       </condition>
       <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
+      <condition property="test.@{tag}.processors" value="${test.processors}" else="@{processors}">
+        <equals arg1="@{processors}" arg2=""/>
+      </condition>
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
+                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
