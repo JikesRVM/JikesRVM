@@ -281,9 +281,9 @@ public class GenerateInterfaceDeclarations {
           current=current.plus(4);
       }
       if (!current.EQ(offset)) { 
-        p("current = ", current);
-        p(" and offset = ", offset);
-        pln(" are neither identical not differ by 4");
+        System.err.printf("current (%d) and offset (%d) are neither identical nor differ by 4",
+            current.toInt(),offset.toInt());
+        System.exit(1);
       }
       if (t.isIntType()) {
         current=current.plus(4);
