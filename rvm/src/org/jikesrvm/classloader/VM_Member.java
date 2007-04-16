@@ -21,6 +21,9 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class VM_Member extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
 
+  /** Initial value for a field offset - indicates field not laid out. */
+  private static final int NO_OFFSET = Short.MIN_VALUE+1;
+  
   /**
    * The class that declared this member, avaliable by calling
    * getDeclaringClass once the class is loaded.
@@ -66,7 +69,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
     this.memRef = memRef;
     this.modifiers = modifiers;
     this.signature = signature;
-    this.offset = Short.MIN_VALUE+1; // invalid value. Set to valid value during VM_Class.resolve()
+    this.offset = NO_OFFSET; // invalid value. Set to valid value during VM_Class.resolve()
   }
 
   //--------------------------------------------------------------------//
@@ -164,6 +167,15 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   public final int getModifiers() {
     return modifiers;
   }
+  
+  /**
+   * Has the field been laid out in the object yet ?
+   * 
+   * @return
+   */
+  public final boolean hasOffset() {
+    return !(offset == NO_OFFSET);
+  }
 
   //------------------------------------------------------------------//
   //                       Section 2.                                 //
@@ -183,6 +195,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   @Uninterruptible
   public final Offset getOffset() { 
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(offset != NO_OFFSET);
     return Offset.fromIntSignExtend(offset);
   }
 

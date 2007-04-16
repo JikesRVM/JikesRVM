@@ -10,6 +10,7 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.*;
 import org.jikesrvm.util.VM_Synchronizer;
+import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_StackBrowser;
@@ -156,9 +157,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   private int alignment;
 
   /**
-   * An int containing the field layout as defined in VM_ObjectModel.
+   * A field layout helper - used to keep context regarding field layouts.
+   * Managed by the field layout objects in the VM_ObjectModel.
    */
-  private int fieldLayout;
+  private VM_FieldLayoutContext fieldLayoutContext = null;
 
   // --- Method-dispatching information --- //
 
@@ -920,19 +922,19 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Return int representing available holes in the field layout
+   * Set object representing available holes in the field layout
    */
-  public int getFieldLayout() {
-    return fieldLayout;
+  public VM_FieldLayoutContext getFieldLayoutContext() {
+    return fieldLayoutContext;
   }
 
   /**
    * Set int representing available holes in the field layout
    */
-  public void setFieldLayout(int newLayout) {
-    fieldLayout = newLayout;
+  public void setFieldLayoutContext(VM_FieldLayoutContext newLayout) {
+    fieldLayoutContext = isFinal() ? null : newLayout;
   }
-
+  
   /**
    * @return alignment for instances of this class type
    */
@@ -1478,15 +1480,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       depth = 1; 
     } else if (superClass == null) {
       if (VM.VerifyAssertions) VM._assert(isJavaLangObjectType());
-      instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
-      alignment = BYTES_IN_ADDRESS;
+      instanceSize   = VM_ObjectModel.computeScalarHeaderSize(this);
+      alignment      = BYTES_IN_ADDRESS;
       thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
     } else {
-      depth = superClass.depth + 1;
-      thinLockOffset = superClass.thinLockOffset;
-      instanceSize = superClass.instanceSize;
-      fieldLayout = superClass.fieldLayout;
-      alignment= superClass.alignment;
+      depth              = superClass.depth + 1;
+      thinLockOffset     = superClass.thinLockOffset;
+      instanceSize       = superClass.instanceSize;
+      fieldLayoutContext = superClass.fieldLayoutContext;
+      alignment          = superClass.alignment;
     }
 
     if (hasSynchronizedObjectAnnotation() || this == VM_Type.JavaLangClassType)
