@@ -496,17 +496,31 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
           // collectors to do the right thing wrt reference counting
           // and write barriers.
           f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-        } else if (ft.isLongType() || ft.isDoubleType() ||
-            (VM.BuildFor64Addr && ft.isWordType())) {
-          Offset offset = f.getOffset();
-          long bits = VM_Magic.getLongAtOffset(obj, offset);
-          VM_Magic.setLongAtOffset(newObj, offset, bits);
         } else {
-          // NOTE: assumes that all other types get 32 bits.
-          //       This is currently true, but may change in the future.
           Offset offset = f.getOffset();
-          int bits = VM_Magic.getIntAtOffset(obj, offset);
-          VM_Magic.setIntAtOffset(newObj, offset, bits);
+          switch (ft.getMemoryBytes()) {
+          case BYTES_IN_BYTE: {
+            byte bits = VM_Magic.getByteAtOffset(obj, offset);
+            VM_Magic.setByteAtOffset(newObj, offset, bits);
+            break;
+          }
+          case BYTES_IN_CHAR: {
+            char bits = VM_Magic.getCharAtOffset(obj, offset);
+            VM_Magic.setCharAtOffset(newObj, offset, bits);
+            break;
+          }
+          case BYTES_IN_LONG: {
+            long bits = VM_Magic.getLongAtOffset(obj, offset);
+            VM_Magic.setLongAtOffset(newObj, offset, bits);
+            break;
+          }
+          default: {
+            if (VM.VerifyAssertions) VM._assert(ft.getMemoryBytes() == BYTES_IN_INT);
+            int bits = VM_Magic.getIntAtOffset(obj, offset);
+            VM_Magic.setIntAtOffset(newObj, offset, bits);
+            break;
+          }
+          }
         }
       }
       return newObj;
