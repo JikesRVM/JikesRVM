@@ -20,6 +20,14 @@ import org.vmmagic.unboxed.Offset;
  *
  * The field layout object encapsulates layout state.
  *
+ * @author Bowen Alpern
+ * @author David Bacon
+ * @author Stephen Fink
+ * @author Daniel Frampton
+ * @author Dave Grove
+ * @author Derek Lieber
+ * @author Kris Venstermans
+ * @author Ian Rogers
  * @author Robin Garner
  *
  */

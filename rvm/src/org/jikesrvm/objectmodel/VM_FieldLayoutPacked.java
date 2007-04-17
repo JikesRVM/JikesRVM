@@ -17,6 +17,15 @@ import org.jikesrvm.classloader.VM_Class;
  * 
  * @author Robin Garner
  * @author Ian Rogers (initial implementation)
+ * @author Bowen Alpern
+ * @author David Bacon
+ * @author Stephen Fink
+ * @author Daniel Frampton
+ * @author Dave Grove
+ * @author Derek Lieber
+ * @author Kris Venstermans
+ * @author Ian Rogers
+ * @author Robin Garner
  */
 public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConstants {
   
