@@ -1064,7 +1064,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     return DefUseEffect.UNCHANGED;
   }
   private static DefUseEffect booleanCmpInt(OPT_Instruction s) {
-   if (CF_INT) {
+    if (CF_INT) {
       OPT_Operand op1 = BooleanCmp.getVal1(s);
       OPT_Operand op2 = BooleanCmp.getVal2(s);
       if (op1.isConstant()) {
@@ -1073,15 +1073,33 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
           if (cond != OPT_ConditionOperand.UNKNOWN) {
             Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
-                        (cond == OPT_ConditionOperand.TRUE) ? IC(1):IC(0));
+                (cond == OPT_ConditionOperand.TRUE) ? IC(1):IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         } else {
           // Canonicalize by switching operands and fliping code.
-          OPT_Operand tmp = BooleanCmp.getClearVal1(s);
-          BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
-          BooleanCmp.setVal2(s, tmp);
+          BooleanCmp.setVal1(s, op2);
+          BooleanCmp.setVal2(s, op1);
           BooleanCmp.getCond(s).flipOperands();
+          op2 = op1;
+          op1 = BooleanCmp.getVal1(s);
+        }
+      }
+      // try to fold boolean compares involving one boolean constant
+      // e.g.: x = (y == true)  ? true : false ==> x = y
+      // or:   x = (y == false) ? true : false ==> x = !y
+      if (op1.getType().isBooleanType() && op2.isConstant()) {
+        OPT_ConditionOperand cond = BooleanCmp.getCond(s);
+        int op2value = op2.asIntConstant().value;
+        if ((cond.isNOT_EQUAL() && (op2value == 0)) ||
+            (cond.isEQUAL() && (op2value == 1))) {            
+          Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), op1);
+          return DefUseEffect.MOVE_REDUCED;
+        }
+        else if ((cond.isEQUAL() && (op2value == 0)) ||
+            (cond.isNOT_EQUAL() && (op2value == 1))){
+          Unary.mutate(s, BOOLEAN_NOT, BooleanCmp.getResult(s), op1);
+          return DefUseEffect.REDUCED;
         }
       }
     }

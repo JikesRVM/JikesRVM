@@ -1082,6 +1082,11 @@ class OPT_ExpressionFolding {
             // x = ~a; y = x ^ c2
             return Binary.create(INT_XOR, y.copyRO(), a.copyRO(), IC(~c2));
           }
+        else 
+          if (def.operator == BOOLEAN_NOT) {
+            // x = !a; y = x ^ c2
+            return Binary.create(INT_XOR, y.copyRO(), a.copyRO(), IC(c2^1));
+          }
       }
       return null;
     }
@@ -1513,7 +1518,7 @@ class OPT_ExpressionFolding {
       if (FOLD_INTS && FOLD_NEGS) {
         if (def.operator == INT_NEG) {
           // x = -z; y = -x;
-          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == INT_MUL) {
           int c1 = getIntValue(Binary.getVal2(def));
@@ -1524,7 +1529,7 @@ class OPT_ExpressionFolding {
           int c1 = getIntValue(GuardedBinary.getVal2(def));
           OPT_Operand guard = GuardedBinary.getGuard(def);
           // x = a / c1; y = -x;
-          return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c1), guard);
+          return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c1), guard.copy());
         }
         else if (FOLD_CONSTANTS_TO_LHS && (def.operator == INT_ADD)) {
           int c1 = getIntValue(Binary.getVal2(def));
@@ -1544,7 +1549,7 @@ class OPT_ExpressionFolding {
       if (FOLD_REFS && FOLD_NEGS) {
         if (def.operator == REF_NEG) {
           // x = -z; y = -x;
-          return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (FOLD_CONSTANTS_TO_LHS && (def.operator == REF_ADD)) {
           Address c1 = getAddressValue(Binary.getVal2(def));
@@ -1564,7 +1569,7 @@ class OPT_ExpressionFolding {
       if (FOLD_LONGS && FOLD_NEGS) {
         if (def.operator == LONG_NEG) {
           // x = -z; y = -x;
-          return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == LONG_MUL) {
           long c1 = getLongValue(Binary.getVal2(def));
@@ -1575,7 +1580,7 @@ class OPT_ExpressionFolding {
           long c1 = getLongValue(GuardedBinary.getVal2(def));
           OPT_Operand guard = GuardedBinary.getGuard(def);
           // x = a / c1; y = -x;
-          return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c1), guard);
+          return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c1), guard.copy());
         }
         else if (FOLD_CONSTANTS_TO_LHS && (def.operator == LONG_ADD)) {
           long c1 = getLongValue(Binary.getVal2(def));
@@ -1595,7 +1600,7 @@ class OPT_ExpressionFolding {
       if (FOLD_FLOATS && FOLD_NEGS) {
         if (def.operator == FLOAT_NEG) {
           // x = -z; y = -x;
-          return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == FLOAT_MUL) {
           float c1 = getFloatValue(Binary.getVal2(def));
@@ -1625,7 +1630,7 @@ class OPT_ExpressionFolding {
       if (FOLD_DOUBLES && FOLD_NEGS) {
         if (def.operator == DOUBLE_NEG) {
           // x = -z; y = -x;
-          return Move.create(DOUBLE_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(DOUBLE_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == DOUBLE_MUL) {
           double c1 = getDoubleValue(Binary.getVal2(def));
@@ -1651,11 +1656,28 @@ class OPT_ExpressionFolding {
       return null;
     }
 
+    case BOOLEAN_NOT_opcode: {
+      if (FOLD_INTS && FOLD_NOTS) {
+        if (def.operator == BOOLEAN_NOT) {
+          // x = 1 ^ z; y = 1 ^ x;
+          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
+        }
+        else if (BooleanCmp.conforms(def)) {
+          // x = a cmp b; y = !x
+          return BooleanCmp.create(def.operator, y.copyRO(),
+              BooleanCmp.getVal1(def).copy(), BooleanCmp.getVal2(def).copy(),
+              ((OPT_ConditionOperand)BooleanCmp.getCond(def).copy()).flipCode(),
+              ((OPT_BranchProfileOperand)BooleanCmp.getBranchProfile(def).copy()));
+        }
+      }
+      return null;
+    }
+
     case INT_NOT_opcode: {
       if (FOLD_INTS && FOLD_NOTS) {
         if (def.operator == INT_NOT) {
           // x = -1 ^ z; y = -1 ^ x;
-          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;
@@ -1665,7 +1687,7 @@ class OPT_ExpressionFolding {
       if (FOLD_REFS && FOLD_NOTS) {
         if (def.operator == REF_NOT) {
           // x = -1 ^ z; y = -1 ^ x;
-          return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;
@@ -1676,7 +1698,7 @@ class OPT_ExpressionFolding {
       if (FOLD_LONGS && FOLD_NOTS) {
         if (def.operator == LONG_NOT) {
           // x = -1 ^ z; y = -1 ^ x;
-          return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;
@@ -1687,11 +1709,11 @@ class OPT_ExpressionFolding {
         if ((def.operator == INT_2BYTE) ||
             (def.operator == INT_2SHORT)) {
           // x = (short)z; y = (byte)x;
-          return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def));
+          return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == INT_2USHORT) {
           // x = (char)z; y = (byte)x;
-          return Binary.create(INT_AND, y.copyRO(), Unary.getVal(def), IC(0xFF));
+          return Binary.create(INT_AND, y.copyRO(), Unary.getVal(def).copy(), IC(0xFF));
         }        
       }
       return null;
@@ -1700,15 +1722,15 @@ class OPT_ExpressionFolding {
       if (FOLD_INTS && FOLD_2CONVERSION) {
         if (def.operator == INT_2BYTE) {
           // x = (byte)z; y = (short)x;
-          return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def));        
+          return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def).copy());        
         }
         else if (def.operator == INT_2SHORT) {
           // x = (short)z; y = (short)x;
-          return Unary.create(INT_2SHORT, y.copyRO(), Unary.getVal(def));
+          return Unary.create(INT_2SHORT, y.copyRO(), Unary.getVal(def).copy());
         }
         else if (def.operator == INT_2USHORT) {
           // x = (char)z; y = (short)x;
-          return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def));
+          return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def).copy());
         }        
       }
       return null;
@@ -1718,7 +1740,7 @@ class OPT_ExpressionFolding {
         if ((def.operator == INT_2SHORT)||
             (def.operator == INT_2USHORT)) {
           // x = (short)z; y = (char)x;
-          return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def));
+          return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;
@@ -1728,7 +1750,7 @@ class OPT_ExpressionFolding {
       if (FOLD_LONGS && FOLD_2CONVERSION) {
         if (def.operator == INT_2LONG) {
           // x = (long)z; y = (int)x;
-          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;
@@ -1741,7 +1763,7 @@ class OPT_ExpressionFolding {
       if (FOLD_DOUBLES && FOLD_2CONVERSION) {
         if (def.operator == FLOAT_2DOUBLE) {
           // x = (double)z; y = (float)x;
-          return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def));
+          return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def).copy());
         }
       }
       return null;      
@@ -1766,6 +1788,7 @@ class OPT_ExpressionFolding {
 
     switch (s.operator.opcode) {
     // Foldable operators
+    case BOOLEAN_NOT_opcode:
     case INT_NOT_opcode:
     case REF_NOT_opcode:
     case LONG_NOT_opcode:
