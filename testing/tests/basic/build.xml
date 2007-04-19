@@ -68,7 +68,7 @@
 
     <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
 
-    <runCompareTest tag="TestResolveOnInvokeVirtual"
+    <runCompareTest tag="TestResolveOnInvokeInterface"
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
     <runCompareTest tag="TestResolveOnCheckcast"
