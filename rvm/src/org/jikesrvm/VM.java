@@ -603,7 +603,7 @@ import org.vmmagic.unboxed.*;
    * @param value  what is printed
    */
   @NoInline /* don't waste code space inlining these --dave */
-  public static void write(VM_Atom value) {
+  private static void write(VM_Atom value) {
     value.sysWrite();
   }
 
@@ -678,7 +678,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(char value) { 
     if (runningVM)
-      sysCall.sysWriteChar(value);
+      sysCall.sysConsoleWriteChar(value);
     else
       System.err.print(value);
   }
@@ -694,7 +694,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(double value, int postDecimalDigits) { 
     if (runningVM)
-      sysCall.sysWriteDouble(value, postDecimalDigits);
+      sysCall.sysConsoleWriteDouble(value, postDecimalDigits);
     else
       System.err.print(value);
   }
@@ -708,7 +708,7 @@ import org.vmmagic.unboxed.*;
   public static void write(int value) { 
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-      sysCall.sysWrite(value, mode);
+      sysCall.sysConsoleWriteInteger(value, mode);
     } else {
       System.err.print(value);
     }
@@ -722,7 +722,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeHex(int value) { 
     if (runningVM)
-      sysCall.sysWrite(value, 2 /*just hex*/);
+      sysCall.sysConsoleWriteInteger(value, 2 /*just hex*/);
     else {
       System.err.print(Integer.toHexString(value));
     }
@@ -736,7 +736,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeHex(long value) { 
     if (runningVM){
-      sysCall.sysWriteLong(value, 2);
+      sysCall.sysConsoleWriteLong(value, 2);
     } else {
       System.err.print(Long.toHexString(value));
     }
@@ -786,25 +786,10 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void writeInt(int value) { 
     if (runningVM)
-      sysCall.sysWrite(value, 0 /*just decimal*/);
+      sysCall.sysConsoleWriteInteger(value, 0 /*just decimal*/);
     else {
       System.err.print(value);
     }
-  }
-
-  /**
-   * Low level print to console.
-   * @param value   what is printed
-   * @param hexToo  how to print: true  - print as decimal followed by hex
-   *                              false - print as decimal only
-   */
-  @LogicallyUninterruptible
-  @NoInline /* don't waste code space inlining these --dave */ 
-  public static void write(int value, boolean hexToo) { 
-    if (runningVM)
-      sysCall.sysWrite(value, hexToo?1:0);
-    else
-      System.err.print(value);
   }
 
   /**
@@ -826,7 +811,7 @@ import org.vmmagic.unboxed.*;
   @NoInline /* don't waste code space inlining these --dave */ 
   public static void write(long value, boolean hexToo) { 
     if (runningVM) 
-      sysCall.sysWriteLong(value, hexToo?1:0);
+      sysCall.sysConsoleWriteLong(value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -852,7 +837,7 @@ import org.vmmagic.unboxed.*;
     while (temp >= 10) { len++; temp /= 10; }
     while (fieldWidth > len++) write(" ");
     if (runningVM) 
-      sysCall.sysWrite(value, 0);
+      sysCall.sysConsoleWriteInteger(value, 0);
     else 
       System.err.print(value);
   }

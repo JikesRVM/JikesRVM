@@ -137,7 +137,7 @@ static int loadResultBuf(char * buf, int limit, const char *result);
 // Console write (java character).
 //
 extern "C" void
-sysWriteChar(unsigned value)
+sysConsoleWriteChar(unsigned value)
 {
     char c = (value > 127) ? '?' : (char)value;
     // use high level stdio to ensure buffering policy is observed
@@ -147,7 +147,7 @@ sysWriteChar(unsigned value)
 // Console write (java integer).
 //
 extern "C" void
-sysWrite(int value, int hexToo)
+sysConsoleWriteInteger(int value, int hexToo)
 {
     if (hexToo==0 /*false*/)
         fprintf(SysTraceFile, "%d", value);
@@ -160,7 +160,7 @@ sysWrite(int value, int hexToo)
 // Console write (java long).
 //
 extern "C" void
-sysWriteLong(long long value, int hexToo)
+sysConsoleWriteLong(long long value, int hexToo)
 {
     if (hexToo==0 /*false*/)
         fprintf(SysTraceFile, "%lld", value);
@@ -178,7 +178,7 @@ sysWriteLong(long long value, int hexToo)
 // Console write (java double).
 //
 extern "C" void
-sysWriteDouble(double value,  int postDecimalDigits)
+sysConsoleWriteDouble(double value,  int postDecimalDigits)
 {
     if (value != value) {
         fprintf(SysTraceFile, "NaN");

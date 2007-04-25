@@ -44,15 +44,15 @@ public abstract class VM_SysCall {
 
   // lowlevel write to console
   @SysCallTemplate
-  public abstract void sysWriteChar(char v);
+  public abstract void sysConsoleWriteChar(char v);
 
   @SysCallTemplate
-  public abstract void sysWrite(int value, int hexToo);
+  public abstract void sysConsoleWriteInteger(int value, int hexToo);
   
   @SysCallTemplate
-  public abstract void sysWriteLong(long value, int hexToo);
+  public abstract void sysConsoleWriteLong(long value, int hexToo);
   @SysCallTemplate
-  public abstract void sysWriteDouble(double value, int postDecimalDigits);
+  public abstract void sysConsoleWriteDouble(double value, int postDecimalDigits);
 
   // startup/shutdown
   @SysCallTemplate

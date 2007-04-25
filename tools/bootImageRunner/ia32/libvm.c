@@ -910,8 +910,8 @@ createVM(int UNUSED vmInSeparateThread)
                 bootRecord->ipRegister);
         fprintf(SysTraceFile, "   tocRegister:          0x%08x\n", 
                 bootRecord->tocRegister);
-        fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08x\n", 
-                bootRecord->sysWriteCharIP);
+        fprintf(SysTraceFile, "   sysConsoleWriteCharIP:0x%08x\n", 
+                bootRecord->sysConsoleWriteCharIP);
         fprintf(SysTraceFile, "   ...etc...                   \n");
     }
 

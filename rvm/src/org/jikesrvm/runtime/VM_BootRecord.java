@@ -204,10 +204,10 @@ public class VM_BootRecord {
   //
 
   // lowlevel write to console
-  public Address sysWriteCharIP;    
-  public Address sysWriteIP;            
-  public Address sysWriteLongIP;
-  public Address sysWriteDoubleIP;
+  public Address sysConsoleWriteCharIP;    
+  public Address sysConsoleWriteIntegerIP;            
+  public Address sysConsoleWriteLongIP;
+  public Address sysConsoleWriteDoubleIP;
   
   // startup/shutdown
   public Address sysExitIP;                     
