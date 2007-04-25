@@ -59,6 +59,7 @@ BEGIN {
 /^GC Warning:/ { next }
 /^GC Message:/ { next }
 /^\[GC [0-9]*/ { next }
+/FORCING GC\: Countdown trigger in*/ { next }
 /^\[Forced GC\]*/ { next }
 /^\[End [0-9]*.[0-9]* ms\]*/ { next }
 /^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
