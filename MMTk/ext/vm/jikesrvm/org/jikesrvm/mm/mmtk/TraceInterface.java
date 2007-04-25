@@ -201,23 +201,23 @@ import org.vmmagic.pragma.*;
                      ipOffset.toInt()) & ~0x80000000;
     
       /* Now print the location string. */
-      VM.write('\n');
+      VM.sysWriteln();
       VM.writeHex(allocid);
-      VM.write('-');
-      VM.write('>');
-      VM.write('[');
+      VM.sysWrite('-');
+      VM.sysWrite('>');
+      VM.sysWrite('[');
       VM.writeHex(compiledMethodID);
-      VM.write(']');
+      VM.sysWrite(']');
       m.getDeclaringClass().getDescriptor().sysWrite();
-      VM.write(':');
+      VM.sysWrite(':');
       m.getName().sysWrite();
       m.getDescriptor().sysWrite();
-      VM.write(':');
+      VM.sysWrite(':');
       VM.writeHex(bci);
-      VM.write('\t');
+      VM.sysWrite('\t');
       VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
       type.getDescriptor().sysWrite();
-      VM.write('\n');
+      VM.sysWriteln();
     }
     return fp;
   }
