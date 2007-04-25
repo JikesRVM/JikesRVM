@@ -107,7 +107,6 @@ public abstract class VM_Configuration {
   public static final boolean UseEpilogueYieldPoints = BuildForAdaptiveSystem;
 
   /** The following configuration objects are final when disabled, but non-final when enabled. */
-  public static @_RVM_FOR_STRESSGC_AM_@ boolean ParanoidGCCheck = @_RVM_FOR_STRESSGC_@;
   public static @_RVM_FOR_STRESSGC_AM_@ boolean ForceFrequentGC = @_RVM_FOR_STRESSGC_@;
 
   /*
