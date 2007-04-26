@@ -303,7 +303,7 @@
 
   <target name="gen-report" depends="archive">
     <xslt in="${test.results.dir}/Report.xml"
-          out="${build.results.dir}/Report.html"
+          out="${test.results.dir}/Report.html"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"
           force="true">
       <outputproperty name="method" value="html"/>
@@ -321,7 +321,7 @@
       <arg value="-x"/>
       <arg value="${test.results.dir}/Report.xml"/>
       <arg value="-o"/>
-      <arg value="${build.results.dir}/ReportNG.html"/>
+      <arg value="${test.results.dir}/ReportNG.html"/>
       <arg line="${upload-opt}"/>
     </exec>
     <exec executable="${perl.exe}" failonerror="true">
@@ -337,7 +337,7 @@
       <arg value="-s"/>
       <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
       <arg value="-o"/>
-      <arg value="${build.results.dir}/ReportSummary.html"/>
+      <arg value="${test.results.dir}/ReportSummary.html"/>
     </exec>
   </target>
 
@@ -350,7 +350,7 @@
   <target name="send-report" depends="gen-report" if="send.reports">
     <selectRegex property="testcount"
                  select="\1"
-                 file="${build.results.dir}/ReportSummary.html"
+                 file="${test.results.dir}/ReportSummary.html"
                  pattern="Failed (\d+)/.*"/>
     <condition property="test-run.description" value="SUCCESS" else="FAILED ${testcount} tests">
       <equals arg1="${testcount}" arg2="0"/>
@@ -359,7 +359,7 @@
           mailport="${mail.port}"
           messagemimetype="text/html"
           subject="${test-run.description}"
-          messagefile="${build.results.dir}/ReportSummary.html">
+          messagefile="${test.results.dir}/ReportSummary.html">
       <from address='"[${target.name}][${test-run.name}]" &lt;${mail.from}&gt;'/>
       <replyto address="jikesrvm-core@lists.sourceforge.net"/>
       <to address="${mail.to}"/>
