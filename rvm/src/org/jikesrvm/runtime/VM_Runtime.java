@@ -357,7 +357,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
-        VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
+        //VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
         countDownToGC = GCInterval;
         System.gc();
       }
@@ -449,7 +449,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
-        VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
+        //VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
         countDownToGC = GCInterval;
         System.gc();
       }
@@ -671,7 +671,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
-      VM.sysWrite("FORCING GC: in deliverHardwareException\n");
+      //VM.sysWrite("FORCING GC: in deliverHardwareException\n");
       System.gc();
     }
 
