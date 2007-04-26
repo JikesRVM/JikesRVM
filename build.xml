@@ -683,7 +683,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_MMTK_PLAN_" value="${config.mmtk.plan}"/>
         <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
         <filter token="_RVM_CLASSPATH_VERSION_" value="${classpath.version}"/>
-        <filter token="_RVM_FOR_STRESSGC_" value="${config.stress-gc}"/>
+        <filter token="_RVM_STRESSGC_INTERVAL_" value="${config.stress-gc-interval}"/>
       </filterset>
     </copy>
     
@@ -1233,7 +1233,7 @@ config.assertions=${config.assertions}
 config.default-heapsize.initial=${config.default-heapsize.initial}
 config.default-heapsize.maximum=${config.default-heapsize.maximum}
 config.bootimage.compiler.args=${config.bootimage.compiler.args}
-config.stress-gc=${config.stress-gc}
+config.stress-gc-interval=${config.stress-gc-interval}
 target.name=${target.name}
 target.arch=${target.arch}
 target.os=${target.os}

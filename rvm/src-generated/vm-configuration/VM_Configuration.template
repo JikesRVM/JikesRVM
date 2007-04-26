@@ -106,7 +106,9 @@ public abstract class VM_Configuration {
       methods.  */
   public static final boolean UseEpilogueYieldPoints = BuildForAdaptiveSystem;
 
-  public static final boolean ForceFrequentGC = @_RVM_FOR_STRESSGC_@;
+  /* NUmber of allocations between gc's during stress testing. Set to 0 to disable. */
+  public static final int StressGCAllocationInterval = @_RVM_STRESSGC_INTERVAL_@;
+  public static final boolean ForceFrequentGC = 0 != StressGCAllocationInterval;
 
   /*
    * We often need to slightly tweak the VM boot sequence and/or

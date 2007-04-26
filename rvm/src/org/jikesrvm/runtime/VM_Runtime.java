@@ -276,8 +276,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //                     Object Allocation.                        //
   //---------------------------------------------------------------//
    
-  static int countDownToGC = 500;
-  static final int GCInterval  = 100; // how many GC's in a test interval
+  static int countDownToGC = VM.StressGCAllocationInterval;
 
   /**
    * Allocate something like "new Foo()".
@@ -358,7 +357,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
         //VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
-        countDownToGC = GCInterval;
+        countDownToGC = VM.StressGCAllocationInterval;
         System.gc();
       }
     }
@@ -450,7 +449,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
         //VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
-        countDownToGC = GCInterval;
+        countDownToGC = VM.StressGCAllocationInterval;
         System.gc();
       }
     }
