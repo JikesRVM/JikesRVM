@@ -665,9 +665,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER" value="true" else="false">
       <equals arg1="${config.bootimage.compiler}" arg2="base"/>
     </condition>
-    <condition property="pp_RVM_FOR_STRESSGC_AM" value="" else="final">
-      <equals arg1="${config.stress-gc}" arg2="1"/>
-    </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/VM_Configuration.java">
@@ -687,7 +684,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
         <filter token="_RVM_CLASSPATH_VERSION_" value="${classpath.version}"/>
         <filter token="_RVM_FOR_STRESSGC_" value="${config.stress-gc}"/>
-        <filter token="_RVM_FOR_STRESSGC_AM_" value="${pp_RVM_FOR_STRESSGC_AM}"/>
       </filterset>
     </copy>
     
