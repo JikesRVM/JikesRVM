@@ -148,22 +148,12 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 
     VM_TypeReference fieldType = field.getType();
     Offset off = field.getOffset();
-    if (fieldType == VM_TypeReference.Address) {
-      Object obj = getObjectStaticFieldValue(field);
-      Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (Address) obj;
+    if ((fieldType == VM_TypeReference.Address) ||
+        (fieldType == VM_TypeReference.Word) ||
+        (fieldType == VM_TypeReference.Offset) ||
+        (fieldType == VM_TypeReference.Extent)){
+      Address val = getAddressStaticFieldValue(field);
       return new OPT_AddressConstantOperand(val);
-    } else if (fieldType == VM_TypeReference.Word) {
-      Object obj = getObjectStaticFieldValue(field);
-      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (Word) obj;
-      return new OPT_AddressConstantOperand(val.toAddress());
-    } else if (fieldType == VM_TypeReference.Offset) {
-      Object obj = getObjectStaticFieldValue(field);
-      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((Offset) obj).toWord();
-      return new OPT_AddressConstantOperand(val.toAddress());
-    } else if (fieldType == VM_TypeReference.Extent) {
-      Object obj = getObjectStaticFieldValue(field);
-      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((Extent) obj).toWord();
-      return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);
@@ -320,6 +310,42 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     }
   }
 
+  /**
+   * Returns the current contents of a Address static field.
+   *
+   * @param field a static field
+   * @return the current value of the field
+   */
+  public static Address getAddressStaticFieldValue(VM_Field field)
+    throws NoSuchFieldException {
+    if (VM.runningVM) {
+      return VM_Statics.getSlotContentsAsAddress(field.getOffset());
+    } else {
+      try {
+        Object unboxed = getJDKField(field).get(null);
+        if (unboxed instanceof Address) {
+          return (Address)unboxed;
+        }
+        else if (unboxed instanceof Word) {
+          return ((Word)unboxed).toAddress();
+        }
+        else if (unboxed instanceof Extent) {
+          return ((Extent)unboxed).toWord().toAddress();
+        }
+        else if (unboxed instanceof Offset) {
+          return ((Offset)unboxed).toWord().toAddress();
+        }
+        else {
+          if (VM.VerifyAssertions) VM._assert(false);
+          return Address.zero();
+        }
+      } catch (IllegalAccessException e) {
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+      } catch (IllegalArgumentException e) {
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+      }
+    }
+  }
 
   /**
    * Does a static field null contain null?

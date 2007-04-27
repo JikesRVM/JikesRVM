@@ -549,6 +549,38 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
+   * Fetch contents of a slot, as an Address.
+   */ 
+  @Uninterruptible
+  public static Address getSlotContentsAsAddress(Offset offset) { 
+    if(VM.runningVM) {
+      if (VM.BuildFor32Addr)
+        return Address.fromIntSignExtend(getSlotContentsAsInt(offset));
+      else
+        return Address.fromLong(getSlotContentsAsLong(offset));
+    } else {
+      // Addresses are represented by objects in the tools building the VM
+      Object unboxed = objectSlots[offsetAsSlot(offset)];
+      if (unboxed instanceof Address) {
+        return (Address)unboxed;
+      }
+      else if (unboxed instanceof Word) {
+        return ((Word)unboxed).toAddress();
+      }
+      else if (unboxed instanceof Extent) {
+        return ((Extent)unboxed).toWord().toAddress();
+      }
+      else if (unboxed instanceof Offset) {
+        return ((Offset)unboxed).toWord().toAddress();
+      }
+      else {
+        if (VM.VerifyAssertions) VM._assert(false);
+        return Address.zero();
+      }
+    }
+  }
+
+  /**
    * Set contents of a slot, as an integer.
    */
   @Uninterruptible
