@@ -1574,7 +1574,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
         if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
         if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
         
-        if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
+        if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
           VM._assert(false, "During compilation of " + method 
                     + " found an anewarray of "+ elementTypeRef + "\n"
                     + "You must use the 'create' function to create an array of this type");

@@ -341,7 +341,7 @@ public final class VM_TypeReference {
   public VM_TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
     
-    if (isWordArrayType()) {
+    if (isUnboxedArrayType()) {
       if (this == AddressArray) {
         return Address;
       } else if (this == ObjectReferenceArray) {
@@ -387,7 +387,7 @@ public final class VM_TypeReference {
       } else {
         return 1;
       }
-    } else if (isWordType() || isCodeType()) {
+    } else if (isUnboxedType()) {
       return -1;
     } else if (isClassType()) {
       return 0;
@@ -417,7 +417,7 @@ public final class VM_TypeReference {
   @Uninterruptible
   public boolean isClassType() { 
     return name.isClassDescriptor() &&
-      !(isWordArrayType() || isWordType() || isCodeArrayType() || isCodeType());
+      !(isUnboxedArrayType() || isUnboxedType());
   }
       
   /**
@@ -425,7 +425,7 @@ public final class VM_TypeReference {
    */ 
   @Uninterruptible
   public boolean isArrayType() { 
-    return name.isArrayDescriptor() || isWordArrayType() || isCodeArrayType();
+    return name.isArrayDescriptor() || isUnboxedArrayType();
   }
 
   /**
@@ -453,6 +453,14 @@ public final class VM_TypeReference {
   }
 
   /**
+   * Does 'this' refer to an unboxed type.
+   */
+  @Uninterruptible
+  public boolean isUnboxedType() { 
+    return isWordType() || isCodeType();
+  }
+
+  /**
    * Does 'this' refer to VM_Code
    */
   @Uninterruptible
@@ -466,6 +474,14 @@ public final class VM_TypeReference {
   @Uninterruptible
   boolean isWordArrayType() { 
     return this == WordArray || this == OffsetArray || this == AddressArray || this == ObjectReferenceArray || this == ExtentArray;
+  }
+  
+  /**
+   * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
+   */
+  @Uninterruptible
+  boolean isUnboxedArrayType() {
+    return isWordArrayType() || this == CodeArray;
   }
 
   /**
@@ -482,8 +498,7 @@ public final class VM_TypeReference {
   public boolean isMagicType() {
     return this == Magic
       || this == ObjectReference || this == ObjectReferenceArray 
-      || isWordType() || isWordArrayType() 
-      || isCodeType() || isCodeArrayType();
+      || isUnboxedType() || isUnboxedArrayType();
   }
 
   /**
@@ -707,7 +722,7 @@ public final class VM_TypeReference {
         VM._assert(resolvedType == null || resolvedType == ans);
       setResolvedType(ans);
     } else if (isArrayType()) {
-      if (isWordArrayType() || isCodeArrayType()) {
+      if (isUnboxedArrayType()) {
         // Ensure that we only create one VM_Array object for each pair of
         // names for this type. 
         // Do this by resolving AddressArray to [Address
