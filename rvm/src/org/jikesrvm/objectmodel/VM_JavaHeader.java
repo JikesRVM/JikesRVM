@@ -328,7 +328,7 @@ import org.vmmagic.unboxed.*;
    */
   public static ObjectReference getNextObject(ObjectReference obj,
                                               VM_Class type) {
-    return getObjectFromStartAddress(getObjectEndAddress(obj, type));
+    return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type));
   }
 
   /**
@@ -337,7 +337,7 @@ import org.vmmagic.unboxed.*;
    */
   public static ObjectReference getNextObject(ObjectReference obj,
                                               VM_Array type, int numElements) {
-    return getObjectFromStartAddress(getObjectEndAddress(obj, type, numElements));
+    return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type, numElements));
   }
 
   /**

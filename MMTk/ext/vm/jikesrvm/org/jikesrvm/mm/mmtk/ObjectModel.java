@@ -66,14 +66,14 @@ import org.vmmagic.pragma.*;
   @Inline
   private ObjectReference copyScalar(ObjectReference from, Object[] tib,
                                        VM_Class type, int allocator) { 
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
-    int align = VM_ObjectModel.getAlignment(type, from);
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
+    int align = VM_ObjectModel.getAlignment(type, from.toObject());
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     MMType mmType = (MMType) type.getMMType();
@@ -84,15 +84,15 @@ import org.vmmagic.pragma.*;
   @Inline
   private ObjectReference copyArray(ObjectReference from, Object[] tib,
                                       VM_Array type, int allocator) { 
-    int elements = VM_Magic.getArrayLength(from);
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
-    int align = VM_ObjectModel.getAlignment(type, from);
+    int elements = VM_Magic.getArrayLength(from.toObject());
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
+    int align = VM_ObjectModel.getAlignment(type, from.toObject());
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == VM_Type.CodeArrayType) {
@@ -117,9 +117,9 @@ import org.vmmagic.pragma.*;
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     
     if (type.isClassType())
-      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asClass());
+      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
     else
-      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asArray(), VM_Magic.getArrayLength(object));
+      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asArray(), VM_Magic.getArrayLength(object.toObject()));
   }
 
   /**
@@ -145,13 +145,13 @@ import org.vmmagic.pragma.*;
     if (copy) {
       if (type.isClassType()) {
         VM_Class classType = type.asClass();
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, classType);
-        VM_ObjectModel.moveObject(from, to, bytes, false, classType);
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
+        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, classType);
       } else {
       VM_Array arrayType = type.asArray();
-        int elements = VM_Magic.getArrayLength(from);
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, arrayType, elements);
-        VM_ObjectModel.moveObject(from, to, bytes, false, arrayType);
+        int elements = VM_Magic.getArrayLength(from.toObject());
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
+        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, arrayType);
       }
     } else {
       bytes = getCurrentSize(to);
@@ -173,7 +173,7 @@ import org.vmmagic.pragma.*;
    * @return The resulting reference.
    */
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
-    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from, to));
+    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
   }
   
   /**
@@ -182,7 +182,7 @@ import org.vmmagic.pragma.*;
    * @param object The objecty.
    */
   public Address getObjectEndAddress(ObjectReference object) {
-    return VM_ObjectModel.getObjectEndAddress(object);
+    return VM_ObjectModel.getObjectEndAddress(object.toObject());
   }
   
   /**
@@ -192,7 +192,7 @@ import org.vmmagic.pragma.*;
    * @return The size required to copy <code>obj</code>
    */
   public int getSizeWhenCopied(ObjectReference object) {
-    return VM_ObjectModel.bytesRequiredWhenCopied(object);
+    return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject());
   }
   
   /**
@@ -205,9 +205,9 @@ import org.vmmagic.pragma.*;
     Object[] tib = VM_ObjectModel.getTIB(object);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     if (type.isArrayType()) {
-      return VM_ObjectModel.getAlignment(type.asArray(), object);
+      return VM_ObjectModel.getAlignment(type.asArray(), object.toObject());
     } else {
-      return VM_ObjectModel.getAlignment(type.asClass(), object);
+      return VM_ObjectModel.getAlignment(type.asClass(), object.toObject());
     }
   }
   
@@ -234,7 +234,7 @@ import org.vmmagic.pragma.*;
    * @return The size of <code>obj</code>
    */
   public int getCurrentSize(ObjectReference object) {
-    return VM_ObjectModel.bytesUsed(object);
+    return VM_ObjectModel.bytesUsed(object.toObject());
   }
 
   /**
@@ -336,7 +336,7 @@ import org.vmmagic.pragma.*;
    * @return the value of the bits
    */
   public Word readAvailableBitsWord(ObjectReference object) {
-    return VM_ObjectModel.readAvailableBitsWord(object);
+    return VM_ObjectModel.readAvailableBitsWord(object.toObject());
   }
 
   /**
