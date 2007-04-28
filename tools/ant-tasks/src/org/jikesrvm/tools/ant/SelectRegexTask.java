@@ -54,8 +54,9 @@ public class SelectRegexTask
   }
 
   private byte[] readFully() {
+    FileInputStream inputStream = null;
     try {
-      final FileInputStream inputStream = new FileInputStream(file);
+      inputStream = new FileInputStream(file);
       final int size = (int) file.length();
       final byte[] bytes = new byte[size];
       int count = 0;
@@ -65,6 +66,14 @@ public class SelectRegexTask
       return bytes;
     } catch (IOException ioe) {
       throw new BuildException("Error loading file " + file, ioe, getLocation());
+    } finally {
+      if( null != inputStream ) {
+        try {
+          inputStream.close();
+        } catch (final IOException ioe) {
+          //ignore
+        }
+      }
     }
   }
 
