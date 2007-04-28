@@ -125,6 +125,6 @@ public abstract class VM_Configuration {
    */
   private static final int ClasspathVersion = @_RVM_CLASSPATH_VERSION_@;
   public static final boolean BuildForClasspath_0_93 = 93 == ClasspathVersion;
-  public static final boolean BuildWithGCTrace = "@_RVM_MMTK_PLAN_@".equals("org.mmtk.plan.semispace.gctrace.GCTrace");    
+  public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;    
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
 }
