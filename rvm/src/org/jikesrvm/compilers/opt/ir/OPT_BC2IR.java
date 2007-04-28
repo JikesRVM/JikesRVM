@@ -1425,6 +1425,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
             VM_TypeReference retType = op0.getType();
             if (retType.isUnboxedType()) {
+              //TODO: This should be VM._assert(gc.method.getReturnType() == retType.isUnboxedType());
+              // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
               VM._assert(gc.method.getReturnType().isUnboxedType());
             } else {
               // fudge to deal with conservative approximation 
