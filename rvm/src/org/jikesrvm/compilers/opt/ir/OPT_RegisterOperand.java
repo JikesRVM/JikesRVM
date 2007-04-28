@@ -117,7 +117,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * 
    * @param reg register object
    * @param typ data type
-   * @param flags to set for this register
+   * @param inFlags to set for this register
    */
   public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ, byte inFlags) {
     register = reg; 
