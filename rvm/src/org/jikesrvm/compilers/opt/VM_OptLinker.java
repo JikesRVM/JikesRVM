@@ -61,4 +61,21 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       break;
     }
   }
+
+  /*
+   * Method referenced from VM_Entrypoints
+   */
+  public static Object newArrayArray (int methodId, int[] dimensions, int typeId)
+    throws NoClassDefFoundError,
+           NegativeArraySizeException, 
+           OutOfMemoryError {
+    // validate arguments
+    for (int dimension : dimensions) {
+      if (dimension < 0) throw new NegativeArraySizeException();
+    }
+    // create array
+    //
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(typeId).resolve();
+    return VM_Runtime.buildMultiDimensionalArray(methodId, dimensions, aType);
+  }
 }
