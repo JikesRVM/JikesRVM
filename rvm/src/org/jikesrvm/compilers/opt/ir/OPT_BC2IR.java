@@ -1424,17 +1424,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_Operand op0 = popRef();
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
             VM_TypeReference retType = op0.getType();
-            if (retType.isUnboxedType()) {
-              //TODO: This should be VM._assert(gc.method.getReturnType() == retType.isUnboxedType());
-              // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
-              VM._assert(gc.method.getReturnType().isUnboxedType());
-            } else {
-              // fudge to deal with conservative approximation 
-              // in OPT_ClassLoaderProxy.findCommonSuperclass
-              if (retType != VM_TypeReference.JavaLangObject) {
-                assertIsAssignable(gc.method.getReturnType(), retType);
-              }
-            }
+            assertIsAssignable(gc.method.getReturnType(), retType);
           }
           _returnHelper(REF_MOVE, op0);
         }
@@ -2055,12 +2045,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_NullCheck(op0))
             break;
           VM_TypeReference type = getRefTypeOf(op0);
-          if (VM.VerifyAssertions) {
-            // fudge to handle conservative approximation of 
-            // OPT_ClassLoaderProxy.findCommonSuperclass
-            if (type != VM_TypeReference.JavaLangObject)
-              assertIsAssignable(VM_TypeReference.JavaLangThrowable, type);
-          }
+          if (VM.VerifyAssertions) assertIsAssignable(VM_TypeReference.JavaLangThrowable, type);
           if (!gc.method.isInterruptible()) {
             // prevent code motion in or out of uninterruptible code sequence
             appendInstruction(Empty.create(UNINT_END));
@@ -3210,7 +3195,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (VM.VerifyAssertions) {
       if ((type == VM_TypeReference.JavaLangObject) &&
           (r.getType().isMagicType()) &&
-          (r.getType() != VM_TypeReference.ObjectReference) &&
           !gc.method.getDeclaringClass().getTypeRef().isMagicType()
           ) {
         throw new OPT_OptimizingCompilerException.IllegalUpcast(r.getType());
@@ -3305,9 +3289,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private void assertIsAssignable(VM_TypeReference parentType, VM_TypeReference childType) {
     if (VM.VerifyAssertions) {
-      if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
-        VM.sysWriteln("type reference equality "+ (parentType == childType));
-        VM._assert(false, parentType + " not assignable with " + childType);
+      if (childType.isUnboxedType()) {
+        //TODO: This should be VM._assert(gc.method.getReturnType() == retType.isUnboxedType());
+        // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
+        VM._assert(parentType.isUnboxedType());
+      } else {
+        // fudge to deal with conservative approximation 
+        // in OPT_ClassLoaderProxy.findCommonSuperclass
+        if (childType != VM_TypeReference.JavaLangObject) {
+          if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
+            VM.sysWriteln("type reference equality " + (parentType == childType));
+            VM._assert(false, parentType + " not assignable with " + childType);
+          }
+        }
       }
     }
   }
