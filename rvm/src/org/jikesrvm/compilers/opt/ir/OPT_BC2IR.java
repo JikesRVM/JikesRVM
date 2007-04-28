@@ -1424,8 +1424,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_Operand op0 = popRef();
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
             VM_TypeReference retType = op0.getType();
-            if (retType.isWordType()) {
-              VM._assert(gc.method.getReturnType().isWordType());
+            if (retType.isUnboxedType()) {
+              VM._assert(gc.method.getReturnType().isUnboxedType());
             } else {
               // fudge to deal with conservative approximation 
               // in OPT_ClassLoaderProxy.findCommonSuperclass

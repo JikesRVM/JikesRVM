@@ -90,7 +90,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   public static final VM_Array WordArrayType;             
   public static final VM_Primitive AddressType;             
   public static final VM_Array AddressArrayType;             
-  public static final VM_Class ObjectReferenceType;             
+  public static final VM_Primitive ObjectReferenceType;             
   public static final VM_Array ObjectReferenceArrayType;             
   public static final VM_Primitive OffsetType;             
   public static final VM_Array OffsetArrayType;             
@@ -116,8 +116,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     OffsetType  = VM_TypeReference.Offset.resolve().asPrimitive();
     ExtentType  = VM_TypeReference.Extent.resolve().asPrimitive();
     CodeType    = VM_TypeReference.Code.resolve().asPrimitive();
-    //ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asPrimitive();
-    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
+    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asPrimitive();
     // Jikes RVM classes
     MagicType           = VM_TypeReference.Magic.resolve().asClass();
     // Array types
