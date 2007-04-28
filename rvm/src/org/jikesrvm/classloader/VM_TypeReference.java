@@ -341,7 +341,7 @@ public final class VM_TypeReference {
   public VM_TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
     
-    if (isUnboxedArrayType()) {
+    if (isWordArrayType()) {
       if (this == AddressArray) {
         return Address;
       } else if (this == ObjectReferenceArray) {
