@@ -411,30 +411,20 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    * word?
    */
   @Uninterruptible
-  public final boolean isWordType() { 
+  public final boolean isUnboxedType() { 
     return (this == WordType) || (this == AddressType) ||
       (this == ObjectReferenceType) || (this == ExtentType) ||
-      (this == OffsetType);
+      (this == OffsetType) || (this == CodeType);
   }
   /**
    * @return is this type an internal Jikes RVM type representing a
    * word sized array?
    */
   @Uninterruptible
-  final boolean isWordArrayType() { 
+  final boolean isUnboxedArrayType() { 
     return (this == WordArrayType) || (this == AddressArrayType) ||
       (this == ObjectReferenceArrayType) || (this == ExtentArrayType) || 
-      (this == OffsetArrayType);
-  }
-  /** @return is this type the Jikes RVM internal code type? */
-  @Uninterruptible
-  final boolean isCodeType() { 
-    return this == CodeType;
-  }
-  /** @return is this type the Jikes RVM internal code array type? */
-  @Uninterruptible
-  final boolean isCodeArrayType() { 
-    return this == CodeArrayType;
+      (this == OffsetArrayType) || (this == CodeArrayType);
   }
   /**
    * @return is this type a Jikes RVM magic type that the compilers
@@ -442,8 +432,7 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
    */
   @Uninterruptible
   public final boolean isMagicType() { 
-    return isWordType() || isWordArrayType() ||
-      this == MagicType || this == CodeArrayType;
+    return isUnboxedType() || isUnboxedArrayType() || this == MagicType;
   }
 
   /**
