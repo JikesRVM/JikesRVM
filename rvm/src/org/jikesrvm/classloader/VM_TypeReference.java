@@ -341,7 +341,7 @@ public final class VM_TypeReference {
   public VM_TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
     
-    if (isWordArrayType()) {
+    if (isUnboxedArrayType()) {
       if (this == AddressArray) {
         return Address;
       } else if (this == ObjectReferenceArray) {
@@ -352,12 +352,12 @@ public final class VM_TypeReference {
         return Offset;
       } else if (this == ExtentArray) {
         return Extent;
+      } else if (this == CodeArray) {
+        return Code;
       } else {
         if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
         return null;
       }
-    } else if (isCodeArrayType()) {
-      return Code;
     } else {
       return findOrCreate(classloader, name.parseForArrayElementDescriptor());
     }
