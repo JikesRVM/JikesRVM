@@ -282,9 +282,6 @@ import org.vmmagic.unboxed.*;
     VM_Scheduler.boot();
     VM_DynamicLibrary.boot();
 
-    //FIXME: Dynamic class loading is nore really available here -- JNI MUST be enabled or else the IO fails...
-    VM.dynamicClassLoadingEnabled = true;
-
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     org.jikesrvm.jni.VM_JNIEnvironment.boot();

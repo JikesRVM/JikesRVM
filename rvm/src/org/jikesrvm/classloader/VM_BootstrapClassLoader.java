@@ -167,7 +167,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
       loaded.put(className, ans);
       return ans.getClassForType();
     } else {    
-      if ( ! VM.dynamicClassLoadingEnabled ) {
+      if ( ! VM.fullyBooted ) {
         VM.sysWrite("Trying to load a class (");
         VM.sysWrite(className);
         VM.sysWrite(") too early in the booting process, before dynamic");

@@ -51,11 +51,6 @@ public class VM_Properties extends VM_Options {
   public static boolean fullyBooted = false;
 
   /**
-   * Is dynamic class loading enabled?  Set by VM.boot at the appropriate time.
-   */
-  public static boolean dynamicClassLoadingEnabled = false;
-
-  /**
    * Is it safe to create a java.lang.Thread now?  Set by VM.boot at the
    * appropriate time. 
    */
