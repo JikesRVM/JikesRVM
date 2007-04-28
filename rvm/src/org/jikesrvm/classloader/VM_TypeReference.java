@@ -449,7 +449,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isWordType() { 
-    return this == Word || this == Offset || this == Address || this == Extent || this == ObjectReference;
+    return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
