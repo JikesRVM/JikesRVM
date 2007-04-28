@@ -1,6 +1,9 @@
 <project name="basic" default="test" basedir=".">
 
-  <property name="test.time.limit" value="400"/>
+  <condition property="test.time.limit" value="1000" else="400">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+  
   <property name="test.max.heapsize" value="150"/>
 
   <import file="../../../build/tests.xml"/>
