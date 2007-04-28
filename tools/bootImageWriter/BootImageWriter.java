@@ -1650,7 +1650,7 @@ public class BootImageWriter extends BootImageWriterMessages
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType.isMagicType()) { 
+        if (rvmType.getTypeRef().isMagicType()) { 
           VM.sysWriteln("Unhandled copying of magic type: " + rvmType.getDescriptor().toString() +
                         " in object of type " + parentObject.getClass().toString());
           VM.sysFail("incomplete boot image support");

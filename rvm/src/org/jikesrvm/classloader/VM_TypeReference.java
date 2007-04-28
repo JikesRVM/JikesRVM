@@ -416,8 +416,7 @@ public final class VM_TypeReference {
    */ 
   @Uninterruptible
   public boolean isClassType() { 
-    return name.isClassDescriptor() &&
-      !(isUnboxedArrayType() || isUnboxedType());
+    return (name.isClassDescriptor() && !(isUnboxedArrayType() || isUnboxedType())) || this == ObjectReference;
   }
       
   /**
@@ -472,7 +471,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   @Uninterruptible
-  boolean isWordArrayType() { 
+  public boolean isWordArrayType() { 
     return this == WordArray || this == OffsetArray || this == AddressArray || this == ObjectReferenceArray || this == ExtentArray;
   }
   
@@ -480,7 +479,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   @Uninterruptible
-  boolean isUnboxedArrayType() {
+  public boolean isUnboxedArrayType() {
     return isWordArrayType() || isCodeArrayType();
   }
 
@@ -495,6 +494,7 @@ public final class VM_TypeReference {
   /**
    * Does 'this' refer to VM_Magic?
    */
+  @Uninterruptible
   public boolean isMagicType() {
     return this == Magic || isUnboxedType() || isUnboxedArrayType() || this == ObjectReference;
   }

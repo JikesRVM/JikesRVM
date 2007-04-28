@@ -3209,8 +3209,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if ((type == VM_TypeReference.JavaLangObject) &&
           (r.getType().isMagicType()) &&
           (r.getType() != VM_TypeReference.ObjectReference) &&
-          !gc.method.getDeclaringClass().isMagicType()
-      ) {
+          !gc.method.getDeclaringClass().getTypeRef().isMagicType()
+          ) {
         throw new OPT_OptimizingCompilerException.IllegalUpcast(r.getType());
       }
     }

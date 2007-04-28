@@ -152,6 +152,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
     default:
       if (tr == VM_TypeReference.Address ||
           tr == VM_TypeReference.Word ||
+          //tr == VM_TypeReference.ObjectReference ||
           tr == VM_TypeReference.Offset ||
           tr == VM_TypeReference.Extent) {
         stackWords = 1;

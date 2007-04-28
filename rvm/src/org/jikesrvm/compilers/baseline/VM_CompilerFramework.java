@@ -1635,7 +1635,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
             } // else fall through to emit_checkcast
           } else {
             // checkcast to a primitive. Must be a word type.
-            if (VM.VerifyAssertions) VM._assert(type.isUnboxedType());
+            if (VM.VerifyAssertions) VM._assert(type.getTypeRef().isUnboxedType());
             break;
           }
         }

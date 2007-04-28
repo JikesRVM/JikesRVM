@@ -116,8 +116,9 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
     OffsetType  = VM_TypeReference.Offset.resolve().asPrimitive();
     ExtentType  = VM_TypeReference.Extent.resolve().asPrimitive();
     CodeType    = VM_TypeReference.Code.resolve().asPrimitive();
-    // Jikes RVM classes
+    //ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asPrimitive();
     ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
+    // Jikes RVM classes
     MagicType           = VM_TypeReference.Magic.resolve().asClass();
     // Array types
     CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
@@ -405,34 +406,6 @@ public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoa
   @Uninterruptible
   public final boolean isJavaLangStringType() { 
     return this == JavaLangStringType;
-  }
-  /**
-   * @return is this type an internal Jikes RVM type the size of a
-   * word?
-   */
-  @Uninterruptible
-  public final boolean isUnboxedType() { 
-    return (this == WordType) || (this == AddressType) ||
-      (this == ObjectReferenceType) || (this == ExtentType) ||
-      (this == OffsetType) || (this == CodeType);
-  }
-  /**
-   * @return is this type an internal Jikes RVM type representing a
-   * word sized array?
-   */
-  @Uninterruptible
-  final boolean isUnboxedArrayType() { 
-    return (this == WordArrayType) || (this == AddressArrayType) ||
-      (this == ObjectReferenceArrayType) || (this == ExtentArrayType) || 
-      (this == OffsetArrayType) || (this == CodeArrayType);
-  }
-  /**
-   * @return is this type a Jikes RVM magic type that the compilers
-   * will compile differently?
-   */
-  @Uninterruptible
-  public final boolean isMagicType() { 
-    return isUnboxedType() || isUnboxedArrayType() || this == MagicType;
   }
 
   /**
