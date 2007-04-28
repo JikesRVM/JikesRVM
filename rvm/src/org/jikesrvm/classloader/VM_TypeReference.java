@@ -481,7 +481,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   boolean isUnboxedArrayType() {
-    return isWordArrayType() || this == CodeArray;
+    return isWordArrayType() || isCodeArrayType();
   }
 
   /**
