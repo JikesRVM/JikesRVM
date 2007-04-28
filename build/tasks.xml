@@ -24,6 +24,8 @@
     <taskdef name="if" classname="org.jikesrvm.tools.ant.IfTask" classpath="${tasks.classes}"/>
     <!-- Task that makes determining whether an ant build failed easier. Used in test infrastructure. -->
     <taskdef name="erant" classname="org.jikesrvm.tools.ant.ErrorRecordingAntTask" classpath="${tasks.classes}"/>
+    <!-- Task that copys a file while replacing non-ascii chars with ? -->
+    <taskdef name="toAscii" classname="org.jikesrvm.tools.ant.ToAsciiTask" classpath="${tasks.classes}"/>
   </target>
 
 </project>
