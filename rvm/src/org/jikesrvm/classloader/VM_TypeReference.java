@@ -496,7 +496,7 @@ public final class VM_TypeReference {
    * Does 'this' refer to VM_Magic?
    */
   public boolean isMagicType() {
-    return this == Magic || isUnboxedType() || isUnboxedArrayType();
+    return this == Magic || isUnboxedType() || isUnboxedArrayType() || this == ObjectReference;
   }
 
   /**
