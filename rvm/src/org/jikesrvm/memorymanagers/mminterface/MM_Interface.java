@@ -788,7 +788,7 @@ import org.vmmagic.pragma.*;
    */
   @Interruptible
   public static Object getFinalizedObject() { 
-    return Finalizer.get();
+    return Finalizer.get().toObject();
   }
 
 
