@@ -1,6 +1,8 @@
 <project name="javalex" default="test" basedir=".">
 
-  <property name="test.time.limit" value="600"/>
+  <condition property="test.time.limit" value="1900" else="600">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
   <property name="test.max.heapsize" value="200"/>
 
   <import file="../../../build/tests.xml"/>

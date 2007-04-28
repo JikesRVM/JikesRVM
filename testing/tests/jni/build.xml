@@ -1,7 +1,9 @@
 <project name="jni" default="test" basedir=".">
 
   <property name="test.max.heapsize" value="64"/>
-  <property name="test.time.limit" value="180"/>
+  <condition property="test.time.limit" value="1000" else="180">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
 
   <import file="../../../build/tests.xml"/>
 
