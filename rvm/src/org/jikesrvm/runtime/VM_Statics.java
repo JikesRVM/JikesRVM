@@ -551,7 +551,7 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot, as an Address.
    */ 
-  @Uninterruptible
+  @LogicallyUninterruptible
   public static Address getSlotContentsAsAddress(Offset offset) { 
     if(VM.runningVM) {
       if (VM.BuildFor32Addr)
