@@ -43,7 +43,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.ppc.*;
-import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.compilers.opt.ir.ppc.*;
 
 /**

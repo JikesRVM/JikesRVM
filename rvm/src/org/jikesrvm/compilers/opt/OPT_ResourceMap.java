@@ -9,14 +9,13 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 
 /**
  * Resource usage map representation
  * Used by the scheduler to accomodate resource patterns
  *
  * @see OPT_OperatorClass
- * @see OPT_Operator
+ * @see org.jikesrvm.compilers.opt.ir.OPT_Operator
  * @author Igor Pechtchanski
  */
 final class OPT_ResourceMap {

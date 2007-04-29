@@ -14,7 +14,6 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.opt.OPT_Constants;
 import org.jikesrvm.compilers.opt.OPT_LocalCSE;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 
@@ -164,7 +163,7 @@ public final class OPT_Instruction
    * A single postion operator can be shared by many instruction objects.
    * 
    * @see OPT_InlineSequence
-   * @see VM_OptEncodedCallSiteTree
+   * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
    */
   public OPT_InlineSequence position;
 

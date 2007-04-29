@@ -25,9 +25,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_Synchronizer;
-import org.vmmagic.pragma.DynamicBridge;
-import org.vmmagic.pragma.SaveVolatile;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -735,7 +732,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Return true if the SynchronizedObject annotation is present.
-   * @see SynchronizedObject
+   * @see org.vmmagic.pragma.SynchronizedObject
    */
   boolean hasSynchronizedObjectAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SynchronizedObject);
@@ -744,7 +741,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Should the methods of this class be compiled with special
    * register save/restore logic?
-   * @see DynamicBridge
+   * @see org.vmmagic.pragma.DynamicBridge
    */
   @Uninterruptible
   public boolean hasDynamicBridgeAnnotation() {
@@ -763,7 +760,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Should the methods of this class save incoming registers ?
-   * @see SaveVolatile
+   * @see org.vmmagic.pragma.SaveVolatile
    */
   public boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SaveVolatile);

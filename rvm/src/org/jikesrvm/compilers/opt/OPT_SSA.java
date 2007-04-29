@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_HIRInfo;
 import org.jikesrvm.compilers.opt.ir.OPT_HeapOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
@@ -88,7 +87,7 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * @see OPT_EnterSSA
  * @see OPT_LeaveSSA
  * @see OPT_SSADictionary
- * @see OPT_HIRInfo
+ * @see org.jikesrvm.compilers.opt.ir.OPT_HIRInfo
  *
  * @author Stephen Fink
  * @modified Julian Dolby

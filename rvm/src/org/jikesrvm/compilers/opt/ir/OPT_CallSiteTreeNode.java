@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.OPT_TreeNode;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 
 /**
  * The nodes of an OPT_CallSiteTree.  They represent inlined call
@@ -23,8 +21,8 @@ import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
  *
  * @see OPT_CallSiteTree
  * @see OPT_InlineSequence
- * @see VM_OptMachineCodeMap
- * @see VM_OptEncodedCallSiteTree
+ * @see org.jikesrvm.compilers.opt.VM_OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
  *
  */
 public class OPT_CallSiteTreeNode extends OPT_TreeNode {
@@ -37,7 +35,7 @@ public class OPT_CallSiteTreeNode extends OPT_TreeNode {
    * The position of this call site in the binary encoding.  It is set
    * by VM_OptEncodedCallSiteTree.getEncoding.
    *
-   * @see VM_OptEncodedCallSiteTree#getEncoding
+   * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree#getEncoding
    */
   public int encodedOffset;
 

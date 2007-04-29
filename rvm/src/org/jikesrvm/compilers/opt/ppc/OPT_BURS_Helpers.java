@@ -12,7 +12,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.ppc.VM_TrapConstants;
-import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.OPT_BURS;
 import org.jikesrvm.compilers.opt.OPT_BURS_Common_Helpers;

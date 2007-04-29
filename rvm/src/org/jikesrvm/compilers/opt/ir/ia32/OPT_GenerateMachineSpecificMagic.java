@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BC2IR;
-import org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic;
 import org.jikesrvm.compilers.opt.ir.OPT_GenerationContext;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
@@ -38,7 +37,7 @@ import org.jikesrvm.runtime.VM_MagicNames;
 /**
  * This class implements the machine-specific magics for the opt compiler.
  *
- * @see OPT_GenerateMagic for the machine-independent magics
+ * @see org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic for the machine-independent magics
  * 
  * @author Dave Grove
  */

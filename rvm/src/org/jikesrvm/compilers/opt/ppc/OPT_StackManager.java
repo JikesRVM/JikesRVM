@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.OPT_Bits;
 import org.jikesrvm.compilers.opt.OPT_GenericStackManager;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;

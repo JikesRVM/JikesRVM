@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.OPT_Tree;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 
 /**
  *  This class represents the set of inlined method calls that are
@@ -27,8 +25,8 @@ import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
  *
  * @see OPT_InlineSequence
  * @see OPT_CallSiteTreeNode
- * @see VM_OptEncodedCallSiteTree
- * @see VM_OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
+ * @see org.jikesrvm.compilers.opt.VM_OptMachineCodeMap
  */
 public class OPT_CallSiteTree extends OPT_Tree {
 

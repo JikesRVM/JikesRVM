@@ -26,7 +26,6 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.jni.ppc.VM_JNICompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.jni.ppc.*;
