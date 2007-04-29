@@ -74,7 +74,7 @@ public abstract class VM_UnResolvedWeightedCallTargets {
   /**
    * Used by visitTargets
    */
-  public static interface Visitor {
+  public interface Visitor {
     void visit(VM_MethodReference target, double weight);
   }
   

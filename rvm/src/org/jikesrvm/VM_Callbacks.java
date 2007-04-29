@@ -73,7 +73,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class loading.
    */
-  public static interface ClassLoadedMonitor {
+  public interface ClassLoadedMonitor {
     /**
      * Notify the monitor that a class has been loaded.
      * @param klass the class that was loaded
@@ -133,7 +133,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class resolution.
    */
-  public static interface ClassResolvedMonitor {
+  public interface ClassResolvedMonitor {
     /**
      * Notify the monitor that a class has been resolved.
      * @param klass the class that was resolved
@@ -193,7 +193,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class instantiation.
    */
-  public static interface ClassInstantiatedMonitor {
+  public interface ClassInstantiatedMonitor {
     /**
      * Notify the monitor that a class has been instantiated.
      * @param klass the class that was instantiated
@@ -254,7 +254,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class initialization.
    */
-  public static interface ClassInitializedMonitor {
+  public interface ClassInitializedMonitor {
     /**
      * Notify the monitor that a class has been initialized.
      * @param klass the class that was initialized
@@ -315,7 +315,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring method override.
    */
-  public static interface MethodOverrideMonitor {
+  public interface MethodOverrideMonitor {
     /**
      * Notify the monitor that a method has been overridden.
      * @param method the method that was loaded
@@ -382,7 +382,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring method compile.
    */
-  public static interface MethodCompileMonitor {
+  public interface MethodCompileMonitor {
     /**
      * Notify the monitor that a method is about to be compiled.
      * NOTE: use VM.runningVM and VM.writingBootImage to determine
@@ -452,7 +452,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring forName calls.
    */
-  public static interface ForNameMonitor {
+  public interface ForNameMonitor {
     /**
      * Notify the monitor that java.lang.Class.forName was called.
      * @param type the type that will be returned
@@ -513,7 +513,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring defineClass calls.
    */
-  public static interface DefineClassMonitor {
+  public interface DefineClassMonitor {
     /**
      * Notify the monitor that java.lang.Class.defineclass was called.
      * @param type the type that will be returned
@@ -575,7 +575,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring loadClass calls.
    */
-  public static interface LoadClassMonitor {
+  public interface LoadClassMonitor {
     /**
      * Notify the monitor that java.lang.Class.loadclass was called.
      * @param type the type that will be returned
@@ -636,7 +636,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring boot image writing.
    */
-  public static interface BootImageMonitor {
+  public interface BootImageMonitor {
     /**
      * Notify the monitor that boot image writing is in progress.
      * @param types the types that are included in the boot image
@@ -693,7 +693,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring VM startup.
    */
-  public static interface StartupMonitor {
+  public interface StartupMonitor {
     /**
      * Notify the monitor that the VM has started up.
      */
@@ -749,7 +749,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring VM exit.
    */
-  public static interface ExitMonitor {
+  public interface ExitMonitor {
     /**
      * Notify the monitor that the VM is about to exit.
      * @param value the exit value
@@ -810,7 +810,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application starts executing
    */
-  public static interface AppStartMonitor {
+  public interface AppStartMonitor {
     /**
      * Notify the monitor that the application has started executing
      * @param app application name
@@ -864,7 +864,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application completes executing
    */
-  public static interface AppCompleteMonitor {
+  public interface AppCompleteMonitor {
     /**
      * Notify the monitor that the application has completed executing
      * @param app  name of application
@@ -917,7 +917,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application starts a run
    */
-  public static interface AppRunStartMonitor {
+  public interface AppRunStartMonitor {
     /**
      * Notify the monitor that the application has started a run
      * @param app application name
@@ -973,7 +973,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application completes a run
    */
-  public static interface AppRunCompleteMonitor {
+  public interface AppRunCompleteMonitor {
     /**
      * Notify the monitor that the application has completed a run
      * @param app name of application
@@ -1032,7 +1032,7 @@ public final class VM_Callbacks {
   /**
    * Interface for requesting VM to recompile all previously dynamically compiled methods 
    */
-  public static interface RecompileAllDynamicallyLoadedMethodsMonitor {
+  public interface RecompileAllDynamicallyLoadedMethodsMonitor {
     /**
      * Notify the monitor that the application has requested the recompile
      */

@@ -20,8 +20,8 @@ public class ArchitectureSpecific {
       super(bytecodeSize, shouldPrint);
     }
   }
-  public static interface VM_ArchConstants extends org.jikesrvm.@_ARCH_@.VM_ArchConstants {} 
-  public static interface VM_BaselineConstants extends org.jikesrvm.@_ARCH_@.VM_BaselineConstants {}
+  public interface VM_ArchConstants extends org.jikesrvm.@_ARCH_@.VM_ArchConstants {} 
+  public interface VM_BaselineConstants extends org.jikesrvm.@_ARCH_@.VM_BaselineConstants {}
   public static final class VM_BaselineExceptionDeliverer extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineExceptionDeliverer {}
   public static final class VM_BaselineGCMapIterator extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineGCMapIterator {
     public VM_BaselineGCMapIterator(WordArray registerLocations) {
@@ -53,10 +53,10 @@ public class ArchitectureSpecific {
   public static final class VM_MultianewarrayHelper extends org.jikesrvm.@_ARCH_@.VM_MultianewarrayHelper {}
   public static final class VM_OutOfLineMachineCode extends org.jikesrvm.@_ARCH_@.VM_OutOfLineMachineCode {}
   public static final class VM_ProcessorLocalState extends org.jikesrvm.@_ARCH_@.VM_ProcessorLocalState {}
-  public static interface VM_RegisterConstants extends org.jikesrvm.@_ARCH_@.VM_RegisterConstants {}
+  public interface VM_RegisterConstants extends org.jikesrvm.@_ARCH_@.VM_RegisterConstants {}
   public static final class VM_Registers extends org.jikesrvm.@_ARCH_@.VM_Registers {}
-  public static interface VM_StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.VM_StackframeLayoutConstants {}
-  public static interface VM_TrapConstants extends org.jikesrvm.@_ARCH_@.VM_TrapConstants {}
+  public interface VM_StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.VM_StackframeLayoutConstants {}
+  public interface VM_TrapConstants extends org.jikesrvm.@_ARCH_@.VM_TrapConstants {}
   public static final class VM_JNICompiler extends org.jikesrvm.jni.@_ARCH_@.VM_JNICompiler {}
   public static final class VM_JNIGCMapIterator extends org.jikesrvm.jni.@_ARCH_@.VM_JNIGCMapIterator {
     public VM_JNIGCMapIterator(WordArray registerLocations) {
@@ -88,7 +88,7 @@ public class ArchitectureSpecific {
   public static final class OPT_FinalMIRExpansion extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_FinalMIRExpansion {}
   public static final class OPT_MIROptimizationPlanner extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_MIROptimizationPlanner {}
   public static final class OPT_NormalizeConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_NormalizeConstants {}
-  public static interface OPT_PhysicalRegisterConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_PhysicalRegisterConstants {}
+  public interface OPT_PhysicalRegisterConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_PhysicalRegisterConstants {}
   public abstract static class OPT_PhysicalRegisterTools extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_PhysicalRegisterTools {}
   public static final class OPT_RegisterPreferences extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_RegisterPreferences {}
   public static final class OPT_RegisterRestrictions extends org.jikesrvm.compilers.opt.@_ARCH_@.OPT_RegisterRestrictions {
@@ -101,7 +101,7 @@ public class ArchitectureSpecific {
     public VM_OptGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
-  public static interface VM_OptGCMapIteratorConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.VM_OptGCMapIteratorConstants {}
+  public interface VM_OptGCMapIteratorConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.VM_OptGCMapIteratorConstants {}
   public static final class OPT_GenerateMachineSpecificMagic extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.OPT_GenerateMachineSpecificMagic {}
   public static final class OPT_PhysicalDefUse extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.OPT_PhysicalDefUse {}
   public static final class OPT_PhysicalRegisterSet extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.OPT_PhysicalRegisterSet {}
