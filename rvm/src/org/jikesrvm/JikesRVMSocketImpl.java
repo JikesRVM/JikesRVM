@@ -623,8 +623,9 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     return VM_FileSystem.writeBytes(native_fd, buffer, offset, count);
   }
 
-  protected void finalize() throws IOException {
+  protected void finalize() throws Throwable {
     close();
+    super.finalize();
   }
 
   /**
