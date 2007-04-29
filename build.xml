@@ -1363,7 +1363,6 @@ target.jni-suffix=${target.jni-suffix}
     <echo message="Generating PMD report to ${build.dir}/pmd/report.html"/>
     <pmd shortFilenames="true" targetjdk="1.5" failonerror="false">
       <ruleset>build/pmd/rulesets/rvm.xml</ruleset>
-      <ruleset>imports</ruleset>
       <formatter type="html" toFile="${build.dir}/pmd/report.html"/>
       <fileset dir="${main.java}">
         <include name="**/*.java"/>
