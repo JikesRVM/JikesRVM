@@ -12,9 +12,28 @@ on October 14, 2001,
 *** SSA expression folding has been expanded to cover far more cases than
     previously. This leads to a > 1% speedup on benchmarks such as SpecJBB'05.
  
+*** Source code analysis of the code base has been enabled using PMD 
+    (http://pmd.sourceforge.net/). Basic analysis is enabled by default and 
+    this will expand over time. 
+    
+*** Methods in VM_Type that duplicated functionality in VM_TypeReference
+    now delegate to associated VM_TypeReference. 
+    
+*** ObjectReference is now classified as an unboxed/primitive type and for 
+    all intents and purposes it is treated like other word/Address types 
+    except that it can be traced during garbage collection. Conversion of 
+    Objects to ObjectReferences must now be explicit or else it will generate
+    an error in the optimizing compiler.
+
+*** The ability to force a garbage collection after N allocations or at every
+    exception delivery has been revived and is controlled by the configuration
+    variable config.stress-gc-interval which should be set to non-zero value to 
+    enable.
+
 *** VM_ prefix added to classes that must be included in the primordial 
     class list. Classes affected include; PrintLN, PrintContainer, 
-    ApplicationClassLoader, DebuggerThread, FinalizerThread and MainThread.
+    ApplicationClassLoader, DebuggerThread, FinalizerThread, MainThread, 
+    PPC_Disassembler, opcode_tab and opcodeXX.
 
 *** Classes in the adaptive package have been reorganized into packages 
     to match the directory layout in 2.4.6 release.
@@ -32,6 +51,9 @@ on October 14, 2001,
 
 *** Fix final field chasing in OPT_Simplifier and re-enable constant 
     folding for fields.
+
+*** A GC map generation problem caused by casting Address to Objects
+    and has been eliminated. 
 
 ** Other Notes
 
