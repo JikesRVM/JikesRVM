@@ -16,7 +16,6 @@ import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.baseline.VM_ReferenceMaps;
 import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_PrintLN;
