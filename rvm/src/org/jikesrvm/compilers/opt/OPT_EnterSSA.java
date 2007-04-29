@@ -115,11 +115,6 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
   }
 
   /**
-   * Constructor
-   */
-  public OPT_EnterSSA() {}
-
-  /**
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_EnterSSA");

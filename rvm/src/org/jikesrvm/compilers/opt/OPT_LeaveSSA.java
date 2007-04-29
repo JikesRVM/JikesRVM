@@ -81,11 +81,6 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
   public final boolean shouldPerform(OPT_Options options) {
     return  options.SSA;
   }
-  
-  /**
-   * Constructor
-   */
-  public OPT_LeaveSSA() {}
 
   /**
    * Constructor for this compiler phase

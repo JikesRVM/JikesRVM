@@ -186,11 +186,6 @@ class OPT_LICM extends OPT_CompilerPhase {
   private static boolean verbose = false;
 
   /**
-   * Constructor
-   */
-  public OPT_LICM() {}
-
-  /**
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LICM");

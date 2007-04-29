@@ -50,11 +50,6 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
   private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
-  
-  /**
-   * Constructor
-   */
-  public OPT_TailRecursionElimination() {}
 
   /**
    * Constructor for this compiler phase

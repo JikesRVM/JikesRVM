@@ -55,11 +55,6 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   private OPT_LSTGraph lst;
 
   /**
-   * Constructor
-   */
-  public OPT_EstimateBlockFrequencies() {}
-
-  /**
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_EstimateBlockFrequencies");

@@ -263,11 +263,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       public OPT_IR ir;
 
       /**
-       * Constructor
-       */
-      public LinearScan() {}
-
-      /**
        * Constructor for this compiler phase
        */
       private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LinearScan$LinearScan");
@@ -1713,12 +1708,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  a reverse topological list of basic blocks
      */
     private OPT_BasicBlock reverseTopFirst;
-
-
-    /**
-     * Constructor
-     */
-    public IntervalAnalysis() {}
             
     /**
      * Constructor for this compiler phase
@@ -2524,11 +2513,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     public boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
-
-    /**
-     * Constructor
-     */
-    public UpdateOSRMaps() {}
 
     /**
      * Constructor for this compiler phase

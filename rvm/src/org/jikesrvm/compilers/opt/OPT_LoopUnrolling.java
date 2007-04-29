@@ -61,11 +61,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
   }
 
   /**
-   * Constructor
-   */
-  public OPT_LoopUnrolling() {}
-
-  /**
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LoopUnrolling");
