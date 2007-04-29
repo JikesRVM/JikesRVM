@@ -80,7 +80,7 @@ public final class OPT_DefUse {
       OPT_OperandEnumeration defs = instr.getPureDefs(); 
       OPT_OperandEnumeration uses = instr.getUses(); 
 
-      for ( ; defs.hasMoreElements();) {
+      while (defs.hasMoreElements()) {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
@@ -88,7 +88,7 @@ public final class OPT_DefUse {
         }
       }         // for ( defs = ... )
 
-     for ( ; uses.hasMoreElements() ;) {
+     while (uses.hasMoreElements()) {
         OPT_Operand op = uses.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;

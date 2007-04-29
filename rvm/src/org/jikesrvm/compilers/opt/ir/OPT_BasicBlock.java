@@ -1752,7 +1752,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean isIn(OPT_BasicBlock bb) {
     InEdgeEnum iee = new InEdgeEnum(this);
-    for (; iee.hasMoreElements(); )
+    while (iee.hasMoreElements())
       if (iee.next() == bb)
         return true;
     return false;
@@ -1785,7 +1785,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean isOut(OPT_BasicBlock bb) {
     OutEdgeEnum oee = new OutEdgeEnum(this);
-    for (; oee.hasMoreElements(); )
+    while (oee.hasMoreElements())
       if (oee.next() == bb)
         return true;
     return false;
@@ -1811,7 +1811,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean isNormalOut(OPT_BasicBlock bb) {
     NormalOutEdgeEnum noee = new NormalOutEdgeEnum(this);
-    for (; noee.hasMoreElements(); )
+    while (noee.hasMoreElements())
       if (noee.next() == bb)
         return true;
     return false;
@@ -1842,7 +1842,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   public final boolean isExceptionalOut(OPT_BasicBlock bb) {
     if (!canThrowExceptions()) return false;
     ExceptionOutEdgeEnum eoee = new ExceptionOutEdgeEnum(this);
-    for (; eoee.hasMoreElements(); )
+    while (eoee.hasMoreElements())
       if (eoee.next() == bb)
         return true;
     return false;

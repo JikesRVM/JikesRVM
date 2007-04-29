@@ -104,8 +104,8 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
           e = bblock.getExceptionHandlers();
         else
           e = reachBBe;
-        
-        for ( ; e.hasMoreElements();) {
+
+        while (e.hasMoreElements()) {
           OPT_ExceptionHandlerBasicBlock eBlock = 
             (OPT_ExceptionHandlerBasicBlock)e.nextElement();
           for (java.util.Enumeration<OPT_TypeOperand> ets = eBlock.getExceptionTypes(); 

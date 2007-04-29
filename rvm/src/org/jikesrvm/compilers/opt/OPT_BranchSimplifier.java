@@ -316,7 +316,7 @@ abstract class OPT_BranchSimplifier {
       OPT_InstructionEnumeration ie = 
         OPT_IREnumeration.forwardIntraBlockIE(firstGoto, end);
       ie.next();
-      for (; ie.hasMoreElements();) {
+      while (ie.hasMoreElements()) {
         OPT_Instruction s = ie.next();
         if (GuardResultCarrier.conforms (s))
           insertTrueGuard (s, GuardResultCarrier.getGuardResult (s));

@@ -497,7 +497,7 @@ public final class OPT_IR {
       stack = new Stack<OPT_BasicBlock>();
       int size = bits.length();
       Enumeration<OPT_BasicBlock> bbEnum = ir.getBasicBlocks();
-      for ( ; bbEnum.hasMoreElements(); ) {
+      while (bbEnum.hasMoreElements()) {
         OPT_BasicBlock block = bbEnum.nextElement();
         int number = block.getNumber();
         if (number < size && bits.get(number)) stack.push(block);

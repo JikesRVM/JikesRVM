@@ -354,7 +354,7 @@ public final class OPT_GlobalValueNumberState {
       // now check that each other target matches the first element
       // if not, add this class to the work list
       //
-      for (; i.hasNext();) {
+      while (i.hasNext()) {
         OPT_ValueGraphVertex v = i.next();
         if (!checkCongruence(first, v)) {
           workList.push(c);
@@ -379,7 +379,7 @@ public final class OPT_GlobalValueNumberState {
     // representative
     ArrayList<OPT_ValueGraphVertex> toRemove =
       new ArrayList<OPT_ValueGraphVertex>();
-    for (; i.hasNext();) {
+    while (i.hasNext()) {
       OPT_ValueGraphVertex v = i.next();
       if (!checkCongruence(first, v)) {
         // NOT CONGRUENT!!  split the partition.  first check if

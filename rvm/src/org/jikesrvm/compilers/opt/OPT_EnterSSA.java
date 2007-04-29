@@ -498,7 +498,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void insertHeapPhiFunctions (OPT_IR ir) {
     Iterator<OPT_HeapVariable<Object>> e = ir.HIRInfo.SSADictionary.getHeapVariables();
-    for (; e.hasNext();) {
+    while (e.hasNext()) {
       OPT_HeapVariable<Object> H = e.next();
 
       if (DEBUG) System.out.println("Inserting phis for Heap " + H);

@@ -107,7 +107,7 @@ public class OPT_SortedGraphIterator {
       else
         e = currentNode.getInNodes();
       
-      for (; e.hasMoreElements(); ) {
+      while (e.hasMoreElements()) {
         // Select the node with the smallest sort number among the "successor" nodes
         OPT_SortedGraphNode outNode = e.nextElement();
         if (outNode.getSortNumber(forward) < barrierOrder) { // anything larger than barrier will be visited later
