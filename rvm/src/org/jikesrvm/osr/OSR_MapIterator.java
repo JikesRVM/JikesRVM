@@ -121,7 +121,7 @@ public class OSR_MapIterator implements OSR_Constants{
 
   /* value */
   public int getValue() {
-    return (maps[curidx+1]);
+    return maps[curidx+1];
   }
 
   /* current mid */
