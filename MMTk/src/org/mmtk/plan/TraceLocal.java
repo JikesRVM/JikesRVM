@@ -260,7 +260,7 @@ import org.vmmagic.unboxed.*;
       return Plan.ploSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "No special case for space in traceObject");
-    return null;
+    return ObjectReference.nullReference();
   }
 
 
