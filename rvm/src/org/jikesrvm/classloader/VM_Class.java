@@ -378,6 +378,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   @Uninterruptible
   public VM_Class getSuperClass() { 
+    if (VM.VerifyAssertions) VM._assert(!getTypeRef().isWordType());
     return superClass;
   }
 

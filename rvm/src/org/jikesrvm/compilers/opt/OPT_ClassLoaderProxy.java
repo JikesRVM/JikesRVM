@@ -43,29 +43,45 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   public static VM_TypeReference findCommonSuperclass (VM_TypeReference t1, VM_TypeReference t2) {
     if (t1 == t2)
       return t1;
+    
     if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
+        // 2 non-identical int like types, return the largest 
         if (t1.isIntType() || t2.isIntType())
           return VM_TypeReference.Int;
-        if (t1.isCharType() || t2.isCharType())
+        else if (t1.isCharType() || t2.isCharType())
           return VM_TypeReference.Char;
-        if (t1.isShortType() || t2.isShortType())
+        else if (t1.isShortType() || t2.isShortType())
           return VM_TypeReference.Short;
-        if (t1.isByteType() || t2.isByteType())
+        else if (t1.isByteType() || t2.isByteType())
           return VM_TypeReference.Byte;
+        else {
+          // Unreachable
+          if (VM.VerifyAssertions) VM._assert(false);
+          return null;
+        }
       } else if (t1.isWordType() && t2.isWordType()) {
         return VM_TypeReference.Word;
+      } else {
+        // other primitive and unboxed types have no commonality so return null
+        return null;
       }
-      return null;
     }
 
-    // can these next two cases happen?
+    // At this point neither t1 or t2 is a primitive or word type
+    if (VM.VerifyAssertions) VM._assert(!t1.isWordType() && !t2.isWordType() &&
+        !t1.isPrimitiveType() && !t2.isPrimitiveType());
+
+    // Is either t1 or t2 null? Null is assignable to all types so the type of
+    // the other operand is the most precise
     if (t1 == VM_TypeReference.NULL_TYPE)
       return t2;
-    if (t2 == VM_TypeReference.NULL_TYPE)
+    else if (t2 == VM_TypeReference.NULL_TYPE)
       return t1;
+ 
     if (OPT_IRGenOptions.DBG_TYPE)
       VM.sysWrite("finding common supertype of " + t1 + " and " + t2);
+ 
     // Strip off all array junk.
     int arrayDimensions = 0;
     while (t1.isArrayType() && t2.isArrayType()) {
@@ -97,9 +113,19 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         VM.sysWrite("one is a primitive array, so supertype is " + type);
       return type;
     }
-    // neither is a primitive, and they are not both array types.
-    if (!t1.isClassType() || !t2.isClassType()) {
-      // one is a class type, while the other isn't.
+
+    // At this point neither t1 or t2 is a primitive or word type and either
+    // one or the other maybe an array type
+    if (VM.VerifyAssertions) {
+      VM._assert(!t1.isWordType() && !t1.isPrimitiveType());
+      if (t1.isArrayType()) VM._assert(!t2.isArrayType()); 
+      VM._assert(!t2.isWordType() && !t2.isPrimitiveType());
+      if (t2.isArrayType()) VM._assert(!t1.isArrayType()); 
+    }
+        
+    // is this a case of arrays with different dimensionalities?
+    if (t1.isArrayType() || t2.isArrayType()) {
+      // one is a class type, while the other is an array
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
       while (arrayDimensions-- > 0)
         type = type.getArrayTypeForElementType();
@@ -109,6 +135,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       return type;
     }
     // they both must be class types.
+    if (VM.VerifyAssertions) VM._assert(t1.isClassType() && t2.isClassType());
+
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
     VM_Class c1 = (VM_Class)t1.peekResolvedType();
@@ -174,99 +202,117 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     // look at the type hierarchy
     // NOTE: The ordering of these tests is critical!
     if (childType == VM_TypeReference.NULL_TYPE) {
+      // Sanity assertion that a null isn't being assigned to an unboxed type
+      if (VM.VerifyAssertions && parentType.isReferenceType()) VM._assert(!parentType.isWordType());
       return parentType.isReferenceType() ? YES : NO;
     }
-    if (parentType == VM_TypeReference.NULL_TYPE)
+    else if (parentType == VM_TypeReference.NULL_TYPE) {
       return NO;
-    if (parentType == childType)
+    }
+    else if (parentType == childType) {
       return YES;
-    if (parentType == VM_TypeReference.Word && childType.isWordType())
+    }
+    else if (parentType == VM_TypeReference.Word && childType.isWordType()) {
       return YES;
-    if (parentType.isPrimitiveType() || childType.isPrimitiveType())
+    }
+    else if (parentType.isPrimitiveType() || childType.isPrimitiveType()) {
       return NO;
-    if (parentType == VM_TypeReference.JavaLangObject)
+    }
+    else if (parentType == VM_TypeReference.JavaLangObject)
       return YES;
-    // Oh well, we're going to have to try to actually look 
-    // at the type hierarchy.
-    // IMPORTANT: We aren't allowed to cause dynamic class loading, 
-    // so we have to roll some of this ourselves 
-    // instead of simply calling VM_Runtime.instanceOf 
-    // (which is allowed/required to load classes to answer the question).
-    try {
-      if (parentType.isArrayType()) {
-        if (childType == VM_TypeReference.JavaLangObject)
-          return MAYBE;        // arrays are subtypes of Object.
-        if (!childType.isArrayType())
-          return NO;
-        VM_TypeReference parentET = parentType.getInnermostElementType();
-        if (parentET == VM_TypeReference.JavaLangObject) {
-          int LHSDimension = parentType.getDimensionality();
-          int RHSDimension = childType.getDimensionality();
-          if ((RHSDimension > LHSDimension) ||
-              (RHSDimension == LHSDimension && 
-               childType.getInnermostElementType().isClassType()))
-            return YES; 
-          else 
+    else {
+      // Unboxed types are handled in the word and primitive type case
+      if (VM.VerifyAssertions) {
+        VM._assert(!parentType.isWordType() && !childType.isWordType());
+      }
+      // Oh well, we're going to have to try to actually look 
+      // at the type hierarchy.
+      // IMPORTANT: We aren't allowed to cause dynamic class loading, 
+      // so we have to roll some of this ourselves 
+      // instead of simply calling VM_Runtime.instanceOf 
+      // (which is allowed/required to load classes to answer the question).
+      try {
+        if (parentType.isArrayType()) {
+          if (childType == VM_TypeReference.JavaLangObject) {
+            return MAYBE;        // arrays are subtypes of Object.
+          }
+          else if (!childType.isArrayType()) {
             return NO;
-        } else {
-          // parentType is [^k of something other than Object
-          // If dimensionalities are equal, then we can reduce 
-          // to isAssignableWith(parentET, childET).
-          // If the dimensionalities are not equal then the answer is NO
-          if (parentType.getDimensionality() == childType.getDimensionality())
-            return includesType(parentET, childType.getInnermostElementType()); 
-          else 
-            return NO;
-        }
-      } else {                    // parentType.isClassType()
-        if (!childType.isClassType()) {
-          // parentType is known to not be java.lang.Object.
-          return NO;
-        }
-        VM_Class childClass = (VM_Class)childType.peekResolvedType();
-        VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
-        if (childClass != null && parentClass != null) {
-          if (parentClass.isResolved() && childClass.isResolved() ||
-              (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
-            if (parentClass.isInterface()) {
-              if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
-                return YES;
-              } else {
-                // If child is not a final class, it is 
-                // possible that a subclass will implement parent.
-                return childClass.isFinal() ? NO : MAYBE;
-              }
-            } else if (childClass.isInterface()) {
-              // parent is a proper class, child is an interface
-              return MAYBE;
+          }
+          else {
+            VM_TypeReference parentET = parentType.getInnermostElementType();
+            if (parentET == VM_TypeReference.JavaLangObject) {
+              int LHSDimension = parentType.getDimensionality();
+              int RHSDimension = childType.getDimensionality();
+              if ((RHSDimension > LHSDimension) ||
+                  (RHSDimension == LHSDimension && 
+                      childType.getInnermostElementType().isClassType()))
+                return YES; 
+              else 
+                return NO;
             } else {
-              // parent & child are both proper classes.
-              if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
-                return YES;
-              }
-              // If child is a final class, then 
-              // !instanceOfClass(parent, child) lets us return NO.
-              // However, if child is not final, then it might have 
-              // subclasses so we can't return NO out of hand.
-              // But, if the reverse instanceOf is also false, then we know 
-              // that parent and child are completely 
-              // unrelated and we can return NO.
-              if (childClass.isFinal())
-                return NO; 
-              else {
-                if (VM_Runtime.isAssignableWith(childClass, parentClass))
-                  return MAYBE; 
-                else 
-                  return NO;
-              }
+              // parentType is [^k of something other than Object
+              // If dimensionalities are equal, then we can reduce 
+              // to isAssignableWith(parentET, childET).
+              // If the dimensionalities are not equal then the answer is NO
+              if (parentType.getDimensionality() == childType.getDimensionality())
+                return includesType(parentET, childType.getInnermostElementType()); 
+              else 
+                return NO;
             }
           }
+        } else {                    // parentType.isClassType()
+          if (!childType.isClassType()) {
+            // parentType is known to not be java.lang.Object.
+            return NO;
+          }
+          else {
+            VM_Class childClass = (VM_Class)childType.peekResolvedType();
+            VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
+            if (childClass != null && parentClass != null) {
+              if (parentClass.isResolved() && childClass.isResolved() ||
+                  (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
+                if (parentClass.isInterface()) {
+                  if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                    return YES;
+                  } else {
+                    // If child is not a final class, it is 
+                    // possible that a subclass will implement parent.
+                    return childClass.isFinal() ? NO : MAYBE;
+                  }
+                } else if (childClass.isInterface()) {
+                  // parent is a proper class, child is an interface
+                  return MAYBE;
+                } else {
+                  // parent & child are both proper classes.
+                  if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                    return YES;
+                  }
+                  // If child is a final class, then 
+                  // !instanceOfClass(parent, child) lets us return NO.
+                  // However, if child is not final, then it might have 
+                  // subclasses so we can't return NO out of hand.
+                  // But, if the reverse instanceOf is also false, then we know 
+                  // that parent and child are completely 
+                  // unrelated and we can return NO.
+                  if (childClass.isFinal())
+                    return NO; 
+                  else {
+                    if (VM_Runtime.isAssignableWith(childClass, parentClass))
+                      return MAYBE; 
+                    else 
+                      return NO;
+                  }
+                }
+              }
+            }
+            return MAYBE;
+          }
         }
-        return MAYBE;
+      } catch (Throwable e) {
+        OPT_OptimizingCompilerException.UNREACHABLE();
+        return MAYBE;            // placate jikes.
       }
-    } catch (Throwable e) {
-      OPT_OptimizingCompilerException.UNREACHABLE();
-      return MAYBE;            // placate jikes.
     }
   }
 
