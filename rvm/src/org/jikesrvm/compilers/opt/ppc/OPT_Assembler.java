@@ -11,7 +11,6 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.ia32.*;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 
 import org.jikesrvm.compilers.opt.OPT_Compiler;
@@ -43,6 +42,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.ppc.*;
+import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.compilers.opt.ir.ppc.*;
 
 /**
