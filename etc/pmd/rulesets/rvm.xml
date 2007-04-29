@@ -215,38 +215,6 @@ public class Foo {
        </example>
      </rule>
 
-    <rule name="UnconditionalIfStatement"
-       message="Do not use 'if' statements that are always true or always false"
-          class="net.sourceforge.pmd.rules.XPathRule"
-          externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#UnconditionalIfStatement">
-      <description>
-Do not use "if" statements that are always true or always false.
-      </description>
-        <properties>
-            <property name="xpath">
-                <value>
- <![CDATA[
-//IfStatement/Expression
- [count(PrimaryExpression)=1]
- /PrimaryExpression/PrimaryPrefix/Literal/BooleanLiteral
-]]>
-                </value>
-            </property>
-        </properties>
-        <priority>3</priority>
-      <example>
-  <![CDATA[
-public class Foo {
- public void close() {
-  if (true) {
-       // ...
-   }
- }
-}
-]]>
-      </example>
-    </rule>
-
     <rule name="EmptyStatementNotInLoop"
           message="An empty statement (semicolon) not part of a loop"
           class="net.sourceforge.pmd.rules.XPathRule"
