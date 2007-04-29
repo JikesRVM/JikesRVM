@@ -48,7 +48,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
  *
  * @author Martin Trapp
  */
-class OPT_LoopUnrolling extends OPT_CompilerPhase {
+public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
   static final boolean DEBUG = false;
   static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;
@@ -63,7 +63,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LoopUnrolling");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_LoopUnrolling.class);
 
   /**
    * Get a constructor object for this compiler phase

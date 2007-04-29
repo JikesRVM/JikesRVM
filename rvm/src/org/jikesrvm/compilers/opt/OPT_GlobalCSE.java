@@ -138,7 +138,7 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
  * @author Martin Trapp
  * @modified Stephen Fink
  */
-final class OPT_GlobalCSE extends OPT_CompilerPhase {
+public final class OPT_GlobalCSE extends OPT_CompilerPhase {
 
   /** Output debug messages */
   public boolean verbose = true;
@@ -181,7 +181,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_GlobalCSE");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_GlobalCSE.class);
 
   /**
    * Get a constructor object for this compiler phase

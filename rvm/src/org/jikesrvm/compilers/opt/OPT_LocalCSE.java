@@ -83,7 +83,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LocalCSE", new Class[]{Boolean.TYPE});
+    getCompilerPhaseConstructor(OPT_LocalCSE.class, new Class[]{Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase

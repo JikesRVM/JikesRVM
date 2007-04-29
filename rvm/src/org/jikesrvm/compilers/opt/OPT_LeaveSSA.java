@@ -47,7 +47,7 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * @author Julian Dolby
  * @author Martin Trapp
  */
-class OPT_LeaveSSA extends OPT_CompilerPhase {
+public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
   /**
    *  verbose debugging flag 
@@ -85,7 +85,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LeaveSSA");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_LeaveSSA.class);
 
   /**
    * Get a constructor object for this compiler phase

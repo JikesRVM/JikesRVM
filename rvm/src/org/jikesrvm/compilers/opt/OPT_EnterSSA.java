@@ -71,7 +71,7 @@ import org.jikesrvm.compilers.opt.ir.Return;
  * @author Julian Dolby
  * @author Martin Trapp
  */
-class OPT_EnterSSA extends OPT_CompilerPhase {
+public class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * flag to optionally print verbose debugging messages
    */
@@ -117,7 +117,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_EnterSSA");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_EnterSSA.class);
 
   /**
    * Get a constructor object for this compiler phase

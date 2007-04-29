@@ -248,7 +248,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-  static final class LinearScan extends OPT_CompilerPhase implements
+  public static final class LinearScan extends OPT_CompilerPhase implements
     OPT_PhysicalRegisterConstants, OPT_Operators {
 
       /**
@@ -265,7 +265,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       /**
        * Constructor for this compiler phase
        */
-      private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LinearScan$LinearScan");
+      private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(LinearScan.class);
 
       /**
        * Get a constructor object for this compiler phase
@@ -1692,8 +1692,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   /**
    * phase to compute linear scan intervals.
    */
-  static final class IntervalAnalysis extends OPT_CompilerPhase implements
-  OPT_Operators {
+  public static final class IntervalAnalysis extends OPT_CompilerPhase implements OPT_Operators {
     /**
      * the governing ir
      */
@@ -1712,7 +1711,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LinearScan$IntervalAnalysis");
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(IntervalAnalysis.class);
 
     /**
      * Get a constructor object for this compiler phase
@@ -2508,7 +2507,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    * Update GC maps after register allocation but before inserting spill
    * code.
    */
-  static final class UpdateOSRMaps extends OPT_CompilerPhase {
+  public static final class UpdateOSRMaps extends OPT_CompilerPhase {
 
     public boolean shouldPerform(OPT_Options options) { 
       return true; 
@@ -2517,7 +2516,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LinearScan$UpdateOSRMaps");
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(UpdateOSRMaps.class);
 
     /**
      * Get a constructor object for this compiler phase

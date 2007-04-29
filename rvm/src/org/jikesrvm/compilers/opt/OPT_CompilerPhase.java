@@ -157,27 +157,23 @@ public abstract class OPT_CompilerPhase {
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(String compilerPhaseName) {
-    return getCompilerPhaseConstructor(compilerPhaseName, null);
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class klass) {
+    return getCompilerPhaseConstructor(klass, null);
   }
 
   /**
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(String compilerPhaseName, 
-      Class<?>[] initTypes) {
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class<?> phaseType, Class<?>[] initTypes) {
     try{
       @SuppressWarnings("unchecked") // We are explicitly breaking type safety
       Constructor<OPT_CompilerPhase> constructor = 
-        (Constructor<OPT_CompilerPhase>)Class.forName(compilerPhaseName).getConstructor(initTypes);
+        (Constructor<OPT_CompilerPhase>)phaseType.getConstructor(initTypes);
       return constructor;
     }
-    catch (ClassNotFoundException e) {
-      throw new Error("Compiler phase " + compilerPhaseName  + " not found", e);
-    }
     catch (NoSuchMethodException e) {
-      throw new Error("Constructor not found in " + compilerPhaseName  + " compiler phase", e);
+      throw new Error("Constructor not found in " + phaseType.getName() + " compiler phase", e);
     }
   }
 

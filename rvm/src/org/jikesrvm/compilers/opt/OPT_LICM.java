@@ -179,7 +179,7 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
  * @author Martin Trapp
  * @modified Stephen Fink 
  */
-class OPT_LICM extends OPT_CompilerPhase {
+public class OPT_LICM extends OPT_CompilerPhase {
   /** Generate debug output? */
   private static final boolean DEBUG = false;
   /** Generate verbose debug output? */
@@ -188,7 +188,7 @@ class OPT_LICM extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LICM");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_LICM.class);
 
   /**
    * Get a constructor object for this compiler phase

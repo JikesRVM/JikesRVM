@@ -174,7 +174,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LiveAnalysis",
+    getCompilerPhaseConstructor(OPT_LiveAnalysis.class,
       new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
 
   /**

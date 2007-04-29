@@ -71,7 +71,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_PiNodes",
+    getCompilerPhaseConstructor(OPT_PiNodes.class,
         new Class[]{Boolean.TYPE, Boolean.TYPE});
   /**
    * Get a constructor object for this compiler phase

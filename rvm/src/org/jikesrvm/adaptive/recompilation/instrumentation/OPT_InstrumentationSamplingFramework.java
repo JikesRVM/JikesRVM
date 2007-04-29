@@ -99,7 +99,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InstrumentationSamplingFramework");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_InstrumentationSamplingFramework.class);
 
   /**
    * Get a constructor object for this compiler phase

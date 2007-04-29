@@ -663,7 +663,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
+    private static final Constructor<OPT_CompilerPhase> constructor = 
+        getCompilerPhaseConstructor(LoadEliminationPreparation.class, new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase
@@ -721,7 +722,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     /**
      * Constructor for this compiler phase
      */
-    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
+    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(GVNPreparation.class, new Class[]{Integer.TYPE});
 
     /**
      * Get a constructor object for this compiler phase

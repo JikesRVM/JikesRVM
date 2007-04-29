@@ -42,7 +42,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  * @author Steve Fink
  * @author Dave Grove
  */
-class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
+public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
   /**
    * The IR on which to operate.
@@ -57,7 +57,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_EstimateBlockFrequencies");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_EstimateBlockFrequencies.class);
 
   /**
    * Get a constructor object for this compiler phase

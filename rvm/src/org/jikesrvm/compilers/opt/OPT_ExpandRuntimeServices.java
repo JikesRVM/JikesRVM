@@ -72,7 +72,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices");
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_ExpandRuntimeServices.class);
 
   /**
    * Get a constructor object for this compiler phase

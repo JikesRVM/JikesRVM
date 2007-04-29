@@ -36,7 +36,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_IndexPropagation");
+    getCompilerPhaseConstructor(OPT_IndexPropagation.class);
 
   /**
    * Get a constructor object for this compiler phase

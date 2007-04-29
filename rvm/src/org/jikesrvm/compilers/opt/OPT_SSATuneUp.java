@@ -73,7 +73,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
   /**
    * This class sets up the IR state prior to entering SSA.
    */
-  private static class TuneUpPreparation extends OPT_CompilerPhase {
+  public static class TuneUpPreparation extends OPT_CompilerPhase {
 
 	 /**
 	  * Compiler phases necessary to re-build dominators and dominance
@@ -90,7 +90,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
      * Constructor for this compiler phase
      */
     private static final Constructor<OPT_CompilerPhase> constructor = 
-      getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_SSATuneUp$TuneUpPreparation");
+      getCompilerPhaseConstructor(TuneUpPreparation.class);
 
     /**
      * Get a constructor object for this compiler phase

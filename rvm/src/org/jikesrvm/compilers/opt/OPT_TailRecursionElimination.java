@@ -46,7 +46,7 @@ import org.jikesrvm.compilers.opt.ir.Return;
  *
  * @author Dave Grove
  */
-final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
+public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
   private final OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
@@ -55,7 +55,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor("org.jikesrvm.compilers.opt.OPT_TailRecursionElimination");
+    getCompilerPhaseConstructor(OPT_TailRecursionElimination.class);
 
   /**
    * Get a constructor object for this compiler phase
