@@ -11,7 +11,6 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 

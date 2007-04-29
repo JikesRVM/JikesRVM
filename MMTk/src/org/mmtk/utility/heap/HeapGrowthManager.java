@@ -10,7 +10,6 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;

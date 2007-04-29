@@ -14,7 +14,6 @@ import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 

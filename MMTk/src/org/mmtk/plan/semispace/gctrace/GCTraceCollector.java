@@ -13,7 +13,6 @@
 package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.*;
-import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.vm.VM;
 
