@@ -31,7 +31,7 @@ public class Object {
     return this == o;
   }
 
-  @SuppressWarnings({"FinalizeDoesntCallSuperFinalize"})
+  @SuppressWarnings({"PMD.EmptyFinalizer","FinalizeDoesntCallSuperFinalize"})
   protected void finalize () throws Throwable {
   }
 
