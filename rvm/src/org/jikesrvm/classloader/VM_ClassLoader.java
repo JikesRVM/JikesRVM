@@ -8,11 +8,13 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Properties;
-
-import java.io.*;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
