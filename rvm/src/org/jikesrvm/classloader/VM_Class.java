@@ -1737,10 +1737,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     //
     finalizeMethod = null;
     if (!isInterface()) {
-      VM_Method finalize = findVirtualMethod(VM_ClassLoader.StandardObjectFinalizerMethodName, 
+      final VM_Method method = findVirtualMethod(VM_ClassLoader.StandardObjectFinalizerMethodName, 
                                              VM_ClassLoader.StandardObjectFinalizerMethodDescriptor);
-      if (!finalize.getDeclaringClass().isJavaLangObjectType()) {
-        finalizeMethod = finalize;
+      if (!method.getDeclaringClass().isJavaLangObjectType()) {
+        finalizeMethod = method;
       }
     }
 
