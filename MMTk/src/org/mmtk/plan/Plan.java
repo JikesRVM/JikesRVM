@@ -138,8 +138,6 @@ import org.vmmagic.unboxed.*;
   /** Support for allocation-site identification */
   protected static int allocationSiteCount = 0;
 
-  static {}
-
   /****************************************************************************
    * Constructor.
    */
