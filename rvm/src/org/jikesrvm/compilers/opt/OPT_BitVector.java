@@ -8,6 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.io.Serializable;
+
 /** 
  * OPT_BitVector.java
  *
@@ -17,7 +19,7 @@ package org.jikesrvm.compilers.opt;
  * @modified Stephen Fink
  * @modified Ian Rogers
  */
-public final class OPT_BitVector implements Cloneable, java.io.Serializable {
+public final class OPT_BitVector implements Serializable {
   /** Support for serialization */
   static final long serialVersionUID = 6961578653974090041L;
   
@@ -254,13 +256,10 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     return true;
   }
 
-  /**
-   * Clones the OPT_BitVector.
-   */
-  public Object clone() {
+  public OPT_BitVector dup() {
     return new OPT_BitVector(this);
   }
-
+  
   /**
    * Converts the OPT_BitVector to a String.
    */

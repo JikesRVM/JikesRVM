@@ -27,7 +27,7 @@ class OPT_DominatorOperator extends OPT_DF_Operator {
     OPT_DominatorCell lhs = (OPT_DominatorCell)operands[0];
     OPT_IR ir = lhs.ir;
     OPT_BasicBlock bb = lhs.block;
-    OPT_BitVector oldSet = (OPT_BitVector)lhs.dominators.clone();
+    OPT_BitVector oldSet = lhs.dominators.dup();
     OPT_BitVector newDominators = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
     if (operands.length > 1) {
       if (operands[1] != null) {
