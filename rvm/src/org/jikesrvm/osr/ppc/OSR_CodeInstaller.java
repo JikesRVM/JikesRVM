@@ -9,24 +9,24 @@
 
 package org.jikesrvm.osr.ppc;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.osr.OSR_ExecutionState;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
-import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.ppc.VM_MachineCode;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * OSR_CodeInstaller adjusts registers and return address to make a 

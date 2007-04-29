@@ -8,30 +8,43 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_InterfaceInvocation;
+import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.baseline.VM_BBConstants;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
-import org.jikesrvm.compilers.baseline.VM_BBConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
+import org.jikesrvm.jni.ppc.VM_JNICompiler;
+import org.jikesrvm.jni.ppc.VM_JNIStackframeLayoutConstants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.jni.ppc.*;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

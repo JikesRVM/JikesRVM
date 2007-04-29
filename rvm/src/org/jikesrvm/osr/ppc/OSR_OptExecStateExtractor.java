@@ -9,22 +9,26 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ppc.VM_ArchConstants;
-import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_MapIterator;
 import org.jikesrvm.osr.OSR_VariableElement;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.ppc.VM_ArchConstants;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor. 

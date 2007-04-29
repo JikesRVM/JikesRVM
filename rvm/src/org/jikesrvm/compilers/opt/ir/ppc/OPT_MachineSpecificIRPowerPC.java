@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
@@ -18,6 +16,24 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MachineSpecificIR;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DCBST_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DCBTST_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DCBT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DCBZL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DCBZ_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ICBI_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_BCOND;
 
 /**
  * Wrappers around PowerPC-specific IR common to both 32 & 64 bit

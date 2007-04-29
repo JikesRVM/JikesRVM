@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.ppc;
 
+import java.util.ArrayList;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.ArchitectureSpecific;
-import java.util.ArrayList;
 
 /*
  * A block of machine code in the running virtual machine image.

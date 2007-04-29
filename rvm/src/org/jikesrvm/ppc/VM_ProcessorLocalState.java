@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.vmmagic.pragma.*;
-
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This class provides a layer of abstraction that the rest of the VM must

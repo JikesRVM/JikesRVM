@@ -9,10 +9,11 @@
 
 package org.jikesrvm.osr.ppc;
 
-import org.jikesrvm.ppc.VM_Registers;
 import org.jikesrvm.ppc.VM_RegisterConstants;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.ppc.VM_Registers;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /** 
  * Temporary resiter set.

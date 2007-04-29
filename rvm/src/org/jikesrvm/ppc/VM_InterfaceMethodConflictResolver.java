@@ -8,14 +8,14 @@
  */
 package org.jikesrvm.ppc;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
+import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
-import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
-import org.jikesrvm.classloader.*;
 
 /**
  * Generates a custom IMT-conflict resolution stub.

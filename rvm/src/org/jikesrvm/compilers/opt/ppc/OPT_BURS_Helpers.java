@@ -9,10 +9,9 @@
 package org.jikesrvm.compilers.opt.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.ppc.VM_TrapConstants;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_BURS;
 import org.jikesrvm.compilers.opt.OPT_BURS_Common_Helpers;
 import org.jikesrvm.compilers.opt.OPT_Bits;
@@ -60,9 +59,14 @@ import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.compilers.opt.ir.ppc.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCTrapOperand;
+import org.jikesrvm.ppc.VM_TrapConstants;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Contains architecture-specific helper functions for BURS.

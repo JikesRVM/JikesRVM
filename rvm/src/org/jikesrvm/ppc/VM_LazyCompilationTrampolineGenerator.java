@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.

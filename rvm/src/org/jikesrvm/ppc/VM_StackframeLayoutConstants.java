@@ -9,10 +9,10 @@
 
 package org.jikesrvm.ppc;
 
-import org.vmmagic.unboxed.*;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
+import org.vmmagic.unboxed.Address;
+
 /**
  *--------------------------------------------------------------------------
  *                     Stackframe layout conventions           

@@ -8,16 +8,17 @@
  */
 package org.jikesrvm.compilers.opt.ppc;
 
+import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /** 
  * Handle exception delivery and stack unwinding for 

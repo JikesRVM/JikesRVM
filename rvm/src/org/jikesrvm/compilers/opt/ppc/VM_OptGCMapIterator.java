@@ -7,12 +7,13 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 package org.jikesrvm.compilers.opt.ppc;
-import org.jikesrvm.VM;
-import org.jikesrvm.ppc.VM_ArchConstants;
-import org.jikesrvm.compilers.opt.VM_OptGenericGCMapIterator;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.VM_OptGenericGCMapIterator;
+import org.jikesrvm.ppc.VM_ArchConstants;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * An instance of this class provides iteration across the references 

@@ -9,8 +9,8 @@
 package org.jikesrvm.compilers.opt.ppc;
 
 import org.jikesrvm.compilers.opt.OPT_GenericPhysicalRegisterTools;
-import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
 
 /**
  * This abstract class provides a set of useful methods for

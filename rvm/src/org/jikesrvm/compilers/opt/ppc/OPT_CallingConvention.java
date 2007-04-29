@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ppc;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Load;
@@ -28,16 +28,44 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_FMR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_LAddr;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_LFD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_LFS;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_LInt;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_STAddr;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_STFD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_STFS;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_STW;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Store;
-
-import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.*;
-import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.*;
 import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.BYTES_IN_INT;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.FIRST_DOUBLE_PARAM;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.FIRST_DOUBLE_RETURN;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.FIRST_INT_PARAM;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.FIRST_INT_RETURN;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.NUMBER_DOUBLE_PARAM;
+import static org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants.NUMBER_INT_PARAM;
+import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class contains PowerPC Calling conventions.

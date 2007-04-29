@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.vmmagic.pragma.*;
-
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * VM_CodeArray represents a code object (contiguous memory region containing code).

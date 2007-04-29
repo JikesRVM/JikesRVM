@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
+import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.ppc.VM_RegisterConstants;
-import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.OPT_BitSet;
 import org.jikesrvm.compilers.opt.OPT_CompoundEnumerator;
 import org.jikesrvm.compilers.opt.OPT_EmptyEnumerator;
@@ -18,8 +17,8 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_ReverseEnumerator;
 import org.jikesrvm.compilers.opt.ir.OPT_GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
-
-import java.util.Enumeration;
+import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.ppc.VM_RegisterConstants;
 
 /**
  * This class represents a set of OPT_Registers corresponding to the

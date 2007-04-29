@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.OPT_GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;

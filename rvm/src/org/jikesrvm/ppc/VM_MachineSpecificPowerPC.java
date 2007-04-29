@@ -8,13 +8,14 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_MachineSpecific;
-import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_MachineSpecific;
+import org.jikesrvm.runtime.VM_Memory;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Wrappers around PowerPC-specific code common to both 32 & 64 bit

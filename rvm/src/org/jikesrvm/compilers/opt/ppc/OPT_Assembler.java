@@ -7,12 +7,12 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 package org.jikesrvm.compilers.opt.ppc;
+
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-
 import org.jikesrvm.compilers.opt.OPT_Compiler;
 import org.jikesrvm.compilers.opt.OPT_OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
@@ -41,9 +41,10 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.ppc.*;
+import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCTrapOperand;
+import org.jikesrvm.ppc.PPC_Disassembler;
 import org.jikesrvm.ppc.VM_ArchConstants;
-import org.jikesrvm.compilers.opt.ir.ppc.*;
 
 /**
  * Assemble PowerPC MIR into binary code.

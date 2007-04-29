@@ -8,9 +8,21 @@
  */
 package org.jikesrvm.compilers.opt.ppc;
 
-import  java.util.ArrayList;
-
-import org.jikesrvm.compilers.opt.*;
+import java.util.ArrayList;
+import org.jikesrvm.compilers.opt.OPT_ConvertLIRtoMIR;
+import org.jikesrvm.compilers.opt.OPT_ConvertMIRtoMC;
+import org.jikesrvm.compilers.opt.OPT_ExpandCallingConvention;
+import org.jikesrvm.compilers.opt.OPT_IRPrinter;
+import org.jikesrvm.compilers.opt.OPT_LiveAnalysis;
+import org.jikesrvm.compilers.opt.OPT_MIRBranchOptimizations;
+import org.jikesrvm.compilers.opt.OPT_MutateSplits;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OPT_PrePassScheduler;
+import org.jikesrvm.compilers.opt.OPT_PrologueEpilogueCreator;
+import org.jikesrvm.compilers.opt.OPT_RegisterAllocator;
+import org.jikesrvm.compilers.opt.OPT_SplitBasicBlock;
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are

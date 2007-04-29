@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
-import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
@@ -24,7 +24,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
-
+import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
+import org.jikesrvm.runtime.VM_MagicNames;
 import org.vmmagic.unboxed.Offset;
 
 /**

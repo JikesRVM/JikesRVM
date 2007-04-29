@@ -10,11 +10,12 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Machine dependent portion of Reflective method invoker.
