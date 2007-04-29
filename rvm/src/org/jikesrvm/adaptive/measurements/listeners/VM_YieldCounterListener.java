@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
+package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;

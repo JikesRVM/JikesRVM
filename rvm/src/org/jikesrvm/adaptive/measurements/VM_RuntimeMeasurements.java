@@ -6,14 +6,14 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements;
+package org.jikesrvm.adaptive.measurements;
 
 import java.util.Vector;
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_ContextListener;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_NullListener;
+import org.jikesrvm.adaptive.measurements.listeners.VM_ContextListener;
+import org.jikesrvm.adaptive.measurements.listeners.VM_MethodListener;
+import org.jikesrvm.adaptive.measurements.listeners.VM_NullListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;

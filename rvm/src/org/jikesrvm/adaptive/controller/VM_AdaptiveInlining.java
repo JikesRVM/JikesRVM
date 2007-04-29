@@ -9,8 +9,8 @@
 package org.jikesrvm.adaptive.controller;
 
 import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_CallDensityListener;
+import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.measurements.listeners.VM_CallDensityListener;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 
 /**

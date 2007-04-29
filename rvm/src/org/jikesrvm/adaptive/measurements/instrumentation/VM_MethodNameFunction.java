@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
+package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;

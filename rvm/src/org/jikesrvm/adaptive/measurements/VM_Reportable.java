@@ -6,24 +6,27 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements;
+package org.jikesrvm.adaptive.measurements;
 
 /**
- *  This interface defines the decay method.  Implementors are 
- *  eligible for decay if they register with the 
- *  VM_RuntimeMeasurements class.
+ * Interface for all reportable objects that are managed by the runtime
+ * measurements.
  *
- *  @author Michael Hind
+ * @author Peter Sweeney
  */
 
-public interface VM_Decayable {
-
+public interface VM_Reportable { 
   /**
-   *  Called periodically when it is time to decay runtime mesaurment data
+   * generate a report
    */
-  void decay();
-
+  void report(); 
+  /**
+   * reset (clear) data set being gathered
+   */
+  void reset();  
 }
+
+
 
 
 

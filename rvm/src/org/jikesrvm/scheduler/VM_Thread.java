@@ -16,7 +16,7 @@ import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.adaptive.OSR_Listener;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.jni.VM_JNIEnvironment;

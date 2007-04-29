@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.adaptive.database;
 
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_MethodInvocationCounterData;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_StringEventCounterData;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_YieldpointCounterData;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_MethodInvocationCounterData;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_StringEventCounterData;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_YieldpointCounterData;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 
 /**

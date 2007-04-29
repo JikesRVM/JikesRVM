@@ -10,8 +10,8 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_MethodInvocationCounterData;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_MethodInvocationCounterData;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_Options;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;

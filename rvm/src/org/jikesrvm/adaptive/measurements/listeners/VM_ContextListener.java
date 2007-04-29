@@ -6,26 +6,28 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
+package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
- * A VM_NullListener is an object that is invoked when
- * online measurement information must be collected.
- *
- * Defines update's interface.
+ * This object that is invoked when online measurement information must 
+ * be collected.
  *
  * @author Peter Sweeney
  * @date   2 June 2000
  */
-
 @Uninterruptible
-public abstract class VM_NullListener extends VM_Listener {
+public abstract class VM_ContextListener extends VM_Listener {
+
   /**
    * Entry point when listener is awoken.
+   *
+   * @param sfp  pointer to stack frame where call stack should start 
+   *             to be examined.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *             EPILOGUE?
+   *            EPILOGUE?
    */
-  public abstract void update(int whereFrom);
+  public abstract void update(Address sfp, int whereFrom);
 }

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
+package org.jikesrvm.adaptive.measurements.instrumentation;
 
 /**
  * VM_CounterNameFunction.java

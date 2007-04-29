@@ -6,11 +6,11 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
+package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import java.util.Hashtable;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_Reportable;
+import org.jikesrvm.adaptive.measurements.VM_Reportable;
 import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 

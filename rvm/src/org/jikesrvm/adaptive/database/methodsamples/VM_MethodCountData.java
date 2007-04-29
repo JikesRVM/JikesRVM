@@ -14,7 +14,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
 import org.jikesrvm.adaptive.controller.VM_HotMethodRecompilationEvent;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_Reportable;
+import org.jikesrvm.adaptive.measurements.VM_Reportable;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;

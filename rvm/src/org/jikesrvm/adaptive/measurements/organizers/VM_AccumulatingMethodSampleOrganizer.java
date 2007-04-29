@@ -6,13 +6,13 @@
  *
  * (C) Copyright IBM Corp. 2003, 2004
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.organizers;
+package org.jikesrvm.adaptive.measurements.organizers;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
+import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.measurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.scheduler.VM_Scheduler;
 

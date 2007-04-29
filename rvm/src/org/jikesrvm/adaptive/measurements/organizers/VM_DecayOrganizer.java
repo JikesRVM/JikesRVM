@@ -6,10 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.organizers;
+package org.jikesrvm.adaptive.measurements.organizers;
 
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_YieldCounterListener;
+import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.measurements.listeners.VM_YieldCounterListener;
 
 /**
  * An organizer that periodically decays runtime counters

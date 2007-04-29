@@ -10,7 +10,7 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
+import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;

@@ -6,10 +6,10 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
+package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
+import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
 

@@ -6,7 +6,7 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
+package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import java.util.Enumeration;
 import java.util.Vector;

@@ -6,9 +6,9 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
+package org.jikesrvm.adaptive.measurements.listeners;
 
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
+import org.jikesrvm.adaptive.measurements.organizers.VM_Organizer;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
