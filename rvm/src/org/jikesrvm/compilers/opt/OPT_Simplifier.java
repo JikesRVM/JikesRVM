@@ -3101,15 +3101,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
           return DefUseEffect.TRAP_REDUCED;
         } else if(ref.isConstant()) {
-          int refLength = Array.getLength(ref.asObjectConstant().value);
-          if(indexAsInt < refLength) {
-            Move.mutate(s, GUARD_MOVE, BoundsCheck.getClearGuardResult(s),
-                        BoundsCheck.getClearGuard(s));
-            return Move.getVal(s).isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
-          }
-          else {
-            Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
-            return DefUseEffect.TRAP_REDUCED;
+          if (ref.isObjectConstant()) {
+            int refLength = Array.getLength(ref.asObjectConstant().value);
+            if(indexAsInt < refLength) {
+              Move.mutate(s, GUARD_MOVE, BoundsCheck.getClearGuardResult(s),
+                  BoundsCheck.getClearGuard(s));
+              return Move.getVal(s).isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
+            }
+            else {
+              Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
+              return DefUseEffect.TRAP_REDUCED;
+            }
           }
         }
       }
