@@ -110,7 +110,7 @@ package org.jikesrvm.ppc;
  *    Cleaned up some old power instructions.
  */
 
-public class PPC_Disassembler implements VM_ArchConstants {
+public class VM_Disassembler implements VM_ArchConstants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
   static final int MSR = 129;

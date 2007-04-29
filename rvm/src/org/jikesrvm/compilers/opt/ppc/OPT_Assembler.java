@@ -43,8 +43,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCTrapOperand;
-import org.jikesrvm.ppc.PPC_Disassembler;
 import org.jikesrvm.ppc.VM_ArchConstants;
+import org.jikesrvm.ppc.VM_Disassembler;
 
 /**
  * Assemble PowerPC MIR into binary code.
@@ -1312,7 +1312,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
    * @param offset the mcoffset (in bytes) of the instruction
    */
   private String disasm (int instr, int offset) {
-    return PPC_Disassembler.disasm(instr, offset);
+    return VM_Disassembler.disasm(instr, offset);
   }
 
   /** Apply a patch.

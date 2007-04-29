@@ -18,7 +18,7 @@ import org.jikesrvm.VM_Services;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
-import org.jikesrvm.ppc.PPC_Disassembler;
+import org.jikesrvm.ppc.VM_Disassembler;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 
@@ -1604,7 +1604,7 @@ public abstract class VM_Assembler
           VM.sysWrite(" : ");
           VM.sysWrite(VM_Services.getHexString(instructions.get(i), false));
           VM.sysWrite("  ");
-          VM.sysWrite(PPC_Disassembler.disasm(instructions.get(i), i << LG_INSTRUCTION_WIDTH));
+          VM.sysWrite(VM_Disassembler.disasm(instructions.get(i), i << LG_INSTRUCTION_WIDTH));
           VM.sysWrite("\n");
         }
       } finally {
@@ -1621,7 +1621,7 @@ public abstract class VM_Assembler
       VM.sysWrite(" : ");
       VM.sysWrite(VM_Services.getHexString(mc.getInstruction(i), false));
       VM.sysWrite("  ");
-      VM.sysWrite(PPC_Disassembler.disasm(mc.getInstruction(i), i << LG_INSTRUCTION_WIDTH));
+      VM.sysWrite(VM_Disassembler.disasm(mc.getInstruction(i), i << LG_INSTRUCTION_WIDTH));
       VM.sysWrite("\n");
     }
   }
