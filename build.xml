@@ -1348,6 +1348,64 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+  <target name="pmd" depends="prepare-config-source,choose-classlib">
+    <ant antfile="build/components/pmd.xml" target="ensure"/>
+
+    <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask">
+      <classpath >
+        <fileset dir="${pmd.dir}/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
+    <mkdir dir="${build.dir}/pmd"/>
+    <echo message="Generating PMD report to ${build.dir}/pmd/report.html"/>
+    <pmd shortFilenames="true" targetjdk="1.5" failonerror="false">
+      <ruleset>basic</ruleset>
+      <ruleset>imports</ruleset>
+      <formatter type="html" toFile="${build.dir}/pmd/report.html"/>
+      <fileset dir="${main.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${classlib.library-interface.common.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${classlib.library-interface.cpl.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${classlib.library-interface.non-cpl.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${vmmagic-stub.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${mmtk.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${mmtk-rvm.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${generated.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${generated.arch.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${generated.config.java}">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${generated.vmmagic.arch.java}">
+        <include name="**/*.java"/>
+      </fileset>
+    </pmd>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                                Doc                                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
   <target name="compile-for-apidocs" depends="prepare-config-source,choose-classlib">
     <condition property="toexclude" value="ppc" else="ia32">
       <equals arg1="${target.arch}" arg2="ia32"/>
