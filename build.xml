@@ -1348,7 +1348,7 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="pmd" depends="prepare-config-source,choose-classlib">
+  <target name="pmd" depends="prepare-source,prepare-config-source,choose-classlib">
     <ant antfile="build/components/pmd.xml" target="ensure"/>
 
     <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask">
@@ -1407,7 +1407,7 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile-for-apidocs" depends="prepare-config-source,choose-classlib">
+  <target name="compile-for-apidocs" depends="prepare-source,prepare-config-source,choose-classlib">
     <condition property="toexclude" value="ppc" else="ia32">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
