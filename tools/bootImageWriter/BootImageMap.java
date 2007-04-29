@@ -10,8 +10,7 @@
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Correlate objects in host jdk with corresponding objects in target rvm

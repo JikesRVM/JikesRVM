@@ -7,41 +7,62 @@
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 
-
-import java.util.Hashtable;
-import java.util.Vector;
-import java.util.Stack;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.concurrent.*;
-
-import java.io.*;
-
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
-
-import org.jikesrvm.*;
+import java.util.Hashtable;
+import java.util.Stack;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeDescriptorParsing;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.objectmodel.VM_MiscHeader;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_ObjectAddressRemapper;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.jni.*;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ExtentArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.ObjectReferenceArray;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.OffsetArray;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Construct an RVM virtual machine bootimage.

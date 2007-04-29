@@ -7,10 +7,12 @@
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 
-import org.jikesrvm.*;
-import org.jikesrvm.jni.VM_JNIFunctions;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.jni.VM_JNIFunctions;
 
 /**
  * This class is responsible for constructing the JNIFuctions

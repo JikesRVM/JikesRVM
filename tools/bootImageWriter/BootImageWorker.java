@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 
-import org.jikesrvm.classloader.VM_Type;
 import java.util.concurrent.atomic.AtomicLong;
+import org.jikesrvm.classloader.VM_Type;
 
 /**
  * Worker for parallel compilation during bootimage writing.

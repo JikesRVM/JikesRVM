@@ -9,16 +9,19 @@
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.jikesrvm.*;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.objectmodel.BootImageInterface;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later
