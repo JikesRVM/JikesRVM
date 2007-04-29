@@ -136,7 +136,7 @@ $$$$ END FOREACH
     * Returns the maximum latency of any instruction in the class.
     * Note: it is faster to simply check the field directly, if possible.
     */
-   public final int maxLatency() { return maxlat; }
+   public int maxLatency() { return maxlat; }
 
    /**
     * Latencies to other classes
@@ -180,7 +180,7 @@ $$$$ END FOREACH
     * @param opclass destination operator class
     * @return latency to given operator class
     */
-   public final int latency(OPT_OperatorClass opclass) {
+   public int latency(OPT_OperatorClass opclass) {
       return (Integer) latObj(opclass);
    }
 
@@ -190,7 +190,7 @@ $$$$ END FOREACH
     * @param opclass destination operator class
     * @param latency desired latency
     */
-   public final void setLatency(OPT_OperatorClass opclass, int latency) {
+   public void setLatency(OPT_OperatorClass opclass, int latency) {
       int latencies_size = latencies.size();
       if (opclass.id < latencies_size) {
          latencies.set(opclass.id, latency);
@@ -208,7 +208,7 @@ $$$$ END FOREACH
     * @param opclass source operator class
     * @param latency desired latency
     */
-   public final void setRevLatency(OPT_OperatorClass opclass, int latency) {
+   public void setRevLatency(OPT_OperatorClass opclass, int latency) {
       opclass.setLatency(this, latency);
    }
 
@@ -356,7 +356,7 @@ $$$$ END FOREACH
    static int depth = 0;
 
    // For internal use only.
-   private final int fillMasks(OPT_ResourceReservation[] pat, int[] assign,
+   private int fillMasks(OPT_ResourceReservation[] pat, int[] assign,
                                int all, int rrq, int comb) {
       if (rrq == pat.length) {
          for (int i = 0; i < masks[comb].length; i++)

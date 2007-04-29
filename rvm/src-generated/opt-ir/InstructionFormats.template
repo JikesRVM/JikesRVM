@@ -134,7 +134,7 @@ package INSTRFMTPKG;
 
 import org.jikesrvm.VM_Configuration;
 $$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_IA32ConditionOperand; //NOPMD
 $$$$ ELSE
 import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCTrapOperand;

@@ -10,7 +10,6 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OPT_Constants;
@@ -45,7 +44,7 @@ import org.vmmagic.unboxed.Address;
  *      trap instructions.
  * <li> {@link OPT_LocationOperand} represents the memory location
  *      accessed by a load or store operation.
- * <li> {@link OPT_TypeOperand} encodes a {@link VM_Type} for use 
+ * <li> {@link OPT_TypeOperand} encodes a {@link org.jikesrvm.classloader.VM_Type} for use 
  *      in instructions such as NEW or INSTANCEOF that operate on the
  *      type hierarchy.
  * </ul>

@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  */
 final class GenArch_ia32 extends GenArch {
-  public final void emitArchVirtualMachineDeclarations() {
+  public void emitArchVirtualMachineDeclarations() {
     Offset offset;
 
     offset = VM_Entrypoints.registersFPField.getOffset();
@@ -60,7 +60,7 @@ final class GenArch_ia32 extends GenArch {
       pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
   }
 
-  public final void emitArchAssemblerDeclarations() {
+  public void emitArchAssemblerDeclarations() {
       p("#define JTOC %" 
         + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
           + ";\n");

@@ -60,16 +60,16 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
    // FULL_NAME
-   public final boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
-   public final boolean fuzzyMatchFULL_NAME(TYPE q) { 
+   public boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
+   public boolean fuzzyMatchFULL_NAME(TYPE q) { 
      if (FULL_NAME == null) return false;
      for (final String s : FULL_NAME) {
        if (q.indexOf(s) > -1) return true;
      }
      return false;
    }	
-   public final boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
-   public final java.util.Iterator<String> getFULL_NAMEs() { 
+   public boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
+   public java.util.Iterator<String> getFULL_NAMEs() { 
      if (FULL_NAME == null) {
        return new java.util.Iterator<String>() {
          public boolean hasNext() { return false; }
@@ -88,7 +88,7 @@ $$$$ END LOOP
 
 
    @SuppressWarnings("unchecked")
-   public final  Object clone() {
+   public Object clone() {
      try { 
 	MYTYPE clone = (MYTYPE)super.clone();
 $$$$ LOOP VDATFILE VALUE_DAT_FILES

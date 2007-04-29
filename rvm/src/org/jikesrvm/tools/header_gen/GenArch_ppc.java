@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
  * @author Derek Lieber
  */
 final class GenArch_ppc extends GenArch {
-  public final void emitArchVirtualMachineDeclarations() {
+  public void emitArchVirtualMachineDeclarations() {
     Offset offset;
     offset = VM_Entrypoints.registersLRField.getOffset();
     pln("VM_Registers_lr_offset = ", offset);
@@ -95,7 +95,7 @@ final class GenArch_ppc extends GenArch {
                   + VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT + " ;\n");
   }
 
-  public final void emitArchAssemblerDeclarations() {
+  public void emitArchAssemblerDeclarations() {
     if (VM.BuildForOsx) {
       pln("#define FP r"   + VM_BaselineConstants.FP);
       pln("#define JTOC r" + VM_BaselineConstants.JTOC);

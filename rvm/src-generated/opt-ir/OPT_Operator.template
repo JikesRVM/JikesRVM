@@ -337,7 +337,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a simple move
    *         or <code>false</code> if it is not.
    */
-  public final boolean isMove() { 
+  public boolean isMove() { 
     return (traits & move) != 0; 
   }
 
@@ -347,7 +347,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is am
    *         intraprocedural branch or <code>false</code> if it is not.
    */
-  public final boolean isBranch() { 
+  public boolean isBranch() { 
     return (traits & branch) != 0; 
   }
 
@@ -357,7 +357,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a conditoonal
    *         intraprocedural branch or <code>false</code> if it is not.
    */
-  public final boolean isConditionalBranch() { 
+  public boolean isConditionalBranch() { 
     return (traits & (branch|conditional)) == (branch|conditional); 
   }
 
@@ -372,7 +372,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an unconditional
    *         intraprocedural branch or <code>false</code> if it is not.
    */
-  public final boolean isUnconditionalBranch() {
+  public boolean isUnconditionalBranch() {
     return (traits & (branch|conditional)) == branch; 
   }
 
@@ -384,7 +384,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a direct
    *         intraprocedural branch or <code>false</code> if it is not.
    */
-  public final boolean isDirectBranch() {
+  public boolean isDirectBranch() {
     return (traits & (branch|indirect)) == branch;
   }
 
@@ -394,7 +394,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an indirect
    *         interprocedural branch or <code>false</code> if it is not.
    */
-  public final boolean isIndirectBranch() {
+  public boolean isIndirectBranch() {
     return (traits & (branch|indirect)) == (branch|indirect);
   }
 
@@ -404,7 +404,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a call
    *         or <code>false</code> if it is not.
    */
-  public final boolean isCall() {
+  public boolean isCall() {
     return (traits & call) != 0;
   }
 
@@ -416,7 +416,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a 
    *         conditional call or <code>false</code> if it is not.
    */
-  public final boolean isConditionalCall() { 
+  public boolean isConditionalCall() { 
     return (traits & (call|conditional)) == (call|conditional); 
   }
 
@@ -428,7 +428,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an unconditional
    *         call or <code>false</code> if it is not.
    */
-  public final boolean isUnconditionalCall() {
+  public boolean isUnconditionalCall() {
     return (traits & (call|conditional)) == call; 
   }
 
@@ -440,7 +440,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a direct call
    *         or <code>false</code> if it is not.
    */
-  public final boolean isDirectCall() {
+  public boolean isDirectCall() {
     return (traits & (call|indirect)) == call;
   }
 
@@ -452,7 +452,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an indirect call
    *         or <code>false</code> if it is not.
    */
-  public final boolean isIndirectCall() {
+  public boolean isIndirectCall() {
     return (traits & (call|indirect)) == (call|indirect);
   }
 
@@ -463,7 +463,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an explicit load
    *         or <code>false</code> if it is not.
    */
-  public final boolean isExplicitLoad() {
+  public boolean isExplicitLoad() {
     return (traits & load) != 0;
   }
 
@@ -474,7 +474,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an implicit load
    *         or <code>false</code> if it is not.
    */
-  public final boolean isImplicitLoad() {
+  public boolean isImplicitLoad() {
     return (traits & (load|memAsLoad|call)) != 0;
   }
 
@@ -485,7 +485,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an explicit store
    *         or <code>false</code> if it is not.
    */
-  public final boolean isExplicitStore() {
+  public boolean isExplicitStore() {
     return (traits & store) != 0;
   }
 
@@ -496,7 +496,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an implicit store
    *         or <code>false</code> if it is not.
    */
-  public final boolean isImplicitStore() {
+  public boolean isImplicitStore() {
     return (traits & (store|memAsStore|call)) != 0;
   }
 
@@ -506,7 +506,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a throw
    *         or <code>false</code> if it is not.
    */
-  public final boolean isThrow() {
+  public boolean isThrow() {
     return (traits & ethrow) != 0;
   }
 
@@ -516,7 +516,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a PEI
    *         or <code>false</code> if it is not.
    */
-  public final boolean isPEI() {
+  public boolean isPEI() {
     return (traits & (ethrow|immedPEI)) != 0;
   }
 
@@ -526,7 +526,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a potential 
    *         GC point or <code>false</code> if it is not.
    */
-  public final boolean isGCPoint() {
+  public boolean isGCPoint() {
     return isPEI() || ((traits & (alloc|tsp)) != 0);
   }
 
@@ -536,7 +536,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a potential
    *         threadswitch point or <code>false</code> if it is not.
    */
-  public final boolean isTSPoint() {
+  public boolean isTSPoint() {
     return isGCPoint();
   }
 
@@ -546,7 +546,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a compare
    *         or <code>false</code> if it is not.
    */
-  public final boolean isCompare() {
+  public boolean isCompare() {
     return (traits & compare) != 0;
   }
 
@@ -557,7 +557,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an allocation
    *         or <code>false</code> if it is not.
    */
-  public final boolean isAllocation() {
+  public boolean isAllocation() {
     return (traits & alloc) != 0;
   }
 
@@ -567,7 +567,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a return
    *         or <code>false</code> if it is not.
    */
-  public final boolean isReturn() {
+  public boolean isReturn() {
     return (traits & ret) != 0;
   }
 
@@ -577,7 +577,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator has a variable number 
    *         of uses or <code>false</code> if it does not.
    */
-  public final boolean hasVarUses() {
+  public boolean hasVarUses() {
     return (traits & varUses) != 0;
   }
 
@@ -587,7 +587,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator has a variable number 
    *         of uses or <code>false</code> if it does not.
    */
-  public final boolean hasVarDefs() {
+  public boolean hasVarDefs() {
     return (traits & varDefs) != 0;
   }
 
@@ -597,7 +597,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator has a variable number 
    *         of uses or defs or <code>false</code> if it does not.
    */
-  public final boolean hasVarUsesOrDefs() {
+  public boolean hasVarUsesOrDefs() {
     return (traits & (varUses | varDefs)) != 0;
   }
 
@@ -607,7 +607,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is an acquire
    *         or <code>false</code> if it is not.
    */
-  public final boolean isAcquire() {
+  public boolean isAcquire() {
     return (traits & acquire) != 0;
   }
 
@@ -617,7 +617,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a release
    *         or <code>false</code> if it is not.
    */
-  public final boolean isRelease() {
+  public boolean isRelease() {
     return (traits & release) != 0;
   }
 
@@ -628,7 +628,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a dynamic linking point
    *         or <code>false</code> if it is not.
    */
-  public final boolean isDynamicLinkingPoint() {
+  public boolean isDynamicLinkingPoint() {
     return (traits & dynLink) != 0;
   }
 
@@ -638,7 +638,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is a yield point
    *         or <code>false</code> if it is not.
    */
-  public final boolean isYieldPoint() {
+  public boolean isYieldPoint() {
     return (traits & yieldPoint) != 0;
   }
 
@@ -649,7 +649,7 @@ $$$$ END IF
    * stack.
    *         or <code>false</code> if not.
    */
-  public final boolean isFpPop() {
+  public boolean isFpPop() {
     return (traits & fpPop) != 0;
   }
 
@@ -660,7 +660,7 @@ $$$$ END IF
    * stack.
    *         or <code>false</code> if not.
    */
-  public final boolean isFpPush() {
+  public boolean isFpPush() {
     return (traits & fpPush) != 0;
   }
 
@@ -670,7 +670,7 @@ $$$$ END IF
    * @return <code>true</code> if the operator is commutative.
    *         or <code>false</code> if not.
    */
-  public final boolean isCommutative() {
+  public boolean isCommutative() {
     return (traits & commutative) != 0;
   }
 

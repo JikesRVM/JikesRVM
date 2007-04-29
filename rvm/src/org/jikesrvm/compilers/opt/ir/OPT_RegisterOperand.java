@@ -405,12 +405,12 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   public void    clearNullCheck()       {   flags2 &= ~NULL_CHECK;            }
   
   /** Get info scratch short */
-  public final short getInfo() {
+  public short getInfo() {
     return info;
   }
 
   /** Set info scratch short */
-  public final void setInfo(short value) {
+  public void setInfo(short value) {
     info = value;
   }
 
@@ -420,21 +420,21 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * accessor functions &amp; fields of LinkedListElement.  This field
    * is used to maintain lists of USEs and DEFs
    */
-  public final void setNext(OPT_RegisterOperand Next) {
+  public void setNext(OPT_RegisterOperand Next) {
     scratchObject = Next;
   }
 
   /**
    * Sets scratch object of the register operand to parameter.
    */
-  public final void append(OPT_RegisterOperand next) {
+  public void append(OPT_RegisterOperand next) {
     scratchObject = next;
   }
 
   /**
    * Returns the scratch object of the register operand
    */
-  public final OPT_RegisterOperand getNext() { 
+  public OPT_RegisterOperand getNext() { 
     return (OPT_RegisterOperand)scratchObject;
   }
 
