@@ -67,7 +67,6 @@ import java.nio.MappedByteBuffer;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_FileSystem;
-import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking
