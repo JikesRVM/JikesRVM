@@ -9,11 +9,11 @@
 
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-
-import org.vmmagic.pragma.*;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A wait queue for threads that are waiting for a process

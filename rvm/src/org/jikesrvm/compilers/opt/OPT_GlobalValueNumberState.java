@@ -8,14 +8,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+
 /**
  * This class holds the results of global value numbering.
  * ala Alpern, Wegman and Zadeck, PoPL 88.

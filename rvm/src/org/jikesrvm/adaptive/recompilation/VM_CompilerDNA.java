@@ -8,13 +8,16 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.util.StringTokenizer;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import java.io.*;
-import java.util.*;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 
 /**
  * This class codifies the cost/benefit properties of the various compilers

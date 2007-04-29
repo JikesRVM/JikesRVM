@@ -8,16 +8,19 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * This class contains its architecture-independent code for iteration

@@ -8,11 +8,51 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
 import java.lang.reflect.Constructor;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import java.util.ArrayList;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.LocationCarrier;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionFormat;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.READ_CEILING_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TRAP_IF_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.WRITE_FLOOR_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.TrapIf;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
+import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 
 /**
  * Perform local common-subexpression elimination for a factored basic

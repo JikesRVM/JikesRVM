@@ -8,19 +8,18 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
-
 import java.io.DataInputStream;
 import java.io.IOException;
-
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.*;
 
 /**
  * A method of a java class corresponding to a method_info structure

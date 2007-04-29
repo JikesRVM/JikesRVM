@@ -8,15 +8,19 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -8,19 +8,21 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.util.*;
-
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
 import java.util.Vector;
-import java.util.zip.*;
-
-import java.net.URL;
-
-import java.io.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.util.VM_HashMap;
 
 /** 
  * Implements an object that functions as the bootstrap class loader.

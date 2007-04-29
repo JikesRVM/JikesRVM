@@ -9,22 +9,32 @@
 
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
+import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.osr.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_ExceptionTable;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /** 

@@ -7,10 +7,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
+import org.jikesrvm.compilers.opt.ir.Trap;
 
 /**
  * IR level independent driver for 

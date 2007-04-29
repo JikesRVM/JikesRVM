@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**

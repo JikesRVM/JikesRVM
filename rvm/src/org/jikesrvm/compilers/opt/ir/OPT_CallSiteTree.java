@@ -8,7 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.OPT_Tree;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 
 /**
  *  This class represents the set of inlined method calls that are

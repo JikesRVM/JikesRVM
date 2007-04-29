@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.VM_MemberReference;
 import java.util.Arrays;
+import org.jikesrvm.classloader.VM_MemberReference;
 /*
  * An OPT_InlinedOsrTypeInfoOperand object keeps necessary information
  * to recover non-inlined status for an inlined method.

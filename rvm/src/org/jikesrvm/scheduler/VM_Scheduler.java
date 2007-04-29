@@ -8,25 +8,29 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
-import org.jikesrvm.osr.OSR_ObjectHolder;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.osr.OSR_ObjectHolder;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Global variables used to implement virtual machine thread scheduler.

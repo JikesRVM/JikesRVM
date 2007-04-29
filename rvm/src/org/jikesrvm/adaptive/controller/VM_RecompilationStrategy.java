@@ -8,13 +8,18 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
  * An abstract class providing the interface to the decision making

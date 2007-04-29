@@ -8,14 +8,13 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.mm.mmtk.Lock;
-import org.jikesrvm.mm.mmtk.Collection;
-
 import org.jikesrvm.VM;
-import org.vmmagic.pragma.*;
-
+import org.jikesrvm.mm.mmtk.Collection;
+import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * VM_Handshake handles mutator requests to initiate a collection, and

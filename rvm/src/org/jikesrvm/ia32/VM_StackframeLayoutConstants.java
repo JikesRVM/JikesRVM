@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.ia32;
 
-import org.vmmagic.unboxed.*;
-
 import org.jikesrvm.VM_SizeConstants;
+import org.vmmagic.unboxed.Address;
 
 /**----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.  

@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * An OPT_HeapVariable represents a heap variable for heap array SSA form

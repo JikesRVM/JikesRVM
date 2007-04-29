@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Base class for queues of VM_Threads.

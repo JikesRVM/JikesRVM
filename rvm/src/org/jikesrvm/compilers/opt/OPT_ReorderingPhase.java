@@ -8,11 +8,19 @@
  */
 
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.TreeSet;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
 
 /**
  * Reorder code layout of basic blocks for improved I-cache locality and

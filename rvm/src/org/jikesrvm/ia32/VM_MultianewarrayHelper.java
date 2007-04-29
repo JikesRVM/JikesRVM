@@ -9,11 +9,11 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the

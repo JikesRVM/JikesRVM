@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Implements the multi-level adaptive strategy using an analytic

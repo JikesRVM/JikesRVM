@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.vmmagic.pragma.*;
 import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A VM_Listener object is invoked when online measurement information 

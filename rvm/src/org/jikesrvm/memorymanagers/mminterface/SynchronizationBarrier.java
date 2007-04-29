@@ -9,16 +9,14 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.utility.Barrier;
-
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Thread;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.mmtk.utility.Barrier;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A synchronization barrier used to synchronize collector threads,

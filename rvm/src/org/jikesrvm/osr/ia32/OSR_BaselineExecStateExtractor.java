@@ -10,22 +10,23 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.ia32.*;
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_VariableElement;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * OSR_BaselineExecStateExtractor retrieves the VM scope descriptor

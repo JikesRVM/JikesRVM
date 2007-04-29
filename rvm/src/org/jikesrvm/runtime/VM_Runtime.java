@@ -8,20 +8,30 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_DynamicTypeCheck;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Entrypoints into the runtime of the virtual machine.

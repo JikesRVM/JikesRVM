@@ -9,10 +9,12 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
-import org.jikesrvm.util.*;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_StringUtilities;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Interface to the dynamic libraries of our underlying operating system.

@@ -8,15 +8,18 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
-import org.jikesrvm.compilers.opt.OPT_Options;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
 import java.util.ArrayList;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
+import org.jikesrvm.adaptive.util.VM_AOSOptions;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTRUMENTED_EVENT_COUNTER;
 
 /** 
  *  This phase takes converts "instrumentation instructions" that were

@@ -9,14 +9,13 @@
 
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_ThreadQueue;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_ThreadQueue;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Organizer thread collects OSR requests and inserted in controller queue

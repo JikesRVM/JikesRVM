@@ -8,12 +8,62 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_DynamicTypeCheck;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BooleanCmp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.IfCmp2;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_DOES_IMPLEMENT_FROM_TIB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_SUPERCLASS_IDS_FROM_TIB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COMBINE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRZerExt;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TRAP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_ALOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_LOAD;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.StoreCheck;
+import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Expansion of Dynamic Type Checking operations.

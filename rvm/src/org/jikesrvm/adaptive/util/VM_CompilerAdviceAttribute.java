@@ -12,14 +12,13 @@
 
 package org.jikesrvm.adaptive.util;
 
-
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-
 import java.util.Collection;
-import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Defines an attribute for compiler advice, and maintains a map

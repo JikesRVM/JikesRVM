@@ -7,8 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * This class holds the static array of pointers to instructions

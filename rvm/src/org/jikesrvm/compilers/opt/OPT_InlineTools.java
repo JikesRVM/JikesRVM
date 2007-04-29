@@ -8,10 +8,18 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
 import java.util.Stack;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.OPT_CompilationState;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * This class provides some utilities that are useful for inlining.

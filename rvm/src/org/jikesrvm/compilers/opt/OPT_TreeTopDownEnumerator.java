@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-import  java.util.ArrayList;
-import  java.util.ListIterator;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.ListIterator;
 
 /**
  *  This class provides enumeration of elements of a tree in a town-down manner

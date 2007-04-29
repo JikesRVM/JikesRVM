@@ -8,21 +8,20 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import java.util.Vector;
+import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_ContextListener;
+import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_NullListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-import java.util.Vector;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * RuntimeMeasurements manages listeners, decayable objects, and 

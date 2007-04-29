@@ -9,11 +9,10 @@
 //$Id:$
 package org.jikesrvm.apt.annotations;
 
+import static java.lang.annotation.ElementType.METHOD;
 import java.lang.annotation.Retention;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.Target;
-
-import static java.lang.annotation.RetentionPolicy.*;
-import static java.lang.annotation.ElementType.*;
 
 @Retention(SOURCE)
 @Target({METHOD})

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Facility for remapping object addresses across virtual machine address 

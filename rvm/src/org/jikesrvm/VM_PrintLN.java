@@ -7,9 +7,10 @@
  * (C) Copyright IBM Corp. 2003
  */
 package org.jikesrvm;
-import org.jikesrvm.classloader.VM_Member;
+
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Member;
 
 /**
  * This interface is implemented by org.jikesrvm.VM_PrintContainer.  The

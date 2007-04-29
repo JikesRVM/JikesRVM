@@ -8,8 +8,8 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 
 /**
  * Constants describing vm object, stack, and register characteristics.

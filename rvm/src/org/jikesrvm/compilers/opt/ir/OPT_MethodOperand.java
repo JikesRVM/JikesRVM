@@ -8,7 +8,11 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.opt.OPT_SpecializedMethod;
 import org.vmmagic.unboxed.Offset;
 

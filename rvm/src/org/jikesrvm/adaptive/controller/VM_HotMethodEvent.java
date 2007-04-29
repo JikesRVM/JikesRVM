@@ -9,9 +9,9 @@
 package org.jikesrvm.adaptive.controller;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**

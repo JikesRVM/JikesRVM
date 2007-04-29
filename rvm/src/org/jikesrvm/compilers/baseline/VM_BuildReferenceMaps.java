@@ -10,8 +10,14 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /** 
  * This class builds the reference and non-reference maps for a given method.

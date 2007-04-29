@@ -8,12 +8,12 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.classloader.VM_NativeMethod;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
 
 /**
  * Abstract superclass to interface bootimage compiler to the rest of the VM.

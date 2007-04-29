@@ -9,8 +9,8 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**

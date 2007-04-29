@@ -8,35 +8,37 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import org.jikesrvm.jni.VM_JNIEnvironment;
-
-import org.jikesrvm.mm.mmtk.Barriers;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
-import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
-import org.jikesrvm.adaptive.OSR_Listener;
-import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Process;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.adaptive.OSR_Listener;
+import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
+import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.jni.VM_JNIEnvironment;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mmtk.Barriers;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.BaselineNoRegisters;
+import org.vmmagic.pragma.BaselineSaveLSRegisters;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A java thread's execution context.

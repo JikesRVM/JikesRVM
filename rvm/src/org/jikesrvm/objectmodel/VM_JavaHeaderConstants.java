@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Constants for the JavaHeader. 

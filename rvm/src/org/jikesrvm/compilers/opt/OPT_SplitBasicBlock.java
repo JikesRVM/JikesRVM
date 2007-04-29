@@ -8,7 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 
 /**
  * Splits a large basic block into smaller ones with size <= MAX_NUM_INSTRUCTIONS.

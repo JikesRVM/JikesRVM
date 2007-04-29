@@ -9,10 +9,9 @@
 
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /** 
  *  VM_CounterBasedSampling.java

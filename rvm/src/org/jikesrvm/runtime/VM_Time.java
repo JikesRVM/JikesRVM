@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Primitives from which to build interval and absolute timers.

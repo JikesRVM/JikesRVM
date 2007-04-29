@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.util.VM_HashSet;
-import org.vmmagic.pragma.*;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import org.jikesrvm.VM;
+import org.jikesrvm.util.VM_HashSet;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to some 

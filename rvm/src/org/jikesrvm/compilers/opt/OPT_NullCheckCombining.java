@@ -8,10 +8,23 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.GuardCarrier;
+import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COMBINE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 
 /**
  * This module performs two tasks:

@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * This object that is invoked when online measurement information must 

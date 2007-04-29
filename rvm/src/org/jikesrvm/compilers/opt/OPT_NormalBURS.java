@@ -8,13 +8,31 @@
  */
 
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_Debug;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_STATE;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COMBINE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OTHER_OPERAND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.RETURN_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_OSR_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 
 /**
  * This class contains methods for invoking BURS tree-pattern matching

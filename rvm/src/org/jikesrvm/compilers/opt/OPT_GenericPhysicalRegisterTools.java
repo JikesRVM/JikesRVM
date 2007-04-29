@@ -9,9 +9,12 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
-
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * This abstract class provides a set of useful architecture-independent 

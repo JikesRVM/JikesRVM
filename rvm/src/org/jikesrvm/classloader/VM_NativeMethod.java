@@ -8,14 +8,14 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A native method of a java class.

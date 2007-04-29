@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * An element in the opt compiler's optimization plan

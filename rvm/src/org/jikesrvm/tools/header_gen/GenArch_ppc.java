@@ -9,11 +9,11 @@
 package org.jikesrvm.tools.header_gen;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.ppc.VM_TrapConstants;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**

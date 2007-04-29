@@ -8,9 +8,12 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.util.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.util.VM_HashMap;
 
 /**
  * database to hold field-level information

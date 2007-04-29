@@ -8,14 +8,17 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Stats;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Implementation of thin locks.

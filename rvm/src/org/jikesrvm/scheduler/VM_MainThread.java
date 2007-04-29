@@ -8,18 +8,20 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_CommandLineArgs;
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Reflection;
-
-import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.util.jar.Manifest;
-import java.util.jar.JarFile;
-
 
 /**
  * Thread in which user's "main" program runs.

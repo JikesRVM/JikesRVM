@@ -8,14 +8,30 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.OPT_DefUse;
-import org.jikesrvm.compilers.opt.ir.*;
-
 import java.util.Enumeration;
+import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_DefUse;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.MIR_Return;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
+import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * This class contains IA32 calling conventions

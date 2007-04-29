@@ -9,14 +9,14 @@
 
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Trigger an OSR from a running thread.

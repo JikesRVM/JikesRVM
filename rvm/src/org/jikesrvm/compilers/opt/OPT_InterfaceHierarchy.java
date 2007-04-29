@@ -8,8 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.util.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_HashSet;
 
 /**
  * This class holds, for each interface, the set of initialized classes

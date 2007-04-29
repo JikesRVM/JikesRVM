@@ -1,7 +1,7 @@
 package org.jikesrvm.compilers.opt;
 
-import java.util.Iterator;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 public abstract class OPT_GraphNodeEnumerator implements OPT_GraphNodeEnumeration {
 

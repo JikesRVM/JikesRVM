@@ -10,7 +10,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 
 /**
  * A subclass of OPT_BURS_TreeNode for an IntConstantOperand.

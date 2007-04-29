@@ -8,9 +8,10 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_Options;
 
 /**
   * This class holds miscellaneous information regarding the state of

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A global queue of VM_Threads.

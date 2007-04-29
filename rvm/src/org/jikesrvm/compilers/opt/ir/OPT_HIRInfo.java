@@ -8,7 +8,11 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.OPT_DF_Solution;
+import org.jikesrvm.compilers.opt.OPT_DominatorTree;
+import org.jikesrvm.compilers.opt.OPT_GlobalValueNumberState;
+import org.jikesrvm.compilers.opt.OPT_LSTGraph;
+import org.jikesrvm.compilers.opt.OPT_SSADictionary;
 
 /**
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR

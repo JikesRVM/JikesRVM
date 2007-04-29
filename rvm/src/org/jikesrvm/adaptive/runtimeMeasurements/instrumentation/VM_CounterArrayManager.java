@@ -8,10 +8,23 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_Constants;
+import org.jikesrvm.compilers.opt.OPT_ConvertToLowLevelIR;
+import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
+import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 

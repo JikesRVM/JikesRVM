@@ -8,16 +8,13 @@
  */
 package org.jikesrvm.classloader;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.StringTokenizer;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-
-import java.io.File;
-
-import java.net.MalformedURLException;
-import java.net.URLClassLoader;
-import java.net.URL;
-
-import java.util.StringTokenizer;
 
 /**
  * The class loader used by Jikes RVM to load the application program.  Since

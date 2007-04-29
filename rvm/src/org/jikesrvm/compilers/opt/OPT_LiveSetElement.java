@@ -8,9 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /*
  * @author Michael Hind

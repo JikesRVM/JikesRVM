@@ -8,8 +8,18 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.opt.ir.Athrow;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.Trap;
 
 /**
  * This pass adjusts branch probabilities derived from static estimates

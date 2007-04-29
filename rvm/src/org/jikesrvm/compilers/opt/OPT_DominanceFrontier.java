@@ -8,8 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
+import java.util.Enumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Calculate dominance frontier for a set of basic blocks.

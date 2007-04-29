@@ -9,9 +9,37 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.*;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.CONTROL;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.EXCEPTION_E;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.EXCEPTION_MS;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.EXCEPTION_R;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.GUARD_ANTI;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.GUARD_OUTPUT;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.GUARD_TRUE;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.MEM_ANTI;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.MEM_OUTPUT;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.MEM_READS_KILL;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.MEM_TRUE;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.REG_ANTI;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.REG_MAY_DEF;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.REG_OUTPUT;
+import static org.jikesrvm.compilers.opt.OPT_DepGraphConstants.REG_TRUE;
+import org.jikesrvm.compilers.opt.ir.LocationCarrier;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Dependence Graph for a single basic block in the program.

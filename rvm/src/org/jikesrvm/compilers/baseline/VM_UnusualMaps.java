@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Unusual maps are maps to track references that don't take the usual format.

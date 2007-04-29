@@ -8,13 +8,33 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
 import java.lang.reflect.Constructor;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Stack;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.OPT_Constants.SSA_SYNTH_BCI;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_UnreachableOperand;
+import org.jikesrvm.compilers.opt.ir.Phi;
 
 /**
  * This compiler phase translates out of SSA form.  

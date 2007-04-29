@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.*;
 import java.lang.ref.WeakReference;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * @author Julian Dolby

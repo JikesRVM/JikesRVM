@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Represents a constant TIB operand, found for example, from an

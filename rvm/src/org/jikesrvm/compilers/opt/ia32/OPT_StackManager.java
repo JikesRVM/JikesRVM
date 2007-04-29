@@ -8,11 +8,16 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.compilers.opt.ir.ia32.*;
+import java.util.Enumeration;
+import java.util.Iterator;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_GenericStackManager;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_RegisterAllocatorState;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_VALUE;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.FLOAT_VALUE;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_VALUE;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_FSave;
@@ -28,18 +33,40 @@ import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADVISE_ESP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FCLEAR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNINIT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNSAVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FRSTOR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LEA;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_POP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_PUSH;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_RET_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TRAPIF;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NOP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REQUIRE_ESP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_BACKEDGE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_EPILOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_OSR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
-import org.jikesrvm.classloader.VM_TypeReference;
-import java.util.Enumeration;
-import java.util.Iterator;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
+import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
-
-import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.*;
-import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 

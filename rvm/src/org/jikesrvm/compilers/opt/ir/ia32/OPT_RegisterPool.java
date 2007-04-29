@@ -8,16 +8,15 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.opt.ir.OPT_GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Pool of symbolic registers.

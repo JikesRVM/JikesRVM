@@ -9,8 +9,8 @@
 
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  *

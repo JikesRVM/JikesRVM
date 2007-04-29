@@ -8,12 +8,14 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.ArchitectureSpecific.OPT_FinalMIRExpansion;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 
 /**
  * Convert an IR object from MIR to final Machinecode

@@ -8,13 +8,14 @@
  */
 package org.jikesrvm.compilers.common;
 
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.ArchitectureSpecific;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frames inserted by hardware trap handler.

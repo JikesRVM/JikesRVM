@@ -9,11 +9,10 @@
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A VM_MethodListener defines a listener to collect method invocation samples.

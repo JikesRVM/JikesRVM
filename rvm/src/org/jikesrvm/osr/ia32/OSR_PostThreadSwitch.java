@@ -8,14 +8,16 @@
  */
 
 package org.jikesrvm.osr.ia32;
+
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A class helps schedule OSRed method, it is called right after thread switch

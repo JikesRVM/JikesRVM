@@ -7,10 +7,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
 
 /**
  *  This Phase supports

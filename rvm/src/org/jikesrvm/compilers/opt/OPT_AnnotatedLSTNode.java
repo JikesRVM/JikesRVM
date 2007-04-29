@@ -8,14 +8,40 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import org.jikesrvm.compilers.opt.ir.OPT_Operand;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.VM;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IREnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionFormat;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARCH_INDEPENDENT_END_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.Unary;
 
 /**
  * <p>A node in the LST (Loop Structure Tree) with added information

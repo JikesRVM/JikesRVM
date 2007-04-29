@@ -8,11 +8,42 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import java.util.ArrayList;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_NOTNULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_NOTNULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MUST_IMPLEMENT_INTERFACE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.WRITE_FLOOR;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.PutField;
 
 /**
  * Class that performs scalar replacement of aggregates for non-array

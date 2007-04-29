@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * A recompilation choice represents an action (or a set of actions)

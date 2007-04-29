@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.io.StringWriter;
-import  java.io.PrintWriter;
-import  org.jikesrvm.classloader.VM_TypeReference;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Use this exception if we encounter a runtime error in the dynamic 

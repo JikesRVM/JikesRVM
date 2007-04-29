@@ -9,7 +9,7 @@
 
 package org.jikesrvm.osr;
 
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Word;
 
 /**
  * load a word constant on the stack

@@ -8,13 +8,30 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_Constants;
+import static org.jikesrvm.compilers.opt.OPT_Constants.NO;
+import org.jikesrvm.compilers.opt.OPT_LiveIntervalElement;
+import org.jikesrvm.compilers.opt.OPT_LiveIntervalEnumeration;
+import org.jikesrvm.compilers.opt.OPT_SortedGraphNode;
+import org.jikesrvm.compilers.opt.OPT_SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.OPT_SpaceEffGraphNode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATHROW_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_NOTNULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_opcode;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * A basic block in the 

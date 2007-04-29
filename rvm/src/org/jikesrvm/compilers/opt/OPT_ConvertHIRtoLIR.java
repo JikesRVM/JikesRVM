@@ -8,7 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_LIRInfo;
+
 /**
  * Convert an IR object from HIR to LIR
  *

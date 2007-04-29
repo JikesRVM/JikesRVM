@@ -8,12 +8,14 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A description of a java type.

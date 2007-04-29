@@ -8,14 +8,28 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import java.lang.reflect.Field;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ClassConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ObjectConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_StringConstantOperand;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.lang.reflect.Field;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Code for accessing the value of a static field at

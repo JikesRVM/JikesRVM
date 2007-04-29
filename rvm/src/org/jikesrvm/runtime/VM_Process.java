@@ -8,13 +8,15 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-import org.jikesrvm.scheduler.VM_ThreadProcessWaitData;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Wait;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.jikesrvm.VM;
-import java.io.*;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThreadProcessWaitData;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Jikes RVM implementation of <code>java.lang.Process</code>.

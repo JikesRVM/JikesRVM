@@ -8,16 +8,20 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.controller.VM_AdaptiveInlining;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.database.callgraph.VM_WeightedCallTargets;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.ir.OPT_CompilationState;
+import org.jikesrvm.compilers.opt.ir.OPT_InlineSequence;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.adaptive.database.callgraph.VM_WeightedCallTargets;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.controller.VM_AdaptiveInlining;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import java.util.*;
 
 /**
  * The default inlining oracle used by the optimizing compiler.

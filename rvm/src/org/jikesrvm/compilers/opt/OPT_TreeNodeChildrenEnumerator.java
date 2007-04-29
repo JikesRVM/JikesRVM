@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-import  java.util.NoSuchElementException;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * This class provides enumeration of all children of a OPT_TreeNode

@@ -8,16 +8,49 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import java.lang.reflect.Constructor;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.OPT_Constants.RUNTIME_SERVICES_BCI;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.Athrow;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Inliner;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATHROW_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWARRAY_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWARRAY_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWOBJMULTIARRAY_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEW_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEW_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TypeOperand;
+import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
-import java.lang.reflect.Constructor;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase

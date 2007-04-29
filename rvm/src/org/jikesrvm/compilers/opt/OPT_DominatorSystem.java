@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.VM;
-import java.util.Iterator;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Implementation of the dataflow equation system to calculate dominators.

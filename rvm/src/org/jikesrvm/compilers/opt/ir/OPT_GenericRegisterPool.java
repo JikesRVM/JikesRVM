@@ -9,7 +9,8 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Pool of symbolic registers.

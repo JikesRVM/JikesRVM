@@ -9,7 +9,7 @@
 
 package org.jikesrvm;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines

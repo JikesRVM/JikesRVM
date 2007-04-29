@@ -13,8 +13,9 @@ package org.jikesrvm.compilers.opt;
  * 
  * @author Stephen Fink
  */
-import java.util.Enumeration;
+
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
 public final class OPT_ReverseEnumerator<T> implements Enumeration<T> {

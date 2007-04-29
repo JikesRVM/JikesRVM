@@ -8,8 +8,7 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.Load;
@@ -29,7 +28,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_StringConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TIBConstantOperand;
-
+import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  * Depth First Spanning Tree

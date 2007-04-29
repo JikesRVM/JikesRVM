@@ -9,9 +9,10 @@
 
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Queue of threads waiting for a specific kind of event to occur.

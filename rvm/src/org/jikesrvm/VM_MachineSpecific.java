@@ -8,11 +8,11 @@
  */
 package org.jikesrvm;
 
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.*;
-
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Wrappers around machine specific code

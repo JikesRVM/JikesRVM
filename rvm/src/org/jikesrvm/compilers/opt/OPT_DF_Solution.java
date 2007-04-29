@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * OPT_DF_Solution.java

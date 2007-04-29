@@ -9,9 +9,10 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.vmmagic.pragma.*;
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.util.VM_HashSet;
-import static org.jikesrvm.VM_SizeConstants.*;
+import org.vmmagic.pragma.Uninterruptible;
+
 /**
  * A class to represent the reference in a class file to some 
  * type (class, primitive or array).

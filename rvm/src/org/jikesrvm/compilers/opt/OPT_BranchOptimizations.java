@@ -7,13 +7,69 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.classloader.VM_TypeReference;
 import java.util.HashMap;
 import java.util.HashSet;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.BooleanCmp;
+import org.jikesrvm.compilers.opt.ir.CondMove;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.IfCmp2;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.RETURN;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Return;
+import org.jikesrvm.compilers.opt.ir.Unary;
 
 /**
  * Perform simple peephole optimizations for branches.

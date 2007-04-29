@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.opt.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.ia32.*;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
@@ -30,10 +30,20 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_NOT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_XOR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.classloader.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 

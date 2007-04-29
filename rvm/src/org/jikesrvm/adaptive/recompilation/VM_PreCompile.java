@@ -12,13 +12,18 @@
 
 package org.jikesrvm.adaptive.recompilation;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
 
 /**
  * Utilities for providing compiler advice.  Advice files provided

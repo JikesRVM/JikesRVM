@@ -25,10 +25,31 @@ import org.jikesrvm.compilers.opt.ir.OPT_MachineSpecificIR;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADVISE_ESP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DUMMY_DEF;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DUMMY_USE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CURRENT_PROCESSOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_JTOC_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FCLEAR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV_ENDING_LIVE_RANGE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNINIT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NOP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREFETCH_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 
 /**
  * Wrappers around IA32-specific IR common to both 32 & 64 bit

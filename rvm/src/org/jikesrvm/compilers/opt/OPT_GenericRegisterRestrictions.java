@@ -8,15 +8,19 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.*;
-
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Enumeration;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_OSR;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
  * An instance of this class provides a mapping from symbolic register to

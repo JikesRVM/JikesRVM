@@ -8,13 +8,44 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
-import java.util.*;
 import java.lang.reflect.Constructor;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Stack;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.OPT_Constants.SSA_SYNTH_BCI;
+import org.jikesrvm.compilers.opt.ir.Athrow;
+import org.jikesrvm.compilers.opt.ir.Attempt;
+import org.jikesrvm.compilers.opt.ir.BBend;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_HeapOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.WRITE_FLOOR;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_UnreachableOperand;
+import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.Prepare;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.Return;
 
 /**
  * This compiler phase constructs SSA form.  

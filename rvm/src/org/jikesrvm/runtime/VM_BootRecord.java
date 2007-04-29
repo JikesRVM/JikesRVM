@@ -8,10 +8,13 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.VM;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Information required to start the virtual machine and communicate 

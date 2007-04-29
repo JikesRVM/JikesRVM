@@ -8,9 +8,13 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_ExceptionTable;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_TypeOperand;
 
 /**
  * Encoding of try ranges in the final machinecode and the

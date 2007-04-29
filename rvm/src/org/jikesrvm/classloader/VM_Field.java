@@ -8,13 +8,13 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.pragma.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A field of a java class.

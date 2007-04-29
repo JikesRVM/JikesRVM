@@ -8,14 +8,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Processor;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.SaveVolatile;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that

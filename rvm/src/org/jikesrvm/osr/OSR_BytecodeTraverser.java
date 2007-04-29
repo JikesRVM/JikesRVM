@@ -7,12 +7,20 @@
  * (C) Copyright IBM Corp 2002
  */
 
-package org.jikesrvm.osr; 
+package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
 
 /**
  * OSR_BytecodeTraverser does depth first search on a bytecode

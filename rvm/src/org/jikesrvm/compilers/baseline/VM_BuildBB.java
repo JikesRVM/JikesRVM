@@ -8,8 +8,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
  * Analyze the byte codes and determine the boundaries of the 

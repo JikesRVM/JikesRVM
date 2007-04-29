@@ -9,11 +9,12 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses

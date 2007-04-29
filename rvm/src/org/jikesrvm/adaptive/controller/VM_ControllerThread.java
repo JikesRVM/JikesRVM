@@ -8,25 +8,25 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.util.VM_AOSGenerator;
-import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.adaptive.OSR_OrganizerThread;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
+import org.jikesrvm.adaptive.OSR_OrganizerThread;
+import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
+import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_DynamicCallGraphOrganizer;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_MethodSampleOrganizer;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_AccumulatingMethodSampleOrganizer;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_DecayOrganizer;
+import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_EdgeListener;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_YieldCounterListener;
-import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_AccumulatingMethodSampleOrganizer;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_DecayOrganizer;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_DynamicCallGraphOrganizer;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_MethodSampleOrganizer;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
+import org.jikesrvm.adaptive.util.VM_AOSGenerator;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
 import org.jikesrvm.scheduler.VM_Thread;
-import java.util.Enumeration;
 
 /**
  * This class implements the controller thread.  This entity is the brains of 

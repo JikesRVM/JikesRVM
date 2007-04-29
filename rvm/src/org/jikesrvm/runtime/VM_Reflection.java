@@ -10,13 +10,16 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineReflection;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.VM;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Arch-independent portion of reflective method invoker.

@@ -8,13 +8,17 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.VM_Callbacks;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintStream;
+import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import java.util.*;
-import java.io.*;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * A repository of edge counters for bytecode-level edge conditional branches.

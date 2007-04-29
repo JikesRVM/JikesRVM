@@ -9,19 +9,24 @@
 
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
+import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
+import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
-import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
-import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
-import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.osr.*;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.osr.OSR_ExecStateExtractor;
+import org.jikesrvm.osr.OSR_ExecutionState;
+import org.jikesrvm.osr.OSR_Profiler;
+import org.jikesrvm.osr.OSR_SpecialCompiler;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
+
 /**
  * A OSR_ControllerOnStackReplacementPlan is scheduled by VM_ControllerThread,
  * and executed by the VM_RecompilationThread.

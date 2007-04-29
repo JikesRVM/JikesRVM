@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.ia32;
 
-import org.vmmagic.unboxed.Offset;
-
 import org.jikesrvm.VM_Constants;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Registers used by baseline compiler implementation of virtual machine.

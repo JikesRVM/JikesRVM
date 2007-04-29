@@ -13,8 +13,8 @@
 package org.jikesrvm.adaptive.util;
 
 import java.util.List;
-import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.controller.VM_Controller;
 
 /**
  * Utilities for providing compiler advice.  Advice files provided

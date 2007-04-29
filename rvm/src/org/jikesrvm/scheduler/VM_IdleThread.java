@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * Low priority thread to run when there's nothing else to do.

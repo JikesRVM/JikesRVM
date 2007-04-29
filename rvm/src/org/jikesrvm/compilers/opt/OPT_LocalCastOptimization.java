@@ -8,9 +8,27 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_NOTNULL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
 
 /**
  * Perform simple peephole optimizations to reduce the overhead of

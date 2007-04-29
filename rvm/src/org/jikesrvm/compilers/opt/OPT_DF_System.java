@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-import  java.util.HashSet;
-import  java.util.Iterator;
-import  java.util.TreeSet;
-import  java.util.Comparator;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 /**
  * Represents a system of Data Flow equations

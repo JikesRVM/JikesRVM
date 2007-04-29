@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * A symbolic or physical register.

@@ -8,17 +8,20 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.controller.VM_RecompilationStrategy;
 import org.jikesrvm.adaptive.recompilation.instrumentation.VM_AOSInstrumentationPlan;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Runtime system support for using invocation counters in baseline 

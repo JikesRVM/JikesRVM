@@ -8,8 +8,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

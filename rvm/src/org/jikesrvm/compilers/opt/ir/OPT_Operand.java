@@ -9,8 +9,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OPT_Constants;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;

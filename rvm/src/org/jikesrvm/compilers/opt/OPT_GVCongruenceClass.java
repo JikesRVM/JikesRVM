@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /** 
  * This class represents a congruence class for

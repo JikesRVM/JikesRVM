@@ -8,19 +8,20 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import java.lang.reflect.Constructor;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.jni.VM_JNIFunctions;
 import org.jikesrvm.jni.VM_JNIGenericHelpers;
-
-import java.lang.reflect.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Platform dependent utility functions called from VM_JNIFunctions

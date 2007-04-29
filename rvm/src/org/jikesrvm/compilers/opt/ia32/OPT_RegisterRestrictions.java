@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.ia32.*;
 import org.jikesrvm.compilers.opt.OPT_GenericRegisterRestrictions;
 import org.jikesrvm.compilers.opt.OPT_LiveIntervalElement;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
@@ -30,9 +31,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-
-import java.util.ArrayList;
-import java.util.Enumeration;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_BURSManagedFPROperand;
 
 /**
  * An instance of this class encapsulates restrictions on register

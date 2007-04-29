@@ -8,10 +8,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADDRESS_CONSTANT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BRANCH_TARGET_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CONSTANT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REGISTER_opcode;
 
 /**
  * A few common utilites used for invoking BURS tree-pattern matching

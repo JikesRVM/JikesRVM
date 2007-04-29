@@ -9,16 +9,18 @@
 package org.jikesrvm.adaptive.runtimeMeasurements.organizers;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_EdgeListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.compilers.opt.*;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  *  This class is a generic tree.  It uses OPT_TreeNode and some enumeration

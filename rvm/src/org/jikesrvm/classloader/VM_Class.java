@@ -8,26 +8,28 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.util.VM_Synchronizer;
-import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_StackBrowser;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_ClassLoadingDependencyManager;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_Synchronizer;
+import org.vmmagic.pragma.DynamicBridge;
+import org.vmmagic.pragma.SaveVolatile;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Description of a java "class" type.<br/>

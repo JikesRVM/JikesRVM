@@ -8,10 +8,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
 
 /**
  * Encoding of try ranges in the final machinecode and the

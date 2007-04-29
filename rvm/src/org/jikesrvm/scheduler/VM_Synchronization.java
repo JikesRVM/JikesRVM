@@ -8,10 +8,12 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class to provide synchronization methods where java language 

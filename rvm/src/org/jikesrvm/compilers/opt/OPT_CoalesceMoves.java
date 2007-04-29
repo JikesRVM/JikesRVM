@@ -8,8 +8,13 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import java.util.HashSet;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
  * Coalesce registers in move instructions where possible.

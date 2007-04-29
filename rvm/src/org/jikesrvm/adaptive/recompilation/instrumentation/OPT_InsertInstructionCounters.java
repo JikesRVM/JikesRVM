@@ -8,15 +8,20 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_StringEventCounterData;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import java.util.ArrayList;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
+import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_StringEventCounterData;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_Options;
-import java.util.ArrayList;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.RETURN;
+import org.jikesrvm.compilers.opt.ir.Prologue;
 
 /** 
  * The following OPT phase inserts counters on all instructions in the

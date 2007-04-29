@@ -8,18 +8,18 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
-import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.VM_PrintContainer;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A list of compiled method and instructionOffset pairs that describe 

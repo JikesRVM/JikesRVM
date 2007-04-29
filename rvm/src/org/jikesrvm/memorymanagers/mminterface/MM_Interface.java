@@ -9,44 +9,48 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_BootRecord;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.VM;
 import org.jikesrvm.VM_HeapLayoutConstants;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.mm.mmtk.Assert;
+import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.mm.mmtk.Options;
 import org.jikesrvm.mm.mmtk.ReferenceGlue;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
-import org.jikesrvm.mm.mmtk.Collection;
-
-import java.lang.ref.PhantomReference;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-
+import org.jikesrvm.objectmodel.BootImageInterface;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
-import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.gcspy.GCspy;
+import org.mmtk.utility.heap.HeapGrowthManager;
+import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.scan.MMType;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes

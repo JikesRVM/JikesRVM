@@ -8,24 +8,43 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
-import org.jikesrvm.osr.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import java.util.ArrayList;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.OPT_Compiler;
+import org.jikesrvm.compilers.opt.OPT_Constants;
+import org.jikesrvm.compilers.opt.OPT_FieldAnalysis;
+import org.jikesrvm.compilers.opt.OPT_InlineDecision;
+import org.jikesrvm.compilers.opt.OPT_OperationNotImplementedException;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Simplifier;
+import org.jikesrvm.compilers.opt.OPT_StaticFieldReader;
+import org.jikesrvm.osr.OSR_Constants;
+import org.jikesrvm.osr.OSR_ObjectHolder;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class translates from bytecode to HIR.

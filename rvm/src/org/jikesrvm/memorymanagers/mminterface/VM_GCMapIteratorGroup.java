@@ -9,19 +9,18 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_JNIGCMapIterator;
-import org.jikesrvm.compilers.common.VM_HardwareTrapGCMapIterator;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.ArchitectureSpecific;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_HardwareTrapGCMapIterator;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 

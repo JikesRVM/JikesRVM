@@ -13,9 +13,7 @@ package org.jikesrvm.compilers.opt;
  * @author John Whaley
  */
 
-
-import  java.util.Enumeration;
-
+import java.util.Enumeration;
 
 //
 // List of Graph Edges.

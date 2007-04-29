@@ -8,7 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+
 /**
  * This interface defines the functionality necessary to be a
  * OPT_InstrumentedEventCounterManager.  The goal of this interface is

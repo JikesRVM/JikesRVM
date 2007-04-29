@@ -9,21 +9,22 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.policy.Space;
-import org.mmtk.utility.heap.Mmapper;
-import org.mmtk.utility.Constants;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.Constants;
+import org.mmtk.utility.heap.Mmapper;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Common debugging utility functions used by various garbage collectors

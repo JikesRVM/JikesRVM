@@ -9,9 +9,10 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.classloader.*;
 
 /**
  * Special invokestatic, with only two possible target

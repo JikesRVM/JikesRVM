@@ -8,11 +8,40 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
 import java.lang.reflect.Constructor;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import java.util.Enumeration;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
 
 /*
  * Loop unrolling

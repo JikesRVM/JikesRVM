@@ -8,16 +8,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertYieldpointCounters;
-import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertMethodInvocationCounter;
+import java.util.ArrayList;
+import org.jikesrvm.ArchitectureSpecific.OPT_MIROptimizationPlanner;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertInstructionCounters;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertMethodInvocationCounter;
+import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InsertYieldpointCounters;
 import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.OPT_LowerInstrumentation;
-import org.jikesrvm.ArchitectureSpecific.OPT_MIROptimizationPlanner;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.ArrayList;
-import org.jikesrvm.osr.*;
+import org.jikesrvm.compilers.opt.ir.OPT_ConvertBCtoHIR;
+import org.jikesrvm.osr.OSR_AdjustBCIndexes;
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are

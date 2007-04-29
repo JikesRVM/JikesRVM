@@ -8,7 +8,11 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.compilers.opt.ir.ia32.*;
+import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
@@ -30,15 +34,11 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
-import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ia32.VM_TrapConstants;
-import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.unboxed.Offset;
 
 /**
  *  This class provides support functionality used by the generated

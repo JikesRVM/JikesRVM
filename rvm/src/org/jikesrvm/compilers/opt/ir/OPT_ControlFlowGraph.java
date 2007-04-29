@@ -8,9 +8,13 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.*;
 import java.util.Enumeration;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.OPT_GraphNode;
+import org.jikesrvm.compilers.opt.OPT_SortedGraphNode;
+import org.jikesrvm.compilers.opt.OPT_SpaceEffGraph;
+import org.jikesrvm.compilers.opt.OPT_SpaceEffGraphNode;
+import org.jikesrvm.compilers.opt.OPT_VCGNode;
 
 /**
  * The Factored Control Flow Graph (FCFG). 

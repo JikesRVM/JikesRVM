@@ -9,9 +9,9 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.VM;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.vmmagic.unboxed.Word;
 
 /**
  * An OSR_LocalRegPair keeps the type information and localtion of 

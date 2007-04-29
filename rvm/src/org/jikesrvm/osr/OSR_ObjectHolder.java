@@ -8,10 +8,13 @@
  */
 
 package org.jikesrvm.osr;
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Magic;
 
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

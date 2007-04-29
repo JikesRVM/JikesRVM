@@ -9,23 +9,38 @@
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.*;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_BootRecord;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.Buffer;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Properties;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NativeMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.VM_UTF8Convert;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Runtime;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements the 232 JNI functions.

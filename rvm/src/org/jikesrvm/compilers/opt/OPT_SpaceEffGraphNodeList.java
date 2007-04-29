@@ -8,8 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-
+import java.util.Enumeration;
 
 /**
  * List of Graph nodes. 

@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Represents the recompilation choice of simply recompiling the

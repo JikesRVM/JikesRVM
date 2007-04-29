@@ -11,16 +11,21 @@ package org.jikesrvm.compilers.baseline;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_StackBrowser;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_ExceptionTable;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_PrintLN;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

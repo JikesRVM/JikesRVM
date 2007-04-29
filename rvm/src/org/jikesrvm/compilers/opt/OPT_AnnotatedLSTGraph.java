@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Extends the functionality of a {@link OPT_LSTGraph} so that it comprises

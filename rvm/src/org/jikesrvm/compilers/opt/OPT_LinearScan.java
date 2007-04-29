@@ -8,17 +8,41 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
-import org.vmmagic.unboxed.*;
-import org.jikesrvm.osr.*;
-
-import java.lang.reflect.Constructor;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_ControlFlowGraph;
+import org.jikesrvm.compilers.opt.ir.OPT_GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import org.jikesrvm.compilers.opt.ir.OPT_RegSpillListElement;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.osr.OSR_Constants;
+import org.jikesrvm.osr.OSR_LocalRegPair;
+import org.jikesrvm.osr.OSR_MethodVariables;
+import org.jikesrvm.osr.OSR_VariableMapElement;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Main driver for linear scan register allocation.

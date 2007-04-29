@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * To implement timed waits, a thread may need to be (logically) 

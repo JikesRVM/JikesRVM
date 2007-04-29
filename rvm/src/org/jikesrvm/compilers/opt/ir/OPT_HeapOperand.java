@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.OPT_HeapVariable;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.

@@ -8,8 +8,15 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.ir.MIR_Branch;
+import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 
 /**
  * Perform simple peephole optimizations for MIR branches.

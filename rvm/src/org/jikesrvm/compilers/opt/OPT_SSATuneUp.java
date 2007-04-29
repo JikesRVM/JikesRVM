@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
 import java.lang.reflect.Constructor;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple

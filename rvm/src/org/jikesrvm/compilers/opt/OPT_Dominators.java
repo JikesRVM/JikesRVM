@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.util.Iterator;
-
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Calculate dominators for basic blocks.

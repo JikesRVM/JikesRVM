@@ -8,9 +8,20 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWARRAY_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEW_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Transformations that use escape analysis.

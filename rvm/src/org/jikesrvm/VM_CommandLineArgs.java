@@ -8,19 +8,16 @@
  */
 package org.jikesrvm;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-
+import java.io.File;
+import java.util.Arrays;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_BaselineOptions;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-
-import java.io.File;
-import java.util.Arrays;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * Command line option processing.

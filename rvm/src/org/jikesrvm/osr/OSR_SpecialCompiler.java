@@ -9,14 +9,17 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
+import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
+import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
-import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OPT_Options;
 
 /** 
  * OSR_SpecialCompiler is a wrapper for compiling specialized byte code.

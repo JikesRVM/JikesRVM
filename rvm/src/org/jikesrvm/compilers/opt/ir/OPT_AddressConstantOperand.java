@@ -8,10 +8,11 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.vmmagic.unboxed.*;
-import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents an address constant operand.

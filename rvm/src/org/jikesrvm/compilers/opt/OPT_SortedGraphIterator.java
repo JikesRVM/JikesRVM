@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  *  An efficient topsort dataflow iterator to be used with

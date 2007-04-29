@@ -8,9 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.*;
 import java.util.Enumeration;
+import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+
 /**
  * The register allocator currently caches a bunch of state in the IR;
  * This class provides accessors to this state.

@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
 import java.util.HashMap;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * @author Julian Dolby

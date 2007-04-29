@@ -8,21 +8,38 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
-import org.jikesrvm.osr.*;
-import static org.jikesrvm.osr.OSR_Constants.*;
-
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
-import java.util.Enumeration;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashSet;
-import java.util.LinkedList;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_GCIRMap;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import org.jikesrvm.compilers.opt.ir.OPT_RegSpillListElement;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OsrPoint;
+import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.osr.OSR_Constants;
+import static org.jikesrvm.osr.OSR_Constants.LongTypeCode;
+import static org.jikesrvm.osr.OSR_Constants.VoidTypeCode;
+import org.jikesrvm.osr.OSR_LocalRegPair;
+import org.jikesrvm.osr.OSR_MethodVariables;
+import org.jikesrvm.osr.OSR_VariableMap;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 

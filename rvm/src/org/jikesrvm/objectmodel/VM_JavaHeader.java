@@ -9,20 +9,26 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_ThinLock;
-import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.VM_Configuration;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.scheduler.VM_ThinLock;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Defines the JavaHeader portion of the object header for the 

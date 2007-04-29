@@ -8,16 +8,29 @@
  */
 package org.jikesrvm.tools.oth;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.io.*;
-import org.jikesrvm.*;
+import java.util.StringTokenizer;
+import java.util.Vector;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_Compiler;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * A test harness for the optimizing compiler.

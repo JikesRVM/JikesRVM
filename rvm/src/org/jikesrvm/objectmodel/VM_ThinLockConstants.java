@@ -8,10 +8,9 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.vmmagic.unboxed.Word;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Constants used to implement thin locks.

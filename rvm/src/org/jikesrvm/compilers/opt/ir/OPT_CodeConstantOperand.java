@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Represents a constant code operand, found for example, from an

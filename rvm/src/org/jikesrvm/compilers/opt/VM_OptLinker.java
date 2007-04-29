@@ -8,9 +8,14 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TableBasedDynamicLinker;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.classloader.*;
 import org.vmmagic.unboxed.Offset;
 
 /**

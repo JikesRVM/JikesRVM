@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 
 /**
  * Translate from bytecodes to HIR

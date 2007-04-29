@@ -8,14 +8,16 @@
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import org.vmmagic.pragma.*; 
-import org.vmmagic.unboxed.*; 
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * A JNIEnvironment is created for each Java thread.

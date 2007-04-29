@@ -10,9 +10,9 @@ package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**

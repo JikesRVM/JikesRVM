@@ -8,9 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-import  java.util.NoSuchElementException;
-
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**

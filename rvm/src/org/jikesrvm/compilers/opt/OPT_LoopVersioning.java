@@ -8,16 +8,50 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.classloader.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Enumeration;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.OPT_Constants.SYNTH_LOOP_VERSIONING_BCI;
+import org.jikesrvm.compilers.opt.ir.BBend;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_HeapOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IREnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Phi;
 
 /**
  * This optimisation works from the outer most loop inward, optimising

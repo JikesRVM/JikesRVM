@@ -12,16 +12,16 @@
 
 package org.jikesrvm.adaptive.util;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM;
-import java.io.IOException;
-import java.util.StringTokenizer;
-import java.io.FileInputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Atom;
 
 /**
  * Utility to read compiler advice annotations from file in ascii format.

@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.classloader.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Place for VM_CompiledMethod.getDynamicLink() to deposit return

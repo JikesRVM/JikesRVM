@@ -9,23 +9,26 @@
 
 package org.jikesrvm.memorymanagers.mminterface;
 
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.mm.mmtk.Collection;
+import org.jikesrvm.mm.mmtk.ScanThread;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
-import org.jikesrvm.mm.mmtk.Collection;
-import org.jikesrvm.mm.mmtk.ScanThread;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.ArchitectureSpecific;
+import org.vmmagic.pragma.BaselineNoRegisters;
+import org.vmmagic.pragma.BaselineSaveLSRegisters;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * System thread used to preform garbage collections.

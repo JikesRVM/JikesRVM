@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import java.util.Enumeration;
 import java.util.HashMap;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
  * This class represents a graph, where

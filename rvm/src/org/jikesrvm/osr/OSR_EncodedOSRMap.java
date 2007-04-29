@@ -9,13 +9,13 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import java.util.LinkedList;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.unboxed.Offset;
 
 /** 
  * OSR_EncodedOSRMap provides the samilar function as GC map

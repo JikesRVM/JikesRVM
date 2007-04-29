@@ -8,12 +8,11 @@
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.util.VM_StringUtilities;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Platform independent utility functions called from VM_JNIFunctions

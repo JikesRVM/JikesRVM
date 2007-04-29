@@ -9,7 +9,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to a method of

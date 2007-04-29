@@ -8,14 +8,15 @@
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.VM;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**

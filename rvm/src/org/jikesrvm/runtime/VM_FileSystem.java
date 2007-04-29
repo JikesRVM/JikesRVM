@@ -8,20 +8,22 @@
  */
 package org.jikesrvm.runtime;
 
-import java.io.*;
-
-import org.jikesrvm.util.VM_StringUtilities;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_Wait;
-import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_Callbacks;
-
-import org.vmmagic.pragma.*;
-
+import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.util.VM_StringUtilities;
+import org.vmmagic.pragma.Inline;
 
 /**
  * Interface to filesystem of underlying operating system.

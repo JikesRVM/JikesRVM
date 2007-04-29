@@ -8,9 +8,16 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * Fields and methods of the virtual machine that are needed by 

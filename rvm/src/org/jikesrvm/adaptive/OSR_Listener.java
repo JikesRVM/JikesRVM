@@ -9,13 +9,15 @@
 
 package org.jikesrvm.adaptive;
 
+import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Code invoked from VM_Thread.yieldpoint for the purposes of OSR.

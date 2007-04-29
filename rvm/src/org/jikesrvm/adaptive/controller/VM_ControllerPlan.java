@@ -8,15 +8,14 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.util.VM_AOSGenerator;
-
 import java.util.LinkedList;
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.util.VM_AOSGenerator;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
 
 /**
  * An instance of this class describes a compilation decision made by

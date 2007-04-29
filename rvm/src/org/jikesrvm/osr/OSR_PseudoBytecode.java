@@ -8,10 +8,11 @@
  */
 
 package org.jikesrvm.osr;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_SizeConstants;
 
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.vmmagic.unboxed.Word;
+
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  *

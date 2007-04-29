@@ -9,13 +9,15 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.scheduler.VM_ProcessorLock;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.VM;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.scheduler.VM_ProcessorLock;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * class that provides stack (and local var) map for a baseline compiled method

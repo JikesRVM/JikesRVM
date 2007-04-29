@@ -8,19 +8,23 @@
  */
 package org.jikesrvm.compilers.common;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_StackBrowser;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.vmmagic.pragma.SynchronizedObject;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * A method that has been compiled into machine code by one of our compilers.

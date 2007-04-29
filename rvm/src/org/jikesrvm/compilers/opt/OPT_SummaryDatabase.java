@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.util.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.util.VM_HashMap;
 
 /**
  * Class that holds method summary information.

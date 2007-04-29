@@ -8,11 +8,14 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
-import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Low level memory management functions.

@@ -7,7 +7,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.compilers.opt.ir.*;
+
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+
 /**
  * Driver routine for register allocation
  *

@@ -8,19 +8,19 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Handle exception delivery and stack unwinding for methods compiled by 

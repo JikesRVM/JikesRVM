@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Offset;
 
 /**

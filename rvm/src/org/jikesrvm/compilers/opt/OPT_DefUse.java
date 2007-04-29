@@ -7,13 +7,20 @@
  * (C) Copyright IBM Corp. 2001, 2004
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
+
 import java.util.Enumeration;
-
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * This class computes du-lists and associated information.

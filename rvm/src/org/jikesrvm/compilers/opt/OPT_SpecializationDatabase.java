@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.util.*;
-
 import java.util.Iterator;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_HashSet;
 
 /**
  * Database to store multiple specialized versions for a given method.

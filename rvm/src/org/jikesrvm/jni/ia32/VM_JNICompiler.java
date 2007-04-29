@@ -8,20 +8,24 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NativeMethod;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.jni.VM_JNICompiledMethod;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.ia32.VM_ProcessorLocalState;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_MachineCode;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.ia32.VM_ProcessorLocalState;
+import org.jikesrvm.jni.VM_JNICompiledMethod;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class compiles the prolog and epilog for all code that makes

@@ -8,22 +8,29 @@
  */
 package org.jikesrvm.tools.header_gen;
 
-import  java.io.*;
-import  java.io.PrintStream;
-import  java.util.*;
-import org.jikesrvm.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Arrays;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_FileSystem;
-import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadProcessWaitQueue;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThreadIOConstants;
 import org.jikesrvm.scheduler.VM_ThreadIOQueue;
-import org.jikesrvm.classloader.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.scheduler.VM_ThreadProcessWaitQueue;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Emit a header file containing declarations required to access VM 

@@ -9,21 +9,33 @@
 package org.jikesrvm;
 
 import java.io.FileDescriptor;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_ThreadIOQueue;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
-import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.VM_Wait;
+import java.net.ConnectException;
+import java.net.DatagramSocket;
+import java.net.DatagramSocketImpl;
+import java.net.DatagramSocketImplFactory;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketImpl;
+import java.net.SocketImplFactory;
+import java.net.SocketOptions;
+import java.net.SocketTimeoutException;
 import org.jikesrvm.runtime.VM_FileSystem;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_TimeoutException;
-
-import java.net.*;
+import org.jikesrvm.scheduler.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.VM_ThreadIOConstants;
+import org.jikesrvm.scheduler.VM_ThreadIOQueue;
+import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
+import org.jikesrvm.scheduler.VM_Wait;
 
 /**
  * Sockets using Jikes RVM non-blocking I/O support

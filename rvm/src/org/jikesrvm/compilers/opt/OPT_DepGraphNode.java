@@ -8,7 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Dependence graph node: there is one for each instruction in a basic block.

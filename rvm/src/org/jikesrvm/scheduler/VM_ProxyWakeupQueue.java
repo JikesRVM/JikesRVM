@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A queue of VM_Proxys prioritized by their thread wakeup times.

@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.vmmagic.unboxed.*;
-
 import org.jikesrvm.VM;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * OPT_Bits.java

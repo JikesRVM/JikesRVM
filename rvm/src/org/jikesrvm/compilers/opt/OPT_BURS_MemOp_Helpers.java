@@ -7,9 +7,23 @@
  * (C) Copyright IBM Corp. 2001,2002
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.vmmagic.unboxed.*;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Store;
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Contains common BURS helper functions for platforms with memory operands.
  * 

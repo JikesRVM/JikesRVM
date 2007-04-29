@@ -8,15 +8,14 @@
  */
 package org.jikesrvm.ia32;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.jni.ia32.VM_JNICompiler;
-
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**

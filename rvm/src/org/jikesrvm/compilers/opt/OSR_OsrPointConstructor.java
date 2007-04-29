@@ -9,11 +9,19 @@
 
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 import java.util.LinkedList;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OSR_BARRIER_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_OsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.OsrBarrier;
+import org.jikesrvm.compilers.opt.ir.OsrPoint;
 
 /**
  * A phase in the OPT compiler for construction OsrPoint instructions

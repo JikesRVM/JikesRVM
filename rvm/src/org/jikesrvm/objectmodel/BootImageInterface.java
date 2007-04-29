@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.vmmagic.unboxed.*;
- 
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
+
 /**
  * Interface of BootImage that is used to define object model classes.
  *

@@ -11,7 +11,14 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterTools;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.vmmagic.unboxed.Address;
 
 /**

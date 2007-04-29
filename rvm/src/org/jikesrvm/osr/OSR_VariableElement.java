@@ -9,9 +9,9 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Word;
 
 /** 
  * An instance of OSR_VariableElement represents a byte code variable

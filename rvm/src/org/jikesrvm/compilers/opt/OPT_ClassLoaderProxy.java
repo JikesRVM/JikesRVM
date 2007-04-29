@@ -8,11 +8,22 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.OPT_ClassConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IRGenOptions;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_StringConstantOperand;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**

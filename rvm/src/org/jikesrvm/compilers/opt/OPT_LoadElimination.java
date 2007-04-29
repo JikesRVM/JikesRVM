@@ -8,13 +8,54 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.OPT_IndexPropagation.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.OPT_IndexPropagation.ArrayCell;
+import static org.jikesrvm.compilers.opt.OPT_IndexPropagation.ObjectCell;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_HeapOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETSTATIC_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTSTATIC_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_ALOAD_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 
 /**
  * This class implements the redundant load elimination by

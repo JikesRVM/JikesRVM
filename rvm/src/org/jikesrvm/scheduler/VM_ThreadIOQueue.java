@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.VM;
-
-import org.vmmagic.pragma.*;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A list of threads waiting for i/o data to become available.

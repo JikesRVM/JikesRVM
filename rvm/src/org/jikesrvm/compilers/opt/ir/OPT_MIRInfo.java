@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.osr.*;
+import org.jikesrvm.compilers.opt.OPT_LinearScan;
+import org.jikesrvm.osr.OSR_VariableMap;
 
 /**
  * Wrapper class around IR info that is valid on the MIR

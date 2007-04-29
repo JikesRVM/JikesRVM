@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  *  This class is a node in a tree.  Both up and down pointers are used.

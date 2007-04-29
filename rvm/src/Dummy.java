@@ -7,11 +7,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-import org.jikesrvm.runtime.VM_DynamicLinker;
-import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Process;
-import org.jikesrvm.runtime.VM_Math;
 import org.jikesrvm.compilers.common.VM_RecompilationManager;
+import org.jikesrvm.runtime.VM_DynamicLinker;
+import org.jikesrvm.runtime.VM_Math;
+import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.runtime.VM_Reflection;
 
 /**
  * Dummy class containing enough references to force java compiler

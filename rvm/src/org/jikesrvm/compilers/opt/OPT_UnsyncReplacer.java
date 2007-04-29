@@ -8,10 +8,22 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.WRITE_FLOOR;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Replace calls to synchronized methods to calls specialized to be

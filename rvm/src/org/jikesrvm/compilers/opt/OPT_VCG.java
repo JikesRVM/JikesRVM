@@ -9,11 +9,11 @@
 //OPT_VCG.java
 package org.jikesrvm.compilers.opt;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.IOException;
 
 /**
  * OPT_VCG implements the set of routines to output a graph

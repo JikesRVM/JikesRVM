@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.instrumentation;
 
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.VM;
 import java.util.Enumeration;
 import java.util.Vector;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 
 /**
  * This class provides the basic functionality for instrumented data

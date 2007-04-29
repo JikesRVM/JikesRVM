@@ -8,7 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.OPT_TreeNode;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 
 /**
  * The nodes of an OPT_CallSiteTree.  They represent inlined call

@@ -8,10 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.util.*;
-import org.jikesrvm.classloader.*;
 import java.util.Iterator;
-
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_HashSet;
 
 /**
  * This class holds the dependencies that define invalidation

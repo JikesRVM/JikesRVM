@@ -8,20 +8,57 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
 import org.jikesrvm.ArchitectureSpecific.OPT_ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.OPT_ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecific.OPT_NormalizeConstants;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.VM;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_MIRInfo;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2LONG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2LONG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_DOES_IMPLEMENT_FROM_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_SUPERCLASS_IDS_FROM_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2DOUBLE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2FLOAT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_TypeOperand;
+import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_TYPE_INDEX;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.*;
-import static org.jikesrvm.VM_SizeConstants.*;
 
 /**
  * Convert an IR object from LIR to MIR via BURS

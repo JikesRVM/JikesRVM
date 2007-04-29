@@ -9,21 +9,25 @@
 
 package org.jikesrvm.adaptive.util;
 
-import org.jikesrvm.*;
-import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
+import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
+import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
 import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import java.io.*;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * This class provides logging functionality for the Adaptive Optimization System

@@ -8,15 +8,21 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_YieldpointCounterData;
-import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
+import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_YieldpointCounterData;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_BACKEDGE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_EPILOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
 
 /** 
  * An opt compiler phase that inserts yieldpoint counters.  Searches

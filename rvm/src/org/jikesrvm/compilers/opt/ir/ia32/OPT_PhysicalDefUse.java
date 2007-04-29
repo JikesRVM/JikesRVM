@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
-import java.util.Enumeration;
 
 /**
  * This class provides utilities to record defs and uses of physical

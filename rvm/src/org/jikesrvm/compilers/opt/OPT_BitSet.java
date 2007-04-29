@@ -7,7 +7,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
+
+import org.jikesrvm.VM;
 
 /** 
  * OPT_BitSet.java

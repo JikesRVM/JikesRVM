@@ -8,13 +8,26 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
 import java.util.ArrayList;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.OPT_GCIRMap;
+import org.jikesrvm.compilers.opt.ir.OPT_GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A class that encapsulates mapping information about generated machine code.

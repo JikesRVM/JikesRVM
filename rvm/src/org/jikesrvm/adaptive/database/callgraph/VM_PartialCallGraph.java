@@ -8,17 +8,22 @@
  */
 package org.jikesrvm.adaptive.database.callgraph;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.TreeSet;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_Decayable;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_Reportable;
 import org.jikesrvm.adaptive.util.VM_UnResolvedCallSite;
 import org.jikesrvm.adaptive.util.VM_UnResolvedWeightedCallTargets;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.classloader.*;
-
-import java.util.*;
-import java.io.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
 
 /**
  * A partial call graph (PCG) is a partial mapping from callsites

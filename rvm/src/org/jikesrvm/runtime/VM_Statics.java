@@ -8,14 +8,20 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.util.*;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.util.VM_HashMap;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * The static fields and methods comprising a running virtual machine image.

@@ -8,9 +8,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.jikesrvm.util.*;
+import org.jikesrvm.util.VM_HashSet;
 import org.vmmagic.unboxed.Offset;
 
 /**

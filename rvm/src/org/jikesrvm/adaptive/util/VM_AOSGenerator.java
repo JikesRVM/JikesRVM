@@ -13,11 +13,13 @@
 
 package org.jikesrvm.adaptive.util;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.compilers.opt.*;
-import java.io.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
 
 /**
  * This class provides advice file used by compile replay experiments

@@ -7,12 +7,22 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt.ia32;
-import org.jikesrvm.VM;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.*;
 
 /**
  * At the beginning of each basic block, the register allocator expects

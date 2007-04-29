@@ -9,12 +9,12 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.List;
-
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
-import org.jikesrvm.compilers.opt.ir.*;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.OPT_RegSpillListElement;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class that encapsulates the GCMap portion of the machine code maps.

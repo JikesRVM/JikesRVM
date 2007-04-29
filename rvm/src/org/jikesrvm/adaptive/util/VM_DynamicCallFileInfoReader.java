@@ -12,15 +12,18 @@
 
 package org.jikesrvm.adaptive.util;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM;
-import java.io.IOException;
-import java.util.StringTokenizer;
-import java.io.FileInputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
 
 /**
  * Utility to read dynamic call graph annotations from file in ascii format.

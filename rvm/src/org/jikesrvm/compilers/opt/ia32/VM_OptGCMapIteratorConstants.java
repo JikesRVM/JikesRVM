@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants;
-
 /**
  * This interface holds constants for the Opt GC map code specific to IA32
  *

@@ -7,16 +7,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt.ia32;
-import org.jikesrvm.VM;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OPT_GenericPhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
 
 /**
  * This abstract class provides a set of useful methods for

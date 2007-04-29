@@ -8,11 +8,10 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Member;
-
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Member;
 
 /**
  * The subclasses of VM_PrintContainer all implement the {@link VM_PrintLN}

@@ -8,11 +8,14 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.classloader.*;
+import java.util.Enumeration;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.util.VM_Synchronizer;
-import java.util.Enumeration;
 
 /**
  * A class for managing various callbacks from the VM.

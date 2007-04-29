@@ -8,16 +8,19 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.Intrinsic;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.VM;
+import org.vmmagic.Intrinsic;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 

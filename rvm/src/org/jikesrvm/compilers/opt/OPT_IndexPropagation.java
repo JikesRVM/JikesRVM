@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
-import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * OPT_IndexPropagation.java

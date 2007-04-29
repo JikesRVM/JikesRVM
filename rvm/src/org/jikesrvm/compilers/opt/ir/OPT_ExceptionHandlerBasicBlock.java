@@ -8,10 +8,13 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
 import java.util.Enumeration;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
+import static org.jikesrvm.compilers.opt.OPT_Constants.MAYBE;
+import static org.jikesrvm.compilers.opt.OPT_Constants.NO;
+import static org.jikesrvm.compilers.opt.OPT_Constants.YES;
+import org.jikesrvm.compilers.opt.OPT_LiveSet;
 
 /**
  * A basic block that marks the start of an exception handler.
@@ -147,7 +150,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * Get how many table entires this EHBB needs.
    * Really only of interest during final assembly.
    *
-   * @see VM_OptExceptionTable
+   * @see org.jikesrvm.compilers.opt.VM_OptExceptionTable
    *
   * @return the number of table entries for this basic block
    */

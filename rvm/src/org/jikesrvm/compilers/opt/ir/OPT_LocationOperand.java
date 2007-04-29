@@ -8,11 +8,12 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-
 import org.vmmagic.unboxed.Offset;
 
 /**

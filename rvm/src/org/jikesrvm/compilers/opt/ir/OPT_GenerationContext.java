@@ -8,19 +8,28 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BranchProfile;
-import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
-import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
-import org.jikesrvm.compilers.baseline.VM_ConditionalBranchProfile;
 import org.jikesrvm.compilers.baseline.VM_BranchProfiles;
+import org.jikesrvm.compilers.baseline.VM_ConditionalBranchProfile;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
+import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.OPT_InlineOracle;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Options;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.vmmagic.unboxed.Offset;
-import java.util.*;
 
 /**
  * Defines the context in which BC2IR will abstractly interpret

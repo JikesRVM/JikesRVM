@@ -8,10 +8,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Dynamic linking via indirection tables. <p>

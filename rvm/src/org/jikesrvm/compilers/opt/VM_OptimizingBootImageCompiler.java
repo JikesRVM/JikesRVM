@@ -8,13 +8,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_BootImageCompiler;
-import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.classloader.*;
 import java.util.Vector;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.

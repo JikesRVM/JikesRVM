@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.util.*;
+import java.util.Enumeration;
 
 /** 
  * @author Mauricio J. Serrano

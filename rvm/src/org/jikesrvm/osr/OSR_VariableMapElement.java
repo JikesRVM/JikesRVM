@@ -9,9 +9,11 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.*;
+import java.util.LinkedList;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OsrPoint;
+
 /**
  * Variable map element (osr instruction, LinkedList MethodVariables) 
  *

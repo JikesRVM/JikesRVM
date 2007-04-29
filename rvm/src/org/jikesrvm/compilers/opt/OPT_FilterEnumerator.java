@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import  java.util.Enumeration;
-import  java.util.NoSuchElementException;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * A <code>FilterEnumerator</code> filters and maps a source

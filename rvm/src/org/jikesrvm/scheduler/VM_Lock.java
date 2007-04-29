@@ -8,17 +8,19 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.scheduler.VM_Stats;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
    VM_Lock provides RVM support for monitors and Java level 

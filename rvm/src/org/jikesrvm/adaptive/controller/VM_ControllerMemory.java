@@ -8,18 +8,14 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import java.io.PrintStream;
+import java.util.LinkedList;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-
 import org.jikesrvm.util.VM_HashMap;
-
-import java.io.PrintStream;
-
-import java.util.LinkedList;
-
 
 /**
  *  This class records decisions taken by the controller.  It will remember

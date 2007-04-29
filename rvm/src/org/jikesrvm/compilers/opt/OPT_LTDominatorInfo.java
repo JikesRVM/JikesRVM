@@ -8,9 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.Iterator;
 import java.util.HashSet;
+import java.util.Iterator;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * This class holds data associated with a basic block as computed by the

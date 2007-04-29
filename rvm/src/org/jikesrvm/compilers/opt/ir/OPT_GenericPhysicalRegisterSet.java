@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
 import java.util.Enumeration;
+import org.jikesrvm.compilers.opt.OPT_BitSetMapping;
+import org.jikesrvm.compilers.opt.OPT_ReverseEnumerator;
 
 /**
  * This class represents a set of OPT_Registers corresponding to the

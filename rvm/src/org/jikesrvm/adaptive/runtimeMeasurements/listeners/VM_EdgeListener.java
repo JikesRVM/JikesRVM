@@ -8,17 +8,17 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A VM_EdgeListener defines a listener 

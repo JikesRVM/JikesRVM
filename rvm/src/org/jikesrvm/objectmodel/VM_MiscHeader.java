@@ -8,14 +8,16 @@
  */
 package org.jikesrvm.objectmodel;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.VM;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Defines other header words not used for 

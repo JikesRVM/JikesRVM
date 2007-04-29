@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
 import java.util.HashMap;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
  * This class holds the results of a flow-insensitive escape analysis

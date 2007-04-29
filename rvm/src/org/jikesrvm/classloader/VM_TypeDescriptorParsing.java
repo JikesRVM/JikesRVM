@@ -8,9 +8,9 @@
  *
  */
 package org.jikesrvm.classloader;
-import org.jikesrvm.VM;
 
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.vmmagic.pragma.Interruptible;
 
 /** <p>A Java class for parsing type descriptors and class names.  The class
      is <code>abstract</code> to eliminate the temptation to instantiate it,

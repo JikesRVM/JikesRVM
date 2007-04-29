@@ -8,36 +8,52 @@
  */
 package org.jikesrvm;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-
 import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_MainThread;
-import org.jikesrvm.scheduler.VM_DebuggerThread;
-import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_Wait;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_ExitStatus;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.runtime.VM_FileSystem;
-import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeDescriptorParsing;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ExitStatus;
+import org.jikesrvm.runtime.VM_FileSystem;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_DebuggerThread;
+import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.scheduler.VM_MainThread;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Wait;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * A virtual machine.

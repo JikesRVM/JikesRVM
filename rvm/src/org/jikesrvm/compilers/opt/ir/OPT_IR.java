@@ -8,20 +8,46 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
-import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Stack;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
+import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.compilers.opt.OPT_BitVector;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
+import org.jikesrvm.compilers.opt.OPT_DefUse;
+import org.jikesrvm.compilers.opt.OPT_GenericStackManager;
+import org.jikesrvm.compilers.opt.OPT_HeapVariable;
+import org.jikesrvm.compilers.opt.OPT_InlineOracle;
+import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OPT_SSAOptions;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATHROW_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LOOKUPSWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LOWTABLESWITCH;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.RETURN_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TABLESWITCH_opcode;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)

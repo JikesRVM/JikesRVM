@@ -8,14 +8,26 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
 import java.util.Enumeration;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.OPT_Constants;
+import org.jikesrvm.compilers.opt.OPT_InlineDecision;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_CLASS_TEST;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_METHOD_TEST;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_NOTNULL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MUST_IMPLEMENT_INTERFACE;
 
 /**
  * This class contains the high level logic for executing an inlining decision.

@@ -8,18 +8,20 @@
  */
 package org.jikesrvm.scheduler;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Multiplex execution of large number of VM_Threads on small 

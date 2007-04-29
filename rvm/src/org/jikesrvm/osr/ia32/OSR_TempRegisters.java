@@ -10,10 +10,10 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ia32.VM_Registers;
 import org.jikesrvm.ia32.VM_ArchConstants;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.ia32.VM_Registers;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.WordArray;
 
 /** 
  * Temporary resiter set.

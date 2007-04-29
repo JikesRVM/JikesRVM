@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.lang.reflect.*;
-import org.jikesrvm.*;
+import java.lang.reflect.Constructor;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**

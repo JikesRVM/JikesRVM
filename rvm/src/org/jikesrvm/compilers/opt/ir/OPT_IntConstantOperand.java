@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.OPT_Bits;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_Bits;
 
 /**
  * Represents a constant int operand.

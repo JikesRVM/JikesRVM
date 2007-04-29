@@ -9,8 +9,8 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.classloader.*;
-import java.util.*;
+import java.util.LinkedList;
+import org.jikesrvm.classloader.VM_MemberReference;
 
 /**
  * A class to hold variables for a method at one program point.

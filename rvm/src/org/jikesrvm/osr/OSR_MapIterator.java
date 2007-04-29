@@ -9,7 +9,8 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+
 /**
  * An iterator over an encoded OSR map.
  * It is a bit odd to used now. 

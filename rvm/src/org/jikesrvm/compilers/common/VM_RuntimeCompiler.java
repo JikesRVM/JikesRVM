@@ -8,27 +8,34 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.util.VM_AOSGenerator;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
+import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.recompilation.VM_PreCompile;
 import org.jikesrvm.adaptive.recompilation.instrumentation.VM_AOSInstrumentationPlan;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
-import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
-import org.jikesrvm.ArchitectureSpecific.VM_JNICompiler;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.adaptive.util.VM_AOSGenerator;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
+import org.jikesrvm.classloader.VM_NativeMethod;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.OPT_Compiler;
+import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Harness to select which compiler to dynamically

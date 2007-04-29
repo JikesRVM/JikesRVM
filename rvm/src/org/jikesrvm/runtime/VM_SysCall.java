@@ -8,11 +8,13 @@
  */
 package org.jikesrvm.runtime;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-import org.jikesrvm.apt.annotations.SysCallTemplate;
 import org.jikesrvm.apt.annotations.GenerateImplementation;
+import org.jikesrvm.apt.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Support for lowlevel (ie non-JNI) invocation of C functions with

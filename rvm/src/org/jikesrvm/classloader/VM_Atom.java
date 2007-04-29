@@ -8,10 +8,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.util.*;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_StringUtilities;
+import org.vmmagic.pragma.Uninterruptible;
 
 /** 
  * An  utf8-encoded byte string.

@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.opt.OPT_Stack;
 
 /**
  * Represents an inlining sequence.

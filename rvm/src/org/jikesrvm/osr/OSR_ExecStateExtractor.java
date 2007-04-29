@@ -9,14 +9,17 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_PrintContainer;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.scheduler.VM_Thread;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor) 

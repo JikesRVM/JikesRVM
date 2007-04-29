@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.classloader.*;
 
 /**
  * This class represents a specialization context meaning

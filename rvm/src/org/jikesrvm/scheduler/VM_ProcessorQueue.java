@@ -8,8 +8,9 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A queue to handle a set of  virtual processors  

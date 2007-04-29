@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.

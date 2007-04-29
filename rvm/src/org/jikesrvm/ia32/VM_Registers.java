@@ -8,11 +8,12 @@
  */
 package org.jikesrvm.ia32;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * The machine state comprising a thread's execution context.

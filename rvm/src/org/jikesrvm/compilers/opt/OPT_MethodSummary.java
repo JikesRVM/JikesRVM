@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_Method;
 
 /**
  * Hold semantic information about a method that is not defined in

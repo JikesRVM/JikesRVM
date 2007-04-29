@@ -9,11 +9,10 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.utility.Constants;
-
 import org.jikesrvm.VM_Callbacks;
-
-import org.vmmagic.pragma.*;
+import org.mmtk.utility.Constants;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.

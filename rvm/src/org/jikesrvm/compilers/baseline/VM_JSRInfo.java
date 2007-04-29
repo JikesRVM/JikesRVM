@@ -8,10 +8,9 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.vmmagic.pragma.*;
-
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps

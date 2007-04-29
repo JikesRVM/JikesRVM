@@ -8,9 +8,17 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.*;
 import java.util.Enumeration;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
 
 /**
  * This class implements index equivalence via global value numbering 

@@ -9,12 +9,27 @@
 
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_Debug;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_STATE;
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OTHER_OPERAND_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.RETURN_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_OSR_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * This class contains code for quick and dirty instruction selection

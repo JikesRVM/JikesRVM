@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A VM_NullListener is an object that is invoked when

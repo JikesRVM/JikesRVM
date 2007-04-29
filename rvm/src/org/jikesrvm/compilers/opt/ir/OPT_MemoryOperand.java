@@ -8,8 +8,10 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException; 
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+
 /**
  * A memory operand.
  * Used to represent complex addrssing modes on CISC machines.

@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.util.Iterator;
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * OPT_DF_LatticeCell.java

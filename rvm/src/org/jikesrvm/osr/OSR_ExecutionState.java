@@ -16,13 +16,14 @@
 
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import java.util.LinkedList;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.classloader.*;
-import java.util.LinkedList;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Offset;
 
 public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
  

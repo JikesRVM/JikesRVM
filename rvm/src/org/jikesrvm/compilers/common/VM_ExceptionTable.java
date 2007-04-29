@@ -8,9 +8,10 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
+import org.jikesrvm.classloader.VM_DynamicTypeCheck;
+import org.jikesrvm.classloader.VM_Type;
 import org.vmmagic.unboxed.Offset;
 
 /**

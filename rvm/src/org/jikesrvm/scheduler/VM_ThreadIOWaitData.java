@@ -9,7 +9,7 @@
 
 package org.jikesrvm.scheduler;
 
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Object specifying sets of file descriptors to wait for.

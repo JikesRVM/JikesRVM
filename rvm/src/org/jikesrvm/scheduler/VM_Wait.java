@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.runtime.VM_Time;
 
 /**
  * A collection of static methods for waiting on some type of event.

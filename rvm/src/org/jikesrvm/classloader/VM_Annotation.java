@@ -8,15 +8,15 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_Reflection;
 import java.io.DataInputStream;
 import java.io.IOException;
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.Uninterruptible;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Internal representation of an annotation. We synthetically create

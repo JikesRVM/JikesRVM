@@ -8,12 +8,12 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.vmmagic.pragma.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import java.util.Iterator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * This class is not meant to be instantiated.

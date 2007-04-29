@@ -8,12 +8,13 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.util.VM_LinkedList;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import org.jikesrvm.compilers.opt.OPT_LiveSet;
+import org.jikesrvm.compilers.opt.OPT_LiveSetEnumerator;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.util.VM_LinkedList;
 
 /**
  *

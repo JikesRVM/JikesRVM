@@ -8,14 +8,16 @@
  */
 package org.jikesrvm.ia32;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_MachineSpecific;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM_SizeConstants;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Wrappers around IA32-specific code common to both 32 & 64 bit

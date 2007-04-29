@@ -8,13 +8,32 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_BC2IR;
+import org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic;
+import org.jikesrvm.compilers.opt.ir.OPT_GenerationContext;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
-import org.jikesrvm.compilers.opt.ir.*;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.

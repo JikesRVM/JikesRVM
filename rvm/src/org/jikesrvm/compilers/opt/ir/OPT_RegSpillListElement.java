@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 
 /**
  * A class to hold each element in the GCIRMap

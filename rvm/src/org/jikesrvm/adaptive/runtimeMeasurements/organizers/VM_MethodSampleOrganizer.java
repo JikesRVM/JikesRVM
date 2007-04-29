@@ -9,15 +9,15 @@
 package org.jikesrvm.adaptive.runtimeMeasurements.organizers;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.adaptive.controller.VM_HotMethodRecompilationEvent;
 import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.VM_HotMethodRecompilationEvent;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * An organizer for method listener information. 

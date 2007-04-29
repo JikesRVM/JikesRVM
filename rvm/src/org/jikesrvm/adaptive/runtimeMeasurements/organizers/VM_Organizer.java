@@ -8,12 +8,11 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.organizers;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.runtimeMeasurements.listeners.VM_Listener;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_ThreadQueue;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * An VM_Organizer acts an an intermediary between the low level 

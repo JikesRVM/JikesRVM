@@ -8,9 +8,9 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A simple listener to accumulate counts of total events

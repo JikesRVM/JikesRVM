@@ -8,26 +8,25 @@
  */
 package org.jikesrvm.adaptive.controller;
 
-import org.jikesrvm.VM_Callbacks;
+import java.util.Enumeration;
+import java.util.Vector;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.compilers.common.VM_RecompilationManager;
-import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.adaptive.util.VM_BlockingPriorityQueue;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.VM_Callbacks;
+import org.jikesrvm.adaptive.OSR_OrganizerThread;
+import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
+import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
 import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
 import org.jikesrvm.adaptive.recompilation.instrumentation.VM_CounterBasedSampling;
-import org.jikesrvm.adaptive.OSR_OrganizerThread;
-import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
-import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
-import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
 import org.jikesrvm.adaptive.runtimeMeasurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.runtimeMeasurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-
-import java.util.Vector;
-import java.util.Enumeration;
+import org.jikesrvm.adaptive.runtimeMeasurements.organizers.VM_Organizer;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
+import org.jikesrvm.adaptive.util.VM_AOSOptions;
+import org.jikesrvm.adaptive.util.VM_BlockingPriorityQueue;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
+import org.jikesrvm.compilers.common.VM_RecompilationManager;
+import org.jikesrvm.scheduler.VM_Processor;
 
 /**
  * This class contains top level adaptive compilation subsystem functions.

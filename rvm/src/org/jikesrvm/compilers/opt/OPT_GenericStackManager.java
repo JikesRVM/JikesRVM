@@ -7,19 +7,39 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt;
-import org.jikesrvm.*;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.CONDITION_VALUE;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.DOUBLE_VALUE;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.FLOAT_VALUE;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.INT_VALUE;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.NUM_GPRS;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPreferences;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
-import org.jikesrvm.compilers.opt.ir.*;
-import java.util.Enumeration;
-import java.util.ArrayList;
-import java.util.Iterator;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants.*;
-import static org.jikesrvm.VM_Constants.*;
+import org.jikesrvm.VM;
+import static org.jikesrvm.VM_Constants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM_Constants.NOT_REACHED;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operators;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LOWTABLESWITCH;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_OSR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Class to manage the allocation of the "compiler-independent" portion of 

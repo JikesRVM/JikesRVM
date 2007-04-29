@@ -9,8 +9,9 @@
 
 package org.jikesrvm.osr;
 
+import java.util.LinkedList;
+import java.util.ListIterator;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import java.util.*;
 
 /**
  * OSR_VariableMap, non-encoded yet

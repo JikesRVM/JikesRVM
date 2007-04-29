@@ -8,11 +8,12 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
-import java.util.*;
+import java.util.Enumeration;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTreeNode;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Suppose the following inlining actions have been taken 

@@ -8,12 +8,43 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.classloader.*;
-import java.util.Enumeration;
-import org.vmmagic.unboxed.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_STORE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_LOAD;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+
 /**
  * This abstract class contains a bunch of useful static methods for
  * performing operations on IR.

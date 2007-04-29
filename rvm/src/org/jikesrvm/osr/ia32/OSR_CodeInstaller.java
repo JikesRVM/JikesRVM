@@ -9,22 +9,22 @@
 
 package org.jikesrvm.osr.ia32;
 
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * OSR_CodeInstaller generates a glue code which recovers registers and 

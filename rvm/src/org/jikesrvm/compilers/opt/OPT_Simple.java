@@ -8,11 +8,35 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.*;
 import java.lang.reflect.Constructor;
-import org.jikesrvm.compilers.opt.ir.*;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
-import static org.jikesrvm.compilers.opt.OPT_Constants.*;
+import org.jikesrvm.VM;
+import static org.jikesrvm.compilers.opt.OPT_Constants.YES;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_IR;
+import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWARRAY;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWARRAY_UNRESOLVED;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NOP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END;
+import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.Phi;
 
 /*
  * Simple flow-insensitive optimizations.

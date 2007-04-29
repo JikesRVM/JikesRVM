@@ -8,11 +8,10 @@
  */
 package org.jikesrvm.adaptive.runtimeMeasurements.listeners;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A VM_YieldCounterListener samples yield points, and

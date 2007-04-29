@@ -9,18 +9,21 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.VM_ReferenceMaps;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler

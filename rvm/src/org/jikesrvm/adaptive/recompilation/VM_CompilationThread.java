@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
+import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)

@@ -8,11 +8,15 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalDefUse;
-import org.jikesrvm.compilers.opt.*;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.compilers.opt.OPT_Constants;
+import org.jikesrvm.compilers.opt.OPT_LocalCSE;
+import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * Instructions are the basic atomic unit of the IR.

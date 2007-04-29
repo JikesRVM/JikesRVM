@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Encodes the condition codes for branches.

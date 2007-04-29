@@ -8,8 +8,8 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 
 /**
  * Defines other header words not used for 
