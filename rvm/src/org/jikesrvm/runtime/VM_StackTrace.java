@@ -284,15 +284,15 @@ public class VM_StackTrace {
       VM.sysWriteln("VM_StackTrace.print(): And its stack trace was:");
       e.sysWriteStackTrace(depth + 1);
     } finally {
-      if (printed)
-        return;                 // all is well
-      if (out.isSysWrite()) {
-        VM.sysWriteln("[ Aborting stack trace # ",  traceIndex, " ; already was printing with sysWrite()]");
-        return;
+      if (!printed) {
+        if (out.isSysWrite()) {
+          VM.sysWriteln("[ Aborting stack trace # ", traceIndex, " ; already was printing with sysWrite()]");
+        } else {
+          VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
+              "; using sysWrite(), this time ]");
+          print4Real(VM_PrintContainer.readyPrinter, trigger, depth);
+        }
       }
-      VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
-                    "; using sysWrite(), this time ]");
-      print4Real(VM_PrintContainer.readyPrinter, trigger, depth);
     }
   }
 
