@@ -15,14 +15,14 @@ package org.jikesrvm.ppc;
  * @see PPC_Disassembler 
  */
 
-class opcodeXX {
+final class VM_OpcodeXX {
 
   int key;
   int form;
   int format;
   String mnemonic;
 
-  opcodeXX(int key, int form, int format, String mnemonic) {
+  VM_OpcodeXX(int key, int form, int format, String mnemonic) {
     this.key = key;
     this.form = form;
     this.format = format;

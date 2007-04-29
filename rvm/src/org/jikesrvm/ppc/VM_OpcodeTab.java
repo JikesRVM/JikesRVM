@@ -14,12 +14,12 @@ package org.jikesrvm.ppc;
  * @author John Waley
  * @see PPC_Disassembler 
  */
-class opcode_tab {  
+final class VM_OpcodeTab {  
 
   int format;
   String mnemonic;
 
-  opcode_tab(int format, String mnemonic) {
+  VM_OpcodeTab(int format, String mnemonic) {
     this.format = format;
     this.mnemonic = mnemonic;
   }

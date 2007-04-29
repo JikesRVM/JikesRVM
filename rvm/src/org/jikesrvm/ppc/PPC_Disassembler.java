@@ -298,128 +298,128 @@ public class PPC_Disassembler implements VM_ArchConstants {
     EXTENDED    /* OPCODE 63 */
   };
   
-  static opcode_tab[] Dform = {
+  static VM_OpcodeTab[] Dform = {
     
     /* Table for the D instruction format */
     
     /*   OPCD     EO                                format      mnemonic   */
     /*   ----     --                                ------      --------   */
-    /*    0,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    1,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    2,      XXX,     */  new opcode_tab (      3,      "tdi"),
-    /*    3,      XXX,     */  new opcode_tab (      3,      "twi"     ), 
-    /*    4,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
+    /*    0,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    1,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    2,      XXX,     */  new VM_OpcodeTab(      3,      "tdi"),
+    /*    3,      XXX,     */  new VM_OpcodeTab(      3,      "twi"     ), 
+    /*    4,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
        
-    /*    5,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    6,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    7,      XXX,     */  new opcode_tab (      0,      "mulli"   ),
-    /*    8,      XXX,     */  new opcode_tab (      0,      "subfic"  ),
-    /*    9,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
+    /*    5,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    6,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    7,      XXX,     */  new VM_OpcodeTab(      0,      "mulli"   ),
+    /*    8,      XXX,     */  new VM_OpcodeTab(      0,      "subfic"  ),
+    /*    9,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     
-    /*    10,     XXX,     */  new opcode_tab (      4,      "cmpli"   ),
-    /*    11,     XXX,     */  new opcode_tab (      4,      "cmpi"    ),
-    /*    12,     XXX,     */  new opcode_tab (      0,      "addic"   ),
-    /*    13,     XXX,     */  new opcode_tab (      0,      "addic."  ),
-    /*    14,     XXX,     */  new opcode_tab (      2,      "addi"    ),
+    /*    10,     XXX,     */  new VM_OpcodeTab(      4,      "cmpli"   ),
+    /*    11,     XXX,     */  new VM_OpcodeTab(      4,      "cmpi"    ),
+    /*    12,     XXX,     */  new VM_OpcodeTab(      0,      "addic"   ),
+    /*    13,     XXX,     */  new VM_OpcodeTab(      0,      "addic."  ),
+    /*    14,     XXX,     */  new VM_OpcodeTab(      2,      "addi"    ),
        
-    /*    15,     XXX,     */  new opcode_tab (      0,      "addis"   ),
-    /*    16,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    17,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    18,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    19,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
+    /*    15,     XXX,     */  new VM_OpcodeTab(      0,      "addis"   ),
+    /*    16,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    17,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    18,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    19,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     
-    /*    20,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    21,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    22,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    23,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    24,     XXX,     */  new opcode_tab (      1,      "ori"     ),
+    /*    20,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    21,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    22,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    23,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    24,     XXX,     */  new VM_OpcodeTab(      1,      "ori"     ),
     
-    /*    25,     XXX,     */  new opcode_tab (      1,      "oris"    ),
-    /*    26,     XXX,     */  new opcode_tab (      1,      "xori"    ),
-    /*    27,     XXX,     */  new opcode_tab (      1,      "xoris"   ),
-    /*    28,     XXX,     */  new opcode_tab (      1,      "andi. "  ),
-    /*    29,     XXX,     */  new opcode_tab (      1,      "andis."  ),
+    /*    25,     XXX,     */  new VM_OpcodeTab(      1,      "oris"    ),
+    /*    26,     XXX,     */  new VM_OpcodeTab(      1,      "xori"    ),
+    /*    27,     XXX,     */  new VM_OpcodeTab(      1,      "xoris"   ),
+    /*    28,     XXX,     */  new VM_OpcodeTab(      1,      "andi. "  ),
+    /*    29,     XXX,     */  new VM_OpcodeTab(      1,      "andis."  ),
     
-    /*    30,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    31,     XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    32,     XXX,     */  new opcode_tab (      2,      "lwz"     ),
-    /*    33,     XXX,     */  new opcode_tab (      2,      "lwzu"    ),
-    /*    34,     XXX,     */  new opcode_tab (      2,      "lbz"     ),
+    /*    30,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    31,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    32,     XXX,     */  new VM_OpcodeTab(      2,      "lwz"     ),
+    /*    33,     XXX,     */  new VM_OpcodeTab(      2,      "lwzu"    ),
+    /*    34,     XXX,     */  new VM_OpcodeTab(      2,      "lbz"     ),
     
-    /*    35,     XXX,     */  new opcode_tab (      2,      "lbzu"    ),
-    /*    36,     XXX,     */  new opcode_tab (      2,      "stw"     ),
-    /*    37,     XXX,     */  new opcode_tab (      2,      "stwu"    ),
-    /*    38,     XXX,     */  new opcode_tab (      2,      "stb"     ),
-    /*    39,     XXX,     */  new opcode_tab (      2,      "stbu"    ),
+    /*    35,     XXX,     */  new VM_OpcodeTab(      2,      "lbzu"    ),
+    /*    36,     XXX,     */  new VM_OpcodeTab(      2,      "stw"     ),
+    /*    37,     XXX,     */  new VM_OpcodeTab(      2,      "stwu"    ),
+    /*    38,     XXX,     */  new VM_OpcodeTab(      2,      "stb"     ),
+    /*    39,     XXX,     */  new VM_OpcodeTab(      2,      "stbu"    ),
     
-    /*    40,     XXX,     */  new opcode_tab (      2,      "lhz"     ),
-    /*    41,     XXX,     */  new opcode_tab (      2,      "lhzu"    ),
-    /*    42,     XXX,     */  new opcode_tab (      2,      "lha"     ),
-    /*    43,     XXX,     */  new opcode_tab (      2,      "lhau"    ),
-    /*    44,     XXX,     */  new opcode_tab (      2,      "sth"     ),
+    /*    40,     XXX,     */  new VM_OpcodeTab(      2,      "lhz"     ),
+    /*    41,     XXX,     */  new VM_OpcodeTab(      2,      "lhzu"    ),
+    /*    42,     XXX,     */  new VM_OpcodeTab(      2,      "lha"     ),
+    /*    43,     XXX,     */  new VM_OpcodeTab(      2,      "lhau"    ),
+    /*    44,     XXX,     */  new VM_OpcodeTab(      2,      "sth"     ),
     
-    /*    45,     XXX,     */  new opcode_tab (      2,      "sthu"    ),
-    /*    46,     XXX,     */  new opcode_tab (      2,      "lmw"     ),
-    /*    47,     XXX,     */  new opcode_tab (      2,      "stmw"    ),
-    /*    48,     XXX,     */  new opcode_tab (      5,      "lfs"     ),
-    /*    49,     XXX,     */  new opcode_tab (      5,      "lfsu"    ),
+    /*    45,     XXX,     */  new VM_OpcodeTab(      2,      "sthu"    ),
+    /*    46,     XXX,     */  new VM_OpcodeTab(      2,      "lmw"     ),
+    /*    47,     XXX,     */  new VM_OpcodeTab(      2,      "stmw"    ),
+    /*    48,     XXX,     */  new VM_OpcodeTab(      5,      "lfs"     ),
+    /*    49,     XXX,     */  new VM_OpcodeTab(      5,      "lfsu"    ),
     
-    /*    50,     XXX,     */  new opcode_tab (      5,      "lfd"     ),
-    /*    51,     XXX,     */  new opcode_tab (      5,      "lfdu"    ),
-    /*    52,     XXX,     */  new opcode_tab (      5,      "stfs"    ),
-    /*    53,     XXX,     */  new opcode_tab (      5,      "stfsu"   ),
-    /*    54,     XXX,     */  new opcode_tab (      5,      "stfd"    ),
+    /*    50,     XXX,     */  new VM_OpcodeTab(      5,      "lfd"     ),
+    /*    51,     XXX,     */  new VM_OpcodeTab(      5,      "lfdu"    ),
+    /*    52,     XXX,     */  new VM_OpcodeTab(      5,      "stfs"    ),
+    /*    53,     XXX,     */  new VM_OpcodeTab(      5,      "stfsu"   ),
+    /*    54,     XXX,     */  new VM_OpcodeTab(      5,      "stfd"    ),
     
-    /*    55,     XXX,     */  new opcode_tab (      5,      "stfdu"   )
+    /*    55,     XXX,     */  new VM_OpcodeTab(      5,      "stfdu"   )
   };
   
 
-  static opcode_tab[] XLform = {
+  static VM_OpcodeTab[] XLform = {
     
     /* Table for the XL instruction format */
     
     /*   OPCD      EO                            format     mnemonic      */
     /*   ----      --                            ------     --------      */ 
-    /*    19,      0,      */  new opcode_tab(        2,        "mcrf"   ),
-    /*    19,      16,     */  new opcode_tab(        1,        "bclr or bclrl"),
-    /*    19,      33,     */  new opcode_tab(        3,        "crnor"   ),
-    /*    19,      50,     */  new opcode_tab(        0,        "rfi"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
+    /*    19,      0,      */  new VM_OpcodeTab(        2,        "mcrf"   ),
+    /*    19,      16,     */  new VM_OpcodeTab(        1,        "bclr or bclrl"),
+    /*    19,      33,     */  new VM_OpcodeTab(        3,        "crnor"   ),
+    /*    19,      50,     */  new VM_OpcodeTab(        0,        "rfi"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     
-    /*    19,      XXX,     */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      129,    */  new opcode_tab(        3,        "crandc"   ),
-    /*    19,      150,    */  new opcode_tab(        0,        "isync"   ),
+    /*    19,      XXX,     */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      129,    */  new VM_OpcodeTab(        3,        "crandc"   ),
+    /*    19,      150,    */  new VM_OpcodeTab(        0,        "isync"   ),
     
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      193,    */  new opcode_tab(        3,        "crxor"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      225,    */  new opcode_tab(        3,        "crnand"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      193,    */  new VM_OpcodeTab(        3,        "crxor"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      225,    */  new VM_OpcodeTab(        3,        "crnand"   ),
     
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      257,    */  new opcode_tab(        3,        "crand"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      289,    */  new opcode_tab(        3,        "creqv"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      257,    */  new VM_OpcodeTab(        3,        "crand"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      289,    */  new VM_OpcodeTab(        3,        "creqv"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      417,    */  new opcode_tab(        3,        "crorc"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      449,    */  new opcode_tab(        3,        "cror"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      417,    */  new VM_OpcodeTab(        3,        "crorc"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      449,    */  new VM_OpcodeTab(        3,        "cror"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
-    /*    19,      528,    */  new opcode_tab(        1,        "bcctr or bcctrl")
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+    /*    19,      528,    */  new VM_OpcodeTab(        1,        "bcctr or bcctrl")
   };
   
   
@@ -432,20 +432,20 @@ public class PPC_Disassembler implements VM_ArchConstants {
    *  "format" is how the instruction should be printed (specific to the disassembler) 
    */
 
-  static opcodeXX[] opcode30 = {
+  static VM_OpcodeXX[] opcode30 = {
     
     /*               key        form     format       mnemonic       */
     /*               ---        ----     ------       --------       */
-    new opcodeXX(    0,         MD_FORM,        0,      "rldicl"  ),
-    new opcodeXX(    1,         MD_FORM,        0,      "rldicl"  ),
-    new opcodeXX(    2,         MD_FORM,        1,      "rldicr"  ),
-    new opcodeXX(    3,         MD_FORM,        1,      "rldicr"  ),
-    new opcodeXX(    4,         MD_FORM,        0,      "rldic"   ),
-    new opcodeXX(    5,         MD_FORM,        0,      "rldic"   ),
-    new opcodeXX(    6,         MD_FORM,        0,      "rldimi"  ),
-    new opcodeXX(    7,         MD_FORM,        0,      "rldimi"  ),
-    new opcodeXX(    8,         MDS_FORM,       0,      "rldcl"   ),
-    new opcodeXX(    9,         MDS_FORM,       1,      "rldcr"   )
+    new VM_OpcodeXX(    0,         MD_FORM,        0,      "rldicl"  ),
+    new VM_OpcodeXX(    1,         MD_FORM,        0,      "rldicl"  ),
+    new VM_OpcodeXX(    2,         MD_FORM,        1,      "rldicr"  ),
+    new VM_OpcodeXX(    3,         MD_FORM,        1,      "rldicr"  ),
+    new VM_OpcodeXX(    4,         MD_FORM,        0,      "rldic"   ),
+    new VM_OpcodeXX(    5,         MD_FORM,        0,      "rldic"   ),
+    new VM_OpcodeXX(    6,         MD_FORM,        0,      "rldimi"  ),
+    new VM_OpcodeXX(    7,         MD_FORM,        0,      "rldimi"  ),
+    new VM_OpcodeXX(    8,         MDS_FORM,       0,      "rldcl"   ),
+    new VM_OpcodeXX(    9,         MDS_FORM,       1,      "rldcr"   )
   };
 
   
@@ -458,221 +458,221 @@ public class PPC_Disassembler implements VM_ArchConstants {
    */
   
   
-  static opcodeXX[] opcode31 = {
+  static VM_OpcodeXX[] opcode31 = {
     
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
-    new opcodeXX(        0,       X_FORM,     22,         "cmp"), 
-    new opcodeXX(        8,       X_FORM,     24,         "tw"),
-    new opcodeXX(       16,      XO_FORM,      1,         "subfc"),
-    new opcodeXX(       17,      XO_FORM,      1,         "subfc."),
-    new opcodeXX(       20,      XO_FORM,      1,         "addc"),
-    new opcodeXX(       21,      XO_FORM,      1,         "addc."),
-    new opcodeXX(       38,       X_FORM,      2,         "mfcr"),
-    new opcodeXX(       46,       X_FORM,      7,         "lwzx"),
-    new opcodeXX(       48,       X_FORM,      8,         "slw"),
-    new opcodeXX(       49,       X_FORM,      8,         "slw."),
-    new opcodeXX(       52,       X_FORM,      9,         "cntlzw"),
-    new opcodeXX(       53,       X_FORM,      9,         "cntlzw."),
-    new opcodeXX(       56,       X_FORM,      8,         "and"),
-    new opcodeXX(       57,       X_FORM,      8,         "and."),
-    new opcodeXX(       64,       X_FORM,     22,         "cmpl"),
-    new opcodeXX(      110,       X_FORM,      7,         "lwzux"),
-    new opcodeXX(      120,       X_FORM,      8,         "andc"),
-    new opcodeXX(      121,       X_FORM,      8,         "andc."),
-    new opcodeXX(      166,       X_FORM,      2,         "mfmsr"),
-    new opcodeXX(      174,       X_FORM,      7,         "lbzx"),
-    new opcodeXX(      208,      XO_FORM,      0,         "neg"),
-    new opcodeXX(      209,      XO_FORM,      0,         "neg."),
-    new opcodeXX(      238,       X_FORM,      7,         "lbzux"),
-    new opcodeXX(      248,       X_FORM,      8,         "nor"),
-    new opcodeXX(      249,       X_FORM,      8,         "nor."),
-    new opcodeXX(      272,      XO_FORM,      1,         "subfe"),
-    new opcodeXX(      273,      XO_FORM,      1,         "subfe."),
-    new opcodeXX(      276,      XO_FORM,      1,         "adde"),
-    new opcodeXX(      277,      XO_FORM,      1,         "adde."),
-    new opcodeXX(      288,     XFX_FORM,      9,         "mtcrf"),
-    new opcodeXX(      292,       X_FORM,      2,         "mtmsr"),
-    new opcodeXX(      302,       X_FORM,      7,         "stwx"),
-    new opcodeXX(      366,       X_FORM,      7,         "stwux"),
-    new opcodeXX(      400,      XO_FORM,      0,         "subfze"),
-    new opcodeXX(      401,      XO_FORM,      0,         "subfze."),
-    new opcodeXX(      404,      XO_FORM,      0,         "addze"),
-    new opcodeXX(      405,      XO_FORM,      0,         "addze."),
-    new opcodeXX(      430,       X_FORM,      7,         "stbx"),
-    new opcodeXX(      464,      XO_FORM,      0,         "subfme"),
-    new opcodeXX(      465,      XO_FORM,      0,         "subfme."),
-    new opcodeXX(      468,      XO_FORM,      0,         "addme"),
-    new opcodeXX(      469,      XO_FORM,      0,         "addme."),
-    new opcodeXX(      470,      XO_FORM,      1,         "mullw"),
-    new opcodeXX(      471,      XO_FORM,      1,         "mullw."),
-    new opcodeXX(      494,       X_FORM,      7,         "stbux"),
-    new opcodeXX(      532,      XO_FORM,      1,         "add"),
-    new opcodeXX(      533,      XO_FORM,      1,         "add."),
-    new opcodeXX(      558,       X_FORM,      7,         "lhzx"),
-    new opcodeXX(      568,       X_FORM,      8,         "eqv"),
-    new opcodeXX(      569,       X_FORM,      8,         "eqv."),
-    new opcodeXX(      612,       X_FORM,      6,         "tlbie"),
-    new opcodeXX(      622,       X_FORM,      7,         "lhzux"),
-    new opcodeXX(      632,       X_FORM,      8,         "xor"),
-    new opcodeXX(      633,       X_FORM,      8,         "xor."),
-    new opcodeXX(      678,       X_FORM,      3,         "mfspr"),
-    new opcodeXX(      686,       X_FORM,      7,         "lhax"),
-    new opcodeXX(      750,       X_FORM,      7,         "lhaux"),
-    new opcodeXX(      814,       X_FORM,      7,         "sthx"),
-    new opcodeXX(      824,       X_FORM,      8,         "orc"),
-    new opcodeXX(      825,       X_FORM,      8,         "orc."),
-    new opcodeXX(      878,       X_FORM,      7,         "sthux"),
-    new opcodeXX(      888,       X_FORM,      8,         "or"),
-    new opcodeXX(      889,       X_FORM,      8,         "or."),
-    new opcodeXX(      934,       X_FORM,      3,         "mtspr"),
-    new opcodeXX(      952,       X_FORM,      8,         "nand"),
-    new opcodeXX(      953,       X_FORM,      8,         "nand."),
-    new opcodeXX(     1024,       X_FORM,     23,         "mcrxr"),
-    new opcodeXX(     1040,      XO_FORM,      1,         "subfco"),
-    new opcodeXX(     1041,      XO_FORM,      1,         "subfco."),
-    new opcodeXX(     1044,      XO_FORM,      1,         "addco"),
-    new opcodeXX(     1045,      XO_FORM,      1,         "addco."),
-    new opcodeXX(     1066,       X_FORM,      7,         "lswx"),
-    new opcodeXX(     1068,       X_FORM,      7,         "lwbrx"),
-    new opcodeXX(     1070,       X_FORM,     12,         "lfsx"),
-    new opcodeXX(     1072,       X_FORM,      8,         "srw"),
-    new opcodeXX(     1073,       X_FORM,      8,         "srw."),
-    new opcodeXX(     1134,       X_FORM,     12,         "lfsux"),
-    new opcodeXX(     1194,       X_FORM,     10,         "lswi"),
-    new opcodeXX(     1196,       X_FORM,      1,         "sync"),
-    new opcodeXX(     1198,       X_FORM,     12,         "lfdx"),
-    new opcodeXX(     1262,       X_FORM,     12,         "lfdux"),
-    new opcodeXX(     1232,      XO_FORM,      0,         "nego"),
-    new opcodeXX(     1233,      XO_FORM,      0,         "nego."),
-    new opcodeXX(     1296,      XO_FORM,      1,         "subfeo"),
-    new opcodeXX(     1297,      XO_FORM,      1,         "subfeo."),
-    new opcodeXX(     1300,      XO_FORM,      1,         "addeo"),
-    new opcodeXX(     1301,      XO_FORM,      1,         "addeo."),
-    new opcodeXX(     1322,       X_FORM,      7,         "stswx"),
-    new opcodeXX(     1324,       X_FORM,      7,         "stwbrx"),
-    new opcodeXX(     1326,       X_FORM,     12,         "stfsx"),
-    new opcodeXX(     1390,       X_FORM,     12,         "stfsux"),
-    new opcodeXX(     1424,      XO_FORM,      0,         "subfzeo"),
-    new opcodeXX(     1425,      XO_FORM,      0,         "subfzeo."),
-    new opcodeXX(     1428,      XO_FORM,      0,         "addzeo."),
-    new opcodeXX(     1429,      XO_FORM,      0,         "addzeo."),
-    new opcodeXX(     1450,       X_FORM,     10,         "stswi"), 
-    new opcodeXX(     1454,       X_FORM,     12,         "stfdx"),
-    new opcodeXX(     1488,      XO_FORM,      0,         "subfmeo."),
-    new opcodeXX(     1489,      XO_FORM,      0,         "subfmeo."),
-    new opcodeXX(     1492,      XO_FORM,      0,         "addmeo"),
-    new opcodeXX(     1493,      XO_FORM,      0,         "addmeo."),
-    new opcodeXX(     1494,      XO_FORM,      1,         "mullwo."),
-    new opcodeXX(     1495,      XO_FORM,      1,         "mullwo."),
-    new opcodeXX(     1518,       X_FORM,     12,         "stfdux"),
-    new opcodeXX(     1556,      XO_FORM,      1,         "addo"),
-    new opcodeXX(     1557,      XO_FORM,      1,         "addo."),
-    new opcodeXX(     1580,       X_FORM,      7,         "lhbrx"),
-    new opcodeXX(     1584,       X_FORM,      8,         "sraw"),
-    new opcodeXX(     1585,       X_FORM,      8,         "sraw."),
-    new opcodeXX(     1648,       X_FORM,     11,         "srawi"),
-    new opcodeXX(     1649,       X_FORM,     11,         "srawi."),
-    new opcodeXX(     1836,       X_FORM,      7,         "sthbrx"),
-    new opcodeXX(     1844,       X_FORM,      9,         "extsh"),
-    new opcodeXX(     1845,       X_FORM,      9,         "extsh."),
-    new opcodeXX(     2028,       X_FORM,      6,         "dcbz"),
+    new VM_OpcodeXX(        0,       X_FORM,     22,         "cmp"), 
+    new VM_OpcodeXX(        8,       X_FORM,     24,         "tw"),
+    new VM_OpcodeXX(       16,      XO_FORM,      1,         "subfc"),
+    new VM_OpcodeXX(       17,      XO_FORM,      1,         "subfc."),
+    new VM_OpcodeXX(       20,      XO_FORM,      1,         "addc"),
+    new VM_OpcodeXX(       21,      XO_FORM,      1,         "addc."),
+    new VM_OpcodeXX(       38,       X_FORM,      2,         "mfcr"),
+    new VM_OpcodeXX(       46,       X_FORM,      7,         "lwzx"),
+    new VM_OpcodeXX(       48,       X_FORM,      8,         "slw"),
+    new VM_OpcodeXX(       49,       X_FORM,      8,         "slw."),
+    new VM_OpcodeXX(       52,       X_FORM,      9,         "cntlzw"),
+    new VM_OpcodeXX(       53,       X_FORM,      9,         "cntlzw."),
+    new VM_OpcodeXX(       56,       X_FORM,      8,         "and"),
+    new VM_OpcodeXX(       57,       X_FORM,      8,         "and."),
+    new VM_OpcodeXX(       64,       X_FORM,     22,         "cmpl"),
+    new VM_OpcodeXX(      110,       X_FORM,      7,         "lwzux"),
+    new VM_OpcodeXX(      120,       X_FORM,      8,         "andc"),
+    new VM_OpcodeXX(      121,       X_FORM,      8,         "andc."),
+    new VM_OpcodeXX(      166,       X_FORM,      2,         "mfmsr"),
+    new VM_OpcodeXX(      174,       X_FORM,      7,         "lbzx"),
+    new VM_OpcodeXX(      208,      XO_FORM,      0,         "neg"),
+    new VM_OpcodeXX(      209,      XO_FORM,      0,         "neg."),
+    new VM_OpcodeXX(      238,       X_FORM,      7,         "lbzux"),
+    new VM_OpcodeXX(      248,       X_FORM,      8,         "nor"),
+    new VM_OpcodeXX(      249,       X_FORM,      8,         "nor."),
+    new VM_OpcodeXX(      272,      XO_FORM,      1,         "subfe"),
+    new VM_OpcodeXX(      273,      XO_FORM,      1,         "subfe."),
+    new VM_OpcodeXX(      276,      XO_FORM,      1,         "adde"),
+    new VM_OpcodeXX(      277,      XO_FORM,      1,         "adde."),
+    new VM_OpcodeXX(      288,     XFX_FORM,      9,         "mtcrf"),
+    new VM_OpcodeXX(      292,       X_FORM,      2,         "mtmsr"),
+    new VM_OpcodeXX(      302,       X_FORM,      7,         "stwx"),
+    new VM_OpcodeXX(      366,       X_FORM,      7,         "stwux"),
+    new VM_OpcodeXX(      400,      XO_FORM,      0,         "subfze"),
+    new VM_OpcodeXX(      401,      XO_FORM,      0,         "subfze."),
+    new VM_OpcodeXX(      404,      XO_FORM,      0,         "addze"),
+    new VM_OpcodeXX(      405,      XO_FORM,      0,         "addze."),
+    new VM_OpcodeXX(      430,       X_FORM,      7,         "stbx"),
+    new VM_OpcodeXX(      464,      XO_FORM,      0,         "subfme"),
+    new VM_OpcodeXX(      465,      XO_FORM,      0,         "subfme."),
+    new VM_OpcodeXX(      468,      XO_FORM,      0,         "addme"),
+    new VM_OpcodeXX(      469,      XO_FORM,      0,         "addme."),
+    new VM_OpcodeXX(      470,      XO_FORM,      1,         "mullw"),
+    new VM_OpcodeXX(      471,      XO_FORM,      1,         "mullw."),
+    new VM_OpcodeXX(      494,       X_FORM,      7,         "stbux"),
+    new VM_OpcodeXX(      532,      XO_FORM,      1,         "add"),
+    new VM_OpcodeXX(      533,      XO_FORM,      1,         "add."),
+    new VM_OpcodeXX(      558,       X_FORM,      7,         "lhzx"),
+    new VM_OpcodeXX(      568,       X_FORM,      8,         "eqv"),
+    new VM_OpcodeXX(      569,       X_FORM,      8,         "eqv."),
+    new VM_OpcodeXX(      612,       X_FORM,      6,         "tlbie"),
+    new VM_OpcodeXX(      622,       X_FORM,      7,         "lhzux"),
+    new VM_OpcodeXX(      632,       X_FORM,      8,         "xor"),
+    new VM_OpcodeXX(      633,       X_FORM,      8,         "xor."),
+    new VM_OpcodeXX(      678,       X_FORM,      3,         "mfspr"),
+    new VM_OpcodeXX(      686,       X_FORM,      7,         "lhax"),
+    new VM_OpcodeXX(      750,       X_FORM,      7,         "lhaux"),
+    new VM_OpcodeXX(      814,       X_FORM,      7,         "sthx"),
+    new VM_OpcodeXX(      824,       X_FORM,      8,         "orc"),
+    new VM_OpcodeXX(      825,       X_FORM,      8,         "orc."),
+    new VM_OpcodeXX(      878,       X_FORM,      7,         "sthux"),
+    new VM_OpcodeXX(      888,       X_FORM,      8,         "or"),
+    new VM_OpcodeXX(      889,       X_FORM,      8,         "or."),
+    new VM_OpcodeXX(      934,       X_FORM,      3,         "mtspr"),
+    new VM_OpcodeXX(      952,       X_FORM,      8,         "nand"),
+    new VM_OpcodeXX(      953,       X_FORM,      8,         "nand."),
+    new VM_OpcodeXX(     1024,       X_FORM,     23,         "mcrxr"),
+    new VM_OpcodeXX(     1040,      XO_FORM,      1,         "subfco"),
+    new VM_OpcodeXX(     1041,      XO_FORM,      1,         "subfco."),
+    new VM_OpcodeXX(     1044,      XO_FORM,      1,         "addco"),
+    new VM_OpcodeXX(     1045,      XO_FORM,      1,         "addco."),
+    new VM_OpcodeXX(     1066,       X_FORM,      7,         "lswx"),
+    new VM_OpcodeXX(     1068,       X_FORM,      7,         "lwbrx"),
+    new VM_OpcodeXX(     1070,       X_FORM,     12,         "lfsx"),
+    new VM_OpcodeXX(     1072,       X_FORM,      8,         "srw"),
+    new VM_OpcodeXX(     1073,       X_FORM,      8,         "srw."),
+    new VM_OpcodeXX(     1134,       X_FORM,     12,         "lfsux"),
+    new VM_OpcodeXX(     1194,       X_FORM,     10,         "lswi"),
+    new VM_OpcodeXX(     1196,       X_FORM,      1,         "sync"),
+    new VM_OpcodeXX(     1198,       X_FORM,     12,         "lfdx"),
+    new VM_OpcodeXX(     1262,       X_FORM,     12,         "lfdux"),
+    new VM_OpcodeXX(     1232,      XO_FORM,      0,         "nego"),
+    new VM_OpcodeXX(     1233,      XO_FORM,      0,         "nego."),
+    new VM_OpcodeXX(     1296,      XO_FORM,      1,         "subfeo"),
+    new VM_OpcodeXX(     1297,      XO_FORM,      1,         "subfeo."),
+    new VM_OpcodeXX(     1300,      XO_FORM,      1,         "addeo"),
+    new VM_OpcodeXX(     1301,      XO_FORM,      1,         "addeo."),
+    new VM_OpcodeXX(     1322,       X_FORM,      7,         "stswx"),
+    new VM_OpcodeXX(     1324,       X_FORM,      7,         "stwbrx"),
+    new VM_OpcodeXX(     1326,       X_FORM,     12,         "stfsx"),
+    new VM_OpcodeXX(     1390,       X_FORM,     12,         "stfsux"),
+    new VM_OpcodeXX(     1424,      XO_FORM,      0,         "subfzeo"),
+    new VM_OpcodeXX(     1425,      XO_FORM,      0,         "subfzeo."),
+    new VM_OpcodeXX(     1428,      XO_FORM,      0,         "addzeo."),
+    new VM_OpcodeXX(     1429,      XO_FORM,      0,         "addzeo."),
+    new VM_OpcodeXX(     1450,       X_FORM,     10,         "stswi"), 
+    new VM_OpcodeXX(     1454,       X_FORM,     12,         "stfdx"),
+    new VM_OpcodeXX(     1488,      XO_FORM,      0,         "subfmeo."),
+    new VM_OpcodeXX(     1489,      XO_FORM,      0,         "subfmeo."),
+    new VM_OpcodeXX(     1492,      XO_FORM,      0,         "addmeo"),
+    new VM_OpcodeXX(     1493,      XO_FORM,      0,         "addmeo."),
+    new VM_OpcodeXX(     1494,      XO_FORM,      1,         "mullwo."),
+    new VM_OpcodeXX(     1495,      XO_FORM,      1,         "mullwo."),
+    new VM_OpcodeXX(     1518,       X_FORM,     12,         "stfdux"),
+    new VM_OpcodeXX(     1556,      XO_FORM,      1,         "addo"),
+    new VM_OpcodeXX(     1557,      XO_FORM,      1,         "addo."),
+    new VM_OpcodeXX(     1580,       X_FORM,      7,         "lhbrx"),
+    new VM_OpcodeXX(     1584,       X_FORM,      8,         "sraw"),
+    new VM_OpcodeXX(     1585,       X_FORM,      8,         "sraw."),
+    new VM_OpcodeXX(     1648,       X_FORM,     11,         "srawi"),
+    new VM_OpcodeXX(     1649,       X_FORM,     11,         "srawi."),
+    new VM_OpcodeXX(     1836,       X_FORM,      7,         "sthbrx"),
+    new VM_OpcodeXX(     1844,       X_FORM,      9,         "extsh"),
+    new VM_OpcodeXX(     1845,       X_FORM,      9,         "extsh."),
+    new VM_OpcodeXX(     2028,       X_FORM,      6,         "dcbz"),
 
     // these are the addition for the PowerPC
-    new opcodeXX(       172,     X_FORM,        6,       "dcbf"),    
-    new opcodeXX(       940,     X_FORM,        6,       "dcbi"),    
-    new opcodeXX(       108,     X_FORM,        6,       "dcbst"),   
-    new opcodeXX(       556,     X_FORM,        6,       "dcbt"),    
-    new opcodeXX(       492,     X_FORM,        6,       "dcbtst"),  
-    new opcodeXX(       982,    XO_FORM,        1,       "divw"),   
-    new opcodeXX(       983,    XO_FORM,        1,       "divw."),   
-    new opcodeXX(       2006,   XO_FORM,        1,       "divwo"),   
-    new opcodeXX(       2007,   XO_FORM,        1,       "divwo."),  
-    new opcodeXX(       918,    XO_FORM,        1,       "divwu"),   
-    new opcodeXX(       919,    XO_FORM,        1,       "divwu."),  
-    new opcodeXX(       1942,   XO_FORM,        1,       "divwuo"),  
-    new opcodeXX(       1943,   XO_FORM,        1,       "divwuo."), 
-    new opcodeXX(       1708,    X_FORM,        1,       "eieio"),  
-    new opcodeXX(       1908,    X_FORM,        0,       "extsb"),  
-    new opcodeXX(       1909,    X_FORM,        0,       "extsb."),  
-    new opcodeXX(       1964,    X_FORM,        6,       "icbi"),    
-    new opcodeXX(       40,      X_FORM,        7,       "lwarx"),   
-    new opcodeXX(       150,    XO_FORM,        1,       "mulhw"),   
-    new opcodeXX(       151,    XO_FORM,        1,       "mulhw."),  
-    new opcodeXX(       22,     XO_FORM,        1,       "mulhwu"),  
-    new opcodeXX(       23,     XO_FORM,        1,       "mulhwu."), 
-    new opcodeXX(       301,     X_FORM,        7,       "stwcx."), 
-    new opcodeXX(       80,     XO_FORM,        1,       "subf"),  
-    new opcodeXX(       81,     XO_FORM,        1,       "subf."),  
-    new opcodeXX(       1104,   XO_FORM,        1,       "subfo"),   
-    new opcodeXX(       1105,   XO_FORM,        1,       "subfo."),
+    new VM_OpcodeXX(       172,     X_FORM,        6,       "dcbf"),    
+    new VM_OpcodeXX(       940,     X_FORM,        6,       "dcbi"),    
+    new VM_OpcodeXX(       108,     X_FORM,        6,       "dcbst"),   
+    new VM_OpcodeXX(       556,     X_FORM,        6,       "dcbt"),    
+    new VM_OpcodeXX(       492,     X_FORM,        6,       "dcbtst"),  
+    new VM_OpcodeXX(       982,    XO_FORM,        1,       "divw"),   
+    new VM_OpcodeXX(       983,    XO_FORM,        1,       "divw."),   
+    new VM_OpcodeXX(       2006,   XO_FORM,        1,       "divwo"),   
+    new VM_OpcodeXX(       2007,   XO_FORM,        1,       "divwo."),  
+    new VM_OpcodeXX(       918,    XO_FORM,        1,       "divwu"),   
+    new VM_OpcodeXX(       919,    XO_FORM,        1,       "divwu."),  
+    new VM_OpcodeXX(       1942,   XO_FORM,        1,       "divwuo"),  
+    new VM_OpcodeXX(       1943,   XO_FORM,        1,       "divwuo."), 
+    new VM_OpcodeXX(       1708,    X_FORM,        1,       "eieio"),  
+    new VM_OpcodeXX(       1908,    X_FORM,        0,       "extsb"),  
+    new VM_OpcodeXX(       1909,    X_FORM,        0,       "extsb."),  
+    new VM_OpcodeXX(       1964,    X_FORM,        6,       "icbi"),    
+    new VM_OpcodeXX(       40,      X_FORM,        7,       "lwarx"),   
+    new VM_OpcodeXX(       150,    XO_FORM,        1,       "mulhw"),   
+    new VM_OpcodeXX(       151,    XO_FORM,        1,       "mulhw."),  
+    new VM_OpcodeXX(       22,     XO_FORM,        1,       "mulhwu"),  
+    new VM_OpcodeXX(       23,     XO_FORM,        1,       "mulhwu."), 
+    new VM_OpcodeXX(       301,     X_FORM,        7,       "stwcx."), 
+    new VM_OpcodeXX(       80,     XO_FORM,        1,       "subf"),  
+    new VM_OpcodeXX(       81,     XO_FORM,        1,       "subf."),  
+    new VM_OpcodeXX(       1104,   XO_FORM,        1,       "subfo"),   
+    new VM_OpcodeXX(       1105,   XO_FORM,        1,       "subfo."),
 
 // these are only valid for 32 bit architecture
-    new opcodeXX(      420,       X_FORM,     17,         "mtsr"),
-    new opcodeXX(      484,       X_FORM,      7,         "mtsrin"),
-    new opcodeXX(     1190,       X_FORM,     18,         "mfsr"),
-    new opcodeXX(     1318,       X_FORM,      4,         "mfsrin"),
+    new VM_OpcodeXX(      420,       X_FORM,     17,         "mtsr"),
+    new VM_OpcodeXX(      484,       X_FORM,      7,         "mtsrin"),
+    new VM_OpcodeXX(     1190,       X_FORM,     18,         "mfsr"),
+    new VM_OpcodeXX(     1318,       X_FORM,      4,         "mfsrin"),
  
 // these are the addition for the 64 bit specific instructions
-    new opcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
-    new opcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
-    new opcodeXX(       42,       X_FORM,      7,         "ldx"),
-    new opcodeXX(       43,       X_FORM,      7,         "ldx."),
-    new opcodeXX(       54,       X_FORM,      8,         "sld"),
-    new opcodeXX(       55,       X_FORM,      8,         "sld."),
-    new opcodeXX(      106,       X_FORM,      7,         "ldux"),
-    new opcodeXX(      107,       X_FORM,      7,         "ldux."),
-    new opcodeXX(      116,       X_FORM,      9,         "cntlzd"),
-    new opcodeXX(      117,       X_FORM,      9,         "cntlzd."),
-    new opcodeXX(      136,       X_FORM,     24,         "td"),
-    new opcodeXX(      146,      XO_FORM,      1,         "mulhd"),   
-    new opcodeXX(      151,      XO_FORM,      1,         "mulhd."),  
-    new opcodeXX(      168,       X_FORM,      7,         "ldarx"),   
-    new opcodeXX(      298,       X_FORM,      7,         "stdx"),
-    new opcodeXX(      362,       X_FORM,      7,         "stdux"),
-    new opcodeXX(      429,       X_FORM,      7,         "stdcx."), 
-    new opcodeXX(      466,      XO_FORM,      1,         "mulld"),
-    new opcodeXX(      467,      XO_FORM,      1,         "mulld."),
-    new opcodeXX(      682,       X_FORM,      7,         "lwax"),
-    new opcodeXX(      746,       X_FORM,      7,         "lwaux"),
-    new opcodeXX(     1652,      XS_FORM,      0,         "sradi"),
-    new opcodeXX(     1653,      XS_FORM,      0,         "sradi."),
-    new opcodeXX(     1654,      XS_FORM,      0,         "sradi"),
-    new opcodeXX(     1655,      XS_FORM,      0,         "sradi."),
-    new opcodeXX(      868,       X_FORM,      6,         "slbie"),
-    new opcodeXX(      914,      XO_FORM,      1,         "divdu"),   
-    new opcodeXX(      915,      XO_FORM,      1,         "divdu."),  
-    new opcodeXX(      978,      XO_FORM,      1,         "divd"),
-    new opcodeXX(      979,      XO_FORM,      1,         "divd."),
-    new opcodeXX(      996,       X_FORM,      1,         "slbia"),
-    new opcodeXX(     1078,       X_FORM,      8,         "srd"),
-    new opcodeXX(     1079,       X_FORM,      8,         "srd."),
-    new opcodeXX(     1588,       X_FORM,      8,         "srad"),
-    new opcodeXX(     1589,       X_FORM,      8,         "srad."),
-    new opcodeXX(     1972,       X_FORM,      9,         "extsw"),
-    new opcodeXX(     1973,       X_FORM,      9,         "extsw.")
+    new VM_OpcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
+    new VM_OpcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
+    new VM_OpcodeXX(       42,       X_FORM,      7,         "ldx"),
+    new VM_OpcodeXX(       43,       X_FORM,      7,         "ldx."),
+    new VM_OpcodeXX(       54,       X_FORM,      8,         "sld"),
+    new VM_OpcodeXX(       55,       X_FORM,      8,         "sld."),
+    new VM_OpcodeXX(      106,       X_FORM,      7,         "ldux"),
+    new VM_OpcodeXX(      107,       X_FORM,      7,         "ldux."),
+    new VM_OpcodeXX(      116,       X_FORM,      9,         "cntlzd"),
+    new VM_OpcodeXX(      117,       X_FORM,      9,         "cntlzd."),
+    new VM_OpcodeXX(      136,       X_FORM,     24,         "td"),
+    new VM_OpcodeXX(      146,      XO_FORM,      1,         "mulhd"),   
+    new VM_OpcodeXX(      151,      XO_FORM,      1,         "mulhd."),  
+    new VM_OpcodeXX(      168,       X_FORM,      7,         "ldarx"),   
+    new VM_OpcodeXX(      298,       X_FORM,      7,         "stdx"),
+    new VM_OpcodeXX(      362,       X_FORM,      7,         "stdux"),
+    new VM_OpcodeXX(      429,       X_FORM,      7,         "stdcx."), 
+    new VM_OpcodeXX(      466,      XO_FORM,      1,         "mulld"),
+    new VM_OpcodeXX(      467,      XO_FORM,      1,         "mulld."),
+    new VM_OpcodeXX(      682,       X_FORM,      7,         "lwax"),
+    new VM_OpcodeXX(      746,       X_FORM,      7,         "lwaux"),
+    new VM_OpcodeXX(     1652,      XS_FORM,      0,         "sradi"),
+    new VM_OpcodeXX(     1653,      XS_FORM,      0,         "sradi."),
+    new VM_OpcodeXX(     1654,      XS_FORM,      0,         "sradi"),
+    new VM_OpcodeXX(     1655,      XS_FORM,      0,         "sradi."),
+    new VM_OpcodeXX(      868,       X_FORM,      6,         "slbie"),
+    new VM_OpcodeXX(      914,      XO_FORM,      1,         "divdu"),   
+    new VM_OpcodeXX(      915,      XO_FORM,      1,         "divdu."),  
+    new VM_OpcodeXX(      978,      XO_FORM,      1,         "divd"),
+    new VM_OpcodeXX(      979,      XO_FORM,      1,         "divd."),
+    new VM_OpcodeXX(      996,       X_FORM,      1,         "slbia"),
+    new VM_OpcodeXX(     1078,       X_FORM,      8,         "srd"),
+    new VM_OpcodeXX(     1079,       X_FORM,      8,         "srd."),
+    new VM_OpcodeXX(     1588,       X_FORM,      8,         "srad"),
+    new VM_OpcodeXX(     1589,       X_FORM,      8,         "srad."),
+    new VM_OpcodeXX(     1972,       X_FORM,      9,         "extsw"),
+    new VM_OpcodeXX(     1973,       X_FORM,      9,         "extsw.")
   };
   
-  static opcode_tab[] opcode58 = {
+  static VM_OpcodeTab[] opcode58 = {
     /* Table for the instruction format of opcode 58*/
     
     /*    EO                            format      mnemonic   */
     /*   ----                           ------      --------   */
-    /*    0,    */  new opcode_tab (      0,      "ld"),
-    /*    1,    */  new opcode_tab (      0,      "ldu"),
-    /*    2,    */  new opcode_tab (      0,      "lwa"),
-    /*    3,    */  new opcode_tab (      X,      "RESERVED")
+    /*    0,    */  new VM_OpcodeTab(      0,      "ld"),
+    /*    1,    */  new VM_OpcodeTab(      0,      "ldu"),
+    /*    2,    */  new VM_OpcodeTab(      0,      "lwa"),
+    /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
   };
   
-  static opcode_tab[] opcode62 = {
+  static VM_OpcodeTab[] opcode62 = {
     /* Table for the instruction format of opcode 58*/
     
     /*    EO                            format      mnemonic   */
     /*   ----                           ------      --------   */
-    /*    0,    */  new opcode_tab (      1,      "std"),
-    /*    1,    */  new opcode_tab (      1,      "stdu"),
-    /*    2,    */  new opcode_tab (      X,      "RESERVED"),
-    /*    3,    */  new opcode_tab (      X,      "RESERVED")
+    /*    0,    */  new VM_OpcodeTab(      1,      "std"),
+    /*    1,    */  new VM_OpcodeTab(      1,      "stdu"),
+    /*    2,    */  new VM_OpcodeTab(      X,      "RESERVED"),
+    /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
   };
   
 /*  Opcode 63 table: The key is computed by taking 
@@ -680,48 +680,48 @@ public class PPC_Disassembler implements VM_ArchConstants {
  *  the instruction format and "format" is how the
  *  instruction should be printed.  */
 
-  static opcodeXX[] opcode63 = {
+  static VM_OpcodeXX[] opcode63 = {
 
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
-    new opcodeXX(        0,       X_FORM,     19,         "fcmpu"),
-    new opcodeXX(       24,       X_FORM,     21,         "frsp"),
-    new opcodeXX(       25,       X_FORM,     21,         "frsp."),
-    new opcodeXX(       28,       X_FORM,     21,         "fctiw"),  
-    new opcodeXX(       29,       X_FORM,     21,         "fctiw."), 
-    new opcodeXX(       30,       X_FORM,     21,         "fctiwz"),  
-    new opcodeXX(       31,       X_FORM,     21,         "fctiwz."), 
-    new opcodeXX(       64,       X_FORM,     19,         "fcmpo"),
-    new opcodeXX(       76,       X_FORM,     16,         "mtfsb1"),
-    new opcodeXX(       77,       X_FORM,     16,         "mtfsb1."),
-    new opcodeXX(       80,       X_FORM,     21,         "fneg"),
-    new opcodeXX(       81,       X_FORM,     21,         "fneg."),
-    new opcodeXX(      128,       X_FORM,     14,         "mcrfs"),
-    new opcodeXX(      140,       X_FORM,     16,         "mtfsb0"),
-    new opcodeXX(      141,       X_FORM,     16,         "mtfsb0."),
-    new opcodeXX(      144,       X_FORM,     21,         "fmr"),
-    new opcodeXX(      145,       X_FORM,     21,         "fmr."),
-    new opcodeXX(      268,       X_FORM,     15,         "mtfsfi"),
-    new opcodeXX(      269,       X_FORM,     15,         "mtfsfi."),
-    new opcodeXX(      272,       X_FORM,     21,         "fnabs"),
-    new opcodeXX(      273,       X_FORM,     21,         "fnabs."),
-    new opcodeXX(      528,       X_FORM,     21,         "fabs"),
-    new opcodeXX(      529,       X_FORM,     21,         "fabs."),
-    new opcodeXX(     1166,       X_FORM,     13,         "mffs"),
-    new opcodeXX(     1167,       X_FORM,     13,         "mffs."),
-    new opcodeXX(     1422,     XFL_FORM,      9,         "mtfsf"),
-    new opcodeXX(     1423,     XFL_FORM,      9,         "mtfsf."),
+    new VM_OpcodeXX(        0,       X_FORM,     19,         "fcmpu"),
+    new VM_OpcodeXX(       24,       X_FORM,     21,         "frsp"),
+    new VM_OpcodeXX(       25,       X_FORM,     21,         "frsp."),
+    new VM_OpcodeXX(       28,       X_FORM,     21,         "fctiw"),  
+    new VM_OpcodeXX(       29,       X_FORM,     21,         "fctiw."), 
+    new VM_OpcodeXX(       30,       X_FORM,     21,         "fctiwz"),  
+    new VM_OpcodeXX(       31,       X_FORM,     21,         "fctiwz."), 
+    new VM_OpcodeXX(       64,       X_FORM,     19,         "fcmpo"),
+    new VM_OpcodeXX(       76,       X_FORM,     16,         "mtfsb1"),
+    new VM_OpcodeXX(       77,       X_FORM,     16,         "mtfsb1."),
+    new VM_OpcodeXX(       80,       X_FORM,     21,         "fneg"),
+    new VM_OpcodeXX(       81,       X_FORM,     21,         "fneg."),
+    new VM_OpcodeXX(      128,       X_FORM,     14,         "mcrfs"),
+    new VM_OpcodeXX(      140,       X_FORM,     16,         "mtfsb0"),
+    new VM_OpcodeXX(      141,       X_FORM,     16,         "mtfsb0."),
+    new VM_OpcodeXX(      144,       X_FORM,     21,         "fmr"),
+    new VM_OpcodeXX(      145,       X_FORM,     21,         "fmr."),
+    new VM_OpcodeXX(      268,       X_FORM,     15,         "mtfsfi"),
+    new VM_OpcodeXX(      269,       X_FORM,     15,         "mtfsfi."),
+    new VM_OpcodeXX(      272,       X_FORM,     21,         "fnabs"),
+    new VM_OpcodeXX(      273,       X_FORM,     21,         "fnabs."),
+    new VM_OpcodeXX(      528,       X_FORM,     21,         "fabs"),
+    new VM_OpcodeXX(      529,       X_FORM,     21,         "fabs."),
+    new VM_OpcodeXX(     1166,       X_FORM,     13,         "mffs"),
+    new VM_OpcodeXX(     1167,       X_FORM,     13,         "mffs."),
+    new VM_OpcodeXX(     1422,     XFL_FORM,      9,         "mtfsf"),
+    new VM_OpcodeXX(     1423,     XFL_FORM,      9,         "mtfsf."),
 
   // these are only valid for 32 bit architecture
-    new opcodeXX(     1628,       X_FORM,     21,         "fctid"),
-    new opcodeXX(     1629,       X_FORM,     21,         "fctid."),
-    new opcodeXX(     1630,       X_FORM,     21,         "fctidz"),
-    new opcodeXX(     1631,       X_FORM,     21,         "fctidz."),
-    new opcodeXX(     1692,       X_FORM,     21,         "fcfid"),
-    new opcodeXX(     1693,       X_FORM,     21,         "fcfid.")
+    new VM_OpcodeXX(     1628,       X_FORM,     21,         "fctid"),
+    new VM_OpcodeXX(     1629,       X_FORM,     21,         "fctid."),
+    new VM_OpcodeXX(     1630,       X_FORM,     21,         "fctidz"),
+    new VM_OpcodeXX(     1631,       X_FORM,     21,         "fctidz."),
+    new VM_OpcodeXX(     1692,       X_FORM,     21,         "fcfid"),
+    new VM_OpcodeXX(     1693,       X_FORM,     21,         "fcfid.")
   };
 
-  static opcodeXX[] opcode59 = {
+  static VM_OpcodeXX[] opcode59 = {
     
     /*  opcode59 table: These are the addition for the PowerPC set
      *  Key is  bits 26 through 31 of the instruction. 
@@ -731,25 +731,25 @@ public class PPC_Disassembler implements VM_ArchConstants {
      */
     
     /*                  key        form     format       mnemonic       */
-    new opcodeXX(       42,      A_FORM,        0,      "fadds"),
-    new opcodeXX(       43,      A_FORM,        0,      "fadds."),
-    new opcodeXX(       36,      A_FORM,        0,      "fdivs"),   
-    new opcodeXX(       37,      A_FORM,        0,      "fdivs."),  
-    new opcodeXX(       58,      A_FORM,        2,      "fmadds"),  
-    new opcodeXX(       59,      A_FORM,        2,      "fmadds."), 
-    new opcodeXX(       56,      A_FORM,        2,      "fmsubs"),  
-    new opcodeXX(       57,      A_FORM,        2,      "fmsubs."), 
-    new opcodeXX(       50,      A_FORM,        1,      "fmuls"),  
-    new opcodeXX(       51,      A_FORM,        1,      "fmuls."),  
-    new opcodeXX(       62,      A_FORM,        2,      "fnmadds"), 
-    new opcodeXX(       63,      A_FORM,        2,      "fnmadds."),
-    new opcodeXX(       60,      A_FORM,        2,      "fnmsubs"),
-    new opcodeXX(       61,      A_FORM,        2,      "fnmsubs."),
-    new opcodeXX(       40,      A_FORM,        0,      "fsubs"),  
-    new opcodeXX(       41,      A_FORM,        0,      "fsubs.")  
+    new VM_OpcodeXX(       42,      A_FORM,        0,      "fadds"),
+    new VM_OpcodeXX(       43,      A_FORM,        0,      "fadds."),
+    new VM_OpcodeXX(       36,      A_FORM,        0,      "fdivs"),   
+    new VM_OpcodeXX(       37,      A_FORM,        0,      "fdivs."),  
+    new VM_OpcodeXX(       58,      A_FORM,        2,      "fmadds"),  
+    new VM_OpcodeXX(       59,      A_FORM,        2,      "fmadds."), 
+    new VM_OpcodeXX(       56,      A_FORM,        2,      "fmsubs"),  
+    new VM_OpcodeXX(       57,      A_FORM,        2,      "fmsubs."), 
+    new VM_OpcodeXX(       50,      A_FORM,        1,      "fmuls"),  
+    new VM_OpcodeXX(       51,      A_FORM,        1,      "fmuls."),  
+    new VM_OpcodeXX(       62,      A_FORM,        2,      "fnmadds"), 
+    new VM_OpcodeXX(       63,      A_FORM,        2,      "fnmadds."),
+    new VM_OpcodeXX(       60,      A_FORM,        2,      "fnmsubs"),
+    new VM_OpcodeXX(       61,      A_FORM,        2,      "fnmsubs."),
+    new VM_OpcodeXX(       40,      A_FORM,        0,      "fsubs"),  
+    new VM_OpcodeXX(       41,      A_FORM,        0,      "fsubs.")  
   };
 
-  static opcodeXX[] Aform = {
+  static VM_OpcodeXX[] Aform = {
     
     /*  Aform table: The key is computed by taking 
      *  bits 26 through 31 of the instruction. "Form" is
@@ -757,22 +757,22 @@ public class PPC_Disassembler implements VM_ArchConstants {
      *  instruction should be printed.  */
     
     /*                  key        form     format       mnemonic       */
-    new opcodeXX(       36,      A_FORM,      0,         "fdiv"),
-    new opcodeXX(       37,      A_FORM,      0,         "fdiv."),
-    new opcodeXX(       40,      A_FORM,      0,         "fsub"),
-    new opcodeXX(       41,      A_FORM,      0,         "fsub."),
-    new opcodeXX(       42,      A_FORM,      0,         "fadd"),
-    new opcodeXX(       43,      A_FORM,      0,         "fadd."),
-    new opcodeXX(       50,      A_FORM,      1,         "fm"),
-    new opcodeXX(       51,      A_FORM,      1,         "fm."),
-    new opcodeXX(       56,      A_FORM,      2,         "fmsub"),
-    new opcodeXX(       57,      A_FORM,      2,         "fmsub."),
-    new opcodeXX(       58,      A_FORM,      2,         "fmadd"),
-    new opcodeXX(       59,      A_FORM,      2,         "fmadd."),
-    new opcodeXX(       60,      A_FORM,      2,         "fnmsub"),
-    new opcodeXX(       61,      A_FORM,      2,         "fnmsub."),
-    new opcodeXX(       62,      A_FORM,      2,         "fnmadd"),
-    new opcodeXX(       63,      A_FORM,      2,         "fnmadd.")
+    new VM_OpcodeXX(       36,      A_FORM,      0,         "fdiv"),
+    new VM_OpcodeXX(       37,      A_FORM,      0,         "fdiv."),
+    new VM_OpcodeXX(       40,      A_FORM,      0,         "fsub"),
+    new VM_OpcodeXX(       41,      A_FORM,      0,         "fsub."),
+    new VM_OpcodeXX(       42,      A_FORM,      0,         "fadd"),
+    new VM_OpcodeXX(       43,      A_FORM,      0,         "fadd."),
+    new VM_OpcodeXX(       50,      A_FORM,      1,         "fm"),
+    new VM_OpcodeXX(       51,      A_FORM,      1,         "fm."),
+    new VM_OpcodeXX(       56,      A_FORM,      2,         "fmsub"),
+    new VM_OpcodeXX(       57,      A_FORM,      2,         "fmsub."),
+    new VM_OpcodeXX(       58,      A_FORM,      2,         "fmadd"),
+    new VM_OpcodeXX(       59,      A_FORM,      2,         "fmadd."),
+    new VM_OpcodeXX(       60,      A_FORM,      2,         "fnmsub"),
+    new VM_OpcodeXX(       61,      A_FORM,      2,         "fnmsub."),
+    new VM_OpcodeXX(       62,      A_FORM,      2,         "fnmadd"),
+    new VM_OpcodeXX(       63,      A_FORM,      2,         "fnmadd.")
   };
   
   /* 
@@ -876,7 +876,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
   {
     int rt, RA, TO, BF, FRT,ufield;
     int sfield;
-    opcode_tab opcode_info;
+    VM_OpcodeTab opcode_info;
     String datafield, mnemonic, asm_mnemonic, common_opt;
     
     rt = TO = FRT = bits(inst, 6, 10);
@@ -1059,7 +1059,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
     int ext_opcode;
     int LK, BO,  BI, BB; 
     int BF, BFA, BT, BA; 
-    opcode_tab opcode_info;
+    VM_OpcodeTab opcode_info;
     int cr_field;
     String branch_name;
     
@@ -1144,9 +1144,9 @@ public class PPC_Disassembler implements VM_ArchConstants {
     }
   }
   
-  static opcodeXX searchXX(int key, opcodeXX[] where) {
+  static VM_OpcodeXX searchXX(int key, VM_OpcodeXX[] where) {
 
-    for (opcodeXX opxx : where) {
+    for (VM_OpcodeXX opxx : where) {
       if (opxx.key == key) return opxx;
     }
 
@@ -1158,7 +1158,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
   
   static String decode_opcode30(int inst)
   {
-    opcodeXX search_results;
+    VM_OpcodeXX search_results;
     String mnemonic;
 
     int testkey = bits(inst,27,30);
@@ -1212,7 +1212,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
   
   static String decode_opcode31(int inst)
   {
-    opcodeXX search_results;
+    VM_OpcodeXX search_results;
     int format;
     String mnemonic;
     
@@ -1417,7 +1417,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
   
   static String decode_opcode59(int inst)
   {
-    opcodeXX search_results;
+    VM_OpcodeXX search_results;
     String mnemonic;
     
     int testkey = bits(inst,26,31);
@@ -1445,7 +1445,7 @@ public class PPC_Disassembler implements VM_ArchConstants {
   
   static String decode_opcode63(int inst)
   {
-    opcodeXX search_results;
+    VM_OpcodeXX search_results;
     String mnemonic;
     
     int testkey = bits(inst,21,31);
