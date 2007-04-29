@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.baseline.VM_BBConstants;
 import org.jikesrvm.VM;
 
 /**
