@@ -1362,7 +1362,7 @@ target.jni-suffix=${target.jni-suffix}
     <mkdir dir="${build.dir}/pmd"/>
     <echo message="Generating PMD report to ${build.dir}/pmd/report.html"/>
     <pmd shortFilenames="true" targetjdk="1.5" failonerror="false">
-      <ruleset>etc/pmd/rulesets/rvm.xml</ruleset>
+      <ruleset>build/pmd/rulesets/rvm.xml</ruleset>
       <ruleset>imports</ruleset>
       <formatter type="html" toFile="${build.dir}/pmd/report.html"/>
       <fileset dir="${main.java}">
