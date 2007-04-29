@@ -54,7 +54,7 @@ public final class VM_YieldCounterListener extends VM_NullListener {
      VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
-  public final void reset() { }
+  public void reset() { }
 
   private int yieldThreshold;
   @SuppressWarnings({"unused", "UnusedDeclaration","CanBeFinal"})// Accessed via VM_EntryPoints
