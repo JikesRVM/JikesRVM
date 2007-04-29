@@ -33,7 +33,7 @@ public class JikesRVMSupport {
   // Make possibly wrapped method argument compatible with expected type
   // throwing IllegalArgumentException if it cannot be.
   //
-  @SuppressWarnings({"UnnecessaryBoxing"})
+  @SuppressWarnings({"UnnecessaryBoxing","PMD.IntegerInstantiation"})
   static Object makeArgumentCompatible(VM_Type expectedType, Object arg) {
     if (expectedType.isPrimitiveType()) { 
       if (arg instanceof java.lang.Void) {

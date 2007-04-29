@@ -22,6 +22,7 @@ import org.jikesrvm.runtime.VM_Runtime;
  */
 public class Object {
 
+  @SuppressWarnings({"PMD.ProperCloneImplementation","PMD.CloneMethodMustImplementCloneable","CloneDoesntCallSuperClone"})
   protected Object clone() throws CloneNotSupportedException {
     return VM_Runtime.clone(this);
   }
@@ -30,6 +31,7 @@ public class Object {
     return this == o;
   }
 
+  @SuppressWarnings({"FinalizeDoesntCallSuperFinalize"})
   protected void finalize () throws Throwable {
   }
 
