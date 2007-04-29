@@ -10,16 +10,15 @@
 
 package org.jikesrvm.tools.apt;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 import com.sun.mirror.apt.AnnotationProcessor;
 import com.sun.mirror.apt.AnnotationProcessorEnvironment;
 import com.sun.mirror.apt.AnnotationProcessorFactory;
 import com.sun.mirror.apt.AnnotationProcessors;
 import com.sun.mirror.declaration.AnnotationTypeDeclaration;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Fctory class for APT - dispatches annotations to their handling classes.
