@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.*;
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {}
+  static {} //NOPMD
 
   /**
    * Constructor
