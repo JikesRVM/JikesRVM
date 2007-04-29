@@ -34,15 +34,4 @@ import org.vmmagic.pragma.*;
   public CopyLocal(CopySpace space) {
     super(space, true);
   }
-
-  /**
-   * Re-associate this bump pointer with a different space. Also 
-   * reset the bump pointer so that it will use the new space
-   * on the next call to <code>alloc</code>.
-   * 
-   * @param space The space to associate the bump pointer with.
-   */
-  public void rebind(CopySpace space) {
-    super.rebind(space);
-  }
 }

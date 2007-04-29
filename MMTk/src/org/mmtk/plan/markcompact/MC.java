@@ -99,14 +99,6 @@ import org.vmmagic.pragma.*;
     collection = mcCollection;
   }
 
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() { 
-    super.boot();
-  }
-
   /*****************************************************************************
    * 
    * Collection
