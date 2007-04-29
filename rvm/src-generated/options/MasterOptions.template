@@ -88,27 +88,32 @@ $$$$ END LOOP
 
 
    @SuppressWarnings("unchecked")
-   public Object clone() {
-     try { 
-	MYTYPE clone = (MYTYPE)super.clone();
+   public Object clone() throws CloneNotSupportedException {
+     MYTYPE clone = (MYTYPE)super.clone();
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
-        if (FULL_NAME != null) {
-          clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
-        }
+     if (FULL_NAME != null) {
+       clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
+     }
      $$$$ END IF 
      $$$$ END SPLIT  
 $$$$ END FOREACH
 $$$$ END LOOP
-        return clone;
-     }
-     catch (CloneNotSupportedException e) {
-       // cannot happen ... cloning supported
-       throw new InternalError("Cannot happen! Cloning supported");
-     }
+     return clone;
    }
+
+  public MYTYPE dup() {
+    try {
+      return (MYTYPE) clone();
+    }
+    catch (CloneNotSupportedException e) {
+      final InternalError error = new InternalError("Unexpected CloneNotSupportedException.");
+      error.initCause(e);
+      throw error;
+    }
+  }
 
 
   /**

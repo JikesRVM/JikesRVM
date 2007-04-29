@@ -258,7 +258,7 @@ public abstract class VM_RecompilationStrategy {
     _optPlans = new OPT_OptimizationPlanElement[maxOptLevel+1][];
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     for (int i=0; i<= maxOptLevel; i++) {
-      _options[i] = (OPT_Options)options.clone();
+      _options[i] = options.dup();
       _options[i].setOptLevel(i);               // set optimization level specific optimiations
       processCommandLineOptions(_options[i],i,maxOptLevel,optCompilerOptions);
       _optPlans[i]=OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);

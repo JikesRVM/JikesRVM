@@ -637,7 +637,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
             // Other than when boot options are requested (processed during preloadSpecialClass
             // It is hard to communicate options for these special compilations. Use the 
             // default options and at least pick up the verbose if requested for base/irc
-            OPT_Options tmpoptions = (OPT_Options)((OPT_Options)options).clone();
+            OPT_Options tmpoptions = ((OPT_Options)options).dup();
             tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
             tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
             if (VM_BaselineCompiler.options.PRINT_METHOD) {

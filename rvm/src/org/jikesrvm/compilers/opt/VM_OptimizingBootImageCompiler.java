@@ -170,7 +170,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       }
       // Find failed, so create new plan
       OPT_OptimizationPlanElement[] optimizationPlan;
-      OPT_Options cloneOptions=(OPT_Options)masterOptions.clone();
+      OPT_Options cloneOptions = masterOptions.dup();
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(cloneOptions);
       optimizationPlans.addElement(optimizationPlan);
       optimizationPlanLocks.addElement(Boolean.TRUE);

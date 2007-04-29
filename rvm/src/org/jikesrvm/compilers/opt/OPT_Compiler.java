@@ -66,7 +66,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       }
       // Make a local copy so that some options can be forced off just for the
       // duration of this initialization step.
-      options = (OPT_Options)options.clone();
+      options = options.dup();
       options.SIMPLE_ESCAPE_IPA = false;
 
       initializeStatics();
@@ -160,7 +160,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       setBootOptions(options);
       // Make a local copy so that some options can be altered to mimic options
       // during boot build
-      options = (OPT_Options)options.clone();
+      options = options.dup();
     }
 
     try {

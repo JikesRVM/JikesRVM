@@ -136,7 +136,7 @@ public class OSR_SpecialCompiler{
 
     OPT_Options _options = null;
     if (latestPlan != null) {
-      _options = (OPT_Options)latestPlan.getCompPlan().options.clone();
+      _options = latestPlan.getCompPlan().options.dup();
     } else {
       // no previous compilation plan, a long run loop promoted from baseline.
       // this only happens when testing, not in real code

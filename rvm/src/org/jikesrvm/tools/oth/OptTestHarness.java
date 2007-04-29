@@ -244,7 +244,7 @@ class OptTestHarness {
         } else if (arg.equals("-class")) {
           VM_Class klass = loadClass(args[++i]);
           processClass(klass, options);
-          options = (OPT_Options) options.clone() ;
+          options = options.dup();
         } else if (arg.equals("-method") || 
                    arg.equals("-methodOpt") || arg.equals("-methodBase")) {
           // Default for this method is determined by BASELINE var
@@ -272,7 +272,7 @@ class OptTestHarness {
           } else {
             processMethod(method,options,isBaseline);
           }
-          options = (OPT_Options) options.clone() ;
+          options = options.dup() ;
         } else if (arg.equals("-performance")) {
             perf = new Performance();
         } else if (arg.equals("-disableClassLoading")) {
@@ -306,7 +306,7 @@ class OptTestHarness {
           reflectoidVector.addElement(reflectoid) ;
           reflectMethodVector.addElement(method) ;
           reflectMethodArgsVector.addElement(reflectMethodArgs) ;
-          options = (OPT_Options) options.clone() ;
+          options = options.dup();
         } else {
           System.err.println("Unrecognized argument: " + arg + " - ignored");
         }
