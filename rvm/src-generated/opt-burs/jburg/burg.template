@@ -12,6 +12,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.OPT_BURS;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OPT_Bits; //NOPMD
 import org.jikesrvm.ArchitectureSpecific.OPT_BURS_TreeNode;
 
 import org.vmmagic.unboxed.*;
