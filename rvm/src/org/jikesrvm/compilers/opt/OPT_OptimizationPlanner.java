@@ -97,7 +97,7 @@ public class OPT_OptimizationPlanner {
     }
     if (VM.writingBootImage)
       masterPlan = null;  // avoid problems with classes not being in bootimage.
-    return finalize(temp);
+    return toArray(temp);
   }
 
   /**
@@ -122,14 +122,14 @@ public class OPT_OptimizationPlanner {
     HIR2LIR(temp);
     LIROptimizations(temp);
     OPT_MIROptimizationPlanner.intializeMasterPlan(temp);
-    masterPlan = finalize(temp);
+    masterPlan = toArray(temp);
   }
 
   /**
    * Convert the ArrayList to an array of elements.
    * TODO: this is a bad name (finalize), isn't it?
    */
-  private static OPT_OptimizationPlanElement[] finalize(ArrayList<OPT_OptimizationPlanElement> planElementList) {
+  private static OPT_OptimizationPlanElement[] toArray(ArrayList<OPT_OptimizationPlanElement> planElementList) {
     OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[planElementList.size()];
     planElementList.toArray(p);
     return p;
