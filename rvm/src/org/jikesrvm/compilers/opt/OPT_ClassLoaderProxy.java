@@ -68,10 +68,6 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       }
     }
 
-    // At this point neither t1 or t2 is a primitive or word type
-    if (VM.VerifyAssertions) VM._assert(!t1.isWordType() && !t2.isWordType() &&
-        !t1.isPrimitiveType() && !t2.isPrimitiveType());
-
     // Is either t1 or t2 null? Null is assignable to all types so the type of
     // the other operand is the most precise
     if (t1 == VM_TypeReference.NULL_TYPE)
