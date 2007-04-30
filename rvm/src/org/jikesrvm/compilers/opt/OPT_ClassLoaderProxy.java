@@ -67,6 +67,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         return null;
       }
     }
+    
+    //Neither t1 nor t2 are primitive or unboxed types at this point
 
     // Is either t1 or t2 null? Null is assignable to all types so the type of
     // the other operand is the most precise
@@ -109,12 +111,6 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 
     // At this point neither t1 or t2 is a primitive or word type and either
     // one or the other maybe an array type
-    if (VM.VerifyAssertions) {
-      VM._assert(!t1.isWordType() && !t1.isPrimitiveType());
-      if (t1.isArrayType()) VM._assert(!t2.isArrayType()); 
-      VM._assert(!t2.isWordType() && !t2.isPrimitiveType());
-      if (t2.isArrayType()) VM._assert(!t1.isArrayType()); 
-    }
         
     // is this a case of arrays with different dimensionalities?
     if (t1.isArrayType() || t2.isArrayType()) {
@@ -127,8 +123,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
                     + type);
       return type;
     }
-    // they both must be class types.
-    if (VM.VerifyAssertions) VM._assert(t1.isClassType() && t2.isClassType());
+    // At this point they both must be class types.
 
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
