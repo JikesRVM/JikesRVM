@@ -378,7 +378,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   @Uninterruptible
   public VM_Class getSuperClass() { 
-    if (VM.VerifyAssertions) VM._assert(!getTypeRef().isWordType());
     return superClass;
   }
 
@@ -1095,6 +1094,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
                    VM_Atom signature,
                    VM_Annotation[] annotations) {
     super(typeRef, 0, annotations);
+    if (VM.VerifyAssertions) VM._assert(!getTypeRef().isUnboxedType());
+    if (VM.VerifyAssertions && null != superClass) VM._assert(!superClass.getTypeRef().isUnboxedType());
 
     // final fields
     this.constantPool           = constantPool;
