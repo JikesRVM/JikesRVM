@@ -806,7 +806,7 @@ Check to make sure all required properties are specified. This includes properti
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}"
+           srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-rvm.java}"
            sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -822,8 +822,6 @@ Check to make sure all required properties are specified. This includes properti
       <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
       <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
       <exclude name="org/jikesrvm/tools/header_gen.GenerateInterfaceDeclarations.java"/>
-      <src path="${mmtk-rvm.java}"/>
-      <src path="${generated.java}"/>
     </javac>
 
     <mkdir dir="${build.base}/syscall/java"/>
