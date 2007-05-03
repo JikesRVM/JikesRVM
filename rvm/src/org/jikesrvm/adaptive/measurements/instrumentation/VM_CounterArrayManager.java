@@ -215,7 +215,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2,
                                       OPT_IRTools.IC(offset),
                                       null,null);
-    s.insertBack(s2);
+    s.insertBefore(s2);
     return  regTarget.copyD2U();
   }    
 

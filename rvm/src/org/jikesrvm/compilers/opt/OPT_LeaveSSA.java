@@ -394,7 +394,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
             OPT_Instruction save = OPT_SSA.makeMoveInstruction(ir, t, r, tt);
             if (DEBUG) VM.sysWriteln("Inserting " + save + " before " +
                                      c.phi + " in " + c.phi.getBasicBlock());
-            c.phi.insertFront(save);
+            c.phi.insertAfter(save);
             globalRenamePhis.add(r);
             globalRenameTable.add(save);
           }
@@ -541,6 +541,10 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
   public void translateFromSSA(OPT_IR ir) {
     // 0. Deal with guards (validation registers)
     unSSAGuards(ir);
+
+    // 0.5 Perform Sreedhar's naive translation from TSSA to CSSA
+    //normalizeSSA(ir);
+ 
     // 1. re-compute dominator tree in case of control flow changes
     OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
@@ -735,5 +739,71 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       start = (OPT_Register) start.scratchObject;
     }
     return r;
+  }
+
+
+  /**
+   * Avoid potential lost copy and other associated problems by
+   * Sreedhar's naive translation from TSSA to CSSA. Guards are rather
+   * trivial to un-SSA so they have already been removed from the IR.
+   * This algorithm is very wasteful of registers so needs good
+   * coalescing.
+   * @param ir the IR to work upon
+   */
+  private static void normalizeSSA(OPT_IR ir) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(), 
+        sentinel = ir.lastInstructionInCodeOrder(), 
+        nextInstr = null; s != sentinel; s = nextInstr) {
+      // cache so we don't process inserted instructions
+      nextInstr = s.nextInstructionInCodeOrder();
+      if (Phi.conforms(s)) {
+        // 1. Naively copy source operands into predecessor blocks
+        for (int index=0; index < Phi.getNumberOfPreds(s); index++) {
+          OPT_Operand op = Phi.getValue(s, index);
+          if (!op.isRegister()) {
+            // ignore heap and constant operands
+            continue;
+          } else {
+            // Get rval
+            OPT_Register rval = op.asRegister().register;
+            if(rval.isValidation()) {
+              continue; // ignore guards
+            } else {
+              // Make rval'
+              OPT_Register rvalPrime = ir.regpool.getReg(rval);
+              // Make copy instruction
+              OPT_Instruction copy = OPT_SSA.makeMoveInstruction(ir, rvalPrime, rval, op.getType());
+              // Insert a copy of rval to rval' in predBlock
+              OPT_BasicBlock pred = Phi.getPred(s,index).block;
+              if(s.getBasicBlock().isExceptionHandlerBasicBlock()) {
+                pred.appendInstructionRespectingTerminalBranchOrPEI(copy);
+              } else {
+                pred.appendInstructionRespectingTerminalBranch(copy);                
+              }
+              // Rename rval to rval' in phi instruction
+              op.asRegister().setRegister(rvalPrime);
+            }
+          }
+        }
+        // 2. Naively copy the result
+        {
+          OPT_Operand op = Phi.getResult(s);
+          if (!op.isRegister()) {
+            // ignore heap operands
+          } else {
+            // Get lval
+            OPT_Register lval = op.asRegister().register;
+            // Make lval'
+            OPT_Register lvalPrime = ir.regpool.getReg(lval);
+            // Make copy instruction
+            OPT_Instruction copy = OPT_SSA.makeMoveInstruction(ir, lval, lvalPrime, op.getType());
+            // Insert a copy of lval' to lval after phi instruction
+            s.insertAfter(copy);
+            // Rename lval to lval' in phi instruction
+            op.asRegister().setRegister(lvalPrime);
+          }
+        }
+      }
+    }
   }
 }

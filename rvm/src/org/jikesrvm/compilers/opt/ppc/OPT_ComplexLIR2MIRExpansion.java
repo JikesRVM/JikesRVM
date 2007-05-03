@@ -452,15 +452,15 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Register cr = ir.regpool.getCondition();
     defLow.setSpansBasicBlock();
     defHigh.setSpansBasicBlock();
-    s.insertBack(MIR_Binary.create(PPC_SUBFIC, I(t31), I(shift), IC(32)));
-    s.insertBack(MIR_Binary.create(PPC_SRW, I(defLow), I(leftLow), I(shift)));
-    s.insertBack(MIR_Binary.create(PPC_SLW, I(t0), I(leftHigh), I(t31)));
-    s.insertBack(MIR_Binary.create(PPC_OR, I(defLow), I(defLow), I(t0)));
-    s.insertBack(MIR_Binary.create(PPC_ADDI, I(t31), I(shift), IC(-32)));
-    s.insertBack(MIR_Binary.create(PPC_SRAW, I(t0), I(leftHigh), I(t31)));
-    s.insertBack(MIR_Binary.create(PPC_SRAW, I(defHigh), I(leftHigh), 
+    s.insertBefore(MIR_Binary.create(PPC_SUBFIC, I(t31), I(shift), IC(32)));
+    s.insertBefore(MIR_Binary.create(PPC_SRW, I(defLow), I(leftLow), I(shift)));
+    s.insertBefore(MIR_Binary.create(PPC_SLW, I(t0), I(leftHigh), I(t31)));
+    s.insertBefore(MIR_Binary.create(PPC_OR, I(defLow), I(defLow), I(t0)));
+    s.insertBefore(MIR_Binary.create(PPC_ADDI, I(t31), I(shift), IC(-32)));
+    s.insertBefore(MIR_Binary.create(PPC_SRAW, I(t0), I(leftHigh), I(t31)));
+    s.insertBefore(MIR_Binary.create(PPC_SRAW, I(defHigh), I(leftHigh), 
                                    I(shift)));
-    s.insertBack(MIR_Binary.create(PPC_CMPI, I(cr), I(t31), IC(0)));
+    s.insertBefore(MIR_Binary.create(PPC_CMPI, I(cr), I(t31), IC(0)));
     MIR_CondBranch.mutate(s, PPC_BCOND, I(cr), 
                           OPT_PowerPCConditionOperand.LESS_EQUAL(), 
                           BB3.makeJumpTarget(),
@@ -521,11 +521,11 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       // Try to get the base
       OPT_Register TU = ir.regpool.getPhysicalRegisterSet().getTU();
       OPT_Register TL = ir.regpool.getPhysicalRegisterSet().getTL();
-      s.insertBack(MIR_Move.create(PPC_MFTBU, I(defHigh), I(TU)));
-      s.insertBack(MIR_Move.create(PPC_MFTB, I(defLow), I(TL)));
+      s.insertBefore(MIR_Move.create(PPC_MFTBU, I(defHigh), I(TU)));
+      s.insertBefore(MIR_Move.create(PPC_MFTB, I(defLow), I(TL)));
       // Try again to see if it changed
-      s.insertBack(MIR_Move.create(PPC_MFTBU, I(t0), I(TU)));
-      s.insertBack(MIR_Binary.create(PPC_CMP, I(cr), I(t0), I(defHigh)));
+      s.insertBefore(MIR_Move.create(PPC_MFTBU, I(t0), I(TU)));
+      s.insertBefore(MIR_Binary.create(PPC_CMP, I(cr), I(t0), I(defHigh)));
       MIR_CondBranch.mutate(s, PPC_BCOND, I(cr), 
                             OPT_PowerPCConditionOperand.NOT_EQUAL(), 
                             BB1.makeJumpTarget(),

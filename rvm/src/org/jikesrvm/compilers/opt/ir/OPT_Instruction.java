@@ -1416,20 +1416,6 @@ public final class OPT_Instruction
    * the operation completes.
    */
 
-
-  /**
-   * Insertion: Insert newInstr immediately after this in the 
-   * instruction stream.
-   * Can't insert after a BBEND instruction, since it must be the last 
-   * instruction in its basic block.
-   *
-   * @param newInstr the instruction to insert, must not be a BBEND or in an 
-   *                 instruction list already.
-   */
-  public void insertFront(OPT_Instruction newInstr) {
-    insertAfter(newInstr);
-  }
-
   /**
    * Insertion: Insert newInstr immediately after this in the 
    * instruction stream.
@@ -1458,20 +1444,6 @@ public final class OPT_Instruction
     newInstr.prev = this;
     newInstr.next = old_next;
     old_next.prev = newInstr;
-  }
-
-
-  /**
-   * Insertion: Insert newInstr immediately before this in the 
-   * instruction stream.
-   * Can't insert before a LABEL instruction, since it must be the last 
-   * instruction in its basic block.
-   *
-   * @param newInstr the instruction to insert, must not be in 
-   *                 an instruction list already.
-   */
-  public void insertBack(OPT_Instruction newInstr) {
-    insertBefore(newInstr);
   }
 
   /**

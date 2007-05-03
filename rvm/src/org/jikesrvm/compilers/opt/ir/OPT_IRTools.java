@@ -411,7 +411,7 @@ public abstract class OPT_IRTools {
                                                            OPT_Instruction s,
                                                            OPT_Operand op) {
     OPT_RegisterOperand rop = pool.makeTemp(type);
-    s.insertBack(Move.create(move_op, rop, op));
+    s.insertBefore(Move.create(move_op, rop, op));
     rop = rop.copyD2U();
     return rop;
   }
@@ -425,7 +425,7 @@ public abstract class OPT_IRTools {
    */
   public static void moveInstruction(OPT_Instruction from, OPT_Instruction to) {
     from.remove();
-    to.insertBack(from);
+    to.insertBefore(from);
   }
 
 

@@ -117,11 +117,11 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
                                                               MIR_LowTableSwitch.getClearTarget(p, i)));
           }
           OPT_Register temp = phys.getGPR(0);
-          p.insertBack(MIR_Move.create(PPC_MFSPR, A(temp), A(phys.getLR())));
-          p.insertBack(MIR_Binary.create(PPC_SLWI, I(regI), I(regI), IC(2)));
-          p.insertBack(MIR_LoadUpdate.create(PPC_LIntUX, I(temp), I(regI), A(temp)));
-          p.insertBack(MIR_Binary.create(PPC_ADD, A(regI), A(regI), I(temp)));
-          p.insertBack(MIR_Move.create(PPC_MTSPR, A(phys.getCTR()), A(regI)));
+          p.insertBefore(MIR_Move.create(PPC_MFSPR, A(temp), A(phys.getLR())));
+          p.insertBefore(MIR_Binary.create(PPC_SLWI, I(regI), I(regI), IC(2)));
+          p.insertBefore(MIR_LoadUpdate.create(PPC_LIntUX, I(temp), I(regI), A(temp)));
+          p.insertBefore(MIR_Binary.create(PPC_ADD, A(regI), A(regI), I(temp)));
+          p.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getCTR()), A(regI)));
           MIR_Branch.mutate(p, PPC_BCTR);
           instructionCount += NumTargets + 7;
         }
@@ -129,7 +129,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
       case PPC_BCOND2_opcode:
         {
           OPT_RegisterOperand cond = MIR_CondBranch2.getClearValue(p);
-          p.insertFront(MIR_CondBranch.create(PPC_BCOND, cond.copyU2U(), 
+          p.insertAfter(MIR_CondBranch.create(PPC_BCOND, cond.copyU2U(), 
                                               MIR_CondBranch2.getClearCond2(p), 
                                               MIR_CondBranch2.getClearTarget2(p),
                                               MIR_CondBranch2.getClearBranchProfile2(p)));
@@ -154,18 +154,18 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
                 if (OPT_Bits.fits(signatureId, 16)) {
                   s = MIR_Unary.create(PPC_LDI, 
                                        I(phys.getGPR(LAST_SCRATCH_GPR)), 
-                                       IC(signatureId)); p.insertBack(s);
+                                       IC(signatureId)); p.insertBefore(s);
                   instructionCount++;
                 } else {
                   s = MIR_Unary.create(PPC_LDIS, 
                                        I(phys.getGPR(LAST_SCRATCH_GPR)), 
                                        IC(OPT_Bits.PPCMaskUpper16(signatureId)));
-                  p.insertBack(s);
+                  p.insertBefore(s);
                   s = MIR_Binary.create(PPC_ADDI, 
                                         I(phys.getGPR(LAST_SCRATCH_GPR)), 
                                         I(phys.getGPR(LAST_SCRATCH_GPR)), 
                                         IC(OPT_Bits.PPCMaskLower16(signatureId)));
-                  p.insertBack(s);
+                  p.insertBefore(s);
                   instructionCount += 2;
                 }
               }

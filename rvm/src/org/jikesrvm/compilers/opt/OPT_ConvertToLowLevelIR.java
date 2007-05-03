@@ -465,7 +465,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         LookupSwitch.setBranchProfile(l, i, 
                                       TableSwitch.getClearBranchProfile(s,i));
       }
-      s.insertFront(l);
+      s.insertAfter(l);
       return s.remove();
     }
     OPT_RegisterOperand reg = val.asRegister();
@@ -950,7 +950,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                          IC(methOp.getMemberRef().getId()));
           vp.position = v.position;
           vp.bcIndex = RUNTIME_SERVICES_BCI;
-          v.insertBack(vp);
+          v.insertBefore(vp);
           callHelper(vp, ir);
           Call.setAddress(v, realAddrReg.copyD2U());
           return v;
@@ -969,7 +969,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                          RHStib, IC(methOp.getTarget().getDeclaringClass().getInterfaceId()));
           fi.position = v.position;
           fi.bcIndex = RUNTIME_SERVICES_BCI;
-          v.insertBack(fi);
+          v.insertBefore(fi);
           callHelper(fi, ir);
           OPT_RegisterOperand address = 
             InsertLoadOffset(v, ir, REF_LOAD,
@@ -1055,7 +1055,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                                            OPT_Operand o1, 
                                            OPT_Operand o2) {
     OPT_RegisterOperand t = ir.regpool.makeTemp(type);
-    s.insertBack(Binary.create(operator, t, o1, o2));
+    s.insertBefore(Binary.create(operator, t, o1, o2));
     return t.copyD2U();
   }
 
@@ -1073,7 +1073,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                                           VM_TypeReference type, 
                                           OPT_Operand o1) {
     OPT_RegisterOperand t = ir.regpool.makeTemp(type);
-    s.insertBack(Unary.create(operator, t, o1));
+    s.insertBefore(Unary.create(operator, t, o1));
     return t.copyD2U();
   }
 
@@ -1093,7 +1093,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                                                  OPT_Operand o1, 
                                                  OPT_Operand guard) {
     OPT_RegisterOperand t = ir.regpool.makeTemp(type);
-    s.insertBack(GuardedUnary.create(operator, t, o1, guard));
+    s.insertBefore(GuardedUnary.create(operator, t, o1, guard));
     return t.copyD2U();
   }
 
@@ -1215,7 +1215,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);
     OPT_Instruction s2 = Load.create(operator, regTarget, reg2, offset, 
                                      loc, guard);
-    s.insertBack(s2);
+    s.insertBefore(s2);
     return regTarget.copyD2U();
   }
 
@@ -1237,7 +1237,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     OPT_RegisterOperand res = 
       ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Instruction s2 = GuardedUnary.create(GET_OBJ_TIB, res, obj, guard);
-    s.insertBack(s2);
+    s.insertBefore(s2);
     return res.copyD2U();
   }
 
@@ -1258,7 +1258,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     } else if (!t.isResolved()) {
       OPT_RegisterOperand res = 
         ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
-      s.insertBack(Unary.create(GET_CLASS_TIB, res, type));
+      s.insertBefore(Unary.create(GET_CLASS_TIB, res, type));
       return res.copyD2U();
     } else {
       return new OPT_TIBConstantOperand(t);      
