@@ -206,6 +206,7 @@ import org.vmmagic.unboxed.*;
          * this is not, in general, in a GC safe point.  Instead we initiate
          * an asynchronous GC, which will occur at the next safe point.
          */
+        logPoll(space, "Asynchronous collection requested");
         setAwaitingCollection();
         return false;
       }
@@ -215,11 +216,26 @@ import org.vmmagic.unboxed.*;
         required = required << 1; // must account for copy reserve
       int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
       int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
-      nextGCFullHeap |= nurseryYield < required || (space != nurserySpace);
+      nextGCFullHeap |= nurseryYield < required || !(space == nurserySpace || space == ploSpace );
+      logPoll(space,"Collection requested");
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
+  }
+
+  /**
+   * Log a message from within 'poll'
+   * @param space
+   * @param message
+   */
+  private void logPoll(Space space, String message) {
+    if (Options.verbose.getValue() >= 3) {
+      Log.write("  [POLL] "); 
+      Log.write(space.getName()); 
+      Log.write(": "); 
+      Log.writeln(message); 
+    }
   }
 
  
