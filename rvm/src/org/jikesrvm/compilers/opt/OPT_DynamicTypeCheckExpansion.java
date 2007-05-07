@@ -35,6 +35,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
@@ -45,6 +46,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_SUPERCLASS_IDS_FRO
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COMBINE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRZerExt;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
@@ -355,7 +357,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
   static OPT_Instruction arrayStoreCheck(OPT_Instruction s, OPT_IR ir, boolean couldBeNull) {
-    OPT_RegisterOperand guardResult = StoreCheck.getClearGuardResult(s);
+    OPT_RegisterOperand guardResult = StoreCheck.getGuardResult(s);
     OPT_Operand arrayRef = StoreCheck.getClearRef(s);
     OPT_Operand elemRef = StoreCheck.getClearVal(s);
     OPT_Operand guard = StoreCheck.getClearGuard(s);
@@ -368,7 +370,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     OPT_BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
     OPT_BasicBlock trapBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     OPT_BasicBlock curBlock = myBlock;
-    s.remove();
+    Move.mutate(s, GUARD_MOVE, guardResult, new OPT_TrueGuardOperand());
 
       // Set up a block with a trap instruction that we can jump to if the 
       // store check fails
@@ -382,7 +384,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // if rhs is null, then the checkcast succeeds
       rhsGuard = ir.regpool.makeTempValidation();
       contBlock.prependInstruction(Binary.create(GUARD_COMBINE, 
-                                                 guardResult, 
+                                                 guardResult.copyRO(), 
                                                  guardResult.copyRO(), 
                                                  rhsGuard.copy()));
       curBlock.appendInstruction(IfCmp.create(REF_IFCMP, rhsGuard.asRegister(), 
