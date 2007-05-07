@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import static org.jikesrvm.compilers.opt.OPT_Constants.SSA_SYNTH_BCI;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
+import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
@@ -541,13 +542,13 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
   public void translateFromSSA(OPT_IR ir) {
     // 0. Deal with guards (validation registers)
     unSSAGuards(ir);
-
-    // 0.5 Perform Sreedhar's naive translation from TSSA to CSSA
-    //normalizeSSA(ir);
  
     // 1. re-compute dominator tree in case of control flow changes
     OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
+
+    // 1.5 Perform Sreedhar's naive translation from TSSA to CSSA
+    if (ir.options.UNROLL_LOG == 0) normalizeSSA(ir);
 
     // 2. compute liveness
     OPT_LiveAnalysis live = 
@@ -756,14 +757,15 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         nextInstr = null; s != sentinel; s = nextInstr) {
       // cache so we don't process inserted instructions
       nextInstr = s.nextInstructionInCodeOrder();
-      if (Phi.conforms(s)) {
+      if (Phi.conforms(s) && !s.getBasicBlock().isExceptionHandlerBasicBlock()) {
+        // We ignore exception handler BBs as they cause problems when inserting copies
+        if (DEBUG) VM.sysWriteln("Processing " + s + " of basic block " + s.getBasicBlock());
+        // Does the phi instruction have an unreachable operand?
+        boolean hasUnreachable = false;
         // 1. Naively copy source operands into predecessor blocks
         for (int index=0; index < Phi.getNumberOfPreds(s); index++) {
           OPT_Operand op = Phi.getValue(s, index);
-          if (!op.isRegister()) {
-            // ignore heap and constant operands
-            continue;
-          } else {
+          if (op.isRegister()) {
             // Get rval
             OPT_Register rval = op.asRegister().register;
             if(rval.isValidation()) {
@@ -775,18 +777,17 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
               OPT_Instruction copy = OPT_SSA.makeMoveInstruction(ir, rvalPrime, rval, op.getType());
               // Insert a copy of rval to rval' in predBlock
               OPT_BasicBlock pred = Phi.getPred(s,index).block;
-              if(s.getBasicBlock().isExceptionHandlerBasicBlock()) {
-                pred.appendInstructionRespectingTerminalBranchOrPEI(copy);
-              } else {
-                pred.appendInstructionRespectingTerminalBranch(copy);                
-              }
+              pred.appendInstructionRespectingTerminalBranch(copy);                
+              if (DEBUG) VM.sysWriteln("Inserted rval copy of " + copy + " into basic block " + pred);
               // Rename rval to rval' in phi instruction
               op.asRegister().setRegister(rvalPrime);
             }
+          } else if (op instanceof OPT_UnreachableOperand) {
+            hasUnreachable = true;
           }
         }
-        // 2. Naively copy the result
-        {
+        // 2. Naively copy the result if there were no unreachable operands
+        if (!hasUnreachable) {
           OPT_Operand op = Phi.getResult(s);
           if (!op.isRegister()) {
             // ignore heap operands
@@ -801,6 +802,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
             s.insertAfter(copy);
             // Rename lval to lval' in phi instruction
             op.asRegister().setRegister(lvalPrime);
+            if (DEBUG) VM.sysWriteln("Inserted lval copy of " + copy + " after " + s);
           }
         }
       }
