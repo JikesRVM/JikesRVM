@@ -8,6 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -296,9 +297,22 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   // -oO Interface to the rest of the compiler Oo-
 
   /**
+   * Constructor for this compiler phase
+   */
+  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_LoopVersioning.class);
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor<OPT_CompilerPhase> getClassConstructor() {
+    return constructor;
+  }
+
+  /**
    * Constructor
    */
-  OPT_LoopVersioning () {
+  public OPT_LoopVersioning () {
     desiredSSAOptions = new OPT_SSAOptions();
     desiredSSAOptions.setScalarsOnly(true);
     if (!inSSAphase) {
