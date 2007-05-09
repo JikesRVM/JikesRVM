@@ -859,6 +859,8 @@ none
 # implements ishl bytecode by shifting its first (register/constant) int
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
 INT_SHL
 Binary
 none
@@ -868,6 +870,8 @@ none
 # implements lshl bytecode by shifting its first (register/constant) long
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
 LONG_SHL
 Binary
 none
@@ -886,6 +890,8 @@ none
 # implements ishr bytecode by shifting its first (register/constant) int
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
 INT_SHR
 Binary
 none
@@ -895,6 +901,8 @@ none
 # implements lshr bytecode by shifting its first (register/constant) long
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
 LONG_SHR
 Binary
 none
@@ -913,6 +921,8 @@ none
 # implements iushr bytecode by shifting its first (register/constant) int
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
 INT_USHR
 Binary
 none
@@ -922,6 +932,8 @@ none
 # implements lushr bytecode by shifting its first (register/constant) long
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
+# NB This shift doesn't correspond to that in the JVM bytecode spec where the
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
 LONG_USHR
 Binary
 none
