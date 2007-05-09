@@ -1615,7 +1615,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_INT) {                  // x << 32 == 0
+          if ((val2 >= BITS_IN_INT)||(val2 < 0)) {  // x << 32 == 0
             Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                         IC(0));
             return DefUseEffect.MOVE_FOLDED;
@@ -1652,7 +1652,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_INT) {   // x >> 32 == x >> 31
+          if ((val2 >= BITS_IN_INT)||(val2 < 0)) { // x >> 32 == x >> 31
             Binary.setVal2(s, IC(31));
             return DefUseEffect.UNCHANGED;
           }
@@ -1727,7 +1727,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_INT) {                  // x >>> 32 == 0
+          if ((val2 >= BITS_IN_INT)||(val2 < 0)) { // x >>> 32 == 0
             Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                         IC(0));
             return DefUseEffect.MOVE_FOLDED;
@@ -1863,7 +1863,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_ADDRESS) {                  // x << 32 == 0
+          if ((val2 >= BITS_IN_ADDRESS)||(val2 < 0)) { // x << 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
                         IC(0));
             return DefUseEffect.MOVE_FOLDED;
@@ -1900,7 +1900,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_ADDRESS) {   // x >> 32 == x >> 31
+          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
             Binary.setVal2(s, IC(BITS_IN_ADDRESS-1));
             return DefUseEffect.UNCHANGED;
           }
@@ -2030,7 +2030,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_ADDRESS) {                  // x >>> 32 == 0
+          if ((val2 >= BITS_IN_ADDRESS)||(val2 < 0)) { // x >>> 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
                         IC(0));
             return DefUseEffect.MOVE_FOLDED;
@@ -2354,7 +2354,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_LONG) {                  // x << 64 == 0
+          if ((val2 >= BITS_IN_LONG)||(val2 < 0)) { // x << 64 == 0
             Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                         LC(0));
             return DefUseEffect.MOVE_FOLDED;
@@ -2391,7 +2391,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_LONG) {   // x >> 64 == x >> 63
+          if ((val2 >= BITS_IN_LONG)||(val2 < 0)) { // x >> 64 == x >> 63
             Binary.setVal2(s, LC(63));
             return DefUseEffect.UNCHANGED;
           }
@@ -2468,7 +2468,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (val2 >= BITS_IN_LONG) {                  // x >>> 64 == 0
+          if ((val2 >= BITS_IN_LONG)||(val2 < 0)) {  // x >>> 64 == 0
             Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
                         LC(0));
             return DefUseEffect.MOVE_FOLDED;
