@@ -1141,15 +1141,30 @@ EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NEG, MO_AS(P(p), DW_S, DW)));
 #####
 # INT_SHL_ACC
 #####
-szpr:	INT_SHL_ACC(r, r)
+szpr:	INT_SHL_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PR(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)),  new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
+szpr:	INT_SHL_ACC(r, riv)
 23
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)),  new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
+szpr:	INT_SHL_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PRL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)),  new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
 szpr:	INT_SHL_ACC(r, INT_CONSTANT)
 13
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 # Are shifts being used to mask out lower bits?
@@ -1160,100 +1175,142 @@ EMIT(MIR_Move.mutate(PLL(p), IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getR
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), new OPT_IntConstantOperand(0xffffffff << VR(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
+stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
 
-stm:	INT_ASTORE(INT_SHL_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHL_ACC(INT_ALOAD(r,riv),INT_AND_ACC(r, INT_CONSTANT)),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_SHL_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), BinaryAcc.getValue(PL(p))));
 
 #####
 # INT_SHR_ACC: 
 #####
-szpr:	INT_SHR_ACC(r, r)
+szpr:	INT_SHR_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PR(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
+szpr:	INT_SHR_ACC(r, riv)
 23
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
+szpr:	INT_SHR_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PRL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
 szpr:	INT_SHR_ACC(r, INT_CONSTANT)
 13
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
+stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
 
-stm:	INT_ASTORE(INT_SHR_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHR_ACC(INT_ALOAD(r,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_SHR_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), BinaryAcc.getValue(PL(p))));
 
 #####
 # INT_USHR_ACC
 #####
-szpr:	INT_USHR_ACC(r, r)
+szpr:	INT_USHR_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PR(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
+szpr:	INT_USHR_ACC(r, riv)
 23
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
+szpr:	INT_USHR_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+23
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PRL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
+
 szpr:	INT_USHR_ACC(r, INT_CONSTANT)
 13
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
+stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
 
-stm:	INT_ASTORE(INT_USHR_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_USHR_ACC(INT_ALOAD(r,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getResult(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_USHR_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), BinaryAcc.getValue(PL(p))));
 
 #####
@@ -1518,26 +1575,80 @@ LONG_NEG(P(p), UnaryAcc.getResult(P(p)));
 #####
 # LONG_SHL_ACC
 #####
-r:	LONG_SHL_ACC(r, riv)
+r:	LONG_SHL_ACC(r, INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHL(P(p));
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHL(P(p), BinaryAcc.getValue(P(p)));
+
+r:	LONG_SHL_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHL(P(p), BinaryAcc.getResult(PR(p)));
+
+r:	LONG_SHL_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHL(P(p), BinaryAcc.getResult(PRL(p)));
+
+r:	LONG_SHL_ACC(r, riv)
+21
+EMIT_INSTRUCTION
+LONG_SHL(P(p), BinaryAcc.getValue(P(p)));
 
 #####
 # LONG_SHR_ACC
 #####
-r:	LONG_SHR_ACC(r, riv)
+r:	LONG_SHR_ACC(r, INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHR(P(p));
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHR(P(p), BinaryAcc.getValue(P(p)));
+
+r:	LONG_SHR_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHR(P(p), BinaryAcc.getResult(PR(p)));
+
+r:	LONG_SHR_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 63); \
+LONG_SHR(P(p), BinaryAcc.getResult(PRL(p)));
+
+r:	LONG_SHR_ACC(r, riv)
+21
+EMIT_INSTRUCTION
+LONG_SHR(P(p), BinaryAcc.getValue(P(p)));
 
 #####
 # LONG_USHR_ACC
 #####
-r:	LONG_USHR_ACC(r, riv)
+r:	LONG_USHR_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
 20
 EMIT_INSTRUCTION
-LONG_USHR(P(p));
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 63); \
+LONG_USHR(P(p), BinaryAcc.getResult(PR(p)));
+
+r:	LONG_USHR_ACC(r, INT_MOVE(INT_AND_ACC(r, INT_CONSTANT)))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRLR(p) & 0x7FFFFFFF) <= 63); \
+LONG_USHR(P(p), BinaryAcc.getResult(PRL(p)));
+
+r:	LONG_USHR_ACC(r, INT_CONSTANT)
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 63); \
+LONG_USHR(P(p), BinaryAcc.getValue(P(p)));
+
+r:	LONG_USHR_ACC(r, riv)
+21
+EMIT_INSTRUCTION
+LONG_USHR(P(p), BinaryAcc.getValue(P(p)));
 
 #####
 # LONG_AND_ACC

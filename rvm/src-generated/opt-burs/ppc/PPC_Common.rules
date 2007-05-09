@@ -521,7 +521,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SLWI, Binary.getResult(P(p)),                \
 rz:	INT_SHL(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SLW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SLW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 rz:	INT_SHL(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 10
@@ -540,7 +541,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRAWI, Binary.getResult(P(p)), R(Binary.getVal1
 rs:	INT_SHR(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SRAW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SRAW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 #guaranteed to be correct also on 64-bit: INT_CONSTANT of REF_AND is immediate, so sign is always zero
 rp:	INT_SHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
@@ -571,7 +573,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRWI, Binary.getResult(P(p)),                \
 rz:	INT_USHR(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SRW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SRW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 #assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
 rp:	INT_USHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)

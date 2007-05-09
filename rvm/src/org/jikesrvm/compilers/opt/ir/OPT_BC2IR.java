@@ -1053,7 +1053,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_ishl:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(false);
           OPT_Operand op1 = popInt();
           s = _binaryHelper(INT_SHL, op1, op2, VM_TypeReference.Int);
         }
@@ -1061,7 +1061,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_lshl:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(true);
           OPT_Operand op1 = popLong();
           s = _binaryDualHelper(LONG_SHL, op1, op2, VM_TypeReference.Long);
         }
@@ -1069,7 +1069,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       
       case JBC_ishr:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(false);
           OPT_Operand op1 = popInt();
           s = _binaryHelper(INT_SHR, op1, op2, VM_TypeReference.Int);
         }
@@ -1077,7 +1077,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_lshr:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(true);
           OPT_Operand op1 = popLong();
           s = _binaryDualHelper(LONG_SHR, op1, op2, VM_TypeReference.Long);
         } 
@@ -1085,7 +1085,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_iushr:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(false);
           OPT_Operand op1 = popInt();
           s = _binaryHelper(INT_USHR, op1, op2, VM_TypeReference.Int);
         }
@@ -1093,7 +1093,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_lushr:
         {
-          OPT_Operand op2 = popInt();
+          OPT_Operand op2 = popShiftInt(true);
           OPT_Operand op1 = popLong();
           s = _binaryDualHelper(LONG_USHR, op1, op2, VM_TypeReference.Long);
         }
@@ -3224,6 +3224,41 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return r;
   }
 
+  /**
+   * Pop an int from the stack to be used in a shift. A shift only uses the
+   * bottom 5 or 6 bits of an int so the upper bits must be masked to conform
+   * with the semantics of xx_SHx. NB the opt compiler shift operators allow that
+   * (x << 16) << 16 == x << 32, which isn't true in the bytecode
+   * @param longShift is this a shift of a long
+   * @return the operand containing the amount to shift by
+   */
+  private OPT_Operand popShiftInt(boolean longShift) {
+    OPT_Operand op = popInt();
+    if (op instanceof OPT_IntConstantOperand) {
+      int val = op.asIntConstant().value;
+      if(!longShift) {
+        if ((val > 0)&&(val <= 31)) {
+          return op;
+        } else {
+          return new OPT_IntConstantOperand(val & 0x1F);
+        }
+      } else {
+        if ((val > 0) && (val <= 63)) {
+          return op;
+        } else {
+          return new OPT_IntConstantOperand(val & 0x3F);
+        }        
+      }
+    } else {
+      OPT_Instruction s = _binaryHelper(INT_AND, op,
+          new OPT_IntConstantOperand(longShift ? 0x3F : 0x1f),
+          VM_TypeReference.Int);
+      if (s != null && !currentBBLE.isSelfRegen()) {
+        appendInstruction(s);
+      }
+      return popInt();
+    }
+  }
 
   //// SUBROUTINES.
   private OPT_Instruction _jsrHelper(int offset) {

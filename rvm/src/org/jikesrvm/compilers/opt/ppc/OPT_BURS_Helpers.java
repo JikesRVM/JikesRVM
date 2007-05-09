@@ -1355,26 +1355,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     return  power;
   }
 
-  /**
-   * Emits instructions to perform an integer shift operation. This is because
-   * we need to take the logical AND of the RHS (the amount to shift by) with
-   * 31 before we perform the shift. Thus, we create and use a new temporary
-   * register to hold the (RHS &amp; 0x1f).
-   * @param s instruction, containing the destination register and operands
-   * (both registers) - the value <code>P(p)</code> one uses in PPC32.rules.
-   * @param shift the shift operation to perform: one of <code>PPC_SLW</code>,
-   * <code>PPC_SRW</code>, or <code>PPC_SRAW</code>
-   */
-  protected void INT_SHIFT(OPT_Instruction s, OPT_Operator shift)
-  {
-    if (VM.VerifyAssertions) VM._assert(shift==PPC_SRW || shift==PPC_SRAW ||
-                                        shift==PPC_SLW);
-        OPT_Register t0=regpool.getInteger();
-        EMIT(MIR_Binary.create(PPC_ANDIr, I(t0), R(Binary.getVal2(s)), IC(0x1f)));
-        EMIT(MIR_Binary.mutate(s, shift, Binary.getResult(s),
-                           R(Binary.getVal1(s)), I(t0)));
-  }
-
   protected final void INT_DIV_IMM(OPT_Instruction s, 
                                    OPT_RegisterOperand def, 
                                    OPT_RegisterOperand left, 
@@ -1669,7 +1649,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
-    int shift = right.value & 0x3f;
+    int shift = right.value;
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, I(defHigh), 
                                     I(leftHigh), 
@@ -1682,11 +1662,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     } else if (shift == 32) {
       EMIT(MIR_Move.create(PPC_MOVE, I(defHigh), I(leftLow)));
       EMIT(MIR_Unary.create(PPC_LDI, I(defLow), IC(0)));
-    } else {
+    } else if (shift < 64) {
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SLWI, I(defHigh), I(leftLow), 
                              IC(shift)));
       EMIT(MIR_Unary.create(PPC_LDI, I(defLow), IC(0)));
+    } else {
+      EMIT(MIR_Unary.create(PPC_LDI, I(defHigh), IC(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, I(defLow), IC(0)));    
     }
   }
 
@@ -1721,7 +1704,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
-    int shift = right.value & 0x3f;
+    int shift = right.value;
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, I(defLow), I(leftLow), 
                                     IC(32 - shift), IC(shift), IC(31)));
@@ -1734,11 +1717,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     } else if (shift == 32) {
       EMIT(MIR_Move.create(PPC_MOVE, I(defLow), I(leftHigh)));
       EMIT(MIR_Unary.create(PPC_LDI, I(defHigh), IC(0)));
-    } else {
+    } else if (shift < 64) {
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SRWI, I(defLow), I(leftHigh), 
                              IC(shift)));
       EMIT(MIR_Unary.create(PPC_LDI, I(defHigh), IC(0)));
+    } else {
+      EMIT(MIR_Unary.create(PPC_LDI, I(defHigh), IC(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, I(defLow), IC(0)));    
     }
   }
 
@@ -1751,7 +1737,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
-    int shift = right.value & 0x3f;
+    int shift = right.value;
     if (shift < 32) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, I(defLow), I(leftLow), 
                                     IC(32 - shift), IC(shift), IC(31)));
@@ -1765,6 +1751,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC_SRAWI, I(defHigh), I(leftHigh), 
                              IC(31)));
     } else {
+      if (shift > 63) shift = 63;
       shift = shift - 32;
       EMIT(MIR_Binary.create(PPC_SRAWI, I(defLow), I(leftHigh), 
                              IC(shift)));

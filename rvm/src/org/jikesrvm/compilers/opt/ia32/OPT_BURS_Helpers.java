@@ -1309,14 +1309,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * 
    * @param s the instruction to expand
    */
-  protected final void LONG_SHL(OPT_Instruction s) {
+  protected final void LONG_SHL(OPT_Instruction s, OPT_Operand shiftOp) {
     OPT_Register hval = BinaryAcc.getResult(s).register;
     OPT_Register lval = burs.ir.regpool.getSecondReg(hval);
-    OPT_Operand shiftOp = BinaryAcc.getClearValue(s);
 
     if (shiftOp instanceof OPT_IntConstantOperand) {
       int shift = ((OPT_IntConstantOperand) shiftOp).value;
-      shift = shift & 0x3F; // only bottom six bits matter;
       if (shift == 0) {
         s.remove(); // operation is a nop.
       } else if (shift == 1) {
@@ -1381,14 +1379,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * 
    * @param s the instruction to expand
    */
-  protected final void LONG_SHR(OPT_Instruction s) {
+  protected final void LONG_SHR(OPT_Instruction s, OPT_Operand shiftOp) {
     OPT_Register hval = BinaryAcc.getResult(s).register;
     OPT_Register lval = burs.ir.regpool.getSecondReg(hval);
-    OPT_Operand shiftOp = BinaryAcc.getClearValue(s);
 
     if (shiftOp instanceof OPT_IntConstantOperand) {
       int shift = ((OPT_IntConstantOperand) shiftOp).value;
-      shift = shift & 0x3F; // only bottom six bits matter;
       if (shift == 0) {
         s.remove(); // operation is a nop.
       } else if (shift == 1) {
@@ -1452,14 +1448,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * 
    * @param s the instruction to expand
    */
-  protected final void LONG_USHR(OPT_Instruction s) {
+  protected final void LONG_USHR(OPT_Instruction s, OPT_Operand shiftOp) {
     OPT_Register hval = BinaryAcc.getResult(s).register;
     OPT_Register lval = burs.ir.regpool.getSecondReg(hval);
-    OPT_Operand shiftOp = BinaryAcc.getClearValue(s);
 
     if (shiftOp instanceof OPT_IntConstantOperand) {
       int shift = ((OPT_IntConstantOperand) shiftOp).value;
-      shift = shift & 0x3F; // only bottom six bits matter;
       if (shift == 0) {
         s.remove(); // operation is a nop.
       } else if (shift == 1) {
