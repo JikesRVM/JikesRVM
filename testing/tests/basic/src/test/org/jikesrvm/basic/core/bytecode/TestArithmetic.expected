@@ -8,11 +8,29 @@ Expected: 1 Actual: 1
 Expected: -3 Actual: -3
 Expected: 4 Actual: 4
 Expected: 1 Actual: 1
-Expected: 273 Actual: 273
-Expected: 272 Actual: 272
+Expected: 7 Actual: 7
+Expected: 6 Actual: 6
 Expected: -6 Actual: -6
 Expected: -2 Actual: -2
 Expected: 2147483646 Actual: 2147483646
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 2 Actual: 2
+Expected: -2147483648 Actual: -2147483648
+Expected: 1 Actual: 1
+Expected: -2147483648 Actual: -2147483648
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
 
 -- ltest --
 Expected: 10000000002 Actual: 10000000002

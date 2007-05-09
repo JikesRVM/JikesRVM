@@ -36,8 +36,12 @@ class TestArithmetic {
     remTest();
   }
 
+  private static int int_3 = -3;
+  private static int int1 = 1;
+  private static int int3 = 3;
+  private static int int5 = 5;
   private static void itest() {
-    int a = 3;
+    int a = int3;
     System.out.print("Expected: 4 Actual: ");
     System.out.println(a + 1);  // iadd
     System.out.print("Expected: 2 Actual: ");
@@ -53,17 +57,17 @@ class TestArithmetic {
     System.out.print("Expected: 4 Actual: ");
     System.out.println(++a);  // iinc
 
-    a = 0x00000011;
-    int b = 0x00000101;
+    a = int3;     // 0x00000011
+    int b = int5; // 0x00000101
 
     System.out.print("Expected: 1 Actual: ");
     System.out.println(a & b);  // iand
-    System.out.print("Expected: 273 Actual: ");
+    System.out.print("Expected: 7 Actual: ");
     System.out.println(a | b);  // ior
-    System.out.print("Expected: 272 Actual: ");
+    System.out.print("Expected: 6 Actual: ");
     System.out.println(a ^ b);  // ixor
 
-    a = 0xfffffffd; // -3
+    a = int_3; // 0xfffffffd;
 
     System.out.print("Expected: -6 Actual: ");
     System.out.println(a << 1);  // ishl
@@ -71,6 +75,48 @@ class TestArithmetic {
     System.out.println(a >> 1);  // ishr
     System.out.print("Expected: 2147483646 Actual: ");
     System.out.println(a >>> 1);  // iushr
+    
+    // funny Java shift cases
+    a = int1;
+
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a << 32);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((a << 16) << 16);
+    System.out.print("Expected: 2 Actual: ");
+    System.out.println(a << 33);
+    System.out.print("Expected: -2147483648 Actual: ");
+    System.out.println(a << -1);    
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a << -32);    
+    System.out.print("Expected: -2147483648 Actual: ");
+    System.out.println(a << -33);    
+
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a >> 32);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((a >> 16) >> 16);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >> 33);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >> -1);    
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a >> -32);    
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >> -33);    
+
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a >>> 32);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((a >>> 16) >>> 16);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >>> 33);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >>> -1);    
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(a >>> -32);    
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(a >>> -33);    
   }
 
   private static void ltest() {
